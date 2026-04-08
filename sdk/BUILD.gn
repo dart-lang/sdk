@@ -54,6 +54,8 @@ declare_args() {
 # ........dart2bytecode.snapshot (AOT snapshot, for selected targets)
 # ........dart2js_aot.dart.snapshot (AOT snapshot)
 # ........dart2wasm_product.snapshot (AOT snapshot)
+# ........dart_runtime_service_vm_aot.snapshot (AOT snapshot)
+# ........dart_runtime_service_vm.snapshot (JIT snapshot)
 # ........dartdev_aot.dart.snapshot (AOT snapshot)
 # ........dartdevc_aot.dart.snapshot (AOT snapshot)
 # ........dds_aot.dart.snapshot (AOT snapshot)
@@ -153,6 +155,13 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
       "dart_mcp_server_aot",
     ],
   ]
+  if (include_experimental_vm_service) {
+    _platform_sdk_snapshots += [ [
+          "dart_runtime_service_vm_aot",
+          "../utils/dart_runtime_service_vm:dart_runtime_service_vm_aot",
+          "dart_runtime_service_vm_aot",
+        ] ]
+  }
 } else {
   _platform_sdk_snapshots += [ [
         "dds",
@@ -160,12 +169,20 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
         "dds",
       ] ]
 }
+
 if (dart_snapshot_kind == "app-jit") {
   _platform_sdk_snapshots += [ [
         "kernel-service",
         "../utils/kernel-service:kernel-service_snapshot",
         "kernel-service",
       ] ]
+  if (include_experimental_vm_service) {
+    _platform_sdk_snapshots += [ [
+          "dart_runtime_service_vm",
+          "../utils/dart_runtime_service_vm:dart_runtime_service_vm",
+          "dart_runtime_service_vm",
+        ] ]
+  }
 }
 
 # dart2bytecode is an AOT snapshot, which is not supported on the ia32
@@ -398,9 +415,7 @@ if (!using_sanitizer && current_os == "linux" &&
       "tsan",
     ]
     if (is_clang) {
-      sanitizers += [
-        "msan",
-      ]
+      sanitizers += [ "msan" ]
     }
   } else if (current_cpu == "riscv64") {
     # Fuchsia Clang is missing the riscv64 MSAN runtime.
@@ -536,7 +551,8 @@ foreach(snapshot, _full_sdk_snapshots) {
   # The dartdev, dds and dtd snapshots are output to root_out_dir in order to
   # be compatible with the way the dart sdk is distributed internally.
   if (snapshot[0] == "dartdev_aot" || snapshot[0] == "dds_aot_product" ||
-      snapshot[0] == "dart_tooling_daemon_aot_product") {
+      snapshot[0] == "dart_tooling_daemon_aot_product" ||
+      snapshot[0] == "dart_runtime_service_vm_aot") {
     root = root_out_dir
   }
   copy("copy_${snapshot[0]}_snapshot") {
@@ -765,10 +781,8 @@ group("copy_libraries") {
 # This rule writes the version file.
 action("write_version_file") {
   visibility = [ ":create_common_sdk" ]
-  inputs = [
-    "../tools/VERSION",
-    "$default_git_folder/logs/HEAD",
-  ]
+  inputs = [ "../tools/VERSION" ]
+  deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/version"
   outputs = [ output ]
   script = "../tools/write_version_file.py"
@@ -784,7 +798,7 @@ action("write_version_file") {
 # This rule writes the revision file.
 action("write_revision_file") {
   visibility = [ ":create_common_sdk" ]
-  inputs = [ "$default_git_folder/logs/HEAD" ]
+  deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/revision"
   outputs = [ output ]
   script = "../tools/write_revision_file.py"
@@ -814,7 +828,7 @@ copy("copy_license") {
 # This rule generates a custom dartdoc_options.yaml file.
 action("write_dartdoc_options") {
   visibility = [ ":create_common_sdk" ]
-  inputs = [ "$default_git_folder/logs/HEAD" ]
+  deps = [ "../utils:git_version" ]
   output = "$root_out_dir/$dart_sdk_output/dartdoc_options.yaml"
   outputs = [ output ]
   script = "../tools/write_dartdoc_options_file.py"

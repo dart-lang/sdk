@@ -31,6 +31,40 @@ mixin ClosureTestCases on AbstractCompletionDriverTest {
     printerConfiguration.withDisplayText = true;
   }
 
+  Future<void> test_afterArrow_functionReturnType() async {
+    await computeSuggestions('''
+void Function(int x, int y) f() => ^;
+''');
+    assertResponse(r'''
+suggestions
+  |(x, y) => |
+    kind: invocation
+    displayText: (x, y) =>
+  (x, y) {
+  ^
+}
+    kind: invocation
+    displayText: (x, y) {}
+''');
+  }
+
+  Future<void> test_afterReturn_functionReturnType() async {
+    await computeSuggestions('''
+void Function(int x, int y) f() {return ^;}
+''');
+    assertResponse(r'''
+suggestions
+  |(x, y) => |
+    kind: invocation
+    displayText: (x, y) =>
+  (x, y) {
+  ^
+}
+    kind: invocation
+    displayText: (x, y) {}
+''');
+  }
+
   Future<void> test_argumentList_named() async {
     await computeSuggestions('''
 void f({void Function(int a, String b) closure}) {}
@@ -114,6 +148,23 @@ suggestions
   }
     kind: invocation
     displayText: (a, b) {}
+''');
+  }
+
+  Future<void> test_inSwitch_functionType() async {
+    await computeSuggestions('''
+void Function(int x, int y) f() => switch (0) {_ => ^};
+''');
+    assertResponse(r'''
+suggestions
+  |(x, y) => |
+    kind: invocation
+    displayText: (x, y) =>
+  (x, y) {
+  ^
+}
+    kind: invocation
+    displayText: (x, y) {}
 ''');
   }
 

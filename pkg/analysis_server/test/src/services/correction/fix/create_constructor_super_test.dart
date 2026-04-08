@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -20,6 +19,36 @@ void main() {
 class CreateConstructorSuperTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createConstructorSuper;
+
+  Future<void> test_emptyBody_braces() async {
+    await resolveTestCode('''
+class A(final int field) {}
+
+class B extends A {}
+''');
+    await assertHasFix('''
+class A(final int field) {}
+
+class B extends A {
+  B(super.field);
+}
+''', matchFixMessage: 'Create constructor to call super.');
+  }
+
+  Future<void> test_emptyBody_semicolon() async {
+    await resolveTestCode('''
+class A(final int field);
+
+class B extends A;
+''');
+    await assertHasFix('''
+class A(final int field);
+
+class B extends A {
+  B(super.field);
+}
+''', matchFixMessage: 'Create constructor to call super.');
+  }
 
   Future<void> test_fieldInitializer() async {
     await resolveTestCode('''

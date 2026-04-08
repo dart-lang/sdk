@@ -28,9 +28,9 @@ import 'package:analysis_server/src/services/correction/assist_internal.dart';
 import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/services/perf_witness/perf_witness.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
-import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/performance_logger.dart';
+import 'package:analysis_server/src/utilities/env.dart' as env;
 import 'package:analysis_server/src/utilities/request_statistics.dart';
 import 'package:analysis_server/starter.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
@@ -228,13 +228,6 @@ class Driver implements ServerStarter {
 
     analysisServerOptions.usePlugins = results.flag(pluginsFlag);
 
-    // Analytics (legacy, and unified)
-    var disableAnalyticsForSession = results.flag(suppressAnalyticsFlag);
-
-    if (results.wasParsed(trainUsingOption)) {
-      disableAnalyticsForSession = true;
-    }
-
     var defaultSdkPath = _getSdkPath(results);
     var dartSdkManager = DartSdkManager(defaultSdkPath);
 
@@ -244,22 +237,26 @@ class Driver implements ServerStarter {
     var defaultSdk = _createDefaultSdk(defaultSdkPath);
 
     // Create the analytics manager.
-    Analytics analytics;
-    if (disableAnalyticsForSession) {
-      analytics = NoOpAnalytics();
-    } else {
-      var tool = switch (clientId) {
-        'VS-Code' || 'VS-Code-Remote' => DashTool.vscodePlugins,
-        'IntelliJ-IDEA' => DashTool.intellijPlugins,
-        'Android-Studio' => DashTool.androidStudioPlugins,
-        _ => null,
-      };
-      if (tool != null) {
-        analytics = _createAnalytics(defaultSdk, defaultSdkPath, tool);
-      } else {
-        analytics = NoOpAnalytics();
-      }
-    }
+
+    var tool =
+        env.topLevelTool ??
+        switch (clientId) {
+          'VS-Code' || 'VS-Code-Remote' => DashTool.vscodePlugins,
+          'IntelliJ-IDEA' => DashTool.intellijPlugins,
+          'Android-Studio' => DashTool.androidStudioPlugins,
+          _ => null,
+        };
+
+    // Analytics (legacy, and unified).
+    var disableAnalyticsForSession =
+        tool == null ||
+        areAnalyticsSuppressed() ||
+        results.flag(suppressAnalyticsFlag) ||
+        results.wasParsed(trainUsingOption);
+
+    var analytics = disableAnalyticsForSession
+        ? NoOpAnalytics()
+        : _createAnalytics(defaultSdk, defaultSdkPath, tool);
     var analyticsManager = AnalyticsManager(analytics);
 
     bool shouldSendCallback() {
@@ -346,12 +343,11 @@ class Driver implements ServerStarter {
 
     // Initialize the session logging service.
     var sessionLogFilePath = results.option(sessionLogOption);
-    _sessionLogger = SessionLogger();
-    var inMemorySink = SessionLoggerInMemorySink(maxBufferLength: 1024);
-    _sessionLogger.sink = inMemorySink;
-    if (sessionLogFilePath != null) {
-      inMemorySink.nextLogger = SessionLoggerFileSink(sessionLogFilePath);
-    }
+    _sessionLogger = SessionLogger(filePath: sessionLogFilePath);
+    _sessionLogger.normalizer.addPathReplacement(
+      defaultSdkPath,
+      '{{dartSdkRoot}}',
+    );
     _sessionLogger.logCommandLine(arguments: arguments);
 
     int? diagnosticServerPort;
@@ -380,6 +376,12 @@ class Driver implements ServerStarter {
     // TODO(brianwilkerson): Pass the following value to the server and
     // implement the debouncing when it hasn't been disabled.
     // var disableDebouncing = results[DISABLE_STATUS_NOTIFICATION_DEBOUNCING] as bool;
+
+    var environment = env.map(
+      tool: tool,
+      suppressAnalytics: disableAnalyticsForSession,
+    );
+
     if (analysisServerOptions.useLanguageServerProtocol) {
       if (sendPort != null) {
         throw UnimplementedError(
@@ -396,6 +398,7 @@ class Driver implements ServerStarter {
         diagnosticServerPort,
         errorNotifier,
         performanceLogger,
+        environment,
       );
     } else {
       startAnalysisServer(
@@ -412,6 +415,7 @@ class Driver implements ServerStarter {
         errorNotifier,
         sendPort,
         performanceLogger,
+        environment,
       );
     }
 
@@ -435,6 +439,7 @@ class Driver implements ServerStarter {
     ErrorNotifier errorNotifier,
     SendPort? sendPort,
     PerformanceLogger? performanceLogger,
+    Map<String, String>? environment,
   ) {
     var capture = results.flag(disableServerExceptionHandlingOption)
         ? (_, Function f, {void Function(String)? print}) => f()
@@ -467,6 +472,7 @@ class Driver implements ServerStarter {
       analyticsManager,
       detachableFileSystemManager,
       performanceLogger,
+      environment: environment,
     );
 
     diagnosticServer.httpServer = HttpAnalysisServer(socketServer);
@@ -556,6 +562,7 @@ class Driver implements ServerStarter {
     int? diagnosticServerPort,
     ErrorNotifier errorNotifier,
     PerformanceLogger? performanceLogger,
+    Map<String, String>? environment,
   ) {
     var capture = args.flag(disableServerExceptionHandlingOption)
         ? (_, Function f, {void Function(String)? print}) => f()
@@ -576,6 +583,7 @@ class Driver implements ServerStarter {
       sessionLogger,
       detachableFileSystemManager,
       performanceLogger,
+      environment: environment,
     );
     errorNotifier.server = socketServer.analysisServer;
     diagnosticServer.httpServer = HttpAnalysisServer(socketServer);

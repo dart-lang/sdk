@@ -75,16 +75,19 @@ class _Unalias extends ReplacementVisitor {
       }
       if (newTypeArguments != null) {
         result = new TypedefType(
-                node.typedefNode, node.nullability, newTypeArguments)
-            .unalias;
+          node.typedefNode,
+          node.nullability,
+          newTypeArguments,
+        ).unalias;
       } else {
         result = node.unalias;
       }
     } else {
       result = node.unalias;
     }
-    result = result.withDeclaredNullability(uniteNullabilities(
-        node.declaredNullability, result.declaredNullability));
+    result = result.withDeclaredNullability(
+      uniteNullabilities(node.declaredNullability, result.declaredNullability),
+    );
     return result;
   }
 }

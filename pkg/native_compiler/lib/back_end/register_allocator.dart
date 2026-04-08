@@ -78,7 +78,9 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
   LinearScanRegisterAllocator(super.backEndState, this.constraints);
 
   RegisterClass registerClass(Definition instr) =>
-      instr.type is DoubleType ? RegisterClass.fpu : RegisterClass.cpu;
+      instr.type is DoubleType && backEndState.unboxing.hasUnboxedResult(instr)
+      ? RegisterClass.fpu
+      : RegisterClass.cpu;
 
   int instructionPos(Instruction instr) => _instructionPos[instr.id];
   int blockStartPos(Block block) => instructionPos(block);
@@ -146,8 +148,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       _instructionByPos[pos ~/ step] = block.id;
       pos += step;
       for (final instr in block) {
-        if (instr is Phi) {
-          // All Phis have the same position as their Block.
+        if (instr is Phi || instr is Parameter) {
+          // All Phis and Parameters have the same position as their Block.
           _instructionPos[instr.id] = blockStartPos(block);
         } else {
           _instructionPos[instr.id] = pos;
@@ -159,7 +161,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     }
 
     errorContext.annotator = (Instruction instr) =>
-        '[${instructionPos(instr)}]';
+        (instr is ParallelMove) ? null : '[${instructionPos(instr)}]';
   }
 
   void buildLiveRanges(SSALivenessAnalysis liveness) {
@@ -168,6 +170,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     _fpuRegLiveRanges = List.filled(constraints.getNumberOfFPRegisters(), null);
 
     for (final block in backEndState.codeGenBlockOrder.reversed) {
+      currentBlock = block;
       final blockStart = blockStartPos(block);
       final blockEnd = blockEndPos(block);
 
@@ -201,6 +204,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       }
 
       for (final instr in block.reversed) {
+        currentInstruction = instr;
         if (instr is CallInstruction) {
           backEndState.stackFrame.allocateArgumentsSlots(instr);
         }
@@ -328,7 +332,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     } else {
       final liveRange = LiveRange(constr.registerClass);
       _liveRanges.add(liveRange);
-      liveRange.addInterval(pos, pos + 1);
+      liveRange.addInterval(pos - 1, pos + 1);
       final loc = liveRange.addUse(pos, constr);
       _operandLocations[operandId] = loc;
     }
@@ -809,15 +813,25 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
             if (instr is JoinBlock && instr.hasPhis) {
               instr = instr.phis.last;
             }
+            ParallelMoveStage stage;
             if (instr is! Goto && next.start.isOdd) {
               instr = _nextInstruction(instr);
+              stage = ParallelMoveStage.split;
+            } else {
+              stage = ParallelMoveStage.splitLate;
             }
             _insertMoveBefore(
               instr,
-              ParallelMoveStage.split,
+              stage,
               liveRange.allocatedLocation!,
               next.allocatedLocation!,
             );
+            if (trace) {
+              print(
+                'Insert split move at ${next.start} (before ${IrToText.instruction(instr)})'
+                ' ${liveRange} ${liveRange.allocatedLocation} => $next ${next.allocatedLocation}',
+              );
+            }
           }
           liveRange = next;
         }

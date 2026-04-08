@@ -7,32 +7,32 @@ import "dart:core" as core;
 [229]  enum-element static const field self::E b = [229] [229] #C6;
 [232]  enum-element static const field self::E c = [232] [232] #C9;
 [222]  static const field core::List<self::E> values = [-1] [-1] #C10;
-[222]  const synthetic constructor •([222] core::int #index, [222] core::String #name) → self::E
+[222]  const synthetic constructor [222] [222] •([222] core::int #index, [222] core::String #name) → self::E
     : [222] super core::_Enum::• [222]([-1] #index, [-1] #name)
 [-1]    ;
-[222]  method core::_enumToString() → core::String
+[222]  method [222] [222] core::_enumToString() → core::String
 [-1]    return [-1] [-1] "E.${[-1] [-1] [-1] [-1] this.{core::_Enum::_name}{core::String}}";
 }
 [243]class PrimitiveEquals extends core::Object /*hasConstConstructor*/  {
 [273]  final field core::int field;
-[289]  const constructor •([310] core::int field) → self::PrimitiveEquals
+[289]  const constructor [304] [316] •([310] core::int field) → self::PrimitiveEquals
     : [310] self::PrimitiveEquals::field = [310] [310] field, [289] super core::Object::• [289]()
 [-1]    ;
 }
 [327]class NonPrimitiveEquals extends core::Object /*hasConstConstructor*/  {
 [360]  final field core::int field;
-[376]  const constructor •([400] core::int field) → self::NonPrimitiveEquals
+[376]  const constructor [394] [406] •([400] core::int field) → self::NonPrimitiveEquals
     : [400] self::NonPrimitiveEquals::field = [400] [400] field, [376] super core::Object::• [376]()
 [-1]    ;
-[419]  get hashCode() → core::int
+[419]  get [428] [445] hashCode() → core::int
 [431]    return [437] [437] [431] [431] [431] [431] this.{self::NonPrimitiveEquals::field}{core::int}.{core::num::hashCode}{core::int};
-[464]  operator ==([474] core::Object other) → core::bool {
+[464]  operator [466] [594] ==([474] core::Object other) → core::bool {
 [487]    if([491] [491] core::identical [500]([501] this, [507] other))
 [515]      return [522] [522] true;
 [532]    return [567] [567] [545] [545] [539] [539] other is self::NonPrimitiveEquals && [576] [576] [570] [570] [570] [570] this.{self::NonPrimitiveEquals::field}{core::int} =={core::num::==}{(core::Object) → core::bool} [585] [585] [579] [579] other{self::NonPrimitiveEquals}.{self::NonPrimitiveEquals::field}{core::int};
   }
 }
-[599]static method switchStatement([615] dynamic o) → dynamic {
+[599]static method [614] [753] switchStatement([615] dynamic o) → dynamic {
 [622]  #L1:
 [622]  {
 [630]    [630] final synthesized dynamic #0#0 = [630] [630] o;
@@ -64,7 +64,7 @@ import "dart:core" as core;
     }
   }
 }
-[756]static method switchStatementWithLabel([781] dynamic o) → dynamic {
+[756]static method [780] [958] switchStatementWithLabel([781] dynamic o) → dynamic {
 [788]  #L2:
 [788]  {
 [796]    [796] final synthesized dynamic #0#0 = [796] [796] o;
@@ -104,7 +104,7 @@ import "dart:core" as core;
     }
   }
 }
-[961]static method switchStatementWithContinue([989] dynamic o) → dynamic {
+[961]static method [988] [1281] switchStatementWithContinue([989] dynamic o) → dynamic {
 [996]  #L3:
 [996]  {
 [996]    [996] core::int #t21 = [996] [996] [996] [996] 1.{core::int::unary-}[996](){() → core::int};
@@ -180,7 +180,7 @@ import "dart:core" as core;
     }
   }
 }
-[1284]static method switchStatementWithContinueNested([1318] dynamic o1, [1322] dynamic o2) → dynamic {
+[1284]static method [1317] [2388] switchStatementWithContinueNested([1318] dynamic o1, [1322] dynamic o2) → dynamic {
 [1330]  #L7:
 [1330]  {
 [1330]    [1330] core::int #t32 = [1330] [1330] [1330] [1330] 1.{core::int::unary-}[1330](){() → core::int};
@@ -402,7 +402,7 @@ import "dart:core" as core;
     }
   }
 }
-[2391]static method switchStatementEnum([2413] self::E o) → dynamic {
+[2391]static method [2410] [2533] switchStatementEnum([2413] self::E o) → dynamic {
 [2420]  #L19:
 [2420]  switch([2428] [2428] o) /* isExplicitlyExhaustive, self::E */ {
 [2437]    #L20:
@@ -424,7 +424,7 @@ import "dart:core" as core;
       }
   }
 }
-[2536]static method switchStatementEnumWithGuard([2567] self::E o) → dynamic {
+[2536]static method [2564] [2677] switchStatementEnumWithGuard([2567] self::E o) → dynamic {
 [2574]  #L23:
 [2574]  {
 [2582]    [2582] final synthesized self::E #0#0 = [2582] [2582] o;
@@ -452,7 +452,7 @@ import "dart:core" as core;
     }
   }
 }
-[2680]static method switchStatementEnumWithLabel([2711] self::E o) → dynamic {
+[2680]static method [2708] [2842] switchStatementEnumWithLabel([2711] self::E o) → dynamic {
 [2718]  #L24:
 [2718]  switch([2726] [2726] o) /* isExplicitlyExhaustive, self::E */ {
 [2735]    #L25:
@@ -474,7 +474,7 @@ import "dart:core" as core;
       }
   }
 }
-[2845]static method switchStatementEnumWithContinue([2879] self::E o) → dynamic {
+[2845]static method [2876] [3069] switchStatementEnumWithContinue([2879] self::E o) → dynamic {
 [2886]  #L28:
 [2886]  switch([2894] [2894] o) /* isExplicitlyExhaustive, self::E */ {
 [2903]    #L29:
@@ -496,7 +496,7 @@ import "dart:core" as core;
       }
   }
 }
-[3072]static method switchStatementPrimitiveEquals([3103] dynamic o) → dynamic {
+[3072]static method [3102] [3233] switchStatementPrimitiveEquals([3103] dynamic o) → dynamic {
 [3110]  #L32:
 [3110]  switch([3118] [3118] o) /* dynamic */ {
 [3127]    #L33:
@@ -512,7 +512,7 @@ import "dart:core" as core;
       }
   }
 }
-[3236]static method switchStatementNonPrimitiveEquals([3270] dynamic o) → dynamic {
+[3236]static method [3269] [3406] switchStatementNonPrimitiveEquals([3270] dynamic o) → dynamic {
 [3277]  #L35:
 [3277]  {
 [3285]    [3285] final synthesized dynamic #0#0 = [3285] [3285] o;
@@ -535,7 +535,7 @@ import "dart:core" as core;
     }
   }
 }
-[3409]static method switchExpression([3426] dynamic o) → dynamic {
+[3409]static method [3425] [3512] switchExpression([3426] dynamic o) → dynamic {
 [3433]  return [3440] [3440] block {
 [-1]    [-1] dynamic #t59;
 [3448]    [3448] final synthesized dynamic #0#0 = [3448] [3448] o;
@@ -569,7 +569,7 @@ import "dart:core" as core;
     }
   } =>[-1] [-1] #t59;
 }
-[3515]static method switchExpressionEnum([3538] self::E o) → dynamic {
+[3515]static method [3535] [3612] switchExpressionEnum([3538] self::E o) → dynamic {
 [3545]  return [3552] [3552] block {
 [-1]    [-1] core::int #t62;
 [3552]    #L37:
@@ -595,7 +595,7 @@ import "dart:core" as core;
     }
   } =>[-1] [-1] #t62;
 }
-[3615]static method switchExpressionEnumWithGuard([3647] self::E o) → dynamic {
+[3615]static method [3644] [3729] switchExpressionEnumWithGuard([3647] self::E o) → dynamic {
 [3654]  return [3661] [3661] block {
 [-1]    [-1] core::int #t63;
 [3669]    [3669] final synthesized self::E #0#0 = [3669] [3669] o;
@@ -624,7 +624,7 @@ import "dart:core" as core;
     }
   } =>[-1] [-1] #t63;
 }
-[3732]static method switchExpressionPrimitiveEquals([3764] dynamic o) → dynamic {
+[3732]static method [3763] [3878] switchExpressionPrimitiveEquals([3764] dynamic o) → dynamic {
 [3771]  return [3778] [3778] block {
 [-1]    [-1] core::int #t64;
 [3786]    [3786] final synthesized dynamic #0#0 = [3786] [3786] o;
@@ -653,7 +653,7 @@ import "dart:core" as core;
     }
   } =>[-1] [-1] #t64;
 }
-[3881]static method switchExpressionNonPrimitiveEquals([3916] dynamic o) → dynamic {
+[3881]static method [3915] [4036] switchExpressionNonPrimitiveEquals([3916] dynamic o) → dynamic {
 [3923]  return [3930] [3930] block {
 [-1]    [-1] core::int #t65;
 [3938]    [3938] final synthesized dynamic #0#0 = [3938] [3938] o;
@@ -682,7 +682,7 @@ import "dart:core" as core;
     }
   } =>[-1] [-1] #t65;
 }
-[4039]static method switchStatementSymbol([4068] core::Symbol s) → dynamic {
+[4039]static method [4060] [4194] switchStatementSymbol([4068] core::Symbol s) → dynamic {
 [4075]  #L44:
 [4075]  {
 [4083]    [4083] final synthesized core::Symbol #0#0 = [4083] [4083] s;
@@ -711,7 +711,7 @@ import "dart:core" as core;
     }
   }
 }
-[4197]static method switchExpressionSymbol([4227] core::Symbol s) → dynamic {
+[4197]static method [4219] [4312] switchExpressionSymbol([4227] core::Symbol s) → dynamic {
 [4234]  return [4241] [4241] block {
 [-1]    [-1] core::int #t66;
 [4249]    [4249] final synthesized core::Symbol #0#0 = [4249] [4249] s;

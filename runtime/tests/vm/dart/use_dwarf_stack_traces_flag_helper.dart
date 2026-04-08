@@ -391,7 +391,7 @@ String buildId(Iterable<String> lines) {
   for (final line in lines) {
     final match = _buildIdRE.firstMatch(line);
     if (match != null) {
-      return match.group(1)!;
+      return match[1]!;
     }
   }
   return '';
@@ -409,7 +409,7 @@ Iterable<String> removeColumns(Iterable<String> lines) sync* {
   for (final line in lines) {
     final match = _columnsRE.firstMatch(line);
     if (match != null) {
-      yield line.replaceRange(match.start, match.end, '(${match.group(1)!})');
+      yield line.replaceRange(match.start, match.end, '(${match[1]!})');
     } else {
       yield line;
     }
@@ -420,7 +420,7 @@ Iterable<int> parseUsingAddressRegExp(RegExp re, Iterable<String> lines) sync* {
   for (final line in lines) {
     final match = re.firstMatch(line);
     if (match != null) {
-      yield int.parse(match.group(1)!, radix: 16);
+      yield int.parse(match[1]!, radix: 16);
     }
   }
 }

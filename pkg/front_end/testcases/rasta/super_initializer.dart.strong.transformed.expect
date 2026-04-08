@@ -2,17 +2,17 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/rasta/super_initializer.dart:15:15: Error: Can't have initializers after 'super'.
+// pkg/front_end/testcases/rasta/super_initializer.dart:15:9: Error: Can't have initializers after 'super'.
 //         field = 42;
-//               ^
+//         ^
 //
-// pkg/front_end/testcases/rasta/super_initializer.dart:18:15: Error: Can't have initializers after 'super'.
+// pkg/front_end/testcases/rasta/super_initializer.dart:18:9: Error: Can't have initializers after 'super'.
 //         field = 42;
-//               ^
+//         ^
 //
-// pkg/front_end/testcases/rasta/super_initializer.dart:21:15: Error: Can't have initializers after 'super'.
+// pkg/front_end/testcases/rasta/super_initializer.dart:21:9: Error: Can't have initializers after 'super'.
 //         field = 42;
-//               ^
+//         ^
 //
 import self as self;
 import "dart:core" as core;
@@ -31,18 +31,18 @@ class Super extends core::Object {
 class Sub extends self::Super {
   field dynamic field;
   erroneous constructor arg0() → self::Sub
-    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:15:15: Error: Can't have initializers after 'super'.
+    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:15:9: Error: Can't have initializers after 'super'.
         field = 42;
-              ^", super self::Super::arg0()
+        ^", super self::Super::arg0()
     ;
   erroneous constructor arg1(dynamic a) → self::Sub
-    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:18:15: Error: Can't have initializers after 'super'.
+    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:18:9: Error: Can't have initializers after 'super'.
         field = 42;
-              ^", super self::Super::arg1(a)
+        ^", super self::Super::arg1(a)
     ;
   erroneous constructor arg2(dynamic a, dynamic b) → self::Sub
-    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:21:15: Error: Can't have initializers after 'super'.
+    : invalid-initializer "pkg/front_end/testcases/rasta/super_initializer.dart:21:9: Error: Can't have initializers after 'super'.
         field = 42;
-              ^", super self::Super::arg2(a, b)
+        ^", super self::Super::arg2(a, b)
     ;
 }

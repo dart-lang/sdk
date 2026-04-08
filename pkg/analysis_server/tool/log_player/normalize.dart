@@ -72,7 +72,7 @@ Future<void> main(List<String> args) async {
     print('found ${absFileMatches.length} absolute file paths remaining:');
   }
   for (var match in absFileMatches.take(5)) {
-    print('- ${match.group(0)}');
+    print('- ${match[0]}');
   }
 }
 
@@ -108,10 +108,10 @@ final argParser = ArgParser()
 /// across multiple environments.
 ///
 /// Specifically, this:
-///   - Replaces all workspace folder paths with {{workspaceFolder-[i]}}
+///   - Replaces all workspace folder paths with `{{workspaceFolder-[i]}}`
 ///     placeholders.
-///   - Replaces the Dart SDK root with {{dartSdkRoot}}.
-///   - Replaces all package roots with {{package-root:[package-name]}}
+///   - Replaces the Dart SDK root with `{{dartSdkRoot}}`.
+///   - Replaces all package roots with `{{package-root:[package-name]}}`.
 ///
 /// Returns the new file contents after normalization.
 //
@@ -138,12 +138,12 @@ String normalizeLog(File input, List<ContextRoot> contextRoots) {
     content = content.replaceAll(uri.path, '{{workspaceFolder-$i}}');
   }
 
-  // Next, replace the dart sdk path
+  // Next, replace the Dart SDK path.
   content = content.replaceAll(sdkPath, '{{dartSdkRoot}}');
 
-  // TODO(somebody): Replace the flutter SDK path with {{flutterSdkRoot}}.
+  // TODO(somebody): Replace the Flutter SDK path with '{{flutterSdkRoot}}'.
 
-  // Finally, replace the package roots
+  // Finally, replace the package roots.
   for (var i = 0; i < contextRoots.length; i++) {
     var contextRoot = contextRoots[i];
 

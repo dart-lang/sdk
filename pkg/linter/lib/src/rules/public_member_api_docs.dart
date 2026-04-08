@@ -52,6 +52,8 @@ class PublicMemberApiDocs extends AnalysisRule {
     registry.addFunctionTypeAlias(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
     registry.addMixinDeclaration(this, visitor);
+    registry.addPrimaryConstructorBody(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
     registry.addTopLevelVariableDeclaration(this, visitor);
   }
 }
@@ -120,9 +122,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitClassDeclaration(ClassDeclaration node) {
     if (node.declaredFragment?.element == null) return;
-    if (node.body case BlockClassBody body) {
-      _visitMembers(node, node.namePart.typeName, body.members);
-    }
+    _visitMembers(node, node.namePart.typeName, node.body.members);
   }
 
   @override
@@ -215,9 +215,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
     if (node.declaredFragment?.element == null) return;
-    if (node.body case BlockClassBody body) {
-      _visitMembers(node, node.primaryConstructor.typeName, body.members);
-    }
+    _visitMembers(node, node.primaryConstructor.typeName, node.body.members);
   }
 
   @override
@@ -251,6 +249,28 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMixinDeclaration(MixinDeclaration node) {
     _visitMembers(node, node.name, node.body.members);
+  }
+
+  @override
+  void visitPrimaryConstructorBody(PrimaryConstructorBody node) {
+    if (node.inPrivateMember) return;
+    if (node.parent?.parent is! ClassDeclaration) return;
+
+    check(node);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    // If it has a body, let `PrimaryConstructorBody` visitor handle it.
+    if (node.body != null) return;
+
+    if (node.typeName.isPrivate) return;
+    if (node.constructorName?.name.isPrivate ?? false) return;
+
+    if (node.parent is! ClassDeclaration) return;
+
+    var token = node.constructorName?.name ?? node.typeName;
+    rule.reportAtToken(token);
   }
 
   @override

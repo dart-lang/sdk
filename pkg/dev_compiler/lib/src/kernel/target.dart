@@ -194,7 +194,10 @@ class DevCompilerTarget extends Target {
     Procedure procedure,
     Map<String, String>? environmentDefines, {
     void Function(String)? logger,
+    required DiagnosticReporter diagnosticReporter,
   }) {
+    _diagnosticReporter =
+        diagnosticReporter as DiagnosticReporter<Message, LocatedMessage>;
     _performTransformations(coreTypes, hierarchy, [procedure]);
   }
 

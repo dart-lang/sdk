@@ -30,7 +30,8 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   @override
   DartType? visitAuxiliaryType(AuxiliaryType node) {
     throw new UnsupportedError(
-        "Unsupported auxiliary type ${node} (${node.runtimeType}).");
+      "Unsupported auxiliary type ${node} (${node.runtimeType}).",
+    );
   }
 
   @override
@@ -175,7 +176,9 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
       // The nullability is fully determined by the bound so we pass the
       // default nullability for the declared nullability.
       return new IntersectionType(
-          new TypeParameterType.withDefaultNullability(node.parameter), bound);
+        new TypeParameterType.withDefaultNullability(node.parameter),
+        bound,
+      );
     }
   }
 
@@ -203,20 +206,23 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
         return null;
       }
       return new IntersectionType(
-          new TypeParameterType(node.left.parameter, Nullability.undetermined),
-          node.right);
+        new TypeParameterType(node.left.parameter, Nullability.undetermined),
+        node.right,
+      );
     } else if (right.nullability == Nullability.nonNullable) {
       // The bound could be made non-nullable so we use it as the promoted
       // bound.
       return new IntersectionType(
-          computeTypeWithoutNullabilityMarker(node.left) as TypeParameterType,
-          right);
+        computeTypeWithoutNullabilityMarker(node.left) as TypeParameterType,
+        right,
+      );
     } else {
       // The bound could not be made non-nullable so we use it as the promoted
       // bound with undetermined nullability.
       return new IntersectionType(
-          new TypeParameterType(node.left.parameter, Nullability.undetermined),
-          right);
+        new TypeParameterType(node.left.parameter, Nullability.undetermined),
+        right,
+      );
     }
   }
 
@@ -244,13 +250,15 @@ class _NonNullVisitor implements DartTypeVisitor<DartType?> {
   DartType? visitFunctionTypeParameterType(FunctionTypeParameterType node) {
     // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
     throw UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 
   @override
   DartType? visitClassTypeParameterType(ClassTypeParameterType node) {
     // TODO(cstefantsova): Implement visitClassTypeParameterType.
     throw UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 }

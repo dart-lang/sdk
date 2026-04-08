@@ -57,10 +57,14 @@ Let's look at each declaration individually:
   must implement `LintCode get diagnosticCode`, for infrastructure to be able
   to register the diagnostic code that the rule can report.
 
-  A `LintCode` is the template for each diagnostic that is to be reported. It
-  contains the diagnostic name, problem message, and optionally the correction
-  message. We instantiate a `LintCode` as a static field so that it can also be
-  made const.
+  A `LintCode` is the template for each diagnostic that is to be reported. It contains
+  the diagnostic name, problem message, and optionally the correction message. We
+  instantiate a `LintCode` as a `static const` field to ensure a single instance
+  exists — this is a functional requirement, not just convention. If multiple instances
+  of the same code exist, the analysis server cannot properly match them, and
+  users will be unable to suppress the diagnostic using `// ignore:` comments.
+  Alternatively, the class can implement `==` and `hashCode`, but using a `static const`
+  field is simpler and preferred.
 
   Alternatively, if a rule can report several different diagnostic codes
   (typically for differentiated messages), it can instead extend

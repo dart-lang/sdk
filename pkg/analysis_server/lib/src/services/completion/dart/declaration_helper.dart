@@ -145,10 +145,15 @@ class DeclarationHelper {
     required this.excludedNodes,
   });
 
+  bool get _addTypeName => suggestingDotShorthand && !_isDotShorthandEnabled;
+
   /// Return the suggestion kind that should be used for executable elements.
   CompletionSuggestionKind get _executableSuggestionKind => preferNonInvocation
       ? CompletionSuggestionKind.IDENTIFIER
       : CompletionSuggestionKind.INVOCATION;
+
+  bool get _isDotShorthandEnabled =>
+      request.featureSet.isEnabled(.dot_shorthands);
 
   /// Add any constructors that are visible within the current library.
   void addConstructorInvocations() {
@@ -424,9 +429,8 @@ class DeclarationHelper {
     }
     switch (parent) {
       case BlockClassBody():
-        parent = parent.parent;
-      case EnumBody():
-        parent = parent.parent;
+      case BlockEnumBody():
+        parent = parent?.parent;
     }
     if (parent is EnumConstantDeclaration) {
       assert(node is CommentReference);
@@ -441,9 +445,8 @@ class DeclarationHelper {
     }
     switch (parent) {
       case BlockClassBody():
-        parent = parent.parent;
-      case EnumBody():
-        parent = parent.parent;
+      case BlockEnumBody():
+        parent = parent?.parent;
     }
     CompilationUnitMember? topLevelMember;
     if (parent is CompilationUnitMember) {
@@ -742,11 +745,20 @@ class DeclarationHelper {
         aliasedElement.constructors,
         importData,
         allowNonFactory: !aliasedElement.isAbstract,
+        alias: alias,
       );
     } else if (aliasedElement is ExtensionTypeElement) {
-      _suggestConstructors(aliasedElement.constructors, importData);
+      _suggestConstructors(
+        aliasedElement.constructors,
+        importData,
+        alias: alias,
+      );
     } else if (aliasedElement is MixinElement) {
-      _suggestConstructors(aliasedElement.constructors, importData);
+      _suggestConstructors(
+        aliasedElement.constructors,
+        importData,
+        alias: alias,
+      );
     }
   }
 
@@ -1858,6 +1870,7 @@ class DeclarationHelper {
     required ImportData? importData,
     required bool hasClassName,
     required bool isConstructorRedirect,
+    TypeAliasElement? alias,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1870,6 +1883,11 @@ class DeclarationHelper {
     if (!element.isVisibleIn(request.libraryElement)) {
       return;
     }
+
+    if (alias != null && !alias.isVisibleIn(request.libraryElement)) {
+      return;
+    }
+
     // If the constructor is on a class from a not-yet-imported library and
     // the class isn't visible, then we shouldn't suggest it.
     //
@@ -1881,7 +1899,7 @@ class DeclarationHelper {
     // Add the class to the visibility tracker so that we will know later that
     // any non-imported elements with the same name are not visible.
     visibilityTracker.isVisible(
-      element: element.enclosingElement,
+      element: alias ?? element.enclosingElement,
       importData: importData,
     );
 
@@ -1891,30 +1909,37 @@ class DeclarationHelper {
     var matcherName = suggestingDotShorthand && elementName != null
         ? elementName
         : element.displayName;
+
     // TODO(keertip): Compute the completion string.
     var matcherScore = state.matcher.score(matcherName);
     if (matcherScore != -1) {
       if (_matchesContextType(element) && !preferNonInvocation) {
         var suggestion = ConstructorSuggestion(
+          replacementRange: request.replacementRange,
           importData: importData,
           element: element,
+          alias: alias,
           hasClassName: hasClassName,
           isTearOff: true,
           isRedirect: isConstructorRedirect,
-          suggestUnnamedAsNew: true,
+          suggestUnnamedAsNew: false,
           matcherScore: matcherScore,
+          addTypeName: _addTypeName,
         );
         collector.addSuggestion(suggestion);
       }
 
       var suggestion = ConstructorSuggestion(
+        replacementRange: request.replacementRange,
         importData: importData,
         element: element,
+        alias: alias,
         hasClassName: hasClassName,
         isTearOff: preferNonInvocation,
         isRedirect: isConstructorRedirect,
         suggestUnnamedAsNew: suggestUnnamedAsNew || preferNonInvocation,
         matcherScore: matcherScore,
+        addTypeName: _addTypeName,
       );
       collector.addSuggestion(suggestion);
     }
@@ -1925,6 +1950,7 @@ class DeclarationHelper {
     List<ConstructorElement> constructors,
     ImportData? importData, {
     bool allowNonFactory = true,
+    TypeAliasElement? alias,
   }) {
     if (mustBeAssignable) {
       return;
@@ -1932,12 +1958,14 @@ class DeclarationHelper {
 
     for (var constructor in constructors) {
       if (constructor.isVisibleIn(request.libraryElement) &&
+          (alias?.isVisibleIn(request.libraryElement) ?? true) &&
           (allowNonFactory || constructor.isFactory)) {
         _suggestConstructor(
           constructor,
           hasClassName: false,
           importData: importData,
           isConstructorRedirect: false,
+          alias: alias,
         );
       }
     }
@@ -2045,6 +2073,7 @@ class DeclarationHelper {
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
           isInDeclaration: isInDeclaration,
+          addTypeName: _addTypeName,
         );
         collector.addSuggestion(suggestion);
       }
@@ -2183,6 +2212,7 @@ class DeclarationHelper {
             importData: importData,
             matcherScore: matcherScore,
             referencingInterface: referencingInterface,
+            addTypeName: _addTypeName,
             addTypeAnnotation: addTypeAnnotation,
             keyword: keyword,
           );
@@ -2198,6 +2228,7 @@ class DeclarationHelper {
           importData: importData,
           matcherScore: matcherScore,
           referencingInterface: referencingInterface,
+          addTypeName: _addTypeName,
           addTypeAnnotation: addTypeAnnotation,
           keyword: keyword,
         );
@@ -2304,8 +2335,9 @@ class DeclarationHelper {
                 matcherScore: matcherScore,
                 referencingInterface: referencingInterface,
                 isInDeclaration: isInDeclaration,
-                addTypeAnnotation: addTypeAnnotation,
+                addTypeName: _addTypeName,
                 replacementRange: state.request.replacementRange,
+                addTypeAnnotation: addTypeAnnotation,
                 keyword: keyword,
               );
               collector.addSuggestion(suggestion);
@@ -2319,6 +2351,7 @@ class DeclarationHelper {
               importData: importData,
               matcherScore: matcherScore,
               referencingInterface: referencingInterface,
+              addTypeName: _addTypeName,
               addTypeAnnotation: addTypeAnnotation,
               keyword: keyword,
             );
@@ -2409,6 +2442,7 @@ class DeclarationHelper {
                     matcherScore: matcherScore,
                     referencingInterface: null,
                     isInDeclaration: false,
+                    addTypeName: _addTypeName,
                     replacementRange: state.request.replacementRange,
                   );
                   collector.addSuggestion(suggestion);
@@ -2420,6 +2454,7 @@ class DeclarationHelper {
                   referencingInterface: null,
                   matcherScore: matcherScore,
                   withEnclosingName: true,
+                  addTypeName: _addTypeName,
                   replacementRange: state.request.replacementRange,
                 );
                 collector.addSuggestion(suggestion);

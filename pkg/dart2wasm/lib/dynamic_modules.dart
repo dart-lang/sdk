@@ -13,6 +13,8 @@ import 'package:vm/transformations/devirtualization.dart';
 import 'package:vm/transformations/dynamic_interface_annotator.dart'
     as dynamic_interface_annotator;
 import 'package:vm/transformations/pragma.dart';
+import 'package:vm/transformations/prefix_library_uris.dart'
+    as library_prefix_uris;
 import 'package:vm/transformations/type_flow/table_selector_assigner.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
@@ -42,18 +44,19 @@ enum DynamicModuleType {
   submodule;
 
   static DynamicModuleType parse(String s) => switch (s) {
-        "main" => main,
-        "submodule" => submodule,
-        _ => throw ArgumentError("Unrecognized dynamic module type $s."),
-      };
+    "main" => main,
+    "submodule" => submodule,
+    _ => throw ArgumentError("Unrecognized dynamic module type $s."),
+  };
 }
 
 extension DynamicSubmoduleComponent on Component {
   static final Expando<Procedure> _submoduleEntryPoint = Expando<Procedure>();
 
   Procedure? get dynamicSubmoduleEntryPoint => _submoduleEntryPoint[this];
-  List<Library> getDynamicSubmoduleLibraries(CoreTypes coreTypes) =>
-      [...libraries.where((l) => !l.isFromMainModule(coreTypes))];
+  List<Library> getDynamicSubmoduleLibraries(CoreTypes coreTypes) => [
+    ...libraries.where((l) => !l.isFromMainModule(coreTypes)),
+  ];
 }
 
 extension DynamicModuleLibrary on Library {
@@ -73,8 +76,12 @@ extension DynamicModuleMember on Member {
       hasPragma(coreTypes, this, kDynModuleImplicitlyCallablePragmaName);
 
   bool isDynamicSubmoduleCallableNoTearOff(CoreTypes coreTypes) =>
-      getPragma(coreTypes, this, kDynModuleCallablePragmaName,
-          defaultValue: '') ==
+      getPragma(
+        coreTypes,
+        this,
+        kDynModuleCallablePragmaName,
+        defaultValue: '',
+      ) ==
       'call';
 
   bool isDynamicSubmoduleOverridable(CoreTypes coreTypes) =>
@@ -94,10 +101,16 @@ extension DynamicModuleMember on Member {
 class DynamicSubmoduleOutputData extends ModuleOutputData {
   final CoreTypes coreTypes;
   final ModuleMetadata _submodule;
-  DynamicSubmoduleOutputData(this.coreTypes, ModuleMetadata mainModule,
-      this._submodule, Map<Library, ModuleMetadata> libraryToModuleMetadata)
-      : super.librarySplit(
-            [mainModule, _submodule], libraryToModuleMetadata, null);
+  DynamicSubmoduleOutputData(
+    this.coreTypes,
+    ModuleMetadata mainModule,
+    this._submodule,
+    Map<Library, ModuleMetadata> libraryToModuleMetadata,
+  ) : super.librarySplit(
+        [mainModule, _submodule],
+        libraryToModuleMetadata,
+        null,
+      );
 
   @override
   ModuleMetadata moduleForReference(Reference reference) {
@@ -120,18 +133,22 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
   final String dynamicInterfaceSpecification;
 
   DynamicMainModuleStrategy(
-      this.component,
-      this.coreTypes,
-      this.options,
-      this.dynamicInterfaceSpecification,
-      this.dynamicInterfaceSpecificationBaseUri)
-      : index = coreTypes.index;
+    this.component,
+    this.coreTypes,
+    this.options,
+    this.dynamicInterfaceSpecification,
+    this.dynamicInterfaceSpecificationBaseUri,
+  ) : index = coreTypes.index;
 
   @override
   void addEntryPoints() {
     // Annotate the kernel with info from dynamic interface.
-    dynamic_interface_annotator.annotateComponent(dynamicInterfaceSpecification,
-        dynamicInterfaceSpecificationBaseUri, component, coreTypes);
+    dynamic_interface_annotator.annotateComponent(
+      dynamicInterfaceSpecification,
+      dynamicInterfaceSpecificationBaseUri,
+      component,
+      coreTypes,
+    );
 
     _addImplicitPragmas();
   }
@@ -153,7 +170,10 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
     final mainModule = builder.buildModuleMetadata();
     final placeholderModule = builder.buildModuleMetadata();
     return ModuleOutputData.librarySplit(
-        [mainModule, placeholderModule], {}, mainModule);
+      [mainModule, placeholderModule],
+      {},
+      mainModule,
+    );
   }
 
   void _addImplicitPragmas() {
@@ -176,9 +196,13 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
     void checkMemberEntryPoint(Member member) {
       if (excludedIntrinsics.contains(member)) return;
       // Entrypoints are all dynamically callable and vice versa.
-      final isEntryPoint = getPragma(
-              coreTypes, member, kWasmEntryPointPragmaName,
-              defaultValue: '') !=
+      final isEntryPoint =
+          getPragma(
+            coreTypes,
+            member,
+            kWasmEntryPointPragmaName,
+            defaultValue: '',
+          ) !=
           null;
       final isSubmoduleCallable = member.isDynamicSubmoduleCallable(coreTypes);
 
@@ -217,7 +241,8 @@ class DynamicMainModuleStrategy extends ModuleStrategy with KernelNodes {
 
   @override
   Future<void> processComponentAfterTfa(
-      DeferredModuleLoadingMap loadingMap) async {}
+    DeferredModuleLoadingMap loadingMap,
+  ) async {}
 }
 
 class DynamicSubmoduleStrategy extends ModuleStrategy {
@@ -227,8 +252,13 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
   final Uri mainModuleComponentUri;
   final CoreTypes coreTypes;
 
-  DynamicSubmoduleStrategy(this.component, this.options, this.kernelTarget,
-      this.coreTypes, this.mainModuleComponentUri);
+  DynamicSubmoduleStrategy(
+    this.component,
+    this.options,
+    this.kernelTarget,
+    this.coreTypes,
+    this.mainModuleComponentUri,
+  );
 
   @override
   void addEntryPoints() {}
@@ -250,37 +280,59 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
 
     // Export the entry point so that the JS runtime can get the function and
     // pass it to the main module.
-    addPragma(submoduleEntryPoint, 'wasm:export', coreTypes,
-        value: StringConstant(_submoduleEntryPointName));
+    addPragma(
+      submoduleEntryPoint,
+      'wasm:export',
+      coreTypes,
+      value: StringConstant(_submoduleEntryPointName),
+    );
   }
 
   void _registerLibraries() {
+    final recordLibrary = component.libraries.firstWhere(
+      (l) => '${l.importUri}' == dynamicModulesRecordsLibraryUri,
+    );
+    if (options.dynamicModuleLibraryPrefix case final uriPrefix?) {
+      library_prefix_uris.prefixLibraryUris(
+        component,
+        component.libraries.where((l) => l.isFromMainModule(coreTypes)).toSet(),
+        uriPrefix,
+      );
+    }
     // Register each library with the SDK. This will ensure no duplicate
     // libraries are included across dynamic modules.
-    final registerLibraryUris = coreTypes.index
-        .getTopLevelProcedure('dart:_internal', 'registerLibraryUris');
+    final registerLibraryUris = coreTypes.index.getTopLevelProcedure(
+      'dart:_internal',
+      'registerLibraryUris',
+    );
     final entryPoint = component.dynamicSubmoduleEntryPoint!;
     final libraryUris = ListLiteral([
       ...component
           .getDynamicSubmoduleLibraries(coreTypes)
-          .where((l) => '${l.importUri}' != dynamicModulesRecordsLibraryUri)
-          .map((l) => StringLiteral(l.importUri.toString()))
+          .where((l) => l != recordLibrary)
+          .map((l) => StringLiteral(l.importUri.toString())),
     ], typeArgument: coreTypes.stringNonNullableRawType);
     entryPoint.function.body = Block([
       ExpressionStatement(
-          StaticInvocation(registerLibraryUris, Arguments([libraryUris]))),
+        StaticInvocation(registerLibraryUris, Arguments([libraryUris])),
+      ),
       entryPoint.function.body!,
-    ])
-      ..parent = entryPoint.function;
+    ])..parent = entryPoint.function;
   }
 
   static Procedure _findSubmoduleEntryPoint(
-      Component component, CoreTypes coreTypes) {
+    Component component,
+    CoreTypes coreTypes,
+  ) {
     for (final library in component.libraries) {
       for (final procedure in library.procedures) {
-        final entryPointPragma = getPragma(
-                coreTypes, procedure, kDynModuleEntryPointPragmaName,
-                defaultValue: true) ??
+        final entryPointPragma =
+            getPragma(
+              coreTypes,
+              procedure,
+              kDynModuleEntryPointPragmaName,
+              defaultValue: true,
+            ) ??
             false;
         if (entryPointPragma) {
           return procedure;
@@ -292,8 +344,8 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
 
   void _addTfaMetadata() {
     component.metadata[dynamicMainModuleProcedureAttributeMetadataTag] =
-        component
-            .metadata[ProcedureAttributesMetadataRepository.repositoryTag]!;
+        component.metadata[ProcedureAttributesMetadataRepository
+            .repositoryTag]!;
     component.metadata[dynamicMainModuleSelectorMetadataTag] =
         component.metadata[TableSelectorMetadataRepository.repositoryTag]!;
 
@@ -317,9 +369,10 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
           if (!member.isInstanceMember) continue;
           dynamicModuleProcedureAttributes.mapping[member] =
               ProcedureAttributesMetadata(
-                  getterSelectorId: selectorAssigner.getterSelectorId(member),
-                  methodOrSetterSelectorId:
-                      selectorAssigner.methodOrSetterSelectorId(member));
+                getterSelectorId: selectorAssigner.getterSelectorId(member),
+                methodOrSetterSelectorId: selectorAssigner
+                    .methodOrSetterSelectorId(member),
+              );
         }
       }
     }
@@ -329,8 +382,14 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
     final classHierarchy =
         ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
 
-    component.accept(_Devirtualization(coreTypes, component, classHierarchy,
-        classHierarchy.computeSubtypesInformation()));
+    component.accept(
+      _Devirtualization(
+        coreTypes,
+        component,
+        classHierarchy,
+        classHierarchy.computeSubtypesInformation(),
+      ),
+    );
   }
 
   @override
@@ -348,12 +407,17 @@ class DynamicSubmoduleStrategy extends ModuleStrategy {
     }
 
     return DynamicSubmoduleOutputData(
-        coreTypes, mainModule, submodule, libraryToModuleMetadata);
+      coreTypes,
+      mainModule,
+      submodule,
+      libraryToModuleMetadata,
+    );
   }
 
   @override
   Future<void> processComponentAfterTfa(
-      DeferredModuleLoadingMap loadingMap) async {}
+    DeferredModuleLoadingMap loadingMap,
+  ) async {}
 }
 
 void _recordIdMain(w.FunctionBuilder f, Translator translator) {
@@ -369,7 +433,8 @@ void _recordIdMain(w.FunctionBuilder f, Translator translator) {
 void _recordIdSubmodule(w.FunctionBuilder f, Translator translator) {
   final ranges = translator.classIdNumbering
       .getConcreteClassIdRangeForDynamicSubmodule(
-          translator.coreTypes.recordClass);
+        translator.coreTypes.recordClass,
+      );
 
   final ib = f.body;
   if (ranges.isEmpty) {
@@ -383,8 +448,10 @@ void _recordIdSubmodule(w.FunctionBuilder f, Translator translator) {
 }
 
 w.FunctionType _recordIdBuildType(Translator translator) {
-  return translator.typesBuilder
-      .defineFunction(const [w.NumType.i32], const [w.NumType.i32]);
+  return translator.typesBuilder.defineFunction(
+    const [w.NumType.i32],
+    const [w.NumType.i32],
+  );
 }
 
 enum BuiltinUpdatableFunctions {
@@ -395,7 +462,10 @@ enum BuiltinUpdatableFunctions {
   final w.FunctionType Function(Translator) _buildType;
 
   const BuiltinUpdatableFunctions(
-      this._buildMain, this._buildSubmodule, this._buildType);
+    this._buildMain,
+    this._buildSubmodule,
+    this._buildType,
+  );
 }
 
 class DynamicModuleInfo {
@@ -412,14 +482,15 @@ class DynamicModuleInfo {
   final Map<int, w.BaseFunction?> overridableFunctions = {};
 
   final Map<ClassInfo, Map<w.ModuleBuilder, w.BaseFunction>>
-      _constantCacheCheckers = {};
+  _constantCacheCheckers = {};
   final Map<w.StorageType, Map<w.ModuleBuilder, w.BaseFunction>>
-      _mutableArrayConstantCacheCheckers = {};
+  _mutableArrayConstantCacheCheckers = {};
   final Map<w.StorageType, Map<w.ModuleBuilder, w.BaseFunction>>
-      _immutableArrayConstantCacheCheckers = {};
+  _immutableArrayConstantCacheCheckers = {};
 
-  late final w.ModuleBuilder submodule =
-      translator.modules.firstWhere((m) => m != translator.mainModule);
+  late final w.ModuleBuilder submodule = translator.modules.firstWhere(
+    (m) => m != translator.mainModule,
+  );
 
   DynamicModuleInfo(this.translator, this.metadata);
 
@@ -457,21 +528,27 @@ class DynamicModuleInfo {
     translator.pushModuleId(b);
     final moduleRtt = translator.types.rtt.getModuleRtt(isMainModule: false);
     translator.constants.instantiateConstant(
-        b, moduleRtt, translator.translateType(moduleRtt.interfaceType));
+      b,
+      moduleRtt,
+      translator.translateType(moduleRtt.interfaceType),
+    );
     translator.callReference(translator.registerModuleRtt.reference, b);
     b.drop();
   }
 
   void _initSubmoduleId() {
-    final global = moduleIdGlobal = submodule.globals
-        .define(w.GlobalType(w.NumType.i64, mutable: true), '#_moduleId');
+    final global = moduleIdGlobal = submodule.globals.define(
+      w.GlobalType(w.NumType.i64, mutable: true),
+      '#_moduleId',
+    );
     global.initializer
       ..i64_const(0)
       ..end();
 
     final b = initFunction.body;
 
-    final rangeSize = translator.classIdNumbering.maxDynamicSubmoduleClassId! -
+    final rangeSize =
+        translator.classIdNumbering.maxDynamicSubmoduleClassId! -
         translator.classIdNumbering.firstDynamicSubmoduleClassId +
         1;
 
@@ -482,10 +559,13 @@ class DynamicModuleInfo {
 
   bool _isClassSubmoduleInstantiable(Class cls) {
     return cls.isDynamicSubmoduleExtendable(translator.coreTypes) ||
-        cls.constructors
-            .any((e) => e.isDynamicSubmoduleCallable(translator.coreTypes)) ||
-        cls.procedures.any((e) =>
-            e.isFactory && e.isDynamicSubmoduleCallable(translator.coreTypes));
+        cls.constructors.any(
+          (e) => e.isDynamicSubmoduleCallable(translator.coreTypes),
+        ) ||
+        cls.procedures.any(
+          (e) =>
+              e.isFactory && e.isDynamicSubmoduleCallable(translator.coreTypes),
+        );
   }
 
   void _initializeCallableReferences() {
@@ -515,7 +595,9 @@ class DynamicModuleInfo {
         // overridable include them in the runtime dispatch table.
         if (member.isDynamicSubmoduleOverridable(translator.coreTypes)) {
           _forEachMemberReference(
-              member, metadata.invokedOverridableReferences.add);
+            member,
+            metadata.invokedOverridableReferences.add,
+          );
         }
       }
 
@@ -529,13 +611,18 @@ class DynamicModuleInfo {
 
       // For each dispatch target, register the member as callable from this
       // class.
-      final targets = translator.hierarchy.getDispatchTargets(cls).followedBy(
-          translator.hierarchy.getDispatchTargets(cls, setters: true));
+      final targets = translator.hierarchy
+          .getDispatchTargets(cls)
+          .followedBy(
+            translator.hierarchy.getDispatchTargets(cls, setters: true),
+          );
       for (final member in targets) {
         if (!member.isDynamicSubmoduleCallable(translator.coreTypes)) continue;
 
-        _forEachMemberReference(member,
-            (reference) => _registerCallableDispatchTarget(reference, cls));
+        _forEachMemberReference(
+          member,
+          (reference) => _registerCallableDispatchTarget(reference, cls),
+        );
       }
     }
   }
@@ -550,7 +637,8 @@ class DynamicModuleInfo {
     final member = target.asMember;
 
     if (member.isExternal) {
-      final isGeneratedIntrinsic = member is Procedure &&
+      final isGeneratedIntrinsic =
+          member is Procedure &&
           MemberIntrinsic.fromProcedure(translator.coreTypes, member) != null;
       if (!isGeneratedIntrinsic) return;
     }
@@ -566,7 +654,8 @@ class DynamicModuleInfo {
     final member = target.asMember;
 
     if (member.isExternal) {
-      final isGeneratedIntrinsic = member is Procedure &&
+      final isGeneratedIntrinsic =
+          member is Procedure &&
           MemberIntrinsic.fromProcedure(translator.coreTypes, member) != null;
       if (!isGeneratedIntrinsic) return;
     }
@@ -590,39 +679,49 @@ class DynamicModuleInfo {
 
   void _initializeOverridableReferences() {
     for (final builtin in BuiltinUpdatableFunctions.values) {
-      _createUpdateableFunction(builtin.index, builtin._buildType(translator),
-          buildMain: (f) => builtin._buildMain(f, translator),
-          buildSubmodule: (f) => builtin._buildSubmodule(f, translator),
-          name: '#r_${builtin.name}');
+      _createUpdateableFunction(
+        builtin.index,
+        builtin._buildType(translator),
+        buildMain: (f) => builtin._buildMain(f, translator),
+        buildSubmodule: (f) => builtin._buildSubmodule(f, translator),
+        name: '#r_${builtin.name}',
+      );
     }
 
     for (final reference in metadata.invokedOverridableReferences) {
       final selector = translator.dispatchTable.selectorForTarget(reference);
       translator.functions.recordSelectorUse(selector, false);
 
-      final mainSelector = (translator.dynamicMainModuleDispatchTable ??
-              translator.dispatchTable)
-          .selectorForTarget(reference);
+      final mainSelector =
+          (translator.dynamicMainModuleDispatchTable ??
+                  translator.dispatchTable)
+              .selectorForTarget(reference);
       final signature = _getGeneralizedSignature(mainSelector);
       final buildMain = buildSelectorBranch(reference, mainSelector);
       final buildSubmodule = buildSelectorBranch(reference, mainSelector);
 
       _createUpdateableFunction(
-          mainSelector.id + BuiltinUpdatableFunctions.values.length, signature,
-          buildMain: buildMain,
-          buildSubmodule: buildSubmodule,
-          name: '#s${mainSelector.id}_${mainSelector.name}');
+        mainSelector.id + BuiltinUpdatableFunctions.values.length,
+        signature,
+        buildMain: buildMain,
+        buildSubmodule: buildSubmodule,
+        name: '#s${mainSelector.id}_${mainSelector.name}',
+      );
     }
   }
 
   void _forEachMemberReference(Member member, void Function(Reference) f) {
     void passReference(Reference reference) {
-      final checkedReference =
-          translator.getFunctionEntry(reference, uncheckedEntry: false);
+      final checkedReference = translator.getFunctionEntry(
+        reference,
+        uncheckedEntry: false,
+      );
       f(checkedReference);
 
-      final uncheckedReference =
-          translator.getFunctionEntry(reference, uncheckedEntry: true);
+      final uncheckedReference = translator.getFunctionEntry(
+        reference,
+        uncheckedEntry: true,
+      );
       if (uncheckedReference != checkedReference) {
         f(uncheckedReference);
       }
@@ -639,8 +738,9 @@ class DynamicModuleInfo {
     } else if (member is Constructor &&
         // Skip types that don't extend Object in the wasm type hierarchy.
         // These types do not have directly invokable constructors.
-        translator.classInfo[member.enclosingClass]!.struct
-            .isSubtypeOf(translator.objectInfo.struct)) {
+        translator.classInfo[member.enclosingClass]!.struct.isSubtypeOf(
+          translator.objectInfo.struct,
+        )) {
       if (!member.enclosingClass.isAnonymousMixin) {
         passReference(member.reference);
       }
@@ -651,15 +751,18 @@ class DynamicModuleInfo {
 
   void finishDynamicModule() {
     _registerModuleRefs(
-        isSubmodule ? initFunction.body : translator.initFunction.body);
+      isSubmodule
+          ? initFunction.body
+          : translator.mainModule.startFunction.body,
+    );
   }
 
   void _registerModuleRefs(w.InstructionsBuilder b) {
     final numKeys = overridableFunctions.length;
     assert(numKeys < maxArrayNewFixedLength);
-    final orderedFunctions = ([...overridableFunctions.entries]
-          ..sort((a, b) => a.key.compareTo(b.key)))
-        .map((e) => e.value);
+    final orderedFunctions = ([
+      ...overridableFunctions.entries,
+    ]..sort((a, b) => a.key.compareTo(b.key))).map((e) => e.value);
 
     for (final function in orderedFunctions) {
       if (function != null) {
@@ -669,25 +772,33 @@ class DynamicModuleInfo {
       }
     }
     b.array_new_fixed(
-        translator.wasmArrayType(w.RefType.func(nullable: true), ''), numKeys);
+      translator.wasmArrayType(w.RefType.func(nullable: true), ''),
+      numKeys,
+    );
     translator.callReference(
-        translator.registerUpdateableFuncRefs.reference, b);
+      translator.registerUpdateableFuncRefs.reference,
+      b,
+    );
     b.drop();
   }
 
-  int _createUpdateableFunction(int key, w.FunctionType type,
-      {required void Function(w.FunctionBuilder function) buildMain,
-      required void Function(w.FunctionBuilder function) buildSubmodule,
-      bool skipSubmodule = false,
-      required String name}) {
+  int _createUpdateableFunction(
+    int key,
+    w.FunctionType type, {
+    required void Function(w.FunctionBuilder function) buildMain,
+    required void Function(w.FunctionBuilder function) buildSubmodule,
+    bool skipSubmodule = false,
+    required String name,
+  }) {
     final mapKey = key;
     final index = metadata.keyInvocationToIndex[mapKey] ??=
         metadata.keyInvocationToIndex.length;
     overridableFunctions.putIfAbsent(index, () {
       if (!isSubmodule) {
         final mainFunction = translator.mainModule.functions.define(type, name);
-        translator.mainModule.elements.declarativeSegmentBuilder
-            .declare(mainFunction);
+        translator.mainModule.elements.declarativeSegmentBuilder.declare(
+          mainFunction,
+        );
         buildMain(mainFunction);
         return mainFunction;
       }
@@ -704,20 +815,27 @@ class DynamicModuleInfo {
   }
 
   void _callClassIdBranch(
-      int key, w.InstructionsBuilder b, w.FunctionType signature,
-      {required void Function(w.FunctionBuilder b) buildMainMatch,
-      required void Function(w.FunctionBuilder b) buildSubmoduleMatch,
-      bool skipSubmodule = false,
-      required String name}) {
+    int key,
+    w.InstructionsBuilder b,
+    w.FunctionType signature, {
+    required void Function(w.FunctionBuilder b) buildMainMatch,
+    required void Function(w.FunctionBuilder b) buildSubmoduleMatch,
+    bool skipSubmodule = false,
+    required String name,
+  }) {
     // No new types declared in the submodule so the branch would always miss.
-    final canSkipSubmoduleBranch = skipSubmodule ||
+    final canSkipSubmoduleBranch =
+        skipSubmodule ||
         translator.classIdNumbering.maxDynamicSubmoduleClassId ==
             translator.classIdNumbering.maxClassId;
-    final callIndex = _createUpdateableFunction(key, signature,
-        buildMain: buildMainMatch,
-        buildSubmodule: buildSubmoduleMatch,
-        skipSubmodule: canSkipSubmoduleBranch,
-        name: name);
+    final callIndex = _createUpdateableFunction(
+      key,
+      signature,
+      buildMain: buildMainMatch,
+      buildSubmodule: buildSubmoduleMatch,
+      skipSubmodule: canSkipSubmoduleBranch,
+      name: name,
+    );
 
     translator.callReference(translator.classIdToModuleId.reference, b);
     b.i64_const(callIndex);
@@ -726,19 +844,28 @@ class DynamicModuleInfo {
     // implement every key. However, only keys that cannot be queried should be
     // unimplemented so it's safe to cast to a non-nullable function here.
     translator.callReference(translator.getUpdateableFuncRef.reference, b);
-    translator.convertType(b, w.RefType.func(nullable: true),
-        w.RefType(signature, nullable: false));
+    translator.convertType(
+      b,
+      w.RefType.func(nullable: true),
+      w.RefType(signature, nullable: false),
+    );
     b.call_ref(signature);
   }
 
   void callClassIdBranchBuiltIn(
-      BuiltinUpdatableFunctions key, w.InstructionsBuilder b,
-      {bool skipSubmodule = false}) {
-    _callClassIdBranch(key.index, b, key._buildType(translator),
-        buildMainMatch: (f) => key._buildMain(f, translator),
-        buildSubmoduleMatch: (f) => key._buildSubmodule(f, translator),
-        name: '#r_${key.name}',
-        skipSubmodule: skipSubmodule);
+    BuiltinUpdatableFunctions key,
+    w.InstructionsBuilder b, {
+    bool skipSubmodule = false,
+  }) {
+    _callClassIdBranch(
+      key.index,
+      b,
+      key._buildType(translator),
+      buildMainMatch: (f) => key._buildMain(f, translator),
+      buildSubmoduleMatch: (f) => key._buildSubmodule(f, translator),
+      name: '#r_${key.name}',
+      skipSubmodule: skipSubmodule,
+    );
   }
 
   w.FunctionType _getGeneralizedSignature(SelectorInfo mainSelector) {
@@ -746,21 +873,25 @@ class DynamicModuleInfo {
 
     // The shared entry point to this selector has to use 'any' because the
     // selector's signature may change between compilations.
-    final generalizedSignature = translator.typesBuilder.defineFunction([
-      ...signature.inputs.map((e) => const w.RefType.any(nullable: true)),
-      w.NumType.i32,
-      w.NumType.i32
-    ], [
-      ...signature.outputs.map((e) => const w.RefType.any(nullable: true))
-    ]);
+    final generalizedSignature = translator.typesBuilder.defineFunction(
+      [
+        ...signature.inputs.map((e) => const w.RefType.any(nullable: true)),
+        w.NumType.i32,
+        w.NumType.i32,
+      ],
+      [...signature.outputs.map((e) => const w.RefType.any(nullable: true))],
+    );
     return generalizedSignature;
   }
 
   void Function(w.FunctionBuilder) buildSelectorBranch(
-      Reference interfaceTarget, SelectorInfo mainSelector) {
+    Reference interfaceTarget,
+    SelectorInfo mainSelector,
+  ) {
     return (w.FunctionBuilder function) {
-      final localSelector =
-          translator.dispatchTable.selectorForTarget(interfaceTarget);
+      final localSelector = translator.dispatchTable.selectorForTarget(
+        interfaceTarget,
+      );
       final ib = function.body;
 
       final uncheckedTargets = localSelector.targets(unchecked: true);
@@ -769,8 +900,10 @@ class DynamicModuleInfo {
       // Whether we use checked+unchecked (or normal) we'll have the same
       // class-id ranges - only the actual target `Reference` may be a unchecked
       // or checked one.
-      assert(uncheckedTargets.allTargetRanges.length ==
-          checkedTargets.allTargetRanges.length);
+      assert(
+        uncheckedTargets.allTargetRanges.length ==
+            checkedTargets.allTargetRanges.length,
+      );
 
       // NOTE: Keep this in sync with
       // `code_generator.dart:AstCodeGenerator._virtualCall`.
@@ -802,15 +935,20 @@ class DynamicModuleInfo {
       final generalizedMainSignature = _getGeneralizedSignature(mainSelector);
       final mainParamInfo = mainSelector.paramInfo;
 
-      assert(mainParamInfo.takesContextOrReceiver ==
-          localParamInfo.takesContextOrReceiver);
+      assert(
+        mainParamInfo.takesContextOrReceiver ==
+            localParamInfo.takesContextOrReceiver,
+      );
 
       int localsIndex = 0;
       final takesContextOrReceiver = localParamInfo.takesContextOrReceiver;
       if (takesContextOrReceiver) {
         ib.local_get(ib.locals[localsIndex]);
-        translator.convertType(ib, generalizedMainSignature.inputs[localsIndex],
-            localSignature.inputs[localsIndex]);
+        translator.convertType(
+          ib,
+          generalizedMainSignature.inputs[localsIndex],
+          localSignature.inputs[localsIndex],
+        );
         localsIndex++;
       }
 
@@ -818,8 +956,11 @@ class DynamicModuleInfo {
       assert(mainTypeParamCount == localParamInfo.typeParamCount);
       for (int i = 0; i < mainTypeParamCount; i++, localsIndex++) {
         ib.local_get(ib.locals[localsIndex]);
-        translator.convertType(ib, generalizedMainSignature.inputs[localsIndex],
-            localSignature.inputs[localsIndex]);
+        translator.convertType(
+          ib,
+          generalizedMainSignature.inputs[localsIndex],
+          localSignature.inputs[localsIndex],
+        );
       }
 
       final localPositionalCount = localParamInfo.positional.length;
@@ -830,14 +971,18 @@ class DynamicModuleInfo {
         if (i < mainPositionalCount) {
           ib.local_get(ib.locals[localsIndex]);
           translator.convertType(
-              ib,
-              generalizedMainSignature.inputs[localsIndex],
-              localSignature.inputs[localsIndex]);
+            ib,
+            generalizedMainSignature.inputs[localsIndex],
+            localSignature.inputs[localsIndex],
+          );
           continue;
         }
         final constant = localParamInfo.positional[i]!;
         translator.constants.instantiateConstant(
-            ib, constant, localSignature.inputs[localsIndex]);
+          ib,
+          constant,
+          localSignature.inputs[localsIndex],
+        );
       }
 
       final localNamedCount = localParamInfo.named.length;
@@ -852,14 +997,18 @@ class DynamicModuleInfo {
               (takesContextOrReceiver ? 1 : 0) + mainTypeParamCount + mainIndex;
           ib.local_get(ib.locals[mainLocalIndex]);
           translator.convertType(
-              ib,
-              generalizedMainSignature.inputs[mainLocalIndex],
-              localSignature.inputs[localsIndex]);
+            ib,
+            generalizedMainSignature.inputs[mainLocalIndex],
+            localSignature.inputs[localsIndex],
+          );
           continue;
         }
         final constant = localParamInfo.named[name]!;
         translator.constants.instantiateConstant(
-            ib, constant, localSignature.inputs[localsIndex]);
+          ib,
+          constant,
+          localSignature.inputs[localsIndex],
+        );
       }
 
       if (directCall) {
@@ -920,8 +1069,11 @@ class DynamicModuleInfo {
       // used.
       if (localSignature.outputs.isNotEmpty &&
           generalizedMainSignature.outputs.isNotEmpty) {
-        translator.convertType(ib, localSignature.outputs.single,
-            generalizedMainSignature.outputs.single);
+        translator.convertType(
+          ib,
+          localSignature.outputs.single,
+          generalizedMainSignature.outputs.single,
+        );
       } else if (localSignature.outputs.isNotEmpty) {
         // This can happen when the shared signature from the main module is
         // different from the local signature in the dynamic module. For
@@ -935,8 +1087,11 @@ class DynamicModuleInfo {
   }
 
   void callOverridableDispatch(
-      w.InstructionsBuilder b, SelectorInfo selector, Reference interfaceTarget,
-      {required bool useUncheckedEntry}) {
+    w.InstructionsBuilder b,
+    SelectorInfo selector,
+    Reference interfaceTarget, {
+    required bool useUncheckedEntry,
+  }) {
     if (!isSubmodule) {
       metadata.invokedOverridableReferences.add(interfaceTarget);
     }
@@ -976,34 +1131,45 @@ class DynamicModuleInfo {
       // implementedTypes list.
       final mixedInClass = enclosingClass.implementedTypes.last.classNode;
       interfaceTarget = translator.hierarchy
-          .getDispatchTarget(mixedInClass, targetMember.name,
-              setter: selector.isSetter)!
+          .getDispatchTarget(
+            mixedInClass,
+            targetMember.name,
+            setter: selector.isSetter,
+          )!
           .reference;
     }
 
     final mainDispatchTable =
         translator.dynamicMainModuleDispatchTable ?? translator.dispatchTable;
-    final mainModuleSelector =
-        mainDispatchTable.selectorForTarget(interfaceTarget);
+    final mainModuleSelector = mainDispatchTable.selectorForTarget(
+      interfaceTarget,
+    );
     final generalizedSignature = _getGeneralizedSignature(mainModuleSelector);
 
     // For consistency, always use the main module selector ID when generating
     // the key.
     final key = mainModuleSelector.id + BuiltinUpdatableFunctions.values.length;
-    _callClassIdBranch(key, b, generalizedSignature,
-        name: '#s${mainModuleSelector.id}_${mainModuleSelector.name}',
-        buildMainMatch:
-            buildSelectorBranch(interfaceTarget, mainModuleSelector),
-        buildSubmoduleMatch:
-            buildSelectorBranch(interfaceTarget, mainModuleSelector),
-        skipSubmodule:
-            selector.targets(unchecked: false).allTargetRanges.isEmpty);
+    _callClassIdBranch(
+      key,
+      b,
+      generalizedSignature,
+      name: '#s${mainModuleSelector.id}_${mainModuleSelector.name}',
+      buildMainMatch: buildSelectorBranch(interfaceTarget, mainModuleSelector),
+      buildSubmoduleMatch: buildSelectorBranch(
+        interfaceTarget,
+        mainModuleSelector,
+      ),
+      skipSubmodule: selector.targets(unchecked: false).allTargetRanges.isEmpty,
+    );
     // Convert the output to the local signature type. Not all calls have
     // an output. For example, setters where the implied output is never used.
     if (generalizedSignature.outputs.isNotEmpty &&
         localSignature.outputs.isNotEmpty) {
-      translator.convertType(b, generalizedSignature.outputs.single,
-          localSignature.outputs.single);
+      translator.convertType(
+        b,
+        generalizedSignature.outputs.single,
+        localSignature.outputs.single,
+      );
     } else if (generalizedSignature.outputs.isNotEmpty) {
       // This can happen when the shared signature from the main module is
       // different from the local signature in the dynamic module. For example,
@@ -1046,22 +1212,23 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   final Map<w.HeapType, w.Global> _dummyValueCheckers;
   final w.FunctionType _dummyValueCheckerType;
 
-  ConstantCanonicalizer(this.translator, this.b, this.valueLocal,
-      this._dummyValueCheckers, this._dummyValueCheckerType);
+  ConstantCanonicalizer(
+    this.translator,
+    this.b,
+    this.valueLocal,
+    this._dummyValueCheckers,
+    this._dummyValueCheckerType,
+  );
 
-  late final _checkerType = translator.typesBuilder.defineFunction([
-    translator.topTypeNonNullable,
-    translator.topTypeNonNullable,
-  ], const [
-    w.NumType.i32
-  ]);
+  late final _checkerType = translator.typesBuilder.defineFunction(
+    [translator.topTypeNonNullable, translator.topTypeNonNullable],
+    const [w.NumType.i32],
+  );
 
-  late final _arrayCheckerType = translator.typesBuilder.defineFunction(const [
-    w.RefType.array(nullable: false),
-    w.RefType.array(nullable: false),
-  ], const [
-    w.NumType.i32
-  ]);
+  late final _arrayCheckerType = translator.typesBuilder.defineFunction(
+    const [w.RefType.array(nullable: false), w.RefType.array(nullable: false)],
+    const [w.NumType.i32],
+  );
 
   /// Wasm builtin value types that don't need canonicalization.
   late final Set<Class> _wasmValueClasses = {
@@ -1131,7 +1298,9 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     b.local_get(valueLocal);
     b.ref_func(checker);
     final valueType = translator.callReference(
-        translator.constCacheCanonicalize.reference, b);
+      translator.constCacheCanonicalize.reference,
+      b,
+    );
 
     // The canonicalizer returns an Object which may be a boxed value. Unbox it
     // if necessary.
@@ -1147,7 +1316,8 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
     if (cacheField == null) {
       throw StateError(
-          'Unrecognized const array type (mutable: $mutable): $elementType');
+        'Unrecognized const array type (mutable: $mutable): $elementType',
+      );
     }
 
     translator.callReference(cacheField.getterReference, b);
@@ -1155,7 +1325,10 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     // Get the equality checker for the class. Import it into the submodule and
     // use the import if this is in a submodule.
     w.BaseFunction checker = _getCanonicalArrayChecker(
-        translator.translateStorageType(elementType), mutable, b.moduleBuilder);
+      translator.translateStorageType(elementType),
+      mutable,
+      b.moduleBuilder,
+    );
 
     // Declare the function so it can be used as a ref_func in a constant
     // context.
@@ -1165,7 +1338,9 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     b.local_get(valueLocal);
     b.ref_func(checker);
     final valueType = translator.callReference(
-        translator.constCacheArrayCanonicalize.reference, b);
+      translator.constCacheArrayCanonicalize.reference,
+      b,
+    );
 
     // The canonicalizer returns an array ref, cast it to the correct array
     // type.
@@ -1181,20 +1356,25 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     return translator.dynamicModuleInfo!._constantCacheCheckers
         .putIfAbsent(info, () => {})
         .putIfAbsent(module, () {
-      final checker =
-          module.functions.define(_checkerType, '${info.cls} constCheck');
+          final checker = module.functions.define(
+            _checkerType,
+            '${info.cls} constCheck',
+          );
 
-      final b = checker.body;
-      _checkerForClass(b, info);
-      b.end();
-      return checker;
-    });
+          final b = checker.body;
+          _checkerForClass(b, info);
+          b.end();
+          return checker;
+        });
   }
 
   /// Get a function that will compare two arrays with elements of type
   /// [elementType] and return true if they canonicalize to the same value.
   w.BaseFunction _getCanonicalArrayChecker(
-      w.StorageType elementType, bool mutable, w.ModuleBuilder module) {
+    w.StorageType elementType,
+    bool mutable,
+    w.ModuleBuilder module,
+  ) {
     final cache = mutable
         ? translator.dynamicModuleInfo!._mutableArrayConstantCacheCheckers
         : translator.dynamicModuleInfo!._immutableArrayConstantCacheCheckers;
@@ -1202,11 +1382,16 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     // We create a checker for each array element type.
     return cache.putIfAbsent(elementType, () => {}).putIfAbsent(module, () {
       final name = '$elementType';
-      final checker = module.functions.define(_arrayCheckerType,
-          '$name const${mutable ? '' : 'Immutable'}ArrayCheck');
+      final checker = module.functions.define(
+        _arrayCheckerType,
+        '$name const${mutable ? '' : 'Immutable'}ArrayCheck',
+      );
 
-      final arrayType =
-          translator.wasmArrayType(elementType, name, mutable: mutable);
+      final arrayType = translator.wasmArrayType(
+        elementType,
+        name,
+        mutable: mutable,
+      );
       final b = checker.body;
       _checkerForArray(b, arrayType, elementType);
       b.end();
@@ -1230,10 +1415,14 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     if (_equalsCheckerClasses.contains(cls)) {
       _checkerWithEquals(b);
     } else if (_hashingIterableConstClasses.contains(cls)) {
-      _defaultChecker(b, classInfo, fieldsToInclude: {
-        FieldIndex.hashBaseData,
-        ...cls.typeParameters.map((t) => translator.typeParameterIndex[t]!)
-      });
+      _defaultChecker(
+        b,
+        classInfo,
+        fieldsToInclude: {
+          FieldIndex.hashBaseData,
+          ...cls.typeParameters.map((t) => translator.typeParameterIndex[t]!),
+        },
+      );
     } else {
       _defaultChecker(b, classInfo);
     }
@@ -1251,26 +1440,38 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     b.struct_get(classInfo.struct, FieldIndex.boxValue);
 
     return _equalsForValueType(
-        b, translator.builtinTypes[classInfo.cls] as w.ValueType);
+      b,
+      translator.builtinTypes[classInfo.cls] as w.ValueType,
+    );
   }
 
   /// Compare values using a dispatch call to Object.==
   void _checkerWithEquals(w.InstructionsBuilder b) {
     b.local_get(b.locals[0]);
-    final selector = translator.dispatchTable
-        .selectorForTarget(translator.coreTypes.objectEquals.reference);
-    translator.callDispatchTable(b, selector,
-        interfaceTarget: translator.coreTypes.objectEquals.reference,
-        useUncheckedEntry: true);
+    final selector = translator.dispatchTable.selectorForTarget(
+      translator.coreTypes.objectEquals.reference,
+    );
+    translator.callDispatchTable(
+      b,
+      selector,
+      interfaceTarget: translator.coreTypes.objectEquals.reference,
+      useUncheckedEntry: true,
+    );
     translator.convertType(
-        b, selector.signature.outputs.first, _checkerType.outputs.first);
+      b,
+      selector.signature.outputs.first,
+      _checkerType.outputs.first,
+    );
   }
 
   /// Compare two normal class instances whose const identity are determined by
   /// their fields. Do a shallow comparison of the fields assuming the field
   /// values are already canonicalized.
-  void _defaultChecker(w.InstructionsBuilder b, ClassInfo classInfo,
-      {Set<int>? fieldsToInclude}) {
+  void _defaultChecker(
+    w.InstructionsBuilder b,
+    ClassInfo classInfo, {
+    Set<int>? fieldsToInclude,
+  }) {
     final structType = classInfo.struct;
     final structRefType = classInfo.nonNullableType;
     final castedLocal1 = b.addLocal(structRefType);
@@ -1303,8 +1504,11 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
   /// doing a shallow pairwise comparison. Array elements will already be
   /// canonicalized. Assumes the types and lengths of the arrays are already
   /// equivalent.
-  void _checkerForArray(w.InstructionsBuilder b, w.ArrayType arrayType,
-      w.StorageType elementType) {
+  void _checkerForArray(
+    w.InstructionsBuilder b,
+    w.ArrayType arrayType,
+    w.StorageType elementType,
+  ) {
     final arrayRefType = w.RefType(arrayType, nullable: false);
     final array1 = b.addLocal(arrayRefType);
     final array2 = b.addLocal(arrayRefType);
@@ -1317,30 +1521,31 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     b.local_set(array2);
 
     b.incrementingLoop(
-        pushStart: () => b.i32_const(0),
-        pushLimit: () {
-          b.local_get(array1);
-          b.array_len();
-        },
-        genBody: (loopLocal) {
-          b.local_get(array1);
-          b.local_get(loopLocal);
-          if (elementType is w.PackedType) {
-            b.array_get_u(arrayType);
-          } else {
-            b.array_get(arrayType);
-          }
-          b.local_get(array2);
-          b.local_get(loopLocal);
-          if (elementType is w.PackedType) {
-            b.array_get_u(arrayType);
-          } else {
-            b.array_get(arrayType);
-          }
-          _equalsForValueType(b, elementType);
-          b.i32_eqz();
-          b.br_if(falseBlock);
-        });
+      pushStart: () => b.i32_const(0),
+      pushLimit: () {
+        b.local_get(array1);
+        b.array_len();
+      },
+      genBody: (loopLocal) {
+        b.local_get(array1);
+        b.local_get(loopLocal);
+        if (elementType is w.PackedType) {
+          b.array_get_u(arrayType);
+        } else {
+          b.array_get(arrayType);
+        }
+        b.local_get(array2);
+        b.local_get(loopLocal);
+        if (elementType is w.PackedType) {
+          b.array_get_u(arrayType);
+        } else {
+          b.array_get(arrayType);
+        }
+        _equalsForValueType(b, elementType);
+        b.i32_eqz();
+        b.br_if(falseBlock);
+      },
+    );
     b.i32_const(1);
     b.return_();
     b.end();
@@ -1349,7 +1554,9 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
   /// Invokes the builtin equality function for [storageType].
   static void _equalsForValueType(
-      w.InstructionsBuilder b, w.StorageType storageType) {
+    w.InstructionsBuilder b,
+    w.StorageType storageType,
+  ) {
     if (storageType is w.RefType) {
       b.ref_eq();
     } else if (storageType == w.PackedType.i8 ||
@@ -1372,7 +1579,8 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
     final moduleBuilder = b.moduleBuilder;
     final function = moduleBuilder.functions.define(_dummyValueCheckerType);
     final global = moduleBuilder.globals.define(
-        w.GlobalType(w.RefType(_dummyValueCheckerType, nullable: false)));
+      w.GlobalType(w.RefType(_dummyValueCheckerType, nullable: false)),
+    );
     global.initializer
       ..ref_func(function)
       ..end();
@@ -1393,9 +1601,12 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
       final heapType = node.type;
       // The value is already on the stack.
       b.global_get(
-          _dummyValueCheckers[heapType] ??= _initDummyValueChecker(heapType));
+        _dummyValueCheckers[heapType] ??= _initDummyValueChecker(heapType),
+      );
       translator.callReference(
-          translator.dummyValueConstCanonicalize.reference, b);
+        translator.dummyValueConstCanonicalize.reference,
+        b,
+      );
       b.ref_cast(w.RefType(heapType, nullable: false));
       return;
     }
@@ -1460,7 +1671,8 @@ class ConstantCanonicalizer extends ConstantVisitor<void> {
 
   @override
   void visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node) {
+    RedirectingFactoryTearOffConstant node,
+  ) {
     _canonicalizeInstance(translator.closureClass);
   }
 
@@ -1505,15 +1717,18 @@ class _Devirtualization extends CHADevirtualization {
   final CoreTypes coreTypes;
 
   _Devirtualization(
-      this.coreTypes,
-      Component component,
-      ClosedWorldClassHierarchy hierarchy,
-      ClassHierarchySubtypes hierarchySubtype)
-      : super(coreTypes, component, hierarchy, hierarchySubtype);
+    this.coreTypes,
+    Component component,
+    ClosedWorldClassHierarchy hierarchy,
+    ClassHierarchySubtypes hierarchySubtype,
+  ) : super(coreTypes, component, hierarchy, hierarchySubtype);
 
   @override
   void makeDirectCall(
-      TreeNode node, Member? target, DirectCallMetadata directCall) {
+    TreeNode node,
+    Member? target,
+    DirectCallMetadata directCall,
+  ) {
     if (target != null && target.isDynamicSubmoduleOverridable(coreTypes)) {
       return;
     }

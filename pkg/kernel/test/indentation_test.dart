@@ -17,7 +17,8 @@ void main() {
   Expect.stringEquals(ind.indentationUnit * 2, ind.indentation);
 
   ind.indentBlock(
-      () => Expect.stringEquals(ind.indentationUnit * 3, ind.indentation));
+    () => Expect.stringEquals(ind.indentationUnit * 3, ind.indentation),
+  );
   Expect.stringEquals(ind.indentationUnit * 2, ind.indentation);
 
   ind.indentationUnit = "x";

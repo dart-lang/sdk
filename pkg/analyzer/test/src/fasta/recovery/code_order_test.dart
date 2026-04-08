@@ -2,11 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import 'recovery_test_support.dart';
+import '../../dart/resolution/node_text_expectations.dart';
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -16,509 +16,1093 @@ main() {
     defineReflectiveTests(MisplacedMetadataTest);
     defineReflectiveTests(MixinDeclarationTest);
     defineReflectiveTests(TryStatementTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
 /// Test how well the parser recovers when the clauses in a class declaration
 /// are out of order.
 @reflectiveTest
-class ClassDeclarationTest extends AbstractRecoveryTest {
+class ClassDeclarationTest extends ParserDiagnosticsTest {
   void test_implementsBeforeExtends() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A implements B extends C {}
-''',
-      [diag.implementsBeforeExtends],
-      '''
-class A extends C implements B {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.implementsBeforeExtends, 21, 7)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_implementsBeforeWith() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A extends B implements C with D {}
-''',
-      [diag.implementsBeforeWith],
-      '''
-class A extends B with D implements C {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.implementsBeforeWith, 31, 4)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: D
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_implementsBeforeWithBeforeExtends() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A implements B with C extends D {}
-''',
-      [diag.implementsBeforeWith, diag.withBeforeExtends],
-      '''
-class A extends D with C implements B {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.implementsBeforeWith, 21, 4),
+      error(diag.withBeforeExtends, 28, 7),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: D
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_multipleExtends() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A extends B extends C {}
-''',
-      [diag.multipleExtendsClauses],
-      '''
-class A extends B {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.multipleExtendsClauses, 18, 7)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_multipleImplements() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A implements B implements C, D {}
-''',
-      [diag.multipleImplementsClauses],
-      '''
-class A implements B, C, D {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.multipleImplementsClauses, 21, 10)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: C
+          NamedType
+            name: D
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_multipleWith() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A extends B with C, D with E {}
-''',
-      [diag.multipleWithClauses],
-      '''
-class A extends B with C, D, E {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.multipleWithClauses, 28, 4)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: B
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: C
+          NamedType
+            name: D
+          NamedType
+            name: E
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
-  @failingTest
   void test_typing_extends() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class Foo exte
 class UnrelatedClass extends Bar {}
-''',
-      [diag.multipleWithClauses],
-      '''
-class Foo {}
-class UnrelatedClass extends Bar {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.expectedClassBody, 6, 3),
+      error(diag.missingConstFinalVarOrType, 10, 4),
+      error(diag.expectedToken, 10, 4),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        variables
+          VariableDeclaration
+            name: exte
+      semicolon: ; <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: UnrelatedClass
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: Bar
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_typing_extends_identifier() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class Foo extends CurrentlyTypingHere
 class UnrelatedClass extends Bar {}
-''',
-      [diag.expectedClassBody],
-      '''
-class Foo extends CurrentlyTypingHere {}
-class UnrelatedClass extends Bar {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedClassBody, 18, 19)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: Foo
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: CurrentlyTypingHere
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: UnrelatedClass
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: Bar
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_withBeforeExtends() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A with B extends C {}
-''',
-      [diag.withBeforeExtends],
-      '''
-class A extends C with B {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.withBeforeExtends, 15, 7)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      extendsClause: ExtendsClause
+        extendsKeyword: extends
+        superclass: NamedType
+          name: C
+      withClause: WithClause
+        withKeyword: with
+        mixinTypes
+          NamedType
+            name: B
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 }
 
 /// Test how well the parser recovers when the members of a compilation unit are
 /// out of order.
 @reflectiveTest
-class CompilationUnitMemberTest extends AbstractRecoveryTest {
+class CompilationUnitMemberTest extends ParserDiagnosticsTest {
   void test_declarationBeforeDirective_export() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C { }
 export 'bar.dart';
-''',
-      [diag.directiveAfterDeclaration],
-      '''
-export 'bar.dart';
-class C { }
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.directiveAfterDeclaration, 12, 6)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ExportDirective
+      exportKeyword: export
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      semicolon: ;
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_declarationBeforeDirective_import() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C { }
 import 'bar.dart';
-''',
-      [diag.directiveAfterDeclaration],
-      '''
-import 'bar.dart';
-class C { }
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.directiveAfterDeclaration, 12, 6)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      semicolon: ;
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_declarationBeforeDirective_part() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C { }
 part 'bar.dart';
-''',
-      [diag.directiveAfterDeclaration],
-      '''
-part 'bar.dart';
-class C { }
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.directiveAfterDeclaration, 12, 4)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    PartDirective
+      partKeyword: part
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      semicolon: ;
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_declarationBeforeDirective_part_of() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class C { }
 part of foo;
-''',
-      [diag.directiveAfterDeclaration],
-      '''
-part of foo;
-class C { }
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.directiveAfterDeclaration, 12, 4),
+      error(diag.partOfName, 20, 3),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    PartOfDirective
+      partKeyword: part
+      ofKeyword: of
+      libraryName: DottedName
+        tokens
+          foo
+      semicolon: ;
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_exportBeforeLibrary() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors('''
 export 'bar.dart';
 library l;
-''',
-      [diag.libraryDirectiveNotFirst],
-      '''
-library l;
-export 'bar.dart';
-''',
-      adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd,
-    );
+''');
+    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 19, 7)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, '''
+CompilationUnit
+  directives
+    ExportDirective
+      exportKeyword: export
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      semicolon: ;
+    LibraryDirective
+      libraryKeyword: library
+      name: DottedName
+        tokens
+          l
+      semicolon: ;
+''');
   }
 
   void test_importBeforeLibrary() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors('''
 import 'bar.dart';
 library l;
-''',
-      [diag.libraryDirectiveNotFirst],
-      '''
-library l;
-import 'bar.dart';
-''',
-      adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd,
-    );
+''');
+    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 19, 7)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, '''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      semicolon: ;
+    LibraryDirective
+      libraryKeyword: library
+      name: DottedName
+        tokens
+          l
+      semicolon: ;
+''');
   }
 
   void test_partBeforeLibrary() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors('''
 part 'foo.dart';
 library l;
-''',
-      [diag.libraryDirectiveNotFirst],
-      '''
-library l;
-part 'foo.dart';
-''',
-      adjustValidUnitBeforeComparison: _moveFirstDirectiveToEnd,
-    );
-  }
-
-  CompilationUnitImpl _moveFirstDirectiveToEnd(CompilationUnitImpl unit) {
-    return CompilationUnitImpl(
-      beginToken: unit.directives.skip(1).first.beginToken,
-      scriptTag: unit.scriptTag,
-      directives: [...unit.directives.skip(1), unit.directives.first],
-      declarations: unit.declarations,
-      endToken: unit.endToken,
-      featureSet: unit.featureSet,
-      languageVersion: unit.languageVersion,
-      lineInfo: unit.lineInfo,
-      invalidNodes: [],
-    );
+''');
+    parseResult.assertErrors([error(diag.libraryDirectiveNotFirst, 17, 7)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, '''
+CompilationUnit
+  directives
+    PartDirective
+      partKeyword: part
+      uri: SimpleStringLiteral
+        literal: 'foo.dart'
+      semicolon: ;
+    LibraryDirective
+      libraryKeyword: library
+      name: DottedName
+        tokens
+          l
+      semicolon: ;
+''');
   }
 }
 
 /// Test how well the parser recovers when the members of an import directive
 /// are out of order.
 @reflectiveTest
-class ImportDirectiveTest extends AbstractRecoveryTest {
+class ImportDirectiveTest extends ParserDiagnosticsTest {
   void test_combinatorsBeforeAndAfterPrefix() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' show A as p show B;
-''',
-      [diag.prefixAfterCombinator],
-      '''
-import 'bar.dart' as p show A show B;
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.prefixAfterCombinator, 25, 2)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      combinators
+        ShowCombinator
+          keyword: show
+          shownNames
+            SimpleIdentifier
+              token: A
+        ShowCombinator
+          keyword: show
+          shownNames
+            SimpleIdentifier
+              token: B
+      semicolon: ;
+''');
   }
 
   void test_combinatorsBeforePrefix() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' show A as p;
-''',
-      [diag.prefixAfterCombinator],
-      '''
-import 'bar.dart' as p show A;
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.prefixAfterCombinator, 25, 2)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      combinators
+        ShowCombinator
+          keyword: show
+          shownNames
+            SimpleIdentifier
+              token: A
+      semicolon: ;
+''');
   }
 
   void test_combinatorsBeforePrefixAfterDeferred() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' deferred show A as p;
-''',
-      [diag.prefixAfterCombinator],
-      '''
-import 'bar.dart' deferred as p show A;
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.prefixAfterCombinator, 34, 2)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      deferredKeyword: deferred
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      combinators
+        ShowCombinator
+          keyword: show
+          shownNames
+            SimpleIdentifier
+              token: A
+      semicolon: ;
+''');
   }
 
   void test_deferredAfterPrefix() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' as p deferred;
-''',
-      [diag.deferredAfterPrefix],
-      '''
-import 'bar.dart' deferred as p;
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.deferredAfterPrefix, 23, 8)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      deferredKeyword: deferred
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      semicolon: ;
+''');
   }
 
   void test_duplicatePrefix() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' as p as q;
-''',
-      [diag.duplicatePrefix],
-      '''
-import 'bar.dart' as p;
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.duplicatePrefix, 23, 2)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      semicolon: ;
+''');
   }
 
   void test_unknownTokenAtEnd() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' as p sh;
-''',
-      [diag.unexpectedToken],
-      '''
-import 'bar.dart' as p;
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 23, 2)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      semicolon: ;
+''');
   }
 
   void test_unknownTokenBeforePrefix() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' d as p;
-''',
-      [diag.unexpectedToken],
-      '''
-import 'bar.dart' as p;
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 18, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      semicolon: ;
+''');
   }
 
   void test_unknownTokenBeforePrefixAfterCombinatorMissingSemicolon() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' d show A as p
 import 'b.dart';
-''',
-      [diag.unexpectedToken, diag.prefixAfterCombinator, diag.expectedToken],
-      '''
-import 'bar.dart' as p show A;
-import 'b.dart';
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.unexpectedToken, 18, 1),
+      error(diag.prefixAfterCombinator, 27, 2),
+      error(diag.expectedToken, 30, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      combinators
+        ShowCombinator
+          keyword: show
+          shownNames
+            SimpleIdentifier
+              token: A
+      semicolon: ; <synthetic>
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'b.dart'
+      semicolon: ;
+''');
   }
 
   void test_unknownTokenBeforePrefixAfterDeferred() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 import 'bar.dart' deferred s as p;
-''',
-      [diag.unexpectedToken],
-      '''
-import 'bar.dart' deferred as p;
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 27, 1)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  directives
+    ImportDirective
+      importKeyword: import
+      uri: SimpleStringLiteral
+        literal: 'bar.dart'
+      deferredKeyword: deferred
+      asKeyword: as
+      prefix: SimpleIdentifier
+        token: p
+      semicolon: ;
+''');
   }
 }
 
 /// Test how well the parser recovers when metadata appears in invalid places.
 @reflectiveTest
-class MisplacedMetadataTest extends AbstractRecoveryTest {
-  @failingTest
+class MisplacedMetadataTest extends ParserDiagnosticsTest {
   void test_field_afterType() {
     // This test fails because `findMemberName` doesn't recognize that the `@`
     // isn't a valid token in the stream leading up to a member name. That
     // causes `parseMethod` to attempt to parse from the `x` as a function body.
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 class A {
   const A([x]);
 }
 class B {
   dynamic @A(const A()) x;
 }
-''',
-      [diag.unexpectedToken],
-      '''
-class A {
-  const A([x]);
-}
-class B {
-  @A(const A()) dynamic x;
-}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.missingConstFinalVarOrType, 40, 7),
+      error(diag.expectedToken, 40, 7),
+      error(diag.missingConstFinalVarOrType, 62, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: A
+      body: BlockClassBody
+        leftBracket: {
+        members
+          ConstructorDeclaration
+            constKeyword: const
+            typeName: SimpleIdentifier
+              token: A
+            parameters: FormalParameterList
+              leftParenthesis: (
+              leftDelimiter: [
+              parameter: RegularFormalParameter
+                name: x
+              rightDelimiter: ]
+              rightParenthesis: )
+            body: EmptyFunctionBody
+              semicolon: ;
+        rightBracket: }
+    ClassDeclaration
+      classKeyword: class
+      namePart: NameWithTypeParameters
+        typeName: B
+      body: BlockClassBody
+        leftBracket: {
+        members
+          FieldDeclaration
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: dynamic
+            semicolon: ; <synthetic>
+          FieldDeclaration
+            metadata
+              Annotation
+                atSign: @
+                name: SimpleIdentifier
+                  token: A
+                arguments: ArgumentList
+                  leftParenthesis: (
+                  arguments
+                    InstanceCreationExpression
+                      keyword: const
+                      constructorName: ConstructorName
+                        type: NamedType
+                          name: A
+                      argumentList: ArgumentList
+                        leftParenthesis: (
+                        rightParenthesis: )
+                  rightParenthesis: )
+            fields: VariableDeclarationList
+              variables
+                VariableDeclaration
+                  name: x
+            semicolon: ;
+        rightBracket: }
+''');
   }
 }
 
 /// Test how well the parser recovers when the clauses in a mixin declaration
 /// are out of order.
 @reflectiveTest
-class MixinDeclarationTest extends AbstractRecoveryTest {
+class MixinDeclarationTest extends ParserDiagnosticsTest {
   void test_implementsBeforeOn() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 mixin A implements B on C {}
-''',
-      [diag.implementsBeforeOn],
-      '''
-mixin A on C implements B {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.implementsBeforeOn, 21, 2)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: C
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_multipleImplements() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 mixin A implements B implements C, D {}
-''',
-      [diag.multipleImplementsClauses],
-      '''
-mixin A implements B, C, D {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.multipleImplementsClauses, 21, 10)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: B
+          NamedType
+            name: C
+          NamedType
+            name: D
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_multipleOn() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 mixin A on B on C {}
-''',
-      [diag.multipleOnClauses],
-      '''
-mixin A on B, C {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.multipleOnClauses, 13, 2)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: A
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: B
+          NamedType
+            name: C
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
-  @failingTest
   void test_typing_implements() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 mixin Foo imple
 mixin UnrelatedMixin on Bar {}
-''',
-      [diag.multipleWithClauses],
-      '''
-mixin Foo {}
-mixin UnrelatedMixin on Bar {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.expectedMixinBody, 6, 3),
+      error(diag.missingIdentifier, 16, 5),
+      error(diag.expectedToken, 10, 5),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: Foo
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    TopLevelVariableDeclaration
+      variables: VariableDeclarationList
+        type: NamedType
+          name: imple
+        variables
+          VariableDeclaration
+            name: <empty> <synthetic>
+      semicolon: ; <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: UnrelatedMixin
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: Bar
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 
   void test_typing_implements_identifier() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 mixin Foo implements CurrentlyTypingHere
 mixin UnrelatedMixin on Bar {}
-''',
-      [diag.expectedMixinBody],
-      '''
-mixin Foo implements CurrentlyTypingHere {}
-mixin UnrelatedMixin on Bar {}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedMixinBody, 21, 19)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: Foo
+      implementsClause: ImplementsClause
+        implementsKeyword: implements
+        interfaces
+          NamedType
+            name: CurrentlyTypingHere
+      body: BlockClassBody
+        leftBracket: { <synthetic>
+        rightBracket: } <synthetic>
+    MixinDeclaration
+      mixinKeyword: mixin
+      name: UnrelatedMixin
+      onClause: MixinOnClause
+        onKeyword: on
+        superclassConstraints
+          NamedType
+            name: Bar
+      body: BlockClassBody
+        leftBracket: {
+        rightBracket: }
+''');
   }
 }
 
 /// Test how well the parser recovers when the clauses in a try statement are
 /// out of order.
 @reflectiveTest
-class TryStatementTest extends AbstractRecoveryTest {
-  @failingTest
+class TryStatementTest extends ParserDiagnosticsTest {
   void test_finallyBeforeCatch() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() {
   try {
   } finally {
   } catch (e) {
   }
 }
-''',
-      [/*ParserErrorCode.CATCH_AFTER_FINALLY*/],
-      '''
-f() {
-  try {
-  } catch (e) {
-  } finally {
-  }
-}
-''',
-    );
+
+''');
+    parseResult.assertErrors([
+      error(diag.expectedIdentifierButGotKeyword, 32, 5),
+      error(diag.expectedToken, 40, 1),
+    ]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+              ExpressionStatement
+                expression: MethodInvocation
+                  methodName: SimpleIdentifier
+                    token: catch
+                  argumentList: ArgumentList
+                    leftParenthesis: (
+                    arguments
+                      SimpleIdentifier
+                        token: e
+                    rightParenthesis: )
+                semicolon: ; <synthetic>
+              Block
+                leftBracket: {
+                rightBracket: }
+            rightBracket: }
+''');
   }
 
-  @failingTest
   void test_finallyBeforeOn() {
-    testRecovery(
-      '''
+    var parseResult = parseStringWithErrors(r'''
 f() {
   try {
   } finally {
   } on String {
   }
 }
-''',
-      [/*ParserErrorCode.CATCH_AFTER_FINALLY*/],
-      '''
-f() {
-  try {
-  } on String {
-  } finally {
-  }
-}
-''',
-    );
+
+''');
+    parseResult.assertErrors([error(diag.expectedToken, 35, 6)]);
+    var node = parseResult.findNode.unit;
+    assertParsedNodeText(node, r'''
+CompilationUnit
+  declarations
+    FunctionDeclaration
+      name: f
+      functionExpression: FunctionExpression
+        parameters: FormalParameterList
+          leftParenthesis: (
+          rightParenthesis: )
+        body: BlockFunctionBody
+          block: Block
+            leftBracket: {
+            statements
+              TryStatement
+                tryKeyword: try
+                body: Block
+                  leftBracket: {
+                  rightBracket: }
+                finallyKeyword: finally
+                finallyBlock: Block
+                  leftBracket: {
+                  rightBracket: }
+              VariableDeclarationStatement
+                variables: VariableDeclarationList
+                  type: NamedType
+                    name: on
+                  variables
+                    VariableDeclaration
+                      name: String
+                semicolon: ; <synthetic>
+              Block
+                leftBracket: {
+                rightBracket: }
+            rightBracket: }
+''');
   }
 }

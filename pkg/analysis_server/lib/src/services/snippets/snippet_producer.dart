@@ -29,18 +29,15 @@ abstract class DartSnippetProducer extends SnippetProducer {
   /// repeated searches where they may add imports for the same elements.
   final Map<Element, LibraryElement?> _elementImportCache;
 
-  DartSnippetProducer(
-    super.request, {
-    required Map<Element, LibraryElement?> elementImportCache,
-  }) : sessionHelper = AnalysisSessionHelper(request.analysisSession),
-       utils = CorrectionUtils.fromUnitAndContent(
-         request.compilationUnit,
-         request.content,
-       ),
-       useSuperParams = request.libraryElement.featureSet.isEnabled(
-         Feature.super_parameters,
-       ),
-       _elementImportCache = elementImportCache;
+  DartSnippetProducer(super.request, {required this._elementImportCache})
+    : sessionHelper = AnalysisSessionHelper(request.analysisSession),
+      utils = CorrectionUtils.fromUnitAndContent(
+        request.compilationUnit,
+        request.content,
+      ),
+      useSuperParams = request.libraryElement.featureSet.isEnabled(
+        Feature.super_parameters,
+      );
 
   CodeStyleOptions get codeStyleOptions => sessionHelper.session.analysisContext
       .getAnalysisOptionsForFile(request.file)

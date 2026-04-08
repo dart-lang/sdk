@@ -1,0 +1,55 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+class Redirector1 extends core::Object {
+
+  [@vm.inferred-return-type.metadata=#lib::HasInstances]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  @#C5
+  @#C7
+  static factory •(core::int i) → self::Redirector1 /* redirection-target: self::Redirector2::• */
+    return [@vm.inferred-type.metadata=#lib::HasInstances] self::Redirector2::•(i);
+}
+class Redirector2 extends core::Object implements self::Redirector1 {
+
+  [@vm.inferred-return-type.metadata=#lib::HasInstances]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  @#C5
+  @#C7
+  static factory •([@vm.inferred-arg-type.metadata=int] core::int i) → self::Redirector2 /* redirection-target: self::HasInstances::• */
+    return new self::HasInstances::•(i);
+}
+@#C8
+final class HasInstances extends core::Object implements self::Redirector2 {
+
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C3
+  @#C5
+  @#C7
+  constructor •([@vm.inferred-arg-type.metadata=int] core::int i) → self::HasInstances
+    : super core::Object::•()
+    ;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  final (core::int) → self::Redirector1 f = [@vm.direct-call.metadata=dart.core::_GrowableList.[]] [@vm.inferred-type.metadata=dart.core::_Closure (skip check)] [@vm.inferred-type.metadata=dart.core::_GrowableList] core::_GrowableList::_literal1<(core::int) → self::Redirector1>(#C9).{core::List::[]}(0){(core::int) → (core::int) → self::Redirector1};
+  core::print([@vm.inferred-type.metadata=#lib::HasInstances (receiver not int)] f(42){(core::int) → self::Redirector1});
+}
+constants  {
+  #C1 = "vm:never-inline"
+  #C2 = null
+  #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dart2js:noInline"
+  #C5 = core::pragma {name:#C4, options:#C2}
+  #C6 = "wasm:never-inline"
+  #C7 = core::pragma {name:#C6, options:#C2}
+  #C8 = meta::RecordUse {}
+  #C9 = redirecting-factory-tearoff self::Redirector1::•
+}

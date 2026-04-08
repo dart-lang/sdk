@@ -131,21 +131,19 @@ class ConnectedAppService extends InternalService {
 
   /// Registers a VM service URI with the connected app service.
   ///
-  /// Only the client that started DTD (identified by [_clientSecret])
+  /// Only the client that started DTD (identified by [secret])
   /// should be able to call this method.
   Future<Map<String, Object?>> _registerVmService(Parameters parameters) async {
     final incomingSecret = parameters[DtdParameters.secret].asString;
     if (!unrestrictedMode && secret != incomingSecret) {
-      throw RpcErrorCodes.buildRpcException(
-        RpcErrorCodes.kPermissionDenied,
-      );
+      throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kPermissionDenied);
     }
 
     return await _mutex.runGuarded(() async {
       final uri = parameters[DtdParameters.uri].asString;
       if (_vmServices.containsKey(uri)) {
         // We already know about this VM service instance. Exit early.
-        return Success().toJson();
+        return const Success().toJson();
       }
 
       final exposedUri = parameters[DtdParameters.exposedUri].asStringOrNull;
@@ -159,12 +157,10 @@ class ConnectedAppService extends InternalService {
             name: name,
           );
           _vmServices[uri] = (vmService: vmService, info: info);
-          _vmServiceUpdates.add(
-            (
-              vmServiceInfo: info,
-              kind: _VmServiceUpdateKind.registered,
-            ),
-          );
+          _vmServiceUpdates.add((
+            vmServiceInfo: info,
+            kind: _VmServiceUpdateKind.registered,
+          ));
           unawaited(vmService.onDone.then((_) => _removeServiceAndNotify(uri)));
         });
       } catch (e) {
@@ -173,33 +169,31 @@ class ConnectedAppService extends InternalService {
           data: {'message': 'Error connecting to VM service at $uri.\n$e'},
         );
       }
-      return Success().toJson();
+      return const Success().toJson();
     });
   }
 
   /// Unregisters a VM service URI from the connected app service.
   ///
-  /// Only the client that started DTD (identified by [_clientSecret])
+  /// Only the client that started DTD (identified by [secret])
   /// should be able to call this method.
   Future<Map<String, Object?>> _unregisterVmService(
     Parameters parameters,
   ) async {
     final incomingSecret = parameters[DtdParameters.secret].asString;
     if (!unrestrictedMode && secret != incomingSecret) {
-      throw RpcErrorCodes.buildRpcException(
-        RpcErrorCodes.kPermissionDenied,
-      );
+      throw RpcErrorCodes.buildRpcException(RpcErrorCodes.kPermissionDenied);
     }
 
     return await _mutex.runGuarded(() {
       final uri = parameters[DtdParameters.uri].asString;
       if (!_vmServices.containsKey(uri)) {
         // This VM service is not in the registry. Exit early.
-        return Success().toJson();
+        return const Success().toJson();
       }
 
       _removeServiceAndNotify(uri);
-      return Success().toJson();
+      return const Success().toJson();
     });
   }
 
@@ -213,12 +207,10 @@ class ConnectedAppService extends InternalService {
     final removedService = _vmServices.remove(uri);
     // Only send a notification if the service has not already been removed.
     if (removedService != null) {
-      _vmServiceUpdates.add(
-        (
-          vmServiceInfo: removedService.info,
-          kind: _VmServiceUpdateKind.unregistered
-        ),
-      );
+      _vmServiceUpdates.add((
+        vmServiceInfo: removedService.info,
+        kind: _VmServiceUpdateKind.unregistered,
+      ));
     }
   }
 

@@ -1647,6 +1647,72 @@ final class SetListElement extends Instruction
   R accept<R>(InstructionVisitor<R> v) => v.visitSetListElement(this);
 }
 
+/// Base class for boxing instructions.
+abstract base class Box extends Definition
+    with CanThrow, Pure, BackendInstruction {
+  Box(super.graph, super.sourcePosition, Definition operand)
+    : super(inputCount: 1) {
+    setInputAt(0, operand);
+  }
+
+  Definition get operand => inputDefAt(0);
+}
+
+/// Create a box out of raw int value.
+final class BoxInt extends Box {
+  BoxInt(super.graph, super.sourcePosition, super.operand);
+
+  @override
+  CType get type => const IntType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBoxInt(this);
+}
+
+/// Create a box out of raw double value.
+final class BoxDouble extends Box {
+  BoxDouble(super.graph, super.sourcePosition, super.operand);
+
+  @override
+  CType get type => const DoubleType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitBoxDouble(this);
+}
+
+/// Base class for unboxing instructions.
+abstract base class Unbox extends Definition
+    with NoThrow, Pure, BackendInstruction {
+  Unbox(super.graph, super.sourcePosition, Definition operand)
+    : super(inputCount: 1) {
+    setInputAt(0, operand);
+  }
+
+  Definition get operand => inputDefAt(0);
+}
+
+/// Get raw int value out of the box.
+final class UnboxInt extends Unbox {
+  UnboxInt(super.graph, super.sourcePosition, super.operand);
+
+  @override
+  CType get type => const IntType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnboxInt(this);
+}
+
+/// Get raw double value out of the box.
+final class UnboxDouble extends Unbox {
+  UnboxDouble(super.graph, super.sourcePosition, super.operand);
+
+  @override
+  CType get type => const DoubleType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnboxDouble(this);
+}
+
 /// Base class for move operations, part of [ParallelMove].
 abstract base class MoveOp {}
 
@@ -1661,8 +1727,10 @@ enum ParallelMoveStage {
   output,
   // Spill output of the instruction.
   spill,
-  // Split live ranges.
+  // Split live ranges between instructions.
   split,
+  // Split live ranges at the next instruction.
+  splitLate,
   // Moves at control flow edges (including phi moves).
   control,
   // Move instruction inputs to their fixed locations.

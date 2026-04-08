@@ -94,6 +94,10 @@ class _RegExpMatch implements RegExpMatch {
   }
 
   String? group(int groupIdx) {
+    return this[groupIdx];
+  }
+
+  String? operator [](int groupIdx) {
     if (groupIdx < 0 || groupIdx > _regexp._groupCount) {
       throw RangeError.value(groupIdx);
     }
@@ -106,14 +110,10 @@ class _RegExpMatch implements RegExpMatch {
     return input._substringUnchecked(startIndex, endIndex);
   }
 
-  String? operator [](int groupIdx) {
-    return this.group(groupIdx);
-  }
-
   List<String?> groups(List<int> groupsSpec) {
     var groupsList = List<String?>.filled(groupsSpec.length, null);
     for (int i = 0; i < groupsSpec.length; i++) {
-      groupsList[i] = group(groupsSpec[i]);
+      groupsList[i] = this[groupsSpec[i]];
     }
     return groupsList;
   }
@@ -131,7 +131,7 @@ class _RegExpMatch implements RegExpMatch {
         var groupIndex = nameList[i + 1] as int;
         if (name == groupName) {
           if (_start(groupIndex) >= 0) {
-            return group(groupIndex);
+            return this[groupIndex];
           }
           // Keeping looking for a duplicated name.
           exists = true;

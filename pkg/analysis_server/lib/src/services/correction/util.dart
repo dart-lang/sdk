@@ -132,8 +132,8 @@ AstNode? getEnclosingClassOrUnitMember(AstNode input) {
   for (var node in input.withAncestors) {
     switch (node) {
       case BlockClassBody _:
+      case BlockEnumBody _:
       case CompilationUnit _:
-      case EnumBody _:
         return member;
     }
     member = node;
@@ -393,8 +393,7 @@ class ReturnTypeComputer extends RecursiveAstVisitor<void> {
 
   DartType? returnType;
 
-  ReturnTypeComputer(this._typeSystem, {bool isGenerator = false})
-    : _isGenerator = isGenerator;
+  ReturnTypeComputer(this._typeSystem, {this._isGenerator = false});
 
   @override
   void visitBlockFunctionBody(BlockFunctionBody node) {}

@@ -217,31 +217,40 @@ class Api : AllStatic {
       PRINTF_ATTRIBUTE(1, 2);
 
   // Gets a handle to Null.
-  static Dart_Handle Null() { return null_handle_; }
+  static Dart_Handle Null() {
+    return reinterpret_cast<Dart_Handle>(Roots::null_api_handle());
+  }
 
   // Gets a handle to True.
-  static Dart_Handle True() { return true_handle_; }
+  static Dart_Handle True() {
+    return reinterpret_cast<Dart_Handle>(Roots::true_api_handle());
+  }
 
   // Gets a handle to False.
-  static Dart_Handle False() { return false_handle_; }
+  static Dart_Handle False() {
+    return reinterpret_cast<Dart_Handle>(Roots::false_api_handle());
+  }
 
   // Gets a handle to EmptyString.
-  static Dart_Handle EmptyString() { return empty_string_handle_; }
+  static Dart_Handle EmptyString() {
+    return reinterpret_cast<Dart_Handle>(Roots::empty_string_api_handle());
+  }
 
   // Gets the handle which holds the pre-created acquired error object.
-  static Dart_Handle NoCallbacksError() { return no_callbacks_error_handle_; }
+  static Dart_Handle NoCallbacksError() {
+    return reinterpret_cast<Dart_Handle>(
+        Roots::no_callbacks_error_api_handle());
+  }
 
   // Gets the handle for unwind-is-in-progress error.
   static Dart_Handle UnwindInProgressError() {
-    return unwind_in_progress_error_handle_;
+    return reinterpret_cast<Dart_Handle>(
+        Roots::unwind_in_progress_error_api_handle());
   }
 
   static bool IsProtectedHandle(Dart_Handle object) {
     if (object == nullptr) return false;
-    return (object == true_handle_) || (object == false_handle_) ||
-           (object == null_handle_) || (object == empty_string_handle_) ||
-           (object == no_callbacks_error_handle_) ||
-           (object == unwind_in_progress_error_handle_);
+    return Roots::IsReadOnlyApiHandle(reinterpret_cast<uword>(object));
   }
 
   // Retrieves the top ApiLocalScope.
@@ -309,16 +318,6 @@ class Api : AllStatic {
   static Dart_Handle InitNewHandle(Thread* thread, ObjectPtr raw);
 
   static StringPtr CallEnvironmentCallback(Thread* thread, const String& name);
-
-  // Thread local key used by the API. Currently holds the current
-  // ApiNativeScope if any.
-  static ThreadLocalKey api_native_key_;
-  static Dart_Handle true_handle_;
-  static Dart_Handle false_handle_;
-  static Dart_Handle null_handle_;
-  static Dart_Handle empty_string_handle_;
-  static Dart_Handle no_callbacks_error_handle_;
-  static Dart_Handle unwind_in_progress_error_handle_;
 
   friend class ApiNativeScope;
 };

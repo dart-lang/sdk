@@ -116,16 +116,12 @@ class Driver {
   late Logger _logger;
 
   Driver._({
-    required OverlayStyle overlayStyle,
-    required String repositoryPath,
-    required List<String> analysisRoots,
-    required GitRepository repository,
-    required bool verbose,
-  }) : _overlayStyle = overlayStyle,
-       _repositoryPath = repositoryPath,
-       _analysisRoots = analysisRoots,
-       _repository = repository,
-       _verbose = verbose {
+    required this._overlayStyle,
+    required this._repositoryPath,
+    required this._analysisRoots,
+    required this._repository,
+    required this._verbose,
+  }) {
     _statistics = Statistics(this);
   }
 

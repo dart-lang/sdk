@@ -110,21 +110,18 @@ var f = ({int x = x}) {};
 FormalParameterList
   leftParenthesis: (
   leftDelimiter: {
-  parameter: DefaultFormalParameter
-    parameter: SimpleFormalParameter
-      type: NamedType
-        name: int
-        element: dart:core::@class::int
-        type: int
-      name: x
-      declaredFragment: <testLibraryFragment> x@14
-        element: isPublic
-          type: int
-    separator: =
-    defaultValue: SimpleIdentifier
-      token: x
-      element: <null>
-      staticType: InvalidType
+  parameter: RegularFormalParameter
+    type: NamedType
+      name: int
+      element: dart:core::@class::int
+      type: int
+    name: x
+    defaultClause: FormalParameterDefaultClause
+      separator: =
+      value: SimpleIdentifier
+        token: x
+        element: <null>
+        staticType: InvalidType
     declaredFragment: <testLibraryFragment> x@14
       element: isPublic
         type: int

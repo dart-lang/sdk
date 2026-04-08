@@ -312,8 +312,9 @@ See https://dart.dev/to/package-descriptors for more details.''';
     File helperPackageConfigFile,
     File sourcePackagePubspecFile,
     bool verbose,
-    String verbosity,
-  ) async {
+    String verbosity, {
+    bool progressUpdatesOnStderr = false,
+  }) async {
     // TODO(https://github.com/dart-lang/native/issues/2465): Add a test for
     // user-defines in the source package pubspec.
     final buildResult = await BuildCliSubcommand.doBuild(
@@ -326,6 +327,7 @@ See https://dart.dev/to/package-descriptors for more details.''';
       dataAssetsExperimentEnabled: false,
       verbose: verbose,
       verbosity: verbosity,
+      progressUpdatesOnStderr: progressUpdatesOnStderr,
     );
     if (buildResult != 0) {
       installException('Build failed.', exitCode: buildResult);
@@ -762,10 +764,10 @@ class GitSshUrl {
     }
 
     return GitSshUrl(
-      user: match.group(1)!,
-      host: match.group(2)!,
-      owner: match.group(3)!,
-      repository: match.group(4)!,
+      user: match[1]!,
+      host: match[2]!,
+      owner: match[3]!,
+      repository: match[4]!,
       fullUrl: url,
     );
   }

@@ -76,7 +76,13 @@ class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
     EnumDeclaration enumDeclaration,
   ) async {
     var containerBody = enumDeclaration.body;
-    if (containerBody.constants.isEmpty) return;
+    if (containerBody is! BlockEnumBody) {
+      return;
+    }
+
+    var constants = containerBody.constants;
+    if (constants.isEmpty) return;
+
     var namePart = enumDeclaration.namePart;
     if (namePart is! PrimaryConstructorDeclaration) return;
 
@@ -114,10 +120,11 @@ class ConvertToSecondaryConstructor extends ResolvedCorrectionProducer {
       var parent = declaration.parent;
       if (parent is EnumDeclaration) {
         var body = parent.body;
-        var semicolon = body.semicolon;
+        var semicolon = body is BlockEnumBody ? body.semicolon : null;
         if (semicolon == null) {
           needsSemicolon = true;
-          fieldOffset = body.constants.endToken?.end ?? fieldOffset;
+          var constants = body is BlockEnumBody ? body.constants : null;
+          fieldOffset = constants?.endToken?.end ?? fieldOffset;
         } else {
           fieldOffset = semicolon.end;
         }

@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -67,6 +66,25 @@ mixin M {
   void operator +(int other) {}
 }
 ''', target: partPath);
+  }
+
+  Future<void> test_ordinaryTarget_emptyBody() async {
+    await resolveTestCode('''
+mixin M;
+
+void f(M m) {
+  m + 0;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  void operator +(int other) {}
+}
+
+void f(M m) {
+  m + 0;
+}
+''');
   }
 
   Future<void> test_ordinaryTarget_instance() async {

@@ -1,0 +1,34 @@
+{
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "topLevelFunction"
+        }
+      ],
+      "uri": "package:record_use_test/top_level_tearoff.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "type": "tearoff"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -622,9 +622,12 @@ void Profiler::DumpStackTrace(uword sp, uword fp, uword pc, bool for_crash) {
         sp = interpreter->get_sp();
         fp = interpreter->get_fp();
         pc = interpreter->get_pc();
+        StackFrame::DumpCurrentTrace(sp, fp, pc);
       }
 #endif  // defined(DART_DYNAMIC_MODULES)
-      StackFrame::DumpCurrentTrace(sp, fp, pc);
+      if (thread->vm_tag() == VMTag::kDartTagId) {
+        StackFrame::DumpCurrentTrace(sp, fp, pc);
+      }
     }
   }
 
@@ -1000,7 +1003,9 @@ class ReturnAddressLocator : public ValueObject {
     ASSERT(code_.ContainsInstructionAt(pc()));
   }
 
-  ReturnAddressLocator(uword pc, uword* stack_buffer, const Code& code)
+  ReturnAddressLocator(uword pc,
+                       RelaxedAtomic<uword>* stack_buffer,
+                       const Code& code)
       : stack_buffer_(stack_buffer),
         pc_(pc),
         code_(Code::ZoneHandle(code.ptr())) {
@@ -1034,7 +1039,7 @@ class ReturnAddressLocator : public ValueObject {
   }
 
  private:
-  uword* stack_buffer_;
+  RelaxedAtomic<uword>* stack_buffer_;
   uword pc_;
   const Code& code_;
 };
@@ -1279,7 +1284,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 static void CopyStackBuffer(Sample* sample, uword sp_addr) {
   ASSERT(sample != nullptr);
   uword* sp = reinterpret_cast<uword*>(sp_addr);
-  uword* buffer = sample->GetStackBuffer();
+  RelaxedAtomic<uword>* buffer = sample->GetStackBuffer();
   if (sp != nullptr) {
     for (intptr_t i = 0; i < Sample::kStackBufferSizeInWords; i++) {
       buffer[i] = reinterpret_cast<uword>(LoadStackSlot(sp));
@@ -2197,7 +2202,7 @@ ProcessedSample::ProcessedSample()
 
 void ProcessedSample::FixupCaller(const CodeLookupTable& clt,
                                   uword pc_marker,
-                                  uword* stack_buffer) {
+                                  RelaxedAtomic<uword>* stack_buffer) {
   const CodeDescriptor* cd = clt.FindCode(At(0));
   if (cd == nullptr) {
     // No Dart code.
@@ -2210,10 +2215,11 @@ void ProcessedSample::FixupCaller(const CodeLookupTable& clt,
   CheckForMissingDartFrame(clt, cd, pc_marker, stack_buffer);
 }
 
-void ProcessedSample::CheckForMissingDartFrame(const CodeLookupTable& clt,
-                                               const CodeDescriptor* cd,
-                                               uword pc_marker,
-                                               uword* stack_buffer) {
+void ProcessedSample::CheckForMissingDartFrame(
+    const CodeLookupTable& clt,
+    const CodeDescriptor* cd,
+    uword pc_marker,
+    RelaxedAtomic<uword>* stack_buffer) {
   ASSERT(cd != nullptr);
   if (cd->code().IsBytecode()) {
     // Bytecode frame build is atomic from the profiler's perspective,

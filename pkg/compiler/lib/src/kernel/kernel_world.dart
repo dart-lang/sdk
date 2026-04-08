@@ -8,8 +8,8 @@ import '../common/names.dart';
 import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/backend_usage.dart';
+import '../js_backend/field_analysis.dart' show KFieldAnalysis;
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
@@ -20,7 +20,6 @@ import '../universe/class_hierarchy.dart';
 import '../universe/member_usage.dart';
 import '../universe/selector.dart';
 import '../world.dart';
-
 import 'element_map.dart';
 
 /// The immutable result of the [ResolutionWorldBuilder].
@@ -103,7 +102,7 @@ class KClosedWorld implements BuiltWorld {
     required this.noSuchMethodData,
     required RuntimeTypesNeedBuilder rtiNeedBuilder,
     required this.fieldAnalysis,
-    required Set<ClassEntity> implementedClasses,
+    required this._implementedClasses,
     required this.liveNativeClasses,
     required this.liveInstanceMembers,
     required this.liveAbstractInstanceMembers,
@@ -123,7 +122,7 @@ class KClosedWorld implements BuiltWorld {
     required this.localFunctions,
     required this.instantiatedTypes,
     required this.instantiatedRecordTypes,
-  }) : _implementedClasses = implementedClasses {
+  }) {
     _rtiNeed = rtiNeedBuilder.computeRuntimeTypesNeed(this, options);
     assert(_checkIntegrity());
   }

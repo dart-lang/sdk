@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -116,9 +116,47 @@ void f(M m) {
 ''');
   }
 
+  Future<void> test_createQualified_instance_emptyBody() async {
+    await resolveTestCode('''
+mixin M;
+
+void f(M m) {
+  m.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+mixin M {
+  void myUndefinedMethod() {}
+}
+
+void f(M m) {
+  m.myUndefinedMethod();
+}
+''');
+  }
+
   Future<void> test_createQualified_static() async {
     await resolveTestCode('''
 mixin M {}
+
+void f() {
+  M.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+mixin M {
+  static void myUndefinedMethod() {}
+}
+
+void f() {
+  M.myUndefinedMethod();
+}
+''');
+  }
+
+  Future<void> test_createQualified_static_emptyBody() async {
+    await resolveTestCode('''
+mixin M;
 
 void f() {
   M.myUndefinedMethod();
@@ -235,6 +273,29 @@ mixin M {
 class CreateMethodTearoffMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createMethodTearoff;
+
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+void f(M m) {
+  useFunction(m.test);
+}
+
+mixin M;
+
+useFunction(int g(double a, String b)) {}
+''');
+    await assertHasFix('''
+void f(M m) {
+  useFunction(m.test);
+}
+
+mixin M {
+  int test(double a, String b) {}
+}
+
+useFunction(int g(double a, String b)) {}
+''');
+  }
 
   Future<void> test_functionType_method_enclosingMixin_static() async {
     await resolveTestCode('''
@@ -382,6 +443,7 @@ void test(E e) {
 enum E {
   e1,
   e2;
+
   int bar() {}
 }
 
@@ -391,6 +453,35 @@ void test(E e) {
   g(e.bar);
 }
 ''');
+  }
+
+  Future<void> test_enum_tearoff_emptyBody() async {
+    await resolveTestCode('''
+enum E;
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+    await assertHasFix(
+      '''
+enum E {
+  int bar() {}
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''',
+      filter: (error) {
+        // Filter to ignore enum_without_constants
+        return error.diagnosticCode == diag.undefinedGetter;
+      },
+    );
   }
 
   Future<void> test_enum_tearoff_static() async {
@@ -410,6 +501,7 @@ void test() {
 enum E {
   e1,
   e2;
+
   static int bar() {}
 }
 
@@ -421,10 +513,62 @@ void test() {
 ''');
   }
 
+  Future<void> test_enum_tearoff_static_emptyBody() async {
+    await resolveTestCode('''
+enum E;
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''');
+    await assertHasFix(
+      '''
+enum E {
+  static int bar() {}
+}
+
+void g(int Function() f) {}
+
+void test() {
+  g(E.bar);
+}
+''',
+      filter: (error) {
+        // Filter to ignore enum_without_constants
+        return error.diagnosticCode == diag.undefinedEnumConstant;
+      },
+    );
+  }
+
   Future<void> test_extensionType_tearoff() async {
     await resolveTestCode('''
 extension type E(int i) {
 }
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+    await assertHasFix('''
+extension type E(int i) {
+  int bar() {}
+}
+
+void g(int Function() f) {}
+
+void test(E e) {
+  g(e.bar);
+}
+''');
+  }
+
+  Future<void> test_extensionType_tearoff_emptyBody() async {
+    await resolveTestCode('''
+extension type E(int i);
 
 void g(int Function() f) {}
 
@@ -1438,6 +1582,44 @@ class A {
     );
   }
 
+  Future<void> test_createUnqualified_parameters_named_mixedOrder() async {
+    await resolveTestCode('''
+class C {}
+
+f(C c) {
+  c.m(arg1: true, 0, arg3: 'string');
+}
+''');
+    await assertHasFix('''
+class C {
+  void m(int i, {required bool arg1, required String arg3}) {}
+}
+
+f(C c) {
+  c.m(arg1: true, 0, arg3: 'string');
+}
+''');
+  }
+
+  Future<void> test_createUnqualified_parameters_named_only() async {
+    await resolveTestCode('''
+class C {}
+
+f(C c) {
+  c.m(arg1: true, arg3: 'string');
+}
+''');
+    await assertHasFix('''
+class C {
+  void m({required bool arg1, required String arg3}) {}
+}
+
+f(C c) {
+  c.m(arg1: true, arg3: 'string');
+}
+''');
+  }
+
   Future<void> test_createUnqualified_returnType() async {
     await resolveTestCode('''
 class A {
@@ -1510,6 +1692,25 @@ class A {
   }
 
   static void myUndefinedMethod() {}
+}
+''');
+  }
+
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+class A;
+
+void f(A a) {
+  a.myUndefinedMethod();
+}
+''');
+    await assertHasFix('''
+class A {
+  void myUndefinedMethod() {}
+}
+
+void f(A a) {
+  a.myUndefinedMethod();
 }
 ''');
   }

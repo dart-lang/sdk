@@ -616,12 +616,17 @@ void Heap::CheckConcurrentMarking(Thread* thread,
   switch (phase) {
     case PageSpace::kMarking:
       if (mode_ != Dart_PerformanceMode_Latency) {
-        old_space_.IncrementalMarkWithSizeBudget(size);
+        // Back pressure: do slightly more marking work than allocation work.
+        old_space_.IncrementalMarkWithSizeBudget(size + (size >> 2));
       }
       return;
     case PageSpace::kSweepingLarge:
     case PageSpace::kSweepingRegular:
-      return;  // Busy.
+      if (mode_ != Dart_PerformanceMode_Latency) {
+        // Back pressure: do some sweeping work.
+        old_space_.IncrementalSweepWithSizeBudget(size);
+      }
+      return;
     case PageSpace::kAwaitingFinalization:
       CollectOldSpaceGarbage(thread, GCType::kMarkSweep, GCReason::kFinalize);
       return;

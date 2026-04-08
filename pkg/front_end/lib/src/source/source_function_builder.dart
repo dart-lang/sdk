@@ -9,6 +9,7 @@ import 'package:kernel/class_hierarchy.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
+import '../kernel/internal_ast.dart';
 import '../type_inference/type_inference_engine.dart'
     show IncludesTypeParametersNonCovariantly;
 import 'source_library_builder.dart';
@@ -59,7 +60,8 @@ void buildTypeParametersAndFormals(
   if (declaredFormals != null) {
     for (int i = 0; i < declaredFormals.length; i++) {
       FormalParameterBuilder formal = declaredFormals[i];
-      VariableDeclaration parameter = formal.build(libraryBuilder);
+      VariableDeclaration parameter =
+          (formal.build(libraryBuilder) as InternalVariable).astVariable;
       if (needsCheckVisitor != null) {
         if (parameter.type.accept(needsCheckVisitor)) {
           parameter.isCovariantByClass = true;

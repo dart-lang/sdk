@@ -6,23 +6,23 @@ import "dart:core" as core;
 [493]  field core::String? s = [-1] [-1] null;
 [503]  field core::int? i = [-1] [-1] null;
 [516]  field core::double? d = [-1] [-1] null;
-[478]  synthetic constructor •() → self::X1
+[478]  synthetic constructor [-1] [-1] •() → self::X1
     : [-1] super core::Object::• [-1]()
 [-1]    ;
-[478]  static synthetic method _#new#tearOff() → self::X1
+[478]  static synthetic method [478] [478] _#new#tearOff() → self::X1
 [478]    return [478] [478] new self::X1::• [478]();
 }
 [528]class X2 extends core::Object {
 [543]  field core::String? s2 = [-1] [-1] null;
 [554]  field core::int? i = [-1] [-1] null;
 [567]  field core::double? d = [-1] [-1] null;
-[528]  synthetic constructor •() → self::X2
+[528]  synthetic constructor [-1] [-1] •() → self::X2
     : [-1] super core::Object::• [-1]()
 [-1]    ;
-[528]  static synthetic method _#new#tearOff() → self::X2
+[528]  static synthetic method [528] [528] _#new#tearOff() → self::X2
 [528]    return [528] [528] new self::X2::• [528]();
 }
-[222]static method method([229] dynamic o) → void {
+[222]static method [228] [469] method([229] dynamic o) → void {
 [236]  #L1:
 [236]  {
 [244]    [244] final synthesized dynamic #0#0 = [244] [244] o;

@@ -4,6 +4,12 @@
 
 // CHANGES:
 //
+// v0.61 Adjust the `static final` and `static const` variable declarations
+// to require an initializing expression.
+//
+// v0.60 Adjust augmentation and primary constructor related rules to match
+// recent updates.
+//
 // v0.59 Gather some occurrences of `AUGMENT` in a single location. Rename
 // `topLevelDefinition` to `topLevelDeclaration` (as in the specification).
 //
@@ -324,9 +330,17 @@ topLevelDeclaration
     |    AUGMENT? getterSignature (functionBody | ';')
     |    AUGMENT? setterSignature (functionBody | ';')
     |    AUGMENT? functionSignature (functionBody | ';')
-    |    AUGMENT? (FINAL | CONST) type? initializedIdentifierList ';'
+    |    AUGMENT? (FINAL | CONST) type? staticFinalDeclarationList ';'
     |    AUGMENT? LATE FINAL type? initializedIdentifierList ';'
     |    AUGMENT? LATE? varOrType initializedIdentifierList ';'
+    ;
+
+staticFinalDeclarationList
+    :    staticFinalDeclaration (',' staticFinalDeclaration)*
+    ;
+
+staticFinalDeclaration
+    :    identifier '=' expression
     ;
 
 declaredIdentifier
@@ -546,7 +560,8 @@ declaration
     |    EXTERNAL (STATIC? finalVarOrType | COVARIANT varOrType) identifierList
     |    EXTERNAL? operatorSignature
     |    ABSTRACT (finalVarOrType | COVARIANT varOrType) identifierList
-    |    STATIC (FINAL | CONST) type? initializedIdentifierList
+    |    STATIC ABSTRACT finalVarOrType identifierList
+    |    STATIC (FINAL | CONST) type? staticFinalDeclarationList
     |    STATIC LATE FINAL type? initializedIdentifierList
     |    STATIC LATE? varOrType initializedIdentifierList
     |    COVARIANT LATE FINAL type? identifierList
@@ -719,12 +734,14 @@ mixinApplication
 
 enumType
     :    AUGMENT? ENUM classNameMaybePrimary mixins? interfaces?
-         LBRACE enumBody? RBRACE
+         enumBody
     ;
 
 enumBody
-    :    enumEntry (',' enumEntry)* ','? (';' memberDeclarations)?
-    |    ';' memberDeclarations
+    :    LBRACE
+         (enumEntry (',' enumEntry)* ','?)? (';' memberDeclarations)?
+         RBRACE
+    |    ';'
     ;
 
 enumEntry

@@ -1,0 +1,77 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/general/redirect_to_duplicate.dart:7:3: Error: 'C1' is already declared in this scope.
+//   C1();
+//   ^^
+// pkg/front_end/testcases/general/redirect_to_duplicate.dart:6:3: Context: Previous declaration of 'C1'.
+//   C1();
+//   ^^
+//
+// pkg/front_end/testcases/general/redirect_to_duplicate.dart:13:3: Error: 'C2.named' is already declared in this scope.
+//   C2.named();
+//   ^^^^^^^^
+// pkg/front_end/testcases/general/redirect_to_duplicate.dart:12:3: Context: Previous declaration of 'C2.named'.
+//   C2.named();
+//   ^^^^^^^^
+//
+// pkg/front_end/testcases/general/redirect_to_duplicate.dart:18:3: Error: 'ET1' is already declared in this scope.
+//   ET1(this.i);
+//   ^^^
+// pkg/front_end/testcases/general/redirect_to_duplicate.dart:17:19: Context: Previous declaration of 'ET1'.
+// extension type ET1(int i) {
+//                   ^
+//
+// pkg/front_end/testcases/general/redirect_to_duplicate.dart:23:3: Error: 'ET2.named' is already declared in this scope.
+//   ET2.named(this.i);
+//   ^^^^^^^^^
+// pkg/front_end/testcases/general/redirect_to_duplicate.dart:22:20: Context: Previous declaration of 'ET2.named'.
+// extension type ET2.named(int i) {
+//                    ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C1 extends core::Object {
+  constructor •() → self::C1
+    ;
+  constructor named() → self::C1
+    ;
+}
+class C2 extends core::Object {
+  constructor named() → self::C2
+    ;
+  constructor •() → self::C2
+    ;
+}
+extension type ET1(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor • = self::ET1|constructor#;
+  constructor tearoff • = self::ET1|constructor#_#new#tearOff;
+  constructor named = self::ET1|constructor#named;
+  constructor tearoff named = self::ET1|constructor#_#named#tearOff;
+}
+extension type ET2(core::int i) {
+  abstract extension-type-member representation-field get i() → core::int;
+  constructor named = self::ET2|constructor#named;
+  constructor tearoff named = self::ET2|constructor#_#named#tearOff;
+  constructor • = self::ET2|constructor#;
+  constructor tearoff • = self::ET2|constructor#_#new#tearOff;
+}
+static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#(i);
+static extension-type-member method ET1|constructor#named(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET1|constructor#_#named#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
+  return self::ET1|constructor#named(i);
+static extension-type-member method ET2|constructor#named(core::int i) → self::ET2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#named#tearOff(core::int i) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#named(i);
+static extension-type-member method ET2|constructor#(core::int i) → self::ET2% /* erasure=core::int, declared=! */
+  ;
+static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int i) → self::ET2% /* erasure=core::int, declared=! */
+  return self::ET2|constructor#(i);

@@ -244,7 +244,7 @@ bool _isOverride(Interface interface, Field field) {
 }
 
 bool _isSimpleType(TypeBase type) {
-  const literals = ['num', 'String', 'bool', 'int'];
+  const literals = ['num', 'String', 'bool', 'int', 'double'];
   return type is TypeReference && literals.contains(type.dartType);
 }
 
@@ -309,8 +309,8 @@ String _memberNameForType(TypeBase type) {
 String _rewriteCommentReference(String comment) {
   var commentReferencePattern = RegExp(r'\[([\w ]+)\]\(#(\w+)\)');
   return comment.replaceAllMapped(commentReferencePattern, (m) {
-    var description = m.group(1);
-    var reference = m.group(2);
+    var description = m[1];
+    var reference = m[2];
     if (description == reference) {
       return '[$reference]';
     } else {
@@ -1153,6 +1153,8 @@ void _writeToJsonCode(
     buffer.write('$valueCode$nullOp.toJson()');
   } else if (_isUriType(type)) {
     buffer.write('$valueCode$nullOp.toString()');
+  } else if (type is ArrayType && _isUriType(type.elementType)) {
+    buffer.write('$valueCode$nullOp.map((uri) => uri.toString()).toList()');
   } else {
     buffer.write(valueCode);
   }

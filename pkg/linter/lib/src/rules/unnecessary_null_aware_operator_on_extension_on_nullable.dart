@@ -8,6 +8,8 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -51,6 +53,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var question = node.question;
     if (question == null) return;
     if (node.isNullAware &&
+        node.realTarget.isExtensionOverrideOrStaticTypeIsNullable &&
         _isExtensionOnNullableType(
           node.inSetterContext()
               ? node
@@ -68,6 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     var operator = node.operator;
     if (operator == null) return;
     if (node.isNullAware &&
+        node.realTarget.isExtensionOverrideOrStaticTypeIsNullable &&
         _isExtensionOnNullableType(node.methodName.element?.enclosingElement)) {
       rule.reportAtToken(operator);
     }
@@ -75,7 +79,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitPropertyAccess(PropertyAccess node) {
-    if (node.isNullAware) {
+    if (node.isNullAware &&
+        node.realTarget.isExtensionOverrideOrStaticTypeIsNullable) {
       var realParent = node.thisOrAncestorMatching(
         (p) => p != node && p is! ParenthesizedExpression,
       );
@@ -92,4 +97,22 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool _isExtensionOnNullableType(Element? enclosingElement) =>
       enclosingElement is ExtensionElement &&
       context.typeSystem.isNullable(enclosingElement.extendedType);
+}
+
+extension on Expression? {
+  /// If we have an extension override or the static type of the target is
+  /// nullable, then the null-aware operator is unnecessary and we will report.
+  ///
+  /// It is also unnecessary if the type is non-nullable and we access it
+  /// similarly, but we already have `invalidNullAwareOperator` for that case.
+  bool get isExtensionOverrideOrStaticTypeIsNullable =>
+      this is ExtensionOverride || (this?.staticType).isNullable;
+}
+
+extension on DartType? {
+  bool get isNullable {
+    var self = this;
+    if (self == null) return false;
+    return self.nullabilitySuffix == NullabilitySuffix.question;
+  }
 }

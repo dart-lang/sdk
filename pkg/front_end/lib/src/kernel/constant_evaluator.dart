@@ -39,11 +39,11 @@ import '../base/common.dart';
 import '../base/problems.dart';
 import '../codes/cfe_codes.dart';
 import '../type_inference/delayed_expressions.dart';
-import '../type_inference/external_ast_helper.dart';
 import '../type_inference/matching_cache.dart';
 import '../type_inference/matching_expressions.dart';
 import 'constant_int_folder.dart';
 import 'exhaustiveness.dart';
+import 'external_ast_helper.dart' as extern;
 import 'record_use.dart' as RecordUse;
 import 'static_weak_references.dart' show StaticWeakReferences;
 
@@ -366,7 +366,11 @@ class ConstantsTransformer extends RemovingTransformer {
           );
         }
       }
-      RecordUse.validateAnnotations(parent, constantEvaluator.errorReporter);
+      RecordUse.validateAnnotations(
+        nodes,
+        parent,
+        constantEvaluator.errorReporter,
+      );
     }
   }
 
@@ -671,10 +675,10 @@ class ConstantsTransformer extends RemovingTransformer {
           // a jump to the generated switch statement.
           int targetCaseIndex = info.switchCaseIndexMap[targetSwitchCase]!;
           return new _InlinedBlock([
-            createExpressionStatement(
-              createVariableSet(
+            extern.createExpressionStatement(
+              extern.createVariableSet(
                 info.switchIndexVariable,
-                createIntLiteral(
+                extern.createIntLiteral(
                   typeEnvironment.coreTypes,
                   targetCaseIndex,
                   fileOffset: node.fileOffset,
@@ -682,7 +686,7 @@ class ConstantsTransformer extends RemovingTransformer {
                 fileOffset: node.fileOffset,
               ),
             ),
-            createBreakStatement(
+            extern.createBreakStatement(
               info.innerLabeledStatement,
               fileOffset: node.fileOffset,
             ),
@@ -959,7 +963,7 @@ class ConstantsTransformer extends RemovingTransformer {
         }
       }
 
-      replacement = createSwitchStatement(
+      replacement = extern.createSwitchStatement(
         node.expression,
         switchCases,
         isExplicitlyExhaustive: !hasDefault && isAlwaysExhaustiveType,
@@ -968,16 +972,17 @@ class ConstantsTransformer extends RemovingTransformer {
       );
     } else {
       // matchResultVariable: int RVAR = -1;
-      VariableDeclaration matchResultVariable = createInitializedVariable(
-        createIntLiteral(
-          typeEnvironment.coreTypes,
-          -1,
-          fileOffset: node.fileOffset,
-        ),
-        typeEnvironment.coreTypes.intNonNullableRawType,
-        fileOffset: node.fileOffset,
-      );
-      LabeledStatement innerLabeledStatement = createLabeledStatement(
+      VariableDeclaration matchResultVariable = extern
+          .createInitializedVariable(
+            extern.createIntLiteral(
+              typeEnvironment.coreTypes,
+              -1,
+              fileOffset: node.fileOffset,
+            ),
+            typeEnvironment.coreTypes.intNonNullableRawType,
+            fileOffset: node.fileOffset,
+          );
+      LabeledStatement innerLabeledStatement = extern.createLabeledStatement(
         dummyStatement,
         fileOffset: node.fileOffset,
       );
@@ -1057,7 +1062,7 @@ class ConstantsTransformer extends RemovingTransformer {
         // declared in the heads aren't compatible to each other.
         Map<String, VariableDeclaration> caseDeclaredVariableHelpersByName = {
           for (VariableDeclaration variable in switchCase.jointVariables)
-            variable.name!: createUninitializedVariable(
+            variable.name!: extern.createUninitializedVariable(
               const DynamicType(),
               // Avoid step debugging on the declaration of intermediate
               // variables.
@@ -1107,7 +1112,7 @@ class ConstantsTransformer extends RemovingTransformer {
             inCacheInitializer: false,
           );
           if (guard != null) {
-            headCondition = createAndExpression(
+            headCondition = extern.createAndExpression(
               headCondition,
               guard,
               fileOffset: TreeNode.noOffset,
@@ -1123,15 +1128,15 @@ class ConstantsTransformer extends RemovingTransformer {
             if (variableHelper != null) {
               // headCondition: `headCondition` &&
               //     let _ = `variableHelper` = `declaredVariable` in true
-              headCondition = createAndExpression(
+              headCondition = extern.createAndExpression(
                 headCondition,
-                createLetEffect(
-                  effect: createVariableSet(
+                extern.createLetEffect(
+                  effect: extern.createVariableSet(
                     variableHelper,
-                    createVariableGet(declaredVariable),
+                    extern.createVariableGet(declaredVariable),
                     fileOffset: node.fileOffset,
                   ),
-                  result: createBoolLiteral(
+                  result: extern.createBoolLiteral(
                     true,
                     fileOffset: declaredVariable.fileOffset,
                   ),
@@ -1142,7 +1147,7 @@ class ConstantsTransformer extends RemovingTransformer {
           }
 
           if (caseCondition != null) {
-            caseCondition = createOrExpression(
+            caseCondition = extern.createOrExpression(
               caseCondition,
               headCondition,
               fileOffset: node.fileOffset,
@@ -1154,9 +1159,9 @@ class ConstantsTransformer extends RemovingTransformer {
 
         if (switchCase.isDefault) {
           if (caseCondition != null) {
-            caseCondition = createOrExpression(
+            caseCondition = extern.createOrExpression(
               caseCondition,
-              createBoolLiteral(true, fileOffset: switchCase.fileOffset),
+              extern.createBoolLiteral(true, fileOffset: switchCase.fileOffset),
               fileOffset: switchCase.fileOffset,
             );
           }
@@ -1185,7 +1190,7 @@ class ConstantsTransformer extends RemovingTransformer {
             //     `jointVariable` =
             //         `declaredVariableHelper`{`declaredVariable.type`}
             //   ==> `jointVariable` = HVAR{`declaredVariable.type`}
-            jointVariable.initializer = createVariableGet(
+            jointVariable.initializer = extern.createVariableGet(
               caseDeclaredVariableHelpersByName[jointVariable.name!]!,
               promotedType: jointVariable.type,
             )..parent = jointVariable;
@@ -1197,10 +1202,10 @@ class ConstantsTransformer extends RemovingTransformer {
 
           // setMatchResult: `matchResultVariable` = `caseIndex`;
           //   ==> RVAR = `caseIndex`;
-          Statement setMatchResult = createExpressionStatement(
-            createVariableSet(
+          Statement setMatchResult = extern.createExpressionStatement(
+            extern.createVariableSet(
               matchResultVariable,
-              createIntLiteral(
+              extern.createIntLiteral(
                 typeEnvironment.coreTypes,
                 continueTargetIndex,
                 fileOffset: node.fileOffset,
@@ -1209,24 +1214,24 @@ class ConstantsTransformer extends RemovingTransformer {
             ),
           );
 
-          caseBlock = createBlock([
+          caseBlock = extern.createBlock([
             setMatchResult,
-            createBreakStatement(
+            extern.createBreakStatement(
               innerLabeledStatement,
               fileOffset: switchCase.fileOffset,
             ),
           ], fileOffset: switchCase.fileOffset);
 
-          SwitchCase replacementCase = createSwitchCase(
+          SwitchCase replacementCase = extern.createSwitchCase(
             [
-              createIntLiteral(
+              extern.createIntLiteral(
                 typeEnvironment.coreTypes,
                 continueTargetIndex,
                 fileOffset: node.fileOffset,
               ),
             ],
             [node.fileOffset],
-            createBlock([
+            extern.createBlock([
               ...switchCase.jointVariables,
               if (body is! Block || body.statements.isNotEmpty) body,
             ], fileOffset: node.fileOffset),
@@ -1248,14 +1253,14 @@ class ConstantsTransformer extends RemovingTransformer {
 
           replacementCases.add(replacementCase);
         } else {
-          caseBlock = createBlock([
+          caseBlock = extern.createBlock([
             ...switchCase.jointVariables,
             if (body is! Block || body.statements.isNotEmpty) body,
           ], fileOffset: switchCase.fileOffset);
         }
 
         if (caseCondition != null) {
-          caseBlock = createIfStatement(
+          caseBlock = extern.createIfStatement(
             caseCondition,
             caseBlock,
             fileOffset: switchCase.fileOffset,
@@ -1274,13 +1279,13 @@ class ConstantsTransformer extends RemovingTransformer {
               dummyStatement,
             );
           }
-          breakStatement = createBreakStatement(
+          breakStatement = extern.createBreakStatement(
             target,
             fileOffset: switchCase.fileOffset,
           );
         }
         cases.add(
-          createBlock([
+          extern.createBlock([
             ...caseVariables,
             caseBlock,
             if (breakStatement != null)
@@ -1292,12 +1297,12 @@ class ConstantsTransformer extends RemovingTransformer {
 
       if (needsThrowForNull) {
         cases.add(
-          createExpressionStatement(
-            createThrow(
-              createConstructorInvocation(
+          extern.createExpressionStatement(
+            extern.createThrow(
+              extern.createConstructorInvocation(
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
-                createArguments([
-                  createStringLiteral(
+                extern.createArguments([
+                  extern.createStringLiteral(
                     forUnsoundness
                         ? diag.unsoundSwitchStatementError.problemMessage
                         :
@@ -1328,7 +1333,10 @@ class ConstantsTransformer extends RemovingTransformer {
       }
 
       if (hasContinue) {
-        Statement casesBlock = createBlock(cases, fileOffset: node.fileOffset);
+        Statement casesBlock = extern.createBlock(
+          cases,
+          fileOffset: node.fileOffset,
+        );
         innerLabeledStatement.body = casesBlock..parent = innerLabeledStatement;
         replacementStatements = [
           matchResultVariable,
@@ -1336,8 +1344,8 @@ class ConstantsTransformer extends RemovingTransformer {
           ...matchingCache.declarations,
           ...declaredVariableHelpers,
           innerLabeledStatement,
-          createSwitchStatement(
-            createVariableGet(matchResultVariable),
+          extern.createSwitchStatement(
+            extern.createVariableGet(matchResultVariable),
             replacementCases,
             isExplicitlyExhaustive: false,
             expressionType: scrutineeType,
@@ -1556,15 +1564,15 @@ class ConstantsTransformer extends RemovingTransformer {
           //
           // If we inlined the then-statement, code coverage wouldn't show that
           // the else-statement is not covered.
-          createBoolLiteral(true, fileOffset: node.fileOffset);
+          extern.createBoolLiteral(true, fileOffset: node.fileOffset);
       if (statements.isNotEmpty ||
           // Coverage-ignore(suite): Not run.
           expressionEffects.isNotEmpty ||
           // Coverage-ignore(suite): Not run.
           statementEffects.isNotEmpty) {
-        then = createBlock([
+        then = extern.createBlock([
           ...statements,
-          ...expressionEffects.map(createExpressionStatement),
+          ...expressionEffects.map(extern.createExpressionStatement),
           ...statementEffects,
           then,
         ], fileOffset: node.fileOffset);
@@ -1575,7 +1583,7 @@ class ConstantsTransformer extends RemovingTransformer {
         inCacheInitializer: false,
       );
       if (guard != null) {
-        condition = createAndExpression(
+        condition = extern.createAndExpression(
           condition,
           guard,
           fileOffset: TreeNode.noOffset,
@@ -1590,9 +1598,9 @@ class ConstantsTransformer extends RemovingTransformer {
     if (declarations.isNotEmpty) {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
-      ifStatement = createBlock([
+      ifStatement = extern.createBlock([
         ...declarations,
-        createIfStatement(
+        extern.createIfStatement(
           condition,
           then,
           otherwise: node.otherwise,
@@ -1600,7 +1608,7 @@ class ConstantsTransformer extends RemovingTransformer {
         ),
       ], fileOffset: node.fileOffset);
     } else {
-      ifStatement = createIfStatement(
+      ifStatement = extern.createIfStatement(
         condition,
         then,
         otherwise: node.otherwise,
@@ -1608,8 +1616,10 @@ class ConstantsTransformer extends RemovingTransformer {
       );
     }
     return transform(
-      createBlock([...cacheVariables, ifStatement], fileOffset: node.fileOffset)
-        ..parent = node.parent,
+      extern.createBlock([
+        ...cacheVariables,
+        ifStatement,
+      ], fileOffset: node.fileOffset)..parent = node.parent,
     );
   }
 
@@ -1663,14 +1673,14 @@ class ConstantsTransformer extends RemovingTransformer {
       replacementStatements = [
         ...matchingCache.declarations,
         // TODO(cstefantsova): Provide a better diagnostic message.
-        createIfStatement(
-          createNot(readMatchingExpression),
-          createExpressionStatement(
-            createThrow(
-              createConstructorInvocation(
+        extern.createIfStatement(
+          extern.createNot(readMatchingExpression),
+          extern.createExpressionStatement(
+            extern.createThrow(
+              extern.createConstructorInvocation(
                 typeEnvironment.coreTypes.stateErrorConstructor,
-                createArguments([
-                  createStringLiteral(
+                extern.createArguments([
+                  extern.createStringLiteral(
                     diag.patternMatchingError.problemMessage,
                     fileOffset: node.fileOffset,
                   ),
@@ -1688,7 +1698,7 @@ class ConstantsTransformer extends RemovingTransformer {
       // If we need local declarations, create a new block to avoid naming
       // collision with declarations in the same parent block.
       replacementStatements = [
-        createBlock(replacementStatements, fileOffset: node.fileOffset),
+        extern.createBlock(replacementStatements, fileOffset: node.fileOffset),
       ];
     }
     replacementStatements = [
@@ -1759,14 +1769,14 @@ class ConstantsTransformer extends RemovingTransformer {
         ...matchingCache.declarations,
         ...node.pattern.declaredVariables,
         // TODO(cstefantsova): Provide a better diagnostic message.
-        createIfStatement(
-          createNot(readMatchingExpression),
-          createExpressionStatement(
-            createThrow(
-              createConstructorInvocation(
+        extern.createIfStatement(
+          extern.createNot(readMatchingExpression),
+          extern.createExpressionStatement(
+            extern.createThrow(
+              extern.createConstructorInvocation(
                 typeEnvironment.coreTypes.stateErrorConstructor,
-                createArguments([
-                  createStringLiteral(
+                extern.createArguments([
+                  extern.createStringLiteral(
                     diag.patternMatchingError.problemMessage,
                     fileOffset: node.fileOffset,
                   ),
@@ -1780,13 +1790,13 @@ class ConstantsTransformer extends RemovingTransformer {
         ),
         ...effects.map(
           // Coverage-ignore(suite): Not run.
-          (e) => createExpressionStatement(e),
+          (e) => extern.createExpressionStatement(e),
         ),
       ];
     }
 
-    Expression result = createBlockExpression(
-      createBlock(replacementStatements, fileOffset: node.fileOffset),
+    Expression result = extern.createBlockExpression(
+      extern.createBlock(replacementStatements, fileOffset: node.fileOffset),
       readMatchedExpression,
       fileOffset: node.fileOffset,
     );
@@ -1918,7 +1928,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
     Expression replacement;
     if (primitiveEqualConstantsOnly) {
-      VariableDeclaration valueVariable = createUninitializedVariable(
+      VariableDeclaration valueVariable = extern.createUninitializedVariable(
         node.staticType!,
         // Avoid step debugging on the declarations of the value variable.
         // TODO(johnniwinther): Find a more systematic way of omitting
@@ -1926,7 +1936,7 @@ class ConstantsTransformer extends RemovingTransformer {
         fileOffset: TreeNode.noOffset,
       );
 
-      LabeledStatement labeledStatement = createLabeledStatement(
+      LabeledStatement labeledStatement = extern.createLabeledStatement(
         dummyStatement,
         fileOffset: node.fileOffset,
       );
@@ -1949,15 +1959,15 @@ class ConstantsTransformer extends RemovingTransformer {
             new SwitchCase(
                 expressions,
                 expressionOffsets,
-                createBlock([
-                  createExpressionStatement(
-                    createVariableSet(
+                extern.createBlock([
+                  extern.createExpressionStatement(
+                    extern.createVariableSet(
                       valueVariable,
                       switchExpressionCase.expression,
                       fileOffset: switchExpressionCase.expression.fileOffset,
                     ),
                   ),
-                  createBreakStatement(
+                  extern.createBreakStatement(
                     labeledStatement,
                     fileOffset: switchExpressionCase.expression.fileOffset,
                   ),
@@ -1969,19 +1979,19 @@ class ConstantsTransformer extends RemovingTransformer {
         switchCases.add(switchCase);
       }
 
-      labeledStatement.body = createSwitchStatement(
+      labeledStatement.body = extern.createSwitchStatement(
         node.expression,
         switchCases,
         isExplicitlyExhaustive: true,
         expressionType: scrutineeType,
         fileOffset: node.fileOffset,
       )..parent = labeledStatement;
-      replacement = createBlockExpression(
-        createBlock([
+      replacement = extern.createBlockExpression(
+        extern.createBlock([
           valueVariable,
           labeledStatement,
         ], fileOffset: node.fileOffset),
-        createVariableGet(valueVariable),
+        extern.createVariableGet(valueVariable),
         fileOffset: node.fileOffset,
       );
     } else {
@@ -1996,13 +2006,13 @@ class ConstantsTransformer extends RemovingTransformer {
       // This expression is used, even if no case reads it.
       matchedExpression.registerUse();
 
-      LabeledStatement labeledStatement = createLabeledStatement(
+      LabeledStatement labeledStatement = extern.createLabeledStatement(
         dummyStatement,
         fileOffset: node.fileOffset,
       );
 
       // valueVariable: `valueType` valueVariable;
-      VariableDeclaration valueVariable = createUninitializedVariable(
+      VariableDeclaration valueVariable = extern.createUninitializedVariable(
         node.staticType!,
         // Avoid step debugging on the declaration of the value variable.
         // TODO(johnniwinther): Find a more systematic way of omitting
@@ -2055,7 +2065,7 @@ class ConstantsTransformer extends RemovingTransformer {
               ) ??
               // TODO(johnniwinther): Avoid generating the if-statement in this
               // case.
-              createBoolLiteral(true, fileOffset: node.fileOffset);
+              extern.createBoolLiteral(true, fileOffset: node.fileOffset);
           if (statements.isNotEmpty ||
               // Coverage-ignore(suite): Not run.
               expressionEffects.isNotEmpty ||
@@ -2063,7 +2073,7 @@ class ConstantsTransformer extends RemovingTransformer {
               statementEffects.isNotEmpty) {
             tailStatements = [
               ...statements,
-              ...expressionEffects.map(createExpressionStatement),
+              ...expressionEffects.map(extern.createExpressionStatement),
               ...statementEffects,
             ];
           }
@@ -2073,7 +2083,7 @@ class ConstantsTransformer extends RemovingTransformer {
             inCacheInitializer: false,
           );
           if (guard != null) {
-            caseCondition = createAndExpression(
+            caseCondition = extern.createAndExpression(
               caseCondition,
               guard,
               fileOffset: TreeNode.noOffset,
@@ -2082,14 +2092,14 @@ class ConstantsTransformer extends RemovingTransformer {
         }
 
         cases.add(
-          createBlock([
+          extern.createBlock([
             ...pattern.declaredVariables,
-            createIfStatement(
+            extern.createIfStatement(
               caseCondition,
-              createBlock([
+              extern.createBlock([
                 ...?tailStatements,
-                createExpressionStatement(
-                  createVariableSet(
+                extern.createExpressionStatement(
+                  extern.createVariableSet(
                     valueVariable,
                     body,
                     // Avoid step debugging on the assignment to the value
@@ -2099,7 +2109,7 @@ class ConstantsTransformer extends RemovingTransformer {
                     fileOffset: TreeNode.noOffset,
                   ),
                 ),
-                createBreakStatement(
+                extern.createBreakStatement(
                   labeledStatement,
                   fileOffset: switchCase.fileOffset,
                 ),
@@ -2116,12 +2126,12 @@ class ConstantsTransformer extends RemovingTransformer {
       }
       if (needsThrow) {
         cases.add(
-          createExpressionStatement(
-            createThrow(
-              createConstructorInvocation(
+          extern.createExpressionStatement(
+            extern.createThrow(
+              extern.createConstructorInvocation(
                 typeEnvironment.coreTypes.reachabilityErrorConstructor,
-                createArguments([
-                  createStringLiteral(
+                extern.createArguments([
+                  extern.createStringLiteral(
                     forUnsoundness
                         ? diag.unsoundSwitchExpressionError.problemMessage
                         :
@@ -2140,15 +2150,17 @@ class ConstantsTransformer extends RemovingTransformer {
         );
       }
 
-      labeledStatement.body = createBlock(cases, fileOffset: node.fileOffset)
-        ..parent = labeledStatement;
-      replacement = createBlockExpression(
-        createBlock([
+      labeledStatement.body = extern.createBlock(
+        cases,
+        fileOffset: node.fileOffset,
+      )..parent = labeledStatement;
+      replacement = extern.createBlockExpression(
+        extern.createBlock([
           valueVariable,
           ...matchingCache.declarations,
           labeledStatement,
         ], fileOffset: node.fileOffset),
-        createVariableGet(valueVariable),
+        extern.createVariableGet(valueVariable),
         fileOffset: node.fileOffset,
       );
     }
@@ -2178,7 +2190,7 @@ class ConstantsTransformer extends RemovingTransformer {
 
   @override
   TreeNode visitVariableGet(VariableGet node, TreeNode? removalSentinel) {
-    final ExpressionVariable variable = node.expressionVariable;
+    final VariableDeclaration variable = node.variable;
     if (variable.isConst) {
       variable.initializer = evaluateAndTransformWithContext(
         variable,
@@ -4564,7 +4576,7 @@ class ConstantEvaluator
 
   @override
   Constant visitInstanceGet(InstanceGet node) {
-    if (node.receiver is ThisExpression) {
+    if (isThisExpression(node.receiver)) {
       // Coverage-ignore: Probably unreachable unless trying to evaluate
       // non-const stuff as const.
       // Access "this" during instance creation.
@@ -4780,7 +4792,7 @@ class ConstantEvaluator
     //
     // TODO(kustermann): The heuristic of allowing all [VariableGet]s on [Let]
     // variables might allow more than it should.
-    final ExpressionVariable variable = node.variable;
+    final VariableDeclaration variable = node.variable;
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
       return env.lookupVariable(variable) ??
           // Coverage-ignore(suite): Not run.
@@ -4817,7 +4829,7 @@ class ConstantEvaluator
   @override
   Constant visitVariableSet(VariableSet node) {
     if (enableConstFunctions || inExtensionTypeConstConstructor) {
-      final ExpressionVariable variable = node.variable;
+      final VariableDeclaration variable = node.variable;
       Constant value = _evaluateSubexpression(node.value);
       if (value is AbortConstant) return value;
       Constant? result = env.updateVariableValue(variable, value);
@@ -4828,7 +4840,7 @@ class ConstantEvaluator
       return createEvaluationErrorConstant(
         node,
         diag.constEvalError.withArguments(
-          message: 'Variable set of an unknown value.',
+          message: 'VariableDeclaration set of an unknown value.',
         ),
       );
     }
@@ -6095,7 +6107,7 @@ class StatementConstantEvaluator
 
   @override
   ExecutionStatus visitForStatement(ForStatement node) {
-    for (VariableInitialization variable in node.variableInitializations) {
+    for (VariableInitializationBase variable in node.variableInitializations) {
       final ExecutionStatus status = variable.accept(this);
       if (status is! ProceedStatus) return status;
     }
@@ -6447,7 +6459,7 @@ class EvaluationEnvironment {
     }
   }
 
-  Constant? updateVariableValue(ExpressionVariable variable, Constant value) {
+  Constant? updateVariableValue(VariableDeclaration variable, Constant value) {
     EvaluationReference? reference = _variables[variable];
     if (reference != null) {
       reference.value = value;
@@ -6456,7 +6468,7 @@ class EvaluationEnvironment {
     return _parent?.updateVariableValue(variable, value);
   }
 
-  Constant? lookupVariable(ExpressionVariable variable) {
+  Constant? lookupVariable(VariableDeclaration variable) {
     Constant? value = _variables[variable]?.value;
     if (value is UnevaluatedConstant) {
       _unreadUnevaluatedVariables.remove(variable);
@@ -6765,9 +6777,11 @@ class HasUninstantiatedVisitor extends FindTypeVisitor {
   }
 }
 
-bool _isFormalParameter(ExpressionVariable variable) {
+bool _isFormalParameter(VariableDeclaration variable) {
   final TreeNode? parent = variable.parent;
-  if (parent is FunctionNode) {
+  if (variable is FunctionParameter) {
+    return true;
+  } else if (parent is FunctionNode) {
     return parent.positionalParameters.contains(variable) ||
         parent.namedParameters.contains(variable);
   }

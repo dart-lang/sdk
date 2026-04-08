@@ -484,12 +484,12 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // futureValueType(`dynamic`) = `dynamic`.
-    if (identical(T, DynamicTypeImpl.instance)) {
+    if (T is DynamicTypeImpl) {
       return T;
     }
 
     // futureValueType(`void`) = `void`.
-    if (identical(T, VoidTypeImpl.instance)) {
+    if (T is VoidTypeImpl) {
       return T;
     }
 
@@ -897,7 +897,7 @@ class TypeSystemImpl implements TypeSystem {
   /// whose bound is dynamic bounded, or an intersection (promoted type
   /// parameter type) whose second operand is dynamic bounded.
   bool isDynamicBounded(DartType type) {
-    if (identical(type, DynamicTypeImpl.instance)) {
+    if (type is DynamicTypeImpl) {
       return true;
     }
 
@@ -986,7 +986,7 @@ class TypeSystemImpl implements TypeSystem {
 
   /// Either [InvalidType] itself, or an intersection with it.
   bool isInvalidBounded(DartType type) {
-    if (identical(type, InvalidTypeImpl.instance)) {
+    if (type is InvalidTypeImpl) {
       return true;
     }
 
@@ -1013,12 +1013,12 @@ class TypeSystemImpl implements TypeSystem {
     var S_nullability = S.nullabilitySuffix;
 
     // MOREBOTTOM(Never, T) = true
-    if (identical(T, NeverTypeImpl.instance)) {
+    if (T is NeverTypeImpl && T.nullabilitySuffix == NullabilitySuffix.none) {
       return true;
     }
 
     // MOREBOTTOM(T, Never) = false
-    if (identical(S, NeverTypeImpl.instance)) {
+    if (S is NeverTypeImpl && S.nullabilitySuffix == NullabilitySuffix.none) {
       return false;
     }
 
@@ -1095,24 +1095,22 @@ class TypeSystemImpl implements TypeSystem {
     var S_nullability = S.nullabilitySuffix;
 
     // MORETOP(void, S) = true
-    if (identical(T, VoidTypeImpl.instance)) {
+    if (T is VoidTypeImpl) {
       return true;
     }
 
     // MORETOP(T, void) = false
-    if (identical(S, VoidTypeImpl.instance)) {
+    if (S is VoidTypeImpl) {
       return false;
     }
 
     // MORETOP(dynamic, S) = true
-    if (identical(T, DynamicTypeImpl.instance) ||
-        identical(T, InvalidTypeImpl.instance)) {
+    if (T is DynamicTypeImpl || T is InvalidTypeImpl) {
       return true;
     }
 
     // MORETOP(T, dynamic) = false
-    if (identical(S, DynamicTypeImpl.instance) ||
-        identical(S, InvalidTypeImpl.instance)) {
+    if (S is DynamicTypeImpl || S is InvalidTypeImpl) {
       return false;
     }
 
@@ -1294,13 +1292,12 @@ class TypeSystemImpl implements TypeSystem {
     }
 
     // TOP(dynamic) is true
-    if (identical(type, DynamicTypeImpl.instance) ||
-        identical(type, InvalidTypeImpl.instance)) {
+    if (type is DynamicTypeImpl || type is InvalidTypeImpl) {
       return true;
     }
 
     // TOP(void) is true
-    if (identical(type, VoidTypeImpl.instance)) {
+    if (type is VoidTypeImpl) {
       return true;
     }
 
@@ -1856,10 +1853,14 @@ class TypeSystemImpl implements TypeSystem {
     return null;
   }
 
+  /// Refines the context type of a numeric invocation.
+  ///
+  /// [T] is the static type of the target (e1).
+  /// [C] is the context type of the expression (e).
   TypeImpl _refineNumericInvocationContextNullSafe(
-    TypeImpl targetType,
+    TypeImpl T,
     MethodElement methodElement,
-    TypeImpl invocationContext,
+    TypeImpl C,
     TypeImpl currentType,
   ) {
     // If the method being invoked comes from an extension, don't refine the
@@ -1883,20 +1884,18 @@ class TypeSystemImpl implements TypeSystem {
       //   methods on nullable types, and that's checked for elsewhere), but
       //   better from the standpoint of error recovery (since it allows e.g.
       //   `int? + int` to resolve to `int` rather than `num`).
-      var c = invocationContext;
-      var t = targetType;
-      assert(!t.isBottom);
+      assert(!T.isBottom);
       var numType = typeProvider.numType;
-      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
+      if (isSubtypeOf(T, typeProvider.numTypeQuestion)) {
         // Then:
         // - If int <: C, not num <: C, and T <: int, then the context type of
         //   e2 is int.
         // (Note: as above, we check the type of T against `int?`, because it's
         // equivalent and leads to better error recovery.)
         var intType = typeProvider.intType;
-        if (isSubtypeOf(intType, c) &&
-            !isSubtypeOf(numType, c) &&
-            isSubtypeOf(t, typeProvider.intTypeQuestion)) {
+        if (isSubtypeOf(intType, C) &&
+            !isSubtypeOf(numType, C) &&
+            isSubtypeOf(T, typeProvider.intTypeQuestion)) {
           return intType;
         }
         // - If double <: C, not num <: C, and not T <: double, then the context
@@ -1904,9 +1903,9 @@ class TypeSystemImpl implements TypeSystem {
         // (Note: as above, we check the type of T against `double?`, because
         // it's equivalent and leads to better error recovery.)
         var doubleType = typeProvider.doubleType;
-        if (isSubtypeOf(doubleType, c) &&
-            !isSubtypeOf(numType, c) &&
-            !isSubtypeOf(t, typeProvider.doubleTypeQuestion)) {
+        if (isSubtypeOf(doubleType, C) &&
+            !isSubtypeOf(numType, C) &&
+            !isSubtypeOf(T, typeProvider.doubleTypeQuestion)) {
           return doubleType;
         }
         // Otherwise, the context type of e2 is num.
@@ -1927,28 +1926,26 @@ class TypeSystemImpl implements TypeSystem {
       //   from the standpoint of error recovery (since it allows e.g.
       //   `int?.clamp(e2, e3)` to give the same context to `e2` and `e3` that
       //   `int.clamp(e2, e3` would).
-      var c = invocationContext;
-      var t = targetType;
-      assert(!t.isBottom);
+      assert(!T.isBottom);
       var numType = typeProvider.numType;
-      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
+      if (isSubtypeOf(T, typeProvider.numTypeQuestion)) {
         // Then:
         // - If int <: C, not num <: C, and T <: int, then the context type of
         //   e2 and e3 is int.
         // (Note: as above, we check the type of T against `int?`, because it's
         // equivalent and leads to better error recovery.)
         var intType = typeProvider.intType;
-        if (isSubtypeOf(intType, c) &&
-            !isSubtypeOf(numType, c) &&
-            isSubtypeOf(t, typeProvider.intTypeQuestion)) {
+        if (isSubtypeOf(intType, C) &&
+            !isSubtypeOf(numType, C) &&
+            isSubtypeOf(T, typeProvider.intTypeQuestion)) {
           return intType;
         }
         // - If double <: C, not num <: C, and T <: double, then the context
         //   type of e2 and e3 is double.
         var doubleType = typeProvider.doubleType;
-        if (isSubtypeOf(doubleType, c) &&
-            !isSubtypeOf(numType, c) &&
-            isSubtypeOf(t, typeProvider.doubleTypeQuestion)) {
+        if (isSubtypeOf(doubleType, C) &&
+            !isSubtypeOf(numType, C) &&
+            isSubtypeOf(T, typeProvider.doubleTypeQuestion)) {
           return doubleType;
         }
         // - Otherwise the context type of e2 an e3 is num.
@@ -1959,8 +1956,11 @@ class TypeSystemImpl implements TypeSystem {
     return currentType;
   }
 
+  /// Refines the type of a numeric invocation.
+  ///
+  /// [T] is the static type of the target (e1).
   TypeImpl _refineNumericInvocationTypeNullSafe(
-    TypeImpl targetType,
+    TypeImpl T,
     MethodElement methodElement,
     List<TypeImpl> argumentTypes,
     TypeImpl currentType,
@@ -1985,9 +1985,8 @@ class TypeSystemImpl implements TypeSystem {
       //   methods on nullable types, and that's checked for elsewhere), but
       //   better from the standpoint of error recovery (since it allows e.g.
       //   `int? + int` to resolve to `int` rather than `num`).
-      var t = targetType;
-      assert(!t.isBottom);
-      if (isSubtypeOf(t, typeProvider.numTypeQuestion)) {
+      assert(!T.isBottom);
+      if (isSubtypeOf(T, typeProvider.numTypeQuestion)) {
         // ...and where the static type of e2 is S and S is assignable to num.
         // (Note: we don't have to check that S is assignable to num because
         // this is required by the signature of the method.)
@@ -2000,7 +1999,7 @@ class TypeSystemImpl implements TypeSystem {
           // and leads to better error recovery.)
           var doubleType = typeProvider.doubleType;
           var doubleTypeQuestion = typeProvider.doubleTypeQuestion;
-          if (isSubtypeOf(t, doubleTypeQuestion)) {
+          if (isSubtypeOf(T, doubleTypeQuestion)) {
             return doubleType;
           }
           // - If S <: double and not S <: Never, then the static type of e is
@@ -2014,7 +2013,7 @@ class TypeSystemImpl implements TypeSystem {
           // (As above, we check against `int?` for error recovery.)
           var intTypeQuestion = typeProvider.intTypeQuestion;
           if (!s.isBottom &&
-              isSubtypeOf(t, intTypeQuestion) &&
+              isSubtypeOf(T, intTypeQuestion) &&
               isSubtypeOf(s, intTypeQuestion)) {
             return typeProvider.intType;
           }
@@ -2027,7 +2026,6 @@ class TypeSystemImpl implements TypeSystem {
     if (methodElement.name == 'clamp') {
       // ...where the static types of e1, e2 and e3 are T1, T2 and T3
       // respectively...
-      var t1 = targetType;
       if (argumentTypes.length == 2) {
         var t2 = argumentTypes[0];
         var t3 = argumentTypes[1];
@@ -2044,15 +2042,15 @@ class TypeSystemImpl implements TypeSystem {
         // - We don't check that T2 and T3 are subtypes of num because the
         //   signature of `num.clamp` requires it.
         var numTypeQuestion = typeProvider.numTypeQuestion;
-        if (isSubtypeOf(t1, numTypeQuestion) && !t2.isBottom && !t3.isBottom) {
-          assert(!t1.isBottom);
+        if (isSubtypeOf(T, numTypeQuestion) && !t2.isBottom && !t3.isBottom) {
+          assert(!T.isBottom);
           // Then:
           // - If T1, T2 and T3 are all subtypes of int, the static type of e is
           //   int.
           // (Note: as above, we check against `int?` because it's equivalent
           // and leads to better error recovery.)
           var intTypeQuestion = typeProvider.intTypeQuestion;
-          if (isSubtypeOf(t1, intTypeQuestion) &&
+          if (isSubtypeOf(T, intTypeQuestion) &&
               isSubtypeOf(t2, intTypeQuestion) &&
               isSubtypeOf(t3, intTypeQuestion)) {
             return typeProvider.intType;
@@ -2061,7 +2059,7 @@ class TypeSystemImpl implements TypeSystem {
           // is double.
           // (As above, we check against `double?` for error recovery.)
           var doubleTypeQuestion = typeProvider.doubleTypeQuestion;
-          if (isSubtypeOf(t1, doubleTypeQuestion) &&
+          if (isSubtypeOf(T, doubleTypeQuestion) &&
               isSubtypeOf(t2, doubleTypeQuestion) &&
               isSubtypeOf(t3, doubleTypeQuestion)) {
             return typeProvider.doubleType;

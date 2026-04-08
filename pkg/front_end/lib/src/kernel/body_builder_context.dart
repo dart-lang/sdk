@@ -10,15 +10,14 @@ import 'package:kernel/transformations/flags.dart';
 import '../base/constant_context.dart' show ConstantContext;
 import '../base/local_scope.dart';
 import '../base/lookup_result.dart';
-import '../builder/builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
+import '../builder/member_builder.dart';
 import '../builder/named_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../dill/dill_class_builder.dart';
 import '../source/source_class_builder.dart';
-import '../source/source_constructor_builder.dart';
 import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
@@ -94,7 +93,7 @@ abstract class BodyBuilderContext {
   }
 
   /// Looks up the constructor by the given [name] in the enclosing declaration.
-  Builder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     return declarationContext.lookupConstructor(name);
   }
 
@@ -102,7 +101,7 @@ abstract class BodyBuilderContext {
   /// [constructorBuilder] with the given [arguments] from within a constructor
   /// in the same class.
   Initializer buildRedirectingInitializer(
-    Builder constructorBuilder,
+    MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
   }) {
@@ -328,6 +327,14 @@ abstract class BodyBuilderContext {
     );
   }
 
+  /// Returns `true` if the member being built is a non-late instance field
+  /// in a declaration with a primary constructor.
+  ///
+  /// Field initializers in this context have access to primary constructor
+  /// parameters and should be built as if they occur in a constructor
+  /// initializer.
+  bool get inPrimaryConstructorFieldInitializer => false;
+
   /// Returns the primary constructor parameters available in the initializer
   /// scope for instance field initializers.
   ///
@@ -408,7 +415,9 @@ abstract class BodyBuilderContext {
   /// types, don't have an internal [ThisVariable] because `this` is desugared
   /// as a parameter in that case.
   ThisVariable? createInternalThisVariable() {
-    return thisType != null ? new ThisVariable(type: thisType!) : null;
+    return thisType != null && isDeclarationInstanceContext
+        ? new ThisVariable(type: thisType!)
+        : null;
   }
 }
 
@@ -459,12 +468,12 @@ abstract class BodyBuilderDeclarationContext {
     throw new UnsupportedError('${runtimeType}.lookupSuperMember');
   }
 
-  Builder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     throw new UnsupportedError('${runtimeType}.lookupConstructor');
   }
 
   Initializer buildRedirectingInitializer(
-    Builder constructorBuilder,
+    MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
   }) {
@@ -568,13 +577,13 @@ class _SourceClassBodyBuilderDeclarationContext
   }
 
   @override
-  SourceConstructorBuilder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     return _sourceClassBuilder.lookupConstructor(name);
   }
 
   @override
   Initializer buildRedirectingInitializer(
-    covariant SourceConstructorBuilder constructorBuilder,
+    MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
   }) {
@@ -667,7 +676,7 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
       _sourceExtensionTypeDeclarationBuilder;
 
   @override
-  SourceConstructorBuilder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     return _sourceExtensionTypeDeclarationBuilder.lookupConstructor(name);
   }
 
@@ -679,7 +688,7 @@ class _SourceExtensionTypeDeclarationBodyBuilderDeclarationContext
 
   @override
   Initializer buildRedirectingInitializer(
-    covariant SourceConstructorBuilder constructorBuilder,
+    MemberBuilder constructorBuilder,
     ActualArguments arguments, {
     required int fileOffset,
   }) {

@@ -9,7 +9,6 @@ import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
 import 'package:analysis_server/src/protocol_server.dart'
     show convertElementToElementKind, ElementKind;
 import 'package:analysis_server/src/services/completion/dart/feature_computer.dart';
-import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/dart/analysis/context_root.dart';
 import 'package:analyzer/dart/analysis/results.dart';
@@ -482,7 +481,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       allowedKeywords: [Keyword.IMPLEMENTS],
     );
 
-    for (var member in node.members2) {
+    for (var member in node.body.members) {
       _recordDataForNode(
         'ClassDeclaration (member)',
         member,
@@ -741,12 +740,14 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       node.typeParameters != null,
     );
     _recordDataForNode('ExtensionDeclaration (onClause)', node.onClause);
-    for (var member in node.body.members) {
-      _recordDataForNode(
-        'ExtensionDeclaration (member)',
-        member,
-        allowedKeywords: memberKeywords,
-      );
+    if (node.body case BlockClassBody body) {
+      for (var member in body.members) {
+        _recordDataForNode(
+          'ExtensionDeclaration (member)',
+          member,
+          allowedKeywords: memberKeywords,
+        );
+      }
     }
     super.visitExtensionDeclaration(node);
     inGenericContext = wasInGenericContext;
@@ -1090,12 +1091,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    // There are no completions.
-    super.visitLibraryIdentifier(node);
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     for (var element in node.elements) {
       _recordDataForNode(
@@ -1201,13 +1196,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       allowedKeywords: [Keyword.IMPLEMENTS],
     );
 
-    for (var member in node.body.members) {
-      _recordDataForNode(
-        'MixinDeclaration (member)',
-        member,
-        allowedKeywords: memberKeywords,
-      );
+    if (node.body case BlockClassBody body) {
+      for (var member in body.members) {
+        _recordDataForNode(
+          'MixinDeclaration (member)',
+          member,
+          allowedKeywords: memberKeywords,
+        );
+      }
     }
+
     super.visitMixinDeclaration(node);
     inGenericContext = wasInGenericContext;
   }

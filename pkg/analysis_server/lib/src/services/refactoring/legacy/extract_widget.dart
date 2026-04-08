@@ -140,8 +140,8 @@ class ExtractWidgetRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<SourceChange> createChange() async {
-    var builder = ChangeBuilder(
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
       session: sessionHelper.session,
       defaultEol: utils.endOfLine,
     );

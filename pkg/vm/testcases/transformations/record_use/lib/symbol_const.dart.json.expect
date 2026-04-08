@@ -1,0 +1,92 @@
+{
+  "constants": [
+    {
+      "libraryUri": "package:record_use_test/symbol_const.dart",
+      "name": "_privateSymbol",
+      "type": "symbol"
+    },
+    {
+      "name": "anotherSymbol",
+      "type": "symbol"
+    },
+    {
+      "name": "publicSymbol",
+      "type": "symbol"
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "s": 0
+      }
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "s": 2
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "C"
+        }
+      ],
+      "uri": "package:record_use_test/symbol_const.dart"
+    },
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "staticMethod"
+        }
+      ],
+      "uri": "package:record_use_test/symbol_const.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "constant_index": 3,
+            "loading_unit_index": 0,
+            "type": "constant"
+          },
+          {
+            "constant_index": 4,
+            "loading_unit_index": 0,
+            "type": "constant"
+          }
+        ]
+      }
+    ],
+    "static_calls": [
+      {
+        "definition_index": 1,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              1
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

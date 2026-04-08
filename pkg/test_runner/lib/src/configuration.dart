@@ -33,7 +33,7 @@ class TestConfiguration {
       this.build = false,
       this.testList = const [],
       this.deflakeInfoMap = const {},
-      int repeat = 1,
+      this._repeat = 1,
       this.batch = false,
       this.copyCoreDumps = false,
       this.rr = false,
@@ -76,8 +76,7 @@ class TestConfiguration {
       : packages = packages ??
             Repository.uri
                 .resolve('.dart_tool/package_config.json')
-                .toFilePath(),
-        _repeat = repeat;
+                .toFilePath();
 
   final Map<String, RegExp?> selectors;
   final Progress progress;

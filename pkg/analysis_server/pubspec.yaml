@@ -3,7 +3,7 @@ name: analysis_server
 publish_to: none
 
 environment:
-  sdk: "^3.10.0"
+  sdk: '^3.12.0-0'
 
 resolution: workspace
 
@@ -27,6 +27,7 @@ dependencies:
   meta: any
   path: any
   perf_witness: any
+  platform: any
   pub_semver: any
   stream_channel: any
   telemetry: any

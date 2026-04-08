@@ -25,6 +25,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/dot_shorthands.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 const String _tokenSeparator = '\uFFFF';
@@ -153,7 +154,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<SourceChange> createChange() {
+  Future<SourceChange> createChange({ChangeBuilder? builder}) {
     var change = SourceChange(refactoringName);
     // prepare occurrences
     late List<SourceRange> occurrences;

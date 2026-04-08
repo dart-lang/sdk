@@ -284,7 +284,7 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
   @override
   void visitEqualsNull(EqualsNull node) {
     Expression receiver = node.expression;
-    if (receiver is VariableGet && receiver.variable.name == null) {
+    if (receiver is VariableGet && receiver.variable.cosmeticName == null) {
       // This is a desugared `?.`.
     } else {
       _visitInvocation(node, Name.equalsName);
@@ -372,7 +372,8 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
 
   @override
   void visitVariableGet(VariableGet node) {
-    if (node.variable.name != null && !node.variable.isInitializingFormal) {
+    if (node.variable.cosmeticName != null &&
+        !node.variable.isInitializingFormal) {
       // Skip use of synthetic variables.
       computeForNode(
         node,
@@ -400,7 +401,7 @@ abstract class DataExtractor<T> extends VisitorDefault<void>
 
   @override
   void visitVariableSet(VariableSet node) {
-    if (node.variable.name != null) {
+    if (node.variable.cosmeticName != null) {
       // Skip use of synthetic variables.
       computeForNode(node, createUpdateId(node));
     }

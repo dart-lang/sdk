@@ -6,9 +6,11 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class AddEnumConstant extends ResolvedCorrectionProducer {
   /// The name of the constant to be created.
@@ -67,7 +69,17 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
       }
     }
 
-    var lastConstant = targetNode.body.constants.lastOrNull;
+    EnumConstantDeclaration? lastConstant;
+    Token? rightBracket;
+    Token? semicolon;
+    switch (targetNode.body) {
+      case BlockEnumBody body:
+        lastConstant = body.constants.lastOrNull;
+        rightBracket = body.rightBracket;
+      case EmptyEnumBody body:
+        semicolon = body.semicolon;
+    }
+
     var targetFile = targetFragment.libraryFragment.source.fullName;
 
     await builder.addDartFileEdit(targetFile, (builder) {
@@ -77,10 +89,20 @@ class AddEnumConstant extends ResolvedCorrectionProducer {
           builder.write(_constantName);
           if (constructorName != null) builder.write('.$constructorName()');
         });
-      } else {
-        builder.addInsertion(targetNode.body.rightBracket.offset, (builder) {
+      } else if (rightBracket != null) {
+        // If has a block body.
+        builder.addInsertion(rightBracket.offset, (builder) {
+          builder.write(' ');
           builder.write(_constantName);
           if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(' ');
+        });
+      } else if (semicolon != null) {
+        builder.addReplacement(range.token(semicolon), (builder) {
+          builder.write(' { ');
+          builder.write(_constantName);
+          if (constructorName != null) builder.write('.$constructorName()');
+          builder.write(' }');
         });
       }
     });

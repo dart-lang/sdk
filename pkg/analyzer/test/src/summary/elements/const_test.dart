@@ -8801,12 +8801,9 @@ library
             SymbolLiteral
               poundSign: # @382
               components
-                aaa
-                  offset: 383
-                bbb
-                  offset: 387
-                ccc
-                  offset: 391
+                aaa @383
+                bbb @387
+                ccc @391
       getters
         #F14 isOriginVariable vNull (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::vNull

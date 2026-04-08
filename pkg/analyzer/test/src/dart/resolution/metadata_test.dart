@@ -553,6 +553,46 @@ A
 ''');
   }
 
+  test_value_class_namedConstructor_unresolved_hasFormalParameter() async {
+    await resolveTestCode(r'''
+class A {
+  const A();
+}
+
+void f(int named) {
+  @A.named(42)
+  int x = 0;
+}
+''');
+
+    var node = findNode.singleAnnotation;
+    assertResolvedNodeText(node, r'''
+Annotation
+  atSign: @
+  name: PrefixedIdentifier
+    prefix: SimpleIdentifier
+      token: A
+      element: <testLibrary>::@class::A
+      staticType: null
+    period: .
+    identifier: SimpleIdentifier
+      token: named
+      element: <null>
+      staticType: null
+    element: <null>
+    staticType: null
+  arguments: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 42
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  element: <null>
+''');
+  }
+
   test_value_class_staticConstField() async {
     await assertNoErrorsInCode(r'''
 class A {

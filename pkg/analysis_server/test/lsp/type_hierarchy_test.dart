@@ -101,6 +101,35 @@ abstract class AbstractTypeHierarchyTest extends AbstractLspAnalysisServerTest {
 
 @reflectiveTest
 class PrepareTypeHierarchyTest extends AbstractTypeHierarchyTest {
+  /// Ensure when invoked on a reference in a different file to where the
+  /// type actually is, we resolve the correct location.
+  Future<void> test_acrossFiles() async {
+    var content = '''
+import 'other.dart';
+
+class B extends A^ {}
+''';
+
+    // Include lots of lines in this file so the expected line number of 'A'
+    // is very different to in the main content above, since we're verifying
+    // the correct LineInfo mapping.
+    var otherContent =
+        '''
+${'// comment\n' * 10}
+/*[0*/class /*[1*/A/*1]*/ {}/*0]*/
+''';
+    await _prepareTypeHierarchy(content, otherContent: otherContent);
+    expect(
+      prepareResult,
+      _isItem(
+        'A',
+        otherFileUri,
+        range: otherCode.ranges[0].range,
+        selectionRange: otherCode.ranges[1].range,
+      ),
+    );
+  }
+
   Future<void> test_class() async {
     var content = '''
 /*[0*/class /*[1*/MyC^lass1/*1]*/ {}/*0]*/
@@ -198,7 +227,6 @@ import 'main.dart';
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augment_extends() async {
     var content = '''
 part 'other.dart';
@@ -364,20 +392,14 @@ class MyCla^ss2 extends MyClass1 {}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   Future<void> test_augment_extends() async {
     var content = '''
-part 'other.dart';
-
 [!class /*[1*/MyClass1/*1]*/ {}!]
 class C^s {}
-''';
-    var augmentation = '''
-part of 'main.dart';
 
 augment class Cs extends MyClass1 {}
 ''';
-    await _fetchSupertypes(content, otherContent: augmentation);
+    await _fetchSupertypes(content);
     expect(
       supertypes,
       equals([

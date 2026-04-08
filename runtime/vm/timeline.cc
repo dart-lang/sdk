@@ -166,7 +166,8 @@ static TimelineEventRecorder* CreateSystraceTimelineRecorder() {
 #if defined(SUPPORT_PERFETTO)
 static TimelineEventRecorder* CreateTimelineEventPerfettoFileRecorder(
     const char* filename,
-    bool intern_strings);
+    bool intern_strings,
+    const char** error);
 #endif
 
 static TimelineEventRecorder* CreateTimelineRecorder() {
@@ -204,7 +205,16 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
     const char* filename = flag[4] == '\0' ? "dart-timeline.json" : &flag[5];
     free(const_cast<char*>(FLAG_timeline_dir));
     FLAG_timeline_dir = nullptr;
-    return new TimelineEventFileRecorder(filename);
+    const char* error = nullptr;
+    void* file = TimelineEventFileRecorderBase::OpenTimelineFileForWriting(
+        filename, &error);
+    if (file != nullptr) {
+      return new TimelineEventFileRecorder(file);
+    }
+    OS::PrintErr(
+        "Warning: failed to initialize file timeline recorder %s: %s\n",
+        filename, error);
+    return CreateDefaultTimelineRecorder();
   }
 
   if (strcmp("callback", flag) == 0) {
@@ -222,8 +232,17 @@ static TimelineEventRecorder* CreateTimelineRecorder() {
                                  : &flag[kPrefixLength + 1];
       free(const_cast<char*>(FLAG_timeline_dir));
       FLAG_timeline_dir = nullptr;
-      return CreateTimelineEventPerfettoFileRecorder(
-          filename, FLAG_intern_strings_when_writing_perfetto_timeline);
+      const char* error = nullptr;
+      auto recorder = CreateTimelineEventPerfettoFileRecorder(
+          filename, FLAG_intern_strings_when_writing_perfetto_timeline, &error);
+      if (recorder != nullptr) {
+        return recorder;
+      }
+      OS::PrintErr(
+          "Warning: failed to initialize perfetto file timeline recorder %s: "
+          "%s\n",
+          filename, error);
+      return CreateDefaultTimelineRecorder();
     }
   }
 #endif  // defined(SUPPORT_PERFETTO)
@@ -358,7 +377,7 @@ void Timeline::Cleanup() {
   }
 }
 
-void Timeline::ReclaimCachedBlocksFromThreads() {
+void Timeline::ReclaimCachedBlocksFromThreads(OSThreadIterator* it) {
   RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == nullptr || ls.IsUninitialized()) {
@@ -366,9 +385,8 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
   }
   ASSERT(recorder != nullptr);
   // Iterate over threads.
-  OSThreadIterator it;
-  while (it.HasNext()) {
-    OSThread* thread = it.Next();
+  while (it->HasNext()) {
+    OSThread* thread = it->Next();
     MutexLocker ml(thread->timeline_block_lock());
     // Grab block and clear it.
     TimelineEventBlock* block = thread->TimelineBlockLocked();
@@ -424,8 +442,9 @@ void Timeline::Clear() {
   ASSERT(recorder != nullptr);
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until they have been cleared.
+  OSThreadIterator it;
   MutexLocker ml(&recorder->lock_);
-  ReclaimCachedBlocksFromThreads();
+  ReclaimCachedBlocksFromThreads(&it);
   recorder->ClearLocked();
 }
 
@@ -1527,8 +1546,9 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until the trace has been serialized.
+  OSThreadIterator it;
   MutexLocker ml(&lock_);
-  Timeline::ReclaimCachedBlocksFromThreads();
+  Timeline::ReclaimCachedBlocksFromThreads(&it);
 
   intptr_t pid = OS::ProcessId();
   char* filename =
@@ -1713,8 +1733,9 @@ void TimelineEventFixedBufferRecorder::ForEachNonEmptyBlock(
     std::function<void(const TimelineEventBlock&)>&& handle_block) {
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until the trace has been serialized.
+  OSThreadIterator it;
   MutexLocker ml(&lock_);
-  Timeline::ReclaimCachedBlocksFromThreads();
+  Timeline::ReclaimCachedBlocksFromThreads(&it);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndexLocked();
   if (block_offset == -1) {
@@ -2048,22 +2069,29 @@ static void TimelineEventFileRecorderBaseStart(uword parameter) {
   reinterpret_cast<TimelineEventFileRecorderBase*>(parameter)->Drain();
 }
 
-TimelineEventFileRecorderBase::TimelineEventFileRecorderBase(const char* path)
-    : TimelineEventRecorder() {
+void* TimelineEventFileRecorderBase::OpenTimelineFileForWriting(
+    const char* path,
+    const char** error) {
   Dart_FileOpenCallback file_open = Dart::file_open_callback();
   Dart_FileWriteCallback file_write = Dart::file_write_callback();
   Dart_FileCloseCallback file_close = Dart::file_close_callback();
   if ((file_open == nullptr) || (file_write == nullptr) ||
       (file_close == nullptr)) {
-    OS::PrintErr("warning: Could not access file callbacks.");
-    return;
+    *error = "Could not access file callbacks.";
+    return nullptr;
   }
   void* file = (*file_open)(path, true);
   if (file == nullptr) {
-    OS::PrintErr("warning: Failed to open timeline file: %s\n", path);
-    return;
+    *error = "Failed to open timeline file.";
+    return nullptr;
   }
 
+  return file;
+}
+
+TimelineEventFileRecorderBase::TimelineEventFileRecorderBase(void* file)
+    : TimelineEventRecorder() {
+  ASSERT(file != nullptr);
   file_ = file;
 }
 
@@ -2073,8 +2101,6 @@ TimelineEventFileRecorderBase::~TimelineEventFileRecorderBase() {
   // might run between when the derived class destructor completes, and when
   // |shutting_down_| is set to true, causing possible use-after-free errors.
   ASSERT(shutting_down_);
-
-  if (file_ == nullptr) return;
 
   ASSERT(thread_id_ != OSThread::kInvalidThreadJoinId);
   OSThread::Join(thread_id_);
@@ -2186,10 +2212,6 @@ void TimelineEventFileRecorderBase::CompleteEvent(TimelineEvent* event) {
   if (event == nullptr) {
     return;
   }
-  if (file_ == nullptr) {
-    delete event;
-    return;
-  }
   ThreadBlockCompleteEvent(event);
 }
 
@@ -2259,8 +2281,8 @@ void TimelineEventFileRecorderBase::ClearLocked() {
   ASSERT(lock_.IsOwnedByCurrentThread());
 }
 
-TimelineEventFileRecorder::TimelineEventFileRecorder(const char* path)
-    : TimelineEventFileRecorderBase(path), first_(true) {
+TimelineEventFileRecorder::TimelineEventFileRecorder(void* file)
+    : TimelineEventFileRecorderBase(file), first_(true) {
   // Chrome trace format has two forms:
   //   Object form:  { "traceEvents": [ event, event, event ] }
   //   Array form:   [ event, event, event ]
@@ -2307,8 +2329,7 @@ class TimelineEventPerfettoFileRecorder
     : public TimelineEventRecorderWithPerfettoSupport<
           TimelineEventFileRecorderBase> {
  public:
-  explicit TimelineEventPerfettoFileRecorder(const char* path,
-                                             bool intern_strings);
+  explicit TimelineEventPerfettoFileRecorder(void* file, bool intern_strings);
   virtual ~TimelineEventPerfettoFileRecorder();
 
   const char* name() const final { return PERFETTO_FILE_RECORDER_NAME; }
@@ -2332,8 +2353,15 @@ class TimelineEventPerfettoFileRecorder
 
 static TimelineEventRecorder* CreateTimelineEventPerfettoFileRecorder(
     const char* filename,
-    bool intern_strings) {
-  return new TimelineEventPerfettoFileRecorder(filename, intern_strings);
+    bool intern_strings,
+    const char** error) {
+  void* file = TimelineEventFileRecorderBase::OpenTimelineFileForWriting(
+      filename, error);
+  if (file == nullptr) {
+    return nullptr;
+  }
+  *error = nullptr;
+  return new TimelineEventPerfettoFileRecorder(file, intern_strings);
 }
 
 #if defined(DART_INCLUDE_PROFILER)
@@ -2367,9 +2395,9 @@ void TimelineEventPerfettoFileRecorder::WriteProfile(
 #endif
 
 TimelineEventPerfettoFileRecorder::TimelineEventPerfettoFileRecorder(
-    const char* path,
+    void* file,
     bool intern_strings)
-    : TimelineEventRecorderWithPerfettoSupport(path),
+    : TimelineEventRecorderWithPerfettoSupport(file),
       writer_(
           packet(),
           [this](auto& packet) { this->WritePacket(&packet); },
@@ -2564,8 +2592,9 @@ void TimelineEventEndlessRecorder::ForEachNonEmptyBlock(
     std::function<void(const TimelineEventBlock&)>&& handle_block) {
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until the trace has been serialized.
+  OSThreadIterator it;
   MutexLocker ml(&lock_);
-  Timeline::ReclaimCachedBlocksFromThreads();
+  Timeline::ReclaimCachedBlocksFromThreads(&it);
   ResetTimeTracking();
   for (TimelineEventBlock* current = head_; current != nullptr;
        current = current->next()) {
@@ -2618,7 +2647,7 @@ void TimelineEventEndlessRecorder::ClearLocked() {
 }
 
 bool Timeline::StreamTo(const char* recorder_kind,
-                        const char* file,
+                        const char* filename,
                         const char* streams,
                         const char** error) {
   Timeline::Cleanup();
@@ -2626,13 +2655,21 @@ bool Timeline::StreamTo(const char* recorder_kind,
   TimelineEventRecorder* recorder = nullptr;
   if (strcmp(recorder_kind, "perfettofile") == 0) {
 #if defined(SUPPORT_PERFETTO)
-    recorder =
-        CreateTimelineEventPerfettoFileRecorder(file, /*intern_strings=*/true);
+    recorder = CreateTimelineEventPerfettoFileRecorder(
+        filename, /*intern_strings=*/true, error);
+    if (recorder == nullptr) {
+      return false;
+    }
 #else
     *error = "Support for Perfetto recorder is not included into this build";
     return false;
 #endif  // defined(SUPPORT_PERFETTO)
   } else if (strcmp(recorder_kind, "file") == 0) {
+    void* file = TimelineEventFileRecorderBase::OpenTimelineFileForWriting(
+        filename, error);
+    if (file == nullptr) {
+      return false;
+    }
     recorder = new TimelineEventFileRecorder(file);
   } else if (strcmp(recorder_kind, "systrace") == 0) {
     recorder = CreateSystraceTimelineRecorder();

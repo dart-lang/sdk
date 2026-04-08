@@ -162,6 +162,52 @@ void f(int? v, int? p) {
 ''');
   }
 
+  /// Regression test for https://github.com/dart-lang/sdk/issues/59407.
+  /// In a declaration context, `!` determines the static type of the bound
+  /// variable (e.g., `int` instead of `int?`), so it should not be flagged.
+  test_nullAssertPattern_inDeclaration_objectPattern() async {
+    await assertNoDiagnostics(r'''
+class X {
+  const X(this.number);
+  final int? number;
+}
+void f(X x) {
+  final (X(number: n!)) = x;
+  print(n);
+}
+''');
+  }
+
+  /// A `!` in a for-each pattern declaration also determines bound types.
+  test_nullAssertPattern_inForEach_objectPattern() async {
+    await assertNoDiagnostics(r'''
+class X {
+  const X(this.number);
+  final int? number;
+}
+void f(List<X> list) {
+  for (final X(number: n!) in list) {
+    print(n);
+  }
+}
+''');
+  }
+
+  /// A `!` in a switch case (GuardedPattern) also determines bound types.
+  test_nullAssertPattern_inSwitchCase_objectPattern() async {
+    await assertNoDiagnostics(r'''
+class X {
+  const X(this.number);
+  final int? number;
+}
+void f(X x) {
+  if (x case X(number: final n!)) {
+    print(n);
+  }
+}
+''');
+  }
+
   test_recordPattern() async {
     await assertDiagnostics(
       r'''

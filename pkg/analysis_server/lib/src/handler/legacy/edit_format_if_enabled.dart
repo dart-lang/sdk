@@ -10,6 +10,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
+import 'package:analyzer_plugin/src/utilities/formatter.dart';
 import 'package:dart_style/src/dart_formatter.dart';
 import 'package:dart_style/src/exceptions.dart';
 import 'package:dart_style/src/source_code.dart';
@@ -36,8 +37,11 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
     var originalContent = file.readAsStringSync();
     var code = SourceCode(originalContent);
 
+    // TODO(dantup): Consider using createFormatter() which takes a result and
+    //  correctly applies settings like page_width, trailing_commas, and enabled
+    //  experiments.
     var formatter = DartFormatter(
-      languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion,
+      languageVersion: languageVersion ?? defaultFormatterVersion,
     );
 
     var formatResult = formatter.formatSource(code);
@@ -94,7 +98,7 @@ class EditFormatIfEnabledHandler extends LegacyHandler {
       if (options.codeStyleOptions.useFormatter) {
         try {
           var library = await context.driver.getResolvedLibrary(filePath);
-          var languageVersion = library.effectiveLanguageVersion;
+          var languageVersion = library.effectiveFormatterVersion;
           var sourceEdits = formatFile(
             resource,
             languageVersion: languageVersion,

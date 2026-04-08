@@ -83,6 +83,38 @@ SuperConstructorInvocation
 ''');
   }
 
+  test_named_unresolved_hasFormalParameter() async {
+    await resolveTestCode(r'''
+class A {
+  A(int a);
+}
+
+class B extends A {
+  B(int named) : super.named(0);
+}
+''');
+
+    var node = findNode.singleSuperConstructorInvocation;
+    assertResolvedNodeText(node, r'''
+SuperConstructorInvocation
+  superKeyword: super
+  period: .
+  constructorName: SimpleIdentifier
+    token: named
+    element: <null>
+    staticType: null
+  argumentList: ArgumentList
+    leftParenthesis: (
+    arguments
+      IntegerLiteral
+        literal: 0
+        correspondingParameter: <null>
+        staticType: int
+    rightParenthesis: )
+  element: <null>
+''');
+  }
+
   test_nonConst_fromConst() async {
     await assertErrorsInCode(
       '''

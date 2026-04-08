@@ -77,10 +77,6 @@
       "name": "1"
     }
   ],
-  "metadata": {
-    "comment": "Recorded usages of objects tagged with a `RecordUse` annotation.",
-    "version": "0.4.0"
-  },
   "uses": {
     "instances": [
       {
@@ -88,16 +84,12 @@
         "uses": [
           {
             "constant_index": 5,
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "constant"
           },
           {
             "constant_index": 6,
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "type": "constant"
           }
         ]
@@ -108,18 +100,14 @@
         "definition_index": 1,
         "uses": [
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "positional": [
               4
             ],
             "type": "with_arguments"
           },
           {
-            "loading_unit_indices": [
-              0
-            ],
+            "loading_unit_index": 0,
             "positional": [
               7
             ],

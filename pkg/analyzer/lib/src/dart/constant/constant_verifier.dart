@@ -189,12 +189,13 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
         );
       }
 
-      _validateConstructorInitializers(node);
-      if (node.factoryKeyword == null) {
+      _validateConstructorInitializers(node.initializers);
+      if (node.factoryKeyword == null &&
+          element.enclosingElement.primaryConstructor == null) {
         _validateFieldInitializers(
           node.parent.classMembers,
           constKeyword,
-          isEnumDeclaration: node.parent?.parent is EnumDeclaration,
+          isEnumDeclaration: element.enclosingElement is EnumElementImpl,
         );
       }
     }
@@ -368,10 +369,29 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitPrimaryConstructorBody(covariant PrimaryConstructorBodyImpl node) {
+    var element = node.declaration?.declaredFragment?.element;
+    if (element is ConstructorElementImpl && element.isConst) {
+      _validateConstructorInitializers(node.initializers);
+    }
+    super.visitPrimaryConstructorBody(node);
+  }
+
+  @override
   void visitPrimaryConstructorDeclaration(
     covariant PrimaryConstructorDeclarationImpl node,
   ) {
     super.visitPrimaryConstructorDeclaration(node);
+
+    var element = node.declaredFragment!.element;
+    if (element.isConst) {
+      _validatePrimaryFieldInitializers(
+        members: node.parent.classMembers,
+        errorToken: node.constKeyword ?? node.typeName,
+        isEnumDeclaration: element.enclosingElement is EnumElementImpl,
+      );
+    }
+
     _validateDefaultValues(node.formalParameters);
   }
 
@@ -806,10 +826,10 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
     }
   }
 
-  /// Validates that the expressions of the initializers of the given constant
-  /// [constructor] are constant expressions.
-  void _validateConstructorInitializers(ConstructorDeclaration constructor) {
-    NodeList<ConstructorInitializer> initializers = constructor.initializers;
+  /// Validates that expressions in [initializers] are constant expressions.
+  void _validateConstructorInitializers(
+    NodeList<ConstructorInitializerImpl> initializers,
+  ) {
     for (ConstructorInitializer initializer in initializers) {
       if (initializer is AssertInitializer) {
         _reportNotPotentialConstants(initializer.condition);
@@ -934,6 +954,44 @@ class ConstantVerifier extends RecursiveAstVisitor<void> {
                     .at(constKeyword),
               );
             }
+          }
+        }
+      }
+    }
+  }
+
+  /// Validates that field declaration initializers in a const primary
+  /// constructor class are potentially constant. Unlike
+  /// [_validateFieldInitializers], this allows references to primary
+  /// constructor parameters.
+  void _validatePrimaryFieldInitializers({
+    required List<ClassMember> members,
+    required Token errorToken,
+    required bool isEnumDeclaration,
+  }) {
+    for (ClassMember member in members) {
+      if (member is FieldDeclaration && !member.isStatic) {
+        for (var variableDeclaration in member.fields.variables) {
+          if (isEnumDeclaration &&
+              variableDeclaration.name.lexeme == 'values') {
+            continue;
+          }
+
+          var initializer = variableDeclaration.initializer;
+          if (initializer == null) {
+            continue;
+          }
+
+          var notPotentiallyConstants = getNotPotentiallyConstants(
+            initializer,
+            featureSet: _currentLibrary.featureSet,
+          );
+          if (notPotentiallyConstants.isNotEmpty) {
+            _diagnosticReporter.report(
+              diag.constConstructorWithFieldInitializedByNonConst
+                  .withArguments(fieldName: variableDeclaration.name.lexeme)
+                  .at(errorToken),
+            );
           }
         }
       }

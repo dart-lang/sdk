@@ -26,12 +26,11 @@ part of my.library;
 PartOfDirective
   partKeyword: part
   ofKeyword: of
-  libraryName: LibraryIdentifier
-    components
-      SimpleIdentifier
-        token: my
-      SimpleIdentifier
-        token: library
+  libraryName: DottedName
+    tokens
+      my
+      .
+      library
   semicolon: ;
 ''');
   }
@@ -48,12 +47,11 @@ part of my.library;
 PartOfDirective
   partKeyword: part
   ofKeyword: of
-  libraryName: LibraryIdentifier
-    components
-      SimpleIdentifier
-        token: my
-      SimpleIdentifier
-        token: library
+  libraryName: DottedName
+    tokens
+      my
+      .
+      library
   semicolon: ;
 ''');
   }

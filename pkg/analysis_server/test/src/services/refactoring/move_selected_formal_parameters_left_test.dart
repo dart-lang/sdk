@@ -19,6 +19,21 @@ class MoveSelectedFormalParametersLeftTest extends RefactoringTest {
   @override
   String get refactoringName => MoveSelectedFormalParametersLeft.commandName;
 
+  /// This refactor uses the formatter internally, ensure the refactor doesn't
+  /// fail because of sytnax errors elsewhere in the file.
+  Future<void> test_afterUnrelatedSyntaxError() async {
+    addTestSource(r'''
+err
+void test(int a, int ^b) {}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+err
+void test(int b, int a) {}
+''');
+  }
+
   Future<void> test_multiple_requiredNamed_first() async {
     addTestSource(r'''
 void test({
@@ -106,6 +121,44 @@ void test(int b, int c, int a, int d) {}
 
 void f() {
   test(1, 2, 0, 3);
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor() async {
+    addTestSource(r'''
+class A(int a, int b, [!int c, int d,!] int e) {}
+
+void f() {
+  A(0, 1, 2, 3, 4);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A(int a, int c, int d, int b, int e) {}
+
+void f() {
+  A(0, 2, 3, 1, 4);
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    addTestSource(r'''
+class A.named(int a, int b, [!int c, int d,!] int e) {}
+
+void f() {
+  A.named(0, 1, 2, 3, 4);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A.named(int a, int c, int d, int b, int e) {}
+
+void f() {
+  A.named(0, 2, 3, 1, 4);
 }
 ''');
   }

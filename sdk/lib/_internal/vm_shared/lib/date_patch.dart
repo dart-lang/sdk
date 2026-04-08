@@ -122,7 +122,7 @@ class DateTime {
   }
 
   @patch
-  bool operator ==(dynamic other) =>
+  bool operator ==(Object other) =>
       other is DateTime &&
       _value == other.microsecondsSinceEpoch &&
       isUtc == other.isUtc;

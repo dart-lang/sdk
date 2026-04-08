@@ -78,7 +78,11 @@ class _ConstantWalker extends graph.DependencyWalker<_ConstantNode> {
     var evaluationEngine = _getEvaluationEngine(node);
     var targets = <ConstantEvaluationTarget>[];
     evaluationEngine.computeDependencies(node.constant, targets.add);
-    return targets.map(_getNode).toList();
+    return List.generate(
+      targets.length,
+      (index) => _getNode(targets[index]),
+      growable: false,
+    );
   }
 
   ConstantEvaluationEngine _getEvaluationEngine(_ConstantNode node) {

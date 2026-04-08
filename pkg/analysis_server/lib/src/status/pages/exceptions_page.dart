@@ -30,7 +30,7 @@ class ExceptionsPage extends DiagnosticPageWithNav {
       for (var ex in exceptions) {
         h3('Exception ${ex.exception}');
         p(
-          '${escape(ex.message)}<br>${writeOption('fatal', ex.fatal)}',
+          '${escape(ex.message)}<br>${formatOption('fatal', ex.fatal)}',
           raw: true,
         );
         pre(() {

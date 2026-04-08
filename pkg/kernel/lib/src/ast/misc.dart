@@ -134,7 +134,7 @@ abstract class NamedNode extends TreeNode {
   final Reference reference;
 
   NamedNode(Reference? reference)
-      : this.reference = reference ?? new Reference() {
+    : this.reference = reference ?? new Reference() {
     this.reference.node = this;
   }
 

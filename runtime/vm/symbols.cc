@@ -18,23 +18,14 @@
 
 namespace dart {
 
-StringPtr Symbols::predefined_[Symbols::kNumberOfOneCharCodeSymbols];
-String* Symbols::symbol_handles_[Symbols::kMaxPredefinedId];
-
 #if !defined(DART_PRECOMPILED_RUNTIME)
+// clang-format off
 static const char* const names[] = {
-    // clang-format off
-  nullptr,
 #define DEFINE_SYMBOL_LITERAL(symbol, literal) literal,
   PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_LITERAL)
 #undef DEFINE_SYMBOL_LITERAL
-  "",  // matches kTokenTableStart.
-#define DEFINE_TOKEN_SYMBOL_INDEX(t, s, p, a) s,
-  DART_TOKEN_LIST(DEFINE_TOKEN_SYMBOL_INDEX)
-  DART_KEYWORD_LIST(DEFINE_TOKEN_SYMBOL_INDEX)
-#undef DEFINE_TOKEN_SYMBOL_INDEX
-    // clang-format on
 };
+// clang-format on
 #endif
 
 StringPtr StringFrom(const uint8_t* data, intptr_t len, Heap::Space space) {
@@ -65,15 +56,6 @@ StringPtr ConcatString::ToSymbol() const {
   return result.ptr();
 }
 
-const String& Symbols::Token(Token::Kind token) {
-  const int tok_index = token;
-  ASSERT((0 <= tok_index) && (tok_index < Token::kNumTokens));
-  // First keyword symbol is in symbol_handles_[kTokenTableStart + 1].
-  const intptr_t token_id = Symbols::kTokenTableStart + 1 + tok_index;
-  ASSERT(symbol_handles_[token_id] != nullptr);
-  return *symbol_handles_[token_id];
-}
-
 void Symbols::Init(IsolateGroup* vm_isolate_group) {
   // TODO(engine): Require a snapshot when running the JIT runtime too.
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -97,13 +79,13 @@ void Symbols::Init(IsolateGroup* vm_isolate_group) {
   // Create symbols for language keywords. Some keywords are equal to
   // symbols we already created, so use New() instead of Add() to ensure
   // that the symbols are canonicalized.
-  for (intptr_t i = 1; i < Symbols::kNullCharId; i++) {
-    String* str = String::ReadOnlyHandle();
-    *str = OneByteString::New(names[i], Heap::kOld);
-    str->Hash();
-    *str ^= table.InsertOrGet(*str);
-    str->SetCanonical();  // Make canonical once entered.
-    symbol_handles_[i] = str;
+  String& str = String::Handle();
+  for (intptr_t i = 0; i < Symbols::kNullCharId; i++) {
+    str = OneByteString::New(names[i], Heap::kOld);
+    str.Hash();
+    str ^= table.InsertOrGet(str);
+    str.SetCanonical();  // Make canonical once entered.
+    InitSymbol(i, str.ptr());
   }
 
   // Add Latin1 characters as Symbols, so that Symbols::FromCharCode is fast.
@@ -112,14 +94,13 @@ void Symbols::Init(IsolateGroup* vm_isolate_group) {
     ASSERT(idx < kMaxPredefinedId);
     ASSERT(Utf::IsLatin1(c));
     uint8_t ch = static_cast<uint8_t>(c);
-    String* str = String::ReadOnlyHandle();
-    *str = OneByteString::New(&ch, 1, Heap::kOld);
-    str->Hash();
-    *str ^= table.InsertOrGet(*str);
-    ASSERT(predefined_[c] == nullptr);
-    str->SetCanonical();  // Make canonical once entered.
-    predefined_[c] = str->ptr();
-    symbol_handles_[idx] = str;
+    str = OneByteString::New(&ch, 1, Heap::kOld);
+    str.Hash();
+    str ^= table.InsertOrGet(str);
+    str.SetCanonical();  // Make canonical once entered.
+    ASSERT(Roots::one_char_symbol(c) == nullptr);
+    Roots::set_one_char_symbol(c, str.ptr());
+    InitSymbol(idx, str.ptr());
   }
 
   vm_isolate_group->object_store()->set_symbol_table(table.Release());
@@ -129,7 +110,7 @@ void Symbols::Init(IsolateGroup* vm_isolate_group) {
 void Symbols::InitFromSnapshot(IsolateGroup* vm_isolate_group) {
   for (intptr_t c = 0; c < kNumberOfOneCharCodeSymbols; c++) {
     intptr_t idx = (kNullCharId + c);
-    predefined_[c] = symbol_handles_[idx]->ptr();
+    Roots::set_one_char_symbol(c, Symbol(idx).ptr());
   }
 }
 
@@ -440,7 +421,7 @@ StringPtr Symbols::FromCharCode(Thread* thread, uint16_t char_code) {
   if (char_code > kMaxOneCharCodeSymbol) {
     return FromUTF16(thread, &char_code, 1);
   }
-  return predefined_[char_code];
+  return Roots::one_char_symbol(char_code);
 }
 
 void Symbols::DumpStats(IsolateGroup* isolate_group) {

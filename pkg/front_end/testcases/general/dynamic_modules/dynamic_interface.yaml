@@ -78,4 +78,24 @@ callable:
   - library: 'main_lib1.dart'
     extension_type: 'ExtType5'
     member: 'plus1'
+  - library: 'main_lib1.dart'
+    extension: 'Ext2'
+  - library: 'main_lib1.dart'
+    extension: ['Ext3', 'Ext4']
+  - library: 'main_lib1.dart'
+    extension: 'Ext5'
+    member: 'get:isNegative5'
   - library: 'main_lib2.dart'
+  - library: 'main_lib1.dart'
+    class: ['C15', 'C16']
+
+can-be-used-as-type:
+  - library: 'main_lib1.dart'
+    class: 'C10'
+  - library: 'main_lib1.dart'
+    class: ['C11', 'C12']
+  - library: 'main_lib1.dart'
+    extension_type: 'ExtType10'
+  - library: 'main_lib1.dart'
+    extension_type: ['ExtType11', 'ExtType12']
+  - library: 'main_lib4.dart'

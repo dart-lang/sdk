@@ -19,6 +19,7 @@ import 'package:native_compiler/back_end/stack_frame.dart';
 /// FP ->  [saved FP]
 ///        [Code]
 ///        [saved tagged ObjectPool]
+///        [shadow space for optional parameters]
 ///        [spill slot 0]
 ///        ...
 ///        [spill slot M]
@@ -36,11 +37,22 @@ final class Arm64StackFrame extends StackFrame {
   /// Offset of the saved pool pointer relative to FP.
   static const int poolPointerOffsetFromFP = -2 * wordSize;
 
-  /// Offset of the first spill slot, relative to FP
-  static const int firstSpillSlotOffsetFromFP = -3 * wordSize;
+  /// Offset of the first shadow parameter, relative to FP
+  static const int shadowParametersOffsetFromFP = -3 * wordSize;
 
   /// Stack frame alignment.
   static const int alignment = 2 * wordSize;
+
+  /// Number of stack slots reserved for shadow parameters.
+  late final int _shadowParametersStackSlots =
+      ((function.hasOptionalPositionalParameters ||
+              function.hasNamedParameters) &&
+          function.numberOfParameters > argumentRegisters.length)
+      ? function.numberOfParameters - argumentRegisters.length
+      : 0;
+
+  late final int _firstSpillSlotOffsetFromFP =
+      shadowParametersOffsetFromFP - _shadowParametersStackSlots * wordSize;
 
   Arm64StackFrame(super.function);
 
@@ -61,17 +73,36 @@ final class Arm64StackFrame extends StackFrame {
     assert(isFinalized);
     switch (location) {
       case SpillSlot():
-        return firstSpillSlotOffsetFromFP - location.index * wordSize;
+        return _firstSpillSlotOffsetFromFP - location.index * wordSize;
       case ParameterStackLocation():
         final paramIndex = location.paramIndex;
         final numParams = function.numberOfParameters;
         assert(0 <= paramIndex && paramIndex < numParams);
-        return lastParameterOffsetFromFP +
-            (numParams - paramIndex - 1) * wordSize;
+        if (function.hasOptionalPositionalParameters ||
+            function.hasNamedParameters) {
+          return shadowParameterOffsetFromFP(paramIndex);
+        } else {
+          return lastParameterOffsetFromFP +
+              (numParams - paramIndex - 1) * wordSize;
+        }
     }
   }
 
   @override
-  int get frameSizeToAllocate =>
-      roundUp((usedSpillSlots + maxArgumentsStackSlots) * wordSize, alignment);
+  int shadowParameterOffsetFromFP(int paramIndex) {
+    assert(
+      function.hasOptionalPositionalParameters || function.hasNamedParameters,
+    );
+    assert(paramIndex >= argumentRegisters.length);
+    assert(paramIndex < function.numberOfParameters);
+    return shadowParametersOffsetFromFP -
+        (paramIndex - argumentRegisters.length) * wordSize;
+  }
+
+  @override
+  int get frameSizeToAllocate => roundUp(
+    (_shadowParametersStackSlots + usedSpillSlots + maxArgumentsStackSlots) *
+        wordSize,
+    alignment,
+  );
 }

@@ -19,6 +19,127 @@ class ConvertAllFormalParametersToNamedTest extends RefactoringTest {
   @override
   String get refactoringName => ConvertAllFormalParametersToNamed.commandName;
 
+  Future<void> test_constructor_factoryKeyword() async {
+    addTestSource(r'''
+class A {
+  new _();
+  ^factory(int a, {int? b}) => A._();
+}
+
+void f() {
+  A(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new _();
+  factory({required int a, int? b}) => A._();
+}
+
+void f() {
+  A(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_constructor_named_factoryKeyword() async {
+    addTestSource(r'''
+class A {
+  new();
+  factory ^named(int a, {int? b}) => A();
+}
+
+void f() {
+  A.named(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new();
+  factory named({required int a, int? b}) => A();
+}
+
+void f() {
+  A.named(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_constructor_named_factoryKeyword_keyword() async {
+    addTestSource(r'''
+class A {
+  new();
+  ^factory named(int a, {int? b}) => A();
+}
+
+void f() {
+  A.named(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new();
+  factory named({required int a, int? b}) => A();
+}
+
+void f() {
+  A.named(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_constructor_named_newKeyword() async {
+    addTestSource(r'''
+class A {
+  new ^named(int a, {int? b});
+}
+
+void f() {
+  A.named(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new named({required int a, int? b});
+}
+
+void f() {
+  A.named(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_constructor_newKeyword() async {
+    addTestSource(r'''
+class A {
+  ^new(int a, {int? b});
+}
+
+void f() {
+  A(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A {
+  new({required int a, int? b});
+}
+
+void f() {
+  A(a: 0, b: 1);
+}
+''');
+  }
+
   Future<void> test_formalParameters_empty() async {
     addTestSource(r'''
 void ^test() {}
@@ -155,6 +276,44 @@ void f() {
     await _assertNoRefactoring();
   }
 
+  Future<void> test_primaryConstructor() async {
+    addTestSource(r'''
+class ^A(int a, {int? b});
+
+void f() {
+  A(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A({required int a, int? b});
+
+void f() {
+  A(a: 0, b: 1);
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_named() async {
+    addTestSource(r'''
+class A.^named(int a, {int? b});
+
+void f() {
+  A.named(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class A.named({required int a, int? b});
+
+void f() {
+  A.named(a: 0, b: 1);
+}
+''');
+  }
+
   Future<void> test_private_constructor() async {
     addTestSource(r'''
 class C {
@@ -229,6 +388,25 @@ void f() {
 ''');
 
     await _assertNoRefactoring();
+  }
+
+  Future<void> test_private_primaryConstructor() async {
+    addTestSource(r'''
+class ^C(this._a, {this._b});
+
+void f() {
+  C(0, b: 1);
+}
+''');
+
+    await verifyRefactoring(r'''
+>>>>>>>>>> lib/main.dart
+class C({required this._a, this._b});
+
+void f() {
+  C(a: 0, b: 1);
+}
+''');
   }
 
   Future<void> test_target_methodInvocation_name() async {

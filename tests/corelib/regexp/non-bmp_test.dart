@@ -36,28 +36,16 @@ void main() {
   var surrogatePair =
       new String.fromCharCode(0xD800) + new String.fromCharCode(0xDC00);
 
-  assertEquals(new RegExp(r".").firstMatch(surrogatePair)!.group(0)!.length, 1);
-  assertEquals(
-    new RegExp(r"\D").firstMatch(surrogatePair)!.group(0)!.length,
-    1,
-  );
-  assertEquals(
-    new RegExp(r"\S").firstMatch(surrogatePair)!.group(0)!.length,
-    1,
-  );
-  assertEquals(
-    new RegExp(r"\W").firstMatch(surrogatePair)!.group(0)!.length,
-    1,
-  );
-  assertEquals(
-    new RegExp(r"[^x]").firstMatch(surrogatePair)!.group(0)!.length,
-    1,
-  );
+  assertEquals(new RegExp(r".").firstMatch(surrogatePair)![0]!.length, 1);
+  assertEquals(new RegExp(r"\D").firstMatch(surrogatePair)![0]!.length, 1);
+  assertEquals(new RegExp(r"\S").firstMatch(surrogatePair)![0]!.length, 1);
+  assertEquals(new RegExp(r"\W").firstMatch(surrogatePair)![0]!.length, 1);
+  assertEquals(new RegExp(r"[^x]").firstMatch(surrogatePair)![0]!.length, 1);
 
   assertEquals(
     new RegExp(
       r".{1,2}",
-    ).firstMatch("!!" + new String.fromCharCode(0xA1))!.group(0)!.length,
+    ).firstMatch("!!" + new String.fromCharCode(0xA1))![0]!.length,
     2,
   );
   shouldBeNull(new RegExp(r".").firstMatch(""));

@@ -361,7 +361,7 @@ class SubtypeOfFfiClassInWithTest extends PubPackageResolutionTest {
 import 'dart:ffi';
 class C with Double {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 6)],
+      [error(diag.classUsedAsMixin, 32, 6)],
     );
   }
 
@@ -372,7 +372,7 @@ class C with Double {}
 import 'dart:ffi';
 class C with Double {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 46, 6)],
+      [error(diag.classUsedAsMixin, 46, 6)],
     );
   }
 
@@ -382,7 +382,7 @@ class C with Double {}
 import 'dart:ffi' as ffi;
 class C with ffi.Double {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 39, 10)],
+      [error(diag.classUsedAsMixin, 39, 10)],
     );
   }
 
@@ -392,7 +392,7 @@ class C with ffi.Double {}
 import 'dart:ffi';
 class C with Float {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.classUsedAsMixin, 32, 5)],
     );
   }
 
@@ -402,7 +402,7 @@ class C with Float {}
 import 'dart:ffi';
 class C with Int16 {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.classUsedAsMixin, 32, 5)],
     );
   }
 
@@ -412,7 +412,7 @@ class C with Int16 {}
 import 'dart:ffi';
 class C with Int32 {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.classUsedAsMixin, 32, 5)],
     );
   }
 
@@ -422,7 +422,7 @@ class C with Int32 {}
 import 'dart:ffi';
 class C with Int64 {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.classUsedAsMixin, 32, 5)],
     );
   }
 
@@ -432,7 +432,7 @@ class C with Int64 {}
 import 'dart:ffi';
 class C with Int8 {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 4)],
+      [error(diag.classUsedAsMixin, 32, 4)],
     );
   }
 
@@ -452,7 +452,7 @@ class C with Pointer {}
 import 'dart:ffi';
 final class C with Struct {}
 ''',
-      [error(diag.mixinInheritsFromNotObject, 38, 6)],
+      [error(diag.classUsedAsMixin, 38, 6)],
     );
   }
 
@@ -462,7 +462,7 @@ final class C with Struct {}
 import 'dart:ffi';
 class C with Uint16 {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 6)],
+      [error(diag.classUsedAsMixin, 32, 6)],
     );
   }
 
@@ -472,7 +472,7 @@ class C with Uint16 {}
 import 'dart:ffi';
 class C with Uint32 {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 6)],
+      [error(diag.classUsedAsMixin, 32, 6)],
     );
   }
 
@@ -482,7 +482,7 @@ class C with Uint32 {}
 import 'dart:ffi';
 class C with Uint64 {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 6)],
+      [error(diag.classUsedAsMixin, 32, 6)],
     );
   }
 
@@ -492,7 +492,7 @@ class C with Uint64 {}
 import 'dart:ffi';
 class C with Uint8 {}
 ''',
-      [error(diag.mixinClassDeclaresConstructor, 32, 5)],
+      [error(diag.classUsedAsMixin, 32, 5)],
     );
   }
 
@@ -502,7 +502,7 @@ class C with Uint8 {}
 import 'dart:ffi';
 final class C with Union {}
 ''',
-      [error(diag.mixinInheritsFromNotObject, 38, 5)],
+      [error(diag.classUsedAsMixin, 38, 5)],
     );
   }
 

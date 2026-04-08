@@ -14,6 +14,8 @@ import 'package:analyzer_testing/src/mock_packages/flutter/cupertino.dart'
     as mock_flutter_cupertino;
 import 'package:analyzer_testing/src/mock_packages/flutter/foundation.dart'
     as mock_flutter_foundation;
+import 'package:analyzer_testing/src/mock_packages/flutter_localizations/flutter_localizations.dart'
+    as mock_flutter_localizations;
 import 'package:analyzer_testing/src/mock_packages/flutter/material.dart'
     as mock_flutter_material;
 import 'package:analyzer_testing/src/mock_packages/flutter/painting.dart'
@@ -102,6 +104,7 @@ mixin MockPackagesMixin {
       ...mock_flutter_animation.units,
       ...mock_flutter_cupertino.units,
       ...mock_flutter_foundation.units,
+      ...mock_flutter_localizations.units,
       ...mock_flutter_material.units,
       ...mock_flutter_painting.units,
       ...mock_flutter_rendering.units,

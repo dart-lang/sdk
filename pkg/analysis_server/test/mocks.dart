@@ -6,9 +6,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
-import 'package:analysis_server/protocol/protocol.dart';
-import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
+import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/utilities/process.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
@@ -93,6 +92,9 @@ class MockProcess implements Process {
 }
 
 class MockProcessRunner implements ProcessRunner {
+  @override
+  final Map<String, String>? environment = null;
+
   ProcessResult Function(
     String executable,
     List<String> arguments, {
@@ -169,6 +171,9 @@ class TestNotificationManager implements AbstractNotificationManager {
   Map<String, Map<String, List<protocol.AnalysisError>>> recordedErrors = {};
 
   List<String> pluginErrors = [];
+
+  @override
+  Stream<PluginPrint> pluginPrints = Stream.empty();
 
   @override
   void handlePluginError(String message) {

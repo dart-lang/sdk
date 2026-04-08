@@ -63,19 +63,25 @@ class _DryRunError {
   final Uri? errorSourceUri;
   final Location? errorLocation;
 
-  _DryRunError(this.code, this.problemMessage,
-      {this.errorSourceUri, this.errorLocation});
+  _DryRunError(
+    this.code,
+    this.problemMessage, {
+    this.errorSourceUri,
+    this.errorLocation,
+  });
 
   static String _locationToString(Uri? sourceUri, Location? location) {
     if (sourceUri == null && location == null) return 'unknown location';
     final uri = sourceUri ?? location?.file;
-    final lineCol =
-        location != null ? ' ${location.line}:${location.column}' : '';
+    final lineCol = location != null
+        ? ' ${location.line}:${location.column}'
+        : '';
     return '$uri$lineCol';
   }
 
   @override
-  String toString() => '${_locationToString(errorSourceUri, errorLocation)} '
+  String toString() =>
+      '${_locationToString(errorSourceUri, errorLocation)} '
       '- $problemMessage (${code.code})';
 }
 
@@ -131,7 +137,7 @@ class DryRunSummarizer {
     for (final library in component.libraries) {
       final skipLibraryForFfiCheck =
           allowedToImportDartFfiOrUsePragmas(library.importUri) ||
-              enableExperimentalFfi;
+          enableExperimentalFfi;
       final skipLibraryForGeneralChecks = _shouldSkipLibrary(library);
 
       for (final dep in library.dependencies) {
@@ -139,19 +145,30 @@ class DryRunSummarizer {
         final depUriString = depLib.importUri.toString();
         if (depUriString == 'dart:ffi') {
           if (!skipLibraryForFfiCheck) {
-            errors.add(_DryRunError(_DryRunErrorCode.noDartFfiWithoutFlag,
+            errors.add(
+              _DryRunError(
+                _DryRunErrorCode.noDartFfiWithoutFlag,
                 '$depUriString unsupported without --enable-experimental-ffi',
                 errorSourceUri: library.importUri,
-                errorLocation: dep.location));
+                errorLocation: dep.location,
+              ),
+            );
           }
           continue;
         }
         if (skipLibraryForGeneralChecks) continue;
-        var code = _disallowedDartUris[depUriString] ??
+        var code =
+            _disallowedDartUris[depUriString] ??
             _disallowedPackageUris[depUriString];
         if (code != null) {
-          errors.add(_DryRunError(code, '$depUriString unsupported',
-              errorSourceUri: library.importUri, errorLocation: dep.location));
+          errors.add(
+            _DryRunError(
+              code,
+              '$depUriString unsupported',
+              errorSourceUri: library.importUri,
+              errorLocation: dep.location,
+            ),
+          );
         }
       }
     }
@@ -165,9 +182,15 @@ class DryRunSummarizer {
     // These checks will already have been done by the CFE but the message
     // format the CFE provides for those errors makes it hard to identify them
     // as interop-specific errors. Instead we rerun and collect any errors here.
-    component.accept(JsInteropChecks(coreTypes, classHierarchy, reporter,
+    component.accept(
+      JsInteropChecks(
+        coreTypes,
+        classHierarchy,
+        reporter,
         JsInteropChecks.getNativeClasses(component),
-        isDart2Wasm: true));
+        isDart2Wasm: true,
+      ),
+    );
     return collector.errors;
   }
 
@@ -179,19 +202,22 @@ class DryRunSummarizer {
       if (_shouldSkipLibrary(library)) continue;
       final uri = library.fileUri;
       pathUriMap[p.normalize(
-          p.absolute(uri.toFilePath(windows: Platform.isWindows)))] = uri;
+            p.absolute(uri.toFilePath(windows: Platform.isWindows)),
+          )] =
+          uri;
     }
     if (pathUriMap.isEmpty) return [];
 
-    final collection =
-        AnalysisContextCollection(includedPaths: pathUriMap.keys.toList());
+    final collection = AnalysisContextCollection(
+      includedPaths: pathUriMap.keys.toList(),
+    );
     for (var context in collection.contexts) {
       var allOptions =
           (context as DriverBasedAnalysisContext).allAnalysisOptions;
       for (var options in allOptions) {
         options.lintRules = [
           _avoidDoubleAndIntChecks,
-          _invalidRuntimeCheckWithJSInteropTypes
+          _invalidRuntimeCheckWithJSInteropTypes,
         ];
         options.lint = true;
       }
@@ -203,13 +229,18 @@ class DryRunSummarizer {
           for (final diagnostic in result.diagnostics) {
             final errorCode = _getDryRunErrorCodeFromDiagnostic(diagnostic);
             if (errorCode != null) {
-              errors.add(_DryRunError(
+              errors.add(
+                _DryRunError(
                   errorCode,
                   '${diagnostic.diagnosticCode.lowerCaseName} lint violation: '
                   '${diagnostic.message}',
                   errorSourceUri: uri,
                   errorLocation: component.getLocation(
-                      uri, diagnostic.problemMessage.offset)));
+                    uri,
+                    diagnostic.problemMessage.offset,
+                  ),
+                ),
+              );
             }
           }
         }
@@ -220,31 +251,29 @@ class DryRunSummarizer {
     return errors;
   }
 
-  _DryRunErrorCode? _getDryRunErrorCodeFromDiagnostic(Diagnostic diagnostic) =>
-      switch (diagnostic.diagnosticCode) {
-        diag.invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType =>
-          _DryRunErrorCode
-              .invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
-        diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs =>
-          _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
-        diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs =>
-          _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
-        diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart =>
-          _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
-        diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart =>
-          _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
-        diag.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs =>
-          _DryRunErrorCode
-              .invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
-        diag.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs =>
-          _DryRunErrorCode
-              .invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
-        diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs =>
-          _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
-        diag.avoidDoubleAndIntChecks =>
-          _DryRunErrorCode.avoidDoubleAndIntChecks,
-        _ => null,
-      };
+  _DryRunErrorCode? _getDryRunErrorCodeFromDiagnostic(
+    Diagnostic diagnostic,
+  ) => switch (diagnostic.diagnosticCode) {
+    diag.invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType =>
+      _DryRunErrorCode
+          .invalidRuntimeCheckWithJsInteropTypesCatchClauseJsInteropType,
+    diag.invalidRuntimeCheckWithJsInteropTypesDartAsJs =>
+      _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesDartAsJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesDartIsJs =>
+      _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesDartIsJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsAsDart =>
+      _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsAsDart,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsIsDart =>
+      _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsDart,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs =>
+      _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsAsIncompatibleJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs =>
+      _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsInconsistentJs,
+    diag.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs =>
+      _DryRunErrorCode.invalidRuntimeCheckWithJsInteropTypesJsIsUnrelatedJs,
+    diag.avoidDoubleAndIntChecks => _DryRunErrorCode.avoidDoubleAndIntChecks,
+    _ => null,
+  };
 
   Future<bool> summarize() async {
     final errors = [
@@ -272,17 +301,28 @@ class _CollectingDiagnosticReporter
   _CollectingDiagnosticReporter(this.component);
 
   @override
-  void report(Message message, int charOffset, int length, Uri? fileUri,
-      {List<LocatedMessage>? context}) {
+  void report(
+    Message message,
+    int charOffset,
+    int length,
+    Uri? fileUri, {
+    List<LocatedMessage>? context,
+  }) {
     final libraryUri = fileUri != null
         ? component.libraries
-            .firstWhereOrNull((e) => e.fileUri == fileUri)
-            ?.importUri
+              .firstWhereOrNull((e) => e.fileUri == fileUri)
+              ?.importUri
         : null;
-    final location =
-        fileUri != null ? component.getLocation(fileUri, charOffset) : null;
-    errors.add(_DryRunError(
-        _DryRunErrorCode.interopChecksError, message.problemMessage,
-        errorSourceUri: libraryUri ?? fileUri, errorLocation: location));
+    final location = fileUri != null
+        ? component.getLocation(fileUri, charOffset)
+        : null;
+    errors.add(
+      _DryRunError(
+        _DryRunErrorCode.interopChecksError,
+        message.problemMessage,
+        errorSourceUri: libraryUri ?? fileUri,
+        errorLocation: location,
+      ),
+    );
   }
 }

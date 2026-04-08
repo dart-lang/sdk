@@ -33,8 +33,8 @@ class SourcePositions extends BytecodeDeclaration {
 
   int _encode(int fileOffset, int flags) =>
       (flags == 0 || fileOffset == noSourcePosition)
-          ? fileOffset
-          : -((fileOffset << _numFlags) | flags) - 1;
+      ? fileOffset
+      : -((fileOffset << _numFlags) | flags) - 1;
 
   (int, int) _decode(int encoded) {
     if (encoded >= 0 || encoded == noSourcePosition) {
@@ -150,7 +150,9 @@ class LineStarts extends BytecodeDeclaration {
   factory LineStarts.read(BufferedReader reader) {
     final decodeLineStarts = new PackedUInt30DeltaDecoder();
     final lineStarts = new List<int>.generate(
-        reader.readPackedUInt30(), (_) => decodeLineStarts.read(reader));
+      reader.readPackedUInt30(),
+      (_) => decodeLineStarts.read(reader),
+    );
     return new LineStarts(lineStarts);
   }
 

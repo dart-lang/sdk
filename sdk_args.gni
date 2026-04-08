@@ -5,22 +5,6 @@
 _dart_root = get_path_info(".", "abspath")
 
 declare_args() {
-  # Absolute path to the .git folder.
-  #
-  # This is used in rules that need to refer to `.git/logs/HEAD` to include
-  # a hash in the version string. By default the folder is `.git`, but we define
-  # it as an argument so it can be overridden by users of `git-worktree` (See
-  # Issue #33619).
-  #
-  # When using git-worktree, you can add
-  #
-  #    default_git_folder = "/path/to/main/git/repo/.git/worktrees/name/"
-  #
-  # to out/ReleaseX64/args.gn. The path above can be extracted from the `.git`
-  # file under the git worktree folder.
-  # The script run here should take care of everything automatically though.
-  default_git_folder = ""
-
   # Whether to enable the SDK hash check that will prevent loading a kernel
   # into a VM which was built with a different SDK.
   verify_sdk_hash = true
@@ -38,15 +22,12 @@ declare_args() {
   # can significantly improve iteration time when iteration on changes in
   # core libraries.
   precompile_tools = false
-}
 
-if (default_git_folder == "") {
-  default_git_folder = exec_script("$_dart_root/tools/get_dot_git_folder.py",
-                                   [
-                                     rebase_path("$_dart_root/.git"),
-                                     "$_dart_root/.git",
-                                   ],
-                                   "trim string")
+  # When set to `true`, the Dart Runtime Service based implementation of the
+  # VM service will be included in the build. By default, the legacy VM
+  # service implementation will be launched by the VM, unless the
+  # --include-experimental-vm-service VM flag is provided.
+  include_experimental_vm_service = false
 }
 
 # The SDK hash to build into VM and kernels.
@@ -56,12 +37,7 @@ if (verify_sdk_hash) {
   if (sdk_hash == "") {
     sdk_hash = exec_script("$_dart_root/tools/make_version.py",
                            [ "--format={{GIT_HASH}}" ],
-                           "trim string",
-                           [
-                             "$_dart_root/tools/VERSION",
-                             "$_dart_root/tools/utils.py",
-                             "$default_git_folder/logs/HEAD",
-                           ])
+                           "trim string")
   }
 } else {
   sdk_hash = "0000000000"

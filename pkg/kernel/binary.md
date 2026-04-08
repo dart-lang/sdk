@@ -147,7 +147,7 @@ type CanonicalName {
 
 type ComponentFile {
   UInt32 magic = 0x90ABCDEF;
-  UInt32 formatVersion = 129;
+  UInt32 formatVersion = 130;
   Byte[10] shortSdkHash;
   List<String> problemsAsJson; // Described in problems.md.
   Library[] libraries;
@@ -471,6 +471,7 @@ type InvalidInitializer extends Initializer {
   Byte tag = 7;
   FileOffset fileOffset;
   StringReference message;
+  Byte flags;
 }
 
 type FieldInitializer extends Initializer {

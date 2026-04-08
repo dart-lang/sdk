@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// functionFilter=forwarder|\$main
+// functionFilter=Dynamic dispatcher|\$main
 // compilerOption=-O0
 
 dynamic confuse(dynamic a) => a;

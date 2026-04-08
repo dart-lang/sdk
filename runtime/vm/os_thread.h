@@ -58,6 +58,21 @@ class BaseThread {
 
 using ThreadId = platform::ThreadId;
 
+class OSThread;
+
+// Wrapper to get TLS destructor.
+class OSThreadPtr {
+ public:
+  constexpr OSThreadPtr() {}
+  ~OSThreadPtr();
+
+  OSThread* get() const { return thread_; }
+  void set(OSThread* value) { thread_ = value; }
+
+ private:
+  OSThread* thread_ = nullptr;
+};
+
 // Low-level operations on OS platform threads.
 class OSThread : public BaseThread {
  public:
@@ -182,9 +197,7 @@ class OSThread : public BaseThread {
     uword stack_size = OSThread::GetMaxStackSize() - headroom;
     return stack_size;
   }
-  static BaseThread* GetCurrentTLS() {
-    return reinterpret_cast<BaseThread*>(OSThread::GetThreadLocal(thread_key_));
-  }
+  static BaseThread* GetCurrentTLS() { return current_os_thread_.get(); }
   static void SetCurrentTLS(BaseThread* value);
 
   typedef void (*ThreadStartFunction)(uword parameter);
@@ -202,13 +215,6 @@ class OSThread : public BaseThread {
                     ThreadStartFunction function,
                     uword parameter);
 
-  static ThreadLocalKey CreateThreadLocal(
-      ThreadDestructor destructor = nullptr);
-  static void DeleteThreadLocal(ThreadLocalKey key);
-  static uword GetThreadLocal(ThreadLocalKey key) {
-    return ThreadInlineImpl::GetThreadLocal(key);
-  }
-  static void SetThreadLocal(ThreadLocalKey key, uword value);
   static intptr_t GetMaxStackSize();
   static void Join(ThreadJoinId id);
   static void Detach(ThreadJoinId id);
@@ -273,8 +279,6 @@ class OSThread : public BaseThread {
     return (headroom > kStackSizeBufferMax) ? kStackSizeBufferMax : headroom;
   }
 
-  static ThreadLocalKey thread_key_;
-
   const ThreadId id_;
 #if defined(DEBUG)
   // In DEBUG mode we use this field to ensure that GetCurrentThreadJoinId is
@@ -321,6 +325,10 @@ class OSThread : public BaseThread {
   // Inline initialization is important for avoiding unnecessary TLS
   // initialization checks at each use.
   static inline thread_local ThreadState* current_vm_thread_ = nullptr;
+
+  // Inline initialization results in duplicate definition link errors on Mac.
+  // But this TLS is rarely accessed, so the guard doesn't matter much.
+  static thread_local OSThreadPtr current_os_thread_;
 
   friend class Thread;  // to access set_thread(Thread*).
   friend class OSThreadIterator;

@@ -4,7 +4,6 @@
 
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -21,8 +20,7 @@ void main() {
 
 // TODO(pq): update w/ a FixKind that we're sure we want to support as a file fix
 // @reflectiveTest
-// class MultiFixInFileTest extends FixInFileProcessorTest
-//     with WithNullSafetyMixin {
+// class MultiFixInFileTest extends FixInFileProcessorTest {
 //   Future<void> test_nullable() async {
 //     await resolveTestCode('''
 // class C {

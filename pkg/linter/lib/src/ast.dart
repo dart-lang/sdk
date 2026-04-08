@@ -42,65 +42,53 @@ int? getIntValue(Expression expression, RuleContext? context) {
   return _getIntValue(expression, context);
 }
 
-/// Returns the most specific AST node appropriate for associating errors.
-SyntacticEntity getNodeToAnnotate(Declaration node) {
-  // TODO(srawlins): Convert to a switch expression over `Declaration` subtypes,
-  // assuming `Declaration` becomes an exhaustive type.
+/// Returns the most specific AST node appropriate for associating errors with
+/// the given node.
+///
+/// The node is generally assumed to be a [Declaration], but the parameter
+/// allows any [AstNode] in order to handle [PrimaryConstructorDeclaration]s.
+SyntacticEntity getNodeToAnnotate(AstNode node) {
   if (node is ClassDeclaration) {
     return node.namePart.typeName;
-  }
-  if (node is ClassTypeAlias) {
+  } else if (node is ClassTypeAlias) {
     return node.name;
-  }
-  if (node is ConstructorDeclaration) {
+  } else if (node is ConstructorDeclaration) {
     return node.name ??
         node.typeName ??
         node.newKeyword ??
         node.factoryKeyword!;
-  }
-  if (node is EnumConstantDeclaration) {
+  } else if (node is EnumConstantDeclaration) {
     return node.name;
-  }
-  if (node is EnumDeclaration) {
+  } else if (node is EnumDeclaration) {
     return node.namePart.typeName;
-  }
-  if (node is ExtensionDeclaration) {
+  } else if (node is ExtensionDeclaration) {
     return node.name ?? node;
-  }
-  if (node is FieldDeclaration) {
+  } else if (node is FieldDeclaration) {
     return node.fields;
-  }
-  if (node is FunctionDeclaration) {
+  } else if (node is FunctionDeclaration) {
     return node.name;
-  }
-  if (node is FunctionTypeAlias) {
+  } else if (node is FunctionTypeAlias) {
     return node.name;
-  }
-  if (node is GenericTypeAlias) {
+  } else if (node is GenericTypeAlias) {
     return node.name;
-  }
-  if (node is MethodDeclaration) {
+  } else if (node is MethodDeclaration) {
     return node.name;
-  }
-  if (node is MixinDeclaration) {
+  } else if (node is MixinDeclaration) {
     return node.name;
-  }
-  if (node is PrimaryConstructorBody) {
+  } else if (node is PrimaryConstructorBody) {
     return node.thisKeyword;
-  }
-  if (node is TopLevelVariableDeclaration) {
+  } else if (node is PrimaryConstructorDeclaration) {
+    return node.constructorName?.name ?? node.typeName;
+  } else if (node is TopLevelVariableDeclaration) {
     return node.variables;
-  }
-  if (node is TypeParameter) {
+  } else if (node is TypeParameter) {
     return node.name;
-  }
-  if (node is VariableDeclaration) {
+  } else if (node is VariableDeclaration) {
     return node.name;
-  }
-  if (node is ExtensionTypeDeclaration) {
+  } else if (node is ExtensionTypeDeclaration) {
     return node.primaryConstructor.typeName;
   }
-  assert(false, "Unaccounted for Declaration subtype: '${node.runtimeType}'");
+  assert(false, "Unaccounted for node type: '${node.runtimeType}'");
   return node;
 }
 

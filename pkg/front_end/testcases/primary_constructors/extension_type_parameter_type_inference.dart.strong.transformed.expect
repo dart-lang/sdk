@@ -22,49 +22,49 @@ library;
 import self as self;
 import "dart:core" as core;
 
-extension type C0(dynamic a) {
+extension type C0(core::int a) implements core::int {
   abstract extension-type-member representation-field get a() → core::int;
   constructor • = self::C0|constructor#;
   constructor tearoff • = self::C0|constructor#_#new#tearOff;
 }
-extension type C1(dynamic b) {
+extension type C1(core::bool b) implements core::bool {
   abstract extension-type-member representation-field get b() → core::bool;
   constructor • = self::C1|constructor#;
   constructor tearoff • = self::C1|constructor#_#new#tearOff;
 }
-extension type C2(dynamic c) {
+extension type C2(core::String c) implements core::String {
   abstract extension-type-member representation-field get c() → core::String;
   constructor • = self::C2|constructor#;
   constructor tearoff • = self::C2|constructor#_#new#tearOff;
 }
-extension type C3(dynamic d) {
+extension type C3(core::List<core::int> d) implements core::List<core::int> {
   abstract extension-type-member representation-field get d() → core::List<core::int>;
   constructor • = self::C3|constructor#;
   constructor tearoff • = self::C3|constructor#_#new#tearOff;
 }
-static extension-type-member method C0|constructor#([core::int a = #C1]) → self::C0% /* erasure=dynamic, declared=! */ {
-  lowered final self::C0% /* erasure=dynamic, declared=! */ #this = a;
+static extension-type-member method C0|constructor#([core::int a = #C1]) → self::C0 /* erasure=core::int */ {
+  lowered final self::C0 /* erasure=core::int */ #this = a;
   return #this;
 }
-static extension-type-member synthetic method C0|constructor#_#new#tearOff([core::int a = #C1]) → self::C0% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method C0|constructor#_#new#tearOff([core::int a = #C1]) → self::C0 /* erasure=core::int */
   return self::C0|constructor#(a);
-static extension-type-member method C1|constructor#([final core::bool b = #C2]) → self::C1% /* erasure=dynamic, declared=! */ {
-  lowered final self::C1% /* erasure=dynamic, declared=! */ #this = b;
+static extension-type-member method C1|constructor#([final core::bool b = #C2]) → self::C1 /* erasure=core::bool */ {
+  lowered final self::C1 /* erasure=core::bool */ #this = b;
   return #this;
 }
-static extension-type-member synthetic method C1|constructor#_#new#tearOff([core::bool b = #C2]) → self::C1% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method C1|constructor#_#new#tearOff([core::bool b = #C2]) → self::C1 /* erasure=core::bool */
   return self::C1|constructor#(b);
-static extension-type-member method C2|constructor#({core::String c = #C3}) → self::C2% /* erasure=dynamic, declared=! */ {
-  lowered final self::C2% /* erasure=dynamic, declared=! */ #this = c;
+static extension-type-member method C2|constructor#({core::String c = #C3}) → self::C2 /* erasure=core::String */ {
+  lowered final self::C2 /* erasure=core::String */ #this = c;
   return #this;
 }
-static extension-type-member synthetic method C2|constructor#_#new#tearOff({core::String c = #C3}) → self::C2% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method C2|constructor#_#new#tearOff({core::String c = #C3}) → self::C2 /* erasure=core::String */
   return self::C2|constructor#(c: c);
-static extension-type-member method C3|constructor#({final core::List<core::int> d = #C4}) → self::C3% /* erasure=dynamic, declared=! */ {
-  lowered final self::C3% /* erasure=dynamic, declared=! */ #this = d;
+static extension-type-member method C3|constructor#({final core::List<core::int> d = #C4}) → self::C3 /* erasure=core::List<core::int> */ {
+  lowered final self::C3 /* erasure=core::List<core::int> */ #this = d;
   return #this;
 }
-static extension-type-member synthetic method C3|constructor#_#new#tearOff({core::List<core::int> d = #C4}) → self::C3% /* erasure=dynamic, declared=! */
+static extension-type-member synthetic method C3|constructor#_#new#tearOff({core::List<core::int> d = #C4}) → self::C3 /* erasure=core::List<core::int> */
   return self::C3|constructor#(d: d);
 static method test() → dynamic {
   self::C0|constructor#(invalid-expression "pkg/front_end/testcases/primary_constructors/extension_type_parameter_type_inference.dart:14:6: Error: The argument type 'String' can't be assigned to the parameter type 'int'.
@@ -82,21 +82,21 @@ static method test() → dynamic {
         ^" in let Null #t1 = null in #t1 == null ?{core::List<core::int>} #t1 as{TypeError} core::List<core::int> : #t1{core::List<core::int>});
 }
 static method main() → dynamic {
-  self::C0% /* erasure=dynamic, declared=! */ c0a = self::C0|constructor#();
+  self::C0 /* erasure=core::int */ c0a = self::C0|constructor#();
   core::int a1 = c0a as{Unchecked} core::int;
-  self::C0% /* erasure=dynamic, declared=! */ c0b = self::C0|constructor#(42);
+  self::C0 /* erasure=core::int */ c0b = self::C0|constructor#(42);
   core::int a2 = c0b as{Unchecked} core::int;
-  self::C1% /* erasure=dynamic, declared=! */ c1a = self::C1|constructor#();
+  self::C1 /* erasure=core::bool */ c1a = self::C1|constructor#();
   core::bool b1 = c1a as{Unchecked} core::bool;
-  self::C1% /* erasure=dynamic, declared=! */ c1b = self::C1|constructor#(false);
+  self::C1 /* erasure=core::bool */ c1b = self::C1|constructor#(false);
   core::bool b2 = c1b as{Unchecked} core::bool;
-  self::C2% /* erasure=dynamic, declared=! */ c2a = self::C2|constructor#();
+  self::C2 /* erasure=core::String */ c2a = self::C2|constructor#();
   core::String c1 = c2a as{Unchecked} core::String;
-  self::C2% /* erasure=dynamic, declared=! */ c2b = self::C2|constructor#(c: "bar");
+  self::C2 /* erasure=core::String */ c2b = self::C2|constructor#(c: "bar");
   core::String c2 = c2b as{Unchecked} core::String;
-  self::C3% /* erasure=dynamic, declared=! */ c3a = self::C3|constructor#();
+  self::C3 /* erasure=core::List<core::int> */ c3a = self::C3|constructor#();
   core::List<core::int> d1 = c3a as{Unchecked} core::List<core::int>;
-  self::C3% /* erasure=dynamic, declared=! */ c3b = self::C3|constructor#(d: core::_GrowableList::_literal1<core::int>(42));
+  self::C3 /* erasure=core::List<core::int> */ c3b = self::C3|constructor#(d: core::_GrowableList::_literal1<core::int>(42));
   core::List<core::int> d2 = c3b as{Unchecked} core::List<core::int>;
 }
 

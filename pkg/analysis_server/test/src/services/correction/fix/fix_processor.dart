@@ -18,12 +18,12 @@ import 'package:analyzer_plugin/protocol/protocol_common.dart'
     hide AnalysisError;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
-import 'package:meta/meta.dart';
 import 'package:test/test.dart';
 
-import '../../../../abstract_context.dart';
 import '../../../../abstract_single_unit.dart';
 import '../../../../utils/test_instrumentation_service.dart';
+
+export 'package:linter/src/lint_names.dart';
 
 typedef DiagnosticFilter = bool Function(Diagnostic diagnostic);
 
@@ -663,21 +663,6 @@ abstract class FixProcessorTest extends BaseFixProcessorTest {
       positions.add(Position(testFile.path, offset));
     }
     return positions;
-  }
-}
-
-mixin WithNullSafetyLintMixin on AbstractContextTest {
-  /// Return the lint code being tested.
-  String get lintCode;
-
-  @override
-  String get testPackageLanguageVersion => '2.12';
-
-  @nonVirtual
-  @override
-  void setUp() {
-    super.setUp();
-    createAnalysisOptionsFile(lints: [lintCode]);
   }
 }
 

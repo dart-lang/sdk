@@ -38,9 +38,9 @@ library;
 //         this.y = 2;
 //                   ^
 //
-// pkg/front_end/testcases/general/issue43363.dart:9:16: Error: A redirecting constructor can't have other initializers.
+// pkg/front_end/testcases/general/issue43363.dart:9:14: Error: A redirecting constructor can't have other initializers.
 //         this.x = 1;
-//                ^
+//              ^
 //
 // pkg/front_end/testcases/general/issue43363.dart:10:16: Error: Expected a function body or '=>'.
 // Try adding {}.
@@ -81,9 +81,9 @@ Try removing the return type.
         this.y = 2;
                  ^";
   erroneous constructor •() → self::E
-    : invalid-initializer "pkg/front_end/testcases/general/issue43363.dart:9:16: Error: A redirecting constructor can't have other initializers.
+    : invalid-initializer "pkg/front_end/testcases/general/issue43363.dart:9:14: Error: A redirecting constructor can't have other initializers.
         this.x = 1;
-               ^", this self::E::named()
+             ^", this self::E::named()
     ;
   constructor named() → self::E
     : self::E::x = 5, self::E::y = 6, super core::Object::•()

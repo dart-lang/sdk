@@ -365,8 +365,6 @@ void KernelBytecodeDisassembler::Disassemble(uword start,
   char hex_buffer[kHexadecimalBufferSize];  // Instruction in hexadecimal form.
   char human_buffer[kUserReadableBufferSize];  // Human-readable instruction.
   uword pc = start;
-  GrowableArray<const Function*> inlined_functions;
-  GrowableArray<TokenPosition> token_positions;
   while (pc < end) {
     int instruction_length;
     Object* object;

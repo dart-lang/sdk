@@ -7,13 +7,19 @@ import "package:meta/meta.dart" show RecordUse;
 
 extension Ext on core::String {
   method foo = self::Ext|foo;
+  method tearoff foo = self::Ext|get#foo;
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-member method Ext|foo([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "42")] lowered final core::String #this, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "arg")] core::String s) → void {
   core::print([@vm.direct-call.metadata=dart.core::_StringBase.+] [@vm.inferred-type.metadata=! (skip check)] #this.{core::String::+}(s){(core::String) → core::String});
 }
+
+[@vm.unreachable.metadata=]
+static extension-member method Ext|get#foo(lowered final core::String #this) → (core::String) → void
+  throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method main() → void {

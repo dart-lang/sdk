@@ -7,6 +7,8 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:stream_channel/stream_channel.dart';
 
+import 'dart_runtime_service.dart';
+import 'dart_runtime_service_backend.dart';
 import 'dart_runtime_service_rpcs.dart';
 import 'event_streams.dart';
 import 'rpc_exceptions.dart';
@@ -20,14 +22,18 @@ typedef ServiceNameAliasPair = ({ServiceName service, ServiceAlias alias});
 base class Client {
   Client({
     required StreamChannel<String> connection,
-    required UnmodifiableNamedLookup<Client> clients,
+    required UnmodifiableClientNamedLookup clients,
     required EventStreamMethods eventStreamMethods,
+    required this.backend,
+    String? name,
   }) {
+    _name = name ?? defaultClientName;
     _clientPeer = json_rpc.Peer(connection, strictProtocolChecks: false);
     _internalRpcs = DartRuntimeServiceRpcs(
       clients: clients,
       eventStreamMethods: eventStreamMethods,
       client: this,
+      expressionEvaluator: backend.expressionEvaluator,
     );
   }
 
@@ -35,20 +41,24 @@ base class Client {
 
   late json_rpc.Peer _clientPeer;
   late final DartRuntimeServiceRpcs _internalRpcs;
+  final DartRuntimeServiceBackend backend;
 
   /// The logger to be used when handling requests from this client.
-  Logger get logger => Logger('Client ($name)');
+  Logger get logger => Logger(toString());
 
   /// A [Future] that completes when [close] is invoked.
   late final Future<void> done;
 
   Future<void> initialize({required String namespace}) {
+    logger.info('Initializing...');
     this.namespace = namespace;
     registerRpcHandlers();
     done = _listen().then((_) {
+      logger.info('Client connection closed.');
       // Cleanup stream subscription state when the client disconnects.
       _internalRpcs.eventStreamMethods.onClientDisconnect(this);
     });
+    logger.info('Initialization complete.');
     return done;
   }
 
@@ -60,12 +70,17 @@ base class Client {
   /// Called if the connection to the client should be closed.
   @mustCallSuper
   Future<void> close() async {
+    logger.info('Cleaning up.');
     await _clientPeer.close();
   }
 
   @mustCallSuper
   void registerRpcHandlers() {
-    _internalRpcs.registerRpcsWithPeer(_clientPeer);
+    _internalRpcs
+      ..addBackendRpcs(backend: backend)
+      ..registerRpcsWithPeer(_clientPeer)
+      ..registerServiceExtensionForwarder(_clientPeer)
+      ..registerBackendFallbacks(_clientPeer);
   }
 
   /// Attempts to register a [service] to be provided by this client.
@@ -150,8 +165,16 @@ base class Client {
   /// Sets the name associated with this client.
   ///
   /// If [n] is null, the client name is reset to [defaultClientName].
-  void setName(String? n) => _name = n ?? defaultClientName;
-  late String _name = defaultClientName;
+  void setName(String? n) {
+    final updated = n ?? defaultClientName;
+    logger.info('Changing client name to $updated.');
+    _name = updated;
+  }
+
+  late String _name;
+
+  @override
+  String toString() => 'Client ($name)';
 }
 
 /// Used for keeping track and managing clients that are connected to a given
@@ -159,10 +182,10 @@ base class Client {
 ///
 /// Call [addClient] when a client connects to your service.
 base class ClientManager {
-  ClientManager({required this.eventStreamMethods});
+  ClientManager({required this.backend, required this.eventStreamMethods});
 
   static const _kServicePrologue = 's';
-
+  final DartRuntimeServiceBackend backend;
   final EventStreamMethods eventStreamMethods;
 
   /// The set of [Client]s currently connected to the service.
@@ -171,18 +194,20 @@ base class ClientManager {
   /// [_kServicePrologue] (e.g., 's1'). This identifier is used when invoking
   /// service extensions registered by the client to indicate which client
   /// is responsible for handling the service extension invocation.
-  final clients = NamedLookup<Client>(prefix: _kServicePrologue);
+  final clients = ClientNamedLookup(prefix: _kServicePrologue);
 
   /// Creates a [Client] from [connection] and adds it to the list of connected
   /// clients.
   ///
   /// This should be called when a client connects to the service.
   @mustCallSuper
-  Client addClient(StreamChannel<String> connection) {
+  Client addClient({required StreamChannel<String> connection, String? name}) {
     final client = Client(
       connection: connection,
-      clients: UnmodifiableNamedLookup(clients),
+      clients: UnmodifiableClientNamedLookup(clients),
       eventStreamMethods: eventStreamMethods,
+      backend: backend,
+      name: name,
     );
     final namespace = clients.add(client);
     client.initialize(namespace: namespace).then((_) {

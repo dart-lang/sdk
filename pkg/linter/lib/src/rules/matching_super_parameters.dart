@@ -29,6 +29,7 @@ class MatchingSuperParameters extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
@@ -39,8 +40,25 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitConstructorDeclaration(ConstructorDeclaration node) {
+    _visitConstructor(node.parameters, node.initializers, node.parent?.parent);
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    _visitConstructor(
+      node.formalParameters,
+      node.body?.initializers,
+      node.parent,
+    );
+  }
+
+  void _visitConstructor(
+    FormalParameterList parameterList,
+    List<ConstructorInitializer>? initializers,
+    AstNode? parent,
+  ) {
     var positionalSuperParameters = <SuperFormalParameter>[];
-    for (var parameter in node.parameters.parameters) {
+    for (var parameter in parameterList.parameters) {
       if (parameter is SuperFormalParameter && parameter.isPositional) {
         positionalSuperParameters.add(parameter);
       }
@@ -49,14 +67,13 @@ class _Visitor extends SimpleAstVisitor<void> {
       // We are only concerned with positional super-parameters.
       return;
     }
-    var superInvocation = node.initializers
-        .whereType<SuperConstructorInvocation>()
+    var superInvocation = initializers
+        ?.whereType<SuperConstructorInvocation>()
         .firstOrNull;
     var superConstructor = superInvocation?.element;
     if (superConstructor == null) {
-      var class_ = node.parent?.parent;
-      if (class_ is ClassDeclaration) {
-        superConstructor = class_
+      if (parent is ClassDeclaration) {
+        superConstructor = parent
             .declaredFragment
             ?.element
             .supertype

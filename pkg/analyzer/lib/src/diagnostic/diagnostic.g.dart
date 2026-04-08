@@ -1573,6 +1573,22 @@ classUsedAsMixin = DiagnosticWithArguments(
   expectedTypes: [ExpectedType.string],
 );
 
+/// Parameters:
+/// String className: the name of the class being used as a mixin
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String className})
+>
+classUsedAsMixinDeclaresGenerativeConstructor = DiagnosticWithArguments(
+  name: 'class_used_as_mixin_declares_generative_constructor',
+  problemMessage:
+      "The class '{0}' can't be used as a mixin because it declares a generative "
+      "constructor.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'class_used_as_mixin_declares_generative_constructor',
+  withArguments: _withArgumentsClassUsedAsMixinDeclaresGenerativeConstructor,
+  expectedTypes: [ExpectedType.string],
+);
+
 /// No parameters.
 const DiagnosticWithoutArguments colonInPlaceOfIn =
     DiagnosticWithoutArgumentsImpl(
@@ -2718,6 +2734,35 @@ constNotInitialized = DiagnosticWithArguments(
   uniqueName: 'const_not_initialized',
   withArguments: _withArgumentsConstNotInitialized,
   expectedTypes: [ExpectedType.string],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments
+constPrimaryConstructorWithBlockBody = DiagnosticWithoutArgumentsImpl(
+  name: 'const_primary_constructor_with_body',
+  problemMessage:
+      "The body part of a constant primary constructor can't have a block body.",
+  correctionMessage:
+      "Try replacing the block body with a semicolon, or removing the "
+      "'const' modifier.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'const_primary_constructor_with_block_body',
+  expectedTypes: [],
+);
+
+/// No parameters.
+const DiagnosticWithoutArguments
+constPrimaryConstructorWithExpressionBody = DiagnosticWithoutArgumentsImpl(
+  name: 'const_primary_constructor_with_body',
+  problemMessage:
+      "The body part of a constant primary constructor can't have an expression "
+      "body.",
+  correctionMessage:
+      "Try replacing the expression body with a semicolon, or removing the "
+      "'const' modifier.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'const_primary_constructor_with_expression_body',
+  expectedTypes: [],
 );
 
 /// No parameters.
@@ -10455,6 +10500,16 @@ mixedParameterGroups = DiagnosticWithoutArgumentsImpl(
   expectedTypes: [],
 );
 
+/// No parameters.
+const DiagnosticWithoutArguments mixinApplicationClassAugmentation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'mixin_application_class_augmentation',
+      problemMessage: "A mixin application class can't be augmented.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'mixin_application_class_augmentation',
+      expectedTypes: [],
+    );
+
 /// Parameters:
 /// String memberName: the name of the super-invoked member
 /// Type mixinMemberType: the display name of the type of the super-invoked
@@ -10560,19 +10615,18 @@ mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
 );
 
 /// Parameters:
-/// String className: the name of the mixin that is invalid
+/// String className: the name of the mixin class
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String className})
 >
-mixinClassDeclaresConstructor = DiagnosticWithArguments(
-  name: 'mixin_class_declares_constructor',
+mixinClassDeclaresNonTrivialGenerativeConstructor = DiagnosticWithArguments(
+  name: 'mixin_class_declares_non_trivial_generative_constructor',
   problemMessage:
-      "The class '{0}' can't be used as a mixin because it declares a "
-      "constructor.",
-  hasPublishedDocs: true,
+      "The mixin class '{0}' can't declare a non-trivial generative constructor.",
   type: DiagnosticType.COMPILE_TIME_ERROR,
-  uniqueName: 'mixin_class_declares_constructor',
-  withArguments: _withArgumentsMixinClassDeclaresConstructor,
+  uniqueName: 'mixin_class_declares_non_trivial_generative_constructor',
+  withArguments:
+      _withArgumentsMixinClassDeclaresNonTrivialGenerativeConstructor,
   expectedTypes: [ExpectedType.string],
 );
 
@@ -13478,6 +13532,32 @@ prefixShadowedByLocalDeclaration = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments primaryConstructorBodyWithExpressionBody =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'primary_constructor_body_with_expression_body',
+      problemMessage: "A primary constructor body can't use '=>'.",
+      correctionMessage: "Try using a block body.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'primary_constructor_body_with_expression_body',
+      expectedTypes: [],
+    );
+
+/// Parameters:
+/// String modifier: The modifier found.
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String modifier})
+>
+primaryConstructorBodyWithModifier = DiagnosticWithArguments(
+  name: 'primary_constructor_body_with_modifier',
+  problemMessage: "A primary constructor body can't have the modifier '{0}'.",
+  correctionMessage: "Try removing the modifier.",
+  type: DiagnosticType.SYNTACTIC_ERROR,
+  uniqueName: 'primary_constructor_body_with_modifier',
+  withArguments: _withArgumentsPrimaryConstructorBodyWithModifier,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// No parameters.
 const DiagnosticWithoutArguments
 primaryConstructorBodyWithoutDeclaration = DiagnosticWithoutArgumentsImpl(
   name: 'primary_constructor_body_without_declaration',
@@ -14271,7 +14351,7 @@ replacedLintUse = DiagnosticWithArguments(
 const DiagnosticWithoutArguments representationFieldModifier =
     DiagnosticWithoutArgumentsImpl(
       name: 'representation_field_modifier',
-      problemMessage: "Representation fields can't have modifiers.",
+      problemMessage: "Representation fields can't have the modifier 'var'.",
       correctionMessage: "Try removing the modifier.",
       type: DiagnosticType.SYNTACTIC_ERROR,
       uniqueName: 'representation_field_modifier',
@@ -15402,6 +15482,16 @@ const DiagnosticWithoutArguments typeCheckIsNull =
       hasPublishedDocs: true,
       type: DiagnosticType.STATIC_WARNING,
       uniqueName: 'type_check_is_null',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const DiagnosticWithoutArguments typedefAugmentation =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'typedef_augmentation',
+      problemMessage: "Type aliases can't be augmented.",
+      type: DiagnosticType.SYNTACTIC_ERROR,
+      uniqueName: 'typedef_augmentation',
       expectedTypes: [],
     );
 
@@ -18234,6 +18324,16 @@ LocatableDiagnostic _withArgumentsClassUsedAsMixin({required String name}) {
   return LocatableDiagnosticImpl(diag.classUsedAsMixin, [name]);
 }
 
+LocatableDiagnostic
+_withArgumentsClassUsedAsMixinDeclaresGenerativeConstructor({
+  required String className,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.classUsedAsMixinDeclaresGenerativeConstructor,
+    [className],
+  );
+}
+
 LocatableDiagnostic _withArgumentsCompoundImplementsFinalizable({
   required String className,
 }) {
@@ -20044,12 +20144,14 @@ LocatableDiagnostic _withArgumentsMixinClassDeclarationExtendsNotObject({
   ]);
 }
 
-LocatableDiagnostic _withArgumentsMixinClassDeclaresConstructor({
+LocatableDiagnostic
+_withArgumentsMixinClassDeclaresNonTrivialGenerativeConstructor({
   required String className,
 }) {
-  return LocatableDiagnosticImpl(diag.mixinClassDeclaresConstructor, [
-    className,
-  ]);
+  return LocatableDiagnosticImpl(
+    diag.mixinClassDeclaresNonTrivialGenerativeConstructor,
+    [className],
+  );
 }
 
 LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({
@@ -20622,6 +20724,14 @@ LocatableDiagnostic _withArgumentsPrefixShadowedByLocalDeclaration({
 }) {
   return LocatableDiagnosticImpl(diag.prefixShadowedByLocalDeclaration, [
     prefix,
+  ]);
+}
+
+LocatableDiagnostic _withArgumentsPrimaryConstructorBodyWithModifier({
+  required String modifier,
+}) {
+  return LocatableDiagnosticImpl(diag.primaryConstructorBodyWithModifier, [
+    modifier,
   ]);
 }
 

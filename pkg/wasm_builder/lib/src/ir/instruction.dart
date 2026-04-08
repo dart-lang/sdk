@@ -68,6 +68,7 @@ abstract mixin class Instruction implements Serializable {
             0x08 => ArrayNewFixed.deserialize(d, types),
             0x1A => ExternInternalize.deserialize(d),
             0x1B => ExternExternalize.deserialize(d),
+            0x1C => I31New.deserialize(d),
             _ =>
               throw "Invalid ${isConstOnlyUse ? 'const ' : ''}instruction byte: $byte $byte2"
           };
@@ -513,8 +514,6 @@ abstract mixin class Instruction implements Serializable {
               return BrOnCast.deserialize(d, types);
             case 0x19:
               return BrOnCastFail.deserialize(d, types);
-            case 0x1C:
-              return I31New.deserialize(d);
             case 0x1D:
               return I31GetS.deserialize(d);
             case 0x1E:
@@ -2751,6 +2750,9 @@ class I31New extends Instruction {
   const I31New();
 
   static I31New deserialize(Deserializer d) => const I31New();
+
+  @override
+  bool get isConstant => true;
 
   @override
   void serialize(Serializer s) {

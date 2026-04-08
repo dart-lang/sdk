@@ -1,0 +1,252 @@
+Bytecode
+Dynamic Module Entry Point: DART_SDK/pkg/dart2bytecode/testcases/invisible.dart::main
+Library 'DART_SDK/pkg/dart2bytecode/testcases/invisible.dart'
+    name '#lib'
+    script 'DART_SDK/pkg/dart2bytecode/testcases/invisible.dart'
+
+Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/invisible.dart'
+
+
+Function 'visible', static, reflectable, debuggable
+    parameters [FunctionType () -> void 'fun'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  Push                 FP[-5]
+  StoreLocal           r0
+  Push                 r0
+  UncheckedClosureCall CP#3, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef 'visible()'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+}
+
+
+Function 'invisible', static, reflectable, debuggable, invisible, has-pragma
+    parameters [FunctionType () -> void 'fun'] (required: 1)
+    return-type void
+    annotations const List<dynamic> [const dart:core::pragma {dart:core::pragma::name (field): 'vm:invisible', dart:core::pragma::options (field): null}]
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  PushConstant         CP#0
+  DirectCall           CP#1, 1
+  Drop1
+  Push                 FP[-5]
+  StoreLocal           r0
+  Push                 r0
+  UncheckedClosureCall CP#3, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ObjectRef 'invisible()'
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [2] = Reserved
+  [3] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+}
+
+
+Function 'visibleClosure', static, reflectable, debuggable
+    parameters [FunctionType () -> void 'fun'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  PushConstant         CP#0
+  Push                 r0
+  PushNull
+  AllocateClosure
+  PopLocal             r2
+  Push                 r2
+  Push                 r2
+  UncheckedClosureCall CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ObjectRef 'visibleInner'
+  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [7] = EndClosureFunctionScope
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/invisible.dart::visibleClosure::'visibleInner' () -> Null
+ClosureCode {
+  Entry                3
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckStack           0
+  PushConstant         CP#3
+  DirectCall           CP#4, 1
+  Drop1
+  Push                 r0
+  LoadContextVar       0, 0
+  StoreLocal           r2
+  Push                 r2
+  UncheckedClosureCall CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+
+
+Function 'invisibleClosure', static, reflectable, debuggable
+    parameters [FunctionType () -> void 'fun'] (required: 1)
+    return-type void
+
+Bytecode {
+  Entry                4
+  CheckStack           0
+  AllocateContext      0, 1
+  PopLocal             r0
+  Push                 r0
+  Push                 FP[-5]
+  StoreContextVar      0, 0
+  PushConstant         CP#0
+  Push                 r0
+  PushNull
+  AllocateClosure
+  PopLocal             r2
+  Push                 r2
+  Push                 r2
+  UncheckedClosureCall CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = ClosureFunction 0
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ObjectRef 'invisibleInner'
+  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [7] = EndClosureFunctionScope
+}
+Closure DART_SDK/pkg/dart2bytecode/testcases/invisible.dart::invisibleClosure::'invisibleInner' invisible annotations const List<dynamic> [const dart:core::pragma {dart:core::pragma::name (field): 'vm:invisible', dart:core::pragma::options (field): null}]
+ () -> Null
+ClosureCode {
+  Entry                3
+  Push                 FP[-5]
+  LoadFieldTOS         CP#1
+  PopLocal             r0
+  CheckStack           0
+  PushConstant         CP#3
+  DirectCall           CP#4, 1
+  Drop1
+  Push                 r0
+  LoadContextVar       0, 0
+  StoreLocal           r2
+  Push                 r2
+  UncheckedClosureCall CP#6, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+
+
+Function 'main', static, reflectable, debuggable
+    parameters [] (required: 0)
+    return-type dynamic
+
+Bytecode {
+  Entry                0
+  CheckStack           0
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+}
+
+Class 'A', script = 'DART_SDK/pkg/dart2bytecode/testcases/invisible.dart'
+    extends dart:core::Object
+
+
+Function 'visible', constructor, reflectable, debuggable
+    parameters [FunctionType () -> void 'fun'] (required: 1)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/invisible.dart::A
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-6]
+  DirectCall           CP#0, 1
+  Drop1
+  PushConstant         CP#2
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 FP[-5]
+  StoreLocal           r0
+  Push                 r0
+  UncheckedClosureCall CP#5, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = ObjectRef 'A.visible'
+  [3] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+}
+
+
+Function 'invisible', constructor, reflectable, debuggable, invisible, has-pragma
+    parameters [FunctionType () -> void 'fun'] (required: 1)
+    return-type DART_SDK/pkg/dart2bytecode/testcases/invisible.dart::A
+    annotations const List<dynamic> [const dart:core::pragma {dart:core::pragma::name (field): 'vm:invisible', dart:core::pragma::options (field): null}]
+
+Bytecode {
+  Entry                1
+  CheckStack           0
+  Push                 FP[-6]
+  DirectCall           CP#0, 1
+  Drop1
+  PushConstant         CP#2
+  DirectCall           CP#3, 1
+  Drop1
+  Push                 FP[-5]
+  StoreLocal           r0
+  Push                 r0
+  UncheckedClosureCall CP#5, 1
+  Drop1
+  PushNull
+  ReturnTOS
+}
+ConstantPool {
+  [0] = DirectCall 'dart:core::Object:: (constructor)', ArgDesc num-args 1, num-type-args 0, names []
+  [1] = Reserved
+  [2] = ObjectRef 'A.invisible'
+  [3] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [4] = Reserved
+  [5] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+}
+

@@ -440,7 +440,7 @@ void f(List<int> items) {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: item
       declaredFragment: <testLibraryFragment> item@43
         element: hasImplicitType isPublic
@@ -479,7 +479,7 @@ main() {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: x
       declaredFragment: <testLibraryFragment> x@53
         element: hasImplicitType isPublic
@@ -511,7 +511,7 @@ main() {
 FunctionExpression
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       name: x
       declaredFragment: <testLibraryFragment> x@52
         element: hasImplicitType isPublic
@@ -552,7 +552,7 @@ FunctionExpression
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
-    parameter: SimpleFormalParameter
+    parameter: RegularFormalParameter
       type: NamedType
         name: T
         element: #E0 T

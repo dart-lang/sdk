@@ -5,9 +5,10 @@ import "package:meta/meta.dart" as meta;
 
 import "package:meta/meta.dart" show RecordUse;
 
-abstract class SomeClass extends core::Object {
+class SomeClass extends core::Object {
 
   [@vm.inferred-return-type.metadata=!]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C1
   static method someStaticMethod(core::Object? a) → core::String
     return [@vm.direct-call.metadata=dart.core::_AbstractType.toString] [@vm.inferred-type.metadata=! (skip check)] [@vm.inferred-type.metadata=!] a.{core::Object::runtimeType}{<object>}.{core::Type}.{core::Type::toString}(){() → core::String};

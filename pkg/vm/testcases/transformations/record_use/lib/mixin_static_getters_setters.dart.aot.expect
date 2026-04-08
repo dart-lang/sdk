@@ -1,0 +1,28 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+abstract class MyMixin extends core::Object /*isMixinDeclaration*/  {
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C1
+  static get staticGetter() → core::int
+    return 42;
+
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C1
+  static set staticSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 123)] core::int value) → void {}
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::MyMixin::staticGetter);
+  self::MyMixin::staticSetter = 123;
+}
+constants  {
+  #C1 = meta::RecordUse {}
+}

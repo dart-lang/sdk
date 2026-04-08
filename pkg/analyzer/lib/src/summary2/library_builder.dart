@@ -658,6 +658,7 @@ class LibraryBuilder {
           var partFile = includedPart.file;
           var partUnitNode = partFile.parse(
             performance: OperationPerformanceImpl('<root>'),
+            scanComments: false,
           );
           var libraryFragment = LibraryFragmentImpl(
             library: containerLibrary,
@@ -761,7 +762,7 @@ class LibraryBuilder {
     var libraryReference = rootReference.getChild(libraryUriStr);
 
     var libraryUnitNode = performance.run('libraryFile', (performance) {
-      return libraryFile.parse(performance: performance);
+      return libraryFile.parse(performance: performance, scanComments: false);
     });
 
     var name = '';
@@ -771,7 +772,7 @@ class LibraryBuilder {
       if (directive is ast.LibraryDirectiveImpl) {
         var nameIdentifier = directive.name;
         if (nameIdentifier != null) {
-          name = nameIdentifier.components.map((e) => e.name).join('.');
+          name = nameIdentifier.tokens.map((e) => e.lexeme).join();
           nameOffset = nameIdentifier.offset;
           nameLength = nameIdentifier.length;
         }

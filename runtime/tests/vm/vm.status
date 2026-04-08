@@ -91,6 +91,7 @@ cc/DeoptimizeFramesWhenSettingBreakpoint: SkipByDesign # JIT compilation is not 
 cc/DerivedInduction: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/Ffi_StructSinking: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/FlowGraph_PhiUnboxingHeuristic_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/FullSnapshot: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/IRTest_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/Inliner_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/IsolateReload_EnumWithSet: SkipByDesign # Bytecode doesn't support KernelProgramInfo.
@@ -103,6 +104,7 @@ cc/NotEqualCondition*: SkipByDesign # Building flow graph is not supported from 
 cc/OptimizeCompileFunctionOnHelperThread: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/PeriodicAndDerived: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/RangeAnalysis_*: SkipByDesign # Building flow graph is not supported from bytecode.
+cc/ReachabilityFence_*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/SecondExit*: SkipByDesign # Building flow graph is not supported from bytecode.
 cc/StackMapGC: SkipByDesign # JIT compilation is not supported from bytecode.
 cc/StreamingFlowGraphBuilder_*: SkipByDesign # Building flow graph is not supported from bytecode.
@@ -162,6 +164,7 @@ cc/CoreSnapshotSize: SkipByDesign # Imports dart:mirrors
 cc/CreateMirrorSystem: SkipByDesign # Imports dart:mirrors
 cc/StandaloneSnapshotSize: SkipByDesign # Imports dart:mirrors
 dart/gen_snapshot_include_resolved_urls_test: SkipByDesign # Script URLs not included in product gen_snapshot
+dart/stream_timeline_to_test: SkipByDesign # VM service isn't supported in PRODUCT mode.
 dart/symbolized_crash_test: Skip # Stack dump code excluded from product mode
 dart/symbolized_dart_crash_test: Skip # Stack dump code excluded from product mode
 
@@ -374,12 +377,14 @@ dart/snapshot_version_test: RuntimeError # Please triage.
 dart/awaiter_stacks/sync_async_start_pkg_test_test: SkipSlow
 dart/data_uri_spawn_test: SkipSlow
 dart/heap_snapshot_referrers_test: SkipSlow
+dart/heap_snapshot_regress_49711_test: Pass, Slow
 dart/heap_snapshot_test: SkipSlow
 dart/heapsnapshot_cli_test: SkipSlow
 dart/isolates/reload_many_isolates_live_and_die_test: SkipSlow # The test itself does reloading of subprocesses.
 dart/kernel_determinism_test: SkipSlow
 dart/regress_48196_test: SkipSlow
 dart/regress_52703_test: SkipSlow
+dart/stream_timeline_to_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_deferred_test: SkipSlow
 dart/use_dwarf_stack_traces_flag_test: SkipSlow
 dart/use_macho_reduce_padding_flag_test: SkipSlow

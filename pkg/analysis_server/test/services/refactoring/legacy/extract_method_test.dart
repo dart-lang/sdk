@@ -1769,6 +1769,26 @@ getButton() {}
 ''');
   }
 
+  Future<void> test_singleExpression_inPrimaryConstructorBody() async {
+    await _createRefactoring('''
+class A() {
+  this {
+    int a = [!1 + 2!];
+  }
+}
+''');
+    // apply refactoring
+    return _assertSuccessfulRefactoring('''
+class A() {
+  this {
+    int a = res();
+  }
+
+  int res() => 1 + 2;
+}
+''');
+  }
+
   Future<void> test_singleExpression_occurrences() async {
     await _createRefactoring('''
 void f() {

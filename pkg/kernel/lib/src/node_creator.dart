@@ -5,11 +5,13 @@
 import '../ast.dart';
 import 'coverage.dart';
 
-Map<T, int> _createPending<T>(Iterable<T> kinds,
-    [Set<T> experimentalKinds = const {}]) {
+Map<T, int> _createPending<T>(
+  Iterable<T> kinds, [
+  Set<T> experimentalKinds = const {},
+]) {
   return <T, int>{
     for (T kind in kinds)
-      if (!experimentalKinds.contains(kind)) kind: 0
+      if (!experimentalKinds.contains(kind)) kind: 0,
   };
 }
 
@@ -38,6 +40,7 @@ class NodeCreator {
   final Map<InitializerKind, int> _pendingInitializers;
   final Map<MemberKind, int> _pendingMembers;
   final Map<NodeKind, int> _pendingNodes;
+  final Map<VariableDeclarationKind, int> _pendingVariableDeclarations;
 
   /// The set of all kinds of nodes created by this node creator.
   final Set<Object> _createdKinds = {};
@@ -76,35 +79,42 @@ class NodeCreator {
     Iterable<PatternKind> patterns = PatternKind.values,
     Iterable<InitializerKind> initializers = InitializerKind.values,
     Iterable<MemberKind> members = MemberKind.values,
+    Iterable<VariableDeclarationKind> variableDeclarations =
+        VariableDeclarationKind.values,
     Iterable<NodeKind> nodes = NodeKind.values,
-  })  : _pendingExpressions = _createPending<ExpressionKind>(expressions,
-            {ExpressionKind.VariableRead, ExpressionKind.VariableWrite}),
-        _pendingStatements = _createPending<StatementKind>(
-            statements, {StatementKind.VariableInitialization}),
-        _pendingDartTypes = _createPending<DartTypeKind>(dartTypes, {
-          DartTypeKind.FunctionTypeParameterType,
-          DartTypeKind.ClassTypeParameterType
-        }),
-        _pendingConstants = _createPending<ConstantKind>(constants),
-        _pendingPatterns = _createPending<PatternKind>(patterns),
-        _pendingInitializers = _createPending<InitializerKind>(initializers),
-        _pendingMembers = _createPending<MemberKind>(members),
-        _pendingNodes = _createPending<NodeKind>(nodes, {
-          NodeKind.LocalVariable,
-          NodeKind.PositionalParameter,
-          NodeKind.NamedParameter,
-          NodeKind.SyntheticVariable,
-          NodeKind.ThisVariable,
-          NodeKind.TypeVariable,
-          NodeKind.VariableContext,
-          NodeKind.Scope
-        }),
-        _uri = Uri.parse('test:uri') {
+  }) : _pendingExpressions = _createPending<ExpressionKind>(expressions, {}),
+       _pendingStatements = _createPending<StatementKind>(statements, {
+         StatementKind.VariableInitialization,
+       }),
+       _pendingDartTypes = _createPending<DartTypeKind>(dartTypes, {
+         DartTypeKind.FunctionTypeParameterType,
+         DartTypeKind.ClassTypeParameterType,
+       }),
+       _pendingConstants = _createPending<ConstantKind>(constants),
+       _pendingPatterns = _createPending<PatternKind>(patterns),
+       _pendingInitializers = _createPending<InitializerKind>(initializers),
+       _pendingMembers = _createPending<MemberKind>(members),
+       _pendingVariableDeclarations =
+           _createPending<VariableDeclarationKind>(variableDeclarations, {
+             VariableDeclarationKind.CatchVariable,
+             VariableDeclarationKind.LocalVariable,
+             VariableDeclarationKind.PositionalParameter,
+             VariableDeclarationKind.NamedParameter,
+             VariableDeclarationKind.SyntheticVariable,
+             VariableDeclarationKind.ThisVariable,
+           }),
+       _pendingNodes = _createPending<NodeKind>(nodes, {
+         NodeKind.TypeVariable,
+         NodeKind.VariableContext,
+         NodeKind.Scope,
+       }),
+       _uri = Uri.parse('test:uri') {
     _createdKinds.addAll(_pendingExpressions.keys);
     _createdKinds.addAll(_pendingStatements.keys);
     _createdKinds.addAll(_pendingDartTypes.keys);
     _createdKinds.addAll(_pendingInitializers.keys);
     _createdKinds.addAll(_pendingMembers.keys);
+    _createdKinds.addAll(_pendingVariableDeclarations.keys);
     _createdKinds.addAll(_pendingNodes.keys);
   }
 
@@ -119,7 +129,7 @@ class NodeCreator {
     if (_neededSwitchCases.isNotEmpty) {
       statement = SwitchStatement(NullLiteral(), [
         ..._neededSwitchCases,
-        SwitchCase([NullLiteral()], [TreeNode.noOffset], Block([statement]))
+        SwitchCase([NullLiteral()], [TreeNode.noOffset], Block([statement])),
       ]);
     }
     _neededSwitchCases.clear();
@@ -131,7 +141,7 @@ class NodeCreator {
     statement = Block([
       ..._neededVariableDeclarations,
       ..._neededFunctionDeclarations,
-      statement
+      statement,
     ]);
     _neededFunctionDeclarations.clear();
     _neededVariableDeclarations.clear();
@@ -186,71 +196,106 @@ class NodeCreator {
         switch (kind) {
           case NodeKind.Name:
             _addExpression(
-                statements,
-                DynamicGet(DynamicAccessKind.Dynamic, _createExpression(),
-                    node as Name));
+              statements,
+              DynamicGet(
+                DynamicAccessKind.Dynamic,
+                _createExpression(),
+                node as Name,
+              ),
+            );
             break;
           case NodeKind.Arguments:
             _addExpression(
-                statements,
-                DynamicInvocation(DynamicAccessKind.Dynamic,
-                    _createExpression(), _createName(), node as Arguments));
+              statements,
+              DynamicInvocation(
+                DynamicAccessKind.Dynamic,
+                _createExpression(),
+                _createName(),
+                node as Arguments,
+              ),
+            );
             break;
           case NodeKind.Catch:
             _addStatement(
-                statements, TryCatch(_createStatement(), [node as Catch]));
+              statements,
+              TryCatch(_createStatement(), [node as Catch]),
+            );
             break;
           case NodeKind.FunctionNode:
             _addExpression(
-                statements, FunctionExpression(node as FunctionNode));
+              statements,
+              FunctionExpression(node as FunctionNode),
+            );
             break;
           case NodeKind.MapLiteralEntry:
             _addExpression(statements, MapLiteral([node as MapLiteralEntry]));
             break;
           case NodeKind.MapPatternEntry:
             _addPattern(
-                statements, MapPattern(null, null, [node as MapPatternEntry]));
+              statements,
+              MapPattern(null, null, [node as MapPatternEntry]),
+            );
             break;
           case NodeKind.MapPatternRestEntry:
-            _addPattern(statements,
-                MapPattern(null, null, [node as MapPatternRestEntry]));
+            _addPattern(
+              statements,
+              MapPattern(null, null, [node as MapPatternRestEntry]),
+            );
             break;
           case NodeKind.NamedExpression:
             _addExpression(
-                statements,
-                DynamicInvocation(
-                    DynamicAccessKind.Dynamic,
-                    _createExpression(),
-                    _createName(),
-                    Arguments([], named: [node as NamedExpression])));
+              statements,
+              DynamicInvocation(
+                DynamicAccessKind.Dynamic,
+                _createExpression(),
+                _createName(),
+                Arguments([], named: [node as NamedExpression]),
+              ),
+            );
             break;
           case NodeKind.NamedType:
             _addDartType(
-                statements,
-                FunctionType([], _createDartType(), Nullability.nonNullable,
-                    namedParameters: [node as NamedType]));
+              statements,
+              FunctionType(
+                [],
+                _createDartType(),
+                Nullability.nonNullable,
+                namedParameters: [node as NamedType],
+              ),
+            );
             break;
           case NodeKind.PatternSwitchCase:
             _addStatement(
-                statements,
-                PatternSwitchStatement(
-                    _createExpression(), [node as PatternSwitchCase]));
+              statements,
+              PatternSwitchStatement(_createExpression(), [
+                node as PatternSwitchCase,
+              ]),
+            );
             break;
           case NodeKind.SwitchCase:
-            _addStatement(statements,
-                SwitchStatement(_createExpression(), [node as SwitchCase]));
+            _addStatement(
+              statements,
+              SwitchStatement(_createExpression(), [node as SwitchCase]),
+            );
             break;
           case NodeKind.SwitchExpressionCase:
             _addExpression(
-                statements,
-                SwitchExpression(
-                    _createExpression(), [node as SwitchExpressionCase]));
+              statements,
+              SwitchExpression(_createExpression(), [
+                node as SwitchExpressionCase,
+              ]),
+            );
             break;
           case NodeKind.NominalParameter:
             _addExpression(
-                statements,
-                FunctionExpression(FunctionNode(Block([]),
-                    typeParameters: [node as TypeParameter])));
+              statements,
+              FunctionExpression(
+                FunctionNode(
+                  Block([]),
+                  typeParameters: [node as TypeParameter],
+                ),
+              ),
+            );
             break;
           default:
             throw new UnimplementedError('Unhandled in body node $kind.');
@@ -272,12 +317,15 @@ class NodeCreator {
     }
     if (_pendingNodes.isNotEmpty) {
       assert(
-          _pendingNodes.keys.every((kind) => !inBodyNodeKinds.contains(kind)));
+        _pendingNodes.keys.every((kind) => !inBodyNodeKinds.contains(kind)),
+      );
       unsupportedKinds.addAll(_pendingNodes.keys);
     }
     if (unsupportedKinds.isNotEmpty) {
-      throw new UnsupportedError('Cannot create these node in a body context: '
-          '${unsupportedKinds.join(', ')}');
+      throw new UnsupportedError(
+        'Cannot create these node in a body context: '
+        '${unsupportedKinds.join(', ')}',
+      );
     }
     return statements;
   }
@@ -287,14 +335,25 @@ class NodeCreator {
   Component generateComponent() {
     Class cls = _needClass();
     for (Statement statement in _generateBodies()) {
-      cls.addProcedure(Procedure(
-          _createName(), ProcedureKind.Method, FunctionNode(statement),
-          fileUri: _uri));
+      cls.addProcedure(
+        Procedure(
+          _createName(),
+          ProcedureKind.Method,
+          FunctionNode(statement),
+          fileUri: _uri,
+        ),
+      );
     }
     while (_pendingInitializers.isNotEmpty) {
       Initializer initializer = _createInitializer();
-      cls.addConstructor(Constructor(FunctionNode(null),
-          name: _createName(), fileUri: _uri, initializers: [initializer]));
+      cls.addConstructor(
+        Constructor(
+          FunctionNode(null),
+          name: _createName(),
+          fileUri: _uri,
+          initializers: [initializer],
+        ),
+      );
     }
     while (_pendingMembers.isNotEmpty) {
       Member member = _createMember();
@@ -306,7 +365,8 @@ class NodeCreator {
         cls.addConstructor(member);
       } else {
         throw new UnsupportedError(
-            'Unexpected member $member (${member.runtimeType})');
+          'Unexpected member $member (${member.runtimeType})',
+        );
       }
     }
     while (_pendingNodes.isNotEmpty) {
@@ -328,12 +388,6 @@ class NodeCreator {
         case NodeKind.PatternGuard:
         case NodeKind.PatternSwitchCase:
         case NodeKind.SwitchExpressionCase:
-        case NodeKind.LocalVariable:
-        case NodeKind.CatchVariable:
-        case NodeKind.PositionalParameter:
-        case NodeKind.NamedParameter:
-        case NodeKind.SyntheticVariable:
-        case NodeKind.ThisVariable:
         case NodeKind.TypeVariable:
         case NodeKind.Scope:
         case NodeKind.VariableContext:
@@ -342,12 +396,18 @@ class NodeCreator {
           _needLibrary().addClass(node as Class);
           break;
         case NodeKind.Combinator:
-          _needLibrary().addDependency(LibraryDependency.import(_needLibrary(),
-              combinators: [node as Combinator]));
+          _needLibrary().addDependency(
+            LibraryDependency.import(
+              _needLibrary(),
+              combinators: [node as Combinator],
+            ),
+          );
           break;
         case NodeKind.Component:
-          assert(identical(node, _component),
-              "Cannot create multiple Component nodes.");
+          assert(
+            identical(node, _component),
+            "Cannot create multiple Component nodes.",
+          );
           break;
         case NodeKind.Extension:
           _needLibrary().addExtension(node as Extension);
@@ -363,14 +423,16 @@ class NodeCreator {
           break;
         case NodeKind.Supertype:
           _needLibrary().addClass(
-              Class(name: 'foo', fileUri: _uri, supertype: node as Supertype));
+            Class(name: 'foo', fileUri: _uri, supertype: node as Supertype),
+          );
           break;
         case NodeKind.Typedef:
           _needLibrary().addTypedef(node as Typedef);
           break;
         case NodeKind.ExtensionTypeDeclaration:
-          _needLibrary()
-              .addExtensionTypeDeclaration(node as ExtensionTypeDeclaration);
+          _needLibrary().addExtensionTypeDeclaration(
+            node as ExtensionTypeDeclaration,
+          );
           break;
       }
     }
@@ -438,9 +500,10 @@ class NodeCreator {
     }
     ExtensionTypeDeclaration extensionTypeDeclaration =
         ExtensionTypeDeclaration(
-            name: 'foo',
-            fileUri: _uri,
-            declaredRepresentationType: const DynamicType());
+          name: 'foo',
+          fileUri: _uri,
+          declaredRepresentationType: const DynamicType(),
+        );
     _neededExtensionTypeDeclarations.add(extensionTypeDeclaration);
     _needLibrary().addExtensionTypeDeclaration(extensionTypeDeclaration);
     return extensionTypeDeclaration;
@@ -470,8 +533,11 @@ class NodeCreator {
     for (TypeParameter typeParameter in _neededTypeParameters) {
       return typeParameter;
     }
-    TypeParameter typeParameter =
-        TypeParameter('foo', DynamicType(), DynamicType());
+    TypeParameter typeParameter = TypeParameter(
+      'foo',
+      DynamicType(),
+      DynamicType(),
+    );
     _neededTypeParameters.add(typeParameter);
     // TODO(johnniwinther): Add the type parameter to a context; class, method
     // or function type.
@@ -488,8 +554,11 @@ class NodeCreator {
     for (StructuralParameter typeParameter in _neededStructuralParameters) {
       return typeParameter;
     }
-    StructuralParameter functionTypeTypeParameter =
-        StructuralParameter('foo', DynamicType(), DynamicType());
+    StructuralParameter functionTypeTypeParameter = StructuralParameter(
+      'foo',
+      DynamicType(),
+      DynamicType(),
+    );
     _neededStructuralParameters.add(functionTypeTypeParameter);
     // TODO(johnniwinther): Add the type parameter to a context, that is,
     // function type.
@@ -517,8 +586,12 @@ class NodeCreator {
     }
     isStatic ??= true;
     Procedure procedure = Procedure(
-        Name('foo'), ProcedureKind.Method, FunctionNode(Block([])),
-        fileUri: _uri, isStatic: isStatic);
+      Name('foo'),
+      ProcedureKind.Method,
+      FunctionNode(Block([])),
+      fileUri: _uri,
+      isStatic: isStatic,
+    );
     _neededProcedures.add(procedure);
     if (isStatic) {
       _needLibrary().addProcedure(procedure);
@@ -537,8 +610,11 @@ class NodeCreator {
     for (Constructor constructor in _neededConstructors) {
       return constructor;
     }
-    Constructor constructor =
-        Constructor(FunctionNode(null), name: Name('foo'), fileUri: _uri);
+    Constructor constructor = Constructor(
+      FunctionNode(null),
+      name: Name('foo'),
+      fileUri: _uri,
+    );
     _needClass().addConstructor(constructor);
     return constructor;
   }
@@ -553,12 +629,15 @@ class NodeCreator {
       return redirectingFactory;
     }
     Procedure redirectingFactory = Procedure(
-        Name('foo'),
-        ProcedureKind.Method,
-        FunctionNode(null)
-          ..redirectingFactoryTarget =
-              new RedirectingFactoryTarget(_needConstructor(), []),
-        fileUri: _uri);
+      Name('foo'),
+      ProcedureKind.Method,
+      FunctionNode(null)
+        ..redirectingFactoryTarget = new RedirectingFactoryTarget(
+          _needConstructor(),
+          [],
+        ),
+      fileUri: _uri,
+    );
     _needClass().addProcedure(redirectingFactory);
     return redirectingFactory;
   }
@@ -635,8 +714,11 @@ class NodeCreator {
     for (SwitchCase switchCase in _neededSwitchCases) {
       return switchCase;
     }
-    SwitchCase switchCase =
-        SwitchCase([NullLiteral()], [TreeNode.noOffset], EmptyStatement());
+    SwitchCase switchCase = SwitchCase(
+      [NullLiteral()],
+      [TreeNode.noOffset],
+      EmptyStatement(),
+    );
     _neededSwitchCases.add(switchCase);
     return switchCase;
   }
@@ -653,7 +735,9 @@ class NodeCreator {
       return functionDeclaration;
     }
     FunctionDeclaration functionDeclaration = FunctionDeclaration(
-        VariableDeclaration('foo'), FunctionNode(Block([])));
+      VariableDeclaration('foo'),
+      FunctionNode(Block([])),
+    );
     _neededFunctionDeclarations.add(functionDeclaration);
     return functionDeclaration;
   }
@@ -687,29 +771,36 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case ExpressionKind.BlockExpression:
         return BlockExpression(
-            _createStatementFromKind(StatementKind.Block) as Block,
-            _createExpression())
-          ..fileOffset = _needFileOffset();
+          _createStatementFromKind(StatementKind.Block) as Block,
+          _createExpression(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.BoolLiteral:
         return BoolLiteral(true)..fileOffset = _needFileOffset();
       case ExpressionKind.CheckLibraryIsLoaded:
         return CheckLibraryIsLoaded(_needLibraryDependency(deferred: true))
           ..fileOffset = _needFileOffset();
       case ExpressionKind.ConditionalExpression:
-        return ConditionalExpression(_createExpression(), _createExpression(),
-            _createExpression(), _createDartType())
-          ..fileOffset = _needFileOffset();
+        return ConditionalExpression(
+          _createExpression(),
+          _createExpression(),
+          _createExpression(),
+          _createDartType(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.ConstantExpression:
         return ConstantExpression(_createConstant(), _createDartType())
           ..fileOffset = _needFileOffset();
       case ExpressionKind.ConstructorInvocation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => ConstructorInvocation(_needConstructor(), _createArguments(),
-              isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => ConstructorInvocation(_needConstructor(), _createArguments(),
-              isConst: true)
-            ..fileOffset = _needFileOffset(),
+          () => ConstructorInvocation(
+            _needConstructor(),
+            _createArguments(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => ConstructorInvocation(
+            _needConstructor(),
+            _createArguments(),
+            isConst: true,
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.ConstructorTearOff:
         return ConstructorTearOff(_needConstructor())
@@ -718,21 +809,31 @@ class NodeCreator {
         return DoubleLiteral(42.5)..fileOffset = _needFileOffset();
       case ExpressionKind.DynamicGet:
         return DynamicGet(
-            DynamicAccessKind.Dynamic, _createExpression(), _createName())
-          ..fileOffset = _needFileOffset();
+          DynamicAccessKind.Dynamic,
+          _createExpression(),
+          _createName(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.DynamicInvocation:
-        return DynamicInvocation(DynamicAccessKind.Dynamic, _createExpression(),
-            _createName(), _createArguments())
-          ..fileOffset = _needFileOffset();
+        return DynamicInvocation(
+          DynamicAccessKind.Dynamic,
+          _createExpression(),
+          _createName(),
+          _createArguments(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.DynamicSet:
-        return DynamicSet(DynamicAccessKind.Dynamic, _createExpression(),
-            _createName(), _createExpression())
-          ..fileOffset = _needFileOffset();
+        return DynamicSet(
+          DynamicAccessKind.Dynamic,
+          _createExpression(),
+          _createName(),
+          _createExpression(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.EqualsCall:
-        return EqualsCall(_createExpression(), _createExpression(),
-            functionType: _createFunctionType(),
-            interfaceTarget: _needProcedure())
-          ..fileOffset = _needFileOffset();
+        return EqualsCall(
+          _createExpression(),
+          _createExpression(),
+          functionType: _createFunctionType(),
+          interfaceTarget: _needProcedure(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.EqualsNull:
         return EqualsNull(_createExpression())..fileOffset = _needFileOffset();
       case ExpressionKind.FileUriExpression:
@@ -742,10 +843,12 @@ class NodeCreator {
         return FunctionExpression(_createFunctionNode())
           ..fileOffset = _needFileOffset();
       case ExpressionKind.FunctionInvocation:
-        return FunctionInvocation(FunctionAccessKind.FunctionType,
-            _createExpression(), _createArguments(),
-            functionType: _createFunctionType())
-          ..fileOffset = _needFileOffset();
+        return FunctionInvocation(
+          FunctionAccessKind.FunctionType,
+          _createExpression(),
+          _createArguments(),
+          functionType: _createFunctionType(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.FunctionTearOff:
         return FunctionTearOff(_createExpression())
           ..fileOffset = _needFileOffset();
@@ -754,142 +857,179 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case ExpressionKind.InstanceGet:
         return InstanceGet(
-            InstanceAccessKind.Instance, _createExpression(), _createName(),
-            interfaceTarget: _needField(), resultType: _createDartType())
-          ..fileOffset = _needFileOffset();
+          InstanceAccessKind.Instance,
+          _createExpression(),
+          _createName(),
+          interfaceTarget: _needField(),
+          resultType: _createDartType(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.InstanceGetterInvocation:
-        return InstanceGetterInvocation(InstanceAccessKind.Instance,
-            _createExpression(), _createName(), _createArguments(),
-            interfaceTarget: _needField(), functionType: _createFunctionType())
-          ..fileOffset = _needFileOffset();
+        return InstanceGetterInvocation(
+          InstanceAccessKind.Instance,
+          _createExpression(),
+          _createName(),
+          _createArguments(),
+          interfaceTarget: _needField(),
+          functionType: _createFunctionType(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.InstanceInvocation:
-        return InstanceInvocation(InstanceAccessKind.Instance,
-            _createExpression(), _createName(), _createArguments(),
+        return InstanceInvocation(
+            InstanceAccessKind.Instance,
+            _createExpression(),
+            _createName(),
+            _createArguments(),
             interfaceTarget: _needProcedure(),
-            functionType: _createFunctionType())
+            functionType: _createFunctionType(),
+          )
           ..fileOffset = _needFileOffset()
           ..isBoundsSafe = true;
       case ExpressionKind.InstanceSet:
-        return InstanceSet(InstanceAccessKind.Instance, _createExpression(),
-            _createName(), _createExpression(),
-            interfaceTarget: _needField())
-          ..fileOffset = _needFileOffset();
+        return InstanceSet(
+          InstanceAccessKind.Instance,
+          _createExpression(),
+          _createName(),
+          _createExpression(),
+          interfaceTarget: _needField(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.InstanceTearOff:
         return InstanceTearOff(
-            InstanceAccessKind.Instance, _createExpression(), _createName(),
-            interfaceTarget: _needProcedure(), resultType: _createDartType())
-          ..fileOffset = _needFileOffset();
+          InstanceAccessKind.Instance,
+          _createExpression(),
+          _createName(),
+          interfaceTarget: _needProcedure(),
+          resultType: _createDartType(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.Instantiation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => Instantiation(_createExpression(), [])
-            ..fileOffset = _needFileOffset(),
-          () => Instantiation(_createExpression(), [_createDartType()])
-            ..fileOffset = _needFileOffset(),
-          () => Instantiation(
-              _createExpression(), [_createDartType(), _createDartType()])
-            ..fileOffset = _needFileOffset(),
+          () =>
+              Instantiation(_createExpression(), [])
+                ..fileOffset = _needFileOffset(),
+          () =>
+              Instantiation(_createExpression(), [_createDartType()])
+                ..fileOffset = _needFileOffset(),
+          () => Instantiation(_createExpression(), [
+            _createDartType(),
+            _createDartType(),
+          ])..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.IntLiteral:
         return IntLiteral(42)..fileOffset = _needFileOffset();
       case ExpressionKind.InvalidExpression:
         return _createOneOf(_pendingExpressions, kind, index, [
           () => InvalidExpression('foo')..fileOffset = _needFileOffset(),
-          () => InvalidExpression('foo', _createExpression())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              InvalidExpression('foo', _createExpression())
+                ..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.IsExpression:
-        return IsExpression(
-          _createExpression(),
-          _createDartType(),
-        )..fileOffset = _needFileOffset();
+        return IsExpression(_createExpression(), _createDartType())
+          ..fileOffset = _needFileOffset();
       case ExpressionKind.Let:
         return Let(
-            _createStatementFromKind(StatementKind.VariableStatement)
-                as VariableDeclaration,
-            _createExpression())
-          ..fileOffset = _needFileOffset();
+          _createStatementFromKind(StatementKind.VariableStatement)
+              as VariableDeclaration,
+          _createExpression(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.ListConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => ListConcatenation([], typeArgument: _createDartType())
-            ..fileOffset = _needFileOffset(),
-          () => ListConcatenation([_createExpression()],
-              typeArgument: _createDartType())
-            ..fileOffset = _needFileOffset(),
-          () => ListConcatenation([_createExpression(), _createExpression()],
-              typeArgument: _createDartType())
-            ..fileOffset = _needFileOffset()
+          () =>
+              ListConcatenation([], typeArgument: _createDartType())
+                ..fileOffset = _needFileOffset(),
+          () => ListConcatenation([
+            _createExpression(),
+          ], typeArgument: _createDartType())..fileOffset = _needFileOffset(),
+          () => ListConcatenation([
+            _createExpression(),
+            _createExpression(),
+          ], typeArgument: _createDartType())..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.ListLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => ListLiteral([], typeArgument: _createDartType(), isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => ListLiteral([_createExpression()],
-              typeArgument: _createDartType(), isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => ListLiteral([_createExpression(), _createExpression()],
-              typeArgument: _createDartType(), isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => ListLiteral([_createExpression(), _createExpression()],
-              typeArgument: _createDartType(), isConst: true)
-            ..fileOffset = _needFileOffset(),
+          () =>
+              ListLiteral([], typeArgument: _createDartType(), isConst: false)
+                ..fileOffset = _needFileOffset(),
+          () => ListLiteral(
+            [_createExpression()],
+            typeArgument: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => ListLiteral(
+            [_createExpression(), _createExpression()],
+            typeArgument: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => ListLiteral(
+            [_createExpression(), _createExpression()],
+            typeArgument: _createDartType(),
+            isConst: true,
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.LoadLibrary:
         return LoadLibrary(_needLibraryDependency(deferred: true))
           ..fileOffset = _needFileOffset();
       case ExpressionKind.LocalFunctionInvocation:
         return LocalFunctionInvocation(
-            _needFunctionDeclaration().variable, _createArguments(),
-            functionType: _createFunctionType())
-          ..fileOffset = _needFileOffset();
+          _needFunctionDeclaration().variable,
+          _createArguments(),
+          functionType: _createFunctionType(),
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.LogicalExpression:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => LogicalExpression(_createExpression(),
-              LogicalExpressionOperator.AND, _createExpression())
-            ..fileOffset = _needFileOffset(),
-          () => LogicalExpression(_createExpression(),
-              LogicalExpressionOperator.OR, _createExpression())
-            ..fileOffset = _needFileOffset(),
+          () => LogicalExpression(
+            _createExpression(),
+            LogicalExpressionOperator.AND,
+            _createExpression(),
+          )..fileOffset = _needFileOffset(),
+          () => LogicalExpression(
+            _createExpression(),
+            LogicalExpressionOperator.OR,
+            _createExpression(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.MapConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => MapConcatenation([],
-              keyType: _createDartType(), valueType: _createDartType())
-            ..fileOffset = _needFileOffset(),
-          () => MapConcatenation([_createExpression()],
-              keyType: _createDartType(), valueType: _createDartType())
-            ..fileOffset = _needFileOffset(),
-          () => MapConcatenation([_createExpression(), _createExpression()],
-              keyType: _createDartType(), valueType: _createDartType())
-            ..fileOffset = _needFileOffset(),
+          () => MapConcatenation(
+            [],
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+          )..fileOffset = _needFileOffset(),
+          () => MapConcatenation(
+            [_createExpression()],
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+          )..fileOffset = _needFileOffset(),
+          () => MapConcatenation(
+            [_createExpression(), _createExpression()],
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.MapLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => MapLiteral([],
-              keyType: _createDartType(),
-              valueType: _createDartType(),
-              isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => MapLiteral([_createMapLiteralEntry()],
-              keyType: _createDartType(),
-              valueType: _createDartType(),
-              isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => MapLiteral([
-                _createMapLiteralEntry(),
-                _createMapLiteralEntry(),
-              ],
-                  keyType: _createDartType(),
-                  valueType: _createDartType(),
-                  isConst: false)
-                ..fileOffset = _needFileOffset(),
-          () => MapLiteral([
-                _createMapLiteralEntry(),
-                _createMapLiteralEntry(),
-              ],
-                  keyType: _createDartType(),
-                  valueType: _createDartType(),
-                  isConst: true)
-                ..fileOffset = _needFileOffset(),
+          () => MapLiteral(
+            [],
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => MapLiteral(
+            [_createMapLiteralEntry()],
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => MapLiteral(
+            [_createMapLiteralEntry(), _createMapLiteralEntry()],
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => MapLiteral(
+            [_createMapLiteralEntry(), _createMapLiteralEntry()],
+            keyType: _createDartType(),
+            valueType: _createDartType(),
+            isConst: true,
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.Not:
         return Not(_createExpression())..fileOffset = _needFileOffset();
@@ -904,28 +1044,37 @@ class NodeCreator {
         return Rethrow()..fileOffset = _needFileOffset();
       case ExpressionKind.SetConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => SetConcatenation([], typeArgument: _createDartType())
-            ..fileOffset = _needFileOffset(),
-          () => SetConcatenation([_createExpression()],
-              typeArgument: _createDartType())
-            ..fileOffset = _needFileOffset(),
-          () => SetConcatenation([_createExpression(), _createExpression()],
-              typeArgument: _createDartType())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              SetConcatenation([], typeArgument: _createDartType())
+                ..fileOffset = _needFileOffset(),
+          () => SetConcatenation([
+            _createExpression(),
+          ], typeArgument: _createDartType())..fileOffset = _needFileOffset(),
+          () => SetConcatenation([
+            _createExpression(),
+            _createExpression(),
+          ], typeArgument: _createDartType())..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.SetLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => SetLiteral([], typeArgument: _createDartType(), isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => SetLiteral([_createExpression()],
-              typeArgument: _createDartType(), isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => SetLiteral([_createExpression(), _createExpression()],
-              typeArgument: _createDartType(), isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => SetLiteral([_createExpression(), _createExpression()],
-              typeArgument: _createDartType(), isConst: true)
-            ..fileOffset = _needFileOffset(),
+          () =>
+              SetLiteral([], typeArgument: _createDartType(), isConst: false)
+                ..fileOffset = _needFileOffset(),
+          () => SetLiteral(
+            [_createExpression()],
+            typeArgument: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => SetLiteral(
+            [_createExpression(), _createExpression()],
+            typeArgument: _createDartType(),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => SetLiteral(
+            [_createExpression(), _createExpression()],
+            typeArgument: _createDartType(),
+            isConst: true,
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.StaticGet:
         return StaticGet(_needField())..fileOffset = _needFileOffset();
@@ -940,66 +1089,100 @@ class NodeCreator {
       case ExpressionKind.StringConcatenation:
         return _createOneOf(_pendingExpressions, kind, index, [
           () => StringConcatenation([])..fileOffset = _needFileOffset(),
-          () => StringConcatenation([_createExpression()])
-            ..fileOffset = _needFileOffset(),
-          () => StringConcatenation([_createExpression(), _createExpression()])
-            ..fileOffset = _needFileOffset(),
+          () =>
+              StringConcatenation([_createExpression()])
+                ..fileOffset = _needFileOffset(),
+          () =>
+              StringConcatenation([_createExpression(), _createExpression()])
+                ..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.StringLiteral:
         return StringLiteral('foo');
       case ExpressionKind.AbstractSuperMethodInvocation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => AbstractSuperMethodInvocation(new ThisExpression(),
-              _createName(), _createArguments(), _needProcedure())
-            ..fileOffset = _needFileOffset(),
-          () => AbstractSuperMethodInvocation(new ThisExpression(),
-              _createName(), _createArguments(), _needProcedure())
-            ..fileOffset = _needFileOffset(),
+          () => AbstractSuperMethodInvocation(
+            new ThisExpression(),
+            _createName(),
+            _createArguments(),
+            _needProcedure(),
+          )..fileOffset = _needFileOffset(),
+          () => AbstractSuperMethodInvocation(
+            new ThisExpression(),
+            _createName(),
+            _createArguments(),
+            _needProcedure(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.SuperMethodInvocation:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => SuperMethodInvocation(new ThisExpression(), _createName(),
-              _createArguments(), _needProcedure())
-            ..fileOffset = _needFileOffset(),
-          () => SuperMethodInvocation(new ThisExpression(), _createName(),
-              _createArguments(), _needProcedure())
-            ..fileOffset = _needFileOffset(),
+          () => SuperMethodInvocation(
+            new ThisExpression(),
+            _createName(),
+            _createArguments(),
+            _needProcedure(),
+          )..fileOffset = _needFileOffset(),
+          () => SuperMethodInvocation(
+            new ThisExpression(),
+            _createName(),
+            _createArguments(),
+            _needProcedure(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.AbstractSuperPropertyGet:
         return _createOneOf(_pendingExpressions, kind, index, [
           () => AbstractSuperPropertyGet(
-              new ThisExpression(), _createName(), _needProcedure())
-            ..fileOffset = _needFileOffset(),
+            new ThisExpression(),
+            _createName(),
+            _needProcedure(),
+          )..fileOffset = _needFileOffset(),
           () => AbstractSuperPropertyGet(
-              new ThisExpression(), _createName(), _needField())
-            ..fileOffset = _needFileOffset(),
+            new ThisExpression(),
+            _createName(),
+            _needField(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.AbstractSuperPropertySet:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => AbstractSuperPropertySet(new ThisExpression(), _createName(),
-              _createExpression(), _needProcedure())
-            ..fileOffset = _needFileOffset(),
-          () => AbstractSuperPropertySet(new ThisExpression(), _createName(),
-              _createExpression(), _needField())
-            ..fileOffset = _needFileOffset(),
+          () => AbstractSuperPropertySet(
+            new ThisExpression(),
+            _createName(),
+            _createExpression(),
+            _needProcedure(),
+          )..fileOffset = _needFileOffset(),
+          () => AbstractSuperPropertySet(
+            new ThisExpression(),
+            _createName(),
+            _createExpression(),
+            _needField(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.SuperPropertyGet:
         return _createOneOf(_pendingExpressions, kind, index, [
           () => SuperPropertyGet(
-              new ThisExpression(), _createName(), _needProcedure())
-            ..fileOffset = _needFileOffset(),
+            new ThisExpression(),
+            _createName(),
+            _needProcedure(),
+          )..fileOffset = _needFileOffset(),
           () => SuperPropertyGet(
-              new ThisExpression(), _createName(), _needField())
-            ..fileOffset = _needFileOffset(),
+            new ThisExpression(),
+            _createName(),
+            _needField(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.SuperPropertySet:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => SuperPropertySet(new ThisExpression(), _createName(),
-              _createExpression(), _needProcedure())
-            ..fileOffset = _needFileOffset(),
-          () => SuperPropertySet(new ThisExpression(), _createName(),
-              _createExpression(), _needField())
-            ..fileOffset = _needFileOffset(),
+          () => SuperPropertySet(
+            new ThisExpression(),
+            _createName(),
+            _createExpression(),
+            _needProcedure(),
+          )..fileOffset = _needFileOffset(),
+          () => SuperPropertySet(
+            new ThisExpression(),
+            _createName(),
+            _createExpression(),
+            _needField(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.SymbolLiteral:
         return SymbolLiteral('foo')..fileOffset = _needFileOffset();
@@ -1015,74 +1198,83 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case ExpressionKind.VariableGet:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => VariableGet(_needVariableDeclaration())
-            ..fileOffset = _needFileOffset(),
-          () => VariableGet(_needVariableDeclaration(), _createDartType())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              VariableGet(_needVariableDeclaration())
+                ..fileOffset = _needFileOffset(),
+          () =>
+              VariableGet(_needVariableDeclaration(), _createDartType())
+                ..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.VariableSet:
         return VariableSet(_needVariableDeclaration(), _createExpression())
           ..fileOffset = _needFileOffset();
       case ExpressionKind.RecordIndexGet:
-        return RecordIndexGet(_createExpression(),
-            new RecordType([_createDartType()], [], Nullability.nonNullable), 0)
-          ..fileOffset = _needFileOffset();
+        return RecordIndexGet(
+          _createExpression(),
+          new RecordType([_createDartType()], [], Nullability.nonNullable),
+          0,
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.RecordNameGet:
         String name = _createName().text;
         return RecordNameGet(
-            _createExpression(),
-            new RecordType([], [new NamedType(name, _createDartType())],
-                Nullability.nonNullable),
-            name)
-          ..fileOffset = _needFileOffset();
+          _createExpression(),
+          new RecordType([], [
+            new NamedType(name, _createDartType()),
+          ], Nullability.nonNullable),
+          name,
+        )..fileOffset = _needFileOffset();
       case ExpressionKind.RecordLiteral:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => RecordLiteral([_createExpression()], [],
-              RecordType([_createDartType()], [], Nullability.nonNullable),
-              isConst: false)
-            ..fileOffset = _needFileOffset(),
           () => RecordLiteral(
-              [],
-              [NamedExpression('foo', _createExpression())],
-              RecordType([], [NamedType('foo', _createDartType())],
-                  Nullability.nonNullable),
-              isConst: false)
-            ..fileOffset = _needFileOffset(),
+            [_createExpression()],
+            [],
+            RecordType([_createDartType()], [], Nullability.nonNullable),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
           () => RecordLiteral(
-              [_createExpression()],
-              [NamedExpression('foo', _createExpression())],
-              RecordType(
-                  [_createDartType()],
-                  [NamedType('foo', _createDartType())],
-                  Nullability.nonNullable),
-              isConst: false)
-            ..fileOffset = _needFileOffset(),
-          () => RecordLiteral([_createExpression()], [],
-              RecordType([_createDartType()], [], Nullability.nonNullable),
-              isConst: true)
-            ..fileOffset = _needFileOffset(),
+            [],
+            [NamedExpression('foo', _createExpression())],
+            RecordType([], [
+              NamedType('foo', _createDartType()),
+            ], Nullability.nonNullable),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => RecordLiteral(
+            [_createExpression()],
+            [NamedExpression('foo', _createExpression())],
+            RecordType(
+              [_createDartType()],
+              [NamedType('foo', _createDartType())],
+              Nullability.nonNullable,
+            ),
+            isConst: false,
+          )..fileOffset = _needFileOffset(),
+          () => RecordLiteral(
+            [_createExpression()],
+            [],
+            RecordType([_createDartType()], [], Nullability.nonNullable),
+            isConst: true,
+          )..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.SwitchExpression:
         return _createOneOf(_pendingExpressions, kind, index, [
-          () => new SwitchExpression(_createExpression(), [])
-            ..fileOffset = _needFileOffset(),
-          () => new SwitchExpression(_createExpression(), [
-                _createNodeFromKind(NodeKind.SwitchExpressionCase)
-                    as SwitchExpressionCase
-              ])
+          () =>
+              new SwitchExpression(_createExpression(), [])
                 ..fileOffset = _needFileOffset(),
+          () => new SwitchExpression(_createExpression(), [
+            _createNodeFromKind(NodeKind.SwitchExpressionCase)
+                as SwitchExpressionCase,
+          ])..fileOffset = _needFileOffset(),
         ]);
       case ExpressionKind.PatternAssignment:
         return new PatternAssignment(_createPattern(), _createExpression())
           ..fileOffset = _needFileOffset();
       case ExpressionKind.RedirectingFactoryInvocation:
         return new RedirectingFactoryInvocation(
-            _needRedirectingFactory(),
-            _createExpressionFromKind(ExpressionKind.ConstructorInvocation)
-                as InvocationExpression);
-      case ExpressionKind.VariableRead:
-      case ExpressionKind.VariableWrite:
-        throw new UnimplementedError("Unimplemented support for ${kind}.");
+          _needRedirectingFactory(),
+          _createExpressionFromKind(ExpressionKind.ConstructorInvocation)
+              as InvocationExpression,
+        );
     }
   }
 
@@ -1129,40 +1321,40 @@ class NodeCreator {
       case PatternKind.ListPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
           () => ListPattern(null, [])..fileOffset = _needFileOffset(),
-          () => ListPattern(_createDartType(), [_createPattern()])
-            ..fileOffset = _needFileOffset(),
+          () =>
+              ListPattern(_createDartType(), [_createPattern()])
+                ..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.MapPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
           () => MapPattern(null, null, []),
           () => MapPattern(_createDartType(), _createDartType(), [
-                _createNodeFromKind(NodeKind.MapPatternEntry) as MapPatternEntry
-              ])
-                ..fileOffset = _needFileOffset(),
+            _createNodeFromKind(NodeKind.MapPatternEntry) as MapPatternEntry,
+          ])..fileOffset = _needFileOffset(),
           () => MapPattern(_createDartType(), _createDartType(), [
-                _createNodeFromKind(NodeKind.MapPatternEntry)
-                    as MapPatternEntry,
-                _createNodeFromKind(NodeKind.MapPatternRestEntry)
-                    as MapPatternEntry
-              ])
-                ..fileOffset = _needFileOffset(),
+            _createNodeFromKind(NodeKind.MapPatternEntry) as MapPatternEntry,
+            _createNodeFromKind(NodeKind.MapPatternRestEntry)
+                as MapPatternEntry,
+          ])..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.NamedPattern:
         return NamedPattern('foo', _createPattern())
           ..fileOffset = _needFileOffset();
       case PatternKind.ObjectPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
-          () => ObjectPattern(_createDartType(), [])
-            ..fileOffset = _needFileOffset(),
-          () => ObjectPattern(_createDartType(), [
-                _createPatternFromKind(PatternKind.NamedPattern) as NamedPattern
-              ])
+          () =>
+              ObjectPattern(_createDartType(), [])
                 ..fileOffset = _needFileOffset(),
+          () => ObjectPattern(_createDartType(), [
+            _createPatternFromKind(PatternKind.NamedPattern) as NamedPattern,
+          ])..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.OrPattern:
-        return OrPattern(_createPattern(), _createPattern(),
-            orPatternJointVariables: [])
-          ..fileOffset = _needFileOffset();
+        return OrPattern(
+          _createPattern(),
+          _createPattern(),
+          orPatternJointVariables: [],
+        )..fileOffset = _needFileOffset();
       case PatternKind.RecordPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
           () => RecordPattern([])..fileOffset = _needFileOffset(),
@@ -1172,11 +1364,13 @@ class NodeCreator {
       case PatternKind.RelationalPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
           () => RelationalPattern(
-              RelationalPatternKind.equals, _createExpression())
-            ..fileOffset = _needFileOffset(),
+            RelationalPatternKind.equals,
+            _createExpression(),
+          )..fileOffset = _needFileOffset(),
           () => RelationalPattern(
-              RelationalPatternKind.lessThan, _createExpression())
-            ..fileOffset = _needFileOffset(),
+            RelationalPatternKind.lessThan,
+            _createExpression(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.RestPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
@@ -1185,16 +1379,19 @@ class NodeCreator {
         ]);
       case PatternKind.VariablePattern:
         return _createOneOf(_pendingPatterns, kind, index, [
-          () => VariablePattern(null, _createVariableDeclaration())
-            ..fileOffset = _needFileOffset(),
-          () => VariablePattern(_createDartType(), _createVariableDeclaration())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              VariablePattern(null, _createVariableDeclaration())
+                ..fileOffset = _needFileOffset(),
+          () =>
+              VariablePattern(_createDartType(), _createVariableDeclaration())
+                ..fileOffset = _needFileOffset(),
         ]);
       case PatternKind.WildcardPattern:
         return _createOneOf(_pendingPatterns, kind, index, [
           () => WildcardPattern(null)..fileOffset = _needFileOffset(),
-          () => WildcardPattern(_createDartType())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              WildcardPattern(_createDartType())
+                ..fileOffset = _needFileOffset(),
         ]);
     }
   }
@@ -1222,27 +1419,31 @@ class NodeCreator {
           () => AssertBlock([])..fileOffset = _needFileOffset(),
           () =>
               AssertBlock([_createStatement()])..fileOffset = _needFileOffset(),
-          () => AssertBlock([_createStatement(), _createStatement()])
-            ..fileOffset = _needFileOffset(),
+          () =>
+              AssertBlock([_createStatement(), _createStatement()])
+                ..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.AssertStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () => AssertStatement(_createExpression(),
-              conditionStartOffset: _needFileOffset(),
-              conditionEndOffset: _needFileOffset())
-            ..fileOffset = _needFileOffset(),
-          () => AssertStatement(_createExpression(),
-              message: _createExpression(),
-              conditionStartOffset: _needFileOffset(),
-              conditionEndOffset: _needFileOffset())
-            ..fileOffset = _needFileOffset(),
+          () => AssertStatement(
+            _createExpression(),
+            conditionStartOffset: _needFileOffset(),
+            conditionEndOffset: _needFileOffset(),
+          )..fileOffset = _needFileOffset(),
+          () => AssertStatement(
+            _createExpression(),
+            message: _createExpression(),
+            conditionStartOffset: _needFileOffset(),
+            conditionEndOffset: _needFileOffset(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.Block:
         return _createOneOf(_pendingStatements, kind, index, [
           () => Block([])..fileOffset = _needFileOffset(),
           () => Block([_createStatement()])..fileOffset = _needFileOffset(),
-          () => Block([_createStatement(), _createStatement()])
-            ..fileOffset = _needFileOffset(),
+          () =>
+              Block([_createStatement(), _createStatement()])
+                ..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.BreakStatement:
         return BreakStatement(_needLabeledStatement())
@@ -1260,41 +1461,52 @@ class NodeCreator {
           ..fileOffset = _needFileOffset();
       case StatementKind.ForInStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () => ForInStatement(_createVariableDeclaration(),
-              _createExpression(), _createStatement(),
-              isAsync: false)
-            ..fileOffset = _needFileOffset(),
-          () => ForInStatement(_createVariableDeclaration(),
-              _createExpression(), _createStatement(),
-              isAsync: true)
-            ..fileOffset = _needFileOffset(),
+          () => ForInStatement(
+            _createVariableDeclaration(),
+            _createExpression(),
+            _createStatement(),
+            isAsync: false,
+          )..fileOffset = _needFileOffset(),
+          () => ForInStatement(
+            _createVariableDeclaration(),
+            _createExpression(),
+            _createStatement(),
+            isAsync: true,
+          )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.ForStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () => ForStatement([], null, [], _createStatement())
-            ..fileOffset = _needFileOffset(),
-          () => ForStatement([_createVariableDeclaration()],
-              _createExpression(), [_createExpression()], _createStatement())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              ForStatement([], null, [], _createStatement())
+                ..fileOffset = _needFileOffset(),
           () => ForStatement(
-              [_createVariableDeclaration(), _createVariableDeclaration()],
-              _createExpression(),
-              [_createExpression(), _createExpression()],
-              _createStatement())
-            ..fileOffset = _needFileOffset(),
+            [_createVariableDeclaration()],
+            _createExpression(),
+            [_createExpression()],
+            _createStatement(),
+          )..fileOffset = _needFileOffset(),
+          () => ForStatement(
+            [_createVariableDeclaration(), _createVariableDeclaration()],
+            _createExpression(),
+            [_createExpression(), _createExpression()],
+            _createStatement(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.FunctionDeclaration:
         return FunctionDeclaration(
-            VariableDeclaration(null, isSynthesized: true),
-            _createFunctionNode())
-          ..fileOffset = _needFileOffset();
+          VariableDeclaration(null, isSynthesized: true),
+          _createFunctionNode(),
+        )..fileOffset = _needFileOffset();
       case StatementKind.IfStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () => IfStatement(_createExpression(), _createStatement(), null)
-            ..fileOffset = _needFileOffset(),
+          () =>
+              IfStatement(_createExpression(), _createStatement(), null)
+                ..fileOffset = _needFileOffset(),
           () => IfStatement(
-              _createExpression(), _createStatement(), _createStatement())
-            ..fileOffset = _needFileOffset(),
+            _createExpression(),
+            _createStatement(),
+            _createStatement(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.LabeledStatement:
         return LabeledStatement(_createStatement())
@@ -1302,27 +1514,33 @@ class NodeCreator {
       case StatementKind.ReturnStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () => ReturnStatement()..fileOffset = _needFileOffset(),
-          () => ReturnStatement(_createExpression())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              ReturnStatement(_createExpression())
+                ..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.SwitchStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () => SwitchStatement(_createExpression(), [])
-            ..fileOffset = _needFileOffset(),
-          () => SwitchStatement(_createExpression(), [_createSwitchCase()])
-            ..fileOffset = _needFileOffset(),
-          () => SwitchStatement(
-              _createExpression(), [_createSwitchCase(), _createSwitchCase()])
-            ..fileOffset = _needFileOffset(),
+          () =>
+              SwitchStatement(_createExpression(), [])
+                ..fileOffset = _needFileOffset(),
+          () =>
+              SwitchStatement(_createExpression(), [_createSwitchCase()])
+                ..fileOffset = _needFileOffset(),
+          () => SwitchStatement(_createExpression(), [
+            _createSwitchCase(),
+            _createSwitchCase(),
+          ])..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.TryCatch:
         return _createOneOf(_pendingStatements, kind, index, [
           () =>
               TryCatch(_createStatement(), [])..fileOffset = _needFileOffset(),
-          () => TryCatch(_createStatement(), [_createCatch()])
-            ..fileOffset = _needFileOffset(),
-          () => TryCatch(_createStatement(), [_createCatch(), _createCatch()])
-            ..fileOffset = _needFileOffset(),
+          () =>
+              TryCatch(_createStatement(), [_createCatch()])
+                ..fileOffset = _needFileOffset(),
+          () =>
+              TryCatch(_createStatement(), [_createCatch(), _createCatch()])
+                ..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.TryFinally:
         return TryFinally(_createStatement(), _createStatement())
@@ -1330,55 +1548,61 @@ class NodeCreator {
       case StatementKind.VariableStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () => VariableDeclaration('foo')..fileOffset = _needFileOffset(),
-          () => VariableDeclaration('foo', initializer: _createExpression())
-            ..fileOffset = _needFileOffset(),
-          () => VariableDeclaration('foo', type: _createDartType())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              VariableDeclaration('foo', initializer: _createExpression())
+                ..fileOffset = _needFileOffset(),
+          () =>
+              VariableDeclaration('foo', type: _createDartType())
+                ..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.WhileStatement:
         return WhileStatement(_createExpression(), _createStatement())
           ..fileOffset = _needFileOffset();
       case StatementKind.YieldStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () => YieldStatement(_createExpression(), isYieldStar: false)
-            ..fileOffset = _needFileOffset(),
-          () => YieldStatement(_createExpression(), isYieldStar: true)
-            ..fileOffset = _needFileOffset(),
+          () =>
+              YieldStatement(_createExpression(), isYieldStar: false)
+                ..fileOffset = _needFileOffset(),
+          () =>
+              YieldStatement(_createExpression(), isYieldStar: true)
+                ..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.PatternSwitchStatement:
         return _createOneOf(_pendingStatements, kind, index, [
-          () => PatternSwitchStatement(_createExpression(), [])
-            ..fileOffset = _needFileOffset(),
-          () => PatternSwitchStatement(_createExpression(), [
-                _createNodeFromKind(NodeKind.PatternSwitchCase)
-                    as PatternSwitchCase
-              ])
+          () =>
+              PatternSwitchStatement(_createExpression(), [])
                 ..fileOffset = _needFileOffset(),
+          () => PatternSwitchStatement(_createExpression(), [
+            _createNodeFromKind(NodeKind.PatternSwitchCase)
+                as PatternSwitchCase,
+          ])..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.IfCaseStatement:
         return _createOneOf(_pendingStatements, kind, index, [
           () => IfCaseStatement(
-              _createExpression(),
-              _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
-              _createStatement())
-            ..fileOffset = _needFileOffset(),
+            _createExpression(),
+            _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
+            _createStatement(),
+          )..fileOffset = _needFileOffset(),
           () => IfCaseStatement(
-              _createExpression(),
-              _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
-              _createStatement(),
-              _createStatement())
-            ..fileOffset = _needFileOffset(),
+            _createExpression(),
+            _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
+            _createStatement(),
+            _createStatement(),
+          )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.PatternVariableDeclaration:
         return _createOneOf(_pendingStatements, kind, index, [
           () => new PatternVariableDeclaration(
-              _createPattern(), _createExpression(),
-              isFinal: false)
-            ..fileOffset = _needFileOffset(),
+            _createPattern(),
+            _createExpression(),
+            isFinal: false,
+          )..fileOffset = _needFileOffset(),
           () => new PatternVariableDeclaration(
-              _createPattern(), _createExpression(),
-              isFinal: true)
-            ..fileOffset = _needFileOffset(),
+            _createPattern(),
+            _createExpression(),
+            isFinal: true,
+          )..fileOffset = _needFileOffset(),
         ]);
       case StatementKind.VariableInitialization:
         throw new UnimplementedError("Unimplemented support for ${kind}.");
@@ -1444,13 +1668,16 @@ class NodeCreator {
       case DartTypeKind.StructuralParameterType:
         return _createOneOf(_pendingDartTypes, kind, index, [
           () => StructuralParameterType(
-              _needStructuralParameter(), Nullability.nonNullable),
+            _needStructuralParameter(),
+            Nullability.nonNullable,
+          ),
         ]);
       case DartTypeKind.IntersectionType:
         return _createOneOf(_pendingDartTypes, kind, index, [
           () => IntersectionType(
-              TypeParameterType(_needTypeParameter(), Nullability.nonNullable),
-              _createDartType()),
+            TypeParameterType(_needTypeParameter(), Nullability.nonNullable),
+            _createDartType(),
+          ),
         ]);
       case DartTypeKind.TypedefType:
         return _createOneOf(_pendingDartTypes, kind, index, [
@@ -1459,7 +1686,9 @@ class NodeCreator {
         ]);
       case DartTypeKind.ExtensionType:
         return ExtensionType(
-            _needExtensionTypeDeclaration(), Nullability.nonNullable);
+          _needExtensionTypeDeclaration(),
+          Nullability.nonNullable,
+        );
       case DartTypeKind.VoidType:
         return VoidType();
       case DartTypeKind.FunctionTypeParameterType:
@@ -1503,20 +1732,30 @@ class NodeCreator {
       case ConstantKind.InstanceConstant:
         return _createOneOf(_pendingConstants, kind, index, [
           () => InstanceConstant(_needClass().reference, [], {}),
-          () => InstanceConstant(_needClass().reference, [
-                _createDartType()
-              ], {
-                _needField(isStatic: false, hasSetter: false).getterReference:
-                    _createConstant()
-              }),
-          () => InstanceConstant(_needClass().reference, [
-                _createDartType()
-              ], {
-                _needField(index: 0, isStatic: false, hasSetter: false)
-                    .getterReference: _createConstant(),
-                _needField(index: 1, isStatic: false, hasSetter: false)
-                    .getterReference: _createConstant()
-              }),
+          () => InstanceConstant(
+            _needClass().reference,
+            [_createDartType()],
+            {
+              _needField(isStatic: false, hasSetter: false).getterReference:
+                  _createConstant(),
+            },
+          ),
+          () => InstanceConstant(
+            _needClass().reference,
+            [_createDartType()],
+            {
+              _needField(
+                index: 0,
+                isStatic: false,
+                hasSetter: false,
+              ).getterReference: _createConstant(),
+              _needField(
+                index: 1,
+                isStatic: false,
+                hasSetter: false,
+              ).getterReference: _createConstant(),
+            },
+          ),
         ]);
       case ConstantKind.InstantiationConstant:
         return InstantiationConstant(_createConstant(), [_createDartType()]);
@@ -1526,45 +1765,55 @@ class NodeCreator {
         return _createOneOf(_pendingConstants, kind, index, [
           () => ListConstant(_createDartType(), []),
           () => ListConstant(_createDartType(), [_createConstant()]),
-          () => ListConstant(
-              _createDartType(), [_createConstant(), _createConstant()]),
+          () => ListConstant(_createDartType(), [
+            _createConstant(),
+            _createConstant(),
+          ]),
         ]);
       case ConstantKind.MapConstant:
         return _createOneOf(_pendingConstants, kind, index, [
           () => MapConstant(_createDartType(), _createDartType(), []),
-          () => MapConstant(_createDartType(), _createDartType(),
-              [ConstantMapEntry(_createConstant(), _createConstant())]),
           () => MapConstant(_createDartType(), _createDartType(), [
-                ConstantMapEntry(_createConstant(), _createConstant()),
-                ConstantMapEntry(_createConstant(), _createConstant())
-              ]),
+            ConstantMapEntry(_createConstant(), _createConstant()),
+          ]),
+          () => MapConstant(_createDartType(), _createDartType(), [
+            ConstantMapEntry(_createConstant(), _createConstant()),
+            ConstantMapEntry(_createConstant(), _createConstant()),
+          ]),
         ]);
       case ConstantKind.RecordConstant:
         return _createOneOf(_pendingConstants, kind, index, [
           () => RecordConstant(
-              [], {}, RecordType([], [], Nullability.nonNullable)),
+            [],
+            {},
+            RecordType([], [], Nullability.nonNullable),
+          ),
           () => RecordConstant(
-              [_createConstant(), _createConstant()],
-              {},
-              RecordType([_createDartType(), _createDartType()], [],
-                  Nullability.nonNullable)),
+            [_createConstant(), _createConstant()],
+            {},
+            RecordType(
+              [_createDartType(), _createDartType()],
+              [],
+              Nullability.nonNullable,
+            ),
+          ),
           () => RecordConstant(
-                  [],
-                  {
-                    'a': _createConstant(),
-                    'b': _createConstant(),
-                  },
-                  RecordType([], [
-                    NamedType('a', _createDartType()),
-                    NamedType('b', _createDartType())
-                  ], Nullability.nonNullable)),
+            [],
+            {'a': _createConstant(), 'b': _createConstant()},
+            RecordType([], [
+              NamedType('a', _createDartType()),
+              NamedType('b', _createDartType()),
+            ], Nullability.nonNullable),
+          ),
           () => RecordConstant(
-              [_createConstant()],
-              {'a': _createConstant()},
-              RecordType(
-                  [_createDartType()],
-                  [NamedType('a', _createDartType())],
-                  Nullability.nonNullable)),
+            [_createConstant()],
+            {'a': _createConstant()},
+            RecordType(
+              [_createDartType()],
+              [NamedType('a', _createDartType())],
+              Nullability.nonNullable,
+            ),
+          ),
         ]);
       case ConstantKind.NullConstant:
         return NullConstant();
@@ -1574,8 +1823,10 @@ class NodeCreator {
         return _createOneOf(_pendingConstants, kind, index, [
           () => SetConstant(_createDartType(), []),
           () => SetConstant(_createDartType(), [_createConstant()]),
-          () => SetConstant(
-              _createDartType(), [_createConstant(), _createConstant()]),
+          () => SetConstant(_createDartType(), [
+            _createConstant(),
+            _createConstant(),
+          ]),
         ]);
       case ConstantKind.StaticTearOffConstant:
         return StaticTearOffConstant(_needProcedure());
@@ -1591,10 +1842,11 @@ class NodeCreator {
       case ConstantKind.TypedefTearOffConstant:
         // TODO(johnniwinther): Add non-trivial cases.
         return TypedefTearOffConstant(
-            [],
-            _createConstantFromKind(ConstantKind.ConstructorTearOffConstant)
-                as TearOffConstant,
-            []);
+          [],
+          _createConstantFromKind(ConstantKind.ConstructorTearOffConstant)
+              as TearOffConstant,
+          [],
+        );
       case ConstantKind.UnevaluatedConstant:
         return UnevaluatedConstant(_createExpression());
     }
@@ -1621,13 +1873,14 @@ class NodeCreator {
     switch (kind) {
       case InitializerKind.AssertInitializer:
         return AssertInitializer(
-            _createStatementFromKind(StatementKind.AssertStatement)
-                as AssertStatement)
-          ..fileOffset = _needFileOffset();
+          _createStatementFromKind(StatementKind.AssertStatement)
+              as AssertStatement,
+        )..fileOffset = _needFileOffset();
       case InitializerKind.FieldInitializer:
         return FieldInitializer(
-            _needField(isStatic: false), _createExpression())
-          ..fileOffset = _needFileOffset();
+          _needField(isStatic: false),
+          _createExpression(),
+        )..fileOffset = _needFileOffset();
       case InitializerKind.InvalidInitializer:
         return InvalidInitializer('')..fileOffset = _needFileOffset();
       case InitializerKind.LocalInitializer:
@@ -1661,34 +1914,46 @@ class NodeCreator {
     int? index = _pendingMembers.remove(kind);
     switch (kind) {
       case MemberKind.Constructor:
-        return Constructor(_createFunctionNode(),
-            name: _createName(), fileUri: _uri)
-          ..fileOffset = _needFileOffset();
+        return Constructor(
+          _createFunctionNode(),
+          name: _createName(),
+          fileUri: _uri,
+        )..fileOffset = _needFileOffset();
       case MemberKind.Field:
         return _createOneOf(_pendingMembers, kind, index, [
-          () => Field.mutable(_createName(), fileUri: _uri)
-            ..fileOffset = _needFileOffset(),
-          () => Field.immutable(_createName(), fileUri: _uri)
-            ..fileOffset = _needFileOffset(),
+          () =>
+              Field.mutable(_createName(), fileUri: _uri)
+                ..fileOffset = _needFileOffset(),
+          () =>
+              Field.immutable(_createName(), fileUri: _uri)
+                ..fileOffset = _needFileOffset(),
         ]);
       case MemberKind.Procedure:
         return _createOneOf(_pendingMembers, kind, index, [
           () => Procedure(
-              _createName(), ProcedureKind.Method, _createFunctionNode(),
-              fileUri: _uri)
-            ..fileOffset = _needFileOffset(),
+            _createName(),
+            ProcedureKind.Method,
+            _createFunctionNode(),
+            fileUri: _uri,
+          )..fileOffset = _needFileOffset(),
           () => Procedure(
-              _createName(), ProcedureKind.Operator, _createFunctionNode(),
-              fileUri: _uri)
-            ..fileOffset = _needFileOffset(),
+            _createName(),
+            ProcedureKind.Operator,
+            _createFunctionNode(),
+            fileUri: _uri,
+          )..fileOffset = _needFileOffset(),
           () => Procedure(
-              _createName(), ProcedureKind.Getter, _createFunctionNode(),
-              fileUri: _uri)
-            ..fileOffset = _needFileOffset(),
+            _createName(),
+            ProcedureKind.Getter,
+            _createFunctionNode(),
+            fileUri: _uri,
+          )..fileOffset = _needFileOffset(),
           () => Procedure(
-              _createName(), ProcedureKind.Setter, _createFunctionNode(),
-              fileUri: _uri)
-            ..fileOffset = _needFileOffset(),
+            _createName(),
+            ProcedureKind.Setter,
+            _createFunctionNode(),
+            fileUri: _uri,
+          )..fileOffset = _needFileOffset(),
         ]);
     }
   }
@@ -1776,12 +2041,15 @@ class NodeCreator {
       case NodeKind.LibraryDependency:
         return _createOneOf(_pendingNodes, kind, index, [
           // TODO(johnniwinther): Add more cases.
-          () => LibraryDependency.import(_needLibrary())
-            ..fileOffset = _needFileOffset(),
-          () => LibraryDependency.import(_needLibrary(), name: 'foo')
-            ..fileOffset = _needFileOffset(),
-          () => LibraryDependency.export(_needLibrary())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              LibraryDependency.import(_needLibrary())
+                ..fileOffset = _needFileOffset(),
+          () =>
+              LibraryDependency.import(_needLibrary(), name: 'foo')
+                ..fileOffset = _needFileOffset(),
+          () =>
+              LibraryDependency.export(_needLibrary())
+                ..fileOffset = _needFileOffset(),
         ]);
       case NodeKind.LibraryPart:
         // TODO(johnniwinther): Add non-trivial cases.
@@ -1809,8 +2077,10 @@ class NodeCreator {
       case NodeKind.SwitchCase:
         // TODO(johnniwinther): Add non-trivial cases.
         return SwitchCase(
-            [NullLiteral()], [TreeNode.noOffset], _createStatement())
-          ..fileOffset = _needFileOffset();
+          [NullLiteral()],
+          [TreeNode.noOffset],
+          _createStatement(),
+        )..fileOffset = _needFileOffset();
       case NodeKind.NominalParameter:
         return TypeParameter('foo', _createDartType(), _createDartType())
           ..fileOffset = _needFileOffset();
@@ -1831,38 +2101,39 @@ class NodeCreator {
         return MapPatternRestEntry()..fileOffset = _needFileOffset();
       case NodeKind.PatternGuard:
         return _createOneOf(_pendingNodes, kind, index, [
-          () => new PatternGuard(_createPattern())
-            ..fileOffset = _needFileOffset(),
-          () => new PatternGuard(_createPattern(), _createExpression())
-            ..fileOffset = _needFileOffset(),
+          () =>
+              new PatternGuard(_createPattern())
+                ..fileOffset = _needFileOffset(),
+          () =>
+              new PatternGuard(_createPattern(), _createExpression())
+                ..fileOffset = _needFileOffset(),
         ]);
       case NodeKind.PatternSwitchCase:
         return _createOneOf(_pendingNodes, kind, index, [
-          () => new PatternSwitchCase([], [], _createStatement(),
-              isDefault: true,
-              hasLabel: false,
-              jointVariables: [],
-              jointVariableFirstUseOffsets: null),
           () => new PatternSwitchCase(
-              [0],
-              [_createNodeFromKind(NodeKind.PatternGuard) as PatternGuard],
-              _createStatement(),
-              isDefault: false,
-              hasLabel: true,
-              jointVariables: [],
-              jointVariableFirstUseOffsets: null),
+            [],
+            [],
+            _createStatement(),
+            isDefault: true,
+            hasLabel: false,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null,
+          ),
+          () => new PatternSwitchCase(
+            [0],
+            [_createNodeFromKind(NodeKind.PatternGuard) as PatternGuard],
+            _createStatement(),
+            isDefault: false,
+            hasLabel: true,
+            jointVariables: [],
+            jointVariableFirstUseOffsets: null,
+          ),
         ]);
       case NodeKind.SwitchExpressionCase:
         return new SwitchExpressionCase(
-            _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
-            _createExpression())
-          ..fileOffset = _needFileOffset();
-      case NodeKind.LocalVariable:
-      case NodeKind.CatchVariable:
-      case NodeKind.PositionalParameter:
-      case NodeKind.NamedParameter:
-      case NodeKind.SyntheticVariable:
-      case NodeKind.ThisVariable:
+          _createNodeFromKind(NodeKind.PatternGuard) as PatternGuard,
+          _createExpression(),
+        )..fileOffset = _needFileOffset();
       case NodeKind.TypeVariable:
       case NodeKind.Scope:
       case NodeKind.VariableContext:
@@ -1878,7 +2149,11 @@ class NodeCreator {
   /// pending nodes of the given [kind] have been created, [index] is `null` and
   /// the first [creators] function is used.
   V _createOneOf<K, V>(
-      Map<K, int> pending, K kind, int? index, List<V Function()> creators) {
+    Map<K, int> pending,
+    K kind,
+    int? index,
+    List<V Function()> creators,
+  ) {
     if (index == null) {
       // All pending nodes have been created so we just create the first.
       return creators[0]();

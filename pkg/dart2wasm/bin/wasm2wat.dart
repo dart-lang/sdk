@@ -22,8 +22,10 @@ void main(List<String> args) {
   final outputFile = result['output'] as String?;
   final wasmFiles = result.rest;
   if (outputFile != null && wasmFiles.length != 1) {
-    print('Specified --output=$outputFile but number of wasm files is not 1 '
-        '(${wasmFiles.join(' ')})');
+    print(
+      'Specified --output=$outputFile but number of wasm files is not 1 '
+      '(${wasmFiles.join(' ')})',
+    );
     print(argParser.usage);
     exit(1);
   }
@@ -47,10 +49,11 @@ void main(List<String> args) {
   final typeFilters = getFilter('type-name-filter');
   final globalFilters = getFilter('global-name-filter');
   final settings = ModulePrintSettings(
-      functionFilters: functionFilters,
-      typeFilters: typeFilters,
-      globalFilters: globalFilters,
-      printInSortedOrder: sort);
+    functionFilters: functionFilters,
+    typeFilters: typeFilters,
+    globalFilters: globalFilters,
+    printInSortedOrder: sort,
+  );
 
   for (final input in wasmFiles) {
     final wasmBytes = File(input).readAsBytesSync();
@@ -71,31 +74,49 @@ void main(List<String> args) {
 }
 
 final argParser = ArgParser()
-  ..addMultiOption('function-name-filter',
-      abbr: 'f',
-      help: 'Only print function bodies if the function name matches. '
-          'The name filter is interpreted as a Dart `RegExp`.')
-  ..addMultiOption('type-name-filter',
-      abbr: 't',
-      help: 'Only print type constituents if the type name matches. '
-          'The name filter is interpreted as a Dart `RegExp`.')
-  ..addMultiOption('global-name-filter',
-      abbr: 'g',
-      help: 'Only print global initializers if the global name matches. '
-          'The name filter is interpreted as a Dart `RegExp`.')
-  ..addFlag('sort',
-      abbr: 's',
-      help: 'Print functions/types/... in sorted order (sort by name).')
-  ..addFlag('write',
-      abbr: 'w', help: 'Write the resulting wat code to <input.wasm>.wat.')
+  ..addMultiOption(
+    'function-name-filter',
+    abbr: 'f',
+    help:
+        'Only print function bodies if the function name matches. '
+        'The name filter is interpreted as a Dart `RegExp`.',
+  )
+  ..addMultiOption(
+    'type-name-filter',
+    abbr: 't',
+    help:
+        'Only print type constituents if the type name matches. '
+        'The name filter is interpreted as a Dart `RegExp`.',
+  )
+  ..addMultiOption(
+    'global-name-filter',
+    abbr: 'g',
+    help:
+        'Only print global initializers if the global name matches. '
+        'The name filter is interpreted as a Dart `RegExp`.',
+  )
+  ..addFlag(
+    'sort',
+    abbr: 's',
+    help: 'Print functions/types/... in sorted order (sort by name).',
+  )
+  ..addFlag(
+    'write',
+    abbr: 'w',
+    help: 'Write the resulting wat code to <input.wasm>.wat.',
+  )
   ..addFlag('help', abbr: 'h', help: 'Print the help of this tool.')
-  ..addFlag('prefer-multiline',
-      abbr: 'm',
-      help:
-          'Prefer to print global initializers & type definitions as multi line.',
-      defaultsTo: /* wami equivalent is false */ false)
-  ..addOption('output',
-      abbr: 'o',
-      help:
-          'The filepath where the output will be written to (default: stdout). '
-          'The number of input wasm files must be 1 if --output was provided.');
+  ..addFlag(
+    'prefer-multiline',
+    abbr: 'm',
+    help:
+        'Prefer to print global initializers & type definitions as multi line.',
+    defaultsTo: /* wami equivalent is false */ false,
+  )
+  ..addOption(
+    'output',
+    abbr: 'o',
+    help:
+        'The filepath where the output will be written to (default: stdout). '
+        'The number of input wasm files must be 1 if --output was provided.',
+  );

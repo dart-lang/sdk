@@ -7,10 +7,10 @@ import "package:record_use_test/loading_units_simple_helper.dart" as loa;
 import "package:meta/meta.dart" show RecordUse;
 import "package:record_use_test/loading_units_simple_helper.dart" deferred as helper;
 
-abstract class SomeClass extends core::Object {
+class SomeClass extends core::Object {
 
   [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
-  [@vm.unboxing-info.metadata=(i)->b]
+  [@vm.unboxing-info.metadata=[!regcc]]
   @#C1
   static method someStaticMethod([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] core::int i) → void {}
 }

@@ -2118,6 +2118,13 @@ const MessageCode missingTypedefParameters = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinApplicationClassAugmentation = const MessageCode(
+  "MixinApplicationClassAugmentation",
+  sharedCode: SharedCode.mixinApplicationClassAugmentation,
+  problemMessage: """A mixin application class can't be augmented.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinDeclaresConstructor = const MessageCode(
   "MixinDeclaresConstructor",
   sharedCode: SharedCode.mixinDeclaresConstructor,
@@ -2505,6 +2512,28 @@ const MessageCode prefixAfterCombinator = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String modifier})>
+primaryConstructorBodyWithModifier = const Template(
+  "PrimaryConstructorBodyWithModifier",
+  withArguments: _withArgumentsPrimaryConstructorBodyWithModifier,
+  sharedCode: SharedCode.primaryConstructorBodyWithModifier,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsPrimaryConstructorBodyWithModifier({
+  required String modifier,
+}) {
+  var modifier_0 = conversions.validateString(modifier);
+  return new Message(
+    primaryConstructorBodyWithModifier,
+    problemMessage:
+        """A primary constructor body can't have the modifier '${modifier_0}'.""",
+    correctionMessage: """Try removing the modifier.""",
+    arguments: {'modifier': modifier},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode primaryConstructorBodyWithoutDeclaration = const MessageCode(
   "PrimaryConstructorBodyWithoutDeclaration",
   sharedCode: SharedCode.primaryConstructorBodyWithoutDeclaration,
@@ -2564,6 +2593,16 @@ const MessageCode recordTypeZeroFieldsButTrailingComma = const MessageCode(
   problemMessage:
       """A record type without fields can't have a trailing comma.""",
   correctionMessage: """Try removing the trailing comma.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+redirectGenerativeToNonGenerativeConstructor = const MessageCode(
+  "RedirectGenerativeToNonGenerativeConstructor",
+  sharedCode: SharedCode.redirectGenerativeToNonGenerativeConstructor,
+  problemMessage:
+      """Generative constructors can't redirect to a factory constructor.""",
+  correctionMessage: """Try redirecting to a different constructor.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -2739,6 +2778,13 @@ const MessageCode typeBeforeFactory = const MessageCode(
   sharedCode: SharedCode.typeBeforeFactory,
   problemMessage: """Factory constructors cannot have a return type.""",
   correctionMessage: """Try removing the type appearing before 'factory'.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode typedefAugmentation = const MessageCode(
+  "TypedefAugmentation",
+  sharedCode: SharedCode.typedefAugmentation,
+  problemMessage: """Type aliases can't be augmented.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
@@ -3163,6 +3209,7 @@ enum SharedCode {
   missingPrimaryConstructor,
   missingPrimaryConstructorParameters,
   missingStatement,
+  mixinApplicationClassAugmentation,
   mixinDeclaresConstructor,
   mixinWithClause,
   modifierOutOfOrder,
@@ -3184,9 +3231,11 @@ enum SharedCode {
   patternAssignmentDeclaresVariable,
   patternVariableDeclarationOutsideFunctionOrMethod,
   prefixAfterCombinator,
+  primaryConstructorBodyWithModifier,
   primaryConstructorBodyWithoutDeclaration,
   recordLiteralOnePositionalNoTrailingComma,
   recordTypeOnePositionalNoTrailingComma,
+  redirectGenerativeToNonGenerativeConstructor,
   redirectingConstructorWithBody,
   redirectionInNonFactoryConstructor,
   sealedEnum,
@@ -3203,6 +3252,7 @@ enum SharedCode {
   typeBeforeFactory,
   typeParameterOnConstructor,
   typeParameterOnOperator,
+  typedefAugmentation,
   typedefInClass,
   unexpectedTokens,
   varAndType,

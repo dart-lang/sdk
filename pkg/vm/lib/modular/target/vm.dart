@@ -29,7 +29,7 @@ import '../transformations/ffi/native.dart'
     show transformLibraries;
 import '../transformations/ffi/use_sites.dart'
     as transformFfiUseSites
-    show transformLibraries;
+    show transformLibraries, transformProcedure;
 
 class VmTarget extends Target {
   final TargetFlags flags;
@@ -247,6 +247,7 @@ class VmTarget extends Target {
       coreTypes,
       hierarchy,
       productMode: productMode,
+      isClosureContextLoweringEnabled: flags.isClosureContextLoweringEnabled,
     );
     logger?.call("Lowering transformations performed");
 
@@ -266,13 +267,36 @@ class VmTarget extends Target {
     Procedure procedure,
     Map<String, String>? environmentDefines, {
     void Function(String msg)? logger,
+    required DiagnosticReporter diagnosticReporter,
   }) {
+    final TreeNode? component = procedure.enclosingLibrary.parent;
+    if (component is Component) {
+      final List<Library>? transitiveImportingDartFfi = ffiHelper
+          .calculateTransitiveImportsOfDartFfiIfUsed(component, [
+            procedure.enclosingLibrary,
+          ]);
+      if (transitiveImportingDartFfi != null) {
+        transformFfiUseSites.transformProcedure(
+          this,
+          component,
+          coreTypes,
+          hierarchy,
+          procedure,
+          diagnosticReporter,
+          null,
+          environmentDefines,
+        );
+        logger?.call("Transformed ffi use sites");
+      }
+    }
+
     bool productMode = environmentDefines!["dart.vm.product"] == "true";
     lowering.transformProcedure(
       procedure,
       coreTypes,
       hierarchy,
       productMode: productMode,
+      isClosureContextLoweringEnabled: flags.isClosureContextLoweringEnabled,
     );
     logger?.call("Lowering transformations performed");
   }
@@ -440,7 +464,9 @@ class VmTarget extends Target {
       importer.path.contains('runtime/tests/vm/dart') ||
       importer.path.contains('tests/standalone/io') ||
       importer.path.contains('test-lib') ||
-      importer.path.contains('tests/ffi');
+      importer.path.contains('tests/ffi') ||
+      (importer.path == 'dart_runtime_service_vm/src/native_bindings.dart' &&
+          imported.path == '_vmservice');
 
   @override
   Component configureComponent(Component component) {
@@ -553,12 +579,12 @@ class VmTarget extends Target {
   }
 
   @override
-  ConstantsBackend get constantsBackend => switch (flags
-      .constKeepLocalsIndicator) {
-    null => const ConstantsBackend(/* keeps defaults */),
-    true => const ConstantsBackend(keepLocals: true),
-    false => const ConstantsBackend(keepLocals: false),
-  };
+  ConstantsBackend get constantsBackend =>
+      switch (flags.constKeepLocalsIndicator) {
+        null => const ConstantsBackend(/* keeps defaults */),
+        true => const ConstantsBackend(keepLocals: true),
+        false => const ConstantsBackend(keepLocals: false),
+      };
 
   @override
   Map<String, String> updateEnvironmentDefines(Map<String, String> map) {
@@ -569,10 +595,9 @@ class VmTarget extends Target {
   }
 
   @override
-  DartLibrarySupport get dartLibrarySupport =>
-      flags.supportMirrors
-          ? const DefaultDartLibrarySupport()
-          : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
+  DartLibrarySupport get dartLibrarySupport => flags.supportMirrors
+      ? const DefaultDartLibrarySupport()
+      : const CustomizedDartLibrarySupport(unsupported: {'mirrors'});
 
   @override
   bool isSupportedPragma(String pragmaName) =>

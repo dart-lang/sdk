@@ -550,9 +550,11 @@ class LocalScope extends EnclosedScope {
           // TODO(scheglov): why not FormalParameterScope?
           element is FormalParameterElement;
     }());
-    if (_featureSet.isEnabled(Feature.wildcard_variables) &&
-        element.name == '_') {
-      return;
+    if (element.name == '_') {
+      if (element is PatternVariableElement ||
+          _featureSet.isEnabled(Feature.wildcard_variables)) {
+        return;
+      }
     }
     _addGetter(element);
   }

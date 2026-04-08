@@ -16,10 +16,9 @@ class PluginPackageGenerator {
   final Map<String, PluginSource>? _dependencyOverrides;
 
   PluginPackageGenerator({
-    required List<PluginConfiguration> configurations,
-    Map<String, PluginSource>? dependencyOverrides,
-  }) : _configurations = configurations,
-       _dependencyOverrides = dependencyOverrides;
+    required this._configurations,
+    this._dependencyOverrides,
+  });
 
   /// Generates the Dart entrpoint file which is to be spawned in a Dart
   /// isolate by the analysis server.

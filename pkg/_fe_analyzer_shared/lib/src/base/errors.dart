@@ -12,6 +12,7 @@ import 'package:_fe_analyzer_shared/src/base/diagnostic_message.dart';
 import 'package:_fe_analyzer_shared/src/base/source.dart';
 import 'package:_fe_analyzer_shared/src/base/source_range.dart';
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
+import 'package:_fe_analyzer_shared/src/scanner/characters.dart';
 import 'package:source_span/source_span.dart';
 
 import 'customized_codes.dart';
@@ -30,11 +31,49 @@ String formatList(String pattern, List<Object?>? arguments) {
     );
     return pattern;
   }
-  return pattern.replaceAllMapped(new RegExp(r'\{(\d+)\}'), (match) {
-    String indexStr = match.group(1)!;
-    int index = int.parse(indexStr);
-    return arguments[index].toString();
-  });
+  final List<String> buffer = <String>[];
+  int from = 0;
+  int i = 0;
+  while (i < pattern.length) {
+    int char = pattern.codeUnitAt(i++);
+    if (char == $OPEN_CURLY_BRACKET) {
+      int to = i - 1; // End of substring before brace.
+      int number = 0;
+      while (i < pattern.length) {
+        char = pattern.codeUnitAt(i++);
+        int digit = char ^ $0;
+        if (digit <= 9) {
+          number = number * 10 + digit;
+        } else if (char == $CLOSE_CURLY_BRACKET) {
+          int end = i;
+          // Found {\d*}, check that there is at least one digit.
+          if (end > to + 2) {
+            // Found {\d+}.
+            if (to > from) {
+              buffer.add(pattern.substring(from, to));
+            }
+            buffer.add(arguments[number].toString());
+            from = i;
+          }
+          break;
+        } else if (char == $OPEN_CURLY_BRACKET) {
+          // Found next `{` before closing previous. Restart.
+          to = i - 1;
+          number = 0;
+        } else {
+          break;
+        }
+      }
+    }
+  }
+  if (from == 0) {
+    // No numbers found.
+    return pattern;
+  }
+  if (from < pattern.length) {
+    buffer.add(pattern.substring(from));
+  }
+  return buffer.join();
 }
 
 /// A diagnostic, as defined by the [Diagnostic Design Guidelines][guidelines]:
@@ -281,7 +320,7 @@ abstract class DiagnosticCode {
       if (correctionMessage != null) correctionMessage,
     ]) {
       for (RegExpMatch match in _positionalArgumentRegExp.allMatches(s)) {
-        result = max(result, int.parse(match.group(1)!) + 1);
+        result = max(result, int.parse(match[1]!) + 1);
       }
     }
     return result;

@@ -25,7 +25,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
   final String? nativeMethodName;
-  final bool forAbstractClassOrMixin;
+  final bool forAbstractClassOrEnumOrMixin;
   Token? _beginInitializers;
 
   final DeclarationFragment enclosingDeclaration;
@@ -57,7 +57,7 @@ class ConstructorFragment implements Fragment, FunctionFragment {
     required this.typeParameterScope,
     required this.formals,
     required this.nativeMethodName,
-    required this.forAbstractClassOrMixin,
+    required this.forAbstractClassOrEnumOrMixin,
     required Token? beginInitializers,
     required this.enclosingDeclaration,
     required this.enclosingCompilationUnit,

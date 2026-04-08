@@ -15,7 +15,7 @@ import 'object_access_target.dart';
 import 'type_schema.dart' show UnknownType;
 
 class ForInResult {
-  final ExpressionVariable variable;
+  final VariableDeclaration variable;
   final Expression iterable;
   final Expression? syntheticAssignment;
   final Statement? expressionSideEffects;
@@ -49,7 +49,7 @@ class LocalForInVariable implements ForInVariable {
 
   @override
   DartType computeElementType(InferenceVisitorBase visitor) {
-    ExpressionVariable variable = variableSet.variable;
+    VariableDeclaration variable = variableSet.variable;
     DartType? promotedType = visitor.flowAnalysis
         .promotedType(variable)
         // Coverage-ignore(suite): Not run.

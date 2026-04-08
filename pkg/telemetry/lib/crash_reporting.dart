@@ -193,10 +193,9 @@ class CrashReportAttachment {
   final String _value;
 
   CrashReportAttachment.string({
-    required String field,
-    required String value,
-  })  : _field = field,
-        _value = value;
+    required this._field,
+    required this._value,
+  });
 }
 
 /// A typedef to allow crash reporting to query as to whether it should send a

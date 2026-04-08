@@ -38,8 +38,7 @@ enum VerificationStage {
   ///
   /// The global transformation is an additional step performed by some
   /// backends which is not triggered by the front end compilation itself.
-  afterGlobalTransformations,
-  ;
+  afterGlobalTransformations;
 
   bool operator <(VerificationStage other) => index < other.index;
   bool operator <=(VerificationStage other) => index <= other.index;
@@ -64,22 +63,32 @@ class Verification {
 }
 
 void verifyComponent(
-    Target target, VerificationStage stage, Component component,
-    {bool skipPlatform = false,
-    bool Function(Library library)? librarySkipFilter}) {
-  VerifyingVisitor.check(target, stage, component,
-      skipPlatform: skipPlatform, librarySkipFilter: librarySkipFilter);
+  Target target,
+  VerificationStage stage,
+  Component component, {
+  bool skipPlatform = false,
+  bool Function(Library library)? librarySkipFilter,
+}) {
+  VerifyingVisitor.check(
+    target,
+    stage,
+    component,
+    skipPlatform: skipPlatform,
+    librarySkipFilter: librarySkipFilter,
+  );
 }
 
 class VerificationErrorListener {
   const VerificationErrorListener();
 
-  void reportError(String details,
-      {required TreeNode? node,
-      required Uri? problemUri,
-      required int? problemOffset,
-      required TreeNode? context,
-      required TreeNode? origin}) {
+  void reportError(
+    String details, {
+    required TreeNode? node,
+    required Uri? problemUri,
+    required int? problemOffset,
+    required TreeNode? context,
+    required TreeNode? origin,
+  }) {
     throw new VerificationError(context, node, details);
   }
 }
@@ -134,9 +143,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   Set<TypeParameter> typeParametersInScope = new Set<TypeParameter>();
   Set<StructuralParameter> structuralParametersInScope =
       new Set<StructuralParameter>();
-  Set<ExpressionVariable> variableDeclarationsInScope =
-      new Set<ExpressionVariable>();
-  final List<ExpressionVariable> variableStack = <ExpressionVariable>[];
+  Set<VariableDeclaration> variableDeclarationsInScope =
+      new Set<VariableDeclaration>();
+  final List<VariableDeclaration> variableStack = <VariableDeclaration>[];
   final Map<Typedef, TypedefState> typedefState = <Typedef, TypedefState>{};
   final Set<Constant> seenConstants = <Constant>{};
 
@@ -174,18 +183,30 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       currentExtension ??
       currentExtensionTypeDeclaration;
 
-  static void check(Target target, VerificationStage stage, Component component,
-      {required bool skipPlatform,
-      bool Function(Library library)? librarySkipFilter}) {
-    component.accept(new VerifyingVisitor(target, stage,
-        skipPlatform: skipPlatform, librarySkipFilter: librarySkipFilter));
+  static void check(
+    Target target,
+    VerificationStage stage,
+    Component component, {
+    required bool skipPlatform,
+    bool Function(Library library)? librarySkipFilter,
+  }) {
+    component.accept(
+      new VerifyingVisitor(
+        target,
+        stage,
+        skipPlatform: skipPlatform,
+        librarySkipFilter: librarySkipFilter,
+      ),
+    );
   }
 
-  VerifyingVisitor(this.target, this.stage,
-      {required this.skipPlatform,
-      required this.librarySkipFilter,
-      VerificationErrorListener this.listener =
-          const VerificationErrorListener()});
+  VerifyingVisitor(
+    this.target,
+    this.stage, {
+    required this.skipPlatform,
+    required this.librarySkipFilter,
+    VerificationErrorListener this.listener = const VerificationErrorListener(),
+  });
 
   /// If true, relax certain checks for *outline* mode. For example, don't
   /// attempt to validate constructor initializers.
@@ -222,8 +243,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     constant.visitChildren(this);
   }
 
-  void problem(TreeNode? node, String details,
-      {TreeNode? context, TreeNode? origin}) {
+  void problem(
+    TreeNode? node,
+    String details, {
+    TreeNode? context,
+    TreeNode? origin,
+  }) {
     TreeNode? problemNode = node ?? context ?? currentClassOrExtensionOrMember;
     int offset = problemNode?.fileOffset ?? -1;
     Location? location = problemNode != null
@@ -232,18 +257,20 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     Uri? file = location?.file ?? fileUri;
     Uri? uri = file == null ? null : file;
     String verifierState = 'Target=${target.name}, $stage: ';
-    listener.reportError('$verifierState$details',
-        problemUri: uri,
-        problemOffset: offset,
-        node: node,
-        context: context ?? currentClassOrExtensionOrMember,
-        origin: origin);
+    listener.reportError(
+      '$verifierState$details',
+      problemUri: uri,
+      problemOffset: offset,
+      node: node,
+      context: context ?? currentClassOrExtensionOrMember,
+      origin: origin,
+    );
   }
 
   // TODO(cstefantsova): Remove this method when the new variable model is
   //  supported.
   bool _isNewModelVariable(TreeNode node) {
-    return node is ExpressionVariable && node is! VariableDeclaration ||
+    return node is VariableDeclaration && node is! LegacyVariableDeclaration ||
         node is FunctionParameter;
   }
 
@@ -251,11 +278,12 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     // TODO(cstefantsova): Support new variable model.
     if (!_isNewModelVariable(node) && !identical(node.parent, currentParent)) {
       problem(
-          node,
-          "Incorrect parent pointer on ${node}:"
-          " expected ${currentParent},"
-          " but found: ${node.parent}.",
-          context: currentParent);
+        node,
+        "Incorrect parent pointer on ${node}:"
+        " expected ${currentParent},"
+        " but found: ${node.parent}.",
+        context: currentParent,
+      );
     }
     TreeNode? oldParent = currentParent;
     currentParent = node;
@@ -294,7 +322,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     exitTreeNode(node);
   }
 
-  void declareVariable(ExpressionVariable variable) {
+  void declareVariable(VariableDeclaration variable) {
     if (variableDeclarationsInScope.contains(variable)) {
       problem(variable, "Variable '$variable' declared more than once.");
     }
@@ -302,7 +330,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     variableStack.add(variable);
   }
 
-  void undeclareVariable(ExpressionVariable variable) {
+  void undeclareVariable(VariableDeclaration variable) {
     variableDeclarationsInScope.remove(variable);
   }
 
@@ -311,12 +339,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       TypeParameter parameter = parameters[i];
       if (identical(parameter.bound, TypeParameter.unsetBoundSentinel)) {
         problem(
-            currentParent, "Missing bound for type parameter '$parameter'.");
+          currentParent,
+          "Missing bound for type parameter '$parameter'.",
+        );
       }
       if (identical(
-          parameter.defaultType, TypeParameter.unsetDefaultTypeSentinel)) {
-        problem(currentParent,
-            "Missing default type for type parameter '$parameter'.");
+        parameter.defaultType,
+        TypeParameter.unsetDefaultTypeSentinel,
+      )) {
+        problem(
+          currentParent,
+          "Missing default type for type parameter '$parameter'.",
+        );
       }
       if (!typeParametersInScope.add(parameter)) {
         problem(parameter, "Type parameter '$parameter' redeclared.");
@@ -329,12 +363,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       StructuralParameter parameter = parameters[i];
       if (identical(parameter.bound, StructuralParameter.unsetBoundSentinel)) {
         problem(
-            currentParent, "Missing bound for type parameter '$parameter'.");
+          currentParent,
+          "Missing bound for type parameter '$parameter'.",
+        );
       }
-      if (identical(parameter.defaultType,
-          StructuralParameter.unsetDefaultTypeSentinel)) {
-        problem(currentParent,
-            "Missing default type for type parameter '$parameter'.");
+      if (identical(
+        parameter.defaultType,
+        StructuralParameter.unsetDefaultTypeSentinel,
+      )) {
+        problem(
+          currentParent,
+          "Missing default type for type parameter '$parameter'.",
+        );
       }
       if (!structuralParametersInScope.add(parameter)) {
         problem(currentParent, "Type parameter '$parameter' redeclared.");
@@ -350,7 +390,7 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     structuralParametersInScope.removeAll(parameters);
   }
 
-  void checkVariableInScope(ExpressionVariable variable, TreeNode where) {
+  void checkVariableInScope(VariableDeclaration variable, TreeNode where) {
     if (!variableDeclarationsInScope.contains(variable)) {
       problem(where, "Variable '$variable' used out of scope.");
     }
@@ -360,8 +400,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitComponent(Component component) {
     void declareMember(Member member) {
       if (member.transformerFlags & TransformerFlag.seenByVerifier != 0) {
-        problem(member.function,
-            "Member '$member' has been declared more than once.");
+        problem(
+          member.function,
+          "Member '$member' has been declared more than once.",
+        );
       }
       member.transformerFlags |= TransformerFlag.seenByVerifier;
     }
@@ -443,7 +485,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   Map<Reference, ExtensionMemberDescriptor> _computeExtensionMembers(
-      Library library) {
+    Library library,
+  ) {
     if (_extensionsMembers == null) {
       Map<Reference, ExtensionMemberDescriptor> map = _extensionsMembers = {};
       for (Extension extension in library.extensions) {
@@ -455,9 +498,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             Member member = memberReference.asMember;
             if (!member.isExtensionMember) {
               problem(
-                  member,
-                  "Member $member (${descriptor}) from $extension is not "
-                  " marked as an extension member.");
+                member,
+                "Member $member (${descriptor}) from $extension is not "
+                " marked as an extension member.",
+              );
             }
           }
           Reference? tearOffReference = descriptor.tearOffReference;
@@ -466,16 +510,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             Member tearOff = tearOffReference.asMember;
             if (!tearOff.isExtensionMember) {
               problem(
-                  tearOff,
-                  "Tear-off $tearOff (${descriptor}) from $extension is not "
-                  "marked as an extension member.");
+                tearOff,
+                "Tear-off $tearOff (${descriptor}) from $extension is not "
+                "marked as an extension member.",
+              );
             }
           }
           if (memberReference == null && tearOffReference == null) {
             problem(
-                extension,
-                "Both member and tear-off references are null in "
-                "the descriptor $descriptor from $extension.");
+              extension,
+              "Both member and tear-off references are null in "
+              "the descriptor $descriptor from $extension.",
+            );
           }
         }
       }
@@ -503,7 +549,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   Map<Reference, ExtensionTypeMemberDescriptor> _computeExtensionTypeMembers(
-      Library library) {
+    Library library,
+  ) {
     if (_extensionTypeMembers == null) {
       Map<Reference, ExtensionTypeMemberDescriptor> map =
           _extensionTypeMembers = {};
@@ -517,10 +564,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             Member member = memberReference.asMember;
             if (!member.isExtensionTypeMember) {
               problem(
-                  member,
-                  "Member $member (${descriptor}) from "
-                  "$extensionTypeDeclaration is not marked as an extension "
-                  "type member.");
+                member,
+                "Member $member (${descriptor}) from "
+                "$extensionTypeDeclaration is not marked as an extension "
+                "type member.",
+              );
             }
           }
           Reference? tearOffReference = descriptor.tearOffReference;
@@ -529,17 +577,19 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             Member tearOff = tearOffReference.asMember;
             if (!tearOff.isExtensionTypeMember) {
               problem(
-                  tearOff,
-                  "Tear-off $tearOff (${descriptor}) from "
-                  "$extensionTypeDeclaration is not marked as an extension "
-                  "type member.");
+                tearOff,
+                "Tear-off $tearOff (${descriptor}) from "
+                "$extensionTypeDeclaration is not marked as an extension "
+                "type member.",
+              );
             }
           }
           if (memberReference == null && tearOffReference == null) {
             problem(
-                extensionTypeDeclaration,
-                "Both member and tear-off references are null in "
-                "the descriptor $descriptor from $extensionTypeDeclaration.");
+              extensionTypeDeclaration,
+              "Both member and tear-off references are null in "
+              "the descriptor $descriptor from $extensionTypeDeclaration.",
+            );
           }
         }
       }
@@ -575,16 +625,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     for (DartType type in node.implements) {
       if (!(type is ExtensionType || type is InterfaceType)) {
         problem(
-            node,
-            "Extension type can only implement extension types and interface "
-            "types. Found $type.");
+          node,
+          "Extension type can only implement extension types and interface "
+          "types. Found $type.",
+        );
       } else if (type is ExtensionType &&
               type.nullability == Nullability.nullable ||
           type is! ExtensionType && type.isPotentiallyNullable) {
         problem(
-            node,
-            "Extension type can only implement non-nullable types. "
-            "Found $type.");
+          node,
+          "Extension type can only implement non-nullable types. "
+          "Found $type.",
+        );
       }
     }
     _visitAnnotations(node.annotations);
@@ -637,9 +689,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         _computeExtensionMembers(node.enclosingLibrary);
     if (!extensionMembers.containsKey(node.reference)) {
       problem(
-          node,
-          "Extension member $node is not found in any extension of the "
-          "enclosing library.");
+        node,
+        "Extension member $node is not found in any extension of the "
+        "enclosing library.",
+      );
     }
   }
 
@@ -651,16 +704,18 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         node.stubKind == ProcedureStubKind.RepresentationField) {
       if (extensionTypeMembers.containsKey(node.reference)) {
         problem(
-            node,
-            "Extension type representation field $node is found amongst the "
-            "lowered extension type members of the enclosing library.");
+          node,
+          "Extension type representation field $node is found amongst the "
+          "lowered extension type members of the enclosing library.",
+        );
       }
     } else {
       if (!extensionTypeMembers.containsKey(node.reference)) {
         problem(
-            node,
-            "Extension type member $node is not found in any extension type "
-            "declaration of the enclosing library.");
+          node,
+          "Extension type member $node is not found in any extension type "
+          "declaration of the enclosing library.",
+        );
       }
     }
   }
@@ -673,21 +728,29 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     TreeNode? oldParent = enterParent(node);
     bool isTopLevel = node.parent == currentLibrary;
     if (isTopLevel && !node.isStatic) {
-      problem(node, "The top-level field '${node.name.text}' should be static",
-          context: node);
+      problem(
+        node,
+        "The top-level field '${node.name.text}' should be static",
+        context: node,
+      );
     }
     if (node.isConst && !node.isStatic) {
-      problem(node, "The const field '${node.name.text}' should be static",
-          context: node);
+      problem(
+        node,
+        "The const field '${node.name.text}' should be static",
+        context: node,
+      );
     }
     bool isImmutable = node.isLate
         ? (node.isFinal && node.initializer != null)
         : (node.isFinal || node.isConst);
     if (isImmutable == node.hasSetter) {
       if (node.hasSetter) {
-        problem(node,
-            "The immutable field '${node.name.text}' has a setter reference",
-            context: node);
+        problem(
+          node,
+          "The immutable field '${node.name.text}' has a setter reference",
+          context: node,
+        );
       } else {
         if (isOutline && node.isLate) {
           // TODO(johnniwinther): Should we add a flag on Field for having
@@ -695,9 +758,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           // The initializer is not included in the outline so we can't tell
           // whether it has an initializer or not.
         } else {
-          problem(node,
-              "The mutable field '${node.name.text}' has no setter reference",
-              context: node);
+          problem(
+            node,
+            "The mutable field '${node.name.text}' has no setter reference",
+            context: node,
+          );
         }
       }
     }
@@ -723,9 +788,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         if (!(annotation is ConstantExpression ||
             annotation is InvalidExpression)) {
           problem(
-              annotation,
-              "Unexpected annotation $annotation (${annotation.runtimeType}). "
-              "Expected a ConstantExpression or InvalidExpression.");
+            annotation,
+            "Unexpected annotation $annotation (${annotation.runtimeType}). "
+            "Expected a ConstantExpression or InvalidExpression.",
+          );
         }
       }
       annotation.accept(this);
@@ -746,15 +812,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (node.isRedirectingFactory &&
         node.function.redirectingFactoryTarget == null) {
       problem(
-          node,
-          "Procedure '${node.name}' doesn't have a redirecting "
-          "factory target, but has the 'isRedirectingFactory' bit set.");
+        node,
+        "Procedure '${node.name}' doesn't have a redirecting "
+        "factory target, but has the 'isRedirectingFactory' bit set.",
+      );
     } else if (!node.isRedirectingFactory &&
         node.function.redirectingFactoryTarget != null) {
       problem(
-          node,
-          "Procedure '${node.name}' has redirecting factory target, but "
-          "doesn't have the 'isRedirectingFactory' bit set.");
+        node,
+        "Procedure '${node.name}' has redirecting factory target, but "
+        "doesn't have the 'isRedirectingFactory' bit set.",
+      );
     }
 
     currentMember = node;
@@ -765,39 +833,46 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     if (node.isMemberSignature && node.isForwardingStub) {
       problem(
-          node,
-          "Procedure cannot be both a member signature and a forwarding stub: "
-          "$node.");
+        node,
+        "Procedure cannot be both a member signature and a forwarding stub: "
+        "$node.",
+      );
     }
     if (node.isMemberSignature && node.isForwardingSemiStub) {
       problem(
-          node,
-          "Procedure cannot be both a member signature and a forwarding semi "
-          "stub $node.");
+        node,
+        "Procedure cannot be both a member signature and a forwarding semi "
+        "stub $node.",
+      );
     }
     if (node.isMemberSignature && node.isNoSuchMethodForwarder) {
       problem(
-          node,
-          "Procedure cannot be both a member signature and a noSuchMethod "
-          "forwarder $node.");
+        node,
+        "Procedure cannot be both a member signature and a noSuchMethod "
+        "forwarder $node.",
+      );
     }
     if (node.isMemberSignature && node.memberSignatureOrigin == null) {
       problem(
-          node, "Member signature must have a member signature origin $node.");
+        node,
+        "Member signature must have a member signature origin $node.",
+      );
     }
     if (node.abstractForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
-          node,
-          "Only forwarding stubs can have a forwarding stub interface target "
-          "$node.");
+        node,
+        "Only forwarding stubs can have a forwarding stub interface target "
+        "$node.",
+      );
     }
     if (node.concreteForwardingStubTarget != null &&
         !(node.isForwardingStub || node.isForwardingSemiStub)) {
       problem(
-          node,
-          "Only forwarding stubs can have a forwarding stub super target "
-          "$node.");
+        node,
+        "Only forwarding stubs can have a forwarding stub super target "
+        "$node.",
+      );
     }
     node.function.accept(this);
     classTypeParametersAreInScope = false;
@@ -896,8 +971,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (!isOutline) {
       if (node.asyncMarker == AsyncMarker.Async &&
           node.emittedValueType == null) {
-        problem(node,
-            "No future value type set for async function in opt-in library.");
+        problem(
+          node,
+          "No future value type set for async function in opt-in library.",
+        );
       }
 
       TreeNode? parent = node.parent;
@@ -905,9 +982,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
           !parent.isAbstract &&
               !parent.isSynthetic &&
               !parent.isSyntheticForwarder) {
-        for (int positionalIndex = 0;
-            positionalIndex < node.positionalParameters.length;
-            positionalIndex++) {
+        for (
+          int positionalIndex = 0;
+          positionalIndex < node.positionalParameters.length;
+          positionalIndex++
+        ) {
           if (positionalIndex >= node.requiredParameterCount) {
             VariableDeclaration positionalParameter =
                 node.positionalParameters[positionalIndex];
@@ -916,9 +995,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
                 // invariant.
                 stage != VerificationStage.afterGlobalTransformations) {
               problem(
-                  positionalParameter,
-                  "An optional positional parameter is expected to have a "
-                  "default value initializer, defined or synthesized.");
+                positionalParameter,
+                "An optional positional parameter is expected to have a "
+                "default value initializer, defined or synthesized.",
+              );
             }
           }
         }
@@ -929,9 +1009,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
               // invariant.
               stage != VerificationStage.afterGlobalTransformations) {
             problem(
-                namedParameter,
-                "An optional named parameter is expected to have a default "
-                "value initializer, defined or synthesized.");
+              namedParameter,
+              "An optional named parameter is expected to have a default "
+              "value initializer, defined or synthesized.",
+            );
           }
         }
       }
@@ -948,8 +1029,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitFunctionType(FunctionType node) {
     for (int i = 1; i < node.namedParameters.length; ++i) {
       if (node.namedParameters[i - 1].compareTo(node.namedParameters[i]) >= 0) {
-        problem(currentParent,
-            "Named parameters are not sorted on function type ($node).");
+        problem(
+          currentParent,
+          "Named parameters are not sorted on function type ($node).",
+        );
       }
     }
     declareStructuralParameters(node.typeParameters);
@@ -1017,9 +1100,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       case AsyncMarker.AsyncStar:
         if (node.expression != null) {
           problem(
-              node,
-              "Return statement in function with async marker: "
-              "$currentAsyncMarker");
+            node,
+            "Return statement in function with async marker: "
+            "$currentAsyncMarker",
+          );
         }
         break;
     }
@@ -1032,9 +1116,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       case AsyncMarker.Sync:
       case AsyncMarker.Async:
         problem(
-            node,
-            "Yield statement in function with async marker: "
-            "$currentAsyncMarker");
+          node,
+          "Yield statement in function with async marker: "
+          "$currentAsyncMarker",
+        );
         break;
       case AsyncMarker.SyncStar:
       case AsyncMarker.AsyncStar:
@@ -1057,11 +1142,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
+  void visitVariableInitialization(VariableInitializationBase node) {
     return _verifyVariableInitialization(node);
   }
 
-  void _verifyVariableInitialization(VariableInitialization node) {
+  void _verifyVariableInitialization(VariableInitializationBase node) {
     enterTreeNode(node);
     TreeNode? parent = node.parent;
     if (parent is! Block &&
@@ -1074,9 +1159,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         parent is! LocalInitializer &&
         parent is! Typedef) {
       problem(
-          node,
-          "VariableDeclaration must be a direct child of a Block, "
-          "not ${parent.runtimeType}.");
+        node,
+        "VariableDeclaration must be a direct child of a Block, "
+        "not ${parent.runtimeType}.",
+      );
     }
     TreeNode? oldParent = enterParent(node);
     _visitAnnotations(node.annotations);
@@ -1102,18 +1188,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitVariableGet(VariableGet node) {
     // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.expressionVariable)) {
+    if (_isNewModelVariable(node.variable)) {
       return;
     }
     enterTreeNode(node);
-    checkVariableInScope(node.expressionVariable, node);
+    checkVariableInScope(node.variable, node);
     visitChildren(node);
     if (constantsAreAlwaysInlined &&
         afterConst &&
-        node.expressionVariable.isConst &&
+        node.variable.isConst &&
         !inUnevaluatedConstant) {
-      problem(
-          node, "VariableGet of const variable '${node.expressionVariable}'.");
+      problem(node, "VariableGet of const variable '${node.variable}'.");
     }
     exitTreeNode(node);
   }
@@ -1121,11 +1206,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   @override
   void visitVariableSet(VariableSet node) {
     // TODO(cstefantsova): Support new variable model.
-    if (_isNewModelVariable(node.expressionVariable)) {
+    if (_isNewModelVariable(node.variable)) {
       return;
     }
     enterTreeNode(node);
-    checkVariableInScope(node.expressionVariable, node);
+    checkVariableInScope(node.variable, node);
     visitChildren(node);
     exitTreeNode(node);
   }
@@ -1176,8 +1261,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     enterTreeNode(node);
     checkTargetedInvocation(node.target, node);
     if (node.target.isInstanceMember) {
-      problem(node,
-          "StaticInvocation of '${node.target}' that's an instance member.");
+      problem(
+        node,
+        "StaticInvocation of '${node.target}' that's an instance member.",
+      );
     }
     if (node.isConst &&
         !(node.target.isConst &&
@@ -1185,9 +1272,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
             node.target.kind == ProcedureKind.Factory) &&
         !(node.target.isConst && node.target.isExtensionTypeMember)) {
       problem(
-          node,
-          "Constant StaticInvocation of '${node.target}' that isn't"
-          " a const external factory or a const extension type constructor.");
+        node,
+        "Constant StaticInvocation of '${node.target}' that isn't"
+        " a const external factory or a const extension type constructor.",
+      );
     }
     if (afterConst && node.isConst && !inUnevaluatedConstant) {
       problem(node, "Constant StaticInvocation.");
@@ -1209,17 +1297,20 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       problem(node, "${node.runtimeType} without function.");
     }
     if (!areArgumentsCompatible(node.arguments, target.function!)) {
-      problem(node,
-          "${node.runtimeType} with incompatible arguments for '${target}'.");
+      problem(
+        node,
+        "${node.runtimeType} with incompatible arguments for '${target}'.",
+      );
     }
     int expectedTypeParameters = target is Constructor
         ? target.enclosingClass.typeParameters.length
         : target.function!.typeParameters.length;
     if (node.arguments.types.length != expectedTypeParameters) {
       problem(
-          node,
-          "${node.runtimeType} with wrong number of type arguments"
-          " for '${target}'.");
+        node,
+        "${node.runtimeType} with wrong number of type arguments"
+        " for '${target}'.",
+      );
     }
   }
 
@@ -1232,9 +1323,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     if (node.isConst && !node.target.isConst) {
       problem(
-          node,
-          "Constant ConstructorInvocation fo '${node.target}' that"
-          " isn't const.");
+        node,
+        "Constant ConstructorInvocation fo '${node.target}' that"
+        " isn't const.",
+      );
     }
     if (afterConst && node.isConst && !inUnevaluatedConstant) {
       problem(node, "Invocation of const constructor '${node.target}'.");
@@ -1324,10 +1416,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (constant.typeArguments.length !=
         constant.classNode.typeParameters.length) {
       problem(
-          currentParent,
-          "Constant $constant provides ${constant.typeArguments.length}"
-          " type arguments, but the class declares"
-          " ${constant.classNode.typeParameters.length} parameters.");
+        currentParent,
+        "Constant $constant provides ${constant.typeArguments.length}"
+        " type arguments, but the class declares"
+        " ${constant.classNode.typeParameters.length} parameters.",
+      );
     }
     Set<Class> superClasses = <Class>{};
     int fieldCount = 0;
@@ -1339,18 +1432,20 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     }
     if (constant.fieldValues.length != fieldCount) {
       problem(
-          currentParent,
-          "Constant $constant provides ${constant.fieldValues.length}"
-          " field values, but the class declares"
-          " $fieldCount fields.");
+        currentParent,
+        "Constant $constant provides ${constant.fieldValues.length}"
+        " field values, but the class declares"
+        " $fieldCount fields.",
+      );
     }
     for (Reference fieldRef in constant.fieldValues.keys) {
       Field field = fieldRef.asField;
       if (!superClasses.contains(field.enclosingClass)) {
         problem(
-            currentParent,
-            "Constant $constant refers to field $field,"
-            " which does not belong to the right class.");
+          currentParent,
+          "Constant $constant refers to field $field,"
+          " which does not belong to the right class.",
+        );
       }
     }
   }
@@ -1370,7 +1465,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void defaultMemberReference(Member node) {
     if (node.transformerFlags & TransformerFlag.seenByVerifier == 0) {
       problem(
-          node, "Dangling reference to '$node', parent is: '${node.parent}'.");
+        node,
+        "Dangling reference to '$node', parent is: '${node.parent}'.",
+      );
     }
   }
 
@@ -1378,7 +1475,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitClassReference(Class node) {
     if (!classes.contains(node)) {
       problem(
-          node, "Dangling reference to '$node', parent is: '${node.parent}'.");
+        node,
+        "Dangling reference to '$node', parent is: '${node.parent}'.",
+      );
     }
   }
 
@@ -1386,7 +1485,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitTypedefReference(Typedef node) {
     if (!typedefs.contains(node)) {
       problem(
-          node, "Dangling reference to '$node', parent is: '${node.parent}'");
+        node,
+        "Dangling reference to '$node', parent is: '${node.parent}'",
+      );
     }
   }
 
@@ -1396,15 +1497,17 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     GenericDeclaration? declaration = parameter.declaration;
     if (!typeParametersInScope.contains(parameter)) {
       problem(
-          currentParent,
-          "Type parameter '$parameter' referenced out of"
-          " scope, declaration is: '${declaration}'.");
+        currentParent,
+        "Type parameter '$parameter' referenced out of"
+        " scope, declaration is: '${declaration}'.",
+      );
     }
     if (declaration is Class && !classTypeParametersAreInScope) {
       problem(
-          currentParent,
-          "Type parameter '$parameter' referenced from"
-          " static context, declaration is: '${declaration}'.");
+        currentParent,
+        "Type parameter '$parameter' referenced from"
+        " static context, declaration is: '${declaration}'.",
+      );
     }
     defaultDartType(node);
   }
@@ -1417,10 +1520,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     defaultDartType(node);
     if (node.typeArguments.length != node.classNode.typeParameters.length) {
       problem(
-          currentParent,
-          "Type $node provides ${node.typeArguments.length}"
-          " type arguments, but the class declares"
-          " ${node.classNode.typeParameters.length} parameters.");
+        currentParent,
+        "Type $node provides ${node.typeArguments.length}"
+        " type arguments, but the class declares"
+        " ${node.classNode.typeParameters.length} parameters.",
+      );
     }
     if (node.classNode.isAnonymousMixin) {
       bool isOk = false;
@@ -1436,7 +1540,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       }
       if (!isOk) {
         problem(
-            currentParent, "Type $node references an anonymous mixin class.");
+          currentParent,
+          "Type $node references an anonymous mixin class.",
+        );
       }
     }
   }
@@ -1447,10 +1553,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     defaultDartType(node);
     if (node.typeArguments.length != node.typedefNode.typeParameters.length) {
       problem(
-          currentParent,
-          "The typedef type $node provides ${node.typeArguments.length}"
-          " type arguments, but the typedef declares"
-          " ${node.typedefNode.typeParameters.length} parameters.");
+        currentParent,
+        "The typedef type $node provides ${node.typeArguments.length}"
+        " type arguments, but the typedef declares"
+        " ${node.typedefNode.typeParameters.length} parameters.",
+      );
     }
   }
 
@@ -1497,18 +1604,23 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void _checkInterfaceTarget(Expression node, Member interfaceTarget) {
     if (!interfaceTarget.isInstanceMember) {
       problem(
-          node, "Interface target $interfaceTarget is not an instance member.");
+        node,
+        "Interface target $interfaceTarget is not an instance member.",
+      );
     }
     if (interfaceTarget is Procedure &&
         interfaceTarget.stubKind == ProcedureStubKind.RepresentationField) {
-      problem(node,
-          "Representation field used as interface target: $interfaceTarget.");
+      problem(
+        node,
+        "Representation field used as interface target: $interfaceTarget.",
+      );
     }
     if (interfaceTarget.enclosingClass == null) {
       problem(
-          node,
-          "Interface target $interfaceTarget does not have an "
-          "enclosing class.");
+        node,
+        "Interface target $interfaceTarget does not have an "
+        "enclosing class.",
+      );
     }
   }
 
@@ -1516,9 +1628,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitInstanceInvocation(InstanceInvocation node) {
     if (node.name != node.interfaceTarget.name) {
       problem(
-          node,
-          "Instance invocation with name '${node.name}' has a "
-          "target with name '${node.interfaceTarget.name}'.");
+        node,
+        "Instance invocation with name '${node.name}' has a "
+        "target with name '${node.interfaceTarget.name}'.",
+      );
     }
     _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceInvocation(node);
@@ -1528,9 +1641,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitInstanceGet(InstanceGet node) {
     if (node.name != node.interfaceTarget.name) {
       problem(
-          node,
-          "Instance get with name '${node.name}' has a "
-          "target with name '${node.interfaceTarget.name}'.");
+        node,
+        "Instance get with name '${node.name}' has a "
+        "target with name '${node.interfaceTarget.name}'.",
+      );
     }
     _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceGet(node);
@@ -1540,9 +1654,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitInstanceTearOff(InstanceTearOff node) {
     if (node.name != node.interfaceTarget.name) {
       problem(
-          node,
-          "Instance tear-off with name '${node.name}' has a "
-          "target with name '${node.interfaceTarget.name}'.");
+        node,
+        "Instance tear-off with name '${node.name}' has a "
+        "target with name '${node.interfaceTarget.name}'.",
+      );
     }
     _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceTearOff(node);
@@ -1552,9 +1667,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void visitInstanceSet(InstanceSet node) {
     if (node.name != node.interfaceTarget.name) {
       problem(
-          node,
-          "Instance set with name '${node.name}' has a "
-          "target with name '${node.interfaceTarget.name}'.");
+        node,
+        "Instance set with name '${node.name}' has a "
+        "target with name '${node.interfaceTarget.name}'.",
+      );
     }
     _checkInterfaceTarget(node, node.interfaceTarget);
     super.visitInstanceSet(node);
@@ -1570,12 +1686,16 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   /// Invoked by all visit methods if the visited node is a [TreeNode].
   void exitTreeNode(TreeNode node) {
     if (treeNodeStack.isEmpty) {
-      throw new StateError("Attempting to exit tree node '${node}' "
-          "when the tree node stack is empty.");
+      throw new StateError(
+        "Attempting to exit tree node '${node}' "
+        "when the tree node stack is empty.",
+      );
     }
     if (!identical(treeNodeStack.last, node)) {
-      throw new StateError("Attempting to exit tree node '${node}' "
-          "when another node '${treeNodeStack.last}' is active.");
+      throw new StateError(
+        "Attempting to exit tree node '${node}' "
+        "when another node '${treeNodeStack.last}' is active.",
+      );
     }
     treeNodeStack.removeLast();
   }
@@ -1616,9 +1736,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
         return null;
       }
       problem(
-          node,
-          "Invalid location with target '${target.name}' on "
-          "${node} (${node.runtimeType}): $e");
+        node,
+        "Invalid location with target '${target.name}' on "
+        "${node} (${node.runtimeType}): $e",
+      );
     }
     return null;
   }
@@ -1675,8 +1796,10 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       }
     } catch (e) {
       problem(
-          node, "${node.runtimeType} crashes when  asked for location: '$e'",
-          context: node);
+        node,
+        "${node.runtimeType} crashes when  asked for location: '$e'",
+        context: node,
+      );
     }
   }
 
@@ -1708,7 +1831,9 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     } else {
       if (!containingMember.containsSuperCalls) {
         problem(
-            node, 'Super call in a member lacking TransformerFlag.superCalls');
+          node,
+          'Super call in a member lacking TransformerFlag.superCalls',
+        );
       }
     }
   }
@@ -1775,10 +1900,11 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
       final TreeNode? localContext = this.localContext;
       final TreeNode? remoteContext = this.remoteContext;
       problem(
-          localContext,
-          "Unexpected appearance of the disallowed type $node"
-          "${inConstant ? " inside a constant" : ""}.",
-          origin: remoteContext);
+        localContext,
+        "Unexpected appearance of the disallowed type $node"
+        "${inConstant ? " inside a constant" : ""}.",
+        origin: remoteContext,
+      );
     }
     super.defaultDartType(node);
   }
@@ -1816,17 +1942,19 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
     if (tearOffTarget is Constructor &&
         target.isConstructorTearOffLoweringEnabled) {
       problem(
-          node is TreeNode ? node : getLastSeenTreeNode(),
-          '${node.runtimeType} nodes for generative constructors should be '
-          'lowered for target "${target.name}".');
+        node is TreeNode ? node : getLastSeenTreeNode(),
+        '${node.runtimeType} nodes for generative constructors should be '
+        'lowered for target "${target.name}".',
+      );
     }
     if (tearOffTarget is Procedure &&
         tearOffTarget.isFactory &&
         target.isFactoryTearOffLoweringEnabled) {
       problem(
-          node is TreeNode ? node : getLastSeenTreeNode(),
-          '${node.runtimeType} nodes for factory constructors should be '
-          'lowered for target "${target.name}".');
+        node is TreeNode ? node : getLastSeenTreeNode(),
+        '${node.runtimeType} nodes for factory constructors should be '
+        'lowered for target "${target.name}".',
+      );
     }
   }
 
@@ -1845,18 +1973,20 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
   void _checkTypedefTearOff(Node node) {
     if (target.isTypedefTearOffLoweringEnabled) {
       problem(
-          node is TreeNode ? node : getLastSeenTreeNode(),
-          '${node.runtimeType} nodes for typedefs should be '
-          'lowered for target "${target.name}".');
+        node is TreeNode ? node : getLastSeenTreeNode(),
+        '${node.runtimeType} nodes for typedefs should be '
+        'lowered for target "${target.name}".',
+      );
     }
   }
 
   void _checkRedirectingFactoryTearOff(Node node) {
     if (target.isRedirectingFactoryTearOffLoweringEnabled) {
       problem(
-          node is TreeNode ? node : getLastSeenTreeNode(),
-          'ConstructorTearOff nodes for redirecting factories should be '
-          'lowered for target "${target.name}".');
+        node is TreeNode ? node : getLastSeenTreeNode(),
+        'ConstructorTearOff nodes for redirecting factories should be '
+        'lowered for target "${target.name}".',
+      );
     }
   }
 
@@ -1868,7 +1998,8 @@ class VerifyingVisitor extends RecursiveResultVisitor<void> {
 
   @override
   void visitRedirectingFactoryTearOffConstant(
-      RedirectingFactoryTearOffConstant node) {
+    RedirectingFactoryTearOffConstant node,
+  ) {
     _checkRedirectingFactoryTearOff(node);
     super.visitRedirectingFactoryTearOffConstant(node);
   }
@@ -1998,7 +2129,7 @@ class VerifyGetStaticType extends RecursiveVisitor {
   final StatefulStaticTypeContext _staticTypeContext;
 
   VerifyGetStaticType(this.env)
-      : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
+    : _staticTypeContext = new StatefulStaticTypeContext.stacked(env);
 
   @override
   void visitLibrary(Library node) {
@@ -2050,8 +2181,10 @@ class VerifyGetStaticType extends RecursiveVisitor {
     try {
       node.getStaticType(_staticTypeContext);
     } catch (_) {
-      print('Error in $currentMember in ${currentMember?.fileUri}: '
-          '$node (${node.runtimeType})');
+      print(
+        'Error in $currentMember in ${currentMember?.fileUri}: '
+        '$node (${node.runtimeType})',
+      );
       rethrow;
     }
     super.defaultExpression(node);
@@ -2068,9 +2201,11 @@ bool _isCompileTimeErrorEncoding(TreeNode? node) {
 
 class AllowedTypes implements DartTypeVisitor<bool> {
   static bool isAllowed(DartType type, {required bool inConstant}) {
-    return type.accept(inConstant
-        ? const AllowedTypes(inConstant: true)
-        : const AllowedTypes(inConstant: false));
+    return type.accept(
+      inConstant
+          ? const AllowedTypes(inConstant: true)
+          : const AllowedTypes(inConstant: false),
+    );
   }
 
   final bool inConstant;
@@ -2126,13 +2261,15 @@ class AllowedTypes implements DartTypeVisitor<bool> {
   bool visitFunctionTypeParameterType(FunctionTypeParameterType node) {
     // TODO(cstefantsova): Implement visitFunctionTypeParameterType.
     throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 
   @override
   bool visitClassTypeParameterType(ClassTypeParameterType node) {
     // TODO(cstefantsova): Implement visitClassTypeParameterType.
     throw new UnimplementedError(
-        "Unimplemented support for $node (${node.runtimeType}).");
+      "Unimplemented support for $node (${node.runtimeType}).",
+    );
   }
 }

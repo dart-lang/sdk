@@ -29,7 +29,6 @@ namespace dart {
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
-  V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
   V(RunExceptionHandlerUnbox)                                                  \

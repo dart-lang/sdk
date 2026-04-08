@@ -14,6 +14,10 @@ class FindNode {
 
   FindNode(this.content, this.unit);
 
+  BinaryExpression get firstBinaryExpression => _first();
+
+  Block get firstBlock => _first();
+
   FormalParameter get firstFormalParameter => _first();
 
   FormalParameterList get firstFormalParameterList => _first();
@@ -42,11 +46,15 @@ class FindNode {
 
   Block get singleBlock => _single();
 
+  BlockClassBody get singleBlockClassBody => _single();
+
   BlockFunctionBody get singleBlockFunctionBody => _single();
 
   CascadeExpression get singleCascadeExpression => _single();
 
   ClassDeclaration get singleClassDeclaration => _single();
+
+  ClassMember get singleClassMember => _single();
 
   ConditionalExpression get singleConditionalExpression => _single();
 
@@ -63,6 +71,8 @@ class FindNode {
   DotShorthandInvocation get singleDotShorthandInvocation => _single();
 
   DotShorthandPropertyAccess get singleDotShorthandPropertyAccess => _single();
+
+  DottedName get singleDottedName => _single();
 
   EnumDeclaration get singleEnumDeclaration => _single();
 
@@ -383,6 +393,10 @@ class FindNode {
     return _node(search, (n) => n is DotShorthandPropertyAccess);
   }
 
+  DottedName dottedName(String search) {
+    return _node(search, (n) => n is DottedName);
+  }
+
   DoubleLiteral doubleLiteral(String search) {
     return _node(search, (n) => n is DoubleLiteral);
   }
@@ -592,10 +606,6 @@ class FindNode {
 
   LibraryDirective library(String search) {
     return _node(search, (n) => n is LibraryDirective);
-  }
-
-  LibraryIdentifier libraryIdentifier(String search) {
-    return _node(search, (n) => n is LibraryIdentifier);
   }
 
   ListLiteral listLiteral(String search) {

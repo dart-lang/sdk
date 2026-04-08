@@ -116,13 +116,13 @@ class _Recorder {
   Future<void> record() async {
     try {
       if (config.outputDir case final String outputDirPath) {
-        outputDir = io.Directory(outputDirPath);
+        outputDir = io.Directory(outputDirPath).absolute;
       } else {
         outputDir = io.Directory.systemTemp.createTempSync('recording');
       }
 
       if (!outputDir.existsSync()) {
-        print('Created output directory $outputDir');
+        print('Created output directory ${outputDir.path}');
         outputDir.createSync(recursive: true);
       }
 
@@ -143,16 +143,29 @@ class _Recorder {
         );
       }
 
-      print('... data will be written to $outputDir');
+      print('... data will be written to ${outputDir.path}');
 
       _recording = true;
-      if (!config.recordOnlyNewProcesses) {
+      if (_activeConnections.isNotEmpty) {
+        assert(!config.recordOnlyNewProcesses);
         await Future.wait([
-          for (var conn in _activeConnections)
-            conn.startRecording(outputDir.path, config: config),
+          for (var conn in _activeConnections.toList())
+            conn.startRecording(outputDir.path, config: config).catchError((e) {
+              print(
+                'Failed to start recording of process ${conn.info.pid}: $e',
+              );
+              _activeConnections.remove(conn);
+              try {
+                conn.disconnect();
+              } catch (_) {
+                // Ignore exception.
+              }
+            }),
         ]);
-      } else {
-        assert(_activeConnections.isEmpty);
+        if (_activeConnections.isEmpty) {
+          // All connections errored.
+          io.exitCode = -1;
+        }
       }
 
       if (config.recordNewProcesses || config.recordOnlyNewProcesses) {

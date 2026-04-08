@@ -14,14 +14,18 @@ class ErrorFormatter implements FailureListener {
   @override
   void reportNotAssignable(TreeNode where, DartType from, DartType to) {
     reportFailure(
-        where,
-        '${ansiBlue}${from}${ansiReset} ${ansiYellow}is not assignable to'
-        '${ansiReset} ${ansiBlue}${to}${ansiReset}');
+      where,
+      '${ansiBlue}${from}${ansiReset} ${ansiYellow}is not assignable to'
+      '${ansiReset} ${ansiBlue}${to}${ansiReset}',
+    );
   }
 
   @override
   void reportInvalidOverride(
-      Member ownMember, Member superMember, String message) {
+    Member ownMember,
+    Member superMember,
+    String message,
+  ) {
     reportFailure(ownMember, '''
 Incompatible override of ${superMember} with ${ownMember}:
 
@@ -54,7 +58,8 @@ Incompatible override of ${superMember} with ${ownMember}:
           lineStart < lineEnd) {
         sourceLocation = '${fileUri}:${location.line}';
         sourceLine = new String.fromCharCodes(
-            source.source.getRange(lineStart, lineEnd));
+          source.source.getRange(lineStart, lineEnd),
+        );
       }
     }
 
@@ -65,8 +70,9 @@ Incompatible override of ${superMember} with ${ownMember}:
       name = context.name;
     } else if (context is Procedure || context is Constructor) {
       final dynamic parent = context.parent;
-      final String? parentName =
-          parent is Class ? parent.name : (parent as Library).name;
+      final String? parentName = parent is Class
+          ? parent.name
+          : (parent as Library).name;
       name = "${parentName}::${context.name.text}";
     } else {
       final Field field = context as Field;
@@ -77,7 +83,8 @@ Incompatible override of ${superMember} with ${ownMember}:
       }
     }
 
-    String failure = '''
+    String failure =
+        '''
 -----------------------------------------------------------------------
 In ${name} at ${sourceLocation}:
 
@@ -90,7 +97,8 @@ Kernel:
 ''';
 
     if (sourceLine != null) {
-      failure = '''$failure
+      failure =
+          '''$failure
 Source:
 |
 |   ${_realign(sourceLine)}
@@ -130,7 +138,7 @@ class HighlightingPrinter extends Printer {
   final Node highlight;
 
   HighlightingPrinter(this.highlight)
-      : super(new StringBuffer(), syntheticNames: globalDebuggingNames);
+    : super(new StringBuffer(), syntheticNames: globalDebuggingNames);
 
   @override
   bool shouldHighlight(Node node) => highlight == node;

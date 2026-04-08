@@ -788,6 +788,29 @@ Message _withArgumentsClassShouldBeListedAsCallableInDynamicInterface({
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String name})>
+classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface = const Template(
+  "ClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface",
+  withArguments:
+      _withArgumentsClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface({
+  required String name,
+}) {
+  var name_0 = conversions.validateAndDemangleName(name);
+  return new Message(
+    classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
+    problemMessage:
+        """Cannot use class '${name_0}' as a type in a dynamic module.""",
+    correctionMessage:
+        """Try removing the reference to class '${name_0}' or update the dynamic interface to list class '${name_0}' as can-be-used-as-type.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
 classShouldBeListedAsExtendableInDynamicInterface = const Template(
   "ClassShouldBeListedAsExtendableInDynamicInterface",
   withArguments:
@@ -3336,23 +3359,24 @@ const MessageCode extensionTypeRepresentationTypeBottom = const MessageCode(
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String name})>
-extensionTypeShouldBeListedAsCallableInDynamicInterface = const Template(
-  "ExtensionTypeShouldBeListedAsCallableInDynamicInterface",
+extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface = const Template(
+  "ExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface",
   withArguments:
-      _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface,
+      _withArgumentsExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-Message _withArgumentsExtensionTypeShouldBeListedAsCallableInDynamicInterface({
+Message
+_withArgumentsExtensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface({
   required String name,
 }) {
   var name_0 = conversions.validateAndDemangleName(name);
   return new Message(
-    extensionTypeShouldBeListedAsCallableInDynamicInterface,
+    extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface,
     problemMessage:
-        """Cannot use extension type '${name_0}' in a dynamic module.""",
+        """Cannot use extension type '${name_0}' as a type in a dynamic module.""",
     correctionMessage:
-        """Try removing the reference to extension type '${name_0}' or update the dynamic interface to list extension type '${name_0}' as callable.""",
+        """Try removing the reference to extension type '${name_0}' or update the dynamic interface to list extension type '${name_0}' as can-be-used-as-type.""",
     arguments: {'name': name},
   );
 }
@@ -3443,7 +3467,7 @@ const MessageCode fastaUsageLong = const MessageCode(
     Read the SDK platform from <file>, which should be in Dill/Kernel IR format
     and contain the Dart SDK.
 
-  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart_runner|dartdevc|flutter|flutter_runner|none|vm
+  --target=dart2js|dart2js_server|dart2wasm|dart2wasm_js_compatibility|dart2wasm_standalone|dart_runner|dartdevc|flutter|flutter_runner|none|vm
     Specify the target configuration.
 
   --enable-asserts
@@ -3756,6 +3780,26 @@ Message _withArgumentsFfiExpectedNoExceptionalReturn({
         """Exceptional return value cannot be provided for a native callback returning '${returnType_0}'.""" +
         labeler.originMessages,
     arguments: {'returnType': returnType},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String operation})>
+ffiExpressionEvaluationNotSupported = const Template(
+  "FfiExpressionEvaluationNotSupported",
+  withArguments: _withArgumentsFfiExpressionEvaluationNotSupported,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsFfiExpressionEvaluationNotSupported({
+  required String operation,
+}) {
+  var operation_0 = conversions.validateString(operation);
+  return new Message(
+    ffiExpressionEvaluationNotSupported,
+    problemMessage:
+        """Operation '${operation_0}' is not supported in expression evaluation.""",
+    arguments: {'operation': operation},
   );
 }
 

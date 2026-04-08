@@ -42,9 +42,9 @@ class ToStringVisitor extends RecursiveVisitor {
   bool _hasInheritedKeepAnnotation(Class node) =>
       _inheritedKeepAnnotations[node] ??=
           (_hasKeepAnnotationOnClass(node) ||
-              node.supers.any(
-                (Supertype t) => _hasInheritedKeepAnnotation(t.classNode),
-              ));
+          node.supers.any(
+            (Supertype t) => _hasInheritedKeepAnnotation(t.classNode),
+          ));
 
   bool _hasPragma(Annotatable node, String pragma) {
     for (ConstantExpression expression
@@ -54,8 +54,8 @@ class ToStringVisitor extends RecursiveVisitor {
       }
       final InstanceConstant constant = expression.constant as InstanceConstant;
       final className = constant.classNode.name;
-      final libraryUri =
-          constant.classNode.enclosingLibrary.importUri.toString();
+      final libraryUri = constant.classNode.enclosingLibrary.importUri
+          .toString();
       if (className == 'pragma' && libraryUri == 'dart:core') {
         for (var fieldRef in constant.fieldValues.keys) {
           if (fieldRef.asField.name.text == 'name') {

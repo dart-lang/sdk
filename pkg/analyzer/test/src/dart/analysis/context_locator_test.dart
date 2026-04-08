@@ -24,8 +24,6 @@ main() {
 
 @reflectiveTest
 class ContextLocatorImplTest with ResourceProviderMixin {
-  late final ContextLocatorImpl contextLocator;
-
   ContextRoot findRoot(List<ContextRoot> roots, Resource rootFolder) {
     for (ContextRoot root in roots) {
       if (root.root == rootFolder) {
@@ -44,10 +42,6 @@ class ContextLocatorImplTest with ResourceProviderMixin {
     fail(buffer.toString());
   }
 
-  void setUp() {
-    contextLocator = ContextLocatorImpl(resourceProvider: resourceProvider);
-  }
-
   void test_locateRoots_excludedByOptions_directoryWithParenthesis() {
     var rootPath = convertPath('/home/test (copy)');
     var rootFolder = newFolder(rootPath);
@@ -60,8 +54,9 @@ analyzer:
     var fooFile = newFile('$rootPath/lib/foo.dart', '');
     newFile('$rootPath/lib/bar.g.dart', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [rootFolder.path, fooFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -91,7 +86,10 @@ analyzer:
     newPackageConfigJsonFile(pkg1Path, '');
     newFile('$pkg1Path/lib/src/bar.g.dart', '');
     var fooFile2 = newFile('$pkg1Path/lib/foo.dart', '');
-    var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    var roots = locateContextRoots(
+      includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(2));
 
     var root = findRoot(roots, rootFolder);
@@ -110,8 +108,9 @@ analyzer:
     newFile('/home/b.dart', '');
     newLink(convertPath('/home/test/lib/c.dart'), convertPath('/home/b.dart'));
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -132,8 +131,9 @@ analyzer:
     newFile('/test/lib/a.dart', '');
     newLink(convertPath('/test/lib/b.dart'), convertPath('/test/lib/a.dart'));
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -152,7 +152,10 @@ analyzer:
     newFolder('/test/lib/foo');
     newLink(convertPath('/test/lib/foo'), convertPath('/test/lib/bar'));
 
-    var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    var roots = locateContextRoots(
+      includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var root = findRoot(roots, rootFolder);
@@ -171,8 +174,9 @@ analyzer:
     newFile('/test/lib/a.dart', '');
     newLink(convertPath('/test/lib/foo'), convertPath('/test/lib'));
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -194,8 +198,9 @@ analyzer:
     newFile('/home/other/c.dart', '');
     newLink(convertPath('/home/test/lib/foo'), convertPath('/home'));
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -220,8 +225,9 @@ analyzer:
     newFile('/test/lib/foo/b.dart', '');
     newLink(convertPath('/test/lib/bar'), convertPath('/test/lib/foo'));
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -250,8 +256,9 @@ analyzer:
     var includedFolder = newFolder('$rootPath/examples/included');
     newFolder('$rootPath/examples/not_included'); // not used
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path, includedFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -277,8 +284,9 @@ analyzer:
     );
     var innerRootFolder = newFolder('/outer/examples/inner');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [outerRootFolder.path, innerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -299,8 +307,9 @@ analyzer:
     Folder outerRootFolder = newFolder('/test/outer');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path, innerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -317,8 +326,9 @@ analyzer:
     File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
     Folder innerRootFolder = newFolder('/test/outer/examples/inner');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path, innerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -339,8 +349,9 @@ analyzer:
     var innerPackagesFile = newPackageConfigJsonFile('$innerRootFolder', '');
     newPubspecYamlFile('$innerRootFolder', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [outerRootFolder.path, innerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -371,8 +382,9 @@ analyzer:
     newFile('$rootPath/lib/far.dart', ''); // not used
     var barFile = newFile('$rootPath/lib/bar.dart', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [rootFolder.path, fooFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -392,8 +404,9 @@ analyzer:
     Folder outerRootFolder = newFolder('/test/outer');
     File testFile = newFile('/test/outer/examples/inner/test.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path, testFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -410,8 +423,9 @@ analyzer:
     File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
     File testFile = newFile('/test/outer/examples/inner/test.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path, testFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -431,8 +445,9 @@ analyzer:
     File outer2OptionsFile = newAnalysisOptionsYamlFile('/test/outer2', '');
     File outer2PackagesFile = newPackageConfigJsonFile('/test/outer2', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outer1RootFolder.path, outer2RootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -453,8 +468,9 @@ analyzer:
     Folder outer1RootFolder = newFolder('/test/outer1');
     Folder outer2RootFolder = newFolder('/test/outer2');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outer1RootFolder.path, outer2RootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -480,8 +496,9 @@ analyzer:
     File outer2PackagesFile = newPackageConfigJsonFile('/test/outer2', '');
     File testFile = newFile('/test/outer2/test.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outer1RootFolder.path, testFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -502,8 +519,9 @@ analyzer:
     Folder outer1RootFolder = newFolder('/test/outer1');
     File testFile = newFile('/test/outer2/test.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outer1RootFolder.path, testFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -536,8 +554,9 @@ analyzer:
     var file1 = newFile('$pkgPath1/lib/folder1/file1.dart', '');
     var file2 = newFile('$pkgPath2/lib/folder2/file2.dart', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [folder1.path, folder2.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -570,8 +589,9 @@ analyzer:
     File testFile1 = newFile('/home/test/lib/test1.dart', '');
     File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile1.path, testFile2.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -592,8 +612,9 @@ analyzer:
     File testFile1 = newFile('/home/test/lib/test1.dart', '');
     File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile1.path, testFile2.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -616,9 +637,10 @@ analyzer:
     File testFile1 = newFile('/home/test/lib/test1.dart', '');
     File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile1.path, testFile2.path],
       optionsFile: overrideOptionsFile.path,
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -640,8 +662,9 @@ analyzer:
     File testFile1 = newFile('/home/test/lib/test1.dart', '');
     File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile1.path, testFile2.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -662,8 +685,9 @@ analyzer:
     File testFile1 = newFile('/home/test/lib/test1.dart', '');
     File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile1.path, testFile2.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -690,9 +714,10 @@ analyzer:
     File testFile1 = newFile('/home/test/lib/test1.dart', '');
     File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile1.path, testFile2.path],
       packageConfigFile: overridePackagesFile.path,
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -714,8 +739,9 @@ analyzer:
     File testFile1 = newFile('/home/test/lib/test1.dart', '');
     File testFile2 = newFile('/home/test/lib/test2.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile1.path, testFile2.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -746,8 +772,9 @@ analyzer:
     var file1 = newFile('$pkgPath1/lib/file1.dart', '');
     var file2 = newFile('$pkgPath2/lib/file2.dart', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [file1.path, file2.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -780,8 +807,9 @@ analyzer:
     var fooFile = newFile('$fooPath/lib/foo.dart', '');
     var barFile = newFile('$barPath/lib/bar.dart', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [fooFile.path, barFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -805,8 +833,9 @@ analyzer:
     var fooFile = newFile('$fooPath/lib/foo.dart', '');
     var barFile = newFile('$barPath/lib/bar.dart', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [fooFile.path, barFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -846,8 +875,9 @@ ${getFolder(outPath).path}
     newFile('$myRootPath/lib/file3.dart', '');
     newFile('$dartGenPath/my/my_package_config.json', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [myFile1.path, myFile2.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -863,8 +893,9 @@ ${getFolder(outPath).path}
     var fooFile = newFile('/home/foo/lib/foo.dart', '');
     var barFile = newFile('/home/bar/lib/bar.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [fooFile.path, barFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -890,8 +921,9 @@ ${getFolder(outPath).path}
     var fooFile = newFile('/home/foo/lib/foo.dart', '');
     var barFile = newFile('/home/bar/lib/bar.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [fooFile.path, barFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -919,8 +951,9 @@ ${getFolder(outPath).path}
     newAnalysisOptionsYamlFile('/test/outer/.examples/inner', '');
 
     // Only one analysis root, we skipped `.examples` for context roots.
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -938,9 +971,10 @@ ${getFolder(outPath).path}
     Folder excludedFolder = newFolder('/test/outer/examples');
     newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
       excludedPaths: [excludedFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -965,8 +999,9 @@ ${getFolder(outPath).path}
     var nestedOptionsFile = newAnalysisOptionsYamlFile(nestedPath, '');
     var nestedDartFile = newFile(join(nestedPath, 'main.dart'), '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [nestedPath, rootPath],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -993,8 +1028,9 @@ ${getFolder(outPath).path}
     var nestedOptionsFile = newAnalysisOptionsYamlFile(nestedPath, '');
     var nestedDartFile = newFile(join(nestedPath, 'main.dart'), '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [rootPath, nestedPath],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -1019,8 +1055,9 @@ ${getFolder(outPath).path}
       '',
     );
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -1043,8 +1080,9 @@ ${getFolder(outPath).path}
     File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
     newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1063,9 +1101,10 @@ ${getFolder(outPath).path}
     newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
     File overrideOptionsFile = newAnalysisOptionsYamlFile('/test/override', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
       optionsFile: overrideOptionsFile.path,
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1083,9 +1122,10 @@ ${getFolder(outPath).path}
     newAnalysisOptionsYamlFile('/test/outer/examples/inner', '');
     File overridePackagesFile = newPackageConfigJsonFile('/test/override', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
       packageConfigFile: overridePackagesFile.path,
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1110,8 +1150,9 @@ ${getFolder(outPath).path}
       '',
     );
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -1138,10 +1179,11 @@ ${getFolder(outPath).path}
     File overrideOptionsFile = newAnalysisOptionsYamlFile('/test/override', '');
     File overridePackagesFile = newPackageConfigJsonFile('/test/override', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
       optionsFile: overrideOptionsFile.path,
       packageConfigFile: overridePackagesFile.path,
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1162,8 +1204,9 @@ ${getFolder(outPath).path}
       '',
     );
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -1190,8 +1233,9 @@ ${getFolder(outPath).path}
       '',
     );
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -1219,9 +1263,10 @@ ${getFolder(outPath).path}
     );
     File overrideOptionsFile = newAnalysisOptionsYamlFile('/test/override', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
       optionsFile: overrideOptionsFile.path,
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(2));
 
@@ -1246,9 +1291,10 @@ ${getFolder(outPath).path}
     newPackageConfigJsonFile('/test/outer/examples/inner', '');
     File overridePackagesFile = newPackageConfigJsonFile('/test/override', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
       packageConfigFile: overridePackagesFile.path,
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1265,8 +1311,9 @@ ${getFolder(outPath).path}
     File outerPackagesFile = newPackageConfigJsonFile('/test/outer', '');
     newAnalysisOptionsYamlFile('/test/outer/packages/inner', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [outerRootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1288,7 +1335,10 @@ ${getFolder(outPath).path}
 
     var rootFolder = getFolder('$workspacePath/test');
 
-    var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    var roots = locateContextRoots(
+      includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var root = findRoot(roots, workspaceFolder);
@@ -1310,7 +1360,10 @@ ${getFolder(outPath).path}
       packageConfigFileBuilder.toContent(pathContext: pathContext),
     );
 
-    var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    var roots = locateContextRoots(
+      includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var root = findRoot(roots, rootFolder);
@@ -1329,8 +1382,9 @@ analyzer:
 ''');
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1356,8 +1410,9 @@ analyzer:
 ''');
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1390,8 +1445,9 @@ analyzer:
 ''');
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1424,8 +1480,9 @@ analyzer:
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
     newFolder('/test/root/data');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1457,8 +1514,9 @@ analyzer:
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
     newFolder('/test/root/data');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1494,8 +1552,9 @@ analyzer:
     newFolder('/test/root/foo');
     newFolder('/test/root/bar');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1526,8 +1585,9 @@ analyzer:
     newFolder('/test/root/data');
     newAnalysisOptionsYamlFile('/test/root/data', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1567,8 +1627,9 @@ ${getFolder(outPath).path}
     var barBuildGn = newBuildGnFile(barRootPath, '');
     newFile('$dartGenPath/dart/bar/bar_package_config.json', '');
 
-    var roots = contextLocator.locateRoots(
+    var roots = locateContextRoots(
       includedPaths: [getFolder(dartPath).path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(3));
 
@@ -1584,8 +1645,9 @@ ${getFolder(outPath).path}
     File optionsFile = newAnalysisOptionsYamlFile('/test/root', '');
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1601,8 +1663,9 @@ ${getFolder(outPath).path}
     File optionsFile = newAnalysisOptionsYamlFile('/test/root', '');
     File packagesFile = newPackageConfigJsonFile('/test', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1630,7 +1693,10 @@ ${getFolder(outPath).path}
     newFile('$dartGenPath/my/my_package_config.json', '');
     newPubspecYamlFile(myRootPath, '');
 
-    var roots = contextLocator.locateRoots(includedPaths: [myRoot.path]);
+    var roots = locateContextRoots(
+      includedPaths: [myRoot.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var package1Root = findRoot(roots, myRoot);
@@ -1653,7 +1719,10 @@ ${getFolder(outPath).path}
     var myBuildGn = newBuildGnFile(myRootPath, '');
     newFile('$dartGenPath/my/my_package_config.json', '');
 
-    var roots = contextLocator.locateRoots(includedPaths: [myRoot.path]);
+    var roots = locateContextRoots(
+      includedPaths: [myRoot.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var package1Root = findRoot(roots, myRoot);
@@ -1665,8 +1734,9 @@ ${getFolder(outPath).path}
     File optionsFile = newAnalysisOptionsYamlFile('/test', '');
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1682,8 +1752,9 @@ ${getFolder(outPath).path}
     File optionsFile = newAnalysisOptionsYamlFile('/test', '');
     File packagesFile = newPackageConfigJsonFile('/test', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1700,7 +1771,10 @@ ${getFolder(outPath).path}
     newPackageConfigJsonFile('/test', ''); // the file is not used
     var packageConfigJsonFile = newPackageConfigJsonFile('/test', '');
 
-    var roots = contextLocator.locateRoots(includedPaths: [rootFolder.path]);
+    var roots = locateContextRoots(
+      includedPaths: [rootFolder.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var contentRoot = findRoot(roots, rootFolder);
@@ -1723,7 +1797,10 @@ ${getFolder(outPath).path}
     var pubspecYamlFile = newPubspecYamlFile(myPackagePath, '');
     var myFile = newFile('$myPackagePath/lib/my.dart', '');
 
-    var roots = contextLocator.locateRoots(includedPaths: [myPackage.path]);
+    var roots = locateContextRoots(
+      includedPaths: [myPackage.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var root = findRoot(roots, myPackage);
@@ -1753,7 +1830,10 @@ ${getFolder(outPath).path}
     newFile('$myRootPath/lib/b.dart', '');
     newFile('$dartGenPath/my/my_package_config.json', '');
 
-    var roots = contextLocator.locateRoots(includedPaths: [myFile.path]);
+    var roots = locateContextRoots(
+      includedPaths: [myFile.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var myContextRoot = findRoot(roots, myRoot);
@@ -1766,8 +1846,9 @@ ${getFolder(outPath).path}
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
     File testFile = newFile('/test/root/test.dart', '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1794,7 +1875,10 @@ ${getFolder(outPath).path}
     newFile('$myRootPath/lib/b.dart', '');
     newFile('$dartGenPath/my/my_package_config.json', '');
 
-    var roots = contextLocator.locateRoots(includedPaths: [myFile.path]);
+    var roots = locateContextRoots(
+      includedPaths: [myFile.path],
+      resourceProvider: resourceProvider,
+    );
     expect(roots, hasLength(1));
 
     var root = findRoot(roots, getFolder('/'));
@@ -1807,8 +1891,9 @@ ${getFolder(outPath).path}
     File packagesFile = newPackageConfigJsonFile('/test/root', '');
     File testFile = getFile('/test/root/test.dart');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [testFile.path],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 
@@ -1829,8 +1914,9 @@ ${getFolder(outPath).path}
     Folder package2 = newFolder('$rootPath/package2');
     newPubspecYamlFile(package2.path, '');
 
-    List<ContextRoot> roots = contextLocator.locateRoots(
+    List<ContextRoot> roots = locateContextRoots(
       includedPaths: [rootPath],
+      resourceProvider: resourceProvider,
     );
     expect(roots, hasLength(1));
 

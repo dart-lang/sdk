@@ -439,6 +439,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNoMixinBody(Token semicolonToken) {
+    seen(semicolonToken);
+    doPrint(
+      'handleNoMixinBody('
+      '$semicolonToken)',
+    );
+  }
+
+  @override
   void endMixinDeclaration(Token beginToken, Token endToken) {
     indent--;
     seen(beginToken);
@@ -510,6 +519,15 @@ class ParserTestListener implements Listener {
   }
 
   @override
+  void handleNoExtensionBody(Token semicolonToken) {
+    seen(semicolonToken);
+    doPrint(
+      'handleNoExtensionBody('
+      '$semicolonToken)',
+    );
+  }
+
+  @override
   void beginExtensionTypeDeclaration(
     Token? augmentKeyword,
     Token extensionKeyword,
@@ -563,36 +581,36 @@ class ParserTestListener implements Listener {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     indent--;
     seen(beginToken);
     seen(constKeyword);
     doPrint(
       'endPrimaryConstructor('
+      '$kind, '
       '$beginToken, '
       '$constKeyword, '
-      '$hasConstructorName, '
-      '$forExtensionType)',
+      '$hasConstructorName)',
     );
   }
 
   @override
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
     seen(token);
     seen(constKeyword);
     doPrint(
       'handleNoPrimaryConstructor('
+      '$kind, '
       '$token, '
-      '$constKeyword, '
-      '$forExtensionType)',
+      '$constKeyword)',
     );
   }
 
@@ -887,6 +905,15 @@ class ParserTestListener implements Listener {
       'endEnumBody('
       '$beginToken, '
       '$endToken)',
+    );
+  }
+
+  @override
+  void handleNoEnumBody(Token semicolonToken) {
+    seen(semicolonToken);
+    doPrint(
+      'handleNoEnumBody('
+      '$semicolonToken)',
     );
   }
 

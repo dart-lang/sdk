@@ -53,5 +53,5 @@ final RegExp classRegexp = RegExp(r'minified:(Class\d+)');
 
 String unminify(String input, Dart2jsMapping mapping) => input.replaceAllMapped(
   classRegexp,
-  (match) => mapping.globalNames[match.group(1)!]!,
+  (match) => mapping.globalNames[match[1]!]!,
 );

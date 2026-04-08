@@ -8,18 +8,19 @@ import 'package:compiler/src/common/codegen.dart';
 import 'package:js_ast/js_ast.dart';
 
 import '../common.dart';
+import '../dump_info.dart' show DumpInfoJsAstRegistry;
+import '../io/code_output.dart'
+    show AbstractCodeOutput, CodeBuffer, CodeOutputListener;
 import '../js_backend/deferred_holder_expression.dart';
 import '../js_backend/string_reference.dart';
 import '../js_backend/type_reference.dart';
 import '../options.dart';
-import '../dump_info.dart' show DumpInfoJsAstRegistry;
-import '../io/code_output.dart'
-    show AbstractCodeOutput, CodeBuffer, CodeOutputListener;
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import 'js_source_mapping.dart';
 
 export 'package:js_ast/js_ast.dart';
+
 export 'js_debug.dart';
 
 String prettyPrint(

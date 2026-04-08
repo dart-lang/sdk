@@ -116,6 +116,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    _runSubscriptions(node, _registry._forBlockEnumBody);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _runSubscriptions(node, _registry._forBlockFunctionBody);
     node.visitChildren(this);
@@ -310,6 +316,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {
+    _runSubscriptions(node, _registry._forEmptyEnumBody);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _runSubscriptions(node, _registry._forEmptyFunctionBody);
     node.visitChildren(this);
@@ -318,12 +330,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitEmptyStatement(EmptyStatement node) {
     _runSubscriptions(node, _registry._forEmptyStatement);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitEnumBody(EnumBody node) {
-    _runSubscriptions(node, _registry._forEnumBody);
     node.visitChildren(this);
   }
 
@@ -612,12 +618,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitLibraryDirective(LibraryDirective node) {
     _runSubscriptions(node, _registry._forLibraryDirective);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    _runSubscriptions(node, _registry._forLibraryIdentifier);
     node.visitChildren(this);
   }
 
@@ -1215,6 +1215,8 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<BlockClassBody>> _forBlockClassBody = [];
 
+  final List<_Subscription<BlockEnumBody>> _forBlockEnumBody = [];
+
   final List<_Subscription<BlockFunctionBody>> _forBlockFunctionBody = [];
 
   final List<_Subscription<Block>> _forBlock = [];
@@ -1289,11 +1291,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<EmptyClassBody>> _forEmptyClassBody = [];
 
+  final List<_Subscription<EmptyEnumBody>> _forEmptyEnumBody = [];
+
   final List<_Subscription<EmptyFunctionBody>> _forEmptyFunctionBody = [];
 
   final List<_Subscription<EmptyStatement>> _forEmptyStatement = [];
-
-  final List<_Subscription<EnumBody>> _forEnumBody = [];
 
   final List<_Subscription<EnumConstantArguments>> _forEnumConstantArguments =
       [];
@@ -1406,8 +1408,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<Label>> _forLabel = [];
 
   final List<_Subscription<LibraryDirective>> _forLibraryDirective = [];
-
-  final List<_Subscription<LibraryIdentifier>> _forLibraryIdentifier = [];
 
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
 
@@ -1683,6 +1683,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addBlockEnumBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forBlockEnumBody.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addBlockFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forBlockFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -1880,6 +1885,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addEmptyEnumBody(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forEmptyEnumBody.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addEmptyFunctionBody(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEmptyFunctionBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -1887,11 +1897,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addEmptyStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forEmptyStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addEnumBody(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forEnumBody.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -2203,11 +2208,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addLibraryDirective(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forLibraryDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addLibraryIdentifier(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forLibraryIdentifier.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override

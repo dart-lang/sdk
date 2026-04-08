@@ -161,9 +161,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
   LibraryFeatures? _libraryFeatures;
 
   @override
-  final bool forAugmentationLibrary;
-
-  @override
   final bool forPatchLibrary;
 
   @override
@@ -194,7 +191,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     Map<String, Builder>? omittedTypeDeclarationBuilders,
     LookupScope? parentScope,
     ExtensionScope? parentExtensionScope,
-    required bool forAugmentationLibrary,
     required SourceCompilationUnit? augmentationRoot,
     required LibraryBuilder? resolveInLibrary,
     required bool? referenceIsPartOwner,
@@ -221,7 +217,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       parentExtensionScope: parentExtensionScope,
       importNameSpace: importNameSpace,
       prefixNameSpace: prefixNameSpace,
-      forAugmentationLibrary: forAugmentationLibrary,
       augmentationRoot: augmentationRoot,
       resolveInLibrary: resolveInLibrary,
       referenceIsPartOwner: referenceIsPartOwner,
@@ -246,7 +241,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
     ExtensionScope? parentExtensionScope,
     required ComputedMutableNameSpace importNameSpace,
     required ComputedMutableNameSpace prefixNameSpace,
-    required this.forAugmentationLibrary,
     required SourceCompilationUnit? augmentationRoot,
     required LibraryBuilder? resolveInLibrary,
     required bool? referenceIsPartOwner,
@@ -668,7 +662,7 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
           indexedLibrary: indexedLibrary,
           referenceIsPartOwner: _referenceIsPartOwner,
           conditionalImportSupported: conditionalImportSupported,
-          isAugmentation: forAugmentationLibrary,
+          isAugmentation: isAugmenting,
           isPatch: forPatchLibrary,
           parentScope: _parentScope,
           parentExtensionScope: _parentExtensionScope,
@@ -1233,7 +1227,6 @@ class SourceCompilationUnitImpl implements SourceCompilationUnit {
       -1,
       origin: null,
       accessor: this,
-      isAugmentation: false,
       referencesFromIndex: indexedLibrary,
     );
     Import import = new Import(

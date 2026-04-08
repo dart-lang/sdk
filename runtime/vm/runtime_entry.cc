@@ -2559,7 +2559,7 @@ static bool IsSingleTarget(IsolateGroup* isolate_group,
     if (!table->HasValidClassAt(cid)) continue;
     cls = table->At(cid);
     if (cls.is_abstract()) continue;
-    if (!cls.is_allocated()) continue;
+    if (!cls.is_allocated() && !cls.is_declared_in_bytecode()) continue;
     other_target = Resolver::ResolveDynamicAnyArgs(zone, cls, name,
                                                    /*allow_add=*/false);
     if (other_target.ptr() != target.ptr()) {
@@ -2590,14 +2590,14 @@ static void SaveUnlinkedCall(Zone* zone,
                              uword frame_pc,
                              const UnlinkedCall& unlinked_call) {
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
-  if (isolate_group->saved_unlinked_calls() == Array::null()) {
+  if (isolate_group->object_store()->saved_unlinked_calls() == Array::null()) {
     const auto& initial_map =
         Array::Handle(zone, HashTables::New<UnlinkedCallMap>(16, Heap::kOld));
-    isolate_group->set_saved_unlinked_calls(initial_map);
+    isolate_group->object_store()->set_saved_unlinked_calls(initial_map);
   }
 
-  UnlinkedCallMap unlinked_call_map(zone,
-                                    isolate_group->saved_unlinked_calls());
+  UnlinkedCallMap unlinked_call_map(
+      zone, isolate_group->object_store()->saved_unlinked_calls());
   const auto& pc = Integer::Handle(zone, Integer::NewFromUint64(frame_pc));
   // Some other isolate might have updated unlinked_call_map[pc] too, but
   // their update should be identical to ours.
@@ -2605,21 +2605,24 @@ static void SaveUnlinkedCall(Zone* zone,
       zone, UnlinkedCall::RawCast(
                 unlinked_call_map.InsertOrGetValue(pc, unlinked_call)));
   RELEASE_ASSERT(new_or_old_value.ptr() == unlinked_call.ptr());
-  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
+  isolate_group->object_store()->set_saved_unlinked_calls(
+      unlinked_call_map.Release());
 }
 
 static UnlinkedCallPtr LoadUnlinkedCall(Zone* zone,
                                         IsolateGroup* isolate_group,
                                         uword pc) {
   SafepointMutexLocker ml(isolate_group->unlinked_call_map_mutex());
-  ASSERT(isolate_group->saved_unlinked_calls() != Array::null());
-  UnlinkedCallMap unlinked_call_map(zone,
-                                    isolate_group->saved_unlinked_calls());
+  ASSERT(isolate_group->object_store()->saved_unlinked_calls() !=
+         Array::null());
+  UnlinkedCallMap unlinked_call_map(
+      zone, isolate_group->object_store()->saved_unlinked_calls());
 
   const auto& pc_integer = Integer::Handle(zone, Integer::NewFromUint64(pc));
   const auto& unlinked_call = UnlinkedCall::Cast(
       Object::Handle(zone, unlinked_call_map.GetOrDie(pc_integer)));
-  isolate_group->set_saved_unlinked_calls(unlinked_call_map.Release());
+  isolate_group->object_store()->set_saved_unlinked_calls(
+      unlinked_call_map.Release());
   return unlinked_call.ptr();
 }
 
@@ -4986,9 +4989,7 @@ DEFINE_LEAF_RUNTIME_ENTRY(ExitSafepoint,
                           DLRT_ExitSafepoint);
 
 namespace {
-Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
-                               uword* out_entry_point,
-                               uword* out_trampoline_type) {
+Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata) {
   // NOTE: This is only thread safe if the user is using the API correctly.
   // Otherwise, the callback could have been deleted and replaced, in which case
   // IsLive would still be true. Or it could have been deleted after we looked
@@ -4998,8 +4999,6 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
   // after free errors. Trying to lock FfiCallbackMetadata::lock_, or any
   // similar lock, leads to deadlocks.
 
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
-  *out_entry_point = metadata.target_entry_point();
   Isolate* target_isolate = metadata.target_isolate();
 
   Isolate* current_isolate = nullptr;
@@ -5033,13 +5032,8 @@ Thread* HandleAsyncFfiCallback(FfiCallbackMetadata::Metadata metadata,
 }
 
 Thread* HandleIsolateGroupBoundSyncFfiCallback(
-    FfiCallbackMetadata::Metadata metadata,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
+    FfiCallbackMetadata::Metadata metadata) {
   Thread* current_thread = Thread::Current();
-
-  *out_entry_point = metadata.target_entry_point();
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
 
   if (current_thread != nullptr) {
     current_thread->ExitSafepointFromNative();
@@ -5086,12 +5080,8 @@ void FfiCallbackThreadChecks(Thread* thread, Isolate* target_isolate) {
 
 Thread* HandleIsolateBoundSyncFfiCallback(
     FfiCallbackMetadata::Metadata metadata,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
+    CallbackMetadata* out) {
   Thread* current_thread = Thread::Current();
-
-  *out_entry_point = metadata.target_entry_point();
-  *out_trampoline_type = static_cast<uword>(metadata.trampoline_type());
 
   Isolate* target_isolate = metadata.target_isolate();
   if (current_thread == nullptr) {
@@ -5100,15 +5090,16 @@ Thread* HandleIsolateBoundSyncFfiCallback(
     }
     Thread::EnterIsolate(target_isolate);
     current_thread = Thread::Current();
-    *out_trampoline_type |=
-        FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag;
     FfiCallbackThreadChecks(current_thread, target_isolate);
+    out->epilogue =
+        reinterpret_cast<uword>(&DLRT_ExitSyncCallbackTargetIsolate);
   } else {
     FfiCallbackThreadChecks(current_thread, target_isolate);
     if (current_thread->execution_state() != Thread::kThreadInNative) {
       FATAL("Cannot invoke native callback from a leaf call.");
     }
     current_thread->ExitSafepointFromNative();
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitSyncCallback);
   }
 
   current_thread->set_execution_state(Thread::kThreadInVM);
@@ -5123,13 +5114,11 @@ Thread* HandleIsolateBoundSyncFfiCallback(
 // a runtime entry because we can't use Thread to look it up.
 extern "C" Thread* DLRT_GetFfiCallbackMetadata(
     FfiCallbackMetadata::Trampoline trampoline,
-    uword* out_entry_point,
-    uword* out_trampoline_type) {
+    CallbackMetadata* out) {
   CHECK_STACK_ALIGNMENT;
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata %p",
                      reinterpret_cast<void*>(trampoline));
-  ASSERT(out_entry_point != nullptr);
-  ASSERT(out_trampoline_type != nullptr);
+  ASSERT(out != nullptr);
 
   if (!Isolate::IsolateCreationEnabled()) {
     FATAL("GetFfiCallbackMetadata called after shutdown %p",
@@ -5155,30 +5144,56 @@ extern "C" Thread* DLRT_GetFfiCallbackMetadata(
   }
 
   Thread* thread = nullptr;
+
+  out->entry_point = metadata.target_entry_point();
+  switch (metadata.trampoline_type()) {
+    default:
+      out->type = 0;  // Call
+      break;
+    case FfiCallbackMetadata::TrampolineType::kAsync:
+      out->type = 1;  // Tail call.
+      break;
+#if defined(TARGET_ARCH_IA32)
+    case FfiCallbackMetadata::TrampolineType::kSyncStackDelta4:
+    case FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBoundStackDelta4:
+      out->type = 2;  // Call, ret4.
+      break;
+#endif
+  }
+
   if (metadata.trampoline_type() ==
       FfiCallbackMetadata::TrampolineType::kAsync) {
-    thread =
-        HandleAsyncFfiCallback(metadata, out_entry_point, out_trampoline_type);
+    thread = HandleAsyncFfiCallback(metadata);
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitTemporaryIsolate);
   } else if (metadata.is_isolate_group_bound()) {
-    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata, out_entry_point,
-                                                    out_trampoline_type);
+    thread = HandleIsolateGroupBoundSyncFfiCallback(metadata);
+    out->epilogue = reinterpret_cast<uword>(&DLRT_ExitIsolateGroupBoundIsolate);
   } else {
-    thread = HandleIsolateBoundSyncFfiCallback(metadata, out_entry_point,
-                                               out_trampoline_type);
+    thread = HandleIsolateBoundSyncFfiCallback(metadata, out);
   }
 
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata thread %p", thread);
   TRACE_RUNTIME_CALL("GetFfiCallbackMetadata entry_point %p",
-                     (void*)*out_entry_point);
-  TRACE_RUNTIME_CALL("GetFfiCallbackMetadata trampoline_type %p",
-                     (void*)*out_trampoline_type);
+                     reinterpret_cast<void*>(out->entry_point));
   return thread;
 }
 
-extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
+#if defined(USING_MEMORY_SANITIZER)
+// There is a __msan_unpoison_param but no __msan_unpoison_retval. Trick MSAN
+// into unpoisoning the largest value that an FFI callback might return. The
+// actual result registers will be overridden in the FFI callback stub.
+struct LargestReturn {
+  float x, y, w, z;
+};
+extern "C" LargestReturn dart_msan_unpoison_retval() {
+  return {0, 0, 0, 0};
+}
+#endif
+
+extern "C" void* DLRT_ExitIsolateGroupBoundIsolate(Thread* thread) {
   TRACE_RUNTIME_CALL("ExitIsolateGroupBoundIsolate%s", "");
-  Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
   Isolate* source_isolate =
       reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
   // Need to accommodate ExitIsolateGroupAsHelper assumptions.
@@ -5188,20 +5203,50 @@ extern "C" void DLRT_ExitIsolateGroupBoundIsolate() {
     Thread::EnterIsolate(source_isolate);
     Thread::Current()->EnterSafepoint();
   }
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
 }
 
-extern "C" void DLRT_ExitSyncCallbackTargetIsolate() {
+extern "C" void* DLRT_ExitSyncCallbackTargetIsolate(Thread* thread) {
   TRACE_RUNTIME_CALL("ExitSyncCallbackTargetIsolate%s", "");
-  Thread* thread = Thread::Current();
   ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
   thread->set_execution_state(Thread::kThreadInVM);
   Thread::ExitIsolate(/*isolate_shutdown=*/false);
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
 }
 
-extern "C" void DLRT_ExitTemporaryIsolate() {
-  TRACE_RUNTIME_CALL("ExitTemporaryIsolate%s", "");
-  Thread* thread = Thread::Current();
+extern "C" void* DLRT_ExitSyncCallback(Thread* thread) {
   ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
+
+  thread->EnterSafepointToNative();
+
+#if defined(USING_MEMORY_SANITIZER)
+  return reinterpret_cast<void*>(dart_msan_unpoison_retval);
+#else
+  return nullptr;
+#endif
+}
+
+#if defined(HOST_ARCH_IA32)
+// A function with arguments isn't compatible with the tail-call because on IA32
+// the arguments are on the stack and caller pops.
+extern "C" void* DLRT_ExitTemporaryIsolate() {
+  Thread* thread = Thread::Current();
+#else
+extern "C" void* DLRT_ExitTemporaryIsolate(Thread* thread) {
+#endif
+  TRACE_RUNTIME_CALL("ExitTemporaryIsolate%s", "");
+  ASSERT(thread != nullptr);
+  ASSERT(thread == Thread::Current());
   Isolate* source_isolate =
       reinterpret_cast<Isolate*>(thread->unboxed_int64_runtime_second_arg());
 
@@ -5220,6 +5265,7 @@ extern "C" void DLRT_ExitTemporaryIsolate() {
     thread->EnterSafepoint();
   }
   TRACE_RUNTIME_CALL("ExitTemporaryIsolate %s", "done");
+  return nullptr;
 }
 
 extern "C" ApiLocalScope* DLRT_EnterHandleScope(Thread* thread) {

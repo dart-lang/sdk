@@ -69,6 +69,7 @@ class DynamicInterfaceYamlFile {
         'extendable',
         'can-be-overridden',
         'callable',
+        'can-be-used-as-type',
       });
     }
   }
@@ -80,10 +81,16 @@ class DynamicInterfaceYamlFile {
   YamlList? get extendable => sections['extendable'];
   YamlList? get canBeOverridden => sections['can-be-overridden'];
   YamlList? get callable => sections['callable'];
+  YamlList? get canBeUsedAsType => sections['can-be-used-as-type'];
 
   // Coverage-ignore(suite): Not run.
   Set<String> get libraries => {
-    for (YamlList section in [?extendable, ?canBeOverridden, ?callable])
+    for (YamlList section in [
+      ?extendable,
+      ?canBeOverridden,
+      ?callable,
+      ?canBeUsedAsType,
+    ])
       for (YamlNode item in section) (item as YamlMap)['library'] as String,
   };
 
@@ -99,6 +106,7 @@ class DynamicInterfaceSpecification {
   final Set<TreeNode> extendable = {};
   final Set<TreeNode> canBeOverridden = {};
   final Set<TreeNode> callable = {};
+  final Set<TreeNode> canBeUsedAsType = {};
 
   factory DynamicInterfaceSpecification(
     String dynamicInterfaceSpecification,
@@ -127,8 +135,7 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
-      allowExtensionTypes: false,
-      allowStaticMembers: false,
+      allowStaticDeclarations: false,
       allowInstanceMembers: false,
     );
 
@@ -138,8 +145,7 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
-      allowExtensionTypes: false,
-      allowStaticMembers: false,
+      allowStaticDeclarations: false,
       allowInstanceMembers: true,
     );
 
@@ -149,9 +155,18 @@ class DynamicInterfaceSpecification {
       baseUri,
       component,
       libraryIndex,
-      allowExtensionTypes: true,
-      allowStaticMembers: true,
+      allowStaticDeclarations: true,
       allowInstanceMembers: true,
+    );
+
+    _parseList(
+      yamlFile.canBeUsedAsType,
+      canBeUsedAsType,
+      baseUri,
+      component,
+      libraryIndex,
+      allowStaticDeclarations: false,
+      allowInstanceMembers: false,
     );
   }
 
@@ -161,8 +176,7 @@ class DynamicInterfaceSpecification {
     Uri baseUri,
     Component component,
     LibraryIndex libraryIndex, {
-    required bool allowExtensionTypes,
-    required bool allowStaticMembers,
+    required bool allowStaticDeclarations,
     required bool allowInstanceMembers,
   }) {
     if (items != null) {
@@ -173,8 +187,7 @@ class DynamicInterfaceSpecification {
           baseUri,
           libraryIndex,
           component,
-          allowExtensionTypes: allowExtensionTypes,
-          allowStaticMembers: allowStaticMembers,
+          allowStaticDeclarations: allowStaticDeclarations,
           allowInstanceMembers: allowInstanceMembers,
         );
       }
@@ -187,20 +200,25 @@ class DynamicInterfaceSpecification {
     Uri baseUri,
     LibraryIndex libraryIndex,
     Component component, {
-    required bool allowExtensionTypes,
-    required bool allowStaticMembers,
+    // Allow extension types, extensions, or static members.
+    required bool allowStaticDeclarations,
     required bool allowInstanceMembers,
   }) {
     final YamlMap yamlMap = yamlNode as YamlMap;
-    final bool allowMembers = allowStaticMembers || allowInstanceMembers;
+    final bool allowMembers = allowStaticDeclarations || allowInstanceMembers;
     final Set<String> keys;
-    if (allowExtensionTypes) {
-      assert(allowMembers);
-      keys = const {'library', 'class', 'extension_type', 'member'};
+    if (allowStaticDeclarations) {
+      keys = const {
+        'library',
+        'class',
+        'extension_type',
+        'extension',
+        'member',
+      };
     } else if (allowMembers) {
       keys = const {'library', 'class', 'member'};
     } else {
-      keys = const {'library', 'class'};
+      keys = const {'library', 'class', 'extension_type'};
     }
     yamlMap.verifyKeys(keys);
 
@@ -228,7 +246,7 @@ class DynamicInterfaceSpecification {
         );
         _validateSpecifiedMember(
           member,
-          allowStaticMembers: allowStaticMembers,
+          allowStaticMembers: allowStaticDeclarations,
           allowInstanceMembers: allowInstanceMembers,
         );
         result.add(member);
@@ -239,10 +257,41 @@ class DynamicInterfaceSpecification {
       return;
     }
 
+    if (yamlMap.containsKey('extension')) {
+      final dynamic yamlExtensionNode = yamlMap['extension'];
+      if (yamlExtensionNode is YamlList) {
+        yamlMap.verifyKeys(const {'library', 'extension'});
+        for (dynamic c in yamlExtensionNode) {
+          result.add(libraryIndex.getExtension(libraryUri, c as String));
+        }
+        return;
+      }
+
+      final String extensionSpec = yamlExtensionNode as String;
+
+      if (allowMembers && yamlMap.containsKey('member')) {
+        final String memberSpec = yamlMap['member'] as String;
+        final Member member = libraryIndex.getMember(
+          libraryUri,
+          extensionSpec,
+          memberSpec,
+        );
+        _validateSpecifiedMember(
+          member,
+          allowStaticMembers: allowStaticDeclarations,
+          allowInstanceMembers: allowInstanceMembers,
+        );
+        result.add(member);
+        return;
+      }
+
+      result.add(libraryIndex.getExtension(libraryUri, extensionSpec));
+      return;
+    }
+
     if (yamlMap.containsKey('class')) {
       final dynamic yamlClassNode = yamlMap['class'];
       if (yamlClassNode is YamlList) {
-        // Coverage-ignore-block(suite): Not run.
         yamlMap.verifyKeys(const {'library', 'class'});
         for (dynamic c in yamlClassNode) {
           result.add(libraryIndex.getClass(libraryUri, c as String));
@@ -261,7 +310,7 @@ class DynamicInterfaceSpecification {
         );
         _validateSpecifiedMember(
           member,
-          allowStaticMembers: allowStaticMembers,
+          allowStaticMembers: allowStaticDeclarations,
           allowInstanceMembers: allowInstanceMembers,
         );
         result.add(member);
@@ -281,7 +330,7 @@ class DynamicInterfaceSpecification {
       );
       _validateSpecifiedMember(
         member,
-        allowStaticMembers: allowStaticMembers,
+        allowStaticMembers: allowStaticDeclarations,
         allowInstanceMembers: allowInstanceMembers,
       );
       result.add(member);
@@ -319,6 +368,8 @@ class DynamicInterfaceLanguageImplPragmas {
   static const String canBeOverriddenPragmaName =
       "dyn-module:language-impl:can-be-overridden";
   static const String callablePragmaName = "dyn-module:language-impl:callable";
+  static const String canBeUsedAsTypePragmaName =
+      "dyn-module:language-impl:can-be-used-as-type";
 
   final CoreTypes coreTypes;
   DynamicInterfaceLanguageImplPragmas(this.coreTypes);
@@ -359,7 +410,18 @@ class DynamicInterfaceLanguageImplPragmas {
     throw 'Unexpected node ${node.runtimeType} $node',
   };
 
-  // Coverage-ignore(suite): Not run.
+  bool canBeUsedAsType(TreeNode node) => switch (node) {
+    Class() =>
+      isPlatformLibrary(node.enclosingLibrary) &&
+          isAnnotatedWith(node, canBeUsedAsTypePragmaName),
+    ExtensionTypeDeclaration() =>
+      isPlatformLibrary(node.enclosingLibrary) &&
+          // Coverage-ignore(suite): Not run.
+          isAnnotatedWith(node, canBeUsedAsTypePragmaName),
+    _ => // Coverage-ignore(suite): Not run.
+    throw 'Unexpected node ${node.runtimeType} $node',
+  };
+
   bool isAnnotatedWith(Annotatable node, String pragmaName) {
     for (Expression annotation in node.annotations) {
       if (annotation case ConstantExpression(:var constant)) {
@@ -398,6 +460,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     _expandNodes(spec.callable);
     _expandNodes(spec.extendable);
     _expandNodes(spec.canBeOverridden);
+    _expandNodes(spec.canBeUsedAsType);
   }
 
   // Add nodes which do not have direct relation to its logical "parent" node.
@@ -420,7 +483,6 @@ class _DynamicModuleValidator extends RecursiveVisitor {
           _expandNode(node, extraNodes);
         }
         for (ExtensionTypeDeclaration e in node.extensionTypeDeclarations) {
-          // Coverage-ignore-block(suite): Not run.
           if (e.name[0] != '_') {
             _expandNode(e, extraNodes);
           }
@@ -675,13 +737,13 @@ class _DynamicModuleValidator extends RecursiveVisitor {
 
   @override
   void visitInterfaceType(InterfaceType node) {
-    _verifyCallable(node.classNode, _enclosingTreeNode!);
+    _verifyCanBeUsedAsType(node.classNode, _enclosingTreeNode!);
     super.visitInterfaceType(node);
   }
 
   @override
   void visitExtensionType(ExtensionType node) {
-    _verifyCallable(node.extensionTypeDeclaration, _enclosingTreeNode!);
+    _verifyCanBeUsedAsType(node.extensionTypeDeclaration, _enclosingTreeNode!);
     super.visitExtensionType(node);
   }
 
@@ -756,6 +818,36 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     );
   }
 
+  void _verifyCanBeUsedAsType(TreeNode target, TreeNode node) {
+    if (!_isFromDynamicModule(target) &&
+        !_isSpecified(target, spec.canBeUsedAsType) &&
+        !languageImplPragmas.canBeUsedAsType(target) &&
+        !_isSpecified(target, spec.callable) &&
+        !languageImplPragmas.isCallable(target)) {
+      switch (target) {
+        case Class():
+          loader.addProblem(
+            diag.classShouldBeListedAsCanBeUsedAsTypeInDynamicInterface
+                .withArguments(name: target.name),
+            node.fileOffset,
+            noLength,
+            node.location!.file,
+          );
+        case ExtensionTypeDeclaration():
+          loader.addProblem(
+            diag.extensionTypeShouldBeListedAsCanBeUsedAsTypeInDynamicInterface
+                .withArguments(name: target.name),
+            node.fileOffset,
+            noLength,
+            node.location!.file,
+          );
+        // Coverage-ignore(suite): Not run.
+        case _:
+          throw 'Unexpected node ${node.runtimeType} $node';
+      }
+    }
+  }
+
   void _verifyCallable(TreeNode target, TreeNode node) {
     if (target is Member) {
       target = _unwrapMember(target);
@@ -801,14 +893,6 @@ class _DynamicModuleValidator extends RecursiveVisitor {
             diag.classShouldBeListedAsCallableInDynamicInterface.withArguments(
               name: target.name,
             ),
-            node.fileOffset,
-            noLength,
-            node.location!.file,
-          );
-        case ExtensionTypeDeclaration():
-          loader.addProblem(
-            diag.extensionTypeShouldBeListedAsCallableInDynamicInterface
-                .withArguments(name: target.name),
             node.fileOffset,
             noLength,
             node.location!.file,

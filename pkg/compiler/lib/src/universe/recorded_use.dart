@@ -20,10 +20,11 @@ import 'package:compiler/src/elements/entities.dart';
 import 'package:compiler/src/io/source_information.dart';
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
-import 'package:record_use/record_use_internal.dart' as record_use;
+import 'package:record_use/record_use.dart' as record_use;
 
-import '../common/elements.dart' show JElementEnvironment;
+import '../common/elements.dart' show JCommonElements, JElementEnvironment;
 import '../js_backend/annotations.dart';
+import '../js_model/element_map.dart' show JsToElementMap;
 import '../serialization/serialization.dart';
 
 enum RecordedUseKind {
@@ -41,6 +42,9 @@ enum RecordedUseKind {
 sealed class RecordedUse {
   static const String tag = 'record-use';
 
+  // TODO(dcharkes): Remove this field if we decide to not support source
+  // information in the recorded uses output. Currently it is not used in the
+  // output, but it is mentioned in the documentation.
   final SourceInformation sourceInformation;
 
   RecordedUseKind get kind;
@@ -303,16 +307,18 @@ class RecordedConstInstance extends RecordedUse {
 /// Dart2js version of [record_use.InstanceCreationReference], with
 /// [ConstantValue]s instead of [record_use.Constant]s.
 class RecordedInstanceCreation extends RecordedUse {
-  final ClassEntity cls;
+  final ConstructorEntity constructor;
   final List<ConstantValue?> positionalArguments;
   final Map<String, ConstantValue?> namedArguments;
 
   RecordedInstanceCreation({
-    required this.cls,
+    required this.constructor,
     required this.positionalArguments,
     required this.namedArguments,
     required super.sourceInformation,
   });
+
+  ClassEntity get cls => constructor.enclosingClass;
 
   @override
   RecordedUseKind get kind => RecordedUseKind.instanceCreation;
@@ -321,11 +327,11 @@ class RecordedInstanceCreation extends RecordedUse {
     SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
-    final cls = source.readClass();
+    final constructor = source.readMember() as ConstructorEntity;
     final positionalArguments = source.readList(source.readConstantOrNull);
     final namedArguments = source.readStringMap(source.readConstantOrNull);
     return RecordedInstanceCreation(
-      cls: cls,
+      constructor: constructor,
       positionalArguments: positionalArguments,
       namedArguments: namedArguments,
       sourceInformation: sourceInformation,
@@ -334,7 +340,7 @@ class RecordedInstanceCreation extends RecordedUse {
 
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
-    sink.writeClass(cls);
+    sink.writeMember(constructor);
     sink.writeList(positionalArguments, sink.writeConstantOrNull);
     sink.writeStringMap(namedArguments, sink.writeConstantOrNull);
   }
@@ -342,7 +348,7 @@ class RecordedInstanceCreation extends RecordedUse {
   @override
   bool operator ==(Object other) {
     if (other is! RecordedInstanceCreation) return false;
-    if (cls != other.cls) return false;
+    if (constructor != other.constructor) return false;
     if (positionalArguments.length != other.positionalArguments.length) {
       return false;
     }
@@ -361,7 +367,7 @@ class RecordedInstanceCreation extends RecordedUse {
 
   @override
   int get hashCode => Object.hash(
-    cls,
+    constructor,
     Object.hashAll(positionalArguments),
     Object.hashAll(namedArguments.keys),
     Object.hashAll(namedArguments.values),
@@ -371,12 +377,14 @@ class RecordedInstanceCreation extends RecordedUse {
 
 /// Dart2js version of [record_use.ConstructorTearoffReference].
 class RecordedConstructorTearOff extends RecordedUse {
-  final ClassEntity cls;
+  final ConstructorEntity constructor;
 
   RecordedConstructorTearOff({
-    required this.cls,
+    required this.constructor,
     required super.sourceInformation,
   });
+
+  ClassEntity get cls => constructor.enclosingClass;
 
   @override
   RecordedUseKind get kind => RecordedUseKind.constructorTearOff;
@@ -385,26 +393,27 @@ class RecordedConstructorTearOff extends RecordedUse {
     SourceInformation sourceInformation,
     DataSourceReader source,
   ) {
-    final cls = source.readClass();
+    final constructor = source.readMember() as ConstructorEntity;
     return RecordedConstructorTearOff(
-      cls: cls,
+      constructor: constructor,
       sourceInformation: sourceInformation,
     );
   }
 
   @override
   void _writeFieldsForKind(DataSinkWriter sink) {
-    sink.writeClass(cls);
+    sink.writeMember(constructor);
   }
 
   @override
   bool operator ==(Object other) {
     if (other is! RecordedConstructorTearOff) return false;
-    return cls == other.cls && sourceInformation == other.sourceInformation;
+    return constructor == other.constructor &&
+        sourceInformation == other.sourceInformation;
   }
 
   @override
-  int get hashCode => Object.hash(cls, sourceInformation);
+  int get hashCode => Object.hash(constructor, sourceInformation);
 }
 
 /// [RecordUseValueConverter] transforms dart2js [ConstantValue] objects into the
@@ -418,13 +427,20 @@ class RecordedConstructorTearOff extends RecordedUse {
 /// `@RecordUse()` annotations on class or enum instances to prevent recording
 /// fields that might be tree-shaken.
 class RecordUseValueConverter {
-  /// Used to query class properties, such as whether a class is an enum.
+  final JsToElementMap _jsToElementMap;
+
+  /// [ElementEnvironment] for library, class and member lookup.
   final JElementEnvironment _elementEnvironment;
+
+  /// Access to the commonly used elements and types.
+  final JCommonElements _commonElements;
 
   /// Used to verify if a class or enum is annotated with `@RecordUse()`.
   final AnnotationsData _annotationsData;
 
-  RecordUseValueConverter(this._elementEnvironment, this._annotationsData);
+  RecordUseValueConverter(this._jsToElementMap, this._annotationsData)
+    : _elementEnvironment = _jsToElementMap.elementEnvironment,
+      _commonElements = _jsToElementMap.commonElements;
 
   record_use.MaybeConstant findValueOrNonConst(ConstantValue? constant) {
     if (constant == null) return const record_use.NonConstant();
@@ -440,16 +456,10 @@ class RecordUseValueConverter {
       MapConstantValue() => _findMapValue(constant),
       ListConstantValue() => _findListValue(constant),
       ConstructedConstantValue() => findInstanceValue(constant),
-      DoubleConstantValue() => record_use.UnsupportedConstant(
-        'Double literals are not supported for recording.',
-      ),
-      SetConstantValue() => record_use.UnsupportedConstant(
-        'Set literals are not supported for recording.',
-      ),
+      DoubleConstantValue() => record_use.DoubleConstant(constant.doubleValue),
+      SetConstantValue() => _findSetValue(constant),
       RecordConstantValue() => _findRecordValue(constant),
-      InstantiationConstantValue() => record_use.UnsupportedConstant(
-        'Generic instantiations are not supported for recording.',
-      ),
+      InstantiationConstantValue() => _findValue(constant.function),
       FunctionConstantValue() => record_use.UnsupportedConstant(
         'Function/Method tear-offs are not supported for recording.',
       ),
@@ -482,6 +492,14 @@ class RecordUseValueConverter {
     return record_use.ListConstant(result);
   }
 
+  record_use.SetConstant _findSetValue(SetConstantValue constant) {
+    final result = <record_use.Constant>[];
+    for (final constantValue in constant.values) {
+      result.add(_findValue(constantValue));
+    }
+    return record_use.SetConstant(result);
+  }
+
   record_use.RecordConstant _findRecordValue(RecordConstantValue constant) {
     final positional = <record_use.Constant>[];
     for (var i = 0; i < constant.shape.positionalFieldCount; i++) {
@@ -498,6 +516,26 @@ class RecordUseValueConverter {
 
   record_use.Constant findInstanceValue(ConstructedConstantValue constant) {
     final cls = constant.type.element;
+
+    if (cls == _commonElements.symbolImplementationClass) {
+      final nameValue = constant.fields[_commonElements.symbolField];
+      if (nameValue is StringConstantValue) {
+        final name = nameValue.stringValue;
+        Uri? libraryUri = _jsToElementMap.getSymbolLibraryUri(constant);
+
+        // We only record the library URI for symbols if they are from a
+        // 'package:' library. This is because symbols from other schemes (like
+        // 'file:') are not stable across environments, and thus not relevant
+        // for 'package:record_use'.
+        if (libraryUri != null && !libraryUri.isScheme('package')) {
+          libraryUri = null;
+        }
+        return record_use.SymbolConstant(
+          name,
+          libraryUri: libraryUri?.toString(),
+        );
+      }
+    }
 
     if (!_annotationsData.shouldRecordConstInstances(cls)) {
       final libraryUri = cls.library.canonicalUri.toString();
@@ -525,9 +563,8 @@ class RecordUseValueConverter {
       });
 
       final libraryUri = cls.library.canonicalUri.toString();
-      final definition = record_use.Definition(libraryUri, [
-        record_use.Name(cls.name, kind: record_use.DefinitionKind.enumKind),
-      ]);
+      final library = record_use.Library(libraryUri);
+      final definition = record_use.Enum(cls.name, library);
 
       return record_use.EnumConstant(
         definition: definition,
@@ -545,9 +582,8 @@ class RecordUseValueConverter {
     });
 
     final libraryUri = cls.library.canonicalUri.toString();
-    final definition = record_use.Definition(libraryUri, [
-      record_use.Name(cls.name, kind: record_use.DefinitionKind.classKind),
-    ]);
+    final library = record_use.Library(libraryUri);
+    final definition = record_use.Class(cls.name, library);
     return record_use.InstanceConstant(
       definition: definition,
       fields: fieldValues,

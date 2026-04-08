@@ -48,9 +48,9 @@ mixin StandardBounds {
       case (
             InterfaceType(
               classNode: Class sClassNode,
-              declaredNullability: Nullability.nonNullable
+              declaredNullability: Nullability.nonNullable,
             ),
-            _
+            _,
           )
           when sClassNode == coreTypes.objectClass:
         return true;
@@ -60,50 +60,52 @@ mixin StandardBounds {
             _,
             InterfaceType(
               classNode: Class tClassNode,
-              declaredNullability: Nullability.nonNullable
-            )
+              declaredNullability: Nullability.nonNullable,
+            ),
           )
           when tClassNode == coreTypes.objectClass:
         return false;
 
       // MORETOP(S?, T?) == MORETOP(S, T).
       case (
-          DartType(declaredNullability: Nullability.nullable),
-          DartType(declaredNullability: Nullability.nullable)
-        ):
-        DartType nonNullableS =
-            s.withDeclaredNullability(Nullability.nonNullable);
+        DartType(declaredNullability: Nullability.nullable),
+        DartType(declaredNullability: Nullability.nullable),
+      ):
+        DartType nonNullableS = s.withDeclaredNullability(
+          Nullability.nonNullable,
+        );
         assert(!identical(s, nonNullableS));
-        DartType nonNullableT =
-            t.withDeclaredNullability(Nullability.nonNullable);
+        DartType nonNullableT = t.withDeclaredNullability(
+          Nullability.nonNullable,
+        );
         assert(!identical(t, nonNullableT));
         return moretop(nonNullableS, nonNullableT);
 
       // MORETOP(S, T?) = true.
       case (
-          DartType(declaredNullability: Nullability.nonNullable),
-          DartType(declaredNullability: Nullability.nullable)
-        ):
+        DartType(declaredNullability: Nullability.nonNullable),
+        DartType(declaredNullability: Nullability.nullable),
+      ):
         return true;
 
       // MORETOP(S?, T) = false.
       case (
-          DartType(declaredNullability: Nullability.nullable),
-          DartType(declaredNullability: Nullability.nonNullable)
-        ):
+        DartType(declaredNullability: Nullability.nullable),
+        DartType(declaredNullability: Nullability.nonNullable),
+      ):
         return false;
 
       // MORETOP(FutureOr<S>, FutureOr<T>) = MORETOP(S, T).
       case (
-          FutureOrType(
-            typeArgument: DartType sTypeArgument,
-            declaredNullability: Nullability.nonNullable
-          ),
-          FutureOrType(
-            typeArgument: DartType tTypeArgument,
-            declaredNullability: Nullability.nonNullable
-          )
-        ):
+        FutureOrType(
+          typeArgument: DartType sTypeArgument,
+          declaredNullability: Nullability.nonNullable,
+        ),
+        FutureOrType(
+          typeArgument: DartType tTypeArgument,
+          declaredNullability: Nullability.nonNullable,
+        ),
+      ):
         return moretop(sTypeArgument, tTypeArgument);
 
       case (InterfaceType(), _):
@@ -164,36 +166,38 @@ mixin StandardBounds {
 
       // MOREBOTTOM(S?, T?) = MOREBOTTOM(S, T).
       case (
-          DartType(declaredNullability: Nullability.nullable),
-          DartType(declaredNullability: Nullability.nullable)
-        ):
-        DartType nonNullableS =
-            s.withDeclaredNullability(Nullability.nonNullable);
+        DartType(declaredNullability: Nullability.nullable),
+        DartType(declaredNullability: Nullability.nullable),
+      ):
+        DartType nonNullableS = s.withDeclaredNullability(
+          Nullability.nonNullable,
+        );
         assert(s != nonNullableS);
-        DartType nonNullableT =
-            t.withDeclaredNullability(Nullability.nonNullable);
+        DartType nonNullableT = t.withDeclaredNullability(
+          Nullability.nonNullable,
+        );
         assert(t != nonNullableT);
         return morebottom(nonNullableS, nonNullableT);
 
       // MOREBOTTOM(S, T?) = true.
       case (
-          DartType(declaredNullability: Nullability.nonNullable),
-          DartType(declaredNullability: Nullability.nullable)
-        ):
+        DartType(declaredNullability: Nullability.nonNullable),
+        DartType(declaredNullability: Nullability.nullable),
+      ):
         return true;
 
       // MOREBOTTOM(S?, T) = false.
       case (
-          DartType(declaredNullability: Nullability.nullable),
-          DartType(declaredNullability: Nullability.nonNullable)
-        ):
+        DartType(declaredNullability: Nullability.nullable),
+        DartType(declaredNullability: Nullability.nonNullable),
+      ):
         return false;
 
       // MOREBOTTOM(X&S, Y&T) = MOREBOTTOM(S, T).
       case (
-          IntersectionType(right: DartType sRight),
-          IntersectionType(right: DartType tRight)
-        ):
+        IntersectionType(right: DartType sRight),
+        IntersectionType(right: DartType tRight),
+      ):
         return morebottom(sRight, tRight);
 
       // MOREBOTTOM(X&S, T) = true.
@@ -206,9 +210,9 @@ mixin StandardBounds {
 
       // MOREBOTTOM(X extends S, Y extends T) = MOREBOTTOM(S, T).
       case (
-          TypeParameterType(parameter: TypeParameter sParameter),
-          TypeParameterType(parameter: TypeParameter tParameter)
-        ):
+        TypeParameterType(parameter: TypeParameter sParameter),
+        TypeParameterType(parameter: TypeParameter tParameter),
+      ):
         return morebottom(sParameter.bound, tParameter.bound);
 
       case (DynamicType(), _):
@@ -266,10 +270,12 @@ mixin StandardBounds {
         computeTypeWithoutNullabilityMarker(type1);
     DartType type2WithoutNullabilityMarker =
         computeTypeWithoutNullabilityMarker(type2);
-    bool isType1WithoutNullabilityMarker =
-        isTypeWithoutNullabilityMarker(type1);
-    bool isType2WithoutNullabilityMarker =
-        isTypeWithoutNullabilityMarker(type2);
+    bool isType1WithoutNullabilityMarker = isTypeWithoutNullabilityMarker(
+      type1,
+    );
+    bool isType2WithoutNullabilityMarker = isTypeWithoutNullabilityMarker(
+      type2,
+    );
 
     switch ((type1, type2)) {
       case (InvalidType(), _):
@@ -307,9 +313,9 @@ mixin StandardBounds {
       // DOWN(T1, T2) = T2 if BOTTOM(T2)
       // DOWN(T1, T2) = T1 if BOTTOM(T1)
       case (
-          NeverType(nullability: Nullability.nonNullable),
-          NeverType(nullability: Nullability.nonNullable)
-        ):
+        NeverType(nullability: Nullability.nonNullable),
+        NeverType(nullability: Nullability.nonNullable),
+      ):
       case (_, _) when coreTypes.isBottom(type1) && coreTypes.isBottom(type2):
         return morebottom(type1, type2) ? type1 : type2;
       case (NeverType(nullability: Nullability.nonNullable), _):
@@ -330,16 +336,16 @@ mixin StandardBounds {
       //  Never otherwise
       case (NullType(), NullType()):
       case (
-          NeverType(nullability: Nullability.nullable),
-          NeverType(nullability: Nullability.nullable)
-        ):
+        NeverType(nullability: Nullability.nullable),
+        NeverType(nullability: Nullability.nullable),
+      ):
       case (_, _) when coreTypes.isNull(type1) && coreTypes.isNull(type2):
         return morebottom(type1, type2) ? type1 : type2;
       case (NullType(), DartType(declaredNullability: Nullability.nullable)):
       case (
-          NeverType(nullability: Nullability.nullable),
-          DartType(declaredNullability: Nullability.nullable)
-        ):
+        NeverType(nullability: Nullability.nullable),
+        DartType(declaredNullability: Nullability.nullable),
+      ):
       case (_, DartType(declaredNullability: Nullability.nullable))
           when coreTypes.isNull(type1):
         return type1;
@@ -349,9 +355,9 @@ mixin StandardBounds {
         return const NeverType.nonNullable();
       case (DartType(declaredNullability: Nullability.nullable), NullType()):
       case (
-          DartType(declaredNullability: Nullability.nullable),
-          NeverType(nullability: Nullability.nullable)
-        ):
+        DartType(declaredNullability: Nullability.nullable),
+        NeverType(nullability: Nullability.nullable),
+      ):
       case (DartType(declaredNullability: Nullability.nullable), _)
           when coreTypes.isNull(type2):
         return type2;
@@ -414,8 +420,9 @@ mixin StandardBounds {
           when isNullableTypeConstructorApplication(type1) &&
               isNullableTypeConstructorApplication(type2):
         return _getStandardLowerBound(
-                type1WithoutNullabilityMarker, type2WithoutNullabilityMarker)
-            .withDeclaredNullability(Nullability.nullable);
+          type1WithoutNullabilityMarker,
+          type2WithoutNullabilityMarker,
+        ).withDeclaredNullability(Nullability.nullable);
 
       case (FunctionType functionType1, FunctionType functionType2):
         return _getFunctionStandardLowerBound(functionType1, functionType2);
@@ -432,25 +439,29 @@ mixin StandardBounds {
       // subtype relation is established.
       case (_, _)
           when isSubtypeOf(
-              greatestClosureForLowerBound(type1WithoutNullabilityMarker),
-              greatestClosureForLowerBound(type2WithoutNullabilityMarker)):
+            greatestClosureForLowerBound(type1WithoutNullabilityMarker),
+            greatestClosureForLowerBound(type2WithoutNullabilityMarker),
+          ):
         return type1.withDeclaredNullability(
-            intersectNullabilities(type1.nullability, type2.nullability));
+          intersectNullabilities(type1.nullability, type2.nullability),
+        );
       case (_, _)
           when isSubtypeOf(
-              greatestClosureForLowerBound(type2WithoutNullabilityMarker),
-              greatestClosureForLowerBound(type1WithoutNullabilityMarker)):
+            greatestClosureForLowerBound(type2WithoutNullabilityMarker),
+            greatestClosureForLowerBound(type1WithoutNullabilityMarker),
+          ):
         return type2.withDeclaredNullability(
-            intersectNullabilities(type2.nullability, type1.nullability));
+          intersectNullabilities(type2.nullability, type1.nullability),
+        );
 
       // See
       // https://github.com/dart-lang/sdk/issues/37439#issuecomment-519654959.
       //
       // GLB(FutureOr<A>, FutureOr<B>) == FutureOr<GLB(A, B)>
       case (
-          FutureOrType(typeArgument: DartType t1),
-          FutureOrType(typeArgument: DartType t2)
-        ):
+        FutureOrType(typeArgument: DartType t1),
+        FutureOrType(typeArgument: DartType t2),
+      ):
         DartType argument = getStandardLowerBound(t1, t2);
         return new FutureOrType(argument, argument.declaredNullability);
       // GLB(FutureOr<A>, Future<B>) == Future<GLB(A, B)>
@@ -458,15 +469,18 @@ mixin StandardBounds {
             FutureOrType(typeArgument: DartType t1),
             InterfaceType(
               classNode: Class classNode2,
-              typeArguments: [DartType t2]
-            )
+              typeArguments: [DartType t2],
+            ),
           )
           when classNode2 == coreTypes.futureClass:
         return new InterfaceType(
-            coreTypes.futureClass,
-            intersectNullabilities(
-                type1.declaredNullability, type2.declaredNullability),
-            <DartType>[getStandardLowerBound(t1, t2)]);
+          coreTypes.futureClass,
+          intersectNullabilities(
+            type1.declaredNullability,
+            type2.declaredNullability,
+          ),
+          <DartType>[getStandardLowerBound(t1, t2)],
+        );
       // GLB(FutureOr<A>, B) == GLB(A, B)
       case (FutureOrType(typeArgument: DartType t1), DartType t2):
         return getStandardLowerBound(t1, t2);
@@ -481,16 +495,19 @@ mixin StandardBounds {
       case (
             InterfaceType(
               classNode: Class classNode1,
-              typeArguments: [DartType t1]
+              typeArguments: [DartType t1],
             ),
-            FutureOrType(typeArgument: DartType t2)
+            FutureOrType(typeArgument: DartType t2),
           )
           when classNode1 == coreTypes.futureClass:
         return new InterfaceType(
-            coreTypes.futureClass,
-            intersectNullabilities(
-                type1.declaredNullability, type2.declaredNullability),
-            <DartType>[getStandardLowerBound(t2, t1)]);
+          coreTypes.futureClass,
+          intersectNullabilities(
+            type1.declaredNullability,
+            type2.declaredNullability,
+          ),
+          <DartType>[getStandardLowerBound(t2, t1)],
+        );
       // GLB(A, FutureOr<B>) == GLB(B, A)
       case (DartType t1, FutureOrType(typeArgument: DartType t2)):
         return getStandardLowerBound(t2, t1);
@@ -508,36 +525,49 @@ mixin StandardBounds {
       case (_, StructuralParameterType()):
       case (IntersectionType(), _):
       case (_, IntersectionType()):
-        return NeverType.fromNullability(combineNullabilitiesForSubstitution(
+        return NeverType.fromNullability(
+          combineNullabilitiesForSubstitution(
             inner: Nullability.nonNullable,
             outer: intersectNullabilities(
-                type1.declaredNullability, type2.declaredNullability)));
+              type1.declaredNullability,
+              type2.declaredNullability,
+            ),
+          ),
+        );
 
       case (NeverType(nullability: Nullability.undetermined), _):
       case (_, NeverType(nullability: Nullability.undetermined)):
-        throw new StateError("Unsupported nullability for NeverType: "
-            "'${Nullability.undetermined}'.");
+        throw new StateError(
+          "Unsupported nullability for NeverType: "
+          "'${Nullability.undetermined}'.",
+        );
 
       case (AuxiliaryType(), _):
       case (_, AuxiliaryType()):
-        throw new StateError("Unsupported type combination: "
-            "getStandardUpperBoundInternal("
-            "${type1.runtimeType}, ${type2.runtimeType}"
-            ")");
+        throw new StateError(
+          "Unsupported type combination: "
+          "getStandardUpperBoundInternal("
+          "${type1.runtimeType}, ${type2.runtimeType}"
+          ")",
+        );
 
       case (FunctionTypeParameterType(), _):
       case (_, FunctionTypeParameterType()):
-        throw new StateError("Unimplemented for type combination: "
-            "getStandardUpperBoundInternal("
-            "${type1.runtimeType}, ${type2.runtimeType}"
-            ")");
+        throw new StateError(
+          "Unimplemented for type combination: "
+          "getStandardUpperBoundInternal("
+          "${type1.runtimeType}, ${type2.runtimeType}"
+          ")",
+        );
 
       case (ClassTypeParameterType(), _):
       case (_, ClassTypeParameterType()):
-        throw new StateError("Unimplemented for type combination: "
-            "getStandardUpperBoundInternal("
-            "${type1.runtimeType}, ${type2.runtimeType}"
-            ")");
+        throw new StateError(
+          "Unimplemented for type combination: "
+          "getStandardUpperBoundInternal("
+          "${type1.runtimeType}, ${type2.runtimeType}"
+          ")",
+        );
     }
   }
 
@@ -602,9 +632,9 @@ mixin StandardBounds {
       // UP(T1, T2) = T2 if BOTTOM(T1)
       // UP(T1, T2) = T1 if BOTTOM(T2)
       case (
-          NeverType(nullability: Nullability.nonNullable),
-          NeverType(nullability: Nullability.nonNullable)
-        ):
+        NeverType(nullability: Nullability.nonNullable),
+        NeverType(nullability: Nullability.nonNullable),
+      ):
       case (_, _) when coreTypes.isBottom(type1) && coreTypes.isBottom(type2):
         return morebottom(type1, type2) ? type2 : type1;
       case (NeverType(nullability: Nullability.nonNullable), _):
@@ -630,9 +660,9 @@ mixin StandardBounds {
       //   T1? otherwise
       case (NullType(), NullType()):
       case (
-          NeverType(nullability: Nullability.nullable),
-          NeverType(nullability: Nullability.nullable)
-        ):
+        NeverType(nullability: Nullability.nullable),
+        NeverType(nullability: Nullability.nullable),
+      ):
       case (_, _) when coreTypes.isNull(type1) && coreTypes.isNull(type2):
         return morebottom(type1, type2) ? type2 : type1;
       case (NullType(), _):
@@ -679,68 +709,104 @@ mixin StandardBounds {
       case (_, _) when isNullableTypeConstructorApplication(type1):
       case (_, _) when isNullableTypeConstructorApplication(type2):
         return _getStandardUpperBound(
-                computeTypeWithoutNullabilityMarker(type1),
-                computeTypeWithoutNullabilityMarker(type2))
-            .withDeclaredNullability(Nullability.nullable);
+          computeTypeWithoutNullabilityMarker(type1),
+          computeTypeWithoutNullabilityMarker(type2),
+        ).withDeclaredNullability(Nullability.nullable);
 
       case (TypeParameterType typeParameterType1, _):
-        return _getTypeVariableStandardUpperBound(type1, type2,
-            bound1: typeParameterType1.bound,
-            nominalEliminationTarget: typeParameterType1.parameter);
+        return _getTypeVariableStandardUpperBound(
+          type1,
+          type2,
+          bound1: typeParameterType1.bound,
+          nominalEliminationTarget: typeParameterType1.parameter,
+        );
       case (StructuralParameterType structuralParameterType1, _):
-        return _getTypeVariableStandardUpperBound(type1, type2,
-            bound1: structuralParameterType1.bound,
-            structuralEliminationTarget: structuralParameterType1.parameter);
+        return _getTypeVariableStandardUpperBound(
+          type1,
+          type2,
+          bound1: structuralParameterType1.bound,
+          structuralEliminationTarget: structuralParameterType1.parameter,
+        );
       case (_, TypeParameterType typeParameterType2):
-        return _getTypeVariableStandardUpperBound(type2, type1,
-            bound1: typeParameterType2.bound,
-            nominalEliminationTarget: typeParameterType2.parameter);
+        return _getTypeVariableStandardUpperBound(
+          type2,
+          type1,
+          bound1: typeParameterType2.bound,
+          nominalEliminationTarget: typeParameterType2.parameter,
+        );
       case (_, StructuralParameterType structuralParameterType2):
-        return _getTypeVariableStandardUpperBound(type2, type1,
-            bound1: structuralParameterType2.bound,
-            structuralEliminationTarget: structuralParameterType2.parameter);
+        return _getTypeVariableStandardUpperBound(
+          type2,
+          type1,
+          bound1: structuralParameterType2.bound,
+          structuralEliminationTarget: structuralParameterType2.parameter,
+        );
 
       case (FunctionType functionType1, FunctionType functionType2):
         return _getFunctionStandardUpperBound(functionType1, functionType2);
       case (FunctionType(), InterfaceType interfaceType2)
           when interfaceType2.classNode == coreTypes.functionClass:
         // UP(T Function<...>(...), Function) = Function
-        return coreTypes.functionRawType(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
+        return coreTypes.functionRawType(
+          uniteNullabilities(
+            type1.declaredNullability,
+            type2.declaredNullability,
+          ),
+        );
       case (FunctionType(), _):
         // UP(T Function<...>(...), T2) = UP(Object, T2)
         return _getStandardUpperBound(
-            coreTypes.objectNonNullableRawType, type2);
+          coreTypes.objectNonNullableRawType,
+          type2,
+        );
       case (InterfaceType interfaceType1, FunctionType())
           when interfaceType1.classNode == coreTypes.functionClass:
         // UP(Function, T Function<...>(...)) = Function
-        return coreTypes.functionRawType(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
+        return coreTypes.functionRawType(
+          uniteNullabilities(
+            type1.declaredNullability,
+            type2.declaredNullability,
+          ),
+        );
       case (_, FunctionType()):
         // UP(T1, T Function<...>(...)) = UP(T1, Object)
         return _getStandardUpperBound(
-            type1, coreTypes.objectNonNullableRawType);
+          type1,
+          coreTypes.objectNonNullableRawType,
+        );
 
       case (RecordType recordType1, RecordType recordType2):
         return _getRecordStandardUpperBound(recordType1, recordType2);
       case (RecordType(), InterfaceType interfaceType2)
           when interfaceType2.classNode == coreTypes.recordClass:
         // UP(Record(...), Record) = Record
-        return coreTypes.recordRawType(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
+        return coreTypes.recordRawType(
+          uniteNullabilities(
+            type1.declaredNullability,
+            type2.declaredNullability,
+          ),
+        );
       case (RecordType(), _):
         // UP(Record(...), T2) = UP(Object, T2)
         return _getStandardUpperBound(
-            coreTypes.objectNonNullableRawType, type2);
+          coreTypes.objectNonNullableRawType,
+          type2,
+        );
       case (InterfaceType interfaceType1, RecordType())
           when interfaceType1.classNode == coreTypes.recordClass:
         // UP(Record, Record(...)) = Record
-        return coreTypes.recordRawType(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
+        return coreTypes.recordRawType(
+          uniteNullabilities(
+            type1.declaredNullability,
+            type2.declaredNullability,
+          ),
+        );
       case (_, RecordType()):
         // UP(T1, Record(...)) = UP(T1, Object)
         return _getStandardUpperBound(
-            type1, coreTypes.objectNonNullableRawType);
+          type1,
+          coreTypes.objectNonNullableRawType,
+        );
 
       // UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
       // UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
@@ -748,31 +814,34 @@ mixin StandardBounds {
       // UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)
       // UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)
       case (
-          FutureOrType(typeArgument: DartType t1),
-          FutureOrType(typeArgument: DartType t2)
-        ):
+        FutureOrType(typeArgument: DartType t1),
+        FutureOrType(typeArgument: DartType t2),
+      ):
       case (
             FutureOrType(typeArgument: DartType t1),
             InterfaceType(
               typeArguments: [DartType t2],
-              classNode: Class classNode2
-            )
+              classNode: Class classNode2,
+            ),
           )
           when classNode2 == coreTypes.futureClass:
       case (FutureOrType(typeArgument: DartType t1), DartType t2):
       case (
             InterfaceType(
               typeArguments: [DartType t1],
-              classNode: Class classNode1
+              classNode: Class classNode1,
             ),
-            FutureOrType(typeArgument: DartType t2)
+            FutureOrType(typeArgument: DartType t2),
           )
           when classNode1 == coreTypes.futureClass:
       case (DartType t1, FutureOrType(typeArgument: DartType t2)):
         return new FutureOrType(
-            getStandardUpperBound(t1, t2),
-            uniteNullabilities(
-                type1.declaredNullability, type2.declaredNullability));
+          getStandardUpperBound(t1, t2),
+          uniteNullabilities(
+            type1.declaredNullability,
+            type2.declaredNullability,
+          ),
+        );
 
       // We use the non-nullable variants of the two interfaces types to
       // determine T1 <: T2 without using the nullability of the outermost
@@ -780,27 +849,34 @@ mixin StandardBounds {
       // type if the subtype relation is established.
       case (_, _)
           when isSubtypeOf(
-              leastClosureForUpperBound(typeWithoutNullabilityMarker1),
-              leastClosureForUpperBound(typeWithoutNullabilityMarker2)):
+            leastClosureForUpperBound(typeWithoutNullabilityMarker1),
+            leastClosureForUpperBound(typeWithoutNullabilityMarker2),
+          ):
         // UP(T1, T2) = T2 if T1 <: T2
         //   Note that both types must be interface or extension types at this
         //   point.
         return type2.withDeclaredNullability(
-            uniteNullabilities(type1.nullability, type2.nullability));
+          uniteNullabilities(type1.nullability, type2.nullability),
+        );
       case (_, _)
           when isSubtypeOf(
-              leastClosureForUpperBound(typeWithoutNullabilityMarker2),
-              leastClosureForUpperBound(typeWithoutNullabilityMarker1)):
+            leastClosureForUpperBound(typeWithoutNullabilityMarker2),
+            leastClosureForUpperBound(typeWithoutNullabilityMarker1),
+          ):
         // UP(T1, T2) = T1 if T2 <: T1
         //   Note that both types must be interface or extension types at this
         //   point.
-        return type1.withDeclaredNullability(uniteNullabilities(
-            type1.declaredNullability, type2.declaredNullability));
+        return type1.withDeclaredNullability(
+          uniteNullabilities(
+            type1.declaredNullability,
+            type2.declaredNullability,
+          ),
+        );
 
       case (
-          TypeDeclarationType typeDeclarationType1,
-          TypeDeclarationType typeDeclarationType2
-        ):
+        TypeDeclarationType typeDeclarationType1,
+        TypeDeclarationType typeDeclarationType2,
+      ):
         if (typeDeclarationType1.typeDeclarationReference ==
             typeDeclarationType2.typeDeclarationReference) {
           // UP(C<T0, ..., Tn>, C<S0, ..., Sn>) = C<R0,..., Rn> where Ri is
@@ -816,69 +892,93 @@ mixin StandardBounds {
           for (int i = 0; i < n; ++i) {
             Variance variance = typeParameters[i].variance;
             if (variance == Variance.contravariant) {
-              typeArguments[i] =
-                  _getStandardLowerBound(leftArguments[i], rightArguments[i]);
+              typeArguments[i] = _getStandardLowerBound(
+                leftArguments[i],
+                rightArguments[i],
+              );
             } else if (variance == Variance.invariant) {
               if (!areMutualSubtypes(leftArguments[i], rightArguments[i])) {
                 return _getLegacyLeastUpperBound(
-                    typeDeclarationType1, typeDeclarationType2);
+                  typeDeclarationType1,
+                  typeDeclarationType2,
+                );
               }
             } else {
-              typeArguments[i] =
-                  _getStandardUpperBound(leftArguments[i], rightArguments[i]);
+              typeArguments[i] = _getStandardUpperBound(
+                leftArguments[i],
+                rightArguments[i],
+              );
             }
           }
           switch (typeDeclaration) {
             case Class():
               return new InterfaceType(
-                  typeDeclaration,
-                  uniteNullabilities(
-                      type1.declaredNullability, type2.declaredNullability),
-                  typeArguments);
+                typeDeclaration,
+                uniteNullabilities(
+                  type1.declaredNullability,
+                  type2.declaredNullability,
+                ),
+                typeArguments,
+              );
             case ExtensionTypeDeclaration():
               return new ExtensionType(
-                  typeDeclaration,
-                  uniteNullabilities(
-                      type1.declaredNullability, type2.declaredNullability),
-                  typeArguments);
+                typeDeclaration,
+                uniteNullabilities(
+                  type1.declaredNullability,
+                  type2.declaredNullability,
+                ),
+                typeArguments,
+              );
           }
         } else {
           // UP(C0<T0, ..., Tn>, C1<S0, ..., Sk>)
           //   = least upper bound of two interfaces as in Dart 1.
           return _getLegacyLeastUpperBound(
-              typeDeclarationType1, typeDeclarationType2);
+            typeDeclarationType1,
+            typeDeclarationType2,
+          );
         }
 
       case (NeverType(nullability: Nullability.undetermined), _):
       case (_, NeverType(nullability: Nullability.undetermined)):
-        throw new StateError("Unsupported nullability for NeverType: "
-            "'${Nullability.undetermined}'.");
+        throw new StateError(
+          "Unsupported nullability for NeverType: "
+          "'${Nullability.undetermined}'.",
+        );
 
       case (AuxiliaryType(), _):
       case (_, AuxiliaryType()):
-        throw new StateError("Unsupported type combination: "
-            "getStandardUpperBoundInternal("
-            "${type1.runtimeType}, ${type2.runtimeType}"
-            ")");
+        throw new StateError(
+          "Unsupported type combination: "
+          "getStandardUpperBoundInternal("
+          "${type1.runtimeType}, ${type2.runtimeType}"
+          ")",
+        );
 
       case (FunctionTypeParameterType(), _):
       case (_, FunctionTypeParameterType()):
-        throw new StateError("Unimplemented for type combination: "
-            "getStandardUpperBoundInternal("
-            "${type1.runtimeType}, ${type2.runtimeType}"
-            ")");
+        throw new StateError(
+          "Unimplemented for type combination: "
+          "getStandardUpperBoundInternal("
+          "${type1.runtimeType}, ${type2.runtimeType}"
+          ")",
+        );
 
       case (ClassTypeParameterType(), _):
       case (_, ClassTypeParameterType()):
-        throw new StateError("Unimplemented for type combination: "
-            "getStandardUpperBoundInternal("
-            "${type1.runtimeType}, ${type2.runtimeType}"
-            ")");
+        throw new StateError(
+          "Unimplemented for type combination: "
+          "getStandardUpperBoundInternal("
+          "${type1.runtimeType}, ${type2.runtimeType}"
+          ")",
+        );
     }
   }
 
   DartType _getLegacyLeastUpperBound(
-      TypeDeclarationType type1, TypeDeclarationType type2) {
+    TypeDeclarationType type1,
+    TypeDeclarationType type2,
+  ) {
     if (type1 is InterfaceType && type2 is InterfaceType) {
       return hierarchy.getLegacyLeastUpperBound(type1, type2);
     } else if (type1 is ExtensionType || type2 is ExtensionType) {
@@ -892,15 +992,18 @@ mixin StandardBounds {
       Map<ExtensionTypeDeclaration, int> extensionTypeDeclarationDepth = {};
 
       int computeExtensionTypeDeclarationDepth(
-          ExtensionTypeDeclaration extensionTypeDeclaration,
-          List<InterfaceType> superInterfaceTypes) {
+        ExtensionTypeDeclaration extensionTypeDeclaration,
+        List<InterfaceType> superInterfaceTypes,
+      ) {
         int? depth = extensionTypeDeclarationDepth[extensionTypeDeclaration];
         if (depth == null) {
           int maxDepth = 0;
           for (DartType implemented in extensionTypeDeclaration.implements) {
             if (implemented is ExtensionType) {
               int supertypeDepth = computeExtensionTypeDeclarationDepth(
-                  implemented.extensionTypeDeclaration, superInterfaceTypes);
+                implemented.extensionTypeDeclaration,
+                superInterfaceTypes,
+              );
               if (supertypeDepth >= maxDepth) {
                 maxDepth = supertypeDepth + 1;
               }
@@ -915,16 +1018,23 @@ mixin StandardBounds {
       }
 
       // TODO(johnniwinther): Handle non-extension type supertypes.
-      void computeSuperTypes(ExtensionType type, List<ExtensionType> supertypes,
-          List<InterfaceType> superInterfaceTypes) {
+      void computeSuperTypes(
+        ExtensionType type,
+        List<ExtensionType> supertypes,
+        List<InterfaceType> superInterfaceTypes,
+      ) {
         computeExtensionTypeDeclarationDepth(
-            type.extensionTypeDeclaration, superInterfaceTypes);
+          type.extensionTypeDeclaration,
+          superInterfaceTypes,
+        );
         supertypes.add(type);
         for (DartType implemented in type.extensionTypeDeclaration.implements) {
           if (implemented is ExtensionType) {
-            ExtensionType supertype =
-                hierarchy.getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
-                    type, implemented.extensionTypeDeclaration)!;
+            ExtensionType supertype = hierarchy
+                .getExtensionTypeAsInstanceOfExtensionTypeDeclaration(
+                  type,
+                  implemented.extensionTypeDeclaration,
+                )!;
             computeSuperTypes(supertype, supertypes, superInterfaceTypes);
           }
         }
@@ -950,8 +1060,9 @@ mixin StandardBounds {
       Set<ExtensionType> set = supertypes1.toSet()..retainAll(supertypes2);
       Map<int, List<ExtensionType>> commonSupertypesByDepth = {};
       for (ExtensionType type in set) {
-        (commonSupertypesByDepth[extensionTypeDeclarationDepth[
-                type.extensionTypeDeclaration]!] ??= [])
+        (commonSupertypesByDepth[extensionTypeDeclarationDepth[type
+                    .extensionTypeDeclaration]!] ??=
+                [])
             .add(type);
       }
       int maxDepth = -1;
@@ -968,14 +1079,19 @@ mixin StandardBounds {
       }
 
       return hierarchy.getLegacyLeastUpperBoundFromSupertypeLists(
-          type1, type2, superInterfaceTypes1, superInterfaceTypes2);
+        type1,
+        type2,
+        superInterfaceTypes1,
+        superInterfaceTypes2,
+      );
     }
     if (type1 is ExtensionType && type1.isPotentiallyNullable ||
         type2 is ExtensionType && type2.isPotentiallyNullable) {
       return coreTypes.objectNullableRawType;
     } else {
       return coreTypes.objectRawType(
-          uniteNullabilities(type1.nullability, type2.nullability));
+        uniteNullabilities(type1.nullability, type2.nullability),
+      );
     }
   }
 
@@ -1022,12 +1138,13 @@ mixin StandardBounds {
         f.namedParameters.isNotEmpty || g.namedParameters.isNotEmpty;
     bool haveOptionalPositional =
         f.requiredParameterCount < f.positionalParameters.length ||
-            g.requiredParameterCount < g.positionalParameters.length;
+        g.requiredParameterCount < g.positionalParameters.length;
 
     // The fallback result for whenever the following rule applies:
     //     DOWN(T Function<...>(...), S Function<...>(...)) = Never otherwise.
     final DartType fallbackResult = NeverType.fromNullability(
-        intersectNullabilities(f.declaredNullability, g.declaredNullability));
+      intersectNullabilities(f.declaredNullability, g.declaredNullability),
+    );
 
     if (haveNamed && haveOptionalPositional) return fallbackResult;
     if (haveNamed &&
@@ -1042,16 +1159,20 @@ mixin StandardBounds {
       if (m != 0) {
         List<DartType> fParametersAsArguments = [
           for (StructuralParameter parameter in f.typeParameters)
-            new StructuralParameterType.withDefaultNullability(parameter)
+            new StructuralParameterType.withDefaultNullability(parameter),
         ];
         FunctionTypeInstantiator instantiator =
             FunctionTypeInstantiator.fromInstantiation(
-                g, fParametersAsArguments);
+              g,
+              fParametersAsArguments,
+            );
         for (int i = 0; i < m && boundsMatch; ++i) {
           // TODO(cstefantsova): Figure out if a procedure for syntactic
           // equality should be used instead.
-          if (!areMutualSubtypes(f.typeParameters[i].bound,
-              instantiator.substitute(g.typeParameters[i].bound))) {
+          if (!areMutualSubtypes(
+            f.typeParameters[i].bound,
+            instantiator.substitute(g.typeParameters[i].bound),
+          )) {
             boundsMatch = false;
           }
         }
@@ -1059,18 +1180,26 @@ mixin StandardBounds {
       }
     }
     if (!boundsMatch) return fallbackResult;
-    int maxPos =
-        math.max(f.positionalParameters.length, g.positionalParameters.length);
-    int minPos =
-        math.min(f.positionalParameters.length, g.positionalParameters.length);
+    int maxPos = math.max(
+      f.positionalParameters.length,
+      g.positionalParameters.length,
+    );
+    int minPos = math.min(
+      f.positionalParameters.length,
+      g.positionalParameters.length,
+    );
 
     List<StructuralParameter> typeParameters = f.typeParameters;
 
-    List<DartType> positionalParameters =
-        new List<DartType>.filled(maxPos, dummyDartType);
+    List<DartType> positionalParameters = new List<DartType>.filled(
+      maxPos,
+      dummyDartType,
+    );
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = _getStandardUpperBound(
-          f.positionalParameters[i], g.positionalParameters[i]);
+        f.positionalParameters[i],
+        g.positionalParameters[i],
+      );
     }
     for (int i = minPos; i < f.positionalParameters.length; ++i) {
       positionalParameters[i] = f.positionalParameters[i];
@@ -1100,8 +1229,10 @@ mixin StandardBounds {
           ++j;
         } else {
           named = new NamedType(
-              named1.name, _getStandardUpperBound(named1.type, named2.type),
-              isRequired: named1.isRequired && named2.isRequired);
+            named1.name,
+            _getStandardUpperBound(named1.type, named2.type),
+            isRequired: named1.isRequired && named2.isRequired,
+          );
           ++i;
           ++j;
         }
@@ -1109,27 +1240,35 @@ mixin StandardBounds {
       }
       while (i < f.namedParameters.length) {
         NamedType named1 = f.namedParameters[i];
-        namedParameters.add(!named1.isRequired
-            ? named1
-            : new NamedType(named1.name, named1.type, isRequired: false));
+        namedParameters.add(
+          !named1.isRequired
+              ? named1
+              : new NamedType(named1.name, named1.type, isRequired: false),
+        );
         ++i;
       }
       while (j < g.namedParameters.length) {
         NamedType named2 = g.namedParameters[j];
-        namedParameters
-            .add(new NamedType(named2.name, named2.type, isRequired: false));
+        namedParameters.add(
+          new NamedType(named2.name, named2.type, isRequired: false),
+        );
         ++j;
       }
     }
 
     DartType returnType = _getStandardLowerBound(f.returnType, g.returnType);
 
-    return new FunctionType(positionalParameters, returnType,
-        intersectNullabilities(f.declaredNullability, g.declaredNullability),
-        namedParameters: namedParameters,
-        typeParameters: typeParameters,
-        requiredParameterCount:
-            math.min(f.requiredParameterCount, g.requiredParameterCount));
+    return new FunctionType(
+      positionalParameters,
+      returnType,
+      intersectNullabilities(f.declaredNullability, g.declaredNullability),
+      namedParameters: namedParameters,
+      typeParameters: typeParameters,
+      requiredParameterCount: math.min(
+        f.requiredParameterCount,
+        g.requiredParameterCount,
+      ),
+    );
   }
 
   /// Computes the nullability-aware lower bound of two record types.
@@ -1153,7 +1292,8 @@ mixin StandardBounds {
     // The fallback result for whenever the following rule applies:
     //     DOWN(Record(...), Record(...)) = Never otherwise.
     late final DartType fallbackResult = NeverType.fromNullability(
-        intersectNullabilities(r1.declaredNullability, r2.declaredNullability));
+      intersectNullabilities(r1.declaredNullability, r2.declaredNullability),
+    );
 
     if (r1.positional.length != r2.positional.length ||
         r1.named.length != r2.named.length) {
@@ -1169,16 +1309,24 @@ mixin StandardBounds {
       }
     }
 
-    List<DartType> positional = new List<DartType>.generate(positionalLength,
-        (i) => _getStandardLowerBound(r1.positional[i], r2.positional[i]));
+    List<DartType> positional = new List<DartType>.generate(
+      positionalLength,
+      (i) => _getStandardLowerBound(r1.positional[i], r2.positional[i]),
+    );
 
     List<NamedType> named = new List<NamedType>.generate(
-        namedLength,
-        (i) => new NamedType(r1.named[i].name,
-            _getStandardLowerBound(r1.named[i].type, r2.named[i].type)));
+      namedLength,
+      (i) => new NamedType(
+        r1.named[i].name,
+        _getStandardLowerBound(r1.named[i].type, r2.named[i].type),
+      ),
+    );
 
-    return new RecordType(positional, named,
-        intersectNullabilities(r1.declaredNullability, r2.declaredNullability));
+    return new RecordType(
+      positional,
+      named,
+      intersectNullabilities(r1.declaredNullability, r2.declaredNullability),
+    );
   }
 
   /// Computes the nullability-aware lower bound of two function types.
@@ -1223,12 +1371,13 @@ mixin StandardBounds {
         f.namedParameters.isNotEmpty || g.namedParameters.isNotEmpty;
     bool haveOptionalPositional =
         f.requiredParameterCount < f.positionalParameters.length ||
-            g.requiredParameterCount < g.positionalParameters.length;
+        g.requiredParameterCount < g.positionalParameters.length;
 
     // The return value for whenever the following applies:
     //     UP(T Function<...>(...), S Function<...>(...)) = Function otherwise
     final DartType fallbackResult = coreTypes.functionRawType(
-        uniteNullabilities(f.declaredNullability, g.declaredNullability));
+      uniteNullabilities(f.declaredNullability, g.declaredNullability),
+    );
 
     if (haveNamed && haveOptionalPositional) return fallbackResult;
     if (!haveNamed && f.requiredParameterCount != g.requiredParameterCount) {
@@ -1279,34 +1428,43 @@ mixin StandardBounds {
       if (m != 0) {
         List<DartType> fTypeParametersAsTypes = [
           for (StructuralParameter parameter in f.typeParameters)
-            new StructuralParameterType.withDefaultNullability(parameter)
+            new StructuralParameterType.withDefaultNullability(parameter),
         ];
         instantiator = FunctionTypeInstantiator.fromIterables(
-            g.typeParameters, fTypeParametersAsTypes);
+          g.typeParameters,
+          fTypeParametersAsTypes,
+        );
         for (int i = 0; i < m && boundsMatch; ++i) {
           // TODO(cstefantsova): Figure out if a procedure for syntactic
           // equality should be used instead.
-          if (!areMutualSubtypes(f.typeParameters[i].bound,
-              instantiator.substitute(g.typeParameters[i].bound))) {
+          if (!areMutualSubtypes(
+            f.typeParameters[i].bound,
+            instantiator.substitute(g.typeParameters[i].bound),
+          )) {
             boundsMatch = false;
           }
         }
       }
     }
     if (!boundsMatch) return fallbackResult;
-    int minPos =
-        math.min(f.positionalParameters.length, g.positionalParameters.length);
+    int minPos = math.min(
+      f.positionalParameters.length,
+      g.positionalParameters.length,
+    );
 
     List<StructuralParameter> typeParameters = f.typeParameters;
 
-    List<DartType> positionalParameters =
-        new List<DartType>.filled(minPos, dummyDartType);
+    List<DartType> positionalParameters = new List<DartType>.filled(
+      minPos,
+      dummyDartType,
+    );
     for (int i = 0; i < minPos; ++i) {
       positionalParameters[i] = _getStandardLowerBound(
-          f.positionalParameters[i],
-          instantiator != null
-              ? instantiator.substitute(g.positionalParameters[i])
-              : g.positionalParameters[i]);
+        f.positionalParameters[i],
+        instantiator != null
+            ? instantiator.substitute(g.positionalParameters[i])
+            : g.positionalParameters[i],
+      );
     }
 
     List<NamedType> namedParameters = <NamedType>[];
@@ -1324,14 +1482,18 @@ mixin StandardBounds {
         } else if (order > 0) {
           ++j;
         } else {
-          namedParameters.add(new NamedType(
+          namedParameters.add(
+            new NamedType(
               named1.name,
               _getStandardLowerBound(
-                  named1.type,
-                  instantiator != null
-                      ? instantiator.substitute(named2.type)
-                      : named2.type),
-              isRequired: named1.isRequired || named2.isRequired));
+                named1.type,
+                instantiator != null
+                    ? instantiator.substitute(named2.type)
+                    : named2.type,
+              ),
+              isRequired: named1.isRequired || named2.isRequired,
+            ),
+          );
           ++i;
           ++j;
         }
@@ -1339,16 +1501,20 @@ mixin StandardBounds {
     }
 
     DartType returnType = _getStandardUpperBound(
-        f.returnType,
-        instantiator != null
-            ? instantiator.substitute(g.returnType)
-            : g.returnType);
+      f.returnType,
+      instantiator != null
+          ? instantiator.substitute(g.returnType)
+          : g.returnType,
+    );
 
-    return new FunctionType(positionalParameters, returnType,
-        uniteNullabilities(f.declaredNullability, g.declaredNullability),
-        namedParameters: namedParameters,
-        typeParameters: typeParameters,
-        requiredParameterCount: f.requiredParameterCount);
+    return new FunctionType(
+      positionalParameters,
+      returnType,
+      uniteNullabilities(f.declaredNullability, g.declaredNullability),
+      namedParameters: namedParameters,
+      typeParameters: typeParameters,
+      requiredParameterCount: f.requiredParameterCount,
+    );
   }
 
   /// Computes the nullability-aware lower bound of two record types.
@@ -1371,7 +1537,8 @@ mixin StandardBounds {
     // The return value for whenever the following applies:
     //     UP(Record(...), Record(...)) = Record otherwise
     late final DartType fallbackResult = coreTypes.recordRawType(
-        uniteNullabilities(r1.declaredNullability, r2.declaredNullability));
+      uniteNullabilities(r1.declaredNullability, r2.declaredNullability),
+    );
 
     // Here we perform a quick check on the function types to figure out if we
     // can compute a non-trivial upper bound for them.
@@ -1391,27 +1558,39 @@ mixin StandardBounds {
       }
     }
 
-    List<DartType> positional = new List<DartType>.generate(positionalLength,
-        (i) => _getStandardUpperBound(r1.positional[i], r2.positional[i]));
+    List<DartType> positional = new List<DartType>.generate(
+      positionalLength,
+      (i) => _getStandardUpperBound(r1.positional[i], r2.positional[i]),
+    );
 
     List<NamedType> named = new List<NamedType>.generate(
-        namedLength,
-        (i) => new NamedType(r1.named[i].name,
-            _getStandardUpperBound(r1.named[i].type, r2.named[i].type)));
+      namedLength,
+      (i) => new NamedType(
+        r1.named[i].name,
+        _getStandardUpperBound(r1.named[i].type, r2.named[i].type),
+      ),
+    );
 
-    return new RecordType(positional, named,
-        uniteNullabilities(r1.declaredNullability, r2.declaredNullability));
+    return new RecordType(
+      positional,
+      named,
+      uniteNullabilities(r1.declaredNullability, r2.declaredNullability),
+    );
   }
 
-  DartType _getTypeVariableStandardUpperBound(DartType type1, DartType type2,
-      {required DartType bound1,
-      TypeParameter? nominalEliminationTarget,
-      StructuralParameter? structuralEliminationTarget}) {
+  DartType _getTypeVariableStandardUpperBound(
+    DartType type1,
+    DartType type2, {
+    required DartType bound1,
+    TypeParameter? nominalEliminationTarget,
+    StructuralParameter? structuralEliminationTarget,
+  }) {
     assert(type1 is TypeParameterType || type1 is StructuralParameterType);
-    assert(nominalEliminationTarget != null &&
-            structuralEliminationTarget == null ||
-        nominalEliminationTarget == null &&
-            structuralEliminationTarget != null);
+    assert(
+      nominalEliminationTarget != null && structuralEliminationTarget == null ||
+          nominalEliminationTarget == null &&
+              structuralEliminationTarget != null,
+    );
 
     // UP(X1 extends B1, T2) =
     //   T2 if X1 <: T2
@@ -1421,38 +1600,62 @@ mixin StandardBounds {
     //     as defined in [inference.md].
 
     if (isSubtypeOf(
-        leastClosureForUpperBound(type1), leastClosureForUpperBound(type2))) {
-      return type2.withDeclaredNullability(combineNullabilitiesForSubstitution(
+      leastClosureForUpperBound(type1),
+      leastClosureForUpperBound(type2),
+    )) {
+      return type2.withDeclaredNullability(
+        combineNullabilitiesForSubstitution(
           inner: type2.nullability,
           outer: uniteNullabilities(
-              type1.declaredNullability, type2.nullability)));
+            type1.declaredNullability,
+            type2.nullability,
+          ),
+        ),
+      );
     }
     if (isSubtypeOf(
-        leastClosureForUpperBound(type2), leastClosureForUpperBound(type1))) {
-      return type1.withDeclaredNullability(combineNullabilitiesForSubstitution(
+      leastClosureForUpperBound(type2),
+      leastClosureForUpperBound(type1),
+    )) {
+      return type1.withDeclaredNullability(
+        combineNullabilitiesForSubstitution(
           inner: type1.declaredNullability,
           outer: uniteNullabilities(
-              type1.declaredNullability, type2.nullability)));
+            type1.declaredNullability,
+            type2.nullability,
+          ),
+        ),
+      );
     }
     TypeParameterEliminator eliminator = new TypeParameterEliminator(
-        structuralEliminationTargets: {
-          if (structuralEliminationTarget != null) structuralEliminationTarget
-        },
-        nominalEliminationTargets: {
-          if (nominalEliminationTarget != null) nominalEliminationTarget
-        },
-        coreTypes: coreTypes,
-        unhandledTypeHandler: (type, recursor) => false);
-    DartType result =
-        _getStandardUpperBound(eliminator.eliminateToGreatest(bound1), type2);
-    return result.withDeclaredNullability(combineNullabilitiesForSubstitution(
+      structuralEliminationTargets: {
+        if (structuralEliminationTarget != null) structuralEliminationTarget,
+      },
+      nominalEliminationTargets: {
+        if (nominalEliminationTarget != null) nominalEliminationTarget,
+      },
+      coreTypes: coreTypes,
+      unhandledTypeHandler: (type, recursor) => false,
+    );
+    DartType result = _getStandardUpperBound(
+      eliminator.eliminateToGreatest(bound1),
+      type2,
+    );
+    return result.withDeclaredNullability(
+      combineNullabilitiesForSubstitution(
         inner: result.declaredNullability,
-        outer:
-            uniteNullabilities(bound1.declaredNullability, type2.nullability)));
+        outer: uniteNullabilities(
+          bound1.declaredNullability,
+          type2.nullability,
+        ),
+      ),
+    );
   }
 
   DartType _getIntersectionStandardUpperBound(
-      IntersectionType type1, DartType type2) {
+    IntersectionType type1,
+    DartType type2,
+  ) {
     // UP(X1 & B1, T2) =
     //   T2 if X1 <: T2
     //   otherwise X1 if T2 <: X1
@@ -1461,22 +1664,37 @@ mixin StandardBounds {
     //     as defined in [inference.md].
     DartType demoted = type1.left;
     if (isSubtypeOf(
-        leastClosureForUpperBound(demoted), leastClosureForUpperBound(type2))) {
-      return type2.withDeclaredNullability(uniteNullabilities(
-          type1.declaredNullability, type2.declaredNullability));
+      leastClosureForUpperBound(demoted),
+      leastClosureForUpperBound(type2),
+    )) {
+      return type2.withDeclaredNullability(
+        uniteNullabilities(
+          type1.declaredNullability,
+          type2.declaredNullability,
+        ),
+      );
     }
     if (isSubtypeOf(
-        leastClosureForUpperBound(type2), leastClosureForUpperBound(demoted))) {
-      return demoted.withDeclaredNullability(uniteNullabilities(
-          demoted.declaredNullability, type2.declaredNullability));
+      leastClosureForUpperBound(type2),
+      leastClosureForUpperBound(demoted),
+    )) {
+      return demoted.withDeclaredNullability(
+        uniteNullabilities(
+          demoted.declaredNullability,
+          type2.declaredNullability,
+        ),
+      );
     }
     TypeParameterEliminator eliminator = new TypeParameterEliminator(
-        structuralEliminationTargets: {},
-        nominalEliminationTargets: {type1.left.parameter},
-        coreTypes: coreTypes,
-        unhandledTypeHandler: (type, recursor) => false);
-    Nullability resultingNullability =
-        uniteNullabilities(type1.right.declaredNullability, type2.nullability);
+      structuralEliminationTargets: {},
+      nominalEliminationTargets: {type1.left.parameter},
+      coreTypes: coreTypes,
+      unhandledTypeHandler: (type, recursor) => false,
+    );
+    Nullability resultingNullability = uniteNullabilities(
+      type1.right.declaredNullability,
+      type2.nullability,
+    );
 
     // If the resulting nullability is [Nullability.undetermined], one of the
     // types can be nullable at run time. The upper bound is supposed to be a
@@ -1487,8 +1705,9 @@ mixin StandardBounds {
         : resultingNullability;
 
     return _getStandardUpperBound(
-            eliminator.eliminateToGreatest(type1.right), type2)
-        .withDeclaredNullability(resultingNullability);
+      eliminator.eliminateToGreatest(type1.right),
+      type2,
+    ).withDeclaredNullability(resultingNullability);
   }
 
   /// Compute the greatest closure of [typeSchema] for subtyping in DOWN.

@@ -4,17 +4,54 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
 
 void main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(
+      InvalidCovariantModifierInPrimaryConstructorWithoutTypeTest,
+    );
+    defineReflectiveTests(
+      InvalidCovariantModifierInPrimaryConstructorWithTypeTest,
+    );
     defineReflectiveTests(ReplaceFinalWithVarBulkTest);
     defineReflectiveTests(ReplaceFinalWithVarTest);
     defineReflectiveTests(ReplaceFinalWithVarTypedRemoveTest);
   });
+}
+
+@reflectiveTest
+class InvalidCovariantModifierInPrimaryConstructorWithoutTypeTest
+    extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.replaceFinalWithVar;
+
+  Future<void> test_withoutType() async {
+    await resolveTestCode(r'''
+class C(covariant final v);
+''');
+    await assertHasFix(r'''
+class C(covariant var v);
+''');
+  }
+}
+
+@reflectiveTest
+class InvalidCovariantModifierInPrimaryConstructorWithTypeTest
+    extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.removeUnnecessaryFinal;
+
+  Future<void> test_withType() async {
+    await resolveTestCode(r'''
+class C<T>(covariant final T v);
+''');
+    await assertHasFix(r'''
+class C<T>(covariant T v);
+''');
+  }
 }
 
 @reflectiveTest

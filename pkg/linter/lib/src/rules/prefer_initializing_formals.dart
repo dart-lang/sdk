@@ -33,13 +33,21 @@ class PreferInitializingFormals extends AnalysisRule {
   ) {
     var visitor = _Visitor(this, context);
     registry.addConstructorDeclaration(this, visitor);
+    registry.addPrimaryConstructorDeclaration(this, visitor);
   }
 }
 
 /// Reports lints for a single constructor declaration.
 class _ConstructorChecker {
   final AnalysisRule _rule;
-  final ConstructorDeclaration _constructor;
+
+  final ConstructorFragment? _constructorFragment;
+
+  final FormalParameterList _parameterList;
+
+  final NodeList<ConstructorInitializer>? _initializers;
+
+  final FunctionBody? _body;
 
   /// The elements for each constructor formal parameter.
   final List<Element?> _parameters;
@@ -60,18 +68,20 @@ class _ConstructorChecker {
 
   _ConstructorChecker(
     this._rule,
-    this._constructor, {
-    required bool privateNamedParametersEnabled,
-  }) : _parameters = _constructor.parameters.parameters
+    this._constructorFragment,
+    this._parameterList,
+    this._initializers,
+    this._body, {
+    required this._privateNamedParametersEnabled,
+  }) : _parameters = _parameterList.parameters
            .where((param) => param.notDefault is! SuperFormalParameter)
            .map((param) => param.declaredFragment?.element)
-           .toList(),
-       _privateNamedParametersEnabled = privateNamedParametersEnabled;
+           .toList();
 
   void check() {
     // Don't lint initializers from parameters that are already initializing
     // formals.
-    for (var parameterFragment in _constructor.parameters.parameterFragments) {
+    for (var parameterFragment in _parameterList.parameterFragments) {
       if (parameterFragment == null) continue;
 
       var parameter = parameterFragment.element;
@@ -83,23 +93,25 @@ class _ConstructorChecker {
     }
 
     // Look for constructor initializers to lint.
-    for (var constructorInitializer in _constructor.initializers) {
-      // Must be a public field initializer.
-      if (constructorInitializer is! ConstructorFieldInitializer) continue;
+    if (_initializers != null) {
+      for (var constructorInitializer in _initializers) {
+        // Must be a public field initializer.
+        if (constructorInitializer is! ConstructorFieldInitializer) continue;
 
-      // Must be initializing from a variable.
-      var initializerExpression = constructorInitializer.expression;
-      if (initializerExpression is! SimpleIdentifier) continue;
+        // Must be initializing from a variable.
+        var initializerExpression = constructorInitializer.expression;
+        if (initializerExpression is! SimpleIdentifier) continue;
 
-      _checkInitializer(
-        constructorInitializer,
-        constructorInitializer.fieldName.element,
-        initializerExpression.element,
-      );
+        _checkInitializer(
+          constructorInitializer,
+          constructorInitializer.fieldName.element,
+          initializerExpression.element,
+        );
+      }
     }
 
     // If the constructor has a block body, look for field assignments in it.
-    if (_constructor.body case BlockFunctionBody block) {
+    if (_body case BlockFunctionBody block) {
       for (var statement in block.block.statements) {
         // Must be an expression statement containing an assignment of the form
         // "this.x = x;" for some "x".
@@ -174,7 +186,7 @@ class _ConstructorChecker {
     // Must be initializing a field on the surrounding class and not an
     // inherited one.
     if (field.enclosingElement !=
-        _constructor.declaredFragment?.element.enclosingElement) {
+        _constructorFragment?.element.enclosingElement) {
       return;
     }
 
@@ -184,8 +196,8 @@ class _ConstructorChecker {
     var visitor = _ReferenceCounter(parameter);
     // Visit the initializers and body directly so that we ignore references in
     // the doc comment.
-    _constructor.initializers.accept(visitor);
-    _constructor.body.accept(visitor);
+    _initializers?.accept(visitor);
+    _body?.accept(visitor);
     if (visitor.count > 1) return;
 
     _nodesToLintByField.putIfAbsent(field, () => []).add(node);
@@ -222,7 +234,25 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     _ConstructorChecker(
       _rule,
-      node,
+      node.declaredFragment,
+      node.parameters,
+      node.initializers,
+      node.body,
+      privateNamedParametersEnabled: _context.isFeatureEnabled(
+        Feature.private_named_parameters,
+      ),
+    ).check();
+  }
+
+  @override
+  void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
+    var body = node.body;
+    _ConstructorChecker(
+      _rule,
+      node.declaredFragment,
+      node.formalParameters,
+      body?.initializers,
+      body?.body,
       privateNamedParametersEnabled: _context.isFeatureEnabled(
         Feature.private_named_parameters,
       ),

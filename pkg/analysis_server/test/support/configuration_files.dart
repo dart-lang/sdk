@@ -12,13 +12,20 @@ import 'package:analyzer_testing/utilities/extensions/resource_provider.dart';
 /// A mixin adding functionality to write `.dart_tool/package_config.json`
 /// files along with mock packages to a [ResourceProvider].
 mixin ConfigurationFilesMixin on MockPackagesMixin {
+  /// Adds the 'flutter_localizations' package to the package config file for
+  /// the package-under-test.
+  ///
+  /// This allows `package:flutter_localizations/flutter_localizations.dart`
+  /// imports to resolve.
+  bool get addFlutterLocalizationsPackageDep => false;
+
   /// Adds the 'flutter_test' package to the package config file for the
   /// package-under-test.
   ///
   /// This allows `package:flutter_test/flutter_test.dart` imports to resolve.
   bool get addFlutterTestPackageDep => false;
 
-  /// Adds the 'pedantic' package to the package config file for the
+  /// Adds the 'vector_math' package to the package config file for the
   /// package-under-test.
   ///
   /// This allows `package:vector_math/vector_math_64.dart` imports to resolve.

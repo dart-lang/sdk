@@ -976,7 +976,6 @@ class FragmentFactoryImpl implements FragmentFactory {
               _augmentationRoot
             : null,
         accessor: _compilationUnit,
-        isAugmentation: isAugmentationImport,
         referencesFromIndex: isAugmentationImport
             ?
               // Coverage-ignore(suite): Not run.
@@ -1090,9 +1089,15 @@ class FragmentFactoryImpl implements FragmentFactory {
   }) {
     EnumFragment declarationFragment = endEnumDeclaration();
 
+    Modifiers modifiers = Modifiers.empty;
+    if (declarationFragment.declaresConstConstructor) {
+      modifiers |= Modifiers.DeclaresConstConstructor;
+    }
+
     declarationFragment.compilationUnitScope = _compilationUnitScope;
     declarationFragment.metadata = metadata;
     declarationFragment.mixins = mixins;
+    declarationFragment.modifiers = modifiers;
     declarationFragment.interfaces = interfaces;
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
@@ -1401,6 +1406,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
+    required bool forAbstractClassOrEnumOrMixin,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1481,7 +1487,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       typeParameterNameSpace: typeParameterNameSpace,
       typeParameterScope: typeParameterScope.lookupScope,
       formals: formals,
-      forAbstractClassOrMixin: false,
+      forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
       beginInitializers: isConst || libraryFeatures.superParameters.isEnabled
@@ -1517,7 +1523,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required String? nativeMethodName,
     required Token? beginInitializers,
     required bool hasNewKeyword,
-    required bool forAbstractClassOrMixin,
+    required bool forAbstractClassOrEnumOrMixin,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1570,7 +1576,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       typeParameterScope: typeParameterScope.lookupScope,
       formals: formals,
       nativeMethodName: nativeMethodName,
-      forAbstractClassOrMixin: forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
       enclosingDeclaration: enclosingDeclaration,
       enclosingCompilationUnit: _compilationUnit,
       beginInitializers:
@@ -2137,13 +2143,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     List<FieldInfo> fieldInfos,
   ) {
     for (FieldInfo info in fieldInfos) {
-      bool isConst = modifiers.isConst;
-      bool isFinal = modifiers.isFinal;
-      bool potentiallyNeedInitializerInOutline = isConst || isFinal;
-      Token? startToken;
-      if (potentiallyNeedInitializerInOutline || type == null) {
-        startToken = info.initializerToken;
-      }
+      Token? startToken = info.initializerToken;
       if (startToken != null) {
         // Extract only the tokens for the initializer expression from the
         // token stream.
@@ -2151,7 +2151,6 @@ class FragmentFactoryImpl implements FragmentFactory {
         endToken.setNext(new Token.eof(endToken.next!.offset));
         new Token.eof(startToken.previous!.offset).setNext(startToken);
       }
-      bool hasInitializer = info.initializerToken != null;
       offsetMap.registerField(
         info.identifier,
         _addField(
@@ -2163,10 +2162,6 @@ class FragmentFactoryImpl implements FragmentFactory {
           nameOffset: info.identifier.nameOffset,
           endOffset: info.endOffset,
           initializerToken: startToken,
-          hasInitializer: hasInitializer,
-          constInitializerToken: potentiallyNeedInitializerInOutline
-              ? startToken
-              : null,
         ),
       );
     }
@@ -2181,12 +2176,10 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int nameOffset,
     required int endOffset,
     required Token? initializerToken,
-    required bool hasInitializer,
-    Token? constInitializerToken,
   }) {
     DeclarationFragmentImpl? enclosingDeclaration =
         _declarationFragments.currentOrNull;
-    if (hasInitializer) {
+    if (initializerToken != null) {
       modifiers |= Modifiers.HasInitializer;
     }
     FieldFragment fragment = new FieldFragment(
@@ -2195,7 +2188,6 @@ class FragmentFactoryImpl implements FragmentFactory {
       nameOffset: nameOffset,
       endOffset: endOffset,
       initializerToken: initializerToken,
-      constInitializerToken: constInitializerToken,
       metadata: metadata,
       type: type,
       isTopLevel: isTopLevel,

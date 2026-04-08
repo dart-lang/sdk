@@ -53,13 +53,15 @@ void main() {
 
   // Propagate promotion from one anonymous method to the next.
   {
-    Object o1 = 1, o2 = 2, o3 = 3, o4 = 4;
+    Object o1 = 1, o3 = 3;
+    Object? o2 = 2 as dynamic, o4 = 4 as dynamic; // Cast to avoid promotion.
+
     (receiver.=> o1 as int).=> o1.isEven;
     (maybeReceiver?.=> o2 as int?)?.=>
-        o2.expectStaticType<Exactly<Object>>;
+        o2.expectStaticType<Exactly<Object?>>;
     ((receiver.=> o3 as num).=> o3 as int).=> o3.isEven;
     ((maybeReceiver?.=> o4 as num?)?.=> o4 as int?)?.=>
-        o4.expectStaticType<Exactly<Object>>;
+        o4.expectStaticType<Exactly<Object?>>;
   }
 
   // Ditto, cascaded.

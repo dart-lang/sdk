@@ -14,10 +14,9 @@ main() {
 
 @reflectiveTest
 class ThisExpressionResolutionTest extends PubPackageResolutionTest {
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_class_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    await assertNoErrorsInCode(r'''
+class A {}
 
 augment class A {
   void f() {
@@ -26,14 +25,6 @@ augment class A {
 }
 ''');
 
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-class A {}
-''');
-
-    await resolveFile2(a);
-
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
     var node = findNode.singleThisExpression;
@@ -41,15 +32,13 @@ class A {}
 ThisExpression
   thisKeyword: this
   staticType: A
-    element: <testLibraryFragment>::@class::A
     element: <testLibrary>::@class::A
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_mixin_inAugmentation() async {
-    var a = newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
+    await assertNoErrorsInCode(r'''
+mixin M {}
 
 augment mixin M {
   void f() {
@@ -58,15 +47,6 @@ augment mixin M {
 }
 ''');
 
-    newFile(testFile.path, r'''
-part 'a.dart';
-
-mixin M {}
-''');
-
-    await resolveFile2(a);
-    assertNoErrorsInResult();
-
     nodeTextConfiguration.withInterfaceTypeElements = true;
 
     var node = findNode.singleThisExpression;
@@ -74,7 +54,6 @@ mixin M {}
 ThisExpression
   thisKeyword: this
   staticType: M
-    element: <testLibraryFragment>::@mixin::M
     element: <testLibrary>::@mixin::M
 ''');
   }

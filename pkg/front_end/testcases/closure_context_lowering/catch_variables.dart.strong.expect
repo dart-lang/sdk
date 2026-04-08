@@ -70,7 +70,7 @@ static method testDirectCaptured() → dynamic {
       catch-variable s;
     ]),
   ] */ {
-    return () /* #ctx4 */ → core::List<dynamic> => <dynamic>[e, s];
+    return () /* #ctx4 */ → core::List<core::Object> => <core::Object>[e, s];
   }
 }
 static method testAssertCaptured() → dynamic {

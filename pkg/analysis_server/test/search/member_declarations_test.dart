@@ -132,6 +132,18 @@ class B {
     assertHasDeclaration(ElementKind.SETTER, 'B');
   }
 
+  Future<void> test_class_primaryConstructor_fields() async {
+    addTestFile('''
+class A(final int foo);
+class B.named(final int foo);
+class X(int foo); // Not declaring
+''');
+    await findMemberDeclarations('foo');
+    expect(results, hasLength(2));
+    assertHasDeclaration(ElementKind.FIELD, 'A');
+    assertHasDeclaration(ElementKind.FIELD, 'B');
+  }
+
   Future<void> test_enum_methodField() async {
     addTestFile('''
 enum A {

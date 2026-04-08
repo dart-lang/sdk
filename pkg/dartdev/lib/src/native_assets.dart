@@ -28,6 +28,7 @@ class DartNativeAssetsBuilder {
   final bool includeDevDependencies;
   final bool verbose;
   final bool dataAssetsExperimentEnabled;
+  final bool progressUpdatesOnStderr;
 
   static const _fileSystem = LocalFileSystem();
 
@@ -48,7 +49,11 @@ class DartNativeAssetsBuilder {
         log.stderr(record.message);
       } else if (levelValue >= Level.WARNING.value ||
           verbose && levelValue >= Level.INFO.value) {
-        log.stdout(record.message);
+        if (progressUpdatesOnStderr) {
+          log.stderr(record.message);
+        } else {
+          log.stdout(record.message);
+        }
       } else {
         // Note, this is ignored by default.
         log.trace(record.message);
@@ -75,6 +80,7 @@ class DartNativeAssetsBuilder {
     required this.includeDevDependencies,
     required this.verbose,
     required this.dataAssetsExperimentEnabled,
+    this.progressUpdatesOnStderr = false,
     Target? target,
   }) : target = target ?? Target.current;
 

@@ -153,6 +153,8 @@ mixin _ConstructorDeclarationMixin
 
   List<SourceNominalParameterBuilder>? get _typeParameters;
 
+  bool get _isPrimaryConstructor;
+
   late final List<FormalParameterBuilder>? _initializerScopeParameters =
       _computeInitializerScopeParameters();
 
@@ -474,6 +476,11 @@ mixin _ConstructorDeclarationMixin
       superTarget = lastInitializer.target;
     } else if (lastInitializer is InternalSuperInitializer) {
       superTarget = lastInitializer.target;
+    } else if (lastInitializer is InvalidInitializer &&
+        // Coverage-ignore(suite): Not run.
+        lastInitializer.isSuperInitializer) {
+      // Erroneous super initializer.
+      return null;
     } else {
       MemberLookupResult? result = superclassBuilder.findConstructorOrFactory(
         "",
@@ -525,6 +532,8 @@ mixin _ConstructorDeclarationMixin
     DeclarationBuilder declarationBuilder,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
+    if (!_hasSuperInitializingFormals) return;
+
     if (_beginInitializers != null && initializers.isNotEmpty) {
       // If the initializers aren't built yet, we can't compute the super
       // target. The synthetic initializers should be excluded, since they can
@@ -591,6 +600,7 @@ mixin _ConstructorDeclarationMixin
         fileUri: fileUri,
         beginInitializers: _beginInitializers!,
         isConst: isConst,
+        forPrimaryConstructor: _isPrimaryConstructor,
       );
     }
   }
@@ -978,7 +988,7 @@ class RegularConstructorDeclaration
       fileOffset: _fragment.fullNameOffset,
       endOffset: _fragment.endOffset,
       isSynthetic: false,
-      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       formalsOffset: _fragment.formalsOffset,
       isConst: _fragment.modifiers.isConst,
       returnType: returnType,
@@ -1030,6 +1040,9 @@ class RegularConstructorDeclaration
       typeParameterScope: _fragment.typeParameterScope,
     );
   }
+
+  @override
+  bool get _isPrimaryConstructor => false;
 }
 
 class DefaultEnumConstructorDeclaration
@@ -1183,6 +1196,9 @@ class DefaultEnumConstructorDeclaration
   @override
   // Coverage-ignore(suite): Not run.
   String? get _nativeMethodName => null;
+
+  @override
+  bool get _isPrimaryConstructor => false;
 }
 
 class PrimaryConstructorDeclaration
@@ -1367,7 +1383,7 @@ class PrimaryConstructorDeclaration
       formalsOffset: _fragment.formalsOffset,
       // TODO(johnniwinther): Provide `endOffset`.
       endOffset: _fragment.formalsOffset,
-      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       isConst: _fragment.modifiers.isConst,
       isSynthetic: false,
       returnType: returnType,
@@ -1427,6 +1443,9 @@ class PrimaryConstructorDeclaration
 
   @override
   Uri get fileUri => _fragment.fileUri;
+
+  @override
+  bool get _isPrimaryConstructor => true;
 }
 
 /// Interface for using a [ConstructorFragment] or [PrimaryConstructorFragment]
@@ -1504,7 +1523,6 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
       new FunctionNodeSignature(_constructor.function);
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get hasParameters =>
       _constructor.function.positionalParameters.isNotEmpty ||
       _constructor.function.namedParameters.isNotEmpty;
@@ -1519,7 +1537,7 @@ mixin _SyntheticConstructorDeclarationMixin implements ConstructorDeclaration {
         initializer is! AuxiliaryInitializer,
         "Unexpected auxiliary initializer $initializer.",
       );
-      if (initializer is RedirectingInitializer) {
+      if (initializer.isRedirectingInitializer) {
         return true;
       }
     }

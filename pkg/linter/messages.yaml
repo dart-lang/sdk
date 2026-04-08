@@ -650,6 +650,43 @@ LinterLintCode:
       experimental: "3.2"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an extension type member redeclares 
+      a member from an implemented interface without the `@redeclare` annotation.
+
+      #### Example
+
+      The following code produces this diagnostic because the `f` method in the
+      extension type E redeclares the `f` method from `C` without the `@redeclare` annotation:
+
+      ```dart
+      class C {
+        void f() { }
+      }
+
+      extension type E(C c) implements C {
+        void [!f!]() { }
+      }
+      ```
+
+      #### Common fixes
+
+      Add the `@redeclare` annotation to make the redeclaration explicit:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      class C {
+        void f() { }
+      }
+
+      extension type E(C c) implements C {
+        @redeclare
+        void f() { }
+      }
+      ```
     deprecatedDetails: |-
       **DO** annotate redeclared members.
 
@@ -694,6 +731,29 @@ LinterLintCode:
       stable: "2.0"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter has an explicit
+      `dynamic` type annotation. Because `dynamic` is the default type for
+      parameters without a type annotation, the annotation is unnecessary.
+
+      #### Example
+
+      The following code produces this diagnostic because the parameter `p`
+      is explicitly annotated with `dynamic`:
+
+      ```dart
+      void f([!dynamic p!]) {}
+      ```
+
+      #### Common fixes
+
+      Remove the `dynamic` type annotation:
+
+      ```dart
+      void f(p) {}
+      ```
     deprecatedDetails: |-
       **AVOID** annotating with `dynamic` when not required.
 
@@ -1287,6 +1347,43 @@ LinterLintCode:
       stable: "2.16"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter declaration is
+      marked with the `final` keyword.
+
+      #### Examples
+
+      The following code produces this diagnostic because the
+      parameter `a` is marked as `final`:
+
+      ```dart
+      void f([!final!] String a) {
+        print(a);
+      }
+      ```
+
+      The following code produces this diagnostic because the
+      closure parameter `a` is marked as `final`:
+
+      ```dart
+      var f = ([!final!] int a) => print(a);
+      ```
+
+      #### Common fixes
+
+      Remove the `final` keyword from the parameter declaration:
+
+      ```dart
+      void f(String a) {
+        print(a);
+      }
+      ```
+
+      ```dart
+      var f = (int a) => print(a);
+      ```
     deprecatedDetails: |-
       **AVOID** declaring parameters as `final`.
 
@@ -1773,6 +1870,33 @@ LinterLintCode:
       stable: "2.2"
     categories: [effectiveDart, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a non-overriding, public
+      function has a positional parameter of type `bool`.
+
+      Positional boolean parameters can cause ambiguity when
+      the function is invoked because the function of the
+      specified boolean value might not be clear from the value alone.
+      Named parameters make their intent explicit.
+
+      #### Example
+
+      The following code produces this diagnostic because
+      the function `f` has a positional parameter with a type of `bool`:
+
+      ```dart
+      void f([!bool b!]) {}
+      ```
+
+      #### Common fixes
+
+      Convert the positional parameter to a named parameter:
+
+      ```dart
+      void f({bool b = false}) {}
+      ```
     deprecatedDetails: |-
       From [Effective Dart](https://dart.dev/effective-dart/design#avoid-positional-boolean-parameters):
 
@@ -1917,6 +2041,65 @@ LinterLintCode:
       stable: "2.8"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when an argument is
+      passed to an optional parameter of a function, but the
+      argument's value is the same as the parameter's default value.
+      The duplicative argument can often be removed without
+      changing the behavior of the code.
+
+      When invoking methods, because the redundancy check is based on the
+      static type of the invocation target, there can be false positives when
+      a method override changes a parameter's default value.
+      If the static type has one default value specified but the
+      actual runtime type has another, the diagnostic might not be accurate.
+
+      #### Examples
+
+      The following code produces this diagnostic because the
+      named argument `b` has the same value as its default value of `true`:
+
+      ```dart
+      void g({bool b = true}) {}
+
+      void f() {
+        g(b: [!true!]);
+      }
+      ```
+
+      The following code produces this diagnostic because the
+      positional argument `1` has the same value as
+      the default value of the second parameter of `g`:
+
+      ```dart
+      void g([int? a, int? b = 1]) {}
+
+      void f() {
+        g(0, [!1!]);
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the redundant argument from the invocation:
+
+      ```dart
+      void g({bool b = true}) {}
+
+      void f() {
+        g();
+      }
+      ```
+
+      ```dart
+      void g([int? a, int? b = 1]) {}
+
+      void f() {
+        g(0);
+      }
+      ```
     deprecatedDetails: |-
       **DON'T** pass an argument that matches the corresponding parameter's default
       value.
@@ -2696,6 +2879,35 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter of a
+      function expression (closure) has an explicit type annotation, and the
+      closure is in a context where the parameter type can be inferred.
+
+      #### Example
+
+      The following code produces this diagnostic because
+      the parameter `x` in the closure passed to `l.map` has an
+      explicit type annotation of `int`, which is unnecessary because
+      the type can be inferred from the list's type:
+
+      ```dart
+      void f(List<int> l) {
+        l.map(([!int!] x) => x.isEven);
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the type annotation:
+
+      ```dart
+      void f(List<int> l) {
+        l.map((x) => x.isEven);
+      }
+      ```
     deprecatedDetails: |-
       **AVOID** annotating types for function expression parameters.
 
@@ -2839,6 +3051,65 @@ LinterLintCode:
     # parameters can represent code bloat.
     categories: [unintentional]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a constructor parameter
+      isn't used in the constructor body or initializer list, and isn't an
+      initializing formal parameter (`this.x`), a super parameter (`super.x`),
+      or a declaring parameter.
+
+      Parameters that are only declared but never referenced are
+      likely unintentional and add unnecessary complexity to the constructor.
+
+      #### Examples
+
+      The following code produces this diagnostic because
+      the parameter `x` isn't used in the constructor:
+
+      ```dart
+      class C {
+        C([!int x!]);
+      }
+      ```
+
+      The following code produces this diagnostic because
+      the parameter `c` isn't used in the constructor initializer list:
+
+      ```dart
+      class C {
+        int x;
+
+        C(int a, int b, [!int c!]): x = a + b {
+          print(x);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      If the parameter is meant to initialize a field,
+      then use an initializing formal parameter:
+
+      ```dart
+      class C {
+        int x;
+
+        C(this.x);
+      }
+      ```
+
+      If the parameter isn't needed, then remove it:
+
+      ```dart
+      class C {
+        int x;
+
+        C(int a, int b): x = a + b {
+          print(x);
+        }
+      }
+      ```
     deprecatedDetails: |-
       **AVOID** defining unused parameters in constructors.
 
@@ -8325,6 +8596,58 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a
+      parameter is reassigned within a function body.
+      Reassigning parameters can make it harder to understand
+      what value a parameter holds at any given point in a function.
+
+      All types of assignments are considered, including:
+
+      - Direct variable assignments (with `=`).
+      - Null-aware assignments (with `??=`).
+      - Compound assignments (such as with `+=`).
+      - Increment and decrement operators (such as with `++`).
+      - Variable pattern assignments (such as in `var (a, b) = (1, 2);`).
+
+      There's an exception for a single null-aware assignment (`??=`) at
+      the beginning of a function for nullable parameters that don't have
+      a default value, as this is a common pattern for providing defaults.
+
+      #### Examples
+
+      The following code produces this diagnostic because the
+      parameter `x` is reassigned a new value:
+
+      ```dart
+      void f(int x) {
+        [!x = 4!];
+        print(x);
+      }
+      ```
+
+      The following code produces this diagnostic because the
+      parameter `x` is modified with a postfix increment:
+
+      ```dart
+      void f(int x) {
+        [!x++!];
+      }
+      ```
+
+      #### Common fixes
+
+      Introduce a local variable to hold the modified value
+      instead of reassigning the parameter:
+
+      ```dart
+      void f(int x) {
+        var y = x + 4;
+        print(y);
+      }
+      ```
     deprecatedDetails: |-
       **DON'T** assign new values to parameters of methods or functions.
 
@@ -11379,6 +11702,66 @@ LinterLintCode:
       ```yaml
       repository: https://github.com/dart-lang/example
       ```
+  simpleDirectivePaths:
+    type: lint
+    parameters: none
+    problemMessage: "Use simple directive paths."
+    correctionMessage: "Try simplifying the directive path."
+    state:
+      stable: "3.12"
+    categories: [style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a directive uses a path that is
+      not simple (for example, a path containing redundant `./` or backtracking
+      `../` segments).
+
+      #### Example
+
+      Given a file named `bar.dart` in the `lib/src` directory:
+
+      ```dart
+      %uri="lib/src/bar.dart"
+      class Bar {}
+      ```
+
+      The following code produces this diagnostic because it uses an
+      unnecessarily complex relative URI:
+
+      ```dart
+      import [!'./src/bar.dart'!];
+
+      void f(Bar b) {}
+      ```
+
+      #### Common fixes
+
+      Use a minimal relative URI:
+
+      ```dart
+      import 'src/bar.dart';
+
+      void f(Bar b) {}
+      ```
+    deprecatedDetails: |-
+      **PREFER** simple directive paths.
+
+      Using simple directive paths (avoiding redundant `./` or backtracking `../`
+      segments) makes the code cleaner, more consistent, and easier to read. It
+      also reduces the risk of confusion when resolving paths relative to the
+      source file.
+
+      **BAD:**
+      ```dart
+      import '../src/bar.dart';
+      ```
+
+      **GOOD:**
+      ```dart
+      import 'bar.dart';
+      ```
   simplifyVariablePattern:
     type: lint
     parameters:
@@ -13043,6 +13426,34 @@ LinterLintCode:
       experimental: "3.7"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a function, method, or
+      closure is marked `async` but doesn't contain any `await` expressions
+      or `await for` statements. The `async` modifier is unnecessary in these
+      cases and can be removed without changing the behavior of the code.
+
+      #### Example
+
+      The following code produces this diagnostic because the function `f` is
+      marked `async` but doesn't use `await`:
+
+      ```dart
+      void f() [!async!] {
+        print('done');
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the `async` modifier:
+
+      ```dart
+      void f() {
+        print('done');
+      }
+      ```
     deprecatedDetails: |-
       Functions that don't do `await` don't have to be `async`.
 
@@ -13663,6 +14074,58 @@ LinterLintCode:
       stable: "2.19"
     categories: [brevity]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `library` directive
+      doesn't have a documentation comment or any annotations.
+
+      If no documentation comment or annotation precedes the library directive,
+      then either it's unnecessary or the documentation comment and/or
+      annotations are misplaced and should be moved.
+
+      #### Examples
+
+      The following code produces this diagnostic because the `library`
+      directive doesn't have a documentation comment or annotation:
+
+      ```dart
+      [!library;!]
+
+      class C {}
+      ```
+
+      The following code produces this diagnostic because the library's
+      documentation comment is below the `library` directive:
+
+      ```dart
+      [!library;!]
+
+      /// This library provides the [C] class.
+
+      /// The [C] class.
+      class C {}
+      ```
+
+      #### Common fixes
+
+      If you don't want to add a documentation comment or annotation
+      to the library, then remove the `library` directive:
+
+      ```dart
+      class C {}
+      ```
+
+      If you intend to add a documentation comment or annotation,
+      then add or move it to the `library` directive:
+
+      ```dart
+      /// This library provides the [C] class.
+      library;
+
+      /// The [C] class.
+      class C {}
+      ```
     deprecatedDetails: |-
       **DO** use library directives if you want to document a library and/or annotate
       a library.
@@ -16497,6 +16960,60 @@ LinterLintCode:
       experimental: "3.12"
     categories: [languageFeatureUsage]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a parameter is
+      declared using the keyword `var` without a type annotation.
+
+      This pattern should be avoided as it likely will
+      be a compile-time error in a future version of Dart.
+      Beyond this, using `var` without an explicit type results in
+      the parameter having a type of `dynamic`,
+      disabling static type checking for that parameter.
+
+      #### Examples
+
+      The following code produces this diagnostic because the
+      parameter `x` is declared with `var`:
+
+      ```dart
+      void f([!var!] x) {
+        print(x);
+      }
+      ```
+
+      The following code produces this diagnostic because the
+      initializing formal parameter `x` is declared with `var`:
+
+      ```dart
+      class C {
+        int x;
+
+        C([!var!] this.x);
+      }
+      ```
+
+      #### Common fixes
+
+      If you know the desired type of the parameter,
+      then replace `var` with a type annotation:
+
+      ```dart
+      void f(String x) {
+        print(x);
+      }
+      ```
+
+      If you don't know or don't want any specific type for the parameter,
+      then replace `var` with a type of `Object?` or `dynamic` to
+      make the lack of any more specific type explicit:
+
+      ```dart
+      void f(Object? x) {
+        print(x);
+      }
+      ```
     deprecatedDetails: |-
       **AVOID** declaring parameters with `var` and no type annotation.
 

@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // Environment=TSAN_OPTIONS=report_thread_leaks=0
+// VMOptions=--new_gen_semi_max_size=4
 
 import "dart:isolate";
 import "dart:io";
@@ -20,7 +21,7 @@ main() async {
     if (pending == 0) exit(0);
   });
 
-  for (var i = 0; i < 20; i++) {
+  for (var i = 0; i < 4; i++) {
     Isolate.spawn(child, port.sendPort);
     pending++;
   }

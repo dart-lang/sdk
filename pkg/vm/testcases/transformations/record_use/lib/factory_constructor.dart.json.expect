@@ -1,0 +1,53 @@
+{
+  "constants": [
+    {
+      "type": "non_constant"
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "FactoryA"
+        }
+      ],
+      "uri": "package:record_use_test/factory_constructor.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "FactoryA"
+        },
+        {
+          "kind": "constructor",
+          "name": ""
+        }
+      ],
+      "uri": "package:record_use_test/factory_constructor.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "positional": [
+              0
+            ],
+            "type": "creation"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -6,8 +6,9 @@ library;
 
 import 'dart:convert' show JsonEncoder;
 
+// ignore: implementation_imports
+import 'package:js_ast/src/precedence.dart' as js_precedence;
 import 'package:js_runtime/synced/array_flags.dart' show ArrayFlags;
-
 import 'package:js_runtime/synced/embedded_names.dart'
     show
         CACHED_GLOBAL_THIS,
@@ -30,7 +31,6 @@ import 'package:js_runtime/synced/embedded_names.dart'
         STARTUP_METRICS,
         TearOffParametersPropertyNames,
         TYPE_TO_INTERCEPTOR_MAP;
-
 import 'package:js_shared/synced/embedded_names.dart'
     show
         ARRAY_RTI_PROPERTY,
@@ -38,11 +38,7 @@ import 'package:js_shared/synced/embedded_names.dart'
         RTI_UNIVERSE,
         RtiUniverseFieldNames,
         TYPES;
-
 import 'package:js_shared/variance.dart';
-
-// ignore: implementation_imports
-import 'package:js_ast/src/precedence.dart' as js_precedence;
 
 import '../../../compiler_api.dart' as api;
 import '../../common.dart';
@@ -61,15 +57,6 @@ import '../../io/source_map_builder.dart' show SourceMapBuilder;
 import '../../js/js.dart' as js;
 import '../../js/js_source_mapping.dart';
 import '../../js/size_estimator.dart';
-import '../../js_backend/js_backend.dart'
-    show Namer, ConstantEmitter, StringBackedName;
-import '../../js_backend/js_interop_analysis.dart' as js_interop_analysis;
-import '../../js_backend/runtime_types.dart';
-import '../../js_backend/runtime_types_codegen.dart';
-import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
-import '../../js_backend/runtime_types_new.dart'
-    show RecipeEncoderImpl, Ruleset, RulesetEncoder;
-import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_backend/deferred_holder_expression.dart'
     show
         DeferredHolderExpressionFinalizer,
@@ -78,23 +65,32 @@ import '../../js_backend/deferred_holder_expression.dart'
         DeferredHolderResource,
         DeferredHolderResourceKind,
         mainResourceName;
-import '../../js_backend/type_reference.dart'
-    show
-        TypeReferenceFinalizer,
-        TypeReferenceFinalizerImpl,
-        TypeReferenceResource;
+import '../../js_backend/js_backend.dart'
+    show Namer, ConstantEmitter, StringBackedName;
+import '../../js_backend/js_interop_analysis.dart' as js_interop_analysis;
+import '../../js_backend/runtime_types.dart';
+import '../../js_backend/runtime_types_codegen.dart';
+import '../../js_backend/runtime_types_new.dart'
+    show RecipeEncoderImpl, Ruleset, RulesetEncoder;
+import '../../js_backend/runtime_types_new.dart' show RecipeEncoder;
+import '../../js_backend/runtime_types_resolution.dart' show RuntimeTypesNeed;
 import '../../js_backend/string_reference.dart'
     show
         StringReferenceFinalizer,
         StringReferenceFinalizerImpl,
         StringReferenceResource;
+import '../../js_backend/type_reference.dart'
+    show
+        TypeReferenceFinalizer,
+        TypeReferenceFinalizerImpl,
+        TypeReferenceResource;
 import '../../js_model/js_world.dart';
 import '../../options.dart';
 import '../../universe/class_hierarchy.dart' show ClassHierarchy;
 import '../../universe/codegen_world_builder.dart' show CodegenWorld;
-import '../js_emitter.dart';
 import '../constant_ordering.dart' show ConstantOrdering;
 import '../headers.dart';
+import '../js_emitter.dart';
 import '../model.dart';
 import '../record_use_emitter.dart' show RecordUseCollector;
 import 'fragment_merger.dart';

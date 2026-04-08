@@ -42,6 +42,10 @@ abstract base class StackFrame {
   /// Should be used only after the frame is finalized.
   int offsetFromFP(StackLocation location);
 
+  /// Offset of the shadow parameter relative to the frame pointer, in bytes.
+  /// Should be used only after the frame is finalized.
+  int shadowParameterOffsetFromFP(int paramIndex);
+
   /// Frame size to allocate, in bytes.
   /// Should be used only after the frame is finalized.
   int get frameSizeToAllocate;

@@ -121,6 +121,11 @@ class RelevanceComputer {
     switch (suggestion) {
       case TypedSuggestionCompletionMixin():
         return switch (suggestion) {
+          ConstructorSuggestion() => _computeConstructorRelevance(
+            suggestion.element,
+            neverType,
+            suggestion.isNotImported,
+          ),
           FunctionCall() => Relevance.callFunction,
           MethodSuggestion() => _computeMethodRelevance(
             suggestion.element,
@@ -164,12 +169,6 @@ class RelevanceComputer {
         );
       case ClosureSuggestion():
         return Relevance.closure;
-      case ConstructorSuggestion():
-        return _computeConstructorRelevance(
-          suggestion.element,
-          neverType,
-          suggestion.isNotImported,
-        );
       case EnumConstantSuggestion():
         return _computeEnumConstRelevance(
           suggestion,

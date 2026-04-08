@@ -395,7 +395,10 @@ enum E() {
   this : assert(this.hashCode == 0);
 }
 ''',
-      [error(diag.invalidReferenceToThis, 32, 4)],
+      [
+        error(diag.invalidConstant, 32, 13),
+        error(diag.invalidReferenceToThis, 32, 4),
+      ],
     );
   }
 
@@ -409,7 +412,7 @@ enum E() {
   }
 }
 ''',
-      [error(diag.constConstructorWithBody, 23, 1)],
+      [error(diag.constPrimaryConstructorWithBlockBody, 23, 1)],
     );
   }
 
@@ -437,7 +440,10 @@ enum E() {
   this : f = this;
 }
 ''',
-      [error(diag.invalidReferenceToThis, 47, 4)],
+      [
+        error(diag.invalidConstant, 47, 4),
+        error(diag.invalidReferenceToThis, 47, 4),
+      ],
     );
   }
 

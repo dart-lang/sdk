@@ -3,9 +3,9 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:collection/collection.dart' show mergeSort;
-import 'package:kernel/ast.dart' as ir;
 // ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show Link;
+import 'package:kernel/ast.dart' as ir;
 
 import '../closure.dart';
 import '../common.dart';
@@ -19,16 +19,16 @@ import '../elements/names.dart';
 import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../inferrer/abstract_value_strategy.dart';
-import '../js_emitter/sorter.dart';
 import '../js_backend/annotations.dart';
-import '../js_backend/field_analysis.dart';
 import '../js_backend/backend_usage.dart';
+import '../js_backend/field_analysis.dart';
 import '../js_backend/interceptor_data.dart';
 import '../js_backend/native_data.dart';
 import '../js_backend/no_such_method_registry.dart';
 import '../js_backend/runtime_types_resolution.dart';
-import '../ordered_typeset.dart';
+import '../js_emitter/sorter.dart';
 import '../options.dart';
+import '../ordered_typeset.dart';
 import '../serialization/serialization.dart';
 import '../universe/class_hierarchy.dart';
 import '../universe/class_set.dart';

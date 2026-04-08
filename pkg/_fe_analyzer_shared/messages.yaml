@@ -383,6 +383,25 @@ multipleOnClauses:
   script: "mixin A on B on C, D {}"
   exampleAllowOtherCodes: true
 
+typedefAugmentation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Type aliases can't be augmented."
+  analyzerCode: typedefAugmentation
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "augment typedef T = void Function();"
+
+mixinApplicationClassAugmentation:
+  type: syntacticError
+  parameters: none
+  problemMessage: "A mixin application class can't be augmented."
+  analyzerCode: mixinApplicationClassAugmentation
+  hasPublishedDocs: false
+  experiments: augmentations
+  script: "augment class A = B with M;"
+  exampleAllowOtherCodes: true
+
 mixinWithClause:
   type: syntacticError
   parameters: none
@@ -976,6 +995,19 @@ extraneousModifierInPrimaryConstructor:
   script: |
     // @dart=3.10
     extension type ET(covariant String i) { }
+
+primaryConstructorBodyWithModifier:
+  type: syntacticError
+  parameters:
+    String modifier: The modifier found.
+  problemMessage: "A primary constructor body can't have the modifier '#modifier'."
+  correctionMessage: "Try removing the modifier."
+  analyzerCode: primaryConstructorBodyWithModifier
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  exampleAllowOtherCodes: true
+  script:
+    - "class A() { this async {} }"
 
 invalidCovariantModifierInPrimaryConstructor:
   type: syntacticError
@@ -2523,6 +2555,46 @@ nonRedirectingGenerativeConstructorWithPrimary:
   analyzerCode: nonRedirectingGenerativeConstructorWithPrimary
   hasPublishedDocs: false
   experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class that declares a primary
+    constructor also has a non-redirecting generative constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` declares
+    both a primary constructor and a non-redirecting generative constructor:
+
+    ```dart
+    class C(final String f) {
+      [!C.c!](Object p) : f = p.toString();
+    }
+    ```
+
+    #### Common fixes
+
+    If the generative constructor can redirect to the primary constructor, then
+    add the redirection:
+
+    ```dart
+    class C(final String f) {
+      C.c(Object p) : this(p.toString());
+    }
+    ```
+
+    If the generative constructor can be a factory constructor that uses the
+    primary constructor to create the instance, then make it a factory
+    constructor:
+
+    ```dart
+    class C(final String f) {
+      factory C.c(Object p) => C(p.toString());
+    }
+    ```
+
+    Otherwise, remove the generative constructor or convert the primary
+    constructor into a generative secondary constructor.
   script: |
     class C() {
       C.named();
@@ -2536,6 +2608,49 @@ primaryConstructorBodyWithoutDeclaration:
   analyzerCode: primaryConstructorBodyWithoutDeclaration
   hasPublishedDocs: false
   experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class contains a primary
+    constructor body but doesn't declare a primary constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` contains
+    a primary constructor body but doesn't declare a primary constructor:
+
+    ```dart
+    class C {
+      [!this!] : assert(x > 0);
+    }
+    ```
+
+    #### Common fixes
+
+    If the constructor is intended to be a primary constructor, then add
+    parameter declarations to the class header:
+
+    ```dart
+    class C(int x) {
+      this : assert(x > 0);
+    }
+    ```
+
+    If the constructor is intended to be a secondary constructor, then replace
+    the `this` with either the class name or `new` and declare the parameters in
+    the constructor declaration:
+
+    ```dart
+    class C {
+      C(int x) : assert(x > 0);
+    }
+    ```
+
+    If the constructor isn't needed, then remove the body:
+
+    ```dart
+    class C {}
+    ```
   script: |
     class C {
       this;
@@ -2549,6 +2664,35 @@ multiplePrimaryConstructorBodyDeclarations:
   analyzerCode: multiplePrimaryConstructorBodyDeclarations
   hasPublishedDocs: false
   experiments: primary-constructors
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a class that declares a primary
+    constructor also has more than one primary constructor body.
+
+    #### Example
+
+    The following code produces this diagnostic because the class `C` has more
+    than one primary constructor body:
+
+    ```dart
+    class C(final int x) {
+      this : assert(x >= 0);
+
+      [!this!] : assert(x <= 0);
+    }
+    ```
+
+    #### Common fixes
+
+    Remove all but one of the primary constructor bodies, possibly by merging
+    them:
+
+    ```dart
+    class C(final int x) {
+      this : assert(x >= 0), assert(x <= 0);
+    }
+    ```
   script: |
     class C() {
       this;
@@ -2593,4 +2737,56 @@ fieldInitializedInDeclarationAndParameterOfPrimaryConstructor:
   script: |
     class C(this.x) {
       int x = 0;
+    }
+
+redirectGenerativeToNonGenerativeConstructor:
+  type: compileTimeError
+  parameters: none
+  problemMessage: "Generative constructors can't redirect to a factory constructor."
+  correctionMessage: Try redirecting to a different constructor.
+  hasPublishedDocs: true
+  analyzerCode: redirectGenerativeToNonGenerativeConstructor
+  documentation: |-
+    #### Description
+
+    The analyzer produces this diagnostic when a generative constructor
+    redirects to a factory constructor.
+
+    #### Example
+
+    The following code produces this diagnostic because the generative
+    constructor `C.a` redirects to the factory constructor `C.b`:
+
+    ```dart
+    class C {
+      C.a() : [!this.b()!];
+      factory C.b() => C.a();
+    }
+    ```
+
+    #### Common fixes
+
+    If the generative constructor doesn't need to redirect to another
+    constructor, then remove the redirect.
+
+    ```dart
+    class C {
+      C.a();
+      factory C.b() => C.a();
+    }
+    ```
+
+    If the generative constructor must redirect to another constructor, then
+    make the other constructor be a generative (non-factory) constructor:
+
+    ```dart
+    class C {
+      C.a() : this.b();
+      C.b();
+    }
+    ```
+  script: |
+    class C {
+      factory C() => throw '';
+      C.named() : this();
     }

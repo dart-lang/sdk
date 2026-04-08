@@ -1831,10 +1831,8 @@ struct CallbackContext {
 
 extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
                                         uword trampoline) {
-  uword entry_point;
-  uword trampoline_type;
-  Thread* thread =
-      DLRT_GetFfiCallbackMetadata(trampoline, &entry_point, &trampoline_type);
+  CallbackMetadata out;
+  Thread* thread = DLRT_GetFfiCallbackMetadata(trampoline, &out);
   if (thread == nullptr) {
     // If GetFfiCallbackMetadata returned a null thread, it means that the async
     // callback was invoked after it was deleted. In this case, do nothing.
@@ -1843,14 +1841,13 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
 
   Simulator* sim = Simulator::Current();
   ASSERT(sim != nullptr);
-  sim->DoRedirectedFfiCallback(thread, ctxt, entry_point, trampoline_type);
+  sim->DoRedirectedFfiCallback(thread, ctxt, &out);
 }
 
 // Compare FfiCallbackTrampolineStub.
 void Simulator::DoRedirectedFfiCallback(Thread* thread,
                                         CallbackContext* ctxt,
-                                        uword entry_point,
-                                        uword trampoline_type) {
+                                        CallbackMetadata* out) {
   // The C caller might not be using frame pointers, so we just hard-code a
   // maximum frame size instead of using FP-SP like we do for callouts.
   constexpr intptr_t kStackSlotsCopied = 128;
@@ -1863,11 +1860,13 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     for (intptr_t i = kStackSlotsCopied - 1; i >= 0; i--) {
       *--sp = sp_in[i];
     }
-    *--sp = get_register(LR);
     *--sp = get_register(THR);
+    *--sp = get_register(LR);
+    *--sp = get_register(R20);
+    *--sp = get_register(R21);
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
     COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   2);
+                   4);
   }
 
   set_register(nullptr, R0, ctxt->integer_arguments[0]);
@@ -1890,7 +1889,7 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
   set_register(nullptr, THR, reinterpret_cast<uword>(thread));
 
   set_register(nullptr, LR, kEndSimulatingPC);
-  set_pc(entry_point);
+  set_pc(out->entry_point);
   Execute();
 
   ctxt->integer_arguments[0] = get_register(R0);
@@ -1904,24 +1903,18 @@ void Simulator::DoRedirectedFfiCallback(Thread* thread,
     // ldp lr, thr, [sp], 16!
     // <drop arguments>
     uword* sp = reinterpret_cast<uword*>(get_register(R31, R31IsSP));
-    set_register(nullptr, THR, *sp++);
+    set_register(nullptr, R21, *sp++);
+    set_register(nullptr, R20, *sp++);
     set_register(nullptr, LR, *sp++);
+    set_register(nullptr, THR, *sp++);
     sp += kStackSlotsCopied;
     set_register(nullptr, R31, reinterpret_cast<uword>(sp));
     COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta ==
-                   2);
+                   4);
   }
 
-  if (trampoline_type ==
-      static_cast<uword>(FfiCallbackMetadata::TrampolineType::kAsync)) {
-    DLRT_ExitTemporaryIsolate();
-  } else if ((trampoline_type &
-              FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag) != 0) {
-    thread->set_execution_state(Thread::kThreadInVM);
-    Thread::ExitIsolate(/*isolate_shutdown=*/false);
-  } else {
-    thread->EnterSafepointToNative();
-  }
+  auto epilogue = reinterpret_cast<void* (*)(Thread*)>(out->epilogue);
+  epilogue(thread);
 }
 
 void Simulator::ClobberVolatileRegisters() {
@@ -2560,15 +2553,15 @@ void Simulator::DecodeAtomicMemory(Instr* instr) {
 
   if (size == 3) {
     uint64_t in = get_register(rs, R31IsZR);
-    auto addr =
-        reinterpret_cast<std::atomic<uint64_t>*>(get_register(rn, R31IsSP));
+    auto addr = std::atomic_ref(
+        *reinterpret_cast<uint64_t*>(get_register(rn, R31IsSP)));
     uint64_t out;
     switch (opc) {
       case 1:
-        out = addr->fetch_and(~in, order);
+        out = addr.fetch_and(~in, order);
         break;
       case 3:
-        out = addr->fetch_or(in, order);
+        out = addr.fetch_or(in, order);
         break;
       default:
         UNIMPLEMENTED();
@@ -2577,15 +2570,15 @@ void Simulator::DecodeAtomicMemory(Instr* instr) {
   } else if (size == 2) {
     ASSERT(size == 2);
     uint32_t in = get_wregister(rs, R31IsZR);
-    auto addr =
-        reinterpret_cast<std::atomic<uint32_t>*>(get_register(rn, R31IsSP));
+    auto addr = std::atomic_ref(
+        *reinterpret_cast<uint32_t*>(get_register(rn, R31IsSP)));
     uint32_t out;
     switch (opc) {
       case 1:
-        out = addr->fetch_and(~in, order);
+        out = addr.fetch_and(~in, order);
         break;
       case 3:
-        out = addr->fetch_or(in, order);
+        out = addr.fetch_or(in, order);
         break;
       default:
         UNIMPLEMENTED();

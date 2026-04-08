@@ -1,0 +1,56 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+import "dart:_internal" as _in;
+
+import "package:meta/meta.dart" show RecordUse;
+
+extension type ET(core::int i) {
+  static get staticGetter = get self::ET|staticGetter;
+  static set staticSetter = set self::ET|staticSetter;
+  get instanceGetter = self::ET|get#instanceGetter;
+  set instanceSetter = self::ET|set#instanceSetter;
+  constructor • = self::ET|constructor#;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+[@vm.unboxing-info.metadata=()->i]
+static extension-type-member const method ET|constructor#() → self::ET% /* erasure=core::int, declared=! */ {
+  lowered final self::ET% /* erasure=core::int, declared=! */ #this = #C1;
+  return #this;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+[@vm.unboxing-info.metadata=[!regcc]]
+@#C2
+static extension-type-member get ET|staticGetter() → core::int
+  return 42;
+
+[@vm.unboxing-info.metadata=[!regcc]]
+@#C2
+static extension-type-member set ET|staticSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 123)] core::int value) → void {}
+
+[@vm.inferred-return-type.metadata=dart.core::_Smi (value: 42)]
+[@vm.unboxing-info.metadata=[!regcc]]
+@#C2
+static extension-type-member method ET|get#instanceGetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this) → core::int
+  return _in::unsafeCast<core::int>(#this);
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
+@#C2
+static extension-type-member method ET|set#instanceSetter([@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 42)] lowered final self::ET% /* erasure=core::int, declared=! */ #this, [@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 456)] core::int value) → void {}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::ET|staticGetter);
+  self::ET|staticSetter = 123;
+  final self::ET% /* erasure=core::int, declared=! */ et = [@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::ET|constructor#();
+  core::print([@vm.inferred-type.metadata=dart.core::_Smi (value: 42)] self::ET|get#instanceGetter(et));
+  self::ET|set#instanceSetter(et, 456);
+}
+constants  {
+  #C1 = 42
+  #C2 = meta::RecordUse {}
+}

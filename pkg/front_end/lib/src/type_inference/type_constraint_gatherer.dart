@@ -21,14 +21,14 @@ import 'type_schema_environment.dart';
 class TypeConstraintGatherer
     extends
         shared.TypeConstraintGenerator<
-          ExpressionVariable,
+          VariableDeclaration,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode
         >
     with
         shared.TypeConstraintGeneratorMixin<
-          ExpressionVariable,
+          VariableDeclaration,
           TypeDeclarationType,
           TypeDeclaration,
           TreeNode

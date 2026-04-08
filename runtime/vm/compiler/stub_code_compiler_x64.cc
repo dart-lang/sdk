@@ -536,34 +536,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   const intptr_t shared_stub_start = __ CodeSize();
 
   // Save THR which is callee-saved.
+  __ EnterFrame(0);
   __ pushq(THR);
-
-  // 2 = THR & return address
-  COMPILE_ASSERT(2 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
-
-  // Save all registers which might hold arguments.
-  __ PushRegisters(kArgumentRegisterSet);
+  __ pushq(R12);
+  // 4 = return address, FP, THR, R12
+  COMPILE_ASSERT(4 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size of this shared stub.
   {
+    // Save all registers which might hold arguments.
+    __ PushRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, RAX);
-
-    // We also need to look up the entry point for the trampoline. This is
-    // returned using a pointer passed to the second arg of the C function
-    // below. We aim that pointer at a reserved stack slot.
-    COMPILE_ASSERT(RAX != CallingConventions::kArg2Reg);
-    __ pushq(Immediate(0));  // Reserve a stack slot for the entry point.
     __ movq(CallingConventions::kArg2Reg, RSP);
-
-    // We also need to know if this is a sync or async callback. This is also
-    // returned by pointer.
-    COMPILE_ASSERT(RAX != CallingConventions::kArg3Reg);
-    __ pushq(Immediate(0));  // Reserve a stack slot for the trampoline type.
-    __ movq(CallingConventions::kArg3Reg, RSP);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
@@ -579,184 +567,56 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
         FfiCallbackMetadata::kGetFfiCallbackMetadata, RAX);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ CallCFunction(RAX);
+    __ CallCFunction(RAX, /*restore_rsp=*/true);
     __ movq(THR, RAX);
 
-    __ LeaveFrame();
+    __ movq(RAX, Address(RSP, 0 * target::kWordSize));  // entry_point
+    __ movq(TMP, Address(RSP, 1 * target::kWordSize));  // is_tail
+    __ movq(R12, Address(RSP, 2 * target::kWordSize));  // epilogue
 
-    // The trampoline type is at the top of the stack. Pop it into RAX.
-    __ popq(RAX);
-
-    // Entry point is now at the top of the stack. Pop it into TMP.
-    __ popq(TMP);
+    // Restore the arguments.
+    __ PopRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
   }
 
-  // Restore the arguments.
-  __ PopRegisters(kArgumentRegisterSet);
+  Label tail;
+  __ cmpq(TMP, Immediate(0));
+  __ j(NOT_ZERO, &tail);
 
-  // Current state:
-  //
-  // Stack:
-  //  <old stack (arguments)>
-  //  <return address>
-  //  <saved THR>
-  //
-  // Registers: Like entry, except TMP == target, RAX == abi, and THR == thread
-  //            All argument registers are untouched.
+  const RegisterSet return_registers(
+      (1 << CallingConventions::kReturnReg) |
+          (1 << CallingConventions::kSecondReturnReg),
+      (1 << CallingConventions::kReturnFpuReg) |
+          (1 << CallingConventions::kSecondReturnFpuReg));
 
-  Label async_callback;
-  Label sync_isolate_group_bound_callback;
-  Label sync_callback_isolate_ownership;
-  Label done;
-
-  // Check the trampoline type to see how the callback should be invoked.
-  __ cmpq(RAX, Immediate(static_cast<uword>(
-                   FfiCallbackMetadata::TrampolineType::kAsync)));
-  __ j(EQUAL, &async_callback);
-
-  __ cmpq(RAX,
-          Immediate(static_cast<uword>(
-              FfiCallbackMetadata::TrampolineType::kSyncIsolateGroupBound)));
-  __ j(EQUAL, &sync_isolate_group_bound_callback, Assembler::kNearJump);
-
-  __ testq(RAX,
-           Immediate(FfiCallbackMetadata::kSyncCallbackIsolateOwnershipFlag));
-  __ j(NOT_ZERO, &sync_callback_isolate_ownership, Assembler::kNearJump);
-
-  // Sync callback. The entry point contains the target function, so just call
-  // it. DLRT_GetThreadForNativeCallbackTrampoline exited the safepoint, so
-  // re-enter it afterwards.
-
-  // On entry to the function, there will be two extra slots on the stack:
-  // the saved THR and the return address. The target will know to skip them.
-  __ call(TMP);
-
-  // Takes care to not clobber *any* registers (besides TMP).
-  __ EnterFullSafepoint();
-
-  __ jmp(&done);
-
-  __ Bind(&sync_callback_isolate_ownership);
-
-  __ call(TMP);
-
-  // Exit the target isolate.
   {
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
-    __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitSyncCallbackTargetIsolate,
-                           RAX, TMP);
-    } else {
-      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
-                       DLRT_ExitSyncCallbackTargetIsolate)));
+    __ call(RAX);  // entry_point
+    __ PushRegistersAligned(return_registers, 0);
+    __ movq(CallingConventions::kArg1Reg, THR);
+    __ CallCFunction(R12, /*restore_rsp=*/true);  // DLRT_ExitSyncCallback, etc
+    if (FLAG_target_memory_sanitizer) {
+      __ CallCFunction(RAX, /*restore_rsp=*/true);  // dart_msan_unpoison_retval
     }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitSyncCallbackTargetIsolate, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ CallCFunction(RAX);
-
-    __ LeaveFrame();
-
-    __ PopRegisters(return_registers);
-  }
-
-  __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&sync_isolate_group_bound_callback);
-
-  __ call(TMP);
-
-  // Exit isolate group bound isolate.
-  {
-    const RegisterSet return_registers(
-        (1 << CallingConventions::kReturnReg) |
-            (1 << CallingConventions::kSecondReturnReg),
-        1 << CallingConventions::kReturnFpuReg);
-    __ PushRegisters(return_registers);
-
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitIsolateGroupBoundIsolate,
-                           RAX, TMP);
-    } else {
-      __ movq(RAX, Immediate(reinterpret_cast<int64_t>(
-                       DLRT_ExitIsolateGroupBoundIsolate)));
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitIsolateGroupBoundIsolate, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(0);
-
-    __ CallCFunction(RAX);
-
-    __ LeaveFrame();
-
-    __ PopRegisters(return_registers);
-  }
-
-  __ jmp(&done, Assembler::kNearJump);
-
-  __ Bind(&async_callback);
-
-  // Async callback. The entrypoint marshals the arguments into a message and
-  // sends it over the send port. DLRT_GetThreadForNativeCallbackTrampoline
-  // entered a temporary isolate, so exit it afterwards.
-
-  // On entry to the function, there will be two extra slots on the stack:
-  // the saved THR and the return address. The target will know to skip them.
-  __ call(TMP);
-
-  // Exit the temporary isolate.
-  {
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_ExitTemporaryIsolate, RAX,
-                           TMP);
-    } else {
-      __ movq(RAX,
-              Immediate(reinterpret_cast<int64_t>(DLRT_ExitTemporaryIsolate)));
-    }
-#else
-    GenerateLoadFfiCallbackMetadataRuntimeFunction(
-        FfiCallbackMetadata::kExitTemporaryIsolate, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
-    // Restore THR (callee-saved).
+    __ PopRegistersAligned(return_registers, 0);
+    __ popq(R12);
     __ popq(THR);
+    __ LeaveFrame();
+    __ ret();
+  }
 
+  {
+    __ Bind(&tail);
+    __ call(RAX);  // entry_point
+    __ movq(CallingConventions::kArg1Reg, THR);
+    __ movq(RAX, R12);
+    __ popq(R12);
+    __ popq(THR);
+    __ LeaveFrame();
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
-    __ jmp(RAX);
+    __ jmp(RAX);  // DLRT_ExitTemporaryIsolate
     __ int3();
   }
-
-  __ Bind(&done);
-
-  // Restore THR (callee-saved).
-  __ popq(THR);
-
-  __ ret();
 
   // 'kNativeCallbackSharedStubSize' is an upper bound because the exact
   // instruction size can vary slightly based on OS calling conventions.
@@ -1499,7 +1359,7 @@ void StubCodeCompiler::GenerateAllocateArrayStub() {
       Label size_tag_overflow, done;
       __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+      __ shlq(RDI, Immediate(target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 
@@ -1986,7 +1846,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
     __ andq(R13, Immediate(-target::ObjectAlignment::kObjectAlignment));
     __ cmpq(R13, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
     __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-    __ shlq(R13, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+    __ shlq(R13, Immediate(target::UntaggedObject::kSizeTagPos -
                            target::ObjectAlignment::kObjectAlignmentLog2));
     __ jmp(&done);
 
@@ -3455,15 +3315,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
       });
 }
 
-// Return the current stack pointer address, used to stack alignment
-// checks.
-// TOS + 0: return address
-// Result in RAX.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ leaq(RAX, Address(RSP, target::kWordSize));
-  __ ret();
-}
-
 // Jump to a frame on the call stack.
 // TOS + 0: return address
 // Arg1: program counter
@@ -3993,7 +3844,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
       Label size_tag_overflow, done;
       __ cmpq(RDI, Immediate(target::UntaggedObject::kSizeTagMaxSizeTag));
       __ j(ABOVE, &size_tag_overflow, Assembler::kNearJump);
-      __ shlq(RDI, Immediate(target::UntaggedObject::kTagBitsSizeTagPos -
+      __ shlq(RDI, Immediate(target::UntaggedObject::kSizeTagPos -
                              target::ObjectAlignment::kObjectAlignmentLog2));
       __ jmp(&done, Assembler::kNearJump);
 

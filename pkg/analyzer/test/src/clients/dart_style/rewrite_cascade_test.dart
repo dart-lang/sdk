@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/clients/dart_style/rewrite_cascade.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
+
+import '../../diagnostics/parser_diagnostics.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +17,7 @@ main() {
 }
 
 @reflectiveTest
-class RewriteCascadeTest {
+class RewriteCascadeTest extends ParserDiagnosticsTest {
   test_fixCascadeByParenthesizingTarget() {
     const pairs = {
       'c ? a : b..method();': '(c ? a : b)..method();',
@@ -100,10 +100,7 @@ void f() {
   }
 
   FindNode _parseStringToFindNode(String content) {
-    var parseResult = parseString(
-      content: content,
-      featureSet: FeatureSet.latestLanguageVersion(),
-    );
-    return FindNode(parseResult.content, parseResult.unit);
+    var parseResult = parseStringWithErrors(content);
+    return parseResult.findNode;
   }
 }

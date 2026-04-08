@@ -58,6 +58,7 @@ class ListDeserializationCluster;
 class MapDeserializationCluster;
 class ObjectPoolDeserializationCluster;
 class SetDeserializationCluster;
+class SubtypeTestCacheDeserializationCluster;
 class TypeArgumentsDeserializationCluster;
 }  // namespace module_snapshot
 
@@ -179,6 +180,7 @@ class UntaggedObject {
 
  public:
   using CardRememberedBit = BitField<decltype(tags_), bool>;
+  static constexpr intptr_t kCardRememberedBit = CardRememberedBit::shift();
   // The bit in the Smi tag position must be something that can be set to 0
   // for a dead filler object of either generation.
   // See Object::MakeUnusedSpaceTraversable.
@@ -186,21 +188,28 @@ class UntaggedObject {
 
   using CanonicalBit =
       BitField<decltype(tags_), bool, CardRememberedBit::kNextBit>;
+  static constexpr intptr_t kCanonicalBit = CanonicalBit::shift();
 
   // Incremental barrier target.
   using NotMarkedBit = BitField<decltype(tags_), bool, CanonicalBit::kNextBit>;
+  static constexpr intptr_t kNotMarkedBit = NotMarkedBit::shift();
 
   // Generational barrier target.
   using NewOrEvacuationCandidateBit =
       BitField<decltype(tags_), bool, NotMarkedBit::kNextBit>;
+  static constexpr intptr_t kNewOrEvacuationCandidateBit =
+      NewOrEvacuationCandidateBit::shift();
 
   // Incremental barrier source.
   using AlwaysSetBit =
       BitField<decltype(tags_), bool, NewOrEvacuationCandidateBit::kNextBit>;
+  static constexpr intptr_t kAlwaysSetBit = AlwaysSetBit::shift();
 
   // Generational barrier source.
   using OldAndNotRememberedBit =
       BitField<decltype(tags_), bool, AlwaysSetBit::kNextBit>;
+  static constexpr intptr_t kOldAndNotRememberedBit =
+      OldAndNotRememberedBit::shift();
 
   static constexpr intptr_t kIncrementalBarrierMask =
       NotMarkedBit::mask_in_place();
@@ -237,14 +246,18 @@ class UntaggedObject {
   // See also Class::kIsDeeplyImmutableBit.
   using ShallowImmutableBit =
       BitField<decltype(tags_), bool, OldAndNotRememberedBit::kNextBit>;
+  static constexpr intptr_t kShallowImmutableBit = ShallowImmutableBit::shift();
 
   using DeeplyImmutableBit =
       BitField<decltype(tags_), bool, ShallowImmutableBit::kNextBit>;
+  static constexpr intptr_t kDeeplyImmutableBit = DeeplyImmutableBit::shift();
 
   // The rest of the initial byte is currently reserved, so the next bitfield
   // starts at the byte boundary.
   COMPILE_ASSERT(DeeplyImmutableBit::kNextBit <= kBitsPerInt8);
   using SizeTagBits = BitField<decltype(tags_), intptr_t, kBitsPerInt8, 4>;
+  static constexpr intptr_t kSizeTagPos = SizeTagBits::shift();
+  static constexpr intptr_t kSizeTagSize = SizeTagBits::bitsize();
 
   // Encodes the object size in the tag in units of object alignment.
   class SizeTag {
@@ -286,6 +299,7 @@ class UntaggedObject {
   using ClassIdTag =
       BitField<decltype(tags_), ClassIdTagType, SizeTagBits::kNextBit, 20>;
   COMPILE_ASSERT(kClassIdTagMax == ClassIdTag::max());
+  static constexpr intptr_t kClassIdTagPos = ClassIdTag::shift();
   static constexpr intptr_t kClassIdTagSize = ClassIdTag::bitsize();
 
 #if defined(HASH_IN_OBJECT_HEADER)
@@ -297,6 +311,8 @@ class UntaggedObject {
   using HashTag = BitField<decltype(tags_), uint32_t, kBitsPerInt32>;
   // Make sure the hash value won't be truncated.
   COMPILE_ASSERT(HashTag::bitsize() == kBitsPerInt32);
+  static constexpr intptr_t kHashTagPos = HashTag::shift();
+  static constexpr intptr_t kHashTagSize = HashTag::bitsize();
 #endif
 
   // Assumes this is a heap object.
@@ -602,8 +618,7 @@ class UntaggedObject {
   }
   template <typename type, std::memory_order order>
   type LoadPointer(type const* addr) const {
-    return reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->load(order);
+    return std::atomic_ref<type>(*const_cast<type*>(addr)).load(order);
   }
   template <typename type, typename compressed_type>
   type LoadCompressedPointer(compressed_type const* addr) const {
@@ -612,9 +627,9 @@ class UntaggedObject {
   }
   template <typename type, typename compressed_type, std::memory_order order>
   type LoadCompressedPointer(compressed_type const* addr) const {
-    compressed_type v = reinterpret_cast<std::atomic<compressed_type>*>(
-                            const_cast<compressed_type*>(addr))
-                            ->load(order);
+    compressed_type v =
+        std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+            .load(order);
     return static_cast<type>(v.Decompress(heap_base()));
   }
   template <typename type, typename compressed_type>
@@ -638,8 +653,7 @@ class UntaggedObject {
   }
   template <typename type, std::memory_order order>
   void StorePointer(type const* addr, type value) {
-    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(value, order);
+    std::atomic_ref<type>(*const_cast<type*>(addr)).store(value, order);
     if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -654,9 +668,8 @@ class UntaggedObject {
   }
   template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedPointer(compressed_type const* addr, type value) {
-    reinterpret_cast<std::atomic<compressed_type>*>(
-        const_cast<compressed_type*>(addr))
-        ->store(static_cast<compressed_type>(value), order);
+    std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+        .store(static_cast<compressed_type>(value), order);
     if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -698,8 +711,7 @@ class UntaggedObject {
   }
   template <typename type, std::memory_order order, typename value_type = type>
   void StoreArrayPointer(type const* addr, value_type value) {
-    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(type(value), order);
+    std::atomic_ref<type>(*const_cast<type*>(addr)).store(type(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }
@@ -722,9 +734,8 @@ class UntaggedObject {
   }
   template <typename type, typename compressed_type, std::memory_order order>
   void StoreCompressedArrayPointer(compressed_type const* addr, type value) {
-    reinterpret_cast<std::atomic<compressed_type>*>(
-        const_cast<compressed_type*>(addr))
-        ->store(static_cast<compressed_type>(value), order);
+    std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+        .store(static_cast<compressed_type>(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, Thread::Current());
     }
@@ -734,9 +745,8 @@ class UntaggedObject {
   void StoreCompressedArrayPointer(compressed_type const* addr,
                                    type value,
                                    Thread* thread) {
-    reinterpret_cast<std::atomic<compressed_type>*>(
-        const_cast<compressed_type*>(addr))
-        ->store(static_cast<compressed_type>(value), order);
+    std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+        .store(static_cast<compressed_type>(value), order);
     if (value->IsHeapObject()) {
       CheckArrayPointerStore(addr, value, thread);
     }
@@ -757,9 +767,8 @@ class UntaggedObject {
             std::memory_order order = std::memory_order_relaxed>
   type ExchangeCompressedPointer(compressed_type const* addr, type value) {
     compressed_type previous_value =
-        reinterpret_cast<std::atomic<compressed_type>*>(
-            const_cast<compressed_type*>(addr))
-            ->exchange(static_cast<compressed_type>(value), order);
+        std::atomic_ref<compressed_type>(*const_cast<compressed_type*>(addr))
+            .exchange(static_cast<compressed_type>(value), order);
     if (value.IsHeapObject()) {
       CheckHeapPointerStore(value, Thread::Current());
     }
@@ -771,8 +780,7 @@ class UntaggedObject {
   }
   template <std::memory_order order>
   SmiPtr LoadSmi(SmiPtr const* addr) const {
-    return reinterpret_cast<std::atomic<SmiPtr>*>(const_cast<SmiPtr*>(addr))
-        ->load(order);
+    return std::atomic_ref<SmiPtr>(*const_cast<SmiPtr*>(addr)).load(order);
   }
   SmiPtr LoadCompressedSmi(CompressedSmiPtr const* addr) const {
     return static_cast<SmiPtr>(
@@ -780,10 +788,10 @@ class UntaggedObject {
   }
   template <std::memory_order order>
   SmiPtr LoadCompressedSmi(CompressedSmiPtr const* addr) const {
-    return static_cast<SmiPtr>(reinterpret_cast<std::atomic<CompressedSmiPtr>*>(
-                                   const_cast<CompressedSmiPtr*>(addr))
-                                   ->load(order)
-                                   .DecompressSmi());
+    return static_cast<SmiPtr>(
+        std::atomic_ref<CompressedSmiPtr>(*const_cast<CompressedSmiPtr*>(addr))
+            .load(order)
+            .DecompressSmi());
   }
 
   // Use for storing into an explicitly Smi-typed field of an object
@@ -794,17 +802,15 @@ class UntaggedObject {
   }
   template <typename type, std::memory_order order>
   void StoreSmi(type const* addr, type value) {
-    reinterpret_cast<std::atomic<type>*>(const_cast<type*>(addr))
-        ->store(value, order);
+    std::atomic_ref<type>(*const_cast<type*>(addr)).store(value, order);
   }
   void StoreCompressedSmi(CompressedSmiPtr const* addr, SmiPtr value) {
     *const_cast<CompressedSmiPtr*>(addr) = value;
   }
   template <std::memory_order order>
   void StoreCompressedSmi(CompressedSmiPtr const* addr, SmiPtr value) {
-    reinterpret_cast<std::atomic<CompressedSmiPtr>*>(
-        const_cast<CompressedSmiPtr*>(addr))
-        ->store(static_cast<CompressedSmiPtr>(value), order);
+    std::atomic_ref<CompressedSmiPtr>(*const_cast<CompressedSmiPtr*>(addr))
+        .store(static_cast<CompressedSmiPtr>(value), order);
   }
 
  private:
@@ -2784,6 +2790,7 @@ class UntaggedSubtypeTestCache : public UntaggedObject {
   uint32_t num_occupied_;
 
   friend class Interpreter;
+  friend class module_snapshot::SubtypeTestCacheDeserializationCluster;
 };
 
 class UntaggedLoadingUnit : public UntaggedObject {

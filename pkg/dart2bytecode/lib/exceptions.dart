@@ -49,13 +49,16 @@ class TryBlock {
     tryBlock.handlerPC = reader.readPackedUInt30();
     tryBlock.flags = reader.readByte();
     tryBlock.types = new List<int>.generate(
-        reader.readPackedUInt30(), (_) => reader.readPackedUInt30());
+      reader.readPackedUInt30(),
+      (_) => reader.readPackedUInt30(),
+    );
 
     return tryBlock;
   }
 
   @override
-  String toString() => 'try-index $tryIndex, outer $outerTryIndex, '
+  String toString() =>
+      'try-index $tryIndex, outer $outerTryIndex, '
       'start $startPC, end $endPC, handler $handlerPC, '
       '${needsStackTrace ? 'needs-stack-trace, ' : ''}'
       '${isSynthetic ? 'synthetic, ' : ''}'
@@ -69,8 +72,11 @@ class ExceptionsTable {
 
   TryBlock enterTryBlock(int startPC) {
     assert(blocks.isEmpty || blocks.last.startPC <= startPC);
-    final tryBlock =
-        new TryBlock._(blocks.length, _outerTryBlockIndex(startPC), startPC);
+    final tryBlock = new TryBlock._(
+      blocks.length,
+      _outerTryBlockIndex(startPC),
+      startPC,
+    );
     blocks.add(tryBlock);
     return tryBlock;
   }
@@ -91,8 +97,10 @@ class ExceptionsTable {
   }
 
   ExceptionsTable.read(BufferedReader reader)
-      : blocks = new List<TryBlock>.generate(reader.readPackedUInt30(),
-            (int index) => new TryBlock.read(reader, index));
+    : blocks = new List<TryBlock>.generate(
+        reader.readPackedUInt30(),
+        (int index) => new TryBlock.read(reader, index),
+      );
 
   @override
   String toString() {

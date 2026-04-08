@@ -10,7 +10,9 @@ class DartRuntimeServiceOptions {
     this.enableLogging = false,
     this.port = 0,
     this.disableAuthCodes = false,
+    this.disableOriginCheck = false,
     this.sseHandlerPath,
+    this.autoStart = true,
   });
 
   /// If true, enables log output for the service.
@@ -27,23 +29,35 @@ class DartRuntimeServiceOptions {
   /// Defaults to false.
   final bool disableAuthCodes;
 
+  /// If true, CORS requests to the service will be accepted.
+  ///
+  /// Defaults to false.
+  final bool disableOriginCheck;
+
   /// If non-null, allow for SSE connections to be established at
   /// [sseHandlerPath].
   ///
   /// Defaults to null.
   final String? sseHandlerPath;
 
+  /// If true, the HTTP server will be started on initialization.
+  final bool autoStart;
+
   DartRuntimeServiceOptions copyWith({
     bool? enableLogging,
     int? port,
     bool? disableAuthCodes,
+    bool? disableOriginCheck,
     String? sseHandlerPath,
+    bool? autoStart,
   }) {
     return DartRuntimeServiceOptions(
       enableLogging: enableLogging ?? this.enableLogging,
       port: port ?? this.port,
       disableAuthCodes: disableAuthCodes ?? this.disableAuthCodes,
+      disableOriginCheck: disableOriginCheck ?? this.disableOriginCheck,
       sseHandlerPath: sseHandlerPath ?? this.sseHandlerPath,
+      autoStart: autoStart ?? this.autoStart,
     );
   }
 }

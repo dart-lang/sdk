@@ -86,6 +86,10 @@ class LibraryAnalyzer {
   final Map<FileState, FileAnalysis> _libraryFiles = {};
   late final LibraryVerificationContext _libraryVerificationContext;
 
+  /// One verifier per library so that state of elements can be shared across
+  /// fragments in all files of this library.
+  late final InheritanceOverrideVerifier _inheritanceOverrideVerifier;
+
   final TestingData? _testingData;
   final TypeSystemOperations _typeSystemOperations;
 
@@ -110,6 +114,10 @@ class LibraryAnalyzer {
       constructorFieldsVerifier: ConstructorFieldsVerifier(
         typeSystem: _typeSystem,
       ),
+    );
+    _inheritanceOverrideVerifier = InheritanceOverrideVerifier(
+      _typeSystem,
+      _inheritance,
     );
   }
 
@@ -174,6 +182,7 @@ class LibraryAnalyzer {
           libraryFragment: libraryFragment,
           diagnosticListener: diagnosticListener,
           nameScope: libraryFragment.scope,
+          docImportLibraries: const [],
           strictInference: _analysisOptions.strictInference,
           strictCasts: _analysisOptions.strictCasts,
           dataForTesting: inferenceDataForTesting,
@@ -182,15 +191,6 @@ class LibraryAnalyzer {
       _testingData?.recordTypeConstraintGenerationDataForTesting(
         file.uri,
         inferenceDataForTesting!,
-      );
-
-      // TODO(scheglov): We don't need to do this for the whole unit.
-      parsedUnit.accept(
-        ScopeResolverVisitor(
-          fileAnalysis.diagnosticReporter,
-          libraryFragment: libraryFragment,
-          nameScope: libraryFragment.scope,
-        ),
       );
 
       var featureSet = _libraryElement.featureSet;
@@ -471,11 +471,7 @@ class LibraryAnalyzer {
     _computeConstantErrors(fileAnalysis);
 
     // Compute inheritance and override errors.
-    InheritanceOverrideVerifier(
-      _typeSystem,
-      _inheritance,
-      diagnosticReporter,
-    ).verifyUnit(unit);
+    _inheritanceOverrideVerifier.verifyUnit(unit, diagnosticReporter);
 
     // Use the ErrorVerifier to compute errors.
     ErrorVerifier errorVerifier = ErrorVerifier(
@@ -821,20 +817,6 @@ class LibraryAnalyzer {
       unitFilePath: fileAnalysis.file.path,
     );
     unit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
-    unit.accept(
-      ResolutionVisitor(
-        libraryFragment: libraryFragment,
-        diagnosticListener: diagnosticListener,
-        nameScope: libraryFragment.scope,
-        strictInference: _analysisOptions.strictInference,
-        strictCasts: _analysisOptions.strictCasts,
-        dataForTesting: inferenceDataForTesting,
-      ),
-    );
-    _testingData?.recordTypeConstraintGenerationDataForTesting(
-      fileAnalysis.file.uri,
-      inferenceDataForTesting!,
-    );
 
     var docImportLibraries = [
       for (var import in _library.docLibraryImports)
@@ -843,13 +825,21 @@ class LibraryAnalyzer {
             import.importedFile.uri,
           ),
     ];
+
     unit.accept(
-      ScopeResolverVisitor(
-        fileAnalysis.diagnosticReporter,
+      ResolutionVisitor(
         libraryFragment: libraryFragment,
+        diagnosticListener: diagnosticListener,
         nameScope: libraryFragment.scope,
         docImportLibraries: docImportLibraries,
+        strictInference: _analysisOptions.strictInference,
+        strictCasts: _analysisOptions.strictCasts,
+        dataForTesting: inferenceDataForTesting,
       ),
+    );
+    _testingData?.recordTypeConstraintGenerationDataForTesting(
+      fileAnalysis.file.uri,
+      inferenceDataForTesting!,
     );
 
     // Nothing for RESOLVED_UNIT8?

@@ -156,7 +156,16 @@ config("compiler") {
       ldflags += [ "-fsanitize=leak" ]
     }
     if (is_msan) {
-      cflags += [ "-fsanitize=memory" ]
+      cflags += [
+        "-fsanitize=memory",
+
+        # Matching the google3 settings. Whether MSAN reports a use of an
+        # uninitialized value is sensitive to inlining.
+        "-mllvm",
+        "-inline-instr-cost=20",
+        "-mllvm",
+        "-inline-memaccess-cost=20",
+      ]
       ldflags += [ "-fsanitize=memory" ]
     }
     if (is_tsan) {
@@ -965,6 +974,7 @@ config("symbols") {
       "-g3",
       "-ggdb3",
     ]
+    asmflags = [ "-g" ]
   }
 }
 

@@ -30,6 +30,11 @@ can-be-overridden:
   - item 1
   ...
   - item N
+
+can-be-used-as-type:
+  - item 1
+  ...
+  - item N
 ```
 
 `callable` section specifies members which can be
@@ -41,6 +46,10 @@ extend, mix-in or implement.
 
 `can-be-overridden` section specifies instance members which
 dynamic module can override.
+
+`can-be-used-as-type` section specifies classes and extension types
+which can be used in dynamic module in `is` checks, `as` casts,
+type parameters, or type literals.
 
 ## Library
 
@@ -109,7 +118,6 @@ Library member item specifies given top-level member in the given library.
 ```
 
 Class member item specifies given member of the given class.
-
 ## Extension Type member
 
 ```
@@ -119,6 +127,45 @@ Class member item specifies given member of the given class.
 ```
 
 Extension type member item specifies given member of the given extension type.
+
+--
+
+## Extension
+
+```
+  - library: '<library-uri>'
+    extension: '<extension-name>'
+```
+
+Extension item specifies given extension and all _public_ members of such extension.
+
+This item is only allowed in the `callable` section of the dynamic interface.
+
+--
+
+## Extension list
+
+```
+  - library: '<library-uri>'
+    extension: ['<extension-name-1>', ..., 'extension-name-N']
+```
+
+Extension list item specifies given extensions and all _public_ members of these.
+
+
+--
+
+## Extension member
+
+```
+  - library: '<library-uri>'
+    extension: '<extension-name>'
+    member: '<member-name>'
+```
+
+Extension member item specifies given member of the given extension.
+
+--
 
 ## Example
 ```
@@ -156,4 +203,12 @@ can-be-overridden:
   - library: 'package:flutter/src/widgets/framework.dart'
     class: 'StatelessWidget'
     member: 'build'
+
+can-be-used-as-type:
+  # All public classes in `dart:core`.
+  - library: 'dart:core'
+
+  # `MyClass` in `package:my_app/lib/my_app.dart`.
+  - library: 'package:my_app/lib/my_app.dart'
+    class: 'MyClass'
 ```

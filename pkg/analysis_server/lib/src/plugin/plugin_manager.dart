@@ -139,8 +139,8 @@ class PluginManager {
     this._notificationManager,
     this.instrumentationService,
     this.sessionLogger, {
-    ProcessRunner processRunner = const ProcessRunner(),
-  }) : _processRunner = processRunner;
+    this._processRunner = const ProcessRunner(),
+  });
 
   /// All of the legacy plugins that are currently known.
   List<PluginIsolate> get legacyPluginIsolates =>

@@ -1,0 +1,40 @@
+{
+  "constants": [
+    {
+      "definition_index": 0,
+      "index": 0,
+      "name": "a",
+      "type": "enum"
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "enum",
+          "name": "A"
+        }
+      ],
+      "uri": "package:record_use_test/enum_instance_usage.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "constant_index": 0,
+            "loading_unit_index": 0,
+            "type": "constant"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -236,6 +236,7 @@ class InferableTypeBuilder extends OmittedTypeBuilderImpl
       } else {
         switch (inferenceDefaultType) {
           case InferenceDefaultType.NullableObject:
+            // Coverage-ignore(suite): Not run.
             registerInferredType(hierarchy.coreTypes.objectNullableRawType);
           case InferenceDefaultType.Dynamic:
             registerInferredType(const DynamicType());

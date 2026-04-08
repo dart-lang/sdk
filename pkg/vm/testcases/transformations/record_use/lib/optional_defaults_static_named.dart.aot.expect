@@ -1,0 +1,24 @@
+library #lib;
+import self as self;
+import "dart:core" as core;
+import "package:meta/meta.dart" as meta;
+
+import "package:meta/meta.dart" show RecordUse;
+
+class SomeClass extends core::Object {
+
+  [@vm.inferred-return-type.metadata=dart.core::_Smi (value: 13)]
+  [@vm.unboxing-info.metadata=[!regcc]]
+  @#C1
+  static method staticNamed({[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 13)] core::int i = #C2}) → core::int
+    return i;
+}
+
+[@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+static method main() → void {
+  self::SomeClass::staticNamed();
+}
+constants  {
+  #C1 = meta::RecordUse {}
+  #C2 = 13
+}

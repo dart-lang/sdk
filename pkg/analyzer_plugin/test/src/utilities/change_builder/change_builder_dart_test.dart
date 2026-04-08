@@ -767,6 +767,47 @@ class C {
     expect(position.offset, equals(20));
   }
 
+  Future<void> test_writeFunctionDeclaration_async() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
+    addSource(path, content);
+
+    // Create a Future<String> to use as the return type so we can ensure
+    // the `async` keyword is added.
+    var typeProvider = (await resolveFile(path)).typeProvider;
+    var futureStringType = typeProvider.futureElement.instantiate(
+      typeArguments: [typeProvider.stringType],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration('x', returnType: futureStringType);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('Future<String> x() async {}'),
+    );
+  }
+
+  Future<void> test_writeFunctionDeclaration_isStatic() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration('x', isStatic: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('static x() {}'));
+  }
+
   Future<void>
   test_writeFunctionDeclaration_noReturnType_noParams_body() async {
     var path = convertPath('/home/test/lib/test.dart');
@@ -850,13 +891,33 @@ class C {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A fib() => null;'));
+    expect(edit.replacement, equalsIgnoringWhitespace('A fib() {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
     var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
+  }
+
+  Future<void> test_writeFunctionDeclaration_typeParams() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration(
+          'x',
+          typeParameterWriter: () {
+            builder.write('<T>');
+          },
+        );
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('x<T>() {}'));
   }
 
   Future<void> test_writeGetterDeclaration_bodyWriter() async {
@@ -1540,6 +1601,34 @@ f(int i, String s) {
     expect(
       edit.replacement,
       equalsIgnoringWhitespace('String s, {required int index}'),
+    );
+  }
+
+  Future<void> test_writeParametersMatchingArguments_named_mixedOrder() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '''
+f(bool b, int i, String s) {
+  g(arg1: b, i, arg3: s);
+}''';
+    addSource(path, content);
+    var unit = (await resolveFile(path)).unit;
+    var f = unit.declarations[0] as FunctionDeclaration;
+    var body = f.functionExpression.body as BlockFunctionBody;
+    var statement = body.block.statements[0] as ExpressionStatement;
+    var invocation = statement.expression as MethodInvocation;
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(content.length - 1, (builder) {
+        builder.writeParametersMatchingArguments(invocation.argumentList);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace(
+        'int i, {required bool arg1, required String arg3}',
+      ),
     );
   }
 
@@ -2648,6 +2737,22 @@ void functionAfter() {
   1 +  2;
 }
 ''');
+  }
+
+  Future<void> test_format_syntaxError_doesNotThrow() async {
+    var initialCode = r'''
+err
+''';
+    var path = convertPath('/home/test/lib/test.dart');
+    newFile(path, initialCode);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.format(SourceRange(0, 3));
+    });
+
+    var edits = getEdits(builder);
+    expect(edits, isEmpty);
   }
 
   Future<void> test_importElementLibrary_libElement() async {

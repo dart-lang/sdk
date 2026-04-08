@@ -51,10 +51,9 @@ class UnboxingType {
 
   factory UnboxingType.readFromBinary(BinarySource source) {
     final kind = UnboxingKind.values[source.readUInt30()];
-    final recordShape =
-        (kind == UnboxingKind.record)
-            ? RecordShape.readFromBinary(source)
-            : null;
+    final recordShape = (kind == UnboxingKind.record)
+        ? RecordShape.readFromBinary(source)
+        : null;
     return UnboxingType._(kind, recordShape);
   }
 
@@ -189,10 +188,9 @@ class UnboxingInfoMetadata {
 
   /// Remove placeholder parameter info slot for setters that the getter is
   /// grouped with.
-  UnboxingInfoMetadata toGetterInfo() =>
-      UnboxingInfoMetadata(0)
-        ..returnInfo = returnInfo
-        ..mustUseStackCallingConvention = mustUseStackCallingConvention;
+  UnboxingInfoMetadata toGetterInfo() => UnboxingInfoMetadata(0)
+    ..returnInfo = returnInfo
+    ..mustUseStackCallingConvention = mustUseStackCallingConvention;
 
   UnboxingInfoMetadata toFieldInfo() {
     if (argsInfo.length == 1 && argsInfo[0] == UnboxingType.kUnknown) {

@@ -1,0 +1,25 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/redirecting_error.dart:7:11: Error: 'C5' is already declared in this scope.
+//   factory C5(int v) = C5.foo;
+//           ^^
+// pkg/front_end/testcases/primary_constructors/redirecting_error.dart:5:9: Context: Previous declaration of 'C5'.
+// class C5(var int v) {
+//         ^
+//
+import self as self;
+import "dart:core" as core;
+
+class C5 extends core::Object {
+  field core::int v;
+  constructor •(core::int v) → self::C5
+    : self::C5::v = v, super core::Object::•()
+    ;
+  constructor foo(core::int v) → self::C5
+    : invalid-initializer "pkg/front_end/testcases/primary_constructors/redirecting_error.dart:6:19: Error: Can't use 'new' because it is declared more than once.
+  C5.foo(int v) : this(v);
+                  ^"
+    ;
+}

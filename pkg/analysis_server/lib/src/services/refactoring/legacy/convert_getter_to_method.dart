@@ -14,6 +14,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// [ConvertMethodToGetterRefactoring] implementation.
@@ -61,7 +62,7 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<SourceChange> createChange() async {
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
     change = SourceChange(refactoringName);
     var elements = await _getElements();
     for (var element in elements) {

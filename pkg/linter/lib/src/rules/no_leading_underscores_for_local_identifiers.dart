@@ -8,6 +8,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -89,6 +90,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parameter is FieldFormalParameter ||
           parameter is SuperFormalParameter) {
         // These are not local identifiers.
+        return;
+      }
+      if (parameter.declaredFragment?.element is FieldFormalParameterElement) {
+        // Declaring parameters must have an underscore if the declared field is
+        // intended to be private.
         return;
       }
       if (!parameter.isNamed) {

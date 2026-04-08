@@ -176,7 +176,7 @@ Future<String> _readLspMessage(Stream<List<int>> stream) {
       final headers = parts[0];
       final body = parts[1];
       final length = int.parse(
-        contentLengthRegExp.firstMatch(headers)!.group(1)!,
+        contentLengthRegExp.firstMatch(headers)![1]!,
       );
       // Check if we're already had the full payload.
       if (body.length >= length) {

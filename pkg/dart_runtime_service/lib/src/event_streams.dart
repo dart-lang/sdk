@@ -10,6 +10,7 @@ import 'package:meta/meta.dart';
 import 'package:vm_service/vm_service.dart';
 
 import 'clients.dart';
+import 'dart_runtime_service_backend.dart';
 import 'rpc_exceptions.dart';
 import 'utils.dart';
 
@@ -109,8 +110,16 @@ abstract interface class EventStreamMethods {
     ServiceAlias alias,
   );
 
-  /// Subscribes `client` to a stream.
-  void streamListen({required Client client, required String streamId});
+  /// Subscribes [client] to a stream.
+  ///
+  /// [params] is the unaltered set of parameters included when `streamListen`
+  /// is invoked. Backends may use these additional parameters for special
+  /// behavior (e.g., changing the verbosity of responses).
+  void streamListen({
+    required Client client,
+    required String streamId,
+    required Map<String, Object?> params,
+  });
 
   /// Unsubscribes `client` from a stream.
   void streamCancel({required Client client, required String streamId});
@@ -122,13 +131,12 @@ abstract interface class EventStreamMethods {
 /// Used for keeping track of stream subscription state and sending events to
 /// clients subscribed to individual streams.
 class EventStreamManager implements EventStreamMethods {
-  EventStreamManager({
-    required UnmodifiableNamedLookup<Client> Function() clientsGetter,
-  }) : _clientsGetter = clientsGetter;
+  EventStreamManager({required this._clientsGetter, required this._backend});
 
   static const kStreamNotify = 'streamNotify';
 
-  final UnmodifiableNamedLookup<Client> Function() _clientsGetter;
+  final UnmodifiableClientNamedLookup Function() _clientsGetter;
+  final DartRuntimeServiceBackend _backend;
   late final clients = _clientsGetter();
 
   @visibleForTesting
@@ -225,14 +233,23 @@ class EventStreamManager implements EventStreamMethods {
 
   /// Subscribes `client` to a stream.
   @override
-  void streamListen({required Client client, required String streamId}) {
+  void streamListen({
+    required Client client,
+    required String streamId,
+    required Map<String, Object?> params,
+  }) {
     assert(streamId.isNotEmpty);
-    // TODO(bkonyi): invoke backend stream handling logic.
     final listeners = streamListeners.putIfAbsent(streamId, () => []);
     if (listeners.contains(client)) {
       RpcException.streamAlreadySubscribed.throwException();
     }
     listeners.add(client);
+
+    // Tell the backend to start sending events for this stream if this is the
+    // first listener.
+    if (listeners.length == 1) {
+      _backend.onStreamListen(streamId: streamId, params: params);
+    }
     if (streamId == EventStreams.kService) {
       // Send all previously registered service extensions when a client
       // subscribes to the Service stream.
@@ -265,7 +282,11 @@ class EventStreamManager implements EventStreamMethods {
     }
 
     listeners.remove(client);
-    // TODO(bkonyi): invoke backend stream handling logic.
+    // Tell the backend to stop sending events for this stream if there's no
+    // more listeners.
+    if (listeners.isEmpty) {
+      _backend.onStreamCancel(streamId: streamId);
+    }
   }
 
   /// Cleanup stream subscriptions for `client` when it has disconnected.

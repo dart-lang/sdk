@@ -995,9 +995,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {}
-
-  @override
   void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     var element = name.element;
@@ -1017,7 +1014,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
-  void visitMixinDeclaration(MixinDeclaration node) {
+  void visitMixinDeclaration(covariant MixinDeclarationImpl node) {
     _addSubtypeForMixinDeclaration(node);
     super.visitMixinDeclaration(node);
   }
@@ -1325,7 +1322,7 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   /// Record the given mixin as a subclass of its direct superclasses.
-  void _addSubtypeForMixinDeclaration(MixinDeclaration node) {
+  void _addSubtypeForMixinDeclaration(MixinDeclarationImpl node) {
     _addSubtype(
       node.name.lexeme,
       onClause: node.onClause,

@@ -2,13 +2,13 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-extension type C0([a = 0]);
+extension type C0([a = 0]) implements int;
 
-extension type C1([final b = true]);
+extension type C1([final b = true]) implements bool;
 
-extension type C2({c = 'foo'});
+extension type C2({c = 'foo'}) implements String;
 
-extension type C3({final d = const [0]});
+extension type C3({final d = const [0]}) implements List<int>;
 
 test() {
   C0(''); // Error

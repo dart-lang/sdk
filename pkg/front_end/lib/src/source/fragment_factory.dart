@@ -347,7 +347,7 @@ abstract class FragmentFactory {
     required String? nativeMethodName,
     required Token? beginInitializers,
     required bool hasNewKeyword,
-    required bool forAbstractClassOrMixin,
+    required bool forAbstractClassOrEnumOrMixin,
   });
 
   void addPrimaryConstructor({
@@ -359,6 +359,7 @@ abstract class FragmentFactory {
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
+    required bool forAbstractClassOrEnumOrMixin,
   });
 
   void addPrimaryConstructorBody({

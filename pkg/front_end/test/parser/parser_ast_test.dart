@@ -48,15 +48,13 @@ void canParseTopLevelIshOfAllFrontendFiles() {
               data,
             );
           } else if (child.isMixinDeclaration()) {
-            splitIntoChunks(
-              child.asMixinDeclaration().getClassOrMixinOrExtensionBody(),
-              data,
-            );
+            MixinDeclarationEnd declaration = child.asMixinDeclaration();
+            splitIntoChunks(declaration.getClassOrMixinOrExtensionBody(), data);
+            declaration.getNoMixinBody();
           } else if (child.isExtension()) {
-            splitIntoChunks(
-              child.asExtension().getClassOrMixinOrExtensionBody(),
-              data,
-            );
+            ExtensionDeclarationEnd declaration = child.asExtension();
+            splitIntoChunks(declaration.getClassOrMixinOrExtensionBody(), data);
+            declaration.getNoExtensionBody();
           } else if (child.isExtensionType()) {
             splitIntoChunks(
               child.asExtensionType().getClassOrMixinOrExtensionBody(),
@@ -264,17 +262,16 @@ void testMixinStuff() {
   MixinDeclarationEnd mxn = decl.asMixinDeclaration();
   expect("B", decl.getIdentifier().token.lexeme);
 
-  List<MemberEnd> members = mxn.getClassOrMixinOrExtensionBody().getMembers();
+  ClassOrMixinOrExtensionBodyEnd? body = mxn.getClassOrMixinOrExtensionBody();
+  expect(false, body == null);
+  List<MemberEnd> members = body.getMembers();
   expect(4, members.length);
   expect(members[0].isFields(), true);
   expect(members[1].isMethod(), true);
   expect(members[2].isFactory(), true);
   expect(members[3].isConstructor(), true);
 
-  List<String> chunks = splitIntoChunks(
-    mxn.getClassOrMixinOrExtensionBody(),
-    data,
-  );
+  List<String> chunks = splitIntoChunks(body, data);
   expect(4, chunks.length);
   expect("static int staticField = 0;", chunks[0]);
   expect("""void foo() {

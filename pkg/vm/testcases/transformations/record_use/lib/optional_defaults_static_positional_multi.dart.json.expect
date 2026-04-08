@@ -1,0 +1,64 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 1
+    },
+    {
+      "type": "int",
+      "value": 12
+    },
+    {
+      "type": "int",
+      "value": 17
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "staticPositionalBoth"
+        }
+      ],
+      "uri": "package:record_use_test/optional_defaults_static_positional_multi.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              0,
+              2
+            ],
+            "type": "with_arguments"
+          },
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              1,
+              2
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

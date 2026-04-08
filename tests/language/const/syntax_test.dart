@@ -118,7 +118,6 @@ class C1 {
       : x = C0.X
       //^
       // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_INITIALIZER_AND_DECLARATION
-      //  ^
       // [cfe] 'x' is a final instance variable that was initialized at the declaration.
   ;
   final x = null;

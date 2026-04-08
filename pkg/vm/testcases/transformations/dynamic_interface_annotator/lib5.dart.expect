@@ -5,6 +5,8 @@ import "dart:core" as core;
 extension E2 on core::String {
   get lastChar = self::E2|get#lastChar;
 }
+@#C3
+@#C5
 extension type E1(core::int _info) {
   abstract extension-type-member representation-field get _info() → core::int;
   get info = self::E1|get#info;
@@ -29,4 +31,6 @@ constants  {
   #C1 = "dyn-module:callable"
   #C2 = null
   #C3 = core::pragma {name:#C1, options:#C2}
+  #C4 = "dyn-module:can-be-used-as-type"
+  #C5 = core::pragma {name:#C4, options:#C2}
 }

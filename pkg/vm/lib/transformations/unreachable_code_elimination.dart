@@ -96,20 +96,18 @@ class SimpleUnreachableCodeElimination extends RemovingTransformer {
         if (initializer == null) {
           assert(node.isExternal);
         } else {
-          node.initializer =
-              result
-                ..fileOffset = initializer.fileOffset
-                ..parent = node;
+          node.initializer = result
+            ..fileOffset = initializer.fileOffset
+            ..parent = node;
         }
       } else if (node is Procedure) {
         final body = node.function.body;
         if (body == null) {
           assert(node.isExternal);
         } else {
-          node.function.body =
-              ReturnStatement(result)
-                ..fileOffset = body.fileOffset
-                ..parent = node.function;
+          node.function.body = ReturnStatement(result)
+            ..fileOffset = body.fileOffset
+            ..parent = node.function;
         }
       }
     }

@@ -144,8 +144,8 @@ abstract class JMember with EntityMapKey implements MemberEntity {
     this.library,
     this.enclosingClass,
     this._name, {
-    bool isStatic = false,
-  }) : _isStatic = isStatic;
+    this._isStatic = false,
+  });
 
   /// Deserializes a [JMember] object from [source].
   factory JMember.readFromDataSource(DataSourceReader source) {

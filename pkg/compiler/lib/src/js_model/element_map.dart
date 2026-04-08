@@ -14,15 +14,15 @@ import '../elements/types.dart';
 import '../inferrer/abstract_value_domain.dart';
 import '../ir/closure.dart';
 import '../ir/util.dart';
-import '../js_model/class_type_variable_access.dart';
-import '../js_model/elements.dart' show JGeneratorBody;
-import '../js_model/js_world.dart' show JClosedWorld;
 import '../native/behavior.dart';
 import '../serialization/deferrable.dart';
 import '../serialization/serialization.dart';
 import '../universe/call_structure.dart';
 import '../universe/selector.dart';
+import 'class_type_variable_access.dart';
 import 'closure.dart';
+import 'elements.dart' show JGeneratorBody;
+import 'js_world.dart' show JClosedWorld;
 
 /// Interface that translates between Kernel IR nodes and entities used for
 /// global type inference and building the SSA graph for members.
@@ -157,6 +157,9 @@ abstract class JsToElementMap {
     KernelScopeInfo info,
     MemberEntity member,
   );
+
+  /// Returns the library URI of the symbol if [value] represents a [Symbol].
+  Uri? getSymbolLibraryUri(ConstantValue value);
 }
 
 /// Interface for type inference results for kernel IR nodes.

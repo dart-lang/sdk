@@ -6,6 +6,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -68,7 +69,7 @@ class DartDocumentHighlightsComputer {
     }
 
     // Add the obvious target element.
-    var mainTarget = _canonicalizeElement(_getTargetElement(coveringNode));
+    var mainTarget = _getTargetElement(coveringNode)?.canonical;
 
     // For pattern variables in implicit pattern fields (where the field name
     // is inferred from the variable name), also include the field element.
@@ -76,11 +77,19 @@ class DartDocumentHighlightsComputer {
     var additionalTarget = switch (coveringNode) {
       VariablePattern(parent: PatternField(:var element, :var name))
           when name?.name == null =>
-        _canonicalizeElement(element),
+        element?.canonical,
       _ => null,
     };
 
-    return _HighlightTargets.elements(mainTarget, additionalTarget);
+    // Include matching elements from superclasses as targets.
+    var allTargets = {
+      ?mainTarget,
+      ?additionalTarget,
+      ...?mainTarget?.supertypeMembers,
+      ...?additionalTarget?.supertypeMembers,
+    };
+
+    return _HighlightTargets.elements(mainTarget?.name, allTargets);
   }
 
   /// Gets the target [AstNode] for [node] if it's a node-based highlight group
@@ -101,19 +110,6 @@ class DartDocumentHighlightsComputer {
       YieldStatement() => node.thisOrAncestorOfType<FunctionBody>(),
 
       _ => null,
-    };
-  }
-
-  /// Canonicalizes an element so that field formal parameters map to their
-  /// fields and property accessors map to their variables.
-  static Element? _canonicalizeElement(Element? element) {
-    if (element == null) return null;
-    return switch (element) {
-      FieldFormalParameterElement(:var field) => field?.baseElement,
-      PropertyAccessorElement(:var variable)
-          when variable.isOriginDeclaration =>
-        variable.baseElement,
-      _ => element.baseElement,
     };
   }
 
@@ -442,12 +438,24 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
   void _addOccurrence(Element? element, Token? token) {
     if (element == null || token == null) return;
 
-    var canonicalElement = DartDocumentHighlightsComputer._canonicalizeElement(
-      element,
-    );
+    var canonicalElement = element.canonical;
+
+    if (canonicalElement == null) {
+      return;
+    }
+
+    // Do a cheap name check before looking at the hierarchy.
+    if (!_target.matchesElementName(canonicalElement)) {
+      return;
+    }
+
+    // This returns Iterable and will be lazily iterated by `any()` below if the
+    // canonical element doesn't match.
+    var supertypeMembers = canonicalElement.supertypeMembers;
 
     // Only add the occurrence if it's one of our target elements.
-    if (canonicalElement != null && _target.matchesElement(canonicalElement)) {
+    if (_target.matchesElement(canonicalElement) ||
+        supertypeMembers.any(_target.matchesElement)) {
       tokens.add(token);
     }
   }
@@ -459,22 +467,61 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
 /// cases (such as a variable pattern) there may be multiple target elements
 /// (such as a variable and the matched getter).
 class _HighlightTargets {
-  final Element? _targetElement1;
-  final Element? _targetElement2;
+  final String? _elementName;
+  final Set<Element> _targetElements;
   final AstNode? _targetNode;
 
-  _HighlightTargets.elements([this._targetElement1, this._targetElement2])
+  _HighlightTargets.elements(this._elementName, this._targetElements)
     : _targetNode = null;
 
   _HighlightTargets.node(this._targetNode)
-    : _targetElement1 = null,
-      _targetElement2 = null;
+    : _elementName = null,
+      _targetElements = const {};
 
   bool matchesElement(Element element) {
-    return element == _targetElement1 || element == _targetElement2;
+    return _targetElements.contains(element);
+  }
+
+  bool matchesElementName(Element canonicalElement) {
+    return canonicalElement.name == _elementName;
   }
 
   bool matchesNode(AstNode node) {
     return node == _targetNode;
+  }
+}
+
+extension on Element {
+  /// Canonicalizes an element so that field formal parameters map to their
+  /// fields and property accessors map to their variables.
+  Element? get canonical {
+    return switch (this) {
+      FieldFormalParameterElement(:var field) => field?.baseElement,
+      PropertyAccessorElement(:var variable)
+          when variable.isOriginDeclaration =>
+        variable.baseElement,
+      _ => baseElement,
+    };
+  }
+
+  /// All members in superclasses that this element overrides.
+  Iterable<Element> get supertypeMembers {
+    var enclosing = enclosingElement;
+    if (enclosing is! InterfaceElement) return const [];
+
+    var name = Name.forElement(this);
+    if (name == null) return const [];
+
+    var session = this.session;
+    if (session is! AnalysisSessionImpl) return const [];
+
+    // Get this member for all supertypes.
+    var inheritanceManager = session.inheritanceManager;
+    return enclosing.allSupertypes
+        .map(
+          (supertype) => inheritanceManager.getMember(supertype.element, name),
+        )
+        .map((element) => element?.canonical)
+        .nonNulls;
   }
 }

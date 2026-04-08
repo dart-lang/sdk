@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 
 /// [ExecutableElement], its parameters, and operations on them.
 class ExecutableParameters {
@@ -52,6 +53,8 @@ class ExecutableParameters {
       return function.parameters;
     } else if (targetDeclaration is MethodDeclaration) {
       return targetDeclaration.parameters;
+    } else if (targetDeclaration is PrimaryConstructorDeclaration) {
+      return targetDeclaration.formalParameters;
     }
     return null;
   }
@@ -85,6 +88,9 @@ class ExecutableParameters {
       element = invocation.methodName.element;
     } else if (invocation is ConstructorReferenceNode) {
       element = invocation.element;
+    } else if (invocation is EnumConstantArguments) {
+      element =
+          (invocation.parent as EnumConstantDeclaration).constructorElement;
     }
 
     // Must be executable to have formal parameters.

@@ -205,9 +205,8 @@ class Expectation {
   /// Whether this expectation is a test outcome. If not, it's a "meta marker".
   final bool isOutcome;
 
-  Expectation._(this._name, {Expectation? group, bool isMeta = false})
-      : _group = group,
-        isOutcome = !isMeta;
+  Expectation._(this._name, {this._group, bool isMeta = false})
+      : isOutcome = !isMeta;
 
   bool canBeOutcomeOf(Expectation expectation) {
     Expectation? outcome = this;

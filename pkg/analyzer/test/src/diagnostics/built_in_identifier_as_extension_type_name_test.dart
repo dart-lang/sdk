@@ -33,4 +33,36 @@ extension type Function(int it) {}
       [error(diag.builtInIdentifierAsExtensionTypeName, 15, 8)],
     );
   }
+
+  test_inout() async {
+    await assertErrorsInCode(
+      '''
+extension type inout(int it) {}
+''',
+      [error(diag.builtInIdentifierAsExtensionTypeName, 15, 5)],
+    );
+  }
+
+  test_inout_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+extension type inout(int it) {}
+''');
+  }
+
+  test_out() async {
+    await assertErrorsInCode(
+      '''
+extension type out(int it) {}
+''',
+      [error(diag.builtInIdentifierAsExtensionTypeName, 15, 3)],
+    );
+  }
+
+  test_out_language310() async {
+    await assertNoErrorsInCode('''
+// @dart = 3.10
+extension type out(int it) {}
+''');
+  }
 }

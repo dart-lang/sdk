@@ -1,0 +1,22 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object /*hasConstConstructor*/  {
+  final field self::B b;
+  const constructor •({required self::B b}) → self::A
+    : self::A::b = b, super core::Object::•()
+    ;
+}
+class B extends core::Object /*hasConstConstructor*/  {
+  final field self::C c;
+  const constructor •({required self::C c}) → self::B
+    : self::B::c = c, super core::Object::•()
+    ;
+}
+class C extends core::Object {
+  constructor f(core::num n) → self::C
+    : super core::Object::•()
+    ;
+}
+static final field self::A a = new self::A::•(b: new self::B::•(c: new self::C::f(0)));

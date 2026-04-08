@@ -525,6 +525,51 @@ library
 ''');
   }
 
+  test_mixin_emptyBody() async {
+    var library = await buildLibrary(r'''
+mixin M;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F1
+      superclassConstraints
+        Object
+''');
+  }
+
+  test_mixin_emptyBody_language310() async {
+    var library = await buildLibrary(r'''
+// @dart = 3.10
+mixin M;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin M (nameOffset:22) (firstTokenOffset:16) (offset:22)
+          element: <testLibrary>::@mixin::M
+  mixins
+    mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F1
+      superclassConstraints
+        Object
+''');
+  }
+
   test_mixin_field_inferredType() async {
     var library = await buildLibrary('''
 mixin M {

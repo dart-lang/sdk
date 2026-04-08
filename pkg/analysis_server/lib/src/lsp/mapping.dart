@@ -568,7 +568,7 @@ CompletionDetail getCompletionDetail(
   if (returnType == null &&
       element?.kind == server.ElementKind.SETTER &&
       parameters != null) {
-    returnType = completionSetterTypePattern.firstMatch(parameters)?.group(1);
+    returnType = completionSetterTypePattern.firstMatch(parameters)?[1];
     parameters = null;
   }
 
@@ -1275,7 +1275,7 @@ lsp.CompletionItem toCompletionItem(
   if (labelMatch != null) {
     cleanedDoc = null;
     labelDetails = (
-      detail: labelMatch.group(1)!,
+      detail: labelMatch[1]!,
       truncatedParams: labelDetails.truncatedParams,
       truncatedSignature: labelDetails.truncatedSignature,
       autoImportUri: labelDetails.autoImportUri,

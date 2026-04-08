@@ -169,8 +169,7 @@ class ExpectedCompletionsVisitor extends RecursiveAstVisitor<void> {
   /// comment don't yield an error like Dart syntax mistakes would yield.
   final bool _doExpectCommentRefs = false;
 
-  ExpectedCompletionsVisitor(this.result, {required int caretOffset})
-    : _caretOffset = caretOffset;
+  ExpectedCompletionsVisitor(this.result, {required this._caretOffset});
 
   /// Return the path of the file that is being visited.
   String get filePath => result.path;

@@ -256,6 +256,11 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent("RecoverMixinHeader");
   }
 
+  /// Handle `;` as a mixin body.
+  void handleNoMixinBody(Token semicolonToken) {
+    logEvent("NoMixinBody");
+  }
+
   /// Handle the end of a mixin declaration.  Substructures:
   /// - mixin header
   /// - class or mixin body
@@ -300,6 +305,11 @@ abstract class Listener implements UnescapeErrorListener {
     logEvent('ExtensionDeclaration');
   }
 
+  /// Handle `;` as an extension body.
+  void handleNoExtensionBody(Token semicolonToken) {
+    logEvent("NoExtensionBody");
+  }
+
   /// Handle the beginning of an extension type declaration.  Substructures:
   /// - type variables
   ///
@@ -341,19 +351,19 @@ abstract class Listener implements UnescapeErrorListener {
   /// - constructor name (if [hasConstructorName] is `true`)
   /// - formals
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     logEvent('PrimaryConstructor');
   }
 
   /// Handle the omission of a primary constructor declaration.
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {}
 
   void beginPrimaryConstructorBody(Token token) {}
@@ -494,6 +504,11 @@ abstract class Listener implements UnescapeErrorListener {
 
   /// Handle the end of an enum body.
   void endEnumBody(Token beginToken, Token endToken) {}
+
+  /// Handle `;` as an enum body.
+  void handleNoEnumBody(Token semicolonToken) {
+    logEvent("NoEnumBody");
+  }
 
   /// Handle the enum element. Substructures:
   /// - Metadata

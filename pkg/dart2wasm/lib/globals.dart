@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
 import 'code_generator.dart' show EagerStaticFieldInitializerCodeGenerator;
+import 'reference_extensions.dart';
 import 'table_based_globals.dart';
 import 'translator.dart';
 import 'util.dart' as util;
@@ -28,7 +29,7 @@ class Globals {
   final WasmGlobalImporter _globalsModuleMap;
 
   Globals(this.translator)
-      : _globalsModuleMap = WasmGlobalImporter(translator, 'global');
+    : _globalsModuleMap = WasmGlobalImporter(translator, 'global');
 
   void declareMainAppGlobalExportWithName(String name, w.Global exportable) {
     _globalsModuleMap.exportDefinitionWithName(name, exportable);
@@ -49,8 +50,9 @@ class Globals {
       b.global_get(importedGlobal);
     } else {
       final getter = _globalGetters.putIfAbsent(global, () {
-        final getterType =
-            owningModule.types.defineFunction(const [], [global.type.type]);
+        final getterType = owningModule.types.defineFunction(const [], [
+          global.type.type,
+        ]);
         final getterFunction = owningModule.functions.define(getterType)
           ..isPure = true;
         final getterBody = getterFunction.body;
@@ -75,8 +77,9 @@ class Globals {
       b.global_set(importedGlobal);
     } else {
       final setter = _globalSetters.putIfAbsent(global, () {
-        final setterType =
-            owningModule.types.defineFunction([global.type.type], const []);
+        final setterType = owningModule.types.defineFunction([
+          global.type.type,
+        ], const []);
         final setterFunction = owningModule.functions.define(setterType);
         final setterBody = setterFunction.body;
         setterBody.local_get(setterFunction.locals.single);
@@ -131,7 +134,7 @@ class DartGlobals {
       final numberOfFieldsWithSameType = _fieldTypeCount[fieldType]!;
       final useTableSlot =
           numberOfFieldsWithSameType >= dartFieldTableUseCutoff &&
-              fieldType is w.RefType;
+          fieldType is w.RefType;
 
       final module = translator.moduleForReference(field.fieldReference);
 
@@ -143,13 +146,22 @@ class DartGlobals {
       // heuristic to determine whether to use a table or not.
       final Constant? init = getConstantInitializer(field);
       if (init != null &&
-          translator.constants
-              .tryInstantiateEagerlyFrom(module, init, fieldType)) {
+          translator.constants.tryInstantiateEagerlyFrom(
+            module,
+            init,
+            fieldType,
+          )) {
         if (useTableSlot && fieldType.nullable) {
           return _defineTableBasedField(field, fieldType, module, init, null);
         }
         return _defineGlobalBasedField(
-            field, fieldType, module, !field.isFinal, init, null);
+          field,
+          fieldType,
+          module,
+          !field.isFinal,
+          init,
+          null,
+        );
       }
 
       // Maybe we can emit the initialization in the start function. If so,
@@ -157,24 +169,28 @@ class DartGlobals {
       // access.
       final initializer = field.initializer;
       if (initializer != null && _initializeAtStartup(field)) {
-        final definition =
-            _defineGlobalBasedField(field, fieldType, module, true, init, null);
+        final definition = _defineGlobalBasedField(
+          field,
+          fieldType,
+          module,
+          true,
+          init,
+          null,
+        );
 
-        if (module.module == translator.initFunction.enclosingModule) {
-          // We have to initialize the global field in the same module as where
-          // the field value is defined in.
-          // TODO: Once dynamic modules only compile code for the submodule and
-          // not the main module, we should turn this into an assert.
-          EagerStaticFieldInitializerCodeGenerator(
-                  translator, field, definition.global)
-              .generate(translator.initFunction.body, [], null);
-        }
+        // We have to initialize the global field in the same module as where
+        // the field value is defined in.
+        EagerStaticFieldInitializerCodeGenerator(
+          translator,
+          field,
+          definition.global,
+        ).generate(module.startFunction.body, [], null);
 
         return definition;
       }
 
       // Add initializer function to the compilation queue.
-      translator.functions.getFunction(field.fieldReference);
+      translator.functions.getFunction(field.staticFieldInitializer);
 
       // We will have to initialize the global lazily, meaning each access will
       // check if it's initialized and if not, cause initialization.
@@ -191,56 +207,81 @@ class DartGlobals {
       }
 
       if (useTableSlot && newFieldType.nullable) {
-        return _defineTableBasedField(field, newFieldType as w.RefType, module,
-            null, initializerFlagGlobal);
+        return _defineTableBasedField(
+          field,
+          newFieldType as w.RefType,
+          module,
+          null,
+          initializerFlagGlobal,
+        );
       }
       return _defineGlobalBasedField(
-          field, newFieldType, module, true, null, initializerFlagGlobal);
+        field,
+        newFieldType,
+        module,
+        true,
+        null,
+        initializerFlagGlobal,
+      );
     });
   }
 
   w.GlobalBuilder _defineInitializerFlag(Field field, w.ModuleBuilder module) {
     final memberName = _memberName(field);
-    final global = module.globals
-        .define(w.GlobalType(w.NumType.i32), "$memberName initialized");
+    final global = module.globals.define(
+      w.GlobalType(w.NumType.i32),
+      "$memberName initialized",
+    );
     global.initializer.i32_const(0);
     global.initializer.end();
     return global;
   }
 
   TableBasedDartGlobal _defineTableBasedField(
-      Field field,
-      w.RefType fieldType,
-      w.ModuleBuilder module,
-      Constant? init,
-      w.GlobalBuilder? initializerFlag) {
-    final table =
-        translator.tableBasedGlobals.getTableForType(fieldType.heapType);
+    Field field,
+    w.RefType fieldType,
+    w.ModuleBuilder module,
+    Constant? init,
+    w.GlobalBuilder? initializerFlag,
+  ) {
+    final table = translator.tableBasedGlobals.getTableForType(
+      fieldType.heapType,
+    );
     if (init != null && init is! NullConstant) {
       return TableBasedDartGlobal(
-          table,
-          table.indexForObject(field, module, (ib) {
-            translator.constants.instantiateConstant(ib, init, fieldType);
-            ib.end();
-          }));
+        table,
+        table.indexForObject(field, module, (ib) {
+          translator.constants.instantiateConstant(ib, init, fieldType);
+          ib.end();
+        }),
+      );
     }
-    return TableBasedDartGlobal(table, table.indexForObject(field),
-        initializedFlag: initializerFlag);
+    return TableBasedDartGlobal(
+      table,
+      table.indexForObject(field),
+      initializedFlag: initializerFlag,
+    );
   }
 
   WasmGlobalDartGlobal _defineGlobalBasedField(
-      Field field,
-      w.ValueType fieldType,
-      w.ModuleBuilder module,
-      bool mutable,
-      Constant? init,
-      w.GlobalBuilder? initializerFlag) {
+    Field field,
+    w.ValueType fieldType,
+    w.ModuleBuilder module,
+    bool mutable,
+    Constant? init,
+    w.GlobalBuilder? initializerFlag,
+  ) {
     final memberName = _memberName(field);
-    final global = module.globals
-        .define(w.GlobalType(fieldType, mutable: mutable), memberName);
+    final global = module.globals.define(
+      w.GlobalType(fieldType, mutable: mutable),
+      memberName,
+    );
     if (init != null) {
-      translator.constants
-          .instantiateConstant(global.initializer, init, fieldType);
+      translator.constants.instantiateConstant(
+        global.initializer,
+        init,
+        fieldType,
+      );
     } else {
       translator
           .getDummyValuesCollectorForModule(module)
@@ -254,8 +295,11 @@ class DartGlobals {
 
   bool _initializeAtStartup(Annotatable node) =>
       util.getPragma<bool>(
-          translator.coreTypes, node, 'wasm:initialize-at-startup',
-          defaultValue: true) ??
+        translator.coreTypes,
+        node,
+        'wasm:initialize-at-startup',
+        defaultValue: true,
+      ) ??
       false;
 }
 
@@ -265,8 +309,11 @@ sealed class DartGlobalDefinition {
 
   w.ValueType get type;
   w.ValueType read(Translator translator, w.InstructionsBuilder b);
-  void write(Translator translator, w.InstructionsBuilder b,
-      void Function(w.InstructionsBuilder) pushValue);
+  void write(
+    Translator translator,
+    w.InstructionsBuilder b,
+    void Function(w.InstructionsBuilder) pushValue,
+  );
 }
 
 final class WasmGlobalDartGlobal extends DartGlobalDefinition {
@@ -282,8 +329,11 @@ final class WasmGlobalDartGlobal extends DartGlobalDefinition {
   }
 
   @override
-  void write(Translator translator, w.InstructionsBuilder b,
-      void Function(w.InstructionsBuilder) pushValue) {
+  void write(
+    Translator translator,
+    w.InstructionsBuilder b,
+    void Function(w.InstructionsBuilder) pushValue,
+  ) {
     pushValue(b);
     translator.globals.writeGlobal(b, global);
   }
@@ -307,8 +357,11 @@ final class TableBasedDartGlobal extends DartGlobalDefinition {
   }
 
   @override
-  void write(Translator translator, w.InstructionsBuilder b,
-      void Function(w.InstructionsBuilder) pushValue) {
+  void write(
+    Translator translator,
+    w.InstructionsBuilder b,
+    void Function(w.InstructionsBuilder) pushValue,
+  ) {
     b.i32_const(index);
     pushValue(b);
     b.table_set(table.getWasmTable(b.moduleBuilder));

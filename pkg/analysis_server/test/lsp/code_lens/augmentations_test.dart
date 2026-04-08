@@ -139,7 +139,6 @@ $content
     setClientSupportedCommands([ClientCommands.goToLocation]);
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class() async {
     setLibraryContent(r'''
 class [!A!] {}
@@ -152,7 +151,6 @@ augment class [!A!] {}
     await expectNavigationCodeLens();
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_getter() async {
     setLibraryContent(r'''
 class A {
@@ -169,7 +167,6 @@ augment class A {
     await expectNavigationCodeLens();
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_method() async {
     setLibraryContent(r'''
 class A {
@@ -186,7 +183,6 @@ augment class A {
     await expectNavigationCodeLens();
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_setter() async {
     setLibraryContent(r'''
 class A {
@@ -203,7 +199,6 @@ augment class A {
     await expectNavigationCodeLens();
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_enum() async {
     setLibraryContent(r'''
 enum [!A!] {
@@ -220,7 +215,6 @@ augment enum [!A!] {
     await expectNavigationCodeLens();
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_enum_member() async {
     setLibraryContent(r'''
 enum A {
@@ -237,7 +231,6 @@ augment enum A {
     await expectNavigationCodeLens();
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_topLevel_function() async {
     setLibraryContent(r'''
 void [!f!]() {}
@@ -324,7 +317,6 @@ class AugmentationCodeLensTest extends AbstractAugmentationCodeLensTest {
   @override
   Uri get targetUri => mainFileAugmentationUri;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_augmentationOf_augmentationOf_declarationInAugmentationFile() async {
     setLibraryContent(r'');
     setAugmentationContent(r'''
@@ -342,7 +334,6 @@ augment class /*[1*/A/*1]*/ {}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_augmentationOf_augmentationOf_declarationInLibraryFile() async {
     setLibraryContent(r'''
 class A {}
@@ -361,7 +352,6 @@ augment class /*[1*/A/*1]*/ {}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_augmentationOf_declarationInAugmentationFile() async {
     setLibraryContent('');
     setAugmentationContent(r'''
@@ -403,7 +393,6 @@ class AugmentedCodeLensTest extends AbstractAugmentationCodeLensTest {
   @override
   Uri get targetUri => mainFileUri;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_augmentationOf_augmentationOf_declarationInAugmentationFile() async {
     setLibraryContent(r'');
     setAugmentationContent(r'''
@@ -421,7 +410,6 @@ augment class /*[1*/A/*1]*/ {}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_augmentationOf_augmentationOf_declarationInLibraryFile() async {
     setLibraryContent(r'''
 class A {}
@@ -440,7 +428,6 @@ augment class /*[1*/A/*1]*/ {}
     );
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_available_class_augmentationOf_declarationInAugmentationFile() async {
     setLibraryContent('');
     setAugmentationContent(r'''

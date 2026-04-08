@@ -348,6 +348,7 @@ Fragment StreamingFlowGraphBuilder::BuildInitializers(
         case kInvalidInitializer: {
           ReadPosition();
           const String& message = H.DartString(ReadStringReference());
+          ReadByte();  // read flags
           // Invalid initializer message has pointer to the source code, no
           // need to report it twice.
           const auto& script = Script::Handle(Z, Script());
@@ -4445,64 +4446,19 @@ Fragment StreamingFlowGraphBuilder::BuildPartialTearoffInstantiation(
   const TokenPosition position = ReadPosition();  // read position.
   if (p != nullptr) *p = position;
 
-  // Create a copy of the closure.
-
   Fragment instructions = BuildExpression();
-  LocalVariable* original_closure = MakeTemporary();
-
-  // Load the target function and context and allocate the closure.
-  instructions += LoadLocal(original_closure);
-  instructions +=
-      flow_graph_builder_->LoadNativeField(Slot::Closure_function());
-  instructions += LoadLocal(original_closure);
-  instructions += flow_graph_builder_->LoadNativeField(Slot::Closure_context());
-  instructions += LoadLocal(original_closure);
-  instructions += flow_graph_builder_->LoadNativeField(
-      Slot::Closure_instantiator_type_arguments());
-  instructions += flow_graph_builder_->AllocateClosure(
-      position, /*has_instantiator_type_args=*/true, /*is_generic=*/false,
-      /*is_tear_off=*/false);
-  LocalVariable* new_closure = MakeTemporary();
 
   intptr_t num_type_args = ReadListLength();
   const TypeArguments& type_args = T.BuildTypeArguments(num_type_args);
   instructions += TranslateInstantiatedTypeArguments(type_args);
-  LocalVariable* type_args_vec = MakeTemporary("type_args");
 
-  // Check the bounds.
-  //
-  // TODO(sjindel): We should be able to skip this check in many cases, e.g.
-  // when the closure is coming from a tearoff of a top-level method or from a
-  // local closure.
-  instructions += LoadLocal(original_closure);
-  instructions += LoadLocal(type_args_vec);
   const Library& dart_internal = Library::Handle(Z, Library::InternalLibrary());
-  const Function& bounds_check_function = Function::ZoneHandle(
-      Z, dart_internal.LookupFunctionAllowPrivate(
-             Symbols::BoundsCheckForPartialInstantiation()));
-  ASSERT(!bounds_check_function.IsNull());
-  instructions += StaticCall(TokenPosition::kNoSource, bounds_check_function, 2,
-                             ICData::kStatic);
-  instructions += Drop();
-
-  instructions += LoadLocal(new_closure);
-  instructions += LoadLocal(type_args_vec);
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_delayed_type_arguments(),
-      StoreFieldInstr::Kind::kInitializing);
-  instructions += DropTemporary(&type_args_vec);
-
-  // Copy over the function type arguments.
-  instructions += LoadLocal(new_closure);
-  instructions += LoadLocal(original_closure);
-  instructions += flow_graph_builder_->LoadNativeField(
-      Slot::Closure_function_type_arguments());
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_function_type_arguments(),
-      StoreFieldInstr::Kind::kInitializing);
-
-  instructions += DropTempsPreserveTop(1);  // Drop old closure.
-
+  const Function& instantiate_closure_function = Function::ZoneHandle(
+      Z,
+      dart_internal.LookupFunctionAllowPrivate(Symbols::_instantiateClosure()));
+  ASSERT(!instantiate_closure_function.IsNull());
+  instructions += StaticCall(TokenPosition::kNoSource,
+                             instantiate_closure_function, 2, ICData::kStatic);
   return instructions;
 }
 

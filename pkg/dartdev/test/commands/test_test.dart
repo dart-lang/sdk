@@ -217,7 +217,7 @@ void main() {
           if (line.contains(vmServiceUriRegExp)) {
             await sub.cancel();
             final httpUri = Uri.parse(
-              vmServiceUriRegExp.firstMatch(line)!.group(0)!,
+              vmServiceUriRegExp.firstMatch(line)![0]!,
             );
             completer.complete(
               httpUri.replace(scheme: 'ws', path: '${httpUri.path}ws'),

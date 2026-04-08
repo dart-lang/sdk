@@ -245,6 +245,10 @@ config("dart_config") {
     defines += [ "DART_DYNAMIC_MODULES" ]
   }
 
+  if (include_experimental_vm_service) {
+    defines += [ "EXPERIMENTAL_VM_SERVICE" ]
+  }
+
   if (is_fuchsia) {
     lib_dirs = [ "${fuchsia_arch_root}/lib" ]
 
@@ -443,9 +447,7 @@ action("generate_version_cc_file") {
     "vm/symbols.cc",
     "vm/symbols.h",
   ]
-  if (dart_version_git_info) {
-    inputs += [ "$default_git_folder/logs/HEAD" ]
-  }
+  deps = [ "../utils:git_version" ]
   output = "$target_gen_dir/version.cc"
   outputs = [ output ]
 

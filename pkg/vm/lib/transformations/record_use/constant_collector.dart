@@ -81,12 +81,7 @@ class _ConstantCollector implements ConstantVisitor {
     if ((_hasRecordUseAnnotation[classNode] ??= record_use.isBeingRecorded(
       classNode,
     ))) {
-      if (classNode.isEnum) {
-        // TODO(https://github.com/dart-lang/native/issues/2908): Support enum
-        // constant instances.
-      } else {
-        collector(_expression!, constant);
-      }
+      collector(_expression!, constant);
     }
     for (final value in constant.fieldValues.values) {
       handleConstantReference(value);
@@ -113,7 +108,15 @@ class _ConstantCollector implements ConstantVisitor {
   visitDoubleConstant(DoubleConstant node) {}
 
   @override
-  visitInstantiationConstant(InstantiationConstant node) {}
+  visitInstantiationConstant(InstantiationConstant constant) {
+    assert(_expression != null);
+    final tearOffConstant = constant.tearOffConstant;
+    if (tearOffConstant is TearOffConstant &&
+        record_use.isBeingRecorded(tearOffConstant.target)) {
+      collector(_expression!, constant);
+    }
+    handleConstantReference(constant.tearOffConstant);
+  }
 
   @override
   visitIntConstant(IntConstant node) {}
@@ -149,7 +152,14 @@ class _ConstantCollector implements ConstantVisitor {
   visitTypeLiteralConstant(TypeLiteralConstant node) {}
 
   @override
-  visitTypedefTearOffConstant(TypedefTearOffConstant node) {}
+  visitTypedefTearOffConstant(TypedefTearOffConstant constant) {
+    assert(_expression != null);
+    final tearOffConstant = constant.tearOffConstant;
+    if (record_use.isBeingRecorded(tearOffConstant.target)) {
+      collector(_expression!, constant);
+    }
+    handleConstantReference(constant.tearOffConstant);
+  }
 
   @override
   visitUnevaluatedConstant(UnevaluatedConstant node) {}

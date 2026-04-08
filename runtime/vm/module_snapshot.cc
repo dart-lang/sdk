@@ -73,6 +73,7 @@ class ModuleSnapshot : public AllStatic {
     kTypeArguments,
     kCodes,
     kICDatas,
+    kSubtypeTestCaches,
     kObjectPools,
     kInstances,
   };
@@ -99,6 +100,9 @@ class ModuleSnapshot : public AllStatic {
     kNewObjectTags,
     kStaticFieldOffset,
     kInterfaceCall,
+    kDynamicCall,
+    kUnboxedInt,
+    kUnboxedDouble,
   };
 };
 
@@ -176,6 +180,7 @@ class Deserializer : public ThreadStackResource {
     return stream_.AddressOfCurrentPosition();
   }
   void Advance(intptr_t value) { stream_.Advance(value); }
+  void Align(intptr_t alignment) { stream_.Align(alignment); }
 
   void AddBaseObject(const Object& object) { AssignRefPreLoad(object); }
 
@@ -333,6 +338,7 @@ class TwoByteStringDeserializationCluster : public DeserializationCluster {
     const intptr_t count = d->ReadUnsigned();
     for (intptr_t i = 0; i < count; i++) {
       const intptr_t len = d->ReadUnsigned();
+      d->Align(TwoByteString::kBytesPerElement);
       string_ = Symbols::FromUTF16(
           d->thread(),
           reinterpret_cast<const uint16_t*>(d->AddressOfCurrentPosition()),
@@ -1122,6 +1128,30 @@ class ICDataDeserializationCluster : public DeserializationCluster {
   }
 };
 
+class SubtypeTestCacheDeserializationCluster : public DeserializationCluster {
+ public:
+  SubtypeTestCacheDeserializationCluster()
+      : DeserializationCluster("SubtypeTestCache") {}
+  ~SubtypeTestCacheDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, SubtypeTestCache::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      SubtypeTestCachePtr stc = static_cast<SubtypeTestCachePtr>(d.Ref(id));
+      Deserializer::InitializeHeader(stc, kSubtypeTestCacheCid,
+                                     SubtypeTestCache::InstanceSize());
+      stc->untag()->cache_ = Object::empty_subtype_test_cache_array().ptr();
+      stc->untag()->num_inputs_ = d.ReadUnsigned();
+      stc->untag()->num_occupied_ = 0;
+    }
+  }
+};
+
 class ObjectPoolDeserializationCluster : public DeserializationCluster {
  public:
   ObjectPoolDeserializationCluster() : DeserializationCluster("ObjectPool") {}
@@ -1183,7 +1213,8 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
                 Smi::Value(field->untag()->host_offset_or_field_id()));
             break;
           }
-          case ModuleSnapshot::kInterfaceCall: {
+          case ModuleSnapshot::kInterfaceCall:
+          case ModuleSnapshot::kDynamicCall: {
             pool->untag()->entry_bits()[j] = tagged_entry_bits;
             UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
             entry.raw_obj_ = d.ReadRef();
@@ -1192,6 +1223,18 @@ class ObjectPoolDeserializationCluster : public DeserializationCluster {
             pool->untag()->entry_bits()[j] = tagged_entry_bits;
             UntaggedObjectPool::Entry& entry2 = pool->untag()->data()[j];
             entry2.raw_obj_ = StubCode::OneArgOptimizedCheckInlineCache().ptr();
+            break;
+          }
+          case ModuleSnapshot::kUnboxedInt: {
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = d.Read<int64_t>();
+            break;
+          }
+          case ModuleSnapshot::kUnboxedDouble: {
+            pool->untag()->entry_bits()[j] = immediate_entry_bits;
+            UntaggedObjectPool::Entry& entry = pool->untag()->data()[j];
+            entry.raw_value_ = bit_cast<int64_t>(d.Read<double>());
             break;
           }
         }
@@ -1332,6 +1375,8 @@ DeserializationCluster* Deserializer::ReadCluster() {
       return new (Z) CodeDeserializationCluster(Z);
     case ModuleSnapshot::kICDatas:
       return new (Z) ICDataDeserializationCluster();
+    case ModuleSnapshot::kSubtypeTestCaches:
+      return new (Z) SubtypeTestCacheDeserializationCluster();
     case ModuleSnapshot::kObjectPools:
       return new (Z) ObjectPoolDeserializationCluster();
     case ModuleSnapshot::kInstances: {
@@ -1388,6 +1433,11 @@ void Deserializer::Deserialize() {
   AddBaseObject(Type::Handle(zone(), object_store->null_type()));
   AddBaseObject(Type::Handle(zone(), object_store->never_type()));
   AddBaseObject(Object::empty_array());
+  AddBaseObject(StubCode::Subtype1TestCache());
+  AddBaseObject(StubCode::Subtype2TestCache());
+  AddBaseObject(StubCode::Subtype3TestCache());
+  AddBaseObject(StubCode::Subtype4TestCache());
+  AddBaseObject(StubCode::Subtype6TestCache());
 
   if (num_base_objects_ != (next_ref_index_ - kFirstReference)) {
     FATAL("Snapshot expects %" Pd

@@ -18,8 +18,10 @@ import 'package:kernel/type_environment.dart'
 import 'package:native_compiler/back_end/code.dart';
 import 'package:native_compiler/back_end/object_pool.dart';
 import 'package:native_compiler/configuration.dart';
+import 'package:native_compiler/runtime/names.dart';
 import 'package:native_compiler/runtime/object_layout.dart';
 import 'package:native_compiler/runtime/type_utils.dart';
+import 'package:native_compiler/runtime/vm_defs.dart';
 
 /// Kinds of Dart snapshots.
 /// Should match Snapshot::Kind enum in runtime/vm/snapshot.h.
@@ -76,6 +78,7 @@ enum PredefinedClusters {
   typeArguments,
   codes,
   icDatas,
+  subtypeTestCaches,
   objectPools,
   instances, // Separate cluster for every class.
 }
@@ -104,6 +107,9 @@ enum ObjectPoolEntryKind {
   newObjectTags,
   staticFieldOffset,
   interfaceCall,
+  dynamicCall,
+  unboxedInt,
+  unboxedDouble,
 }
 
 abstract base class SerializationCluster {
@@ -156,6 +162,12 @@ class SnapshotSerializer {
     addBaseObject(const ast.NullType());
     addBaseObject(const ast.NeverType.nonNullable());
     addBaseObject(ast.ListConstant(const ast.DynamicType(), const []));
+    // TODO: generate these stubs instead of referencig them from the VM.
+    addBaseObject(StubCode.Subtype1TestCache);
+    addBaseObject(StubCode.Subtype2TestCache);
+    addBaseObject(StubCode.Subtype3TestCache);
+    addBaseObject(StubCode.Subtype4TestCache);
+    addBaseObject(StubCode.Subtype6TestCache);
     numObjects = numBaseObjects;
   }
 
@@ -338,6 +350,9 @@ class SnapshotSerializer {
     // Generated code and object pool
     Code() => getPredefinedCluster(PredefinedClusters.codes),
     ICData() => getPredefinedCluster(PredefinedClusters.icDatas),
+    SubtypeTestCache() => getPredefinedCluster(
+      PredefinedClusters.subtypeTestCaches,
+    ),
     ObjectPool() => getPredefinedCluster(PredefinedClusters.objectPools),
     _ => throw 'Unxpected ${obj.runtimeType} $obj',
   };
@@ -377,6 +392,7 @@ class SnapshotSerializer {
     .typeParameterTypes => throw 'Unimplemented cluster $clusterId',
     .codes => CodeSerializationCluster(),
     .icDatas => ICDataSerializationCluster(),
+    .subtypeTestCaches => SubtypeTestCacheSerializationCluster(),
     .objectPools => ObjectPoolSerializationCluster(),
     .instances => throw 'Each class has a separate instance cluster',
   };
@@ -705,30 +721,10 @@ final class TwoByteStringSerializationCluster extends SerializationCluster {
     for (final string in _objects) {
       serializer.assignRef(string);
       serializer.writeUint(string.length);
-      serializer.out.writeUint16List(string.codeUnits);
+      serializer.out.align(2);
+      serializer.out.writeUtf16String(string);
     }
   }
-}
-
-extension type Name._(Object raw) implements Object {
-  factory Name(String text, ast.Library? library) =>
-      Name._((library != null) ? PrivateName(text, library) : text);
-}
-
-/// Private name in a [library].
-/// VM mangles such names with a library key (`@nnnn`).
-final class PrivateName {
-  final String text;
-  final ast.Library library;
-  PrivateName(this.text, this.library);
-
-  @override
-  bool operator ==(Object other) =>
-      other is PrivateName && text == other.text && library == other.library;
-
-  @override
-  int get hashCode =>
-      finalizeHash(combineHash(text.hashCode, library.hashCode));
 }
 
 final class PrivateNameSerializationCluster extends SerializationCluster {
@@ -1286,9 +1282,39 @@ final class ICDataSerializationCluster extends SerializationCluster {
   }
 }
 
+final class SubtypeTestCacheSerializationCluster extends SerializationCluster {
+  final List<SubtypeTestCache> _objects = [];
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final obj = object as SubtypeTestCache;
+    _objects.add(obj);
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.subtypeTestCaches.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final obj in _objects) {
+      serializer.assignRef(obj);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (final obj in _objects) {
+      serializer.writeUint(obj.numInputs);
+    }
+  }
+}
+
 final class ObjectPoolSerializationCluster extends SerializationCluster {
   final List<ObjectPool> _objects = [];
-  final Map<InterfaceCallEntry, ICData> icDatas = {};
+  final Map<ICDataCallEntry, ICData> icDatas = {};
 
   @override
   void trace(SnapshotSerializer serializer, Object object) {
@@ -1301,21 +1327,17 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             serializer.push(entry.cls);
           case StaticFieldOffset():
             serializer.push(entry.field);
-          case InterfaceCallEntry():
-            // TODO: call through monomorphic/table dispatcher.
+          case ICDataCallEntry():
             final icData = icDatas[entry] = ICData(
               entry.owner,
               entry.argumentsShape,
-              Name(
-                entry.selectorName,
-                entry.interfaceTarget.member.name.library,
-              ),
+              entry.selector,
             );
             serializer.push(icData);
           case ReservedEntry():
             break;
         }
-      } else {
+      } else if (entry is! UnboxedConstant) {
         serializer.push(entry);
       }
     }
@@ -1351,8 +1373,17 @@ final class ObjectPoolSerializationCluster extends SerializationCluster {
             case InterfaceCallEntry():
               serializer.writeUint(ObjectPoolEntryKind.interfaceCall.index);
               serializer.writeRefId(icDatas[entry]);
+            case DynamicCallEntry():
+              serializer.writeUint(ObjectPoolEntryKind.dynamicCall.index);
+              serializer.writeRefId(icDatas[entry]);
             case ReservedEntry():
           }
+        } else if (entry is UnboxedIntConstant) {
+          serializer.writeUint(ObjectPoolEntryKind.unboxedInt.index);
+          serializer.out.writeInt(entry.value);
+        } else if (entry is UnboxedDoubleConstant) {
+          serializer.writeUint(ObjectPoolEntryKind.unboxedDouble.index);
+          serializer.out.writeDouble(entry.value);
         } else {
           serializer.writeUint(ObjectPoolEntryKind.objectRef.index);
           serializer.writeRefId(entry);
@@ -1454,12 +1485,13 @@ class SnapshotStreamWriter {
   }
 
   @pragma('vm:prefer-inline')
-  void writeUint16List(List<int> src) {
-    _ensureCapacity(src.length << 1);
-    _currentBuffer.buffer
-        .asUint16List(_currentLength)
-        .setRange(0, src.length, src);
-    _currentLength += src.length << 1;
+  void writeUtf16String(String string) {
+    _ensureCapacity(string.length << 1);
+    for (var i = 0; i < string.length; ++i) {
+      int utf16codeUnit = string.codeUnitAt(i);
+      _currentBuffer[_currentLength++] = utf16codeUnit & 0xff;
+      _currentBuffer[_currentLength++] = utf16codeUnit >> 8;
+    }
   }
 
   @pragma('vm:prefer-inline')

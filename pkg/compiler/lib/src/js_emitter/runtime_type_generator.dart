@@ -14,10 +14,9 @@ import '../js_backend/namer.dart' show Namer;
 import '../js_backend/runtime_types.dart' show RuntimeTypesChecks;
 import '../js_backend/runtime_types_codegen.dart'
     show ClassChecks, ClassFunctionType, TypeCheck;
-import '../js_emitter/sorter.dart';
 import '../util/util.dart' show Setlet;
-
 import 'js_emitter.dart' show CodeEmitterTask;
+import 'sorter.dart';
 
 // Function signatures used in the generation of runtime type information.
 typedef FunctionTypeSignatureEmitter =

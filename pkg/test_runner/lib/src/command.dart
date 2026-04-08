@@ -170,11 +170,10 @@ class CompilationCommand extends ProcessCommand {
       String executable,
       List<String> arguments,
       Map<String, String> environmentOverrides,
-      {required bool alwaysCompile,
+      {required this._alwaysCompile,
       String? workingDirectory,
       int index = 0})
-      : _alwaysCompile = alwaysCompile,
-        super(displayName, executable, arguments, environmentOverrides,
+      : super(displayName, executable, arguments, environmentOverrides,
             workingDirectory, index);
 
   @override

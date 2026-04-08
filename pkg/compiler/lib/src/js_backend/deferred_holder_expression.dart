@@ -3,17 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 // ignore: implementation_imports
-import 'package:js_ast/src/precedence.dart' as js show Precedence;
-// ignore: implementation_imports
 import 'package:front_end/src/api_unstable/dart2js.dart' show $A;
+// ignore: implementation_imports
+import 'package:js_ast/src/precedence.dart' as js show Precedence;
 
 import '../common/elements.dart' show JCommonElements;
+import '../constants/values.dart' show ConstantValue;
 import '../elements/entities.dart';
 import '../js/js.dart' as js;
+import '../js_emitter/model.dart';
 import '../serialization/serialization.dart';
 import '../util/util.dart';
-import '../js_emitter/model.dart';
-import '../constants/values.dart' show ConstantValue;
 import 'namer.dart';
 
 // TODO(joshualitt): Figure out how to subsume more of the modular naming

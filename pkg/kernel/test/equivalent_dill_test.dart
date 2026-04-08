@@ -11,8 +11,9 @@ import 'package:kernel/src/equivalence.dart';
 
 void main(List<String> args) {
   String? resolvedExecutable = Platform.environment['resolvedExecutable'];
-  File exe =
-      new File(resolvedExecutable ?? Platform.resolvedExecutable).absolute;
+  File exe = new File(
+    resolvedExecutable ?? Platform.resolvedExecutable,
+  ).absolute;
   int steps = 0;
   Directory parent = exe.parent.parent;
   while (true) {

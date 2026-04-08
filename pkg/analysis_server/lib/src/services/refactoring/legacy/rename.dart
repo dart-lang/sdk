@@ -18,6 +18,7 @@ import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 /// Helper for renaming one or more elements.
@@ -128,6 +129,127 @@ class RenameProcessor {
   }
 }
 
+/// Helper for renaming one or more elements.
+class RenameProcessor2 {
+  final RefactoringWorkspace workspace;
+  final AnalysisSessionHelper sessionHelper;
+  final ChangeBuilder builder;
+  final String newName;
+
+  RenameProcessor2(
+    this.workspace,
+    this.sessionHelper,
+    this.builder,
+    this.newName,
+  );
+
+  /// Add the edit that updates the [element] declaration.
+  Future<void> addDeclarationEdit(Element? element) async {
+    if (element == null) {
+      return;
+    } else if (element is LibraryElementImpl) {
+      // TODO(brianwilkerson): Consider adding public API to get the offset and
+      //  length of the library's name.
+      var nameRange = range.startOffsetLength(
+        element.nameOffset,
+        element.nameLength,
+      );
+      await builder.addDartFileEdit(
+        element.firstFragment.libraryFragment.source.fullName,
+        (builder) {
+          builder.addSimpleReplacement(nameRange, newName);
+        },
+      );
+    } else if (workspace.containsElement(element)) {
+      Fragment? fragment = element.firstFragment;
+      SourceRange? nameRange;
+      var replacement = newName;
+      var supportsPrivateNamedParameters =
+          element.library?.featureSet.isEnabled(
+            Feature.private_named_parameters,
+          ) ??
+          false;
+      while (fragment != null) {
+        switch (fragment) {
+          case FieldFormalParameterFragment(:var privateName?)
+              when supportsPrivateNamedParameters:
+            // A private named parameter's element has the public name ("foo"),
+            // but the identifier we are renaming is the original private name
+            // ("_foo"). In that case, use the private name so that we have the
+            // correct length including the underscore.
+            nameRange = range.startOffsetLength(
+              fragment.nameOffset!,
+              privateName.length,
+            );
+
+          case SuperFormalParameterFragment()
+              when supportsPrivateNamedParameters &&
+                  fragment.element.isNamed &&
+                  newName.startsWith('_'):
+            // A super parameter works more like a named *argument* than a
+            // named parameter. If the corresponding parameter in the
+            // supertype is named and private, then refer to it by its public
+            // name in the super parameter.
+            nameRange = range.fragmentName(fragment);
+            replacement = correspondingPublicName(newName) ?? newName;
+          default:
+            nameRange = range.fragmentName(fragment);
+        }
+
+        if (nameRange != null) {
+          await builder.addDartFileEdit(
+            fragment.libraryFragment!.source.fullName,
+            (builder) {
+              builder.addSimpleReplacement(nameRange!, replacement);
+            },
+          );
+        }
+
+        fragment = fragment.nextFragment;
+      }
+    }
+  }
+
+  /// Add edits that update [matches].
+  Future<void> addReferenceEdits(List<SearchMatch> matches) async {
+    var references = getSourceReferences(matches);
+    for (var reference in references) {
+      if (!workspace.containsElement(reference.element)) {
+        continue;
+      }
+      await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+        builder.addSimpleReplacement(reference.range, newName);
+      });
+    }
+  }
+
+  /// Update the [element] declaration and references to it.
+  Future<void> renameElement(Element element) async {
+    await addDeclarationEdit(element);
+    var matches = await workspace.searchEngine.searchReferences(element);
+    await addReferenceEdits(matches);
+  }
+
+  /// Add an edit that replaces the specified region with [code].
+  /// Uses [referenceElement] to identify the file to update.
+  Future<void> replace({
+    required Element referenceElement,
+    required int offset,
+    required int length,
+    required String code,
+  }) async {
+    await builder.addDartFileEdit(
+      referenceElement.firstFragment.libraryFragment!.source.fullName,
+      (builder) {
+        builder.addSimpleReplacement(
+          range.startOffsetLength(offset, length),
+          code,
+        );
+      },
+    );
+  }
+}
+
 /// An abstract implementation of [RenameRefactoring].
 abstract class RenameRefactoringImpl extends RefactoringImpl
     implements RenameRefactoring {
@@ -183,7 +305,7 @@ abstract class RenameRefactoringImpl extends RefactoringImpl
   }
 
   @override
-  Future<SourceChange> createChange() async {
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
     var changeName = "$refactoringName '$oldName' to '$newName'";
     change = SourceChange(changeName);
     await fillChange();

@@ -557,7 +557,7 @@ type FunctionDeclaration {
                 isAsync, isAsyncStar, isSyncStar,
                 isNoSuchMethodForwarder, isExternal, isNative,
                 hasSourcePositions, hasAnnotations, hasPragma,
-                hasCustomScript, isExtensionTypeMember);
+                hasCustomScript, isExtensionTypeMember, isInvisible);
 
   PackedObject name;
 
@@ -647,7 +647,7 @@ type ClosureDeclaration {
   UInt flags = (hasOptionalPositionalParams, hasOptionalNamedParams,
                 hasTypeParams, hasSourcePositions,
                 isAsync, isAsyncStar, isSyncStar, isDebuggable,
-                hasParameterFlags, hasAnnotations, hasPragma)
+                hasParameterFlags, hasAnnotations, hasPragma, isInvisible)
 
   // Member or Closure.
   PackedObject parent;

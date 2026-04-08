@@ -27,16 +27,14 @@ class DartUnitOutlineComputer {
         unitContents.add(
           _newClassOutline(unitMember, [
             ...?_outlinesForPrimaryConstructor(unitMember.namePart),
-            if (unitMember.body case BlockClassBody body)
-              ..._outlinesForMembers(body.members),
+            ..._outlinesForMembers(unitMember.body.members),
           ]),
         );
       } else if (unitMember is MixinDeclaration) {
         unitContents.add(
-          _newMixinOutline(
-            unitMember,
-            _outlinesForMembers(unitMember.body.members),
-          ),
+          _newMixinOutline(unitMember, [
+            ..._outlinesForMembers(unitMember.body.members),
+          ]),
         );
       } else if (unitMember is EnumDeclaration) {
         unitContents.add(
@@ -48,20 +46,16 @@ class DartUnitOutlineComputer {
         );
       } else if (unitMember is ExtensionDeclaration) {
         unitContents.add(
-          _newExtensionOutline(
-            unitMember,
-            _outlinesForMembers(unitMember.body.members),
-          ),
+          _newExtensionOutline(unitMember, [
+            ..._outlinesForMembers(unitMember.body.members),
+          ]),
         );
       } else if (unitMember is ExtensionTypeDeclaration) {
-        if (unitMember.body case BlockClassBody body) {
-          unitContents.add(
-            _newExtensionTypeOutline(
-              unitMember,
-              _outlinesForMembers(body.members),
-            ),
-          );
-        }
+        unitContents.add(
+          _newExtensionTypeOutline(unitMember, [
+            ..._outlinesForMembers(unitMember.body.members),
+          ]),
+        );
       } else if (unitMember is TopLevelVariableDeclaration) {
         var fieldDeclaration = unitMember;
         var fields = fieldDeclaration.variables;

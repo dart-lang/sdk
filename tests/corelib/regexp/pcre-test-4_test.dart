@@ -850,7 +850,7 @@ void main() {
   input1 = "\u0100aY\u0256Z";
   results = ["\u0100", "Y\u0256Z"];
   Expect.listEquals(
-    regexGlobal0.allMatches(input1).map((m) => m.group(0)).toList(),
+    regexGlobal0.allMatches(input1).map((m) => m[0]).toList(),
     results,
   );
 

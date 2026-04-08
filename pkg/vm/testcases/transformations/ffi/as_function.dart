@@ -23,9 +23,10 @@ testIntInt() {
 }
 
 testLeaf5Args() {
-  final pointer = Pointer<
-    NativeFunction<Int32 Function(Int32, Int32, Int32, Int32, Int32)>
-  >.fromAddress(0xdeadbeef);
+  final pointer =
+      Pointer<
+        NativeFunction<Int32 Function(Int32, Int32, Int32, Int32, Int32)>
+      >.fromAddress(0xdeadbeef);
   final function = pointer.asFunction<int Function(int, int, int, int, int)>(
     isLeaf: true,
   );

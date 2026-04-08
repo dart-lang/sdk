@@ -899,6 +899,13 @@ void PageSpace::IncrementalMarkWithTimeBudget(int64_t deadline) {
   }
 }
 
+void PageSpace::IncrementalSweepWithSizeBudget(intptr_t size) {
+  if (size >= kAllocatablePageSize) {
+    // Sweeping work is less divisible than marking work.
+    Sweep(/*exclusive=*/false, /*one_page=*/true);
+  }
+}
+
 void PageSpace::AssistTasks(MonitorLocker* ml) {
   if (phase() == PageSpace::kMarking) {
     ml->Exit();
@@ -1390,7 +1397,7 @@ void PageSpace::SweepLarge() {
   }
 }
 
-void PageSpace::Sweep(bool exclusive) {
+void PageSpace::Sweep(bool exclusive, bool one_page) {
   TIMELINE_FUNCTION_GC_DURATION(Thread::Current(), "Sweep");
 
   GCSweeper sweeper;
@@ -1436,6 +1443,8 @@ void PageSpace::Sweep(bool exclusive) {
     } else {
       IncreaseCapacityInWordsLocked(-(size >> kWordSizeLog2));
     }
+
+    if (one_page) break;
   }
 
   if (exclusive) {

@@ -31,6 +31,7 @@ import '../builder/declaration_builders.dart';
 import '../builder/member_builder.dart';
 import '../kernel/assigned_variables_impl.dart';
 import '../kernel/constructor_tearoff_lowering.dart';
+import '../kernel/external_ast_helper.dart';
 import '../kernel/hierarchy/class_member.dart';
 import '../kernel/internal_ast.dart';
 import '../kernel/kernel_helper.dart';
@@ -43,7 +44,6 @@ import '../testing/id_extractor.dart';
 import '../util/helpers.dart';
 import 'closure_context.dart';
 import 'context_allocation_strategy.dart';
-import 'external_ast_helper.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
 import 'object_access_target.dart';
@@ -72,14 +72,14 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   for (VariableDeclaration positionalParameter
       in functionExpression.function.positionalParameters) {
     int key = unnamedParameterIndex++;
-    if (!(positionalParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(positionalParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
   for (VariableDeclaration namedParameter
       in functionExpression.function.namedParameters) {
     String key = namedParameter.name!;
-    if (!(namedParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(namedParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
@@ -148,7 +148,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<TreeNode, Statement, Expression, ExpressionVariable>
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
   get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
@@ -252,7 +252,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           }
           TreeNode origNode = node;
           while (origNode is VariableGet &&
-              origNode.variable.name == null &&
+              origNode.variable.cosmeticName == null &&
               origNode.variable.initializer != null) {
             // This is a read of a synthetic variable, presumably from a "let".
             // Find the original expression.
@@ -2311,8 +2311,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Otherwise, if `Qi` is not `_`, let `Ri` be the greatest closure of
     // `Qi[T/S]` with respect to `?`.  Otherwise, let `Ri` be `dynamic`.
     for (int i = 0; i < formals.length; i++) {
-      InternalExpressionVariable formal =
-          formals[i] as InternalExpressionVariable;
+      InternalVariable formal = formals[i] as InternalVariable;
       if (formal.isImplicitlyTyped) {
         DartType inferredType;
         if (formalTypesFromContext[i] != null) {
@@ -2367,8 +2366,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       VariableDeclaration parameter = positionalParameters[i];
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      ExpressionVariable parameterAstVariable =
-          (parameter as InternalExpressionVariable).astVariable;
+      VariableDeclaration parameterAstVariable =
+          (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
         parameterAstVariable,
         new SharedTypeView(parameterAstVariable.type),
@@ -2387,8 +2386,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     for (VariableDeclaration parameter in function.namedParameters) {
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      ExpressionVariable parameterAstVariable =
-          (parameter as InternalExpressionVariable).astVariable;
+      VariableDeclaration parameterAstVariable =
+          (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
         parameterAstVariable,
         new SharedTypeView(parameterAstVariable.type),
@@ -2406,8 +2405,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
 
     for (VariableDeclaration parameter in function.namedParameters) {
-      InternalExpressionVariable formal =
-          parameter as InternalExpressionVariable;
+      InternalVariable formal = parameter as InternalVariable;
       // Required named parameters shouldn't have initializers.
       if (formal.isRequired && formal.hasDeclaredInitializer) {
         libraryBuilder.addProblem(
@@ -2879,7 +2877,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
-      ExpressionVariable variable = receiver.variable;
+      VariableDeclaration variable = receiver.variable;
       TreeNode? parent = variable.parent;
       if (parent is FunctionDeclaration) {
         assert(
@@ -2888,7 +2886,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         localName = variable.cosmeticName!;
         expression = new LocalFunctionInvocation(
-          variable as VariableDeclaration,
+          variable,
           createArgumentsFromInternalNode(
             result.typeArguments,
             result.positional,
@@ -3478,7 +3476,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     List<VariableDeclaration>? hoistedExpressions,
   ) {
     if (hoistedExpressions != null &&
-        expression is! ThisExpression &&
+        !isThisExpression(expression) &&
         expression is! FunctionExpression) {
       VariableDeclaration variable = createVariable(expression, type);
       hoistedExpressions.add(variable);
@@ -4226,7 +4224,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [VariableGet] is created.
   ExpressionInferenceResult inferVariableGet({
-    required InternalExpressionVariable variable,
+    required InternalVariable variable,
     required DartType typeContext,
     required int nameOffset,
     VariableGet? node,
@@ -4268,7 +4266,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         flowAnalysis.getExpressionInfo(node),
       );
     } else {
-      resultExpression = node..expressionVariable = variable.astVariable;
+      resultExpression = node..variable = variable.astVariable;
     }
 
     bool isUnassigned = !flowAnalysis.isAssigned(variable.astVariable);
@@ -4320,11 +4318,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 compilerContext: compilerContext,
                 expression: resultExpression,
                 message: diag.finalNotAssignedError.withArguments(
-                  variableName: node.expressionVariable.cosmeticName!,
+                  variableName: node.variable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
-                length: node.expressionVariable.cosmeticName!.length,
+                length: node.variable.cosmeticName!.length,
               ),
             );
           } else if (declaredOrInferredType.isPotentiallyNonNullable) {
@@ -4334,11 +4332,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 compilerContext: compilerContext,
                 expression: resultExpression,
                 message: diag.nonNullableNotAssignedError.withArguments(
-                  variableName: node.expressionVariable.cosmeticName!,
+                  variableName: node.variable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
-                length: node.expressionVariable.cosmeticName!.length,
+                length: node.variable.cosmeticName!.length,
               ),
             );
           }
@@ -4352,7 +4350,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// Computes the possible promoted variable type of [variable] and the type
   /// context for the value expression in a local set to [variable].
   (DartType variableType, DartType writeContext)
-  computeVariableSetTypeAndWriteContext(InternalExpressionVariable variable) {
+  computeVariableSetTypeAndWriteContext(InternalVariable variable) {
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     DartType? promotedType = flowAnalysis
         .promotedType(variable.astVariable)
@@ -4366,7 +4364,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   /// If [node] is provided, it is used as the basis for the resulting
   /// expression, otherwise a new [VariableSet] is created.
   ExpressionInferenceResult inferVariableSet({
-    required InternalExpressionVariable variable,
+    required InternalVariable variable,
     required DartType variableType,
     required ExpressionInferenceResult rhsResult,
     required int assignOffset,
@@ -4412,7 +4410,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
     } else {
       node.value = rhs..parent = node;
-      resultExpression = node..expressionVariable = variable.astVariable;
+      resultExpression = node..variable = variable.astVariable;
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
@@ -4428,11 +4426,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               compilerContext: compilerContext,
               expression: resultExpression,
               message: diag.lateDefinitelyAssignedError.withArguments(
-                variableName: node.variable.name!,
+                variableName: node.variable.cosmeticName!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
-              length: node.variable.name!.length,
+              length: node.variable.cosmeticName!.length,
             ),
           );
         }
@@ -4444,11 +4442,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               compilerContext: compilerContext,
               expression: resultExpression,
               message: diag.finalPossiblyAssignedError.withArguments(
-                variableName: node.variable.name!,
+                variableName: node.variable.cosmeticName!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
-              length: node.variable.name!.length,
+              length: node.variable.cosmeticName!.length,
             ),
           );
         }
@@ -4843,7 +4841,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     if (expression is VariableGet) {
-      ExpressionVariable variable = expression.expressionVariable;
+      VariableDeclaration variable = expression.variable;
       if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
         return diag.invalidCastLocalFunction;
       }
@@ -5599,7 +5597,7 @@ class _WhyNotPromotedVisitor
         NonPromotionReasonVisitor<
           List<LocatedMessage>,
           Node,
-          ExpressionVariable
+          VariableDeclaration
         > {
   final InferenceVisitorBase inferrer;
 
@@ -5609,7 +5607,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<ExpressionVariable> reason,
+    DemoteViaExplicitWrite<VariableDeclaration> reason,
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {

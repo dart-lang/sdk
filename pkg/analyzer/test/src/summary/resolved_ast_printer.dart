@@ -164,6 +164,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    _sink.writeln('BlockEnumBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitBlockFunctionBody(BlockFunctionBody node) {
     _sink.writeln('BlockFunctionBody');
     _sink.withIndent(() {
@@ -428,12 +436,74 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _sink.writeln('DefaultFormalParameter');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _assertFormalParameterDeclaredElement(node);
-      _writeDeclaredFragment(node.declaredFragment);
-    });
+    var parameter = node.parameter;
+    switch (parameter) {
+      case FieldFormalParameter():
+        _writeCompatibleFieldFormalParameter(
+          annotatedNode: parameter,
+          assertNode: node,
+          declaredFragment: node.declaredFragment ?? parameter.declaredFragment,
+          covariantKeyword: parameter.covariantKeyword,
+          requiredKeyword: parameter.requiredKeyword,
+          constFinalOrVarKeyword: parameter.keyword,
+          type: parameter.type,
+          thisKeyword: parameter.thisKeyword,
+          period: parameter.period,
+          name: parameter.name,
+          typeParameters: parameter.typeParameters,
+          parameters: parameter.parameters,
+          question: parameter.question,
+          defaultClauseSeparator: node.separator,
+          defaultClauseValue: node.defaultValue,
+        );
+      case FunctionTypedFormalParameter():
+        _writeCompatibleRegularFormalParameter(
+          annotatedNode: parameter,
+          assertNode: node,
+          declaredFragment: node.declaredFragment ?? parameter.declaredFragment,
+          covariantKeyword: parameter.covariantKeyword,
+          requiredKeyword: parameter.requiredKeyword,
+          constFinalOrVarKeyword: parameter.keyword,
+          type: parameter.returnType,
+          name: parameter.name,
+          typeParameters: parameter.typeParameters,
+          parameters: parameter.parameters,
+          question: parameter.question,
+          defaultClauseSeparator: node.separator,
+          defaultClauseValue: node.defaultValue,
+        );
+      case SimpleFormalParameter():
+        _writeCompatibleRegularFormalParameter(
+          annotatedNode: parameter,
+          assertNode: node,
+          declaredFragment: node.declaredFragment ?? parameter.declaredFragment,
+          covariantKeyword: parameter.covariantKeyword,
+          requiredKeyword: parameter.requiredKeyword,
+          constFinalOrVarKeyword: parameter.keyword,
+          type: parameter.type,
+          name: parameter.name,
+          defaultClauseSeparator: node.separator,
+          defaultClauseValue: node.defaultValue,
+        );
+      case SuperFormalParameter():
+        _writeCompatibleSuperFormalParameter(
+          annotatedNode: parameter,
+          assertNode: node,
+          declaredFragment: node.declaredFragment ?? parameter.declaredFragment,
+          covariantKeyword: parameter.covariantKeyword,
+          requiredKeyword: parameter.requiredKeyword,
+          constFinalOrVarKeyword: parameter.keyword,
+          type: parameter.type,
+          superKeyword: parameter.superKeyword,
+          period: parameter.period,
+          name: parameter.name,
+          typeParameters: parameter.typeParameters,
+          parameters: parameter.parameters,
+          question: parameter.question,
+          defaultClauseSeparator: node.separator,
+          defaultClauseValue: node.defaultValue,
+        );
+    }
   }
 
   @override
@@ -510,6 +580,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {
+    _sink.writeln('EmptyEnumBody');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitEmptyFunctionBody(EmptyFunctionBody node) {
     _sink.writeln('EmptyFunctionBody');
     _sink.withIndent(() {
@@ -518,8 +596,8 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitEnumBody(EnumBody node) {
-    _sink.writeln('EnumBody');
+  void visitEmptyStatement(EmptyStatement node) {
+    _sink.writeln('EmptyStatement');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -640,12 +718,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    _sink.writeln('FieldFormalParameter');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _assertFormalParameterDeclaredElement(node);
-      _writeDeclaredFragment(node.declaredFragment);
-    });
+    var defaultFormalParameter = _enclosingDefaultFormalParameter(node);
+    _writeCompatibleFieldFormalParameter(
+      annotatedNode: node,
+      assertNode: node,
+      declaredFragment: node.declaredFragment,
+      covariantKeyword: node.covariantKeyword,
+      requiredKeyword: node.requiredKeyword,
+      constFinalOrVarKeyword: node.keyword,
+      type: node.type,
+      thisKeyword: node.thisKeyword,
+      period: node.period,
+      name: node.name,
+      typeParameters: node.typeParameters,
+      parameters: node.parameters,
+      question: node.question,
+      defaultClauseSeparator: defaultFormalParameter?.separator,
+      defaultClauseValue: defaultFormalParameter?.defaultValue,
+    );
   }
 
   @override
@@ -782,12 +872,22 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _sink.writeln('FunctionTypedFormalParameter');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _assertFormalParameterDeclaredElement(node);
-      _writeDeclaredFragment(node.declaredFragment);
-    });
+    var defaultFormalParameter = _enclosingDefaultFormalParameter(node);
+    _writeCompatibleRegularFormalParameter(
+      annotatedNode: node,
+      assertNode: node,
+      declaredFragment: node.declaredFragment,
+      covariantKeyword: node.covariantKeyword,
+      requiredKeyword: node.requiredKeyword,
+      constFinalOrVarKeyword: node.keyword,
+      type: node.returnType,
+      name: node.name,
+      typeParameters: node.typeParameters,
+      parameters: node.parameters,
+      question: node.question,
+      defaultClauseSeparator: defaultFormalParameter?.separator,
+      defaultClauseValue: defaultFormalParameter?.defaultValue,
+    );
   }
 
   @override
@@ -969,16 +1069,6 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitLibraryIdentifier(LibraryIdentifier node) {
-    _sink.writeln('LibraryIdentifier');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeElement('element', node.element);
-      _writeType('staticType', node.staticType);
-    });
-  }
-
-  @override
   void visitListLiteral(ListLiteral node) {
     _sink.writeln('ListLiteral');
     _sink.withIndent(() {
@@ -1112,6 +1202,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   @override
   void visitNameWithTypeParameters(NameWithTypeParameters node) {
     _sink.writeln('NameWithTypeParameters');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
+  void visitNativeClause(NativeClause node) {
+    _sink.writeln('NativeClause');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);
     });
@@ -1433,6 +1531,14 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitScriptTag(ScriptTag node) {
+    _sink.writeln('ScriptTag');
+    _sink.withIndent(() {
+      _writeNamedChildEntities(node);
+    });
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _sink.writeln('SetOrMapLiteral');
     _sink.withIndent(() {
@@ -1453,11 +1559,19 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _sink.writeln('SimpleFormalParameter');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _writeDeclaredFragment(node.declaredFragment);
-    });
+    var defaultFormalParameter = _enclosingDefaultFormalParameter(node);
+    _writeCompatibleRegularFormalParameter(
+      annotatedNode: node,
+      assertNode: node,
+      declaredFragment: node.declaredFragment,
+      covariantKeyword: node.covariantKeyword,
+      requiredKeyword: node.requiredKeyword,
+      constFinalOrVarKeyword: node.keyword,
+      type: node.type,
+      name: node.name,
+      defaultClauseSeparator: defaultFormalParameter?.separator,
+      defaultClauseValue: defaultFormalParameter?.defaultValue,
+    );
   }
 
   @override
@@ -1519,13 +1633,24 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
-    _checkChildrenEntitiesLinking(node);
-    _sink.writeln('SuperFormalParameter');
-    _sink.withIndent(() {
-      _writeNamedChildEntities(node);
-      _assertFormalParameterDeclaredElement(node);
-      _writeDeclaredFragment(node.declaredFragment);
-    });
+    var defaultFormalParameter = _enclosingDefaultFormalParameter(node);
+    _writeCompatibleSuperFormalParameter(
+      annotatedNode: node,
+      assertNode: node,
+      declaredFragment: node.declaredFragment,
+      covariantKeyword: node.covariantKeyword,
+      requiredKeyword: node.requiredKeyword,
+      constFinalOrVarKeyword: node.keyword,
+      type: node.type,
+      superKeyword: node.superKeyword,
+      period: node.period,
+      name: node.name,
+      typeParameters: node.typeParameters,
+      parameters: node.parameters,
+      question: node.question,
+      defaultClauseSeparator: defaultFormalParameter?.separator,
+      defaultClauseValue: defaultFormalParameter?.defaultValue,
+    );
   }
 
   @override
@@ -1737,6 +1862,9 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   void _checkChildrenEntitiesLinking(AstNode node) {
     Token? lastEnd;
     for (var entity in node.childEntities) {
+      if (entity is Comment) {
+        continue;
+      }
       if (lastEnd != null) {
         var begin = _entityBeginToken(entity);
         expect(lastEnd.next, begin);
@@ -1770,6 +1898,130 @@ Expected parent: (${parent.runtimeType}) $parent
       return '<null>';
     }
     return _tokenIdMap[token] ??= 'T${_tokenIdMap.length}';
+  }
+
+  void _writeAnnotatedNodeFields(AnnotatedNode node) {
+    _writeNode('documentationComment', node.documentationComment);
+    _writeNodeList(node, 'metadata', node.metadata);
+  }
+
+  void _writeCompatibleFieldFormalParameter({
+    required AnnotatedNode annotatedNode,
+    required FormalParameter assertNode,
+    required Fragment? declaredFragment,
+    required Token? covariantKeyword,
+    required Token? requiredKeyword,
+    required Token? constFinalOrVarKeyword,
+    required TypeAnnotation? type,
+    required Token thisKeyword,
+    required Token period,
+    required Token name,
+    required TypeParameterList? typeParameters,
+    required FormalParameterList? parameters,
+    required Token? question,
+    Token? defaultClauseSeparator,
+    Expression? defaultClauseValue,
+  }) {
+    _sink.writeln('FieldFormalParameter');
+    _sink.withIndent(() {
+      _writeAnnotatedNodeFields(annotatedNode);
+      _writeToken('covariantKeyword', covariantKeyword);
+      _writeToken('requiredKeyword', requiredKeyword);
+      _writeToken('constFinalOrVarKeyword', constFinalOrVarKeyword);
+      _writeNode('type', type);
+      _writeToken('thisKeyword', thisKeyword);
+      _writeToken('period', period);
+      _writeToken('name', name);
+      _writeFunctionTypedFormalParameterSuffix(
+        typeParameters: typeParameters,
+        formalParameters: parameters,
+        question: question,
+      );
+      _writeFormalParameterDefaultClause(
+        separator: defaultClauseSeparator,
+        value: defaultClauseValue,
+      );
+      _assertFormalParameterDeclaredElement(assertNode);
+      _writeDeclaredFragment(declaredFragment);
+    });
+  }
+
+  void _writeCompatibleRegularFormalParameter({
+    required AnnotatedNode annotatedNode,
+    required FormalParameter assertNode,
+    required Fragment? declaredFragment,
+    required Token? covariantKeyword,
+    required Token? requiredKeyword,
+    required Token? constFinalOrVarKeyword,
+    required TypeAnnotation? type,
+    required Token? name,
+    TypeParameterList? typeParameters,
+    FormalParameterList? parameters,
+    Token? question,
+    Token? defaultClauseSeparator,
+    Expression? defaultClauseValue,
+  }) {
+    _sink.writeln('RegularFormalParameter');
+    _sink.withIndent(() {
+      _writeAnnotatedNodeFields(annotatedNode);
+      _writeToken('covariantKeyword', covariantKeyword);
+      _writeToken('requiredKeyword', requiredKeyword);
+      _writeToken('constFinalOrVarKeyword', constFinalOrVarKeyword);
+      _writeNode('type', type);
+      _writeToken('name', name);
+      _writeFunctionTypedFormalParameterSuffix(
+        typeParameters: typeParameters,
+        formalParameters: parameters,
+        question: question,
+      );
+      _writeFormalParameterDefaultClause(
+        separator: defaultClauseSeparator,
+        value: defaultClauseValue,
+      );
+      _assertFormalParameterDeclaredElement(assertNode);
+      _writeDeclaredFragment(declaredFragment);
+    });
+  }
+
+  void _writeCompatibleSuperFormalParameter({
+    required AnnotatedNode annotatedNode,
+    required FormalParameter assertNode,
+    required Fragment? declaredFragment,
+    required Token? covariantKeyword,
+    required Token? requiredKeyword,
+    required Token? constFinalOrVarKeyword,
+    required TypeAnnotation? type,
+    required Token superKeyword,
+    required Token period,
+    required Token name,
+    required TypeParameterList? typeParameters,
+    required FormalParameterList? parameters,
+    required Token? question,
+    Token? defaultClauseSeparator,
+    Expression? defaultClauseValue,
+  }) {
+    _sink.writeln('SuperFormalParameter');
+    _sink.withIndent(() {
+      _writeAnnotatedNodeFields(annotatedNode);
+      _writeToken('covariantKeyword', covariantKeyword);
+      _writeToken('requiredKeyword', requiredKeyword);
+      _writeToken('constFinalOrVarKeyword', constFinalOrVarKeyword);
+      _writeNode('type', type);
+      _writeToken('superKeyword', superKeyword);
+      _writeToken('period', period);
+      _writeToken('name', name);
+      _writeFunctionTypedFormalParameterSuffix(
+        typeParameters: typeParameters,
+        formalParameters: parameters,
+        question: question,
+      );
+      _writeFormalParameterDefaultClause(
+        separator: defaultClauseSeparator,
+        value: defaultClauseValue,
+      );
+      _assertFormalParameterDeclaredElement(assertNode);
+      _writeDeclaredFragment(declaredFragment);
+    });
   }
 
   void _writeDeclaredFragment(Fragment? fragment) {
@@ -1876,6 +2128,22 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
+  void _writeFormalParameterDefaultClause({
+    required Token? separator,
+    required Expression? value,
+  }) {
+    if (separator == null || value == null) {
+      return;
+    }
+
+    _sink.writeWithIndent('defaultClause: ');
+    _sink.writeln('FormalParameterDefaultClause');
+    _sink.withIndent(() {
+      _writeToken('separator', separator);
+      _writeNode('value', value);
+    });
+  }
+
   void _writeFormalParameterFragments(
     List<FormalParameterFragmentImpl> fragments,
   ) {
@@ -1906,6 +2174,24 @@ Expected parent: (${parent.runtimeType}) $parent
     if (_withResolution) {
       _elementPrinter.writeNamedFragment(name, fragment);
     }
+  }
+
+  void _writeFunctionTypedFormalParameterSuffix({
+    required TypeParameterList? typeParameters,
+    required FormalParameterList? formalParameters,
+    required Token? question,
+  }) {
+    if (formalParameters == null) {
+      return;
+    }
+
+    _sink.writeWithIndent('functionTypedSuffix: ');
+    _sink.writeln('FunctionTypedFormalParameterSuffix');
+    _sink.withIndent(() {
+      _writeNode('typeParameters', typeParameters);
+      _writeNode('formalParameters', formalParameters);
+      _writeToken('question', question);
+    });
   }
 
   void _writeGenericFunctionTypeFragment(
@@ -1989,10 +2275,6 @@ Expected parent: (${parent.runtimeType}) $parent
     }
   }
 
-  void _writeOffset(String name, int offset) {
-    _sink.writelnWithIndent('$name: $offset');
-  }
-
   /// If [node] is at a position where it is an argument for an invocation,
   /// writes the corresponding parameter element.
   void _writeParameterElement(Expression node) {
@@ -2043,25 +2325,49 @@ Expected parent: (${parent.runtimeType}) $parent
 
     _sink.writeIndentedLine(() {
       _sink.write('$name: ');
-      if (configuration.withTokenPreviousNext) {
-        _sink.write(_getTokenId(token));
-        _sink.write(' ');
-      }
-      _sink.write(token.lexeme.ifNotEmptyOrElse('<empty>'));
-      if (_withOffsets) {
-        _sink.write(' @${token.offset}');
-      }
-      if (token.isSynthetic) {
-        _sink.write(' <synthetic>');
-      }
+      _writeTokenItem(token);
     });
 
+    _writeTokenPreviousNext(token);
+  }
+
+  void _writeTokenItem(Token token) {
+    if (configuration.withTokenPreviousNext) {
+      _sink.write(_getTokenId(token));
+      _sink.write(' ');
+    }
+    _sink.write(token.lexeme.ifNotEmptyOrElse('<empty>'));
+    if (_withOffsets) {
+      _sink.write(' @${token.offset}');
+    }
+    if (token.isSynthetic) {
+      _sink.write(' <synthetic>');
+    }
+  }
+
+  void _writeTokenList(String name, List<Token> tokens) {
+    if (tokens.isNotEmpty) {
+      _sink.writelnWithIndent(name);
+      _sink.withIndent(() {
+        for (var token in tokens) {
+          _sink.writeIndentedLine(() {
+            _writeTokenItem(token);
+          });
+          _writeTokenPreviousNext(token);
+        }
+      });
+    }
+  }
+
+  void _writeTokenPreviousNext(Token token) {
     if (configuration.withTokenPreviousNext) {
       _sink.withIndent(() {
         if (token.previous case var previous?) {
           if (!previous.isEof) {
             if (_tokenIdMap[previous] == null) {
-              _writeToken('previousX', previous);
+              _sink.withIndent(() {
+                _writeToken('previousX', previous);
+              });
             } else {
               _sink.writelnWithIndent(
                 'previous: ${_getTokenId(previous)} |${previous.lexeme}|',
@@ -2078,22 +2384,6 @@ Expected parent: (${parent.runtimeType}) $parent
           );
         } else {
           _sink.writelnWithIndent('next: <null>');
-        }
-      });
-    }
-  }
-
-  void _writeTokenList(String name, List<Token> tokens) {
-    if (tokens.isNotEmpty) {
-      _sink.writelnWithIndent(name);
-      _sink.withIndent(() {
-        for (var token in tokens) {
-          _sink.writelnWithIndent(token.lexeme);
-          if (_withOffsets) {
-            _sink.withIndent(() {
-              _writeOffset('offset', token.offset);
-            });
-          }
         }
       });
     }
@@ -2128,6 +2418,13 @@ Expected parent: (${parent.runtimeType}) $parent
       }
     }
     fail('No $expected in $elements');
+  }
+
+  static DefaultFormalParameter? _enclosingDefaultFormalParameter(
+    AstNode node,
+  ) {
+    var parent = node.parent;
+    return parent is DefaultFormalParameter ? parent : null;
   }
 
   static Token _entityBeginToken(SyntacticEntity entity) {

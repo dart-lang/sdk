@@ -12,17 +12,18 @@ import 'package:expect/expect.dart';
 
 class CMultiple(var int _, var int _);
 //                         ^
-// [analyzer] unspecified
 // [cfe] unspecified
+//                                 ^
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 
 class DMultiple(final int _, final int _);
 //                                     ^
-// [analyzer] unspecified
+// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [cfe] unspecified
 
 enum EnumMultiple(final int _, final int _) {
   //                                     ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
   // [cfe] unspecified
   e1(1, 2);
 }
@@ -35,56 +36,59 @@ enum EnumMultiple(final int _, final int _) {
 class C(var int _) {
   int x = _;
   //      ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] unspecified
 
   this : assert(_ > 0);
   //            ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] unspecified
 }
 
 class D(final int _) {
   int x = _;
   //      ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] unspecified
 
   this : assert(_ > 0);
   //            ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] unspecified
 }
 
 class E(int _, int _) {
   int x = _;
   //      ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] unspecified
 
   this : assert(_ > 0);
   //            ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.UNDEFINED_IDENTIFIER
   // [cfe] unspecified
 }
 
 enum E1(final int _) {
+//   ^^
+// [analyzer] COMPILE_TIME_ERROR.CONST_CONSTRUCTOR_WITH_FIELD_INITIALIZED_BY_NON_CONST
   e(1);
 
   final int x = _;
   //            ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] unspecified
 
   this : assert(_ > 0);
   //            ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
+  // [analyzer] COMPILE_TIME_ERROR.INVALID_CONSTANT
   // [cfe] unspecified
 }
 
 extension type Ext(int _) {
   this : assert(_ > 0);
   //            ^
-  // [analyzer] unspecified
+  // [analyzer] COMPILE_TIME_ERROR.IMPLICIT_THIS_REFERENCE_IN_INITIALIZER
   // [cfe] unspecified
 }

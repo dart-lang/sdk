@@ -178,10 +178,9 @@ class BulkFixProcessor {
     this._instrumentationService,
     this._workspace, {
     List<String>? codes,
-    CancellationToken? cancellationToken,
+    this._cancellationToken,
   }) : builder = ChangeBuilder(workspace: _workspace),
-       _codes = codes?.map((e) => e.toLowerCase()).toList(),
-       _cancellationToken = cancellationToken;
+       _codes = codes?.map((e) => e.toLowerCase()).toList();
 
   List<BulkFix> get fixDetails {
     var details = <BulkFix>[];
@@ -1054,16 +1053,12 @@ class IterativeBulkFixProcessor {
   final CancellationToken? _cancellationToken;
 
   IterativeBulkFixProcessor({
-    required InstrumentationService instrumentationService,
-    required AnalysisContext context,
-    required void Function(SourceFileEdit) applyTemporaryOverlayEdits,
-    required Future<void> Function() applyOverlays,
-    CancellationToken? cancellationToken,
-  }) : _instrumentationService = instrumentationService,
-       _context = context,
-       _applyTemporaryOverlayEdits = applyTemporaryOverlayEdits,
-       _applyOverlays = applyOverlays,
-       _cancellationToken = cancellationToken;
+    required this._instrumentationService,
+    required this._context,
+    required this._applyTemporaryOverlayEdits,
+    required this._applyOverlays,
+    this._cancellationToken,
+  });
 
   /// The number of passes that produced edits.
   int get passesWithEdits => _passesWithEdits;

@@ -53,7 +53,7 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
     SourceMemberBuilder memberBuilder =
         lookupMemberBuilder(testResultData.compilerResult, member)
             as SourceMemberBuilder;
-    AssignedVariablesForTesting<TreeNode, ExpressionVariable>?
+    AssignedVariablesForTesting<TreeNode, VariableDeclaration>?
     assignedVariables = memberBuilder
         .dataForTesting!
         .inferenceData
@@ -72,7 +72,7 @@ class AssignedVariablesDataComputer extends CfeDataComputer<_Data> {
 
 class AssignedVariablesDataExtractor extends CfeDataExtractor<_Data> {
   final SourceLoaderDataForTesting _sourceLoaderDataForTesting;
-  final AssignedVariablesForTesting<TreeNode, ExpressionVariable>
+  final AssignedVariablesForTesting<TreeNode, VariableDeclaration>
   _assignedVariables;
 
   AssignedVariablesDataExtractor(

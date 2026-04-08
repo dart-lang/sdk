@@ -46,6 +46,7 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
   required List<UriResolver> uriResolvers,
   required Packages packages,
   ByteStore? byteStore,
+  bool shouldDiscardMemoryExpensiveDataOnIdle = true,
 }) {
   var sdkBundle = PackageBundleReader(sdkSummaryBytes);
   var sdk = SummaryBasedDartSdk.forBundle(sdkBundle);
@@ -58,7 +59,11 @@ AnalysisDriverForPackageBuild createAnalysisDriver({
   var logger = PerformanceLog(null);
   byteStore ??= MemoryByteStore();
 
-  var scheduler = AnalysisDriverScheduler(logger);
+  var scheduler = AnalysisDriverScheduler(
+    logger,
+    shouldDiscardMemoryExpensiveDataOnIdle:
+        shouldDiscardMemoryExpensiveDataOnIdle,
+  );
   scheduler.events.drain<void>().ignore();
 
   var sharedOptions = analysisOptions as AnalysisOptionsImpl;
@@ -114,6 +119,11 @@ class AnalysisDriverForPackageBuild {
   /// But we are going to fix this.
   void changeFile(String path) {
     _driver.changeFile(path);
+  }
+
+  /// Discard memory expensive data, e.g. after finishing a full build.
+  void discardMemoryExpensiveData() {
+    _driver.discardMemoryExpensiveData();
   }
 
   /// Return `true` if the [uri] can be resolved to an existing file.

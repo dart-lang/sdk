@@ -230,13 +230,18 @@ class AssertStatement extends Statement {
   int conditionEndOffset;
 
   @override
-  List<int>? get fileOffsetsIfMultiple =>
-      [fileOffset, conditionStartOffset, conditionEndOffset];
+  List<int>? get fileOffsetsIfMultiple => [
+    fileOffset,
+    conditionStartOffset,
+    conditionEndOffset,
+  ];
 
-  AssertStatement(this.condition,
-      {this.message,
-      required this.conditionStartOffset,
-      required this.conditionEndOffset}) {
+  AssertStatement(
+    this.condition, {
+    this.message,
+    required this.conditionStartOffset,
+    required this.conditionEndOffset,
+  }) {
     condition.parent = this;
     message?.parent = this;
   }
@@ -534,7 +539,7 @@ class DoStatement extends Statement implements LoopStatement {
 
 class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   // May be empty, but not null.
-  final List<VariableInitialization> variableInitializations;
+  final List<VariableInitializationBase> variableInitializations;
   List<VariableDeclaration> get variables => variableInitializations.cast();
 
   Expression? condition; // May be null.
@@ -547,7 +552,11 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   Scope? scope;
 
   ForStatement(
-      this.variableInitializations, this.condition, this.updates, this.body) {
+    this.variableInitializations,
+    this.condition,
+    this.updates,
+    this.body,
+  ) {
     setParents(variableInitializations, this);
     condition?.parent = this;
     setParents(updates, this);
@@ -605,8 +614,10 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
       if (index > 0) {
         printer.write(', ');
       }
-      printer.writeVariableInitialization(variableInitializations[index],
-          includeModifiersAndType: index == 0);
+      printer.writeVariableInitialization(
+        variableInitializations[index],
+        includeModifiersAndType: index == 0,
+      );
     }
     printer.write('; ');
     if (condition != null) {
@@ -629,10 +640,10 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
-  ExpressionVariable expressionVariable;
+  VariableDeclaration expressionVariable;
 
   // Has no initializer.
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
+  VariableDeclaration get variable => expressionVariable;
 
   void set variable(VariableDeclaration value) {
     expressionVariable = value;
@@ -648,8 +659,12 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   Scope? scope;
 
-  ForInStatement(this.expressionVariable, this.iterable, this.body,
-      {this.isAsync = false}) {
+  ForInStatement(
+    this.expressionVariable,
+    this.iterable,
+    this.body, {
+    this.isAsync = false,
+  }) {
     expressionVariable.parent = this;
     iterable.parent = this;
     body.parent = this;
@@ -705,19 +720,27 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
     DartType? iteratorType;
     if (isAsync) {
       InterfaceType streamType = iterable.getStaticTypeAsInstanceOf(
-          context.typeEnvironment.coreTypes.streamClass, context);
+        context.typeEnvironment.coreTypes.streamClass,
+        context,
+      );
       iteratorType = new InterfaceType(
-          context.typeEnvironment.coreTypes.streamIteratorClass,
-          context.nonNullable,
-          streamType.typeArguments);
+        context.typeEnvironment.coreTypes.streamIteratorClass,
+        context.nonNullable,
+        streamType.typeArguments,
+      );
     } else {
       InterfaceType iterableType = iterable.getStaticTypeAsInstanceOf(
-          context.typeEnvironment.coreTypes.iterableClass, context);
-      Member? member = context.typeEnvironment.hierarchy
-          .getInterfaceMember(iterableType.classNode, new Name('iterator'));
+        context.typeEnvironment.coreTypes.iterableClass,
+        context,
+      );
+      Member? member = context.typeEnvironment.hierarchy.getInterfaceMember(
+        iterableType.classNode,
+        new Name('iterator'),
+      );
       if (member != null) {
-        iteratorType = Substitution.fromInterfaceType(iterableType)
-            .substituteType(member.getterType);
+        iteratorType = Substitution.fromInterfaceType(
+          iterableType,
+        ).substituteType(member.getterType);
       }
     }
     return iteratorType ?? const DynamicType();
@@ -736,8 +759,9 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   /// This is called by `StaticTypeContext.getForInElementType` if the element
   /// type of this for-in statement is not already cached in [context].
   DartType getElementTypeInternal(StaticTypeContext context) {
-    DartType iterableType =
-        iterable.getStaticType(context).nonTypeParameterBound;
+    DartType iterableType = iterable
+        .getStaticType(context)
+        .nonTypeParameterBound;
     // TODO(johnniwinther): Update this to use the type of
     //  `iterable.iterator.current` if inference is updated accordingly.
     while (iterableType is TypeParameterType) {
@@ -758,12 +782,16 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
     if (isAsync) {
       List<DartType> typeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(
-              iterableType, context.typeEnvironment.coreTypes.streamClass)!;
+            iterableType,
+            context.typeEnvironment.coreTypes.streamClass,
+          )!;
       return typeArguments.single;
     } else {
       List<DartType> typeArguments = context.typeEnvironment
           .getTypeArgumentsAsInstanceOf(
-              iterableType, context.typeEnvironment.coreTypes.iterableClass)!;
+            iterableType,
+            context.typeEnvironment.coreTypes.iterableClass,
+          )!;
       return typeArguments.single;
     }
   }
@@ -804,8 +832,11 @@ class SwitchStatement extends Statement {
   /// This is set during inference.
   DartType? expressionTypeInternal;
 
-  SwitchStatement(this.expression, this.cases,
-      {this.isExplicitlyExhaustive = false}) {
+  SwitchStatement(
+    this.expression,
+    this.cases, {
+    this.isExplicitlyExhaustive = false,
+  }) {
     expression.parent = this;
     setParents(cases, this);
   }
@@ -814,8 +845,10 @@ class SwitchStatement extends Statement {
   ///
   /// This is set during inference.
   DartType get expressionType {
-    assert(expressionTypeInternal != null,
-        "Expression type hasn't been computed for $this.");
+    assert(
+      expressionTypeInternal != null,
+      "Expression type hasn't been computed for $this.",
+    );
     return expressionTypeInternal!;
   }
 
@@ -863,8 +896,10 @@ class SwitchStatement extends Statement {
     expression.parent = this;
     v.transformSwitchCaseList(cases, this);
     if (expressionTypeInternal != null) {
-      expressionTypeInternal =
-          v.visitDartType(expressionTypeInternal!, cannotRemoveSentinel);
+      expressionTypeInternal = v.visitDartType(
+        expressionTypeInternal!,
+        cannotRemoveSentinel,
+      );
     }
   }
 
@@ -898,8 +933,12 @@ class SwitchCase extends TreeNode {
   late Statement body;
   bool isDefault;
 
-  SwitchCase(this.expressions, this.expressionOffsets, Statement? body,
-      {this.isDefault = false}) {
+  SwitchCase(
+    this.expressions,
+    this.expressionOffsets,
+    Statement? body, {
+    this.isDefault = false,
+  }) {
     setParents(expressions, this);
     if (body != null) {
       this.body = body..parent = this;
@@ -907,9 +946,9 @@ class SwitchCase extends TreeNode {
   }
 
   SwitchCase.defaultCase(Statement? body)
-      : isDefault = true,
-        expressions = <Expression>[],
-        expressionOffsets = <int>[] {
+    : isDefault = true,
+      expressions = <Expression>[],
+      expressionOffsets = <int>[] {
     if (body != null) {
       this.body = body..parent = this;
     }
@@ -1195,33 +1234,22 @@ class TryCatch extends Statement {
 
 class Catch extends TreeNode implements ScopeProvider {
   DartType guard; // Not null, defaults to dynamic.
-  CatchVariable? exceptionCatchVariable;
-  CatchVariable? stackTraceCatchVariable;
+  VariableDeclaration? exception;
+  VariableDeclaration? stackTrace;
   Statement body;
 
   @override
   Scope? scope;
 
-  Catch(this.exceptionCatchVariable, this.body,
-      {this.guard = const DynamicType(), CatchVariable? stackTrace})
-      : stackTraceCatchVariable = stackTrace {
-    exceptionCatchVariable?.parent = this;
-    stackTraceCatchVariable?.parent = this;
+  Catch(
+    this.exception,
+    this.body, {
+    this.guard = const DynamicType(),
+    this.stackTrace,
+  }) {
+    exception?.parent = this;
+    stackTrace?.parent = this;
     body.parent = this;
-  }
-
-  VariableDeclaration? get exception =>
-      exceptionCatchVariable as VariableDeclaration?;
-
-  void set exception(VariableDeclaration? value) {
-    exceptionCatchVariable = value;
-  }
-
-  VariableDeclaration? get stackTrace =>
-      stackTraceCatchVariable as VariableDeclaration?;
-
-  void set stackTrace(VariableDeclaration? value) {
-    stackTraceCatchVariable = value;
   }
 
   @override
@@ -1233,21 +1261,21 @@ class Catch extends TreeNode implements ScopeProvider {
   @override
   void visitChildren(Visitor v) {
     guard.accept(v);
-    exceptionCatchVariable?.accept(v);
-    stackTraceCatchVariable?.accept(v);
+    exception?.accept(v);
+    stackTrace?.accept(v);
     body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
     guard = v.visitDartType(guard);
-    if (exceptionCatchVariable != null) {
-      exceptionCatchVariable = v.transform(exceptionCatchVariable!);
-      exceptionCatchVariable?.parent = this;
+    if (exception != null) {
+      exception = v.transform(exception!);
+      exception?.parent = this;
     }
-    if (stackTraceCatchVariable != null) {
-      stackTraceCatchVariable = v.transform(stackTraceCatchVariable!);
-      stackTraceCatchVariable?.parent = this;
+    if (stackTrace != null) {
+      stackTrace = v.transform(stackTrace!);
+      stackTrace?.parent = this;
     }
     body = v.transform(body);
     body.parent = this;
@@ -1256,15 +1284,13 @@ class Catch extends TreeNode implements ScopeProvider {
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
     guard = v.visitDartType(guard, cannotRemoveSentinel);
-    if (exceptionCatchVariable != null) {
-      exceptionCatchVariable =
-          v.transformOrRemoveCatchVariable(exceptionCatchVariable!);
-      exceptionCatchVariable?.parent = this;
+    if (exception != null) {
+      exception = v.transformOrRemoveVariableDeclaration(exception!);
+      exception?.parent = this;
     }
-    if (stackTraceCatchVariable != null) {
-      stackTraceCatchVariable =
-          v.transformOrRemoveCatchVariable(stackTraceCatchVariable!);
-      stackTraceCatchVariable?.parent = this;
+    if (stackTrace != null) {
+      stackTrace = v.transformOrRemoveVariableDeclaration(stackTrace!);
+      stackTrace?.parent = this;
     }
     body = v.transform(body);
     body.parent = this;
@@ -1306,12 +1332,16 @@ class Catch extends TreeNode implements ScopeProvider {
         printer.write(' ');
       }
       printer.write('catch (');
-      printer.writeVariableInitialization(exception!,
-          includeModifiersAndType: false);
+      printer.writeVariableInitialization(
+        exception!,
+        includeModifiersAndType: false,
+      );
       if (stackTrace != null) {
         printer.write(', ');
-        printer.writeVariableInitialization(stackTrace!,
-            includeModifiersAndType: false);
+        printer.writeVariableInitialization(
+          stackTrace!,
+          includeModifiersAndType: false,
+        );
       }
       printer.write(') ');
     } else {
@@ -1437,13 +1467,12 @@ class YieldStatement extends Statement {
   }
 }
 
-abstract interface class VariableDeclaration
+abstract interface class LegacyVariableDeclaration
     implements
         Annotatable,
         Statement,
-        ExpressionVariable,
-        VariableInitialization,
-        CatchVariable {
+        VariableDeclaration,
+        VariableInitializationBase {
   /// The name of the variable as provided in the source code.
   ///
   /// The name of a variable can only be omitted if the variable is synthesized.
@@ -1469,7 +1498,7 @@ abstract interface class VariableDeclaration
   @override
   abstract bool isCovariantByDeclaration;
 
-  /// If this [VariableDeclaration] is a parameter of a method, indicates
+  /// If this [LegacyVariableDeclaration] is a parameter of a method, indicates
   /// whether the method implementation needs to contain a runtime type check to
   /// deal with generic covariance.
   ///
@@ -1588,32 +1617,36 @@ abstract interface class VariableDeclaration
   @override
   void clearAnnotations();
 
-  factory VariableDeclaration(String? name,
-      {Expression? initializer,
-      DartType type,
-      int flags,
-      bool isFinal,
-      bool isConst,
-      bool isInitializingFormal,
-      bool isSuperInitializingFormal,
-      bool isCovariantByDeclaration,
-      bool isLate,
-      bool isRequired,
-      bool isLowered,
-      bool isSynthesized,
-      bool isHoisted,
-      bool hasDeclaredInitializer,
-      bool isWildcard}) = VariableStatement;
+  factory LegacyVariableDeclaration(
+    String? name, {
+    Expression? initializer,
+    DartType type,
+    int flags,
+    bool isFinal,
+    bool isConst,
+    bool isInitializingFormal,
+    bool isSuperInitializingFormal,
+    bool isCovariantByDeclaration,
+    bool isLate,
+    bool isRequired,
+    bool isLowered,
+    bool isSynthesized,
+    bool isHoisted,
+    bool hasDeclaredInitializer,
+    bool isWildcard,
+  }) = VariableStatement;
 
-  factory VariableDeclaration.forValue(Expression? initializer,
-      {bool isFinal,
-      bool isConst,
-      bool isInitializingFormal,
-      bool isSuperInitializingFormal,
-      bool isLate,
-      bool isRequired,
-      bool isLowered,
-      DartType type}) = VariableStatement.forValue;
+  factory LegacyVariableDeclaration.forValue(
+    Expression? initializer, {
+    bool isFinal,
+    bool isConst,
+    bool isInitializingFormal,
+    bool isSuperInitializingFormal,
+    bool isLate,
+    bool isRequired,
+    bool isLowered,
+    DartType type,
+  }) = VariableStatement.forValue;
 }
 
 /// Declaration of a local variable.
@@ -1624,7 +1657,7 @@ abstract interface class VariableDeclaration
 /// When this occurs as a statement, it must be a direct child of a [Block].
 //
 // DESIGN TODO: Should we remove the 'final' modifier from variables?
-class VariableStatement extends Statement implements VariableDeclaration {
+class VariableStatement extends Statement implements LegacyVariableDeclaration {
   @override
   int fileEqualsOffset = TreeNode.noOffset;
 
@@ -1652,22 +1685,24 @@ class VariableStatement extends Statement implements VariableDeclaration {
   @override
   Expression? initializer; // May be null.
 
-  VariableStatement(this._name,
-      {this.initializer,
-      this.type = const DynamicType(),
-      int flags = -1,
-      bool isFinal = false,
-      bool isConst = false,
-      bool isInitializingFormal = false,
-      bool isSuperInitializingFormal = false,
-      bool isCovariantByDeclaration = false,
-      bool isLate = false,
-      bool isRequired = false,
-      bool isLowered = false,
-      bool isSynthesized = false,
-      bool isHoisted = false,
-      bool hasDeclaredInitializer = false,
-      bool isWildcard = false}) {
+  VariableStatement(
+    this._name, {
+    this.initializer,
+    this.type = const DynamicType(),
+    int flags = -1,
+    bool isFinal = false,
+    bool isConst = false,
+    bool isInitializingFormal = false,
+    bool isSuperInitializingFormal = false,
+    bool isCovariantByDeclaration = false,
+    bool isLate = false,
+    bool isRequired = false,
+    bool isLowered = false,
+    bool isSynthesized = false,
+    bool isHoisted = false,
+    bool hasDeclaredInitializer = false,
+    bool isWildcard = false,
+  }) {
     initializer?.parent = this;
     if (flags != -1) {
       this.flags = flags;
@@ -1685,20 +1720,24 @@ class VariableStatement extends Statement implements VariableDeclaration {
       this.isHoisted = isHoisted;
       this.isWildcard = isWildcard;
     }
-    assert(_name != null || this.isSynthesized,
-        "Only synthesized variables can have no name.");
+    assert(
+      _name != null || this.isSynthesized,
+      "Only synthesized variables can have no name.",
+    );
   }
 
   /// Creates a synthetic variable with the given expression as initializer.
-  VariableStatement.forValue(this.initializer,
-      {bool isFinal = true,
-      bool isConst = false,
-      bool isInitializingFormal = false,
-      bool isSuperInitializingFormal = false,
-      bool isLate = false,
-      bool isRequired = false,
-      bool isLowered = false,
-      this.type = const DynamicType()}) {
+  VariableStatement.forValue(
+    this.initializer, {
+    bool isFinal = true,
+    bool isConst = false,
+    bool isInitializingFormal = false,
+    bool isSuperInitializingFormal = false,
+    bool isLate = false,
+    bool isRequired = false,
+    bool isLowered = false,
+    this.type = const DynamicType(),
+  }) {
     initializer?.parent = this;
     this.isFinal = isFinal;
     this.isConst = isConst;
@@ -1716,27 +1755,23 @@ class VariableStatement extends Statement implements VariableDeclaration {
 
   @override
   void set name(String? value) {
-    assert(value != null || isSynthesized,
-        "Only synthesized variables can have no name.");
+    assert(
+      value != null || isSynthesized,
+      "Only synthesized variables can have no name.",
+    );
     _name = value;
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
   List<VariableContext>? get contexts {
     throw new UnsupportedError("${this.runtimeType}.contexts");
   }
 
   @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
+  // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
   void set contexts(List<VariableContext>? value) {
     throw new UnsupportedError("${this.runtimeType}.contexts=");
-  }
-
-  @override
-  // TODO(62620): Conforming to [VariableDeclaration] interface. Remove this.
-  String get catchVariableName {
-    throw new UnsupportedError("${this.runtimeType}.catchVariableName");
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -1869,7 +1904,9 @@ class VariableStatement extends Statement implements VariableDeclaration {
   @override
   void set isSynthesized(bool value) {
     assert(
-        value || _name != null, "Only synthesized variables can have no name.");
+      value || _name != null,
+      "Only synthesized variables can have no name.",
+    );
     flags = value ? (flags | FlagSynthesized) : (flags & ~FlagSynthesized);
   }
 
@@ -1968,12 +2005,12 @@ class VariableStatement extends Statement implements VariableDeclaration {
   }
 
   @override
-  VariableInitialization? get variableInitialization {
+  VariableInitializationBase? get variableInitialization {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
   @override
-  void set variableInitialization(VariableInitialization? value) {
+  void set variableInitialization(VariableInitializationBase? value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -1983,13 +2020,13 @@ class VariableStatement extends Statement implements VariableDeclaration {
   }
 
   @override
-  ExpressionVariable get asExpressionVariable => this;
+  VariableDeclaration get asExpressionVariable => this;
 
   @override
-  ExpressionVariable get variable => this;
+  VariableDeclaration get variable => this;
 
   @override
-  void set variable(ExpressionVariable value) {
+  void set variable(VariableDeclaration value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
@@ -2102,19 +2139,60 @@ class FunctionDeclaration extends Statement implements LocalFunction {
 /// The statement that marks the declaration of the variable in the source Dart
 /// program. If the [initializer] is `null`, the variable was declared without
 /// an initializer.
-class VariableInitialization extends Statement
-    implements Annotatable, ContextConsumer {
-  ExpressionVariable variable;
+abstract class VariableInitializationBase
+    implements Statement, Annotatable, ContextConsumer {
+  abstract VariableDeclaration variable;
+  abstract Expression? initializer;
+  abstract bool hasDeclaredInitializer;
+  abstract int flags;
+  abstract bool isErroneouslyInitialized;
+  abstract bool isConst;
+  abstract bool isCovariantByClass;
+  abstract bool isCovariantByDeclaration;
+  abstract bool isFinal;
+  abstract bool isHoisted;
+  abstract bool isInitializingFormal;
+  abstract bool isLate;
+  abstract bool isLowered;
+  abstract bool isRequired;
+  abstract bool isSuperInitializingFormal;
+  abstract bool isSynthesized;
+  abstract bool isWildcard;
+  abstract int binaryOffsetNoTag;
+  abstract int fileEqualsOffset;
+  abstract String? name;
+  abstract DartType type;
+  abstract String? cosmeticName;
+  abstract VariableInitializationBase? variableInitialization;
 
+  factory VariableInitializationBase({
+    required VariableDeclaration variable,
+    required Expression? initializer,
+    bool hasDeclaredInitializer,
+  }) = VariableInitialization;
+
+  void clearAnnotations();
+  bool get isAssignable;
+  VariableContext get context;
+  VariableDeclaration get asExpressionVariable;
+}
+
+class VariableInitialization extends Statement
+    implements VariableInitializationBase {
+  @override
+  VariableDeclaration variable;
+
+  @override
   Expression? initializer;
 
   @override
   List<VariableContext>? contexts;
 
-  VariableInitialization(
-      {required this.variable,
-      required this.initializer,
-      bool hasDeclaredInitializer = false}) {
+  VariableInitialization({
+    required this.variable,
+    required this.initializer,
+    bool hasDeclaredInitializer = false,
+  }) {
     variable.variableInitialization = this;
     this.hasDeclaredInitializer = hasDeclaredInitializer;
   }
@@ -2122,92 +2200,121 @@ class VariableInitialization extends Statement
   static const int FlagHasDeclaredInitializer = 1 << 0;
   static const int FlagErroneouslyInitialized = 1 << 1;
 
+  @override
   int flags = 0;
 
+  @override
   bool get hasDeclaredInitializer => flags & FlagHasDeclaredInitializer != 0;
 
+  @override
   void set hasDeclaredInitializer(bool value) {
     flags = value
         ? (flags | FlagHasDeclaredInitializer)
         : (flags & ~FlagHasDeclaredInitializer);
   }
 
+  @override
   bool get isErroneouslyInitialized => flags & FlagErroneouslyInitialized != 0;
 
+  @override
   void set isErroneouslyInitialized(bool value) {
     flags = value
         ? (flags | FlagErroneouslyInitialized)
         : (flags & ~FlagErroneouslyInitialized);
   }
 
+  @override
   bool get isConst => variable.isConst;
 
+  @override
   void set isConst(bool value) {
     variable.isConst = value;
   }
 
+  @override
   bool get isCovariantByClass => variable.isCovariantByClass;
 
+  @override
   void set isCovariantByClass(bool value) {
     variable.isCovariantByClass = value;
   }
 
+  @override
   bool get isCovariantByDeclaration => variable.isCovariantByDeclaration;
 
+  @override
   void set isCovariantByDeclaration(bool value) {
     variable.isCovariantByDeclaration = value;
   }
 
+  @override
   bool get isFinal => variable.isFinal;
 
+  @override
   void set isFinal(bool value) {
     variable.isFinal = value;
   }
 
+  @override
   bool get isHoisted => variable.isHoisted;
 
+  @override
   void set isHoisted(bool value) {
     variable.isHoisted = value;
   }
 
+  @override
   bool get isInitializingFormal => variable.isInitializingFormal;
 
+  @override
   void set isInitializingFormal(bool value) {
     variable.isInitializingFormal = value;
   }
 
+  @override
   bool get isLate => variable.isLate;
 
+  @override
   void set isLate(bool value) {
     variable.isLate = value;
   }
 
+  @override
   bool get isLowered => variable.isLowered;
 
+  @override
   void set isLowered(bool value) {
     variable.isLowered = value;
   }
 
+  @override
   bool get isRequired => variable.isRequired;
 
+  @override
   void set isRequired(bool value) {
     variable.isRequired = value;
   }
 
+  @override
   bool get isSuperInitializingFormal => variable.isSuperInitializingFormal;
 
+  @override
   void set isSuperInitializingFormal(bool value) {
     variable.isSuperInitializingFormal = value;
   }
 
+  @override
   bool get isSynthesized => variable.isSynthesized;
 
+  @override
   void set isSynthesized(bool value) {
     variable.isSynthesized = value;
   }
 
+  @override
   bool get isWildcard => variable.isWildcard;
 
+  @override
   void set isWildcard(bool value) {
     variable.isWildcard = value;
   }
@@ -2267,18 +2374,24 @@ class VariableInitialization extends Statement
   @override
   List<Expression> annotations = const <Expression>[];
 
+  @override
   int binaryOffsetNoTag = TreeNode.noOffset;
 
+  @override
   int fileEqualsOffset = TreeNode.noOffset;
 
+  @override
   String? get name => variable.cosmeticName;
 
+  @override
   void set name(String? value) {
     variable.cosmeticName = value;
   }
 
+  @override
   DartType get type => variable.type;
 
+  @override
   void set type(DartType value) {
     variable.type = value;
   }
@@ -2291,25 +2404,33 @@ class VariableInitialization extends Statement
     annotations.add(node..parent = this);
   }
 
+  @override
   void clearAnnotations() {
     annotations = const <Expression>[];
   }
 
+  @override
   bool get isAssignable => variable.isAssignable;
 
+  @override
   String? get cosmeticName => variable.cosmeticName;
 
+  @override
   void set cosmeticName(String? value) {
     variable.cosmeticName = value;
   }
 
-  VariableInitialization? get variableInitialization => this;
+  @override
+  VariableInitializationBase? get variableInitialization => this;
 
-  void set variableInitialization(VariableInitialization? value) {
+  @override
+  void set variableInitialization(VariableInitializationBase? value) {
     throw new UnsupportedError("${this.runtimeType}");
   }
 
+  @override
   VariableContext get context => variable.context;
 
-  ExpressionVariable get asExpressionVariable => variable;
+  @override
+  VariableDeclaration get asExpressionVariable => variable;
 }

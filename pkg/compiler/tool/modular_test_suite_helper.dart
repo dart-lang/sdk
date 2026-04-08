@@ -7,9 +7,9 @@
 /// This is a shell that runs multiple tests, one per folder under `data/`.
 library;
 
-import 'dart:io';
-import 'dart:ffi';
 import 'dart:async';
+import 'dart:ffi';
+import 'dart:io';
 
 import 'package:compiler/src/commandline_options.dart';
 import 'package:compiler/src/kernel/dart2js_target.dart';
@@ -19,8 +19,8 @@ import 'package:modular_test/src/create_package_config.dart';
 import 'package:modular_test/src/io_pipeline.dart';
 import 'package:modular_test/src/pipeline.dart';
 import 'package:modular_test/src/runner.dart';
-import 'package:modular_test/src/suite.dart';
 import 'package:modular_test/src/steps/util.dart';
+import 'package:modular_test/src/suite.dart';
 import 'package:path/path.dart' as p;
 
 String packageConfigJsonPath = ".dart_tool/package_config.json";

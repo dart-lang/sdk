@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -20,6 +21,8 @@ import '../dart/resolution/node_text_expectations.dart';
 import '../summary/resolved_ast_printer.dart';
 
 class ParserDiagnosticsTest {
+  FeatureSet get testFeatureSet => FeatureSets.latestWithExperiments;
+
   // TODO(scheglov): Enable [withCheckingLinking] everywhere.
   void assertParsedNodeText(
     AstNode node,
@@ -63,10 +66,13 @@ class ParserDiagnosticsTest {
     );
   }
 
-  ParseStringResult parseStringWithErrors(String content) {
+  ParseStringResult parseStringWithErrors(
+    String content, {
+    FeatureSet? featureSet,
+  }) {
     return parseString(
       content: content,
-      featureSet: FeatureSets.latestWithExperiments,
+      featureSet: featureSet ?? testFeatureSet,
       throwIfDiagnostics: false,
     );
   }

@@ -171,7 +171,7 @@ class IgnoreDiagnosticInFile extends _DartIgnoreDiagnostic {
         var line = source.substring(lineStart, nextLineStart);
         var trimmedLine = line.trim();
 
-        if (trimmedLine.startsWith(IgnoreInfo.ignoreForFileMatcher)) {
+        if (IgnoreInfo.isIgnoreForFileComment(trimmedLine)) {
           // Found an existing ignore; insert after `// ignore_for_file: `
           // before any existing codes.
           var insertOffset = lineStart + line.indexOf(':') + 1;
@@ -243,7 +243,7 @@ class IgnoreDiagnosticOnLine extends _DartIgnoreDiagnostic {
       var lineStart = unitResult.lineInfo.getOffsetOfLine(lineNumber);
       var line = unitResult.content.substring(previousLineStart, lineStart);
 
-      if (line.trim().startsWith(IgnoreInfo.ignoreMatcher)) {
+      if (IgnoreInfo.isIgnoreComment(line.trim())) {
         // Add after the `// ignore: ` before any existing codes.
         var insertOffset = previousLineStart + line.indexOf(':') + 1;
         builder.addSimpleInsertion(insertOffset, ' $_code,');

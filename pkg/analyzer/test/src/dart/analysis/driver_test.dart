@@ -37,7 +37,7 @@ import '../resolution/node_text_expectations.dart';
 import '../resolution/resolution.dart';
 import 'result_printer.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AnalysisDriver_PubPackageTest);
     defineReflectiveTests(AnalysisDriver_BlazeWorkspaceTest);
@@ -18613,8 +18613,6 @@ class B extends A {
         exportMap
           A: #M0
           A=: <null>
-          named: <null>
-          named=: <null>
         reExportDeprecatedOnly
           A: false
         interfaces
@@ -18637,8 +18635,6 @@ class B extends A {
         exportMap
           A: #M0
           A=: <null>
-          named: <null>
-          named=: <null>
         reExportDeprecatedOnly
           A: false
         instances
@@ -18704,8 +18700,6 @@ class A {
         exportMap
           A: #M0
           A=: <null>
-          named: <null>
-          named=: <null>
         reExportDeprecatedOnly
           A: false
         interfaces
@@ -18736,8 +18730,6 @@ class A {
         exportMap
           A: #M0
           A=: <null>
-          named: <null>
-          named=: <null>
         reExportDeprecatedOnly
           A: false
         instances
@@ -37927,14 +37919,11 @@ import 'a.dart';
     hashForRequirements: #H2
     exportMapId: #M0
   requirements
-[operation] reuseLinkedBundle
+[operation] linkLibraryCycle
   package:test/test.dart
-[operation] checkLibraryDiagnosticsRequirements
-  library: /home/test/lib/test.dart
-  libraryIsOriginNotExistingFileMismatch
-    libraryUri: package:test/a.dart
-    expected: true
-    actual: false
+    hashForRequirements: #H1
+    exportMapId: #M1
+  requirements
 [operation] analyzeFile
   file: /home/test/lib/test.dart
   library: /home/test/lib/test.dart
@@ -92298,6 +92287,111 @@ class B {}
     );
   }
 
+  test_manifest_topConflict_class_inheritedMember_libraryCycle() async {
+    // https://github.com/dart-lang/sdk/issues/62810
+    newFile('$testPackageLibPath/b.dart', r'''
+import 'test.dart';
+
+class B extends A {
+  void foo() {}
+}
+''');
+
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+import 'b.dart';
+
+class A {
+  void foo() {}
+}
+
+class A {
+  void foo() {}
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/b.dart
+    hashForRequirements: #H0
+    declaredClasses
+      B: #M0
+        declaredMethods
+          foo: #M1
+        interface: #M2
+          map
+            foo: #M1
+          implemented
+            foo: #M1
+          superImplemented
+            [0]
+              foo: #M3
+          inherited
+            foo: #M3
+    exportMapId: #M4
+    exportMap
+      B: #M0
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredConflicts
+      A: #M3
+      A=: #M3
+    exportMapId: #M5
+    exportMap
+      A: #M3
+      A=: #M3
+''',
+      updatedCode: r'''
+import 'b.dart';
+
+class A {
+  void foo() {}
+}
+
+class A {
+  void foo() {}
+}
+
+class C {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/b.dart
+    hashForRequirements: #H2
+    declaredClasses
+      B: #M6
+        declaredMethods
+          foo: #M7
+        interface: #M8
+          map
+            foo: #M7
+          implemented
+            foo: #M7
+          superImplemented
+            [0]
+              foo: #M9
+          inherited
+            foo: #M9
+    exportMapId: #M10
+    exportMap
+      B: #M6
+  package:test/test.dart
+    hashForRequirements: #H3
+    declaredConflicts
+      A: #M9
+      A=: #M9
+    declaredClasses
+      C: #M11
+        interface: #M12
+    exportMapId: #M13
+    exportMap
+      A: #M9
+      A=: #M9
+      C: #M11
+''',
+    );
+  }
+
   test_manifest_topConflict_class_topFunction() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -98619,6 +98713,46 @@ typedef F<Y> = List<Y>;
     );
   }
 
+  test_manifest_unnamedMixinApplication_libraryCycle() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class = Object with M;
+mixin M {}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredMixins
+      M: #M0
+        interface: #M1
+    exportMapId: #M2
+    exportMap
+      M: #M0
+''',
+      updatedCode: r'''
+class A = Object with M;
+mixin M {}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M3
+        interface: #M4
+    declaredMixins
+      M: #M0
+        interface: #M1
+    exportMapId: #M5
+    exportMap
+      A: #M3
+      M: #M0
+''',
+    );
+  }
+
   test_operation_addFile_change_sameContent() async {
     configuration.withCheckLibraryDiagnosticsRequirements = true;
 
@@ -99197,6 +99331,122 @@ double get a => 0;
     uri: package:test/test.dart
     flags: isLibrary
 ''');
+  }
+
+  test_operation_getErrors_changeImported_kindLibraryToPartToLibrary() async {
+    configuration
+      ..withLinkLibraryCycle = true
+      ..withCheckLinkedBundleRequirements = true;
+
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+const x = 0;
+''');
+
+    addTestFile(r'''
+import 'a.dart';
+void f() {
+  x;
+}
+''');
+
+    // 1. Populate the cache, `a.dart` is a library.
+    {
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+      collector.getErrors('T1', testFile);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #0
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T1
+  ErrorsResult #1
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''');
+      await disposeAnalysisContextCollection();
+    }
+
+    // 2. Change `a.dart` to be a part.
+    modifyFile2(a, r'''
+part of 'b.dart';
+const x = 0;
+''');
+    {
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+      collector.getErrors('T2', testFile);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+[operation] analyzeFile
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[stream]
+  ResolvedUnitResult #2
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: exists isLibrary
+    errors
+      7 +8 IMPORT_OF_NON_LIBRARY
+      30 +1 UNDEFINED_IDENTIFIER
+[operation] analyzedLibrary
+  file: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T2
+  ErrorsResult #3
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+    errors
+      7 +8 IMPORT_OF_NON_LIBRARY
+      30 +1 UNDEFINED_IDENTIFIER
+''');
+      await disposeAnalysisContextCollection();
+    }
+
+    // 3. Change `a.dart` to be a library again.
+    modifyFile2(a, r'''
+const x = 0;
+''');
+    {
+      var driver = driverFor(testFile);
+      var collector = DriverEventCollector(driver, idProvider: idProvider);
+      collector.getErrors('T3', testFile);
+      await assertEventsText(collector, r'''
+[status] working
+[operation] reuseLinkedBundle SDK
+[operation] reuseLinkedBundle
+  package:test/a.dart
+[operation] linkLibraryCycle
+  package:test/test.dart
+[operation] getErrorsFromBytes
+  file: /home/test/lib/test.dart
+  library: /home/test/lib/test.dart
+[status] idle
+[future] getErrors T3
+  ErrorsResult #4
+    path: /home/test/lib/test.dart
+    uri: package:test/test.dart
+    flags: isLibrary
+''');
+    }
   }
 
   test_operation_getErrors_changeImported_notAffected() async {

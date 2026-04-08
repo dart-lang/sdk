@@ -944,6 +944,7 @@ ObjectPattern
     name: A
     element: <testLibrary>::@typeAlias::A
     type: dynamic
+      alias: <testLibrary>::@typeAlias::A
   leftParenthesis: (
   fields
     PatternField
@@ -956,7 +957,9 @@ ObjectPattern
         declaredFragment: isPublic y@77
           element: hasImplicitType isPublic
             type: dynamic
+              alias: <testLibrary>::@typeAlias::A
         matchedValueType: dynamic
+          alias: <testLibrary>::@typeAlias::A
       element: <null>
   rightParenthesis: )
   matchedValueType: Object?

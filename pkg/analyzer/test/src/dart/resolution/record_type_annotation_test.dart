@@ -82,7 +82,7 @@ void f(({int f1, String f2}) x) {}
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameter: SimpleFormalParameter
+  parameter: RegularFormalParameter
     type: NamedType
       name: <empty> <synthetic>
       element: <null>
@@ -108,7 +108,7 @@ void f((int, String) x) {}
     assertResolvedNodeText(node, r'''
 FormalParameterList
   leftParenthesis: (
-  parameter: SimpleFormalParameter
+  parameter: RegularFormalParameter
     type: NamedType
       name: <empty> <synthetic>
       element: <null>

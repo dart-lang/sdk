@@ -343,9 +343,7 @@ testMacros() async {
           .transform(LineSplitter())) {
     Match? match = matchComplete(fieldEntry, line);
     if (match != null) {
-      fields
-          .putIfAbsent(match.group(1)!, () => Set<String>())
-          .add(match.group(2)!);
+      fields.putIfAbsent(match[1]!, () => Set<String>()).add(match[2]!);
     }
   }
 
@@ -370,7 +368,7 @@ testMacros() async {
           .transform(LineSplitter())) {
     Match? match = matchComplete(classStart, line);
     if (match != null) {
-      currentClass = match.group(1);
+      currentClass = match[1];
       continue;
     }
 
@@ -387,9 +385,9 @@ testMacros() async {
         print("$currentClass is missing entirely.");
         continue;
       }
-      if (!fields[currentClass]!.contains(match.group(2)!)) {
+      if (!fields[currentClass]!.contains(match[2]!)) {
         hasMissingFields = true;
-        print("$currentClass is missing ${match.group(2)!}.");
+        print("$currentClass is missing ${match[2]!}.");
       }
     }
   }

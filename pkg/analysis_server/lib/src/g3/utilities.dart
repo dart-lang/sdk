@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/generated/parser.dart' as p;
 import 'package:analyzer/src/string_source.dart';
+import 'package:analyzer_plugin/src/utilities/formatter.dart';
 import 'package:dart_style/dart_style.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -24,7 +25,7 @@ import 'package:pub_semver/pub_semver.dart';
 String format(String content, {Version? languageVersion}) {
   var code = SourceCode(content);
   var formatter = DartFormatter(
-    languageVersion: languageVersion ?? DartFormatter.latestLanguageVersion,
+    languageVersion: languageVersion ?? defaultFormatterVersion,
   );
   SourceCode formattedResult;
   formattedResult = formatter.formatSource(code);

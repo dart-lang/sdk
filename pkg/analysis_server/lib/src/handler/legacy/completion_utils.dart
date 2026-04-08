@@ -48,6 +48,13 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
       candidate.data = data;
 
       return switch (candidate) {
+        ConstructorSuggestion() => _getConstructorSuggestion(
+          candidate,
+          request,
+          libraryUriStr,
+          isNotImportedLibrary,
+          requiredImports,
+        ),
         FieldSuggestion() => _getDartCompletionSuggestion(
           candidate.element,
           candidate.completion,
@@ -133,18 +140,6 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
         false /*isDeprecated*/,
         false /*isPotential*/,
         displayText: candidate.displayText,
-      );
-    case ConstructorSuggestion():
-      var completion = candidate.completion;
-      if (completion.isEmpty) {
-        return null;
-      }
-      return _getConstructorSuggestion(
-        candidate,
-        request,
-        libraryUriStr,
-        isNotImportedLibrary,
-        requiredImports,
       );
     case EnumConstantSuggestion():
       return _getDartCompletionSuggestion(

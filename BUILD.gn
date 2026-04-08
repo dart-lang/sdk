@@ -61,6 +61,8 @@ group("runtime") {
     deps += [
       "runtime/bin:dartaotruntime",
       "runtime/bin:dartaotruntime_product",
+      "utils/dart_runtime_service_vm",
+      "utils/dart_runtime_service_vm:dart_runtime_service_vm_aot_snapshot",
       "utils/dartdev:dartdev_aot_snapshot",
       "utils/dds:dds_aot",
       "utils/dtd:dtd_aot",
@@ -68,6 +70,7 @@ group("runtime") {
     ]
   } else {
     deps += [
+      "utils/dart_runtime_service_vm",
       "utils/dds",
       "utils/dtd",
       "utils/kernel-service:frontend_server",
@@ -159,6 +162,7 @@ group("dart2wasm_platform") {
     ":runtime_precompiled",
     "utils/dart2wasm:compile_dart2wasm_js_compatibility_platform",
     "utils/dart2wasm:compile_dart2wasm_platform",
+    "utils/dart2wasm:compile_dart2wasm_standalone_platform",
     "utils/dart2wasm:dart2wasm_snapshot",
   ]
   if (defined(is_product)) {
@@ -489,7 +493,7 @@ if (is_fuchsia) {
   }
 }
 
-if (is_linux) {
+if (is_linux && current_cpu != "riscv32") {
   group("debian_package") {
     public_deps = [ "tools/debian_package" ]
   }

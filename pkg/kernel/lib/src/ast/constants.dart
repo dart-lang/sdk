@@ -360,7 +360,10 @@ class MapConstant extends Constant {
 
   @override
   late final int hashCode = _Hash.combine2Finish(
-      keyType.hashCode, valueType.hashCode, _Hash.combineListHash(entries));
+    keyType.hashCode,
+    valueType.hashCode,
+    _Hash.combineListHash(entries),
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -453,7 +456,9 @@ class ListConstant extends Constant {
 
   @override
   late final int hashCode = _Hash.combineFinish(
-      typeArgument.hashCode, _Hash.combineListHash(entries));
+    typeArgument.hashCode,
+    _Hash.combineListHash(entries),
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -515,7 +520,9 @@ class SetConstant extends Constant {
 
   @override
   late final int hashCode = _Hash.combineFinish(
-      typeArgument.hashCode, _Hash.combineListHash(entries));
+    typeArgument.hashCode,
+    _Hash.combineListHash(entries),
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -557,13 +564,13 @@ class RecordConstant extends Constant {
   final RecordType recordType;
 
   RecordConstant(this.positional, this.named, this.recordType)
-      : assert(positional.length == recordType.positional.length &&
+    : assert(
+        positional.length == recordType.positional.length &&
             named.length == recordType.named.length &&
-            recordType.named
-                .map((f) => f.name)
-                .toSet()
-                .containsAll(named.keys)),
-        assert(() {
+            recordType.named.map((f) => f.name).toSet().containsAll(named.keys),
+      ),
+      assert(
+        () {
           // Assert that the named fields are sorted.
           String? previous;
           for (String name in named.keys) {
@@ -574,18 +581,25 @@ class RecordConstant extends Constant {
           }
           return true;
         }(),
-            "Named fields of a RecordConstant aren't sorted lexicographically: "
-            "${named.keys.join(", ")}");
+        "Named fields of a RecordConstant aren't sorted lexicographically: "
+        "${named.keys.join(", ")}",
+      );
 
   RecordConstant.fromTypeContext(
-      this.positional, this.named, StaticTypeContext staticTypeContext)
-      : recordType = new RecordType([
+    this.positional,
+    this.named,
+    StaticTypeContext staticTypeContext,
+  ) : recordType = new RecordType(
+        [
           for (Constant constant in positional)
-            constant.getType(staticTypeContext)
-        ], [
+            constant.getType(staticTypeContext),
+        ],
+        [
           for (var MapEntry(key: name, value: constant) in named.entries)
-            new NamedType(name, constant.getType(staticTypeContext))
-        ], staticTypeContext.nonNullable);
+            new NamedType(name, constant.getType(staticTypeContext)),
+        ],
+        staticTypeContext.nonNullable,
+      );
 
   @override
   void visitChildren(Visitor v) {
@@ -642,8 +656,10 @@ class RecordConstant extends Constant {
   String toString() => "RecordConstant(${toStringInternal()})";
 
   @override
-  late final int hashCode =
-      _Hash.combineMapHashUnordered(named, _Hash.combineListHash(positional));
+  late final int hashCode = _Hash.combineMapHashUnordered(
+    named,
+    _Hash.combineListHash(positional),
+  );
 
   @override
   bool operator ==(Object other) =>
@@ -713,8 +729,11 @@ class InstanceConstant extends Constant {
   String toString() => 'InstanceConstant(${toStringInternal()})';
 
   @override
-  late final int hashCode = _Hash.combine2Finish(classReference.hashCode,
-      listHashCode(typeArguments), _Hash.combineMapHashUnordered(fieldValues));
+  late final int hashCode = _Hash.combine2Finish(
+    classReference.hashCode,
+    listHashCode(typeArguments),
+    _Hash.combineMapHashUnordered(fieldValues),
+  );
 
   @override
   bool operator ==(Object other) {
@@ -768,7 +787,9 @@ class InstantiationConstant extends Constant {
 
   @override
   int get hashCode => _Hash.combineFinish(
-      tearOffConstant.hashCode, _Hash.combineListHash(types));
+    tearOffConstant.hashCode,
+    _Hash.combineListHash(types),
+  );
 
   @override
   bool operator ==(Object other) {
@@ -795,10 +816,12 @@ class StaticTearOffConstant extends Constant implements TearOffConstant {
   final Reference targetReference;
 
   StaticTearOffConstant(Procedure target)
-      : assert(target.isStatic),
-        assert(target.kind == ProcedureKind.Method,
-            "Unexpected static tear off target: $target"),
-        targetReference = target.reference;
+    : assert(target.isStatic),
+      assert(
+        target.kind == ProcedureKind.Method,
+        "Unexpected static tear off target: $target",
+      ),
+      targetReference = target.reference;
 
   StaticTearOffConstant.byReference(this.targetReference);
 
@@ -856,10 +879,11 @@ class ConstructorTearOffConstant extends Constant implements TearOffConstant {
   final Reference targetReference;
 
   ConstructorTearOffConstant(Member target)
-      : assert(
-            target is Constructor || (target is Procedure && target.isFactory),
-            "Unexpected constructor tear off target: $target"),
-        this.targetReference = getNonNullableMemberReferenceGetter(target);
+    : assert(
+        target is Constructor || (target is Procedure && target.isFactory),
+        "Unexpected constructor tear off target: $target",
+      ),
+      this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   ConstructorTearOffConstant.byReference(this.targetReference);
 
@@ -918,8 +942,8 @@ class RedirectingFactoryTearOffConstant extends Constant
   final Reference targetReference;
 
   RedirectingFactoryTearOffConstant(Procedure target)
-      : assert(target.isRedirectingFactory),
-        this.targetReference = getNonNullableMemberReferenceGetter(target);
+    : assert(target.isRedirectingFactory),
+      this.targetReference = getNonNullableMemberReferenceGetter(target);
 
   RedirectingFactoryTearOffConstant.byReference(this.targetReference);
 
@@ -1025,12 +1049,15 @@ class TypedefTearOffConstant extends Constant {
       Assumptions assumptions = new Assumptions();
       for (int index = 0; index < parameters.length; index++) {
         assumptions.assumeStructuralParameter(
-            parameters[index], other.parameters[index]);
+          parameters[index],
+          other.parameters[index],
+        );
       }
       for (int index = 0; index < parameters.length; index++) {
-        if (!parameters[index]
-            .bound
-            .equals(other.parameters[index].bound, assumptions)) {
+        if (!parameters[index].bound.equals(
+          other.parameters[index].bound,
+          assumptions,
+        )) {
           return false;
         }
       }
@@ -1061,13 +1088,19 @@ class TypedefTearOffConstant extends Constant {
     FunctionType type = tearOffConstant.getType(context) as FunctionType;
     FreshStructuralParameters freshStructuralParameters =
         getFreshStructuralParameters(parameters);
-    type = freshStructuralParameters.substitute(
-        FunctionTypeInstantiator.instantiate(type, types)) as FunctionType;
+    type =
+        freshStructuralParameters.substitute(
+              FunctionTypeInstantiator.instantiate(type, types),
+            )
+            as FunctionType;
     return new FunctionType(
-        type.positionalParameters, type.returnType, type.declaredNullability,
-        namedParameters: type.namedParameters,
-        typeParameters: freshStructuralParameters.freshTypeParameters,
-        requiredParameterCount: type.requiredParameterCount);
+      type.positionalParameters,
+      type.returnType,
+      type.declaredNullability,
+      namedParameters: type.namedParameters,
+      typeParameters: freshStructuralParameters.freshTypeParameters,
+      requiredParameterCount: type.requiredParameterCount,
+    );
   }
 }
 

@@ -12,7 +12,6 @@ import 'dart:math' as math;
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:_fe_analyzer_shared/src/base/syntactic_entity.dart';
-import 'package:_fe_analyzer_shared/src/scanner/string_canonicalizer.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/analysis/features.dart';
@@ -212,15 +211,6 @@ sealed class AnnotatedNodeImpl extends AstNodeImpl
     required List<AnnotationImpl>? metadata,
   }) {
     _initializeCommentAndAnnotations(comment, metadata);
-  }
-
-  @override
-  Iterable<SyntacticEntity> get childEntities {
-    return <SyntacticEntity>[
-      ?_documentationComment,
-      ..._metadata,
-      ...super.childEntities,
-    ];
   }
 
   @override
@@ -550,6 +540,10 @@ final class AnonymousBlockBodyImpl extends AnonymousMethodBodyImpl
   @generated
   BlockImpl _block;
 
+  /// The [BodyInferenceContext] that was used during type inference of this
+  /// function body, or `null` if resolution hasn't yet been performed.
+  BodyInferenceContext? bodyContext;
+
   @generated
   AnonymousBlockBodyImpl({required BlockImpl block}) : _block = block {
     _becomeParentOf(block);
@@ -767,6 +761,11 @@ abstract final class AnonymousMethodInvocation implements Expression {
   /// The body of the anonymous method being invoked.
   AnonymousMethodBody get body;
 
+  /// The fragment declared by this function expression.
+  ///
+  /// Returns `null` if the AST structure hasn't been resolved.
+  LocalFunctionFragment? get declaredFragment;
+
   /// Whether this expression is cascaded.
   ///
   /// If it is, then the target of this expression isn't stored locally but is
@@ -821,6 +820,10 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
 
   @generated
   AnonymousMethodBodyImpl _body;
+
+  @generated
+  @override
+  LocalFunctionFragmentImpl? declaredFragment;
 
   @generated
   AnonymousMethodInvocationImpl({
@@ -2523,9 +2526,6 @@ sealed class BlockClassBody implements ClassBody {
   /// The left curly bracket.
   Token get leftBracket;
 
-  /// The members declared in the body.
-  NodeList<ClassMember> get members;
-
   /// The right curly bracket.
   Token get rightBracket;
 }
@@ -2615,6 +2615,138 @@ final class BlockClassBodyImpl extends ClassBodyImpl implements BlockClassBody {
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (members._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    return null;
+  }
+}
+
+/// The enum declaration body, with constants and members.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class BlockEnumBody implements EnumBody {
+  /// The left curly bracket.
+  Token get leftBracket;
+
+  /// The right curly bracket.
+  Token get rightBracket;
+
+  /// The optional semicolon after the last constant.
+  Token? get semicolon;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('leftBracket'),
+    GenerateNodeProperty('constants'),
+    GenerateNodeProperty('semicolon'),
+    GenerateNodeProperty('members'),
+    GenerateNodeProperty('rightBracket'),
+  ],
+)
+final class BlockEnumBodyImpl extends EnumBodyImpl implements BlockEnumBody {
+  @generated
+  @override
+  final Token leftBracket;
+
+  @generated
+  @override
+  final NodeListImpl<EnumConstantDeclarationImpl> constants = NodeListImpl._();
+
+  @generated
+  @override
+  final Token? semicolon;
+
+  @generated
+  @override
+  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
+
+  @generated
+  @override
+  final Token rightBracket;
+
+  @generated
+  BlockEnumBodyImpl({
+    required this.leftBracket,
+    required List<EnumConstantDeclarationImpl> constants,
+    required this.semicolon,
+    required List<ClassMemberImpl> members,
+    required this.rightBracket,
+  }) {
+    this.constants._initialize(this, constants);
+    this.members._initialize(this, members);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return leftBracket;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return rightBracket;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('leftBracket', leftBracket)
+    ..addNodeList('constants', constants)
+    ..addToken('semicolon', semicolon)
+    ..addNodeList('members', members)
+    ..addToken('rightBracket', rightBracket);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitBlockEnumBody(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    constants.accept(visitor);
+    members.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(NodeListImpl<EnumConstantDeclarationImpl>)? visitConstants,
+    void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
+  }) {
+    if (visitConstants != null) {
+      visitConstants(constants);
+    } else {
+      constants.accept(visitor);
+    }
+    if (visitMembers != null) {
+      visitMembers(members);
+    } else {
+      members.accept(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (constants._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
     if (members._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
@@ -3926,10 +4058,14 @@ class ChildEntity {
 
 /// The body of a class declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class ClassBody implements AstNode {}
+sealed class ClassBody implements AstNode {
+  /// The members declared in the body.
+  NodeList<ClassMember> get members;
+}
 
 sealed class ClassBodyImpl extends AstNodeImpl implements ClassBody {
-  List<ClassMemberImpl> get members;
+  @override
+  NodeListImpl<ClassMemberImpl> get members;
 }
 
 /// The declaration of a class.
@@ -8286,43 +8422,35 @@ final class DotShorthandPropertyAccessImpl extends ExpressionImpl
 ///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class DottedName implements AstNode {
-  /// The components of the identifier.
-  NodeList<SimpleIdentifier> get components;
+  /// The tokens comprising the identifier (including periods).
+  List<Token> get tokens;
 }
 
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('components')])
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('tokens')])
 final class DottedNameImpl extends AstNodeImpl implements DottedName {
   @generated
   @override
-  final NodeListImpl<SimpleIdentifierImpl> components = NodeListImpl._();
+  final List<Token> tokens;
 
   @generated
-  DottedNameImpl({required List<SimpleIdentifierImpl> components}) {
-    this.components._initialize(this, components);
-  }
+  DottedNameImpl({required this.tokens});
 
   @generated
   @override
   Token get beginToken {
-    if (components.beginToken case var result?) {
-      return result;
-    }
-    throw StateError('Expected at least one non-null');
+    return tokens.first;
   }
 
   @generated
   @override
   Token get endToken {
-    if (components.endToken case var result?) {
-      return result;
-    }
-    throw StateError('Expected at least one non-null');
+    return tokens[tokens.length - 1];
   }
 
   @generated
   @override
   ChildEntities get _childEntities =>
-      ChildEntities()..addNodeList('components', components);
+      ChildEntities()..addTokenList('tokens', tokens);
 
   @generated
   @override
@@ -8337,34 +8465,15 @@ final class DottedNameImpl extends AstNodeImpl implements DottedName {
 
   @generated
   @override
-  void visitChildren(AstVisitor visitor) {
-    components.accept(visitor);
-  }
+  void visitChildren(AstVisitor visitor) {}
 
   /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
   @generated
-  void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(NodeListImpl<SimpleIdentifierImpl>)? visitComponents,
-  }) {
-    if (visitComponents != null) {
-      visitComponents(components);
-    } else {
-      components.accept(visitor);
-    }
-  }
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (components._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
     return null;
   }
 }
@@ -8466,6 +8575,10 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @override
   final Token semicolon;
 
+  @override
+  late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
+    .._initialize(this, null);
+
   @generated
   EmptyClassBodyImpl({required this.semicolon});
 
@@ -8481,9 +8594,6 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
     return semicolon;
   }
 
-  @override
-  List<ClassMemberImpl> get members => const [];
-
   @generated
   @override
   ChildEntities get _childEntities =>
@@ -8492,6 +8602,73 @@ final class EmptyClassBodyImpl extends ClassBodyImpl implements EmptyClassBody {
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyClassBody(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    return null;
+  }
+}
+
+/// The empty enum body.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class EmptyEnumBody implements EnumBody {
+  /// The semicolon token.
+  Token get semicolon;
+}
+
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('semicolon')])
+final class EmptyEnumBodyImpl extends EnumBodyImpl implements EmptyEnumBody {
+  @generated
+  @override
+  final Token semicolon;
+
+  @override
+  late final NodeListImpl<EnumConstantDeclarationImpl> constants =
+      NodeListImpl._().._initialize(this, null);
+
+  @override
+  late final NodeListImpl<ClassMemberImpl> members = NodeListImpl._()
+    .._initialize(this, null);
+
+  @generated
+  EmptyEnumBodyImpl({required this.semicolon});
+
+  @generated
+  @override
+  Token get beginToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return semicolon;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities =>
+      ChildEntities()..addToken('semicolon', semicolon);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitEmptyEnumBody(this);
 
   @generated
   @override
@@ -8650,145 +8827,22 @@ final class EmptyStatementImpl extends StatementImpl implements EmptyStatement {
   }
 }
 
-/// The enum declaration body, with constants and members.
+/// The body of an enum declaration.
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class EnumBody implements AstNode {
   /// The enumeration constants being declared.
   NodeList<EnumConstantDeclaration> get constants;
 
-  /// The left curly bracket.
-  Token get leftBracket;
-
   /// The members declared in the body.
   NodeList<ClassMember> get members;
-
-  /// The right curly bracket.
-  Token get rightBracket;
-
-  /// The optional semicolon after the last constant.
-  Token? get semicolon;
 }
 
-@GenerateNodeImpl(
-  childEntitiesOrder: [
-    GenerateNodeProperty('leftBracket'),
-    GenerateNodeProperty('constants'),
-    GenerateNodeProperty('semicolon'),
-    GenerateNodeProperty('members'),
-    GenerateNodeProperty('rightBracket'),
-  ],
-)
-final class EnumBodyImpl extends AstNodeImpl implements EnumBody {
-  @generated
+sealed class EnumBodyImpl extends AstNodeImpl implements EnumBody {
   @override
-  final Token leftBracket;
-
-  @generated
-  @override
-  final NodeListImpl<EnumConstantDeclarationImpl> constants = NodeListImpl._();
-
-  @generated
-  @override
-  final Token? semicolon;
-
-  @generated
-  @override
-  final NodeListImpl<ClassMemberImpl> members = NodeListImpl._();
-
-  @generated
-  @override
-  final Token rightBracket;
-
-  @generated
-  EnumBodyImpl({
-    required this.leftBracket,
-    required List<EnumConstantDeclarationImpl> constants,
-    required this.semicolon,
-    required List<ClassMemberImpl> members,
-    required this.rightBracket,
-  }) {
-    this.constants._initialize(this, constants);
-    this.members._initialize(this, members);
-  }
-
-  @generated
-  @override
-  Token get beginToken {
-    return leftBracket;
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    return rightBracket;
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addToken('leftBracket', leftBracket)
-    ..addNodeList('constants', constants)
-    ..addToken('semicolon', semicolon)
-    ..addNodeList('members', members)
-    ..addToken('rightBracket', rightBracket);
-
-  @generated
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitEnumBody(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
+  NodeListImpl<EnumConstantDeclarationImpl> get constants;
 
   @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @generated
-  @override
-  void visitChildren(AstVisitor visitor) {
-    constants.accept(visitor);
-    members.accept(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(NodeListImpl<EnumConstantDeclarationImpl>)? visitConstants,
-    void Function(NodeListImpl<ClassMemberImpl>)? visitMembers,
-  }) {
-    if (visitConstants != null) {
-      visitConstants(constants);
-    } else {
-      constants.accept(visitor);
-    }
-    if (visitMembers != null) {
-      visitMembers(members);
-    } else {
-      members.accept(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (constants._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    if (members._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
-    }
-    return null;
-  }
+  NodeListImpl<ClassMemberImpl> get members;
 }
 
 /// The arguments part of an enum constant.
@@ -10197,7 +10251,7 @@ abstract final class ExtensionDeclaration implements CompilationUnitMember {
   Token? get augmentKeyword;
 
   /// The body of the extension declaration.
-  BlockClassBody get body;
+  ClassBody get body;
 
   @override
   ExtensionFragment? get declaredFragment;
@@ -10256,7 +10310,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
   ExtensionOnClauseImpl? _onClause;
 
   @generated
-  BlockClassBodyImpl _body;
+  ClassBodyImpl _body;
 
   @override
   ExtensionFragmentImpl? declaredFragment;
@@ -10273,7 +10327,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     required this.name,
     required TypeParameterListImpl? typeParameters,
     required ExtensionOnClauseImpl? onClause,
-    required BlockClassBodyImpl body,
+    required ClassBodyImpl body,
   }) : _typeParameters = typeParameters,
        _onClause = onClause,
        _body = body {
@@ -10284,10 +10338,10 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  BlockClassBodyImpl get body => _body;
+  ClassBodyImpl get body => _body;
 
   @generated
-  set body(BlockClassBodyImpl body) {
+  set body(ClassBodyImpl body) {
     _body = _becomeParentOf(body);
   }
 
@@ -10366,7 +10420,7 @@ final class ExtensionDeclarationImpl extends CompilationUnitMemberImpl
     AstVisitor visitor, {
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(ExtensionOnClauseImpl)? visitOnClause,
-    void Function(BlockClassBodyImpl)? visitBody,
+    void Function(ClassBodyImpl)? visitBody,
   }) {
     super.visitChildren(visitor);
     if (typeParameters case var typeParameters?) {
@@ -13768,6 +13822,7 @@ abstract final class FunctionExpressionInvocation
   ],
 )
 final class FunctionExpressionInvocationImpl extends InvocationExpressionImpl
+    with DotShorthandMixin
     implements RewrittenMethodInvocationImpl, FunctionExpressionInvocation {
   @generated
   ExpressionImpl _function;
@@ -16637,8 +16692,7 @@ final class IndexExpressionImpl extends ExpressionImpl
   bool inGetterContext() {
     // TODO(brianwilkerson): Convert this to a getter.
     var parent = this.parent!;
-    if (parent is AssignmentExpression) {
-      AssignmentExpression assignment = parent;
+    if (parent case AssignmentExpression assignment) {
       if (identical(assignment.leftHandSide, this) &&
           assignment.operator.type == TokenType.EQ) {
         return false;
@@ -17828,7 +17882,7 @@ abstract final class LibraryDirective implements Directive {
   Token get libraryKeyword;
 
   /// The name of the library being defined.
-  LibraryIdentifier? get name;
+  DottedName? get name;
 
   /// The semicolon terminating the directive.
   Token get semicolon;
@@ -17848,7 +17902,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   final Token libraryKeyword;
 
   @generated
-  LibraryIdentifierImpl? _name;
+  DottedNameImpl? _name;
 
   @generated
   @override
@@ -17862,7 +17916,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
     required super.comment,
     required super.metadata,
     required this.libraryKeyword,
-    required LibraryIdentifierImpl? name,
+    required DottedNameImpl? name,
     required this.semicolon,
   }) : _name = name {
     _becomeParentOf(name);
@@ -17882,10 +17936,10 @@ final class LibraryDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  LibraryIdentifierImpl? get name => _name;
+  DottedNameImpl? get name => _name;
 
   @generated
-  set name(LibraryIdentifierImpl? name) {
+  set name(DottedNameImpl? name) {
     _name = _becomeParentOf(name);
   }
 
@@ -17922,7 +17976,7 @@ final class LibraryDirectiveImpl extends DirectiveImpl
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(LibraryIdentifierImpl)? visitName,
+    void Function(DottedNameImpl)? visitName,
   }) {
     super.visitChildren(visitor);
     if (name case var name?) {
@@ -17944,125 +17998,6 @@ final class LibraryDirectiveImpl extends DirectiveImpl
       if (name._containsOffset(rangeOffset, rangeEnd)) {
         return name;
       }
-    }
-    return null;
-  }
-}
-
-/// The identifier for a library.
-///
-///    libraryIdentifier ::=
-///        [SimpleIdentifier] ('.' [SimpleIdentifier])*
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class LibraryIdentifier implements Identifier {
-  /// The components of the identifier.
-  NodeList<SimpleIdentifier> get components;
-}
-
-@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('components')])
-final class LibraryIdentifierImpl extends IdentifierImpl
-    implements LibraryIdentifier {
-  @generated
-  @override
-  final NodeListImpl<SimpleIdentifierImpl> components = NodeListImpl._();
-
-  @generated
-  LibraryIdentifierImpl({required List<SimpleIdentifierImpl> components}) {
-    this.components._initialize(this, components);
-  }
-
-  @generated
-  @override
-  Token get beginToken {
-    if (components.beginToken case var result?) {
-      return result;
-    }
-    throw StateError('Expected at least one non-null');
-  }
-
-  @override
-  Element? get element => null;
-
-  @generated
-  @override
-  Token get endToken {
-    if (components.endToken case var result?) {
-      return result;
-    }
-    throw StateError('Expected at least one non-null');
-  }
-
-  @override
-  String get name {
-    StringBuffer buffer = StringBuffer();
-    bool needsPeriod = false;
-    int length = components.length;
-    for (int i = 0; i < length; i++) {
-      SimpleIdentifier identifier = components[i];
-      if (needsPeriod) {
-        buffer.write(".");
-      } else {
-        needsPeriod = true;
-      }
-      buffer.write(identifier.name);
-    }
-    return considerCanonicalizeString(buffer.toString());
-  }
-
-  @override
-  Precedence get precedence => Precedence.postfix;
-
-  @generated
-  @override
-  ChildEntities get _childEntities =>
-      ChildEntities()..addNodeList('components', components);
-
-  @generated
-  @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitLibraryIdentifier(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitLibraryIdentifier(this, contextType: contextType);
-  }
-
-  @generated
-  @override
-  void visitChildren(AstVisitor visitor) {
-    components.accept(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(NodeListImpl<SimpleIdentifierImpl>)? visitComponents,
-  }) {
-    if (visitComponents != null) {
-      visitComponents(components);
-    } else {
-      components.accept(visitor);
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (components._elementContainingRange(rangeOffset, rangeEnd)
-        case var result?) {
-      return result;
     }
     return null;
   }
@@ -19911,7 +19846,7 @@ abstract final class MixinDeclaration implements CompilationUnitMember {
   Token? get baseKeyword;
 
   /// The body of the mixin declaration.
-  BlockClassBody get body;
+  ClassBody get body;
 
   @override
   MixinFragment? get declaredFragment;
@@ -19976,7 +19911,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
   ImplementsClauseImpl? _implementsClause;
 
   @generated
-  BlockClassBodyImpl _body;
+  ClassBodyImpl _body;
 
   @override
   MixinFragmentImpl? declaredFragment;
@@ -19994,7 +19929,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
     required TypeParameterListImpl? typeParameters,
     required MixinOnClauseImpl? onClause,
     required ImplementsClauseImpl? implementsClause,
-    required BlockClassBodyImpl body,
+    required ClassBodyImpl body,
   }) : _typeParameters = typeParameters,
        _onClause = onClause,
        _implementsClause = implementsClause,
@@ -20007,10 +19942,10 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
 
   @generated
   @override
-  BlockClassBodyImpl get body => _body;
+  ClassBodyImpl get body => _body;
 
   @generated
-  set body(BlockClassBodyImpl body) {
+  set body(ClassBodyImpl body) {
     _body = _becomeParentOf(body);
   }
 
@@ -20103,7 +20038,7 @@ final class MixinDeclarationImpl extends CompilationUnitMemberImpl
     void Function(TypeParameterListImpl)? visitTypeParameters,
     void Function(MixinOnClauseImpl)? visitOnClause,
     void Function(ImplementsClauseImpl)? visitImplementsClause,
-    void Function(BlockClassBodyImpl)? visitBody,
+    void Function(ClassBodyImpl)? visitBody,
   }) {
     super.visitChildren(visitor);
     if (typeParameters case var typeParameters?) {
@@ -22307,7 +22242,7 @@ abstract final class PartOfDirective implements Directive {
   /// The name of the library that the containing compilation unit is part of,
   /// or `null` if no name was given (typically because a library URI was
   /// provided).
-  LibraryIdentifier? get libraryName;
+  DottedName? get libraryName;
 
   /// The token representing the `of` keyword.
   Token get ofKeyword;
@@ -22346,7 +22281,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   StringLiteralImpl? _uri;
 
   @generated
-  LibraryIdentifierImpl? _libraryName;
+  DottedNameImpl? _libraryName;
 
   @generated
   @override
@@ -22359,7 +22294,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
     required this.partKeyword,
     required this.ofKeyword,
     required StringLiteralImpl? uri,
-    required LibraryIdentifierImpl? libraryName,
+    required DottedNameImpl? libraryName,
     required this.semicolon,
   }) : _uri = uri,
        _libraryName = libraryName {
@@ -22381,10 +22316,10 @@ final class PartOfDirectiveImpl extends DirectiveImpl
 
   @generated
   @override
-  LibraryIdentifierImpl? get libraryName => _libraryName;
+  DottedNameImpl? get libraryName => _libraryName;
 
   @generated
-  set libraryName(LibraryIdentifierImpl? libraryName) {
+  set libraryName(DottedNameImpl? libraryName) {
     _libraryName = _becomeParentOf(libraryName);
   }
 
@@ -22434,7 +22369,7 @@ final class PartOfDirectiveImpl extends DirectiveImpl
   void visitChildrenWithHooks(
     AstVisitor visitor, {
     void Function(StringLiteralImpl)? visitUri,
-    void Function(LibraryIdentifierImpl)? visitLibraryName,
+    void Function(DottedNameImpl)? visitLibraryName,
   }) {
     super.visitChildren(visitor);
     if (uri case var uri?) {
@@ -23937,9 +23872,6 @@ final class PrimaryConstructorDeclarationImpl extends ClassNamePartImpl
     assert(identical(child.parent, this));
     return false;
   }
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 
   @generated
   @override
@@ -26427,8 +26359,7 @@ final class SimpleIdentifierImpl extends IdentifierImpl
       return identical(parent.propertyName, this);
     } else if (parent is ConstructorName) {
       return identical(parent.name, this);
-    } else if (parent is MethodInvocation) {
-      MethodInvocation invocation = parent;
+    } else if (parent case MethodInvocation invocation) {
       return identical(invocation.methodName, this) &&
           invocation.realTarget != null;
     }
@@ -31295,7 +31226,7 @@ base mixin _AnnotatedNodeMixin on AstNodeImpl implements AnnotatedNode {
   @mustCallSuper
   ChildEntities get _childEntities {
     return ChildEntities()
-      ..addNode('documentationComment', documentationComment)
+      ..addNode('documentationComment', _documentationComment)
       ..addNodeList('metadata', metadata);
   }
 

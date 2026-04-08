@@ -10,18 +10,17 @@ import '../elements/entities.dart';
 import '../elements/types.dart';
 import '../js/js.dart' as js_ast;
 import '../js/js.dart' show js;
-import '../js_backend/field_analysis.dart';
-import '../js_backend/type_reference.dart' show TypeReference;
-import '../js_backend/string_reference.dart'
-    show StringReference, StringReferencePolicy;
 import '../js_emitter/js_emitter.dart' show Emitter;
 import '../js_model/elements.dart';
 import '../js_model/records.dart';
 import '../js_model/type_recipe.dart' show TypeExpressionRecipe;
 import '../options.dart';
+import 'field_analysis.dart';
 import 'namer.dart';
 import 'runtime_types_new.dart' show RecipeEncoder;
 import 'runtime_types_resolution.dart';
+import 'string_reference.dart' show StringReference, StringReferencePolicy;
+import 'type_reference.dart' show TypeReference;
 
 typedef _ConstantReferenceGenerator =
     js_ast.Expression Function(ConstantValue constant);

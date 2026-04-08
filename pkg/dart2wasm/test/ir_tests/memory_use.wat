@@ -6,35 +6,33 @@
     (field $value f64))))
   (memory $foo.mem (import "foo" "mem") 1)
   (func $"main <noInline>"
-    memory.size $foo.mem
-    drop
     i32.const 1
     memory.grow $foo.mem
     drop
-    i32.const 71
+    i32.const 69
     i32.const 0
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 71
+    i32.const 69
     i32.const 0
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 71
+    i32.const 69
     i32.const 0
     f64.load align=8
     struct.new $BoxedDouble
     call $print
-    i32.const 71
+    i32.const 69
     i32.const 1
     f32.load align=4
     f64.promote_f32
     struct.new $BoxedDouble
     call $print
-    i32.const 71
+    i32.const 69
     i32.const 1
     f32.load align=4
     f64.promote_f32

@@ -1,3 +1,5 @@
+// @dart = 3.10
+
 extension type E1(int foo) {
   E1.named(this.foo, super.bar);
 }

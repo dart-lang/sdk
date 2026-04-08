@@ -483,7 +483,6 @@ class MemberDuplicateDefinitionVerifier {
 
     var elementContext = _getElementContext(firstFragment);
     var instanceScope = elementContext.instanceScope;
-
     for (var member in node.body.members) {
       if (member is FieldDeclarationImpl) {
         if (member.isStatic) {

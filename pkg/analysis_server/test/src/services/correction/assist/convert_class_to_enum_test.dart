@@ -626,6 +626,20 @@ enum E._() {
 ''');
   }
 
+  Future<void> test_minimal_primaryConstructor_emptyBody_braces() async {
+    await resolveTestCode('''
+class const ^E._() {}
+''');
+    await assertNoAssist(); // Assist only available if there are fields.
+  }
+
+  Future<void> test_minimal_primaryConstructor_emptyBody_semicolon() async {
+    await resolveTestCode('''
+class const ^E._();
+''');
+    await assertNoAssist(); // Assist only available if there are fields.
+  }
+
   Future<void> test_minimal_privateClass() async {
     await resolveTestCode('''
 class _^E {

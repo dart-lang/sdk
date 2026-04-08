@@ -6,11 +6,13 @@ import 'dart:convert';
 import 'dart:io';
 
 import 'package:path/path.dart' as path;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 
 import 'util.dart';
 
 final Uri _pkgVmDir = Platform.script.resolve('../../vm/');
+
+const Set<String> dart2wasmNotSupported = {};
 
 Future<void> runTestCase(
   Uri sourceFileUri,
@@ -61,17 +63,31 @@ Future<void> runTestCase(
       try {
         final goldenContents = await goldenFile.readAsString();
         final golden = Recordings.fromJson(jsonDecode(goldenContents));
-        semanticEquals =
-            actualSemantic.semanticEquals(golden, loadingUnitMapping: (unit) {
-          final codeUnits = unit.codeUnits;
-          int result = 0;
-          int power = 1;
-          for (final codeUnit in codeUnits) {
-            result += (codeUnit - 35) * power;
-            power *= 92;
-          }
-          return '$result';
-        });
+        semanticEquals = actualSemantic.semanticEquals(
+          golden,
+          loadingUnitMapping: (unit) {
+            // dart2wasm and VM assign loading units differently. Work around this
+            // for now, we'll need a more robust testing solution later.
+            final fileName = path.basename(sourceFileUri.toFilePath());
+            if (fileName == 'loading_units_shared_constant.dart') {
+              if (unit == '%') return '2';
+              if (unit == "'") return '3';
+            }
+            if (fileName == 'loading_units_nested_shared_constant.dart') {
+              if (unit == '%') return '2';
+              if (unit == "'") return '3';
+            }
+
+            final codeUnits = unit.codeUnits;
+            int result = 0;
+            int power = 1;
+            for (final codeUnit in codeUnits) {
+              result += (codeUnit - 35) * power;
+              power *= 92;
+            }
+            return '$result';
+          },
+        );
       } on FormatException {
         if (!update) {
           rethrow;
@@ -91,9 +107,11 @@ Future<void> runTestCase(
         final goldenContents = await goldenFile.readAsString();
         print('Expected:\n$goldenContents');
       }
-      print('To update expectations, run: dart -DupdateExpectations=true '
-          'pkg/dart2wasm/test/record_use_test.dart '
-          '${path.basename(sourceFileUri.toFilePath())}');
+      print(
+        'To update expectations, run: dart -DupdateExpectations=true '
+        'pkg/dart2wasm/test/record_use_test.dart '
+        '${path.basename(sourceFileUri.toFilePath())}',
+      );
       throw 'Expectations for $sourceFileUri do not match';
     }
   });
@@ -116,6 +134,9 @@ Future<void> main(List<String> args) async {
         !fse.path.contains('helper') &&
         (filter == null || fse.path.contains(filter))) {
       final name = path.basename(fse.path);
+      if (dart2wasmNotSupported.contains(name)) {
+        continue;
+      }
       final packageUri = Uri.parse('package:record_use_test/$name');
       await runTestCase(fse.uri, packageUri, packagesFileUri);
     }

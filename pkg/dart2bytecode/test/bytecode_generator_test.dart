@@ -8,7 +8,8 @@ import 'dart:typed_data' show BytesBuilder;
 import 'package:dart2bytecode/bytecode_generator.dart' show generateBytecode;
 import 'package:dart2bytecode/bytecode_serialization.dart'
     show LinkReader, BufferedReader;
-import 'package:dart2bytecode/declarations.dart' as bytecode_declarations
+import 'package:dart2bytecode/declarations.dart'
+    as bytecode_declarations
     show Component;
 import 'package:dart2bytecode/options.dart' show BytecodeOptions;
 import 'package:front_end/src/api_unstable/vm.dart'
@@ -32,8 +33,11 @@ const kUpdateExpectations = 'updateExpectations';
 final String dartSdkPkgDir = Platform.script.resolve('../..').toFilePath();
 
 runTestCase(Uri source, {bool isClosureContextLoweringEnabled = false}) async {
-  final target = VmTarget(TargetFlags(
-      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled));
+  final target = VmTarget(
+    TargetFlags(
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    ),
+  );
   final result = await compileTestCaseToKernelProgram(source, target: target);
 
   final mainLibrary = result.component.mainMethod!.enclosingLibrary;
@@ -42,20 +46,25 @@ runTestCase(Uri source, {bool isClosureContextLoweringEnabled = false}) async {
   final coreTypes = result.coreTypes ?? CoreTypes(result.component);
   final hierarchy =
       result.classHierarchy ?? ClassHierarchy(result.component, coreTypes);
-  generateBytecode(result.component, sink,
-      options: BytecodeOptions(),
-      libraries: [mainLibrary],
-      extraLoadedLibraries: result.loadedLibraries,
-      coreTypes: coreTypes,
-      hierarchy: hierarchy,
-      target: target);
+  generateBytecode(
+    result.component,
+    sink,
+    options: BytecodeOptions(),
+    libraries: [mainLibrary],
+    extraLoadedLibraries: result.loadedLibraries,
+    coreTypes: coreTypes,
+    hierarchy: hierarchy,
+    target: target,
+  );
 
   final reader = BufferedReader(LinkReader(), sink.builder.takeBytes());
   String actual = bytecode_declarations.Component.read(reader).toString();
 
   // Remove absolute library URIs.
   actual = actual.replaceAll(
-      new Uri.file(dartSdkPkgDir).toString(), 'DART_SDK/pkg/');
+    new Uri.file(dartSdkPkgDir).toString(),
+    'DART_SDK/pkg/',
+  );
 
   compareResultWithExpectationsFile(source, actual);
 }
@@ -75,10 +84,13 @@ class CompilerResult {
   );
 }
 
-Future<CompilerResult> compileTestCaseToKernelProgram(Uri sourceUri,
-    {required Target target}) async {
-  final platformKernel =
-      computePlatformBinariesLocation().resolve('vm_platform.dill');
+Future<CompilerResult> compileTestCaseToKernelProgram(
+  Uri sourceUri, {
+  required Target target,
+}) async {
+  final platformKernel = computePlatformBinariesLocation().resolve(
+    'vm_platform.dill',
+  );
   final options = CompilerOptions()
     ..target = target
     ..omitPlatform = true
@@ -97,8 +109,11 @@ Future<CompilerResult> compileTestCaseToKernelProgram(Uri sourceUri,
   return CompilerResult(
     component,
     // Use the same calculation as SingleShotCompilerWrapper.
-    createLoadedLibrariesSet(result.loadedComponents, result.sdkComponent,
-        includePlatform: false),
+    createLoadedLibrariesSet(
+      result.loadedComponents,
+      result.sdkComponent,
+      includePlatform: false,
+    ),
     result.classHierarchy,
     result.coreTypes,
   );
@@ -133,8 +148,11 @@ Difference findFirstDifference(String actual, String expected) {
       return Difference(i + 1, actualLines[i], expectedLines[i]);
     }
   }
-  return Difference(i + 1, i < actualLines.length ? actualLines[i] : '<END>',
-      i < expectedLines.length ? expectedLines[i] : '<END>');
+  return Difference(
+    i + 1,
+    i < actualLines.length ? actualLines[i] : '<END>',
+    i < expectedLines.length ? expectedLines[i] : '<END>',
+  );
 }
 
 void compareResultWithExpectationsFile(
@@ -174,47 +192,34 @@ In order to re-generate expectations run tests with -D$kUpdateExpectations=true 
 
 main() {
   group('gen-bytecode', () {
-    final testCasesDir =
-        new Directory(dartSdkPkgDir + 'dart2bytecode/testcases');
+    final testCasesDir = new Directory(
+      dartSdkPkgDir + 'dart2bytecode/testcases',
+    );
 
-    for (var entry
-        in testCasesDir.listSync(recursive: true, followLinks: false)) {
+    for (var entry in testCasesDir.listSync(
+      recursive: true,
+      followLinks: false,
+    )) {
       if (entry.path.endsWith(".dart")) {
         test(entry.path, () => runTestCase(entry.uri));
       }
     }
   });
 
-  // The following tests are known to fail due to the experiment.
-  const Set<String> knownFailures = {
-    'closures.dart',
-    'async.dart',
-    'switch.dart',
-    'type_ops.dart',
-    'try_blocks.dart',
-    'loops.dart',
-    'instance_creation.dart',
-    'super_calls.dart',
-    'literals.dart',
-    'asserts.dart',
-    'field_initializers.dart',
-    'optional_params.dart',
-    'bootstrapping.dart',
-    'ffi.dart',
-  };
-
   group('gen-bytecode-with-closure-context-lowering', () {
-    final testCasesDir =
-        new Directory(dartSdkPkgDir + 'dart2bytecode/testcases');
+    final testCasesDir = new Directory(
+      dartSdkPkgDir + 'dart2bytecode/testcases',
+    );
 
-    for (var entry
-        in testCasesDir.listSync(recursive: true, followLinks: false)) {
-      if (entry.path.endsWith(".dart") &&
-          !knownFailures.contains(entry.uri.pathSegments.last)) {
+    for (var entry in testCasesDir.listSync(
+      recursive: true,
+      followLinks: false,
+    )) {
+      if (entry.path.endsWith(".dart")) {
         test(
-            entry.path,
-            () =>
-                runTestCase(entry.uri, isClosureContextLoweringEnabled: true));
+          entry.path,
+          () => runTestCase(entry.uri, isClosureContextLoweringEnabled: true),
+        );
       }
     }
   });

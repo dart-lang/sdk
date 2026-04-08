@@ -3,7 +3,7 @@ import self as self;
 import "dart:core" as core;
 import "dart:collection" as col;
 
-[222]static method main([240] core::List<core::String> args) → void {
+[222]static method [226] [973] main([240] core::List<core::String> args) → void {
 [262]  [262] core::Set<core::String> fooSet = [271] [271] block {
 [271]    [271] final core::Set<core::String> #t1 = [271] [271] col::LinkedHashSet::of [271]<core::String>([280] args);
 [290]    [290] [290] [-1] [-1] #t1.{core::Set::add}{Invariant}[-1]([290] "hello"){(core::String) → core::bool};

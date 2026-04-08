@@ -17,24 +17,41 @@ import 'package:kernel/ast.dart';
 
 import 'constant_evaluator.dart' show ErrorReporter;
 
+// Coverage-ignore(suite): Not run.
 /// Get all of the `@RecordUse` annotations from `package:meta`
 /// that are attached to the specified [node].
 Iterable<InstanceConstant> findRecordUseAnnotation(Annotatable node) {
   List<InstanceConstant>? result;
-  for (int i = 0; i < node.annotations.length; i++) {
-    Expression annotation = node.annotations[i];
+  List<Expression> annotations = node.annotations;
+  final int length = annotations.length;
+  if (length == 0) return const [];
+
+  for (int i = 0; i < length; i++) {
+    Expression annotation = annotations[i];
     if (annotation is! ConstantExpression) continue;
     Constant constant = annotation.constant;
     if (constant is! InstanceConstant) continue;
     if (!isRecordUse(constant.classNode)) continue;
-    // Coverage-ignore-block(suite): Not run.
     (result ??= []).add(constant);
   }
   return result ?? const [];
 }
 
-bool hasRecordUseAnnotation(Annotatable node) =>
-    findRecordUseAnnotation(node).isNotEmpty;
+bool hasRecordUseAnnotation(Annotatable node) {
+  List<Expression> annotations = node.annotations;
+  final int length = annotations.length;
+  if (length == 0) return false;
+
+  for (int i = 0; i < length; i++) {
+    Expression annotation = annotations[i];
+    if (annotation is! ConstantExpression) continue;
+    Constant constant = annotation.constant;
+    if (constant is! InstanceConstant) continue;
+    if (!isRecordUse(constant.classNode)) continue;
+    return true;
+  }
+  return false;
+}
 
 // Coverage-ignore(suite): Not run.
 final Uri _metaLibraryUri = new Uri(scheme: 'package', path: 'meta/meta.dart');
@@ -50,6 +67,9 @@ bool _enclosedInLibraryWithPackageUri(Annotatable node) {
     Library l => l,
     Class c => c.enclosingLibrary,
     Member m => m.enclosingLibrary,
+    Extension e => e.enclosingLibrary,
+    ExtensionTypeDeclaration e => e.enclosingLibrary,
+    Typedef t => t.enclosingLibrary,
     _ => null,
   };
   return library?.importUri.isScheme('package') ?? false;
@@ -59,6 +79,20 @@ bool isBeingRecorded(Annotatable node) {
   if (hasRecordUseAnnotation(node)) {
     // Coverage-ignore-block(suite): Not run.
     return _enclosedInLibraryWithPackageUri(node);
+  }
+
+  if (node is Constructor) {
+    // Coverage-ignore-block(suite): Not run.
+    final Class? cls = node.enclosingClass;
+    if (cls != null && isBeingRecorded(cls)) return true;
+  }
+
+  if (node is Field &&
+      // Coverage-ignore(suite): Not run.
+      node.isEnumElement) {
+    // Coverage-ignore-block(suite): Not run.
+    final Class? cls = node.enclosingClass;
+    if (cls != null && isBeingRecorded(cls)) return true;
   }
 
   if (node is Procedure) {
@@ -77,31 +111,22 @@ bool isBeingRecorded(Annotatable node) {
       if (isBeingRecorded(extensionTypeDeclaration)) return true;
     }
 
-    if (node.isFactory) {
+    if (node.isRedirectingFactory) {
+      final Member? target = node.function.redirectingFactoryTarget?.target;
+      if (target != null) return isBeingRecorded(target);
+    }
+
+    if (node.isStatic || node.isFactory) {
       final Class? cls = node.enclosingClass;
       if (cls != null && isBeingRecorded(cls)) return true;
     }
 
-    if (isConstructorTearOffLowering(node)) {
+    if (isConstructorTearOffLowering(node) || isTypedefTearOffLowering(node)) {
       final Member? target = getConstructorTearOffLoweringTarget(node);
       if (target != null) {
         return isBeingRecorded(target);
       }
     }
-  }
-
-  if (node is Constructor) {
-    // Coverage-ignore-block(suite): Not run.
-    final Class? cls = node.enclosingClass;
-    if (cls != null && isBeingRecorded(cls)) return true;
-  }
-
-  if (node is Procedure &&
-      // Coverage-ignore(suite): Not run.
-      node.isRedirectingFactory) {
-    // Coverage-ignore-block(suite): Not run.
-    final Member? target = node.function.redirectingFactoryTarget?.target;
-    if (target != null) return isBeingRecorded(target);
   }
 
   return false;
@@ -116,17 +141,25 @@ Uri? _getFileUri(Annotatable node) {
 }
 
 /// Performs all validations for `@RecordUse` on the given [node].
-void validateAnnotations(Annotatable node, ErrorReporter errorReporter) {
-  final Iterable<InstanceConstant> annotations = findRecordUseAnnotation(node);
-
-  if (annotations.isNotEmpty) {
-    // Coverage-ignore-block(suite): Not run.
-    _validateRecordUseDeclaration(node, errorReporter, annotations);
-    _validateClassIsFinal(node, errorReporter);
+void validateAnnotations(
+  List<Expression> annotations,
+  Annotatable parent,
+  ErrorReporter errorReporter,
+) {
+  if (annotations.length > 0) {
+    if (hasRecordUseAnnotation(parent)) {
+      // Coverage-ignore-block(suite): Not run.
+      _validateRecordUseDeclaration(
+        parent,
+        errorReporter,
+        findRecordUseAnnotation(parent),
+      );
+      _validateClassIsFinal(parent, errorReporter);
+    }
   }
 
-  if (node is Class) {
-    _validateSubtyping(node, errorReporter);
+  if (parent is Class) {
+    _validateSubtyping(parent, errorReporter);
   }
 }
 
@@ -146,21 +179,38 @@ void _validateClassIsFinal(Annotatable node, ErrorReporter errorReporter) {
   }
 }
 
-void _validateSubtyping(Class node, ErrorReporter errorReporter) {
-  final List<Class> supertypes = node.supers.map((e) => e.classNode).toList();
-
-  for (final Class supertype in supertypes) {
-    if (isBeingRecorded(supertype)) {
-      // Coverage-ignore-block(suite): Not run.
-      final Uri? fileUri = _getFileUri(node);
-      if (fileUri != null) {
-        errorReporter.report(
-          diag.recordUseSubtypingNotSupported
-              .withArguments(name: supertype.name)
-              .withLocation(fileUri, node.fileOffset, node.name.length),
-        );
-      }
+void _validateSuper(
+  Supertype superType,
+  Class node,
+  ErrorReporter errorReporter,
+) {
+  Class classNode = superType.classNode;
+  // TODO(jensj): Consider if we should add a flag on class.
+  // See also https://dart-review.googlesource.com/c/sdk/+/486201.
+  if (isBeingRecorded(classNode)) {
+    // Coverage-ignore-block(suite): Not run.
+    final Uri? fileUri = _getFileUri(node);
+    if (fileUri != null) {
+      errorReporter.report(
+        diag.recordUseSubtypingNotSupported
+            .withArguments(name: classNode.name)
+            .withLocation(fileUri, node.fileOffset, node.name.length),
+      );
     }
+  }
+}
+
+void _validateSubtyping(Class node, ErrorReporter errorReporter) {
+  Supertype? supertype = node.supertype;
+  if (supertype != null) {
+    _validateSuper(supertype, node, errorReporter);
+  }
+  Supertype? mixedInType = node.mixedInType;
+  if (mixedInType != null) {
+    _validateSuper(mixedInType, node, errorReporter);
+  }
+  for (final Supertype supertype in node.implementedTypes) {
+    _validateSuper(supertype, node, errorReporter);
   }
 }
 
@@ -183,15 +233,27 @@ void _validateRecordUseDeclaration(
     );
   }
 
-  // Non-generative, non-redirecting constructors are treated as static calls.
-  final bool onFactory =
-      node is Procedure && node.isFactory && !node.isRedirectingFactory;
+  final ExtensionTypeMemberDescriptor? descriptor = node is Procedure
+      ? node.extensionTypeMemberDescriptor
+      : null;
+
+  // Validation is performed on Kernel nodes. Some high-level Dart constructs
+  // (like extension type factories or constructor tear-offs) are lowered into
+  // regular static procedures in Kernel. Since annotations are copied from
+  // source to these lowered nodes, we must explicitly check for them to
+  // ensure factories and constructors are consistently disallowed.
+  final bool isExtensionTypeFactory =
+      descriptor != null &&
+      (descriptor.kind == ExtensionTypeMemberKind.Constructor ||
+          descriptor.kind == ExtensionTypeMemberKind.Factory ||
+          descriptor.kind == ExtensionTypeMemberKind.RedirectingFactory);
 
   final bool onStaticMethod =
-      (node is Procedure &&
-          node.isStatic &&
-          node.kind != ProcedureKind.Factory) ||
-      onFactory;
+      node is Procedure &&
+      node.isStatic &&
+      node.kind != ProcedureKind.Factory &&
+      !isExtensionTypeFactory &&
+      !isTearOffLowering(node);
 
   final bool onClass = node is Class;
 

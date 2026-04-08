@@ -19,8 +19,10 @@ void main() {
   int combination = 0;
   for (bool isSynthetic in [true, false]) {
     combination++;
-    print("Checking combination #$combination ("
-        "isSynthetic: $isSynthetic");
+    print(
+      "Checking combination #$combination ("
+      "isSynthetic: $isSynthetic",
+    );
     Uri uri = Uri.parse("foo://bar.dart");
     Library lib = new Library(uri, fileUri: uri);
     setSynthetic(lib, isSynthetic);

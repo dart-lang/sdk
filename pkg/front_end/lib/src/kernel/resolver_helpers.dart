@@ -229,6 +229,7 @@ class _InitializerBuilder {
     required List<Initializer> initializers,
     required AsyncMarker asyncMarker,
     required int? asyncModifierFileOffset,
+    required bool forPrimaryConstructor,
   }) {
     if (initializers.isNotEmpty) {
       if (_bodyBuilderContext.isMixinClass) {
@@ -240,7 +241,12 @@ class _InitializerBuilder {
             className: _bodyBuilderContext.className,
           ),
           fileUri: _fileUri,
-          fileOffset: _bodyBuilderContext.memberNameOffset,
+          // It is allowed to have a primary constructor without a body, so
+          // for primary constructors we report the error on the first
+          // initializer and not the name of the constructor.
+          fileOffset: forPrimaryConstructor
+              ? initializers.first.fileOffset
+              : _bodyBuilderContext.memberNameOffset,
           length: noLength,
         );
       }
@@ -277,7 +283,7 @@ class _InitializerBuilder {
               case InternalSuperInitializer():
                 _needsImplicitSuperInitializer = false;
                 if (_bodyBuilderContext.isEnumClass) {
-                  initializer = createInvalidInitializer(
+                  initializer = extern.createInvalidInitializer(
                     _problemReporting.buildProblem(
                       compilerContext: _compilerContext,
                       message: diag.enumConstructorSuperInitializer,
@@ -285,6 +291,7 @@ class _InitializerBuilder {
                       fileOffset: initializer.fileOffset,
                       length: noLength,
                     ),
+                    isSuperInitializer: true,
                   )..parent = initializer.parent;
                 } else if (superParameterArguments != null) {
                   bool insertNamedOnly = false;
@@ -345,7 +352,7 @@ class _InitializerBuilder {
 
     if (asyncMarker != AsyncMarker.Sync) {
       _inferInitializer(
-        createInvalidInitializer(
+        extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.constructorNotSync,
@@ -378,7 +385,7 @@ class _InitializerBuilder {
   ) {
     if (_superInitializer != null) {
       _regularInitializers.add(
-        createInvalidInitializer(
+        extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.moreThanOneSuperInitializer,
@@ -391,7 +398,7 @@ class _InitializerBuilder {
       _needsImplicitSuperInitializer = false;
     } else if (_redirectingInitializer != null) {
       _regularInitializers.add(
-        createInvalidInitializer(
+        extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.redirectingConstructorWithSuperInitializer,
@@ -415,7 +422,7 @@ class _InitializerBuilder {
     if (_superInitializer != null) {
       // Point to the existing super initializer.
       _regularInitializers.add(
-        createInvalidInitializer(
+        extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.redirectingConstructorWithSuperInitializer,
@@ -429,7 +436,7 @@ class _InitializerBuilder {
       _needsImplicitSuperInitializer = false;
     } else if (_redirectingInitializer != null) {
       _regularInitializers.add(
-        createInvalidInitializer(
+        extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message:
@@ -448,7 +455,7 @@ class _InitializerBuilder {
         Initializer initializer = _regularInitializers[i];
         int length = noLength;
         if (initializer is AssertInitializer) length = "assert".length;
-        _regularInitializers[i] = createInvalidInitializer(
+        _regularInitializers[i] = extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.redirectingConstructorWithAnotherInitializer,
@@ -476,7 +483,7 @@ class _InitializerBuilder {
       int length = noLength;
       if (initializer is AssertInitializer) length = "assert".length;
       _regularInitializers.add(
-        createInvalidInitializer(
+        extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.redirectingConstructorWithAnotherInitializer,
@@ -490,7 +497,7 @@ class _InitializerBuilder {
       _needsImplicitSuperInitializer = false;
     } else if (_superInitializer != null) {
       _regularInitializers.add(
-        createInvalidInitializer(
+        extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.superInitializerNotLast,
@@ -589,16 +596,15 @@ class _InitializerBuilder {
       argumentsOffset = _bodyBuilderContext.memberNameOffset;
     }
 
-    const Forest forest = const Forest();
     if (argumentsOriginalOrder != null) {
-      arguments = forest.createArguments(
+      arguments = intern.createArguments(
         argumentsOffset,
         arguments: argumentsOriginalOrder,
         hasNamedBeforePositional: false,
         positionalCount: positionalCount,
       );
     } else {
-      arguments = forest.createArgumentsEmpty(argumentsOffset);
+      arguments = intern.createArgumentsEmpty(argumentsOffset);
     }
 
     MemberLookupResult? result = _bodyBuilderContext.lookupSuperConstructor(
@@ -612,7 +618,7 @@ class _InitializerBuilder {
         if (length == 0) {
           length = _bodyBuilderContext.className.length;
         }
-        initializer = createInvalidInitializer(
+        initializer = extern.createInvalidInitializer(
           LookupResult.createDuplicateExpression(
             result,
             context: _compilerContext,
@@ -621,6 +627,7 @@ class _InitializerBuilder {
             fileOffset: _bodyBuilderContext.memberNameOffset,
             length: noLength,
           ),
+          isSuperInitializer: true,
         );
       } else {
         MemberBuilder? memberBuilder = result.getable;
@@ -637,7 +644,7 @@ class _InitializerBuilder {
         if (length == 0) {
           length = _bodyBuilderContext.className.length;
         }
-        initializer = createInvalidInitializer(
+        initializer = extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.superclassHasNoDefaultConstructor.withArguments(
@@ -647,6 +654,7 @@ class _InitializerBuilder {
             fileOffset: _bodyBuilderContext.memberNameOffset,
             length: length,
           ),
+          isSuperInitializer: true,
         );
       } else if (_problemReporting.checkArgumentsForFunction(
             function: superTarget.function,
@@ -681,8 +689,9 @@ class _InitializerBuilder {
                         fileOffset: argument.expression.fileOffset,
                         length: noLength,
                       );
-                  errorMessageInitializer ??= createInvalidInitializer(
+                  errorMessageInitializer ??= extern.createInvalidInitializer(
                     errorMessageExpression,
+                    isSuperInitializer: true,
                   );
                 }
                 positionalIndex++;
@@ -698,14 +707,15 @@ class _InitializerBuilder {
                         fileOffset: argument.namedExpression.fileOffset,
                         length: noLength,
                       );
-                  errorMessageInitializer ??= createInvalidInitializer(
+                  errorMessageInitializer ??= extern.createInvalidInitializer(
                     errorMessageExpression,
+                    isSuperInitializer: true,
                   );
                 }
             }
           }
         }
-        errorMessageInitializer ??= createInvalidInitializer(
+        errorMessageInitializer ??= extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.implicitSuperInitializerMissingArguments
@@ -714,6 +724,7 @@ class _InitializerBuilder {
             fileOffset: argumentIssue.charOffset,
             length: argumentIssue.length,
           ),
+          isSuperInitializer: true,
         );
         initializer = errorMessageInitializer;
       } else {

@@ -10,7 +10,7 @@ import 'package:compiler/src/commandline_options.dart' show Flags;
 import 'package:compiler/src/util/memory_compiler.dart';
 import 'package:expect/expect.dart' show Expect;
 import 'package:path/path.dart' as path;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 import 'package:test/test.dart';
 
 /// Options to pass to the compiler such as
@@ -107,7 +107,7 @@ Future<void> main() async {
         final goldenFile = File(testFile.file.path + '.json.expect');
         const update = bool.fromEnvironment('updateExpectations');
         if (!goldenFile.existsSync() || update) {
-          await goldenFile.create();
+          await goldenFile.create(recursive: true);
           await goldenFile.writeAsString(recordedUsages!);
         } else {
           final actual = Recordings.fromJson(jsonDecode(recordedUsages!));
@@ -115,13 +115,26 @@ Future<void> main() async {
           final golden = Recordings.fromJson(jsonDecode(goldenContents));
           final semanticEquals = actual.semanticEquals(
             golden,
-            allowMetadataMismatch: true,
             allowMoreConstArguments: true,
             // Ensure test coverage of tear offs, add pragmas to prevent
             // optimiations if necessary.
             allowTearoffToStaticPromotion: false,
-            loadingUnitMapping: (String unit) =>
-                const <String, String>{'out': '1', 'out_1': '2'}[unit] ?? unit,
+            loadingUnitMapping: (String unit) {
+              // dart2js and VM assign loading units differently. Work around
+              // this for now, we'll need a more robust testing solution later.
+              if (testFile.basename == 'loading_units_shared_constant.dart' ||
+                  testFile.basename ==
+                      'loading_units_nested_shared_constant.dart') {
+                if (unit == 'out_1') return '2';
+                if (unit == 'out_3') return '3';
+              }
+              return const <String, String>{
+                    'out': '1',
+                    'out_1': '2',
+                    'out_2': '3',
+                  }[unit] ??
+                  unit;
+            },
           );
           if (!semanticEquals) {
             // Print the error message based on string representation.
@@ -231,4 +244,21 @@ Future<String?> compileWithUsages({
       .toString();
 }
 
-const Set<String> dart2jsNotSupported = {'external_function.dart'};
+const Set<String> dart2jsNotSupported = {
+  'external_function.dart',
+
+  // JavaScript cannot exactly represent 64-bit integers. The front-end reports
+  // a compile-time error for these literals when targeting the web.
+  'large_integers.dart',
+
+  // The JS backend represents doubles that are an int value as that int value
+  // and clamps large double values.
+  'double_constants_js_divergent.dart',
+
+  // There is an extra loading unit out_2 which contains the shared stuff
+  // between out_1 and out_3. Either of those loads out_2. We need a more robust
+  // semanticEquality solution than mapping loading unit names. We might only be
+  // able to make that solution if we include the actual graph of loading units
+  // in the format.
+  'loading_units_nested_shared_constant.dart',
+};

@@ -518,16 +518,21 @@ class InstanceMemberInferrer {
   void _inferParameterCovariance(
     FormalParameterElementImpl parameter,
     int index,
-    Iterable<InternalExecutableElement> overridden,
+    List<InternalExecutableElement> overridden,
   ) {
-    parameter.inheritsCovariant = overridden.any((f) {
+    var result = false;
+    for (var o in overridden) {
       var param = _getCorrespondingParameter(
         parameter,
         index,
-        f.formalParameters,
+        o.formalParameters,
       );
-      return param != null && param.isCovariant;
-    });
+      if (param != null && param.isCovariant) {
+        result = true;
+        break;
+      }
+    }
+    parameter.inheritsCovariant = result;
   }
 
   /// Set the type for the [parameter] at the given [index] from the given

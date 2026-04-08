@@ -434,5 +434,25 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitSetListElement(SetListElement instr) {}
 
   @override
+  void visitBoxInt(BoxInt instr) {
+    assert(instr.operand.type is IntType);
+  }
+
+  @override
+  void visitBoxDouble(BoxDouble instr) {
+    assert(instr.operand.type is DoubleType);
+  }
+
+  @override
+  void visitUnboxInt(UnboxInt instr) {
+    assert(instr.operand.type is IntType);
+  }
+
+  @override
+  void visitUnboxDouble(UnboxDouble instr) {
+    assert(instr.operand.type is DoubleType);
+  }
+
+  @override
   void visitParallelMove(ParallelMove instr) {}
 }

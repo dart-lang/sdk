@@ -74,14 +74,13 @@ Component transformComponent(
     coreTypes,
     hierarchy,
   );
-  final protobufHandler =
-      treeShakeProtobufs
-          ? ProtobufHandler.forComponent(
-            component,
-            coreTypes,
-            handleMixins: treeShakeProtobufMixins,
-          )
-          : null;
+  final protobufHandler = treeShakeProtobufs
+      ? ProtobufHandler.forComponent(
+          component,
+          coreTypes,
+          handleMixins: treeShakeProtobufMixins,
+        )
+      : null;
 
   Statistics.reset();
 
@@ -97,19 +96,17 @@ Component transformComponent(
     // the set of allocated classes to make the subsequent
     // type flow analysis converge much faster.
     rtaStopWatch = new Stopwatch()..start();
-    final protobufHandlerRta =
-        treeShakeProtobufs
-            ? ProtobufHandler.forComponent(component, coreTypes)
-            : null;
-    allocatedClasses =
-        RapidTypeAnalysis(
-          component,
-          coreTypes,
-          target,
-          hierarchy,
-          libraryIndex,
-          protobufHandlerRta,
-        ).run();
+    final protobufHandlerRta = treeShakeProtobufs
+        ? ProtobufHandler.forComponent(component, coreTypes)
+        : null;
+    allocatedClasses = RapidTypeAnalysis(
+      component,
+      coreTypes,
+      target,
+      hierarchy,
+      libraryIndex,
+      protobufHandlerRta,
+    ).run();
     rtaStopWatch.stop();
   }
 
@@ -268,16 +265,15 @@ class MoveFieldInitializers {
             initExpr = FileUriExpression(initExpr, f.fileUri);
           }
         }
-        final Initializer newInit =
-            initializedFields.contains(f)
-                ? LocalInitializer(
-                  VariableDeclaration(
-                    null,
-                    initializer: initExpr,
-                    isSynthesized: true,
-                  ),
-                )
-                : FieldInitializer(f, initExpr);
+        final Initializer newInit = initializedFields.contains(f)
+            ? LocalInitializer(
+                VariableDeclaration(
+                  null,
+                  initializer: initExpr,
+                  isSynthesized: true,
+                ),
+              )
+            : FieldInitializer(f, initExpr);
         newInit.parent = c;
         newInitializers.add(newInit);
       }
@@ -379,8 +375,9 @@ class TFADevirtualization extends Devirtualization {
       );
       if (singleTarget != null) {
         if (node is FunctionInvocation) {
-          final closure =
-              _typeFlowAnalysis.getClosureByCallMethod(singleTarget)!;
+          final closure = _typeFlowAnalysis.getClosureByCallMethod(
+            singleTarget,
+          )!;
           final function = closure.function;
           int closureId;
           if (function != null) {
@@ -650,8 +647,9 @@ class AnnotateKernel extends RecursiveVisitor {
     // Therefore, we need to pass in nullableAnyType as the
     // inferred result type here (since we don't know what it actually
     // is).
-    final Type resultType =
-        callSite.isResultUsed ? callSite.resultType : nullableAnyType;
+    final Type resultType = callSite.isResultUsed
+        ? callSite.resultType
+        : nullableAnyType;
 
     if (markSkipCheck || markReceiverNotInt || callSite.isResultUsed) {
       _setInferredType(
@@ -1009,6 +1007,8 @@ class TreeShaker {
       typeFlowAnalysis.nativeCodeOracle.isLibraryReferencedFromNativeCode(l);
   bool isClassReferencedFromNativeCode(Class c) =>
       typeFlowAnalysis.nativeCodeOracle.isClassReferencedFromNativeCode(c);
+  bool isClassWithPersistentShape(Class c) =>
+      typeFlowAnalysis.nativeCodeOracle.isClassWithPersistentShape(c);
   bool isClassUsed(Class c) => _usedClasses.contains(c);
   bool isClassUsedInType(Class c) => _classesUsedInType.contains(c);
   bool isClassAllocated(Class c) => typeFlowAnalysis.isClassAllocated(c);
@@ -1251,8 +1251,9 @@ class FieldMorpher {
   /// This method is used during tree shaker pass 1.
   Member? adjustInstanceCallTarget(Member? target, {bool isSetter = false}) {
     if (target is Field && !shaker.retainField(target)) {
-      final targets =
-          isSetter ? _settersForRemovedFields : _gettersForRemovedFields;
+      final targets = isSetter
+          ? _settersForRemovedFields
+          : _gettersForRemovedFields;
       return targets[target] ??= _createAccessorForRemovedField(
         target,
         isSetter,
@@ -1270,8 +1271,9 @@ class FieldMorpher {
     if (target is! Field) {
       return target;
     }
-    final targets =
-        isSetter ? _settersForRemovedFields : _gettersForRemovedFields;
+    final targets = isSetter
+        ? _settersForRemovedFields
+        : _gettersForRemovedFields;
     return targets[target] ?? target;
   }
 
@@ -1491,7 +1493,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
   @override
   TreeNode visitClass(Class node, TreeNode? removalSentinel) {
     if (shaker.isClassAllocated(node) ||
-        shaker.isClassReferencedFromNativeCode(node)) {
+        shaker.isClassReferencedFromNativeCode(node) ||
+        shaker.isClassWithPersistentShape(node)) {
       shaker.addClassUsedInType(node);
     }
     transformConstructorList(node.constructors, node);
@@ -1622,8 +1625,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
     FunctionExpression node,
     TreeNode? removalSentinel,
   ) {
-    node.id =
-        (_localFunctionIdGenerator ??= LocalFunctionIdGenerator()).allocateId();
+    node.id = (_localFunctionIdGenerator ??= LocalFunctionIdGenerator())
+        .allocateId();
     return super.visitFunctionExpression(node, removalSentinel);
   }
 
@@ -1632,8 +1635,8 @@ class _TreeShakerPass1 extends RemovingTransformer {
     FunctionDeclaration node,
     TreeNode? removalSentinel,
   ) {
-    node.id =
-        (_localFunctionIdGenerator ??= LocalFunctionIdGenerator()).allocateId();
+    node.id = (_localFunctionIdGenerator ??= LocalFunctionIdGenerator())
+        .allocateId();
     return super.visitFunctionDeclaration(node, removalSentinel);
   }
 
@@ -1671,8 +1674,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver]);
     } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget)!;
+      node.interfaceTarget = fieldMorpher.adjustInstanceCallTarget(
+        node.interfaceTarget,
+      )!;
       shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
@@ -1711,11 +1715,10 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.receiver, node.value]);
     } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(
-            node.interfaceTarget,
-            isSetter: true,
-          )!;
+      node.interfaceTarget = fieldMorpher.adjustInstanceCallTarget(
+        node.interfaceTarget,
+        isSetter: true,
+      )!;
       shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
@@ -1757,8 +1760,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([]);
     } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(node.interfaceTarget)!;
+      node.interfaceTarget = fieldMorpher.adjustInstanceCallTarget(
+        node.interfaceTarget,
+      )!;
       shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
@@ -1773,11 +1777,10 @@ class _TreeShakerPass1 extends RemovingTransformer {
     if (_isUnreachable(node)) {
       return _makeUnreachableCall([node.value]);
     } else {
-      node.interfaceTarget =
-          fieldMorpher.adjustInstanceCallTarget(
-            node.interfaceTarget,
-            isSetter: true,
-          )!;
+      node.interfaceTarget = fieldMorpher.adjustInstanceCallTarget(
+        node.interfaceTarget,
+        isSetter: true,
+      )!;
       shaker.addUsedMember(node.interfaceTarget);
       return node;
     }
@@ -1957,10 +1960,9 @@ class _TreeShakerPass1 extends RemovingTransformer {
       (expr is BlockExpression && expr.value is BoolLiteral);
 
   // Returns value of an extended bool literal.
-  bool _getExtendedBoolLiteralValue(Expression expr) =>
-      (expr is BoolLiteral)
-          ? expr.value
-          : ((expr as BlockExpression).value as BoolLiteral).value;
+  bool _getExtendedBoolLiteralValue(Expression expr) => (expr is BoolLiteral)
+      ? expr.value
+      : ((expr as BlockExpression).value as BoolLiteral).value;
 
   // Returns Block corresponding to the given extended bool literal,
   // or null if the expression is a simple bool literal.
@@ -2274,13 +2276,12 @@ class _TreeShakerPass2 extends RemovingTransformer {
       // unreachable members annotated with entry point pragmas.
       // Remove its hierarchy information. This is mandatory,
       // since these references might otherwise become dangling.
-      node.supertype =
-          shaker
-              .typeFlowAnalysis
-              .environment
-              .coreTypes
-              .objectClass
-              .asRawSupertype;
+      node.supertype = shaker
+          .typeFlowAnalysis
+          .environment
+          .coreTypes
+          .objectClass
+          .asRawSupertype;
       node.implementedTypes.clear();
       node.typeParameters.clear();
       node.isAbstract = true;
@@ -2290,7 +2291,12 @@ class _TreeShakerPass2 extends RemovingTransformer {
       node.annotations = const <Expression>[];
     }
 
-    if (!shaker.isClassAllocated(node)) {
+    if (!shaker.isClassAllocated(node) &&
+        !shaker.isClassWithPersistentShape(node)) {
+      // Prevent TFA from making the class abstract or changing its enum status
+      // if itself or its members are recorded. If it becomes abstract or loses
+      // its enum status, record_use might report it incorrectly (e.g. as a
+      // class instead of an enum).
       debugPrint('Class ${node.name} converted to abstract');
       node.isAbstract = true;
       node.isEnum = false;
@@ -2418,8 +2424,9 @@ class _TreeShakerPass2 extends RemovingTransformer {
               kind: descriptor.kind,
               isStatic: descriptor.isStatic,
               memberReference: isMemberUsed ? descriptor.memberReference : null,
-              tearOffReference:
-                  isTearOffUsed ? descriptor.tearOffReference : null,
+              tearOffReference: isTearOffUsed
+                  ? descriptor.tearOffReference
+                  : null,
             );
           }
           node.memberDescriptors[writeIndex++] = descriptor;
@@ -2465,8 +2472,9 @@ class _TreeShakerPass2 extends RemovingTransformer {
               kind: descriptor.kind,
               isStatic: descriptor.isStatic,
               memberReference: isMemberUsed ? descriptor.memberReference : null,
-              tearOffReference:
-                  isTearOffUsed ? descriptor.tearOffReference : null,
+              tearOffReference: isTearOffUsed
+                  ? descriptor.tearOffReference
+                  : null,
             );
           }
           node.memberDescriptors[writeIndex++] = descriptor;

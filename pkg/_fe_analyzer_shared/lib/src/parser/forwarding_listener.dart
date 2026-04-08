@@ -1217,6 +1217,11 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNoMixinBody(Token semicolonToken) {
+    listener?.handleNoMixinBody(semicolonToken);
+  }
+
+  @override
   void endMixinDeclaration(Token beginToken, Token endToken) {
     listener?.endMixinDeclaration(beginToken, endToken);
   }
@@ -1557,8 +1562,18 @@ class ForwardingListener implements Listener {
   }
 
   @override
+  void handleNoExtensionBody(Token semicolonToken) {
+    listener?.handleNoExtensionBody(semicolonToken);
+  }
+
+  @override
   void handleEnumNoWithClause() {
     listener?.handleEnumNoWithClause();
+  }
+
+  @override
+  void handleNoEnumBody(Token semicolonToken) {
+    listener?.handleNoEnumBody(semicolonToken);
   }
 
   @override
@@ -2417,26 +2432,26 @@ class ForwardingListener implements Listener {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     listener?.endPrimaryConstructor(
+      kind,
       beginToken,
       constKeyword,
       hasConstructorName,
-      forExtensionType,
     );
   }
 
   @override
   void handleNoPrimaryConstructor(
+    DeclarationKind kind,
     Token token,
     Token? constKeyword,
-    bool forExtensionType,
   ) {
-    listener?.handleNoPrimaryConstructor(token, constKeyword, forExtensionType);
+    listener?.handleNoPrimaryConstructor(kind, token, constKeyword);
   }
 
   @override

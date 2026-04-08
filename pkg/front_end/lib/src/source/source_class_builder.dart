@@ -7,7 +7,6 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchyMembers;
 import 'package:kernel/core_types.dart';
-import 'package:kernel/names.dart' show equalsName;
 import 'package:kernel/reference_from_index.dart'
     show IndexedClass, IndexedLibrary;
 import 'package:kernel/src/bounds_checks.dart';
@@ -167,7 +166,11 @@ class SourceClassBuilder extends ClassBuilderImpl
          indexedClass,
          isAugmentation: modifiers.isAugment,
        ) {
-    cls.hasConstConstructor = declaresConstConstructor;
+    if (!isEnum) {
+      // TODO(johnniwinther): Should enums be marked as having constant
+      //  constructors?
+      cls.hasConstConstructor = declaresConstConstructor;
+    }
   }
 
   @override
@@ -193,6 +196,17 @@ class SourceClassBuilder extends ClassBuilderImpl
     _constructorBuilders.iterator,
     includeDuplicates: includeDuplicates,
   );
+
+  /// Returns `true` if this class has a primary constructor.
+  bool get hasPrimaryConstructor {
+    for (SourceMemberBuilder constructorBuilder in _constructorBuilders) {
+      if (constructorBuilder is SourceConstructorBuilder &&
+          constructorBuilder.isPrimaryConstructor) {
+        return true;
+      }
+    }
+    return false;
+  }
 
   /// If the class has a primary constructor, returns the parameters
   /// available in the initializer scope. Otherwise return `null`.
@@ -638,20 +652,24 @@ class SourceClassBuilder extends ClassBuilderImpl
     filteredMembersIterator<SourceMemberBuilder>(
       includeDuplicates: false,
     ).forEach(build);
+
+    for (SourceMemberBuilder memberBuilder in _constructorBuilders) {
+      if (memberBuilder is SourceConstructorBuilder &&
+          memberBuilder.isPrimaryConstructor &&
+          memberBuilder.isConst) {
+        memberBuilder.buildPrimaryConstructorFieldInitializers();
+      }
+    }
   }
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceConstructorBuilder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     if (name.text == "new") {
       name = new Name("", name.library);
     }
 
-    Builder? builder = nameSpace.lookupConstructor(name.text)?.getable;
-    if (builder is SourceConstructorBuilder) {
-      return builder;
-    }
-    return null;
+    return nameSpace.lookupConstructor(name.text);
   }
 
   /// Looks up the super constructor by [name] on the superclass of the class
@@ -1725,7 +1743,7 @@ class SourceClassBuilder extends ClassBuilderImpl
         ],
         localMember: localMember,
       );
-    } else if (declaredFunction?.typeParameters != null) {
+    } else if (declaredFunction?.typeParameters.isNotEmpty ?? false) {
       // Since the bound of `interfaceFunction!.parameter[i]` may have changed
       // during substitution, it can affect the nullabilities of the types in
       // the substitution map. The first parameter to
@@ -2068,16 +2086,6 @@ class SourceClassBuilder extends ClassBuilderImpl
       DartType interfaceParameterType = interfaceParameter.type;
       if (interfaceSignatureType != null) {
         interfaceParameterType = interfaceSignatureType.positionalParameters[i];
-      }
-      if (i == 0 &&
-          declaredMember.name == equalsName &&
-          declaredParameterType ==
-              types.hierarchy.coreTypes.objectNonNullableRawType &&
-          interfaceParameter.type is DynamicType) {
-        // TODO(johnniwinther): Add check for opt-in overrides of operator ==.
-        // `operator ==` methods in opt-out classes have type
-        // `bool Function(dynamic)`.
-        continue;
       }
 
       _checkTypes(

@@ -65,16 +65,35 @@ final class Arm64Constraints extends Constraints {
   // TODO: pass arguments on registers
   Constraint parameterConstraint(Parameter instr) {
     final paramIndex = instr.variable.index;
-    final numParams = instr.graph.function.numberOfParameters;
+    final function = instr.graph.function;
+    final numParams = function.numberOfParameters;
     assert(0 <= paramIndex && paramIndex < numParams);
+    Constraint? paramConstraint = _parameters?[paramIndex];
+    if (paramConstraint != null) {
+      return paramConstraint;
+    }
+    if (function.hasOptionalPositionalParameters ||
+        function.hasNamedParameters) {
+      if (paramIndex < argumentRegisters.length) {
+        paramConstraint = argumentRegisters[paramIndex];
+      } else {
+        paramConstraint = ParameterStackLocation(
+          paramIndex - argumentRegisters.length,
+          registerClass(instr),
+        );
+      }
+    } else {
+      paramConstraint = ParameterStackLocation(
+        paramIndex,
+        registerClass(instr),
+      );
+    }
     final parameters = (_parameters ??= List<Constraint?>.filled(
       numParams,
       null,
     ));
-    return parameters[paramIndex] ??= ParameterStackLocation(
-      paramIndex,
-      registerClass(instr),
-    );
+    parameters[paramIndex] = paramConstraint;
+    return paramConstraint;
   }
 
   @override
@@ -185,24 +204,80 @@ final class Arm64Constraints extends Constraints {
       const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
 
   @override
-  InstructionConstraints? visitTypeCast(TypeCast instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyCpuRegister,
-        if (instr.inputCount > 1) ...[
-          anyRegisterOrImmediate(instr.inputDefAt(1)),
-          anyRegisterOrImmediate(instr.inputDefAt(2)),
+  InstructionConstraints? visitTypeCast(TypeCast instr) {
+    final callsTypeTestingStub =
+        instr.isChecked &&
+        switch (instr.testedType) {
+          ObjectType() ||
+          NullType() ||
+          IntType() ||
+          DoubleType() ||
+          BoolType() ||
+          StringType() => false,
+          _ => true,
+        };
+    if (callsTypeTestingStub) {
+      return InstructionConstraints(
+        TypeTestingStub.instanceReg,
+        [
+          TypeTestingStub.instanceReg,
+          if (instr.inputCount > 1) ...const [
+            TypeTestingStub.instantiatorTypeArgumentsReg,
+            TypeTestingStub.functionTypeArgumentsReg,
+          ],
         ],
-      ]);
+        const [
+          TypeTestingStub.dstTypeReg,
+          TypeTestingStub.subtypeTestCacheReg,
+          TypeTestingStub.scratchReg,
+        ],
+      );
+    }
+    return InstructionConstraints(anyCpuRegister, [
+      anyCpuRegister,
+      if (instr.inputCount > 1) ...[
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+        anyRegisterOrImmediate(instr.inputDefAt(2)),
+      ],
+    ]);
+  }
 
   @override
-  InstructionConstraints? visitTypeTest(TypeTest instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyCpuRegister,
-        if (instr.inputCount > 1) ...[
-          anyRegisterOrImmediate(instr.inputDefAt(1)),
-          anyRegisterOrImmediate(instr.inputDefAt(2)),
+  InstructionConstraints? visitTypeTest(TypeTest instr) {
+    final callsSubtypeTestCacheStub = switch (instr.testedType) {
+      ObjectType() ||
+      NullType() ||
+      IntType() ||
+      DoubleType() ||
+      BoolType() ||
+      StringType() => false,
+      _ => true,
+    };
+    if (callsSubtypeTestCacheStub) {
+      return InstructionConstraints(
+        TypeTestingStub.subtypeTestCacheResultReg,
+        [
+          TypeTestingStub.instanceReg,
+          if (instr.inputCount > 1) ...const [
+            TypeTestingStub.instantiatorTypeArgumentsReg,
+            TypeTestingStub.functionTypeArgumentsReg,
+          ],
         ],
-      ]);
+        const [
+          TypeTestingStub.dstTypeReg,
+          TypeTestingStub.subtypeTestCacheReg,
+          TypeTestingStub.scratchReg,
+        ],
+      );
+    }
+    return InstructionConstraints(anyCpuRegister, [
+      anyCpuRegister,
+      if (instr.inputCount > 1) ...[
+        anyRegisterOrImmediate(instr.inputDefAt(1)),
+        anyRegisterOrImmediate(instr.inputDefAt(2)),
+      ],
+    ]);
+  }
 
   @override
   InstructionConstraints? visitTypeArguments(TypeArguments instr) =>
@@ -241,15 +316,43 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitAllocateList(AllocateList instr) =>
-      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+      InstructionConstraints(
+        anyCpuRegister,
+        [anyRegisterOrImmediate(instr.length)],
+        const [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
 
   @override
   InstructionConstraints? visitSetListElement(SetListElement instr) =>
-      const InstructionConstraints(null, [
+      InstructionConstraints(
+        null,
+        [anyCpuRegister, anyRegisterOrImmediate(instr.index), anyCpuRegister],
+        const [anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitBoxInt(BoxInt instr) =>
+      const InstructionConstraints(
         anyCpuRegister,
+        [anyCpuRegister],
+        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitBoxDouble(BoxDouble instr) =>
+      const InstructionConstraints(
         anyCpuRegister,
-        anyCpuRegister,
-      ]);
+        [anyFpuRegister],
+        [anyCpuRegister, anyCpuRegister, anyCpuRegister],
+      );
+
+  @override
+  InstructionConstraints? visitUnboxInt(UnboxInt instr) =>
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitUnboxDouble(UnboxDouble instr) =>
+      const InstructionConstraints(anyFpuRegister, [anyCpuRegister]);
 
   @override
   InstructionConstraints? visitBinaryIntOp(BinaryIntOp instr) =>

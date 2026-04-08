@@ -4363,7 +4363,7 @@ FunctionReference
         rightBracket: >
       parameters: FormalParameterList
         leftParenthesis: (
-        parameter: SimpleFormalParameter
+        parameter: RegularFormalParameter
           type: NamedType
             name: T
             element: #E0 T
@@ -4585,7 +4585,7 @@ FunctionReference
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
-      parameter: SimpleFormalParameter
+      parameter: RegularFormalParameter
         type: NamedType
           name: T
           element: #E0 T

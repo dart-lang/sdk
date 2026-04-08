@@ -103,7 +103,7 @@ DEFINE_FLAG(bool,
             false,
             "Cause a GC when falling off the fast path for fast object copy.");
 
-const char* kFastAllocationFailed = "fast allocation failed";
+const char* const kFastAllocationFailed = "fast allocation failed";
 
 struct PtrTypes {
   using Object = ObjectPtr;
@@ -1384,7 +1384,7 @@ class FastObjectCopyBase : public ObjectCopyBase {
     const auto cid = UntaggedObject::ClassIdTag::decode(tags);
     const uword size =
         header_size != 0 ? header_size : from.untag()->HeapSize();
-    if (IsAllocatableInNewSpace(size)) {
+    if (Heap::IsAllocatableInNewSpace(size)) {
       const uword alloc = new_space_->TryAllocateNoSafepoint(thread_, size);
       if (alloc != 0) {
         ObjectPtr to(reinterpret_cast<UntaggedObject*>(alloc));
@@ -1599,7 +1599,7 @@ class SlowObjectCopyBase : public ObjectCopyBase {
     slow_forward_map_.Insert(from, to_, size);
     ObjectPtr to = to_.ptr();
     if ((cid == kArrayCid || cid == kImmutableArrayCid) &&
-        !IsAllocatableInNewSpace(size)) {
+        !Heap::IsAllocatableInNewSpace(size)) {
       to.untag()->SetCardRememberedBitUnsynchronized();
       Page::Of(to)->AllocateCardTable();
     }

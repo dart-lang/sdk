@@ -1816,10 +1816,10 @@ class OutlineBuilder extends StackListenerImpl {
 
   @override
   void endPrimaryConstructor(
+    DeclarationKind kind,
     Token beginToken,
     Token? constKeyword,
     bool hasConstructorName,
-    bool forExtensionType,
   ) {
     assert(
       checkState(beginToken, [
@@ -1845,7 +1845,7 @@ class OutlineBuilder extends StackListenerImpl {
 
     int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;
 
-    if (!forExtensionType) {
+    if (kind != DeclarationKind.ExtensionType) {
       reportIfNotEnabled(
         libraryFeatures.primaryConstructors,
         beginToken.charOffset,
@@ -1860,7 +1860,7 @@ class OutlineBuilder extends StackListenerImpl {
       for (int i = 0; i < formals.length; i++) {
         FormalParameterBuilder formal = formals[i];
         Modifiers modifiers = formal.modifiers;
-        if (forExtensionType) {
+        if (kind == DeclarationKind.ExtensionType) {
           // Extension type representation fields are implicitly final.
           modifiers |= Modifiers.Final;
           modifiers |= Modifiers.DeclaringParameter;
@@ -1962,7 +1962,7 @@ class OutlineBuilder extends StackListenerImpl {
           isDeclaring: modifiers.isDeclaringParameter,
         );
       }
-      if (forExtensionType) {
+      if (kind == DeclarationKind.ExtensionType) {
         if (libraryFeatures.primaryConstructors.isEnabled) {
           if (formals.isEmpty) {
             _compilationUnit.addProblem(
@@ -2013,6 +2013,11 @@ class OutlineBuilder extends StackListenerImpl {
       }
     }
 
+    bool forAbstractClassOrEnumOrMixin =
+        inAbstractOrSealedClass ||
+        kind == DeclarationKind.Mixin ||
+        kind == DeclarationKind.Enum;
+
     _builderFactory.addPrimaryConstructor(
       offsetMap: _offsetMap,
       beginToken: beginToken,
@@ -2023,6 +2028,7 @@ class OutlineBuilder extends StackListenerImpl {
       // TODO(johnniwinther): Provide `endOffset`.
       formals: formals,
       isConst: constKeyword != null,
+      forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
     );
   }
 
@@ -2708,8 +2714,10 @@ class OutlineBuilder extends StackListenerImpl {
 
     int endOffset = endToken.charOffset;
 
-    bool forAbstractClassOrMixin =
-        inAbstractOrSealedClass || kind == DeclarationKind.Mixin;
+    bool forAbstractClassOrEnumOrMixin =
+        inAbstractOrSealedClass ||
+        kind == DeclarationKind.Mixin ||
+        kind == DeclarationKind.Enum;
 
     _builderFactory.addConstructor(
       offsetMap: _offsetMap,
@@ -2724,7 +2732,7 @@ class OutlineBuilder extends StackListenerImpl {
       nativeMethodName: nativeMethodName,
       beginInitializers: beginInitializers,
       hasNewKeyword: newToken != null,
-      forAbstractClassOrMixin: forAbstractClassOrMixin,
+      forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
     );
 
     nativeMethodName = null;
@@ -3083,7 +3091,12 @@ class OutlineBuilder extends StackListenerImpl {
           metadata: metadata,
           kind: kind,
           modifiers: modifiers,
-          type: type ?? _createOmittedParameterTypeBuilder(memberKind),
+          type:
+              type ??
+              _createOmittedParameterTypeBuilder(
+                memberKind,
+                isDeclaringParameter: modifiers.isDeclaringParameter,
+              ),
           name: parameterName,
           publicName: publicName,
           hasThis: thisKeyword != null,
@@ -3097,7 +3110,10 @@ class OutlineBuilder extends StackListenerImpl {
 
   /// Creates the [TypeBuilder] use for an omitted parameter type on the given
   /// member [kind].
-  TypeBuilder _createOmittedParameterTypeBuilder(MemberKind kind) {
+  TypeBuilder _createOmittedParameterTypeBuilder(
+    MemberKind kind, {
+    bool isDeclaringParameter = false,
+  }) {
     switch (kind) {
       case MemberKind.Catch:
       case MemberKind.FunctionTypeAlias:
@@ -3127,7 +3143,9 @@ class OutlineBuilder extends StackListenerImpl {
         if (libraryFeatures.primaryConstructors.isEnabled) {
           // Parameter type is inferred with `Object?` as default.
           return _builderFactory.addInferableType(
-            InferenceDefaultType.NullableObject,
+            isDeclaringParameter
+                ? InferenceDefaultType.NullableObject
+                : InferenceDefaultType.Dynamic,
           );
         } else {
           // Parameter type is not inferred.
@@ -4799,9 +4817,31 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoEnumBody(Token semicolon) {
+    debugEvent("handleNoEnumBody");
+    _builderFactory.beginEnumBody();
+    push(0); // number of enum constants
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoExtensionBody(Token semicolonToken) {
+    debugEvent("handleNoExtensionBody");
+    _builderFactory.beginExtensionBody();
+  }
+
+  @override
   void handleNoExtensionTypeBody(Token semicolonToken) {
     debugEvent("NoExtensionTypeBody");
     _builderFactory.beginExtensionTypeBody();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleNoMixinBody(Token semicolonToken) {
+    debugEvent("handleNoMixinBody");
+    _builderFactory.beginMixinBody();
   }
 
   @override

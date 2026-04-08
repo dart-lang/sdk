@@ -1280,6 +1280,8 @@ class Assembler : public AssemblerBase {
 
   void PushRegisters(const RegisterSet& regs);
   void PopRegisters(const RegisterSet& regs);
+  void PushRegistersAligned(const RegisterSet& registers, intptr_t space);
+  void PopRegistersAligned(const RegisterSet& registers, intptr_t space);
 
   void PushRegistersInOrder(std::initializer_list<Register> regs);
 

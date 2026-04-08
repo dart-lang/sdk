@@ -30,7 +30,7 @@ class GnWorkspace extends Workspace {
 
   final File buildGnFile;
 
-  /// Information about packages available in the workspace.
+  @override
   final Packages packages;
 
   GnWorkspace._(this.provider, this.root, this.buildGnFile, this.packages);

@@ -327,7 +327,6 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       safepoint_handler_(new SafepointHandler(this)),
       store_buffer_(new StoreBuffer()),
       heap_(nullptr),
-      saved_unlinked_calls_(Array::null()),
       initial_field_table_(new FieldTable(/*isolate=*/nullptr)),
       sentinel_field_table_(new FieldTable(/*isolate=*/nullptr)),
       shared_initial_field_table_(new FieldTable(/*isolate=*/nullptr,
@@ -358,8 +357,7 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       cache_mutex_(),
       handler_info_cache_(),
       catch_entry_moves_cache_(),
-      tag_table_lock_(),
-      tag_table_(GrowableObjectArray::null()) {
+      tag_table_lock_() {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
     intptr_t max_worker_threads;
@@ -592,10 +590,6 @@ void IsolateGroup::Shutdown() {
 void IsolateGroup::set_heap(std::unique_ptr<Heap> heap) {
   idle_time_handler_.InitializeWithHeap(heap.get());
   heap_ = std::move(heap);
-}
-
-void IsolateGroup::set_saved_unlinked_calls(const Array& saved_unlinked_calls) {
-  saved_unlinked_calls_ = saved_unlinked_calls.ptr();
 }
 
 static constexpr intptr_t kActiveMutatorPreemptionTimeout = 120;
@@ -961,10 +955,6 @@ void IsolateGroup::ClearCatchEntryMovesCacheLocked() {
          (thread->task_kind() == Thread::kScavengerTask) ||
          (thread->task_kind() == Thread::kIncrementalCompactorTask));
   catch_entry_moves_cache_.Clear();
-}
-
-void IsolateGroup::set_tag_table(const GrowableObjectArray& value) {
-  tag_table_ = value.ptr();
 }
 
 void IsolateGroup::RehashConstants(Become* become) {
@@ -1551,11 +1541,17 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
       }
     }
   } else {
-    const Object& msg_handler = Object::Handle(
+    Object& msg_handler = Object::Handle(
         zone, DartLibraryCalls::HandleMessage(message->dest_port(), msg));
-    if (msg_handler.IsError()) {
+    while (msg_handler.IsError()) {
       status = ProcessUnhandledException(Error::Cast(msg_handler));
-    } else if (msg_handler.IsNull()) {
+      if (status == kOK) {
+        msg_handler = DartLibraryCalls::DrainMicrotaskQueue();
+      } else {
+        break;
+      }
+    }
+    if (msg_handler.IsNull()) {
       // If the port has been closed then the message will be dropped at this
       // point. Make sure to post to the delivery failure port in that case.
     } else {
@@ -2961,8 +2957,6 @@ void IsolateGroup::VisitObjectPointers(ObjectPointerVisitor* visitor,
     isolate->VisitObjectPointers(visitor, validate_frames);
   }
   VisitStackPointers(visitor, validate_frames);
-
-  visitor->VisitPointer(reinterpret_cast<ObjectPtr*>(&tag_table_));
 }
 
 void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
@@ -2981,10 +2975,6 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
       if (object_store() != nullptr) {
         object_store()->VisitObjectPointers(visitor);
       }
-      break;
-    case kSavedUnlinkedCalls:
-      visitor->VisitPointer(
-          reinterpret_cast<ObjectPtr*>(&saved_unlinked_calls_));
       break;
     case kInitialFieldTable:
       initial_field_table()->VisitObjectPointers(visitor);

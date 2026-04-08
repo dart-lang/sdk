@@ -17,9 +17,9 @@ class RegExpAllMatchesTest {
       Expect.isNull(it.current);
     }
     Expect.isTrue(it.moveNext());
-    Expect.equals('foo', it.current.group(0));
+    Expect.equals('foo', it.current[0]);
     Expect.isTrue(it.moveNext());
-    Expect.equals('foo', it.current.group(0));
+    Expect.equals('foo', it.current[0]);
     Expect.isFalse(it.moveNext());
 
     // Run two iterators over the same results.
@@ -27,12 +27,12 @@ class RegExpAllMatchesTest {
     Iterator it2 = matches.iterator;
     Expect.isTrue(it.moveNext());
     Expect.isTrue(it2.moveNext());
-    Expect.equals('foo', it.current.group(0));
-    Expect.equals('foo', it2.current.group(0));
+    Expect.equals('foo', it.current[0]);
+    Expect.equals('foo', it2.current[0]);
     Expect.isTrue(it.moveNext());
     Expect.isTrue(it2.moveNext());
-    Expect.equals('foo', it.current.group(0));
-    Expect.equals('foo', it2.current.group(0));
+    Expect.equals('foo', it.current[0]);
+    Expect.equals('foo', it2.current[0]);
     Expect.equals(false, it.moveNext());
     Expect.equals(false, it2.moveNext());
   }
@@ -41,14 +41,14 @@ class RegExpAllMatchesTest {
     var matches = new RegExp("foo").allMatches("foo foo");
     var strbuf = new StringBuffer();
     matches.forEach((Match m) {
-      strbuf.write(m.group(0));
+      strbuf.write(m[0]);
     });
     Expect.equals("foofoo", strbuf.toString());
   }
 
   static testMap() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
-    var mapped = matches.map((Match m) => "${m.group(0)}bar");
+    var mapped = matches.map((Match m) => "${m[0]}bar");
     Expect.equals(4, mapped.length);
     var strbuf = new StringBuffer();
     for (String s in mapped) {
@@ -60,12 +60,12 @@ class RegExpAllMatchesTest {
   static testFilter() {
     var matches = new RegExp("foo?").allMatches("foo fo foo fo");
     var filtered = matches.where((Match m) {
-      return m.group(0) == 'foo';
+      return m[0] == 'foo';
     });
     Expect.equals(2, filtered.length);
     var strbuf = new StringBuffer();
     for (Match m in filtered) {
-      strbuf.write(m.group(0));
+      strbuf.write(m[0]);
     }
     Expect.equals("foofoo", strbuf.toString());
   }
@@ -75,13 +75,13 @@ class RegExpAllMatchesTest {
     Expect.equals(
       true,
       matches.every((Match m) {
-        return m.group(0)!.startsWith("fo");
+        return m[0]!.startsWith("fo");
       }),
     );
     Expect.equals(
       false,
       matches.every((Match m) {
-        return m.group(0)!.startsWith("foo");
+        return m[0]!.startsWith("foo");
       }),
     );
   }
@@ -91,19 +91,19 @@ class RegExpAllMatchesTest {
     Expect.equals(
       true,
       matches.any((Match m) {
-        return m.group(0)!.startsWith("fo");
+        return m[0]!.startsWith("fo");
       }),
     );
     Expect.equals(
       true,
       matches.any((Match m) {
-        return m.group(0)!.startsWith("foo");
+        return m[0]!.startsWith("foo");
       }),
     );
     Expect.equals(
       false,
       matches.any((Match m) {
-        return m.group(0)!.startsWith("fooo");
+        return m[0]!.startsWith("fooo");
       }),
     );
   }

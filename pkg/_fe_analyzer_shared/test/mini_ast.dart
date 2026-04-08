@@ -19,6 +19,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart'
         ThisPropertyTarget;
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis_operations.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
+import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
@@ -54,6 +55,14 @@ Statement assert_(ProtoExpression condition, [ProtoExpression? message]) {
   return new Assert._(
     condition.asExpression(location: location),
     message?.asExpression(location: location),
+    location: location,
+  );
+}
+
+Expression await_(ProtoExpression operand) {
+  var location = computeLocation();
+  return new AwaitExpression._(
+    operand.asExpression(location: location),
     location: location,
   );
 }
@@ -144,7 +153,7 @@ String computeLocation() {
       '_locationRegExp failed to match $stackLine in $callStack',
     );
   }
-  return match.group(0)!;
+  return match[0]!;
 }
 
 Statement continue_([Label? target]) =>
@@ -339,12 +348,8 @@ CollectionElement ifElement(
   );
 }
 
-ConstExpression intLiteral(int value, {bool? expectConversionToDouble}) =>
-    new IntLiteral(
-      value,
-      expectConversionToDouble: expectConversionToDouble,
-      location: computeLocation(),
-    );
+ConstExpression intLiteral(int value) =>
+    new IntLiteral(value, location: computeLocation());
 
 /// Creates a list literal containing the given [elements].
 ///
@@ -667,6 +672,15 @@ Pattern wildcard({String? type, String? expectInferredType}) {
   );
 }
 
+Statement yield_(ProtoExpression operand, {bool isYieldStar = false}) {
+  var location = computeLocation();
+  return new YieldStatement._(
+    operand.asExpression(location: location),
+    isYieldStar: isYieldStar,
+    location: location,
+  );
+}
+
 typedef SharedMatchContext =
     shared.MatchContext<Node, Expression, Pattern, Var>;
 
@@ -709,7 +723,7 @@ class Assert extends Statement {
       'assert($condition${message == null ? '' : ', $message'});';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeAssertStatement(this, condition, message);
     h.irBuilder.apply(
       'assert',
@@ -717,6 +731,33 @@ class Assert extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
+  }
+}
+
+class AwaitExpression extends Expression {
+  final Expression operand;
+
+  AwaitExpression._(this.operand, {required super.location});
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    operand.preVisit(visitor);
+  }
+
+  @override
+  String toString() => 'await $operand';
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    var result = h.typeAnalyzer.analyzeAwaitExpression(operand, schema);
+    h.irBuilder.apply(
+      'awaitExpr',
+      [Kind.expression],
+      Kind.expression,
+      location: location,
+    );
+    return result;
   }
 }
 
@@ -740,7 +781,7 @@ class Block extends Statement {
       statements.isEmpty ? '{}' : '{ ${statements.join(' ')} }';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeBlock(statements);
     h.irBuilder.apply(
       'block',
@@ -748,7 +789,21 @@ class Block extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
+}
+
+class BodyContext implements SharedBodyInferenceContext {
+  @override
+  final bool isAsync;
+
+  final Type yieldContext;
+
+  BodyContext({required this.isAsync, required this.yieldContext});
+
+  @override
+  SharedTypeSchemaView get sharedYieldContext =>
+      yieldContext.wrapSharedTypeSchemaView();
 }
 
 class BooleanLiteral extends Expression {
@@ -812,7 +867,7 @@ class Break extends Statement {
   String toString() => 'break;';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     var target = this.target;
     h.typeAnalyzer.analyzeBreakStatement(
       target == null
@@ -820,6 +875,7 @@ class Break extends Statement {
           : target._getBinding(),
     );
     h.irBuilder.apply('break', [], Kind.statement, location: location);
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1356,7 +1412,7 @@ class Continue extends Statement {
   String toString() => 'continue;';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     var target = this.target;
     h.typeAnalyzer.analyzeContinueStatement(
       target == null
@@ -1364,6 +1420,7 @@ class Continue extends Statement {
           : target._getBinding(),
     );
     h.irBuilder.apply('continue', [], Kind.statement, location: location);
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1385,7 +1442,7 @@ class Do extends Statement {
   String toString() => 'do $body while ($condition);';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeDoLoop(this, body, condition);
     h.irBuilder.apply(
       'do',
@@ -1393,6 +1450,7 @@ class Do extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1479,6 +1537,12 @@ abstract class Expression extends Node
         ProtoStatement<Expression>,
         ProtoCollectionElement<Expression>,
         ProtoExpression {
+  /// If non-null, an auxiliary checker function that will be invoked, and
+  /// passed the return value from [TypeAnalyzer.dispatchExpression], when this
+  /// expression is analyzed.
+  void Function(ExpressionTypeAnalysisResult)?
+  _checkExpressionTypeAnalysisResult;
+
   /// If non-null, the expected IR that should be produced when this expression
   /// is analyzed.
   String? _expectedIR;
@@ -1585,7 +1649,7 @@ class ExpressionInTypeSchema extends Statement {
   String toString() => '$expr (in type schema $typeSchema);';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeExpression(expr, typeSchema);
     h.irBuilder.apply(
       'stmt',
@@ -1593,6 +1657,7 @@ class ExpressionInTypeSchema extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1610,7 +1675,7 @@ class ExpressionStatement extends Statement {
   String toString() => '$expr;';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeExpressionStatement(expr);
     h.irBuilder.apply(
       'stmt',
@@ -1618,6 +1683,7 @@ class ExpressionStatement extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1668,7 +1734,7 @@ class For extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     if (initializer != null) {
       h.typeAnalyzer.dispatchStatement(initializer!);
     } else {
@@ -1702,6 +1768,7 @@ class For extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -1748,7 +1815,7 @@ class ForEach extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     var iteratedType = h._getIteratedType(
       h.typeAnalyzer
           .analyzeExpression(iterable, h.operations.unknownType)
@@ -1768,6 +1835,7 @@ class ForEach extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -2041,6 +2109,7 @@ class Harness {
     List<ProtoStatement> statements, {
     bool errorRecoveryOK = false,
     Set<String> expectedErrors = const {},
+    BodyContext? bodyContext,
   }) {
     try {
       _started = true;
@@ -2052,6 +2121,9 @@ class Harness {
         visitor._assignedVariables,
         typeAnalyzerOptions: computeTypeAnalyzerOptions(),
       );
+      typeAnalyzer.bodyContext =
+          bodyContext ??
+          BodyContext(isAsync: false, yieldContext: const UnknownType());
       typeAnalyzer.dispatchStatement(b);
       typeAnalyzer.finish();
       expect(typeAnalyzer.errors._accumulatedErrors, expectedErrors);
@@ -2100,7 +2172,7 @@ class If extends IfBase {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeIfStatement(this, condition, ifTrue, ifFalse);
     h.irBuilder.apply(
       'if',
@@ -2108,6 +2180,7 @@ class If extends IfBase {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -2168,7 +2241,7 @@ class IfCase extends IfBase {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeIfCaseStatement(
       this,
       expression,
@@ -2191,6 +2264,7 @@ class IfCase extends IfBase {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -2342,15 +2416,7 @@ class IfNull extends Expression {
 class IntLiteral extends ConstExpression {
   final int value;
 
-  /// `true` or `false` if we should assert that int->double conversion either
-  /// does, or does not, happen.  `null` if no assertion should be done.
-  final bool? expectConversionToDouble;
-
-  IntLiteral(
-    this.value, {
-    this.expectConversionToDouble,
-    required super.location,
-  }) : super._();
+  IntLiteral(this.value, {required super.location}) : super._();
 
   @override
   void preVisit(PreVisitor visitor) {}
@@ -2361,15 +2427,75 @@ class IntLiteral extends ConstExpression {
   @override
   ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
     var result = h.typeAnalyzer.analyzeIntLiteral(schema);
-    if (expectConversionToDouble != null) {
-      expect(result.convertedToDouble, expectConversionToDouble);
-    }
     h.irBuilder.atom(
       result.convertedToDouble ? '${value.toDouble()}f' : '$value',
       Kind.expression,
       location: location,
     );
     return result;
+  }
+}
+
+/// Representation of an anonymous method invocation in the pseudo-Dart language
+/// used for flow analysis testing.
+class InvokeAnonymousMethod extends Expression {
+  /// The expression before the `.`.
+  final Expression target;
+
+  /// The body of the anonymous method.
+  final Block body;
+
+  /// The return type of the anonymous method.
+  ///
+  /// This must be supplied by the test because the mini-AST framework doesn't
+  /// support type inference.
+  final Type returnType;
+
+  final bool isNullAware;
+
+  InvokeAnonymousMethod._(
+    this.target,
+    this.body, {
+    required this.returnType,
+    required this.isNullAware,
+    required super.location,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    target.preVisit(visitor);
+    body.preVisit(visitor);
+  }
+
+  @override
+  String toString() {
+    var q = isNullAware ? '?' : '';
+    return '$target$q.$body';
+  }
+
+  @override
+  ExpressionTypeAnalysisResult visit(Harness h, SharedTypeSchemaView schema) {
+    // Analyze the target, and generate its IR.
+    var targetResult = h.typeAnalyzer.analyzeExpression(
+      target,
+      h.operations.unknownType,
+      continueNullShorting: true,
+    );
+    if (isNullAware) {
+      targetResult = h.typeAnalyzer.createNullAwareGuard(target, targetResult);
+    }
+    h.flow.anonymousBlockBody_begin();
+    // Analyze the block, and generate its IR.
+    body.visit(h);
+    h.flow.anonymousBlockBody_end();
+    // Form the IR for the anonymous method invocation.
+    h.irBuilder.apply(
+      'anonymous-method',
+      [Kind.expression, Kind.statement],
+      Kind.expression,
+      location: location,
+    );
+    return new ExpressionTypeAnalysisResult(type: SharedTypeView(returnType));
   }
 }
 
@@ -2478,8 +2604,9 @@ class LabeledStatement extends Statement {
   String toString() => [...labels, body].join(': ');
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeLabeledStatement(this, body);
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -3205,6 +3332,54 @@ class MiniAstOperations
         what.unwrapTypeView<Type>(),
       ),
     );
+  }
+
+  @override
+  SharedTypeView flatten(SharedTypeView type) {
+    // (Note: comments below are pulled from the definition of the "flatten"
+    // function in the "Function Expressions" section of the language  spec.)
+
+    // We define the auxiliary function flatten(T) as follows, using the first
+    // applicable case:
+    var t = type.unwrapTypeView<Type>();
+
+    // - If T is X & S for some type variable X and type S then
+    if (t case TypeParameterType(:var typeParameter, promotion: var s?)) {
+      //   - If S derives a future type U then flatten(T) ≜ flatten(U).
+      if (_typeSystem.derivedFutureType(s) case var u?) {
+        return flatten(u.wrapSharedTypeView());
+      }
+
+      //   - otherwise, flatten(T) ≜ flatten(X)
+      return flatten(TypeParameterType(typeParameter).wrapSharedTypeView());
+    }
+
+    // - If T derives a future type Future<S> or FutureOr<S> then
+    //   flatten(T) ≜ S.
+    // - If T derives a future type Future<S>? or FutureOr<S>? then
+    //   flatten(T) ≜ S?.
+    if (_typeSystem.derivedFutureType(t) case var f?) {
+      var s = switch (f) {
+        PrimaryType(nameInfo: TypeNameInfo(name: 'Future'), args: [var s]) ||
+        FutureOrType(typeArgument: var s) => s,
+        _ => fail(
+          'Derived future type should always be Future<...> or FutureOr<...>',
+        ),
+      };
+      if (f.isQuestionType) {
+        return s.asQuestionType(true).wrapSharedTypeView();
+      } else {
+        return s.wrapSharedTypeView();
+      }
+    }
+
+    // - Otherwise, flatten(T) ≜ T.
+    return t.wrapSharedTypeView();
+  }
+
+  @override
+  Type futureOrTypeInternal(Type argumentType) {
+    return FutureOrType(argumentType);
   }
 
   @override
@@ -4116,7 +4291,7 @@ class PatternForIn extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzePatternForIn(
       node: this,
       hasAwait: hasAwait,
@@ -4132,6 +4307,7 @@ class PatternForIn extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -4217,7 +4393,7 @@ class PatternVariableDeclaration extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzePatternVariableDeclaration(
       this,
       pattern,
@@ -4230,6 +4406,7 @@ class PatternVariableDeclaration extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -4709,6 +4886,17 @@ mixin ProtoExpression
     );
   }
 
+  /// Wraps `this` in such a way that, when the test is run, it will call
+  /// [checker], passing it the [ExpressionTypeAnalysisResult] returned by
+  /// [TypeAnalyzer.dispatchExpression].
+  Expression checkExpressionTypeAnalysisResult(
+    void Function(ExpressionTypeAnalysisResult) checker,
+  ) {
+    var location = computeLocation();
+    return asExpression(location: location)
+      .._checkExpressionTypeAnalysisResult = checker;
+  }
+
   /// Wraps `this` in such a way that, when the test is run, it will verify that
   /// the IR produced matches [expectedIR].
   @override
@@ -4773,6 +4961,23 @@ mixin ProtoExpression
     return ExpressionInTypeSchema._(
       asExpression(location: location),
       SharedTypeSchemaView(Type(typeSchema)),
+      location: location,
+    );
+  }
+
+  /// If `this` is an expression `x`, creates the block-bodied anonymous method
+  /// invocation `x.{ ... }`.
+  Expression invokeAnonymousMethod(
+    List<ProtoStatement> body, {
+    required String returnType,
+    bool isNullAware = false,
+  }) {
+    var location = computeLocation();
+    return new InvokeAnonymousMethod._(
+      asExpression(location: location),
+      Block._(body, location: location),
+      returnType: Type(returnType),
+      isNullAware: isNullAware,
       location: location,
     );
   }
@@ -4891,6 +5096,17 @@ mixin ProtoStatement<Self extends ProtoStatement<dynamic>> {
   /// Wraps `this` in such a way that, when the test is run, it will verify that
   /// the IR produced matches [expectedIR].
   Self checkIR(String expectedIR);
+
+  /// Wraps `this` in such a way that, when the test is run, it will call
+  /// [checker], passing it the [StatementTypeAnalysisResult] returned by the
+  /// [TypeAnalyzer] `analyze` method.
+  Statement checkStatementTypeAnalysisResult(
+    void Function(StatementTypeAnalysisResult) checker,
+  ) {
+    var location = computeLocation();
+    return asStatement(location: location)
+      .._checkStatementTypeAnalysisResult = checker;
+  }
 }
 
 /// Common interface shared by constructs that can be used where a switch head
@@ -5066,9 +5282,10 @@ class Return extends Statement {
   String toString() => 'return;';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeReturnStatement();
     h.irBuilder.apply('return', [], Kind.statement, location: location);
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -5107,6 +5324,11 @@ class Second extends Expression {
 /// Representation of a statement in the pseudo-Dart language used for flow
 /// analysis testing.
 abstract class Statement extends Node with ProtoStatement<Statement> {
+  /// If non-null, an auxiliary checker function that will be invoked, and
+  /// passed the return value from the [TypeAnalyzer] analyze method when this
+  /// statement is analyzed.
+  void Function(StatementTypeAnalysisResult)? _checkStatementTypeAnalysisResult;
+
   /// If non-null, the expected IR that should be produced when this statement
   /// is analyzed.
   String? _expectedIR;
@@ -5124,7 +5346,7 @@ abstract class Statement extends Node with ProtoStatement<Statement> {
 
   void preVisit(PreVisitor visitor);
 
-  void visit(Harness h);
+  StatementTypeAnalysisResult visit(Harness h);
 }
 
 class SwitchExpression extends Expression {
@@ -5265,7 +5487,7 @@ class SwitchStatement extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     bool needsLegacyExhaustive = !h.patternsEnabled;
     if (!needsLegacyExhaustive && isLegacyExhaustive != null) {
       fail('isLegacyExhaustive should not be specified at $location');
@@ -5303,6 +5525,7 @@ class SwitchStatement extends Statement {
     );
     h.typeAnalyzer._currentBreakTarget = previousBreakTarget;
     h.typeAnalyzer._currentContinueTarget = previousContinueTarget;
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -5569,7 +5792,7 @@ class TryStatementImpl extends TryStatement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeTryStatement(this, body, catches, finallyStatement);
     h.irBuilder.apply(
       'try',
@@ -5581,6 +5804,7 @@ class TryStatementImpl extends TryStatement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -5762,7 +5986,7 @@ class VariableDeclaration extends Statement {
   }
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     String irName;
     List<Kind> argKinds;
     List<String> names = const [];
@@ -5830,6 +6054,7 @@ class VariableDeclaration extends Statement {
       location: location,
       names: names,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -6000,7 +6225,7 @@ class While extends Statement {
   String toString() => 'while ($condition) $body';
 
   @override
-  void visit(Harness h) {
+  StatementTypeAnalysisResult visit(Harness h) {
     h.typeAnalyzer.analyzeWhileLoop(this, condition, body);
     h.irBuilder.apply(
       'while',
@@ -6008,6 +6233,7 @@ class While extends Statement {
       Kind.statement,
       location: location,
     );
+    return const StatementTypeAnalysisResult();
   }
 }
 
@@ -6171,6 +6397,43 @@ class Write extends Expression {
       type: SharedTypeView(rhsAnalysisResult.type.unwrapTypeView()),
       flowAnalysisInfo: flowAnalysisInfo,
     );
+  }
+}
+
+class YieldStatement extends Statement {
+  final Expression operand;
+  final bool isYieldStar;
+
+  YieldStatement._(
+    this.operand, {
+    required this.isYieldStar,
+    required super.location,
+  });
+
+  @override
+  void preVisit(PreVisitor visitor) {
+    operand.preVisit(visitor);
+  }
+
+  @override
+  String toString() {
+    var star = isYieldStar ? '*' : '';
+    return 'yield$star $operand';
+  }
+
+  @override
+  StatementTypeAnalysisResult visit(Harness h) {
+    var result = h.typeAnalyzer.analyzeYieldStatement(
+      operand,
+      isYieldStar: isYieldStar,
+    );
+    h.irBuilder.apply(
+      'yieldStmt',
+      [Kind.expression],
+      Kind.statement,
+      location: location,
+    );
+    return result;
   }
 }
 
@@ -6496,6 +6759,9 @@ class _MiniAstTypeAnalyzer
   /// (promoted to non-nullable, if it's a null-aware cascade), or `null` if no
   /// cascade expression is currently being visited.
   SharedTypeView? _currentCascadeTargetType;
+
+  @override
+  BodyContext? bodyContext;
 
   _MiniAstTypeAnalyzer(this._harness, this.typeAnalyzerOptions);
 
@@ -6854,7 +7120,7 @@ class _MiniAstTypeAnalyzer
   }
 
   void analyzeReturnStatement() {
-    flow.handleExit();
+    flow.handleReturn();
   }
 
   ExpressionTypeAnalysisResult analyzeThis(Expression node) {
@@ -7038,8 +7304,9 @@ class _MiniAstTypeAnalyzer
   @override
   ExpressionTypeAnalysisResult dispatchExpression(
     Expression expression,
-    SharedTypeSchemaView schema,
-  ) {
+    SharedTypeSchemaView schema, {
+    bool isVoidAllowed = false,
+  }) {
     if (expression._expectedSchema case var expectedSchema?) {
       expect(schema.unwrapTypeSchemaView<Type>().type, expectedSchema);
     }
@@ -7047,6 +7314,7 @@ class _MiniAstTypeAnalyzer
       expression,
       () => expression.visit(_harness, schema),
     );
+    expression._checkExpressionTypeAnalysisResult?.call(result);
     if (expression._expectedType case var expectedType?) {
       expect(
         result.type.unwrapTypeView<Type>().type,
@@ -7078,8 +7346,9 @@ class _MiniAstTypeAnalyzer
   }
 
   @override
-  void dispatchStatement(Statement statement) {
-    _irBuilder.guard(statement, () => statement.visit(_harness));
+  StatementTypeAnalysisResult dispatchStatement(Statement statement) {
+    var result = _irBuilder.guard(statement, () => statement.visit(_harness));
+    statement._checkStatementTypeAnalysisResult?.call(result);
     if (statement._expectedIR case var expectedIR?) {
       _irBuilder.check(
         expectedIR,
@@ -7087,6 +7356,7 @@ class _MiniAstTypeAnalyzer
         location: statement.location,
       );
     }
+    return result;
   }
 
   @override

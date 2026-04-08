@@ -289,7 +289,7 @@ extension DartTypeExtension on DartType? {
 
   /// Whether this [DartType] extends [className], declared in [library].
   bool extendsClass(String? className, String library) {
-    var self = this;
+    var self = this?.typeForInterfaceCheck;
     return self is InterfaceType &&
         _extendsClass(self, <InterfaceElement>{}, className, library);
   }
@@ -649,6 +649,15 @@ extension MethodDeclarationExtension on MethodDeclaration {
     }
     return null;
   }
+}
+
+extension NullableObjectExtension on Object? {
+  /// If the target is [T], return it, otherwise `null`.
+  // TODO(scheglov): consider using the same method from the analyzer.
+  T? tryCast<T>() => switch (this) {
+    T value => value,
+    _ => null,
+  };
 }
 
 extension SetterElementExtension on SetterElement {

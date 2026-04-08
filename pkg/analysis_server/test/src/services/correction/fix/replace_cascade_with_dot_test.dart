@@ -4,7 +4,6 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -12,7 +11,6 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ReplaceCascadeWithDotTest);
-    defineReflectiveTests(ReplaceCascadeWithDotWithNullSafetyTest);
   });
 }
 
@@ -34,6 +32,19 @@ void f(List<int> l) {
     await assertHasFix('''
 void f(List<int> l) {
   l[0] = 0;
+}
+''');
+  }
+
+  Future<void> test_assignment_index_nullAwareCascade() async {
+    await resolveTestCode('''
+void f(List<int>? l) {
+  l?..[0] = 0;
+}
+''');
+    await assertHasFix('''
+void f(List<int>? l) {
+  l?[0] = 0;
 }
 ''');
   }
@@ -79,6 +90,25 @@ class C {
 ''');
   }
 
+  Future<void> test_assignment_property_nullAwareCascade() async {
+    await resolveTestCode('''
+void f(C? c) {
+  c?..s = 0;
+}
+class C {
+  set s(int i) {}
+}
+''');
+    await assertHasFix('''
+void f(C? c) {
+  c?.s = 0;
+}
+class C {
+  set s(int i) {}
+}
+''');
+  }
+
   Future<void> test_extensionCascade() async {
     await resolveTestCode('''
 extension E on int {
@@ -116,68 +146,6 @@ void f(String s) {
 ''');
   }
 
-  Future<void> test_index_normalCascade() async {
-    await resolveTestCode('''
-void f(String s) {
-  s..[0];
-}
-''');
-    await assertHasFix('''
-void f(String s) {
-  s[0];
-}
-''');
-  }
-
-  Future<void> test_method_normalCascade() async {
-    await resolveTestCode('''
-void f(String s) {
-  s..substring(0, 3);
-}
-''');
-    await assertHasFix('''
-void f(String s) {
-  s.substring(0, 3);
-}
-''');
-  }
-}
-
-@reflectiveTest
-class ReplaceCascadeWithDotWithNullSafetyTest extends ReplaceCascadeWithDotTest
-    with WithNullSafetyLintMixin {
-  Future<void> test_assignment_index_nullAwareCascade() async {
-    await resolveTestCode('''
-void f(List<int>? l) {
-  l?..[0] = 0;
-}
-''');
-    await assertHasFix('''
-void f(List<int>? l) {
-  l?[0] = 0;
-}
-''');
-  }
-
-  Future<void> test_assignment_property_nullAwareCascade() async {
-    await resolveTestCode('''
-void f(C? c) {
-  c?..s = 0;
-}
-class C {
-  set s(int i) {}
-}
-''');
-    await assertHasFix('''
-void f(C? c) {
-  c?.s = 0;
-}
-class C {
-  set s(int i) {}
-}
-''');
-  }
-
   Future<void> test_getter_nullAwareCascade() async {
     await resolveTestCode('''
 void f(String? s) {
@@ -191,6 +159,19 @@ void f(String? s) {
 ''');
   }
 
+  Future<void> test_index_normalCascade() async {
+    await resolveTestCode('''
+void f(String s) {
+  s..[0];
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  s[0];
+}
+''');
+  }
+
   Future<void> test_index_nullAwareCascade() async {
     await resolveTestCode('''
 void f(String? s) {
@@ -200,6 +181,19 @@ void f(String? s) {
     await assertHasFix('''
 void f(String? s) {
   s?[0];
+}
+''');
+  }
+
+  Future<void> test_method_normalCascade() async {
+    await resolveTestCode('''
+void f(String s) {
+  s..substring(0, 3);
+}
+''');
+    await assertHasFix('''
+void f(String s) {
+  s.substring(0, 3);
 }
 ''');
   }

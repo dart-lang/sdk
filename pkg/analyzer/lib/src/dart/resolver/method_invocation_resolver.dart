@@ -6,6 +6,7 @@ import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart' show Token;
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -683,7 +684,32 @@ class MethodInvocationResolver with ScopeHelpers {
   }) {
     _setExplicitTypeArgumentTypes();
 
-    if (receiverType == NeverTypeImpl.instanceNullable) {
+    void resolveUnreachableInvocation({
+      required TypeImpl resultType,
+      bool reportReceiverOfTypeNever = false,
+    }) {
+      MethodInvocationInferrer(
+        resolver: _resolver,
+        node: node,
+        argumentList: node.argumentList,
+        contextType: contextType,
+        whyNotPromotedArguments: whyNotPromotedArguments,
+        target: null,
+      ).resolveInvocation();
+
+      if (reportReceiverOfTypeNever) {
+        _resolver.diagnosticReporter.report(
+          diag.receiverOfTypeNever.at(receiver),
+        );
+      }
+
+      node.methodName.setPseudoExpressionStaticType(_dynamicType);
+      node.staticInvokeType = _dynamicType;
+      node.recordStaticType(resultType, resolver: _resolver);
+    }
+
+    if (receiverType is NeverTypeImpl &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.question) {
       var methodName = node.methodName;
       var objectElement = _resolver.typeProvider.objectElement;
       var objectMember = objectElement.getMethod(methodName.name);
@@ -695,6 +721,11 @@ class MethodInvocationResolver with ScopeHelpers {
           whyNotPromotedArguments,
           contextType: contextType,
           target: InvocationTargetExecutableElement(objectMember),
+        );
+        return;
+      } else if (node.isNullAware) {
+        resolveUnreachableInvocation(
+          resultType: NeverTypeImpl.instanceNullable,
         );
         return;
       } else {
@@ -711,23 +742,12 @@ class MethodInvocationResolver with ScopeHelpers {
       }
     }
 
-    if (receiverType == NeverTypeImpl.instance) {
-      MethodInvocationInferrer(
-        resolver: _resolver,
-        node: node,
-        argumentList: node.argumentList,
-        contextType: contextType,
-        whyNotPromotedArguments: whyNotPromotedArguments,
-        target: null,
-      ).resolveInvocation();
-
-      _resolver.diagnosticReporter.report(
-        diag.receiverOfTypeNever.at(receiver),
+    if (receiverType is NeverTypeImpl &&
+        receiverType.nullabilitySuffix == NullabilitySuffix.none) {
+      resolveUnreachableInvocation(
+        resultType: NeverTypeImpl.instance,
+        reportReceiverOfTypeNever: true,
       );
-
-      node.methodName.setPseudoExpressionStaticType(_dynamicType);
-      node.staticInvokeType = _dynamicType;
-      node.recordStaticType(NeverTypeImpl.instance, resolver: _resolver);
     }
   }
 

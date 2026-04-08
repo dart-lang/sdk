@@ -227,7 +227,7 @@ class Tag {
   /// Internal version of kernel binary format.
   /// Bump it when making incompatible changes in kernel binaries.
   /// Keep in sync with runtime/vm/kernel_binary.h, pkg/kernel/binary.md.
-  static const int BinaryFormatVersion = 129;
+  static const int BinaryFormatVersion = 130;
 }
 
 abstract class ConstantTag {
@@ -262,8 +262,10 @@ const String sdkHashNull = '0000000000';
 // If null, local development setting (e.g. run gen_kernel.dart from source),
 // we put 0x00..00 into when producing, do not validate when consuming.
 String get expectedSdkHash {
-  final String sdkHash =
-      const String.fromEnvironment('sdk_hash', defaultValue: sdkHashNull);
+  final String sdkHash = const String.fromEnvironment(
+    'sdk_hash',
+    defaultValue: sdkHashNull,
+  );
   if (sdkHash.length != sdkHashLength) {
     throw '-Dsdk_hash=<hash> must be a ${sdkHashLength} byte string!';
   }

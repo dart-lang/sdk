@@ -40,7 +40,12 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitBlockClassBody(BlockClassBody node) {
-    node.members.accept(this);
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitBlockEnumBody(BlockEnumBody node) {
+    node.visitChildren(this);
   }
 
   @override
@@ -87,6 +92,9 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
+  void visitEmptyEnumBody(EmptyEnumBody node) {}
+
+  @override
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     node.metadata.accept(this);
   }
@@ -102,8 +110,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
           .tryCast<PrimaryConstructorDeclaration>()
           ?.formalParameters
           .accept(this);
-      node.body.constants.accept(this);
-      node.body.members.accept(this);
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -126,7 +133,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
     _scope = node.bodyScope!;
     try {
-      node.body.members.accept(this);
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }
@@ -230,7 +237,7 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
     _scope = node.bodyScope!;
     try {
-      node.body.members.accept(this);
+      node.body.accept(this);
     } finally {
       _scope = _containerScope;
     }

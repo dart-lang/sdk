@@ -14,12 +14,16 @@ void main() {
   Component component2 = createComponent(43);
 
   expectReachable(
-      findAllReferencedLibraries(component1.libraries), component1.libraries);
+    findAllReferencedLibraries(component1.libraries),
+    component1.libraries,
+  );
   if (duplicateLibrariesReachable(component1.libraries)) {
     throw "Didn't expect duplicates libraries!";
   }
   expectReachable(
-      findAllReferencedLibraries(component2.libraries), component2.libraries);
+    findAllReferencedLibraries(component2.libraries),
+    component2.libraries,
+  );
   if (duplicateLibrariesReachable(component2.libraries)) {
     throw "Didn't expect duplicates libraries!";
   }
@@ -37,8 +41,10 @@ void main() {
   Procedure target1 = getMainTarget(component1Prime);
   Procedure procedureLib1 = getLibProcedure(component1Prime);
   if (target1 != procedureLib1) throw "Unexpected target.";
-  expectReachable(findAllReferencedLibraries(component1Prime.libraries),
-      component1Prime.libraries);
+  expectReachable(
+    findAllReferencedLibraries(component1Prime.libraries),
+    component1Prime.libraries,
+  );
   if (duplicateLibrariesReachable(component1Prime.libraries)) {
     throw "Didn't expect duplicates libraries!";
   }
@@ -47,14 +53,18 @@ void main() {
   // for this component: It gives a component that is linked to itself that is
   // different from the one loaded "on top of".
   Component component2Prime = new Component(nameRoot: component1Prime.root);
-  new BinaryBuilder(writtenBytes2, alwaysCreateNewNamedNodes: true)
-      .readSingleFileComponent(component2Prime);
+  new BinaryBuilder(
+    writtenBytes2,
+    alwaysCreateNewNamedNodes: true,
+  ).readSingleFileComponent(component2Prime);
   Procedure target2 = getMainTarget(component2Prime);
   Procedure procedureLib2 = getLibProcedure(component2Prime);
   if (procedureLib2 == procedureLib1) throw "Unexpected procedure.";
   if (target2 != procedureLib2) throw "Unexpected target.";
-  expectReachable(findAllReferencedLibraries(component2Prime.libraries),
-      component2Prime.libraries);
+  expectReachable(
+    findAllReferencedLibraries(component2Prime.libraries),
+    component2Prime.libraries,
+  );
   if (duplicateLibrariesReachable(component2Prime.libraries)) {
     throw "Didn't expect duplicates libraries!";
   }
@@ -68,10 +78,11 @@ void main() {
   for (int i = 0; i < 6; i++) {
     // Before the relink the lib from component2Prime is also reachable!
     expectReachable(
-        findAllReferencedLibraries(component1Prime.libraries),
-        []
-          ..addAll(component1Prime.libraries)
-          ..add(procedureLib2.enclosingLibrary));
+      findAllReferencedLibraries(component1Prime.libraries),
+      []
+        ..addAll(component1Prime.libraries)
+        ..add(procedureLib2.enclosingLibrary),
+    );
     if (!duplicateLibrariesReachable(component1Prime.libraries)) {
       throw "Expected duplicates libraries!";
     }
@@ -80,12 +91,17 @@ void main() {
     // main now points to procedureLib1.
     component1Prime.relink();
     // After the relink only the libs from component1Prime are reachable!
-    expectReachable(findAllReferencedLibraries(component1Prime.libraries),
-        component1Prime.libraries);
     expectReachable(
-        findAllReferencedLibraries(component1Prime.libraries,
-            collectViaReferencesToo: true),
-        component1Prime.libraries);
+      findAllReferencedLibraries(component1Prime.libraries),
+      component1Prime.libraries,
+    );
+    expectReachable(
+      findAllReferencedLibraries(
+        component1Prime.libraries,
+        collectViaReferencesToo: true,
+      ),
+      component1Prime.libraries,
+    );
     if (duplicateLibrariesReachable(component1Prime.libraries)) {
       throw "Didn't expect duplicates libraries!";
     }
@@ -96,10 +112,11 @@ void main() {
 
     // Before the relink the lib from component1Prime is also reachable!
     expectReachable(
-        findAllReferencedLibraries(component2Prime.libraries),
-        []
-          ..addAll(component2Prime.libraries)
-          ..add(procedureLib1.enclosingLibrary));
+      findAllReferencedLibraries(component2Prime.libraries),
+      []
+        ..addAll(component2Prime.libraries)
+        ..add(procedureLib1.enclosingLibrary),
+    );
     if (!duplicateLibrariesReachable(component2Prime.libraries)) {
       throw "Expected duplicates libraries!";
     }
@@ -107,12 +124,17 @@ void main() {
     // main now points to procedureLib2.
     component2Prime.relink();
     // After the relink only the libs from component1Prime are reachable!
-    expectReachable(findAllReferencedLibraries(component2Prime.libraries),
-        component2Prime.libraries);
     expectReachable(
-        findAllReferencedLibraries(component2Prime.libraries,
-            collectViaReferencesToo: true),
-        component2Prime.libraries);
+      findAllReferencedLibraries(component2Prime.libraries),
+      component2Prime.libraries,
+    );
+    expectReachable(
+      findAllReferencedLibraries(
+        component2Prime.libraries,
+        collectViaReferencesToo: true,
+      ),
+      component2Prime.libraries,
+    );
     if (duplicateLibrariesReachable(component2Prime.libraries)) {
       throw "Didn't expect duplicates libraries!";
     }
@@ -124,7 +146,9 @@ void main() {
 }
 
 void expectReachable(
-    Set<Library> findAllReferencedLibraries, List<Library> libraries) {
+  Set<Library> findAllReferencedLibraries,
+  List<Library> libraries,
+) {
   Set<Library> onlyInReferenced = findAllReferencedLibraries.toSet()
     ..removeAll(libraries);
   Set<Library> onlyInLibraries = libraries.toSet()
@@ -161,27 +185,30 @@ Procedure getMainTarget(Component component1Prime) {
 Component createComponent(int literal) {
   final Uri libUri = Uri.parse('org-dartlang:///lib.dart');
   final Library lib = new Library(libUri, fileUri: libUri);
-  final Block libProcedureBody =
-      new Block([new ReturnStatement(new IntLiteral(literal))]);
+  final Block libProcedureBody = new Block([
+    new ReturnStatement(new IntLiteral(literal)),
+  ]);
   final Procedure libProcedure = new Procedure(
-      new Name("method"),
-      ProcedureKind.Method,
-      new FunctionNode(libProcedureBody, returnType: new DynamicType()),
-      fileUri: libUri);
+    new Name("method"),
+    ProcedureKind.Method,
+    new FunctionNode(libProcedureBody, returnType: new DynamicType()),
+    fileUri: libUri,
+  );
   lib.addProcedure(libProcedure);
 
   ExtensionTypeDeclaration extensionTypeDeclaration =
       new ExtensionTypeDeclaration(name: "Foo", fileUri: libUri);
   extensionTypeDeclaration.declaredRepresentationType = DynamicType();
   extensionTypeDeclaration.representationName = "extensionTypeMethod";
-  final Block extensionTypeProcedureBody =
-      new Block([new ReturnStatement(new IntLiteral(literal))]);
+  final Block extensionTypeProcedureBody = new Block([
+    new ReturnStatement(new IntLiteral(literal)),
+  ]);
   final Procedure extensionTypeProcedure = new Procedure(
-      new Name("extensionTypeMethod"),
-      ProcedureKind.Method,
-      new FunctionNode(extensionTypeProcedureBody,
-          returnType: new DynamicType()),
-      fileUri: libUri);
+    new Name("extensionTypeMethod"),
+    ProcedureKind.Method,
+    new FunctionNode(extensionTypeProcedureBody, returnType: new DynamicType()),
+    fileUri: libUri,
+  );
   extensionTypeDeclaration.addProcedure(extensionTypeProcedure);
   lib.addExtensionTypeDeclaration(extensionTypeDeclaration);
 
@@ -189,13 +216,15 @@ Component createComponent(int literal) {
   final Library main = new Library(mainUri, fileUri: mainUri);
   final Block mainProcedureBody = new Block([
     new ReturnStatement(
-        new StaticInvocation(libProcedure, new Arguments.empty()))
+      new StaticInvocation(libProcedure, new Arguments.empty()),
+    ),
   ]);
   final Procedure mainProcedure = new Procedure(
-      new Name("method"),
-      ProcedureKind.Method,
-      new FunctionNode(mainProcedureBody, returnType: new DynamicType()),
-      fileUri: mainUri);
+    new Name("method"),
+    ProcedureKind.Method,
+    new FunctionNode(mainProcedureBody, returnType: new DynamicType()),
+    fileUri: mainUri,
+  );
   main.addProcedure(mainProcedure);
   return new Component(libraries: [main, lib])
     ..setMainMethodAndMode(null, false);

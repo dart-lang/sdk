@@ -21,7 +21,7 @@ Future runGuarded(
 }) {
   PrintHandler? printWrapper;
   if (printLineOnStdout != null) {
-    printWrapper = (_, __, ___, String line) {
+    printWrapper = (_, _, _, String line) {
       printLineOnStdout(line);
     };
   }

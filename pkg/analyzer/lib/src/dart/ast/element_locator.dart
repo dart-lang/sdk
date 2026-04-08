@@ -107,6 +107,15 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
   }
 
   @override
+  Element? visitDottedName(DottedName node) {
+    var parent = node.parent;
+    if (parent is LibraryDirective) {
+      return parent.element;
+    }
+    return null;
+  }
+
+  @override
   Element? visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     return node.declaredFragment?.element;
   }
@@ -187,7 +196,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
           return parent3.constructorElement;
         }
       }
-    } else if (parent is LibraryIdentifier) {
+    } else if (parent is DottedName) {
       var grandParent = parent.parent;
       if (grandParent is LibraryDirective) {
         return grandParent.element;
@@ -263,7 +272,7 @@ class _ElementMapper2 extends GeneralizingAstVisitor<Element> {
 
   @override
   Element? visitPartOfDirective(PartOfDirective node) {
-    return node.libraryName?.element;
+    return null;
   }
 
   @override

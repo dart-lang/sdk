@@ -42,9 +42,7 @@ class SubtypeHelper {
       return true;
     }
 
-    // `InvalidType` is treated as a top and a bottom type.
-    if (identical(T0, InvalidTypeImpl.instance) ||
-        identical(T1, InvalidTypeImpl.instance)) {
+    if (T0 is InvalidTypeImpl || T1 is InvalidTypeImpl) {
       return true;
     }
 
@@ -53,25 +51,23 @@ class SubtypeHelper {
 
     // Right Top: if `T1` is a top type (i.e. `dynamic`, or `void`, or
     // `Object?`) then `T0 <: T1`.
-    if (identical(T1, DynamicTypeImpl.instance) ||
-        identical(T1, InvalidTypeImpl.instance) ||
-        identical(T1, VoidTypeImpl.instance) ||
+    if (T1 is DynamicTypeImpl ||
+        T1 is InvalidTypeImpl ||
+        T1 is VoidTypeImpl ||
         T1_nullability == NullabilitySuffix.question && T1.isDartCoreObject) {
       return true;
     }
 
     // Left Top: if `T0` is `dynamic` or `void`,
     //   then `T0 <: T1` if `Object? <: T1`.
-    if (identical(T0, DynamicTypeImpl.instance) ||
-        identical(T0, InvalidTypeImpl.instance) ||
-        identical(T0, VoidTypeImpl.instance)) {
+    if (T0 is DynamicTypeImpl || T0 is InvalidTypeImpl || T0 is VoidTypeImpl) {
       if (isSubtypeOf(_objectQuestion, T1)) {
         return true;
       }
     }
 
     // Left Bottom: if `T0` is `Never`, then `T0 <: T1`.
-    if (identical(T0, NeverTypeImpl.instance)) {
+    if (T0 is NeverTypeImpl && T0.nullabilitySuffix == NullabilitySuffix.none) {
       return true;
     }
 
@@ -101,9 +97,9 @@ class SubtypeHelper {
       // * if `T0` is `Null`, `dynamic`, `void`, or `S?` for any `S`,
       //   then the subtyping does not hold, the result is false.
       if (T0_nullability == NullabilitySuffix.none && T0.isDartCoreNull ||
-          identical(T0, DynamicTypeImpl.instance) ||
-          identical(T0, InvalidTypeImpl.instance) ||
-          identical(T0, VoidTypeImpl.instance) ||
+          T0 is DynamicTypeImpl ||
+          T0 is InvalidTypeImpl ||
+          T0 is VoidTypeImpl ||
           T0_nullability == NullabilitySuffix.question) {
         return false;
       }

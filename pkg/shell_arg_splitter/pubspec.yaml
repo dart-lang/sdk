@@ -3,7 +3,7 @@ name: shell_arg_splitter
 publish_to: none
 
 environment:
-  sdk: '^3.7.0'
+  sdk: '^3.12.0-0'
 
 resolution: workspace
 

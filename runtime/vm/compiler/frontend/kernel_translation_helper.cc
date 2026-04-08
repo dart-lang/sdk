@@ -2517,6 +2517,7 @@ void KernelReaderHelper::SkipInitializer() {
     case kInvalidInitializer:
       ReadPosition();         // read position.
       ReadStringReference();  // read message
+      ReadByte();             // read flags
       return;
     case kFieldInitializer:
       ReadPosition();                // read position.

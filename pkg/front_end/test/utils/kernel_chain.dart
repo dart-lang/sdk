@@ -259,7 +259,7 @@ class ErrorCommentChecker
                     "'$plainTextProblem' with '$extractLineRegExp'";
               }
               for (RegExpMatch match in matches) {
-                String lineString = match.group(0)!;
+                String lineString = match[0]!;
                 notYetSeen.remove(lineString);
                 if (expectNoProblemOn.contains(lineString)) {
                   failures.add(

@@ -13,6 +13,7 @@ import 'pragma.dart'
         kDynModuleCanBeOverriddenPragmaName,
         kDynModuleCallablePragmaName,
         kDynModuleExtendablePragmaName,
+        kDynModuleCanBeUsedAsTypePragmaName,
         kDynModuleImplicitlyCallablePragmaName,
         kDynModuleImplicitlyExtendablePragmaName,
         kDynModuleCanBeOverriddenImplicitlyPragmaName;
@@ -34,8 +35,8 @@ void annotateComponent(
 
   final _DetailedDynamicInterfaceLogger? logger =
       detailedDynamicInterfaceJson != null
-          ? _DetailedDynamicInterfaceLogger(detailedDynamicInterfaceJson)
-          : null;
+      ? _DetailedDynamicInterfaceLogger(detailedDynamicInterfaceJson)
+      : null;
 
   logger?.setActiveSection('extendable');
   final extendableAnnotator = annotateNodes(
@@ -45,6 +46,7 @@ void annotateComponent(
     coreTypes,
     annotateClasses: true,
     annotateFinalClasses: false,
+    annotateExtensionTypes: false,
     annotateStaticMembers: false,
     annotateInstanceMembers: false,
     logger: logger,
@@ -63,6 +65,7 @@ void annotateComponent(
     coreTypes,
     annotateClasses: false,
     annotateFinalClasses: true,
+    annotateExtensionTypes: false,
     annotateStaticMembers: false,
     annotateInstanceMembers: true,
     logger: logger,
@@ -97,6 +100,7 @@ void annotateComponent(
     coreTypes,
     annotateClasses: true,
     annotateFinalClasses: true,
+    annotateExtensionTypes: true,
     annotateStaticMembers: true,
     annotateInstanceMembers: true,
     logger: logger,
@@ -111,6 +115,20 @@ void annotateComponent(
   implicitUsesAnnotator.annotateMixinUses(extendableAnnotator.annotatedClasses);
   implicitUsesAnnotator.annotateMemberUses(callableAnnotator.annotatedMembers);
   implicitUsesAnnotator.annotateDispatchTargets(component);
+
+  logger?.setActiveSection('can-be-used-as-type');
+  annotateNodes(
+    spec.canBeUsedAsType,
+    kDynModuleCanBeUsedAsTypePragmaName,
+    baseUri,
+    coreTypes,
+    annotateClasses: true,
+    annotateFinalClasses: true,
+    annotateExtensionTypes: true,
+    annotateStaticMembers: false,
+    annotateInstanceMembers: false,
+    logger: logger,
+  );
 }
 
 InstanceConstant pragmaConstant(CoreTypes coreTypes, String pragmaName) {
@@ -127,6 +145,7 @@ _Annotator annotateNodes(
   CoreTypes coreTypes, {
   required bool annotateClasses,
   required bool annotateFinalClasses,
+  required bool annotateExtensionTypes,
   required bool annotateStaticMembers,
   required bool annotateInstanceMembers,
   _DetailedDynamicInterfaceLogger? logger,
@@ -136,6 +155,7 @@ _Annotator annotateNodes(
     pragma,
     annotateClasses: annotateClasses,
     annotateFinalClasses: annotateFinalClasses,
+    annotateExtensionTypes: annotateExtensionTypes,
     annotateStaticMembers: annotateStaticMembers,
     annotateInstanceMembers: annotateInstanceMembers,
     logger: logger,
@@ -151,6 +171,7 @@ class _Annotator extends RecursiveVisitor {
 
   final bool annotateClasses;
   final bool annotateFinalClasses;
+  final bool annotateExtensionTypes;
   final bool annotateStaticMembers;
   final bool annotateInstanceMembers;
   final _DetailedDynamicInterfaceLogger? logger;
@@ -162,6 +183,7 @@ class _Annotator extends RecursiveVisitor {
     this.pragma, {
     required this.annotateClasses,
     required this.annotateFinalClasses,
+    required this.annotateExtensionTypes,
     required this.annotateStaticMembers,
     required this.annotateInstanceMembers,
     this.logger,
@@ -232,6 +254,13 @@ class _Annotator extends RecursiveVisitor {
     }
   }
 
+  void annotateExtensionType(ExtensionTypeDeclaration node) {
+    if (annotateExtensionTypes) {
+      logger?.logNode(node);
+      node.addAnnotation(ConstantExpression(pragma));
+    }
+  }
+
   void annotateMember(Member node) {
     if ((node.isInstanceMember
             ? annotateInstanceMembers
@@ -258,6 +287,7 @@ class _Annotator extends RecursiveVisitor {
 
   @override
   void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    annotateExtensionType(node);
     for (final md in node.memberDescriptors) {
       final member = md.memberReference?.node;
       if (member != null) {
@@ -334,10 +364,9 @@ class _ImplicitOverridesAnnotator {
         memberName,
       );
       if (member != null) {
-        final implicitlyOverridden =
-            setter
-                ? implicitlyOverriddenSetters
-                : implicitlyOverriddenNonSetters;
+        final implicitlyOverridden = setter
+            ? implicitlyOverriddenSetters
+            : implicitlyOverriddenNonSetters;
         if (implicitlyOverridden.add(member) &&
             !overriddenMembers.contains(member)) {
           member.addAnnotation(ConstantExpression(pragma));
@@ -509,15 +538,16 @@ class _ImplicitUsesAnnotator extends RecursiveVisitor {
 
   _ClassInfo _createClassInfo(Class cls) {
     final superclass = cls.superclass;
-    final superclassInfo =
-        superclass != null ? _getClassInfo(superclass) : null;
+    final superclassInfo = superclass != null
+        ? _getClassInfo(superclass)
+        : null;
     final mixedInClass = cls.mixedInClass;
-    final mixedInClassInfo =
-        mixedInClass != null ? _getClassInfo(mixedInClass) : null;
-    final implementedClassInfos =
-        cls.implementedTypes
-            .map((sup) => _getClassInfo(sup.classNode))
-            .toList();
+    final mixedInClassInfo = mixedInClass != null
+        ? _getClassInfo(mixedInClass)
+        : null;
+    final implementedClassInfos = cls.implementedTypes
+        .map((sup) => _getClassInfo(sup.classNode))
+        .toList();
     return _ClassInfo(
       cls,
       superclassInfo,
@@ -660,6 +690,20 @@ class _DiscoverLanguageImplPragmasVisitor extends RecursiveVisitor {
     if (languageImplPragmas.isCallable(node)) {
       spec.callable.add(node);
     }
+    if (languageImplPragmas.canBeUsedAsType(node)) {
+      spec.canBeUsedAsType.add(node);
+    }
+    node.visitChildren(this);
+  }
+
+  @override
+  void visitExtensionTypeDeclaration(ExtensionTypeDeclaration node) {
+    if (languageImplPragmas.isCallable(node)) {
+      spec.callable.add(node);
+    }
+    if (languageImplPragmas.canBeUsedAsType(node)) {
+      spec.canBeUsedAsType.add(node);
+    }
     node.visitChildren(this);
   }
 
@@ -760,6 +804,11 @@ class _DetailedDynamicInterfaceLogger {
         section.add({
           'library': node.enclosingLibrary.importUri.toString(),
           'class': node.name,
+        });
+      case ExtensionTypeDeclaration():
+        section.add({
+          'library': node.enclosingLibrary.importUri.toString(),
+          'extension_type': node.name,
         });
       case Member() when node.enclosingClass != null:
         section.add({

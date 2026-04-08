@@ -5,7 +5,6 @@
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:linter/src/lint_names.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -37,6 +36,40 @@ enum MyEnum {
   a;
 
   const MyEnum({required this.value});
+
+  final int value;
+}
+''');
+  }
+
+  Future<void> test_enum_inPrimaryConstructor_named() async {
+    await resolveTestCode('''
+enum MyEnum.named() {
+  a.named();
+
+  final int value;
+}
+''');
+    await assertHasFix('''
+enum MyEnum.named({required this.value}) {
+  a.named();
+
+  final int value;
+}
+''');
+  }
+
+  Future<void> test_enum_inPrimaryConstructor_unnamed() async {
+    await resolveTestCode('''
+enum MyEnum() {
+  a;
+
+  final int value;
+}
+''');
+    await assertHasFix('''
+enum MyEnum({required this.value}) {
+  a;
 
   final int value;
 }
@@ -218,6 +251,36 @@ class Test {
   final int b;
   final int c;
   Test(this.a, {required this.b, required this.c});
+}
+''');
+  }
+
+  Future<void> test_inPrimaryConstructor_named() async {
+    await resolveTestCode('''
+class Test.named(this.a) {
+  final int a;
+  final int b;
+}
+''');
+    await assertHasFix('''
+class Test.named(this.a, {required this.b}) {
+  final int a;
+  final int b;
+}
+''');
+  }
+
+  Future<void> test_inPrimaryConstructor_unnamed() async {
+    await resolveTestCode('''
+class Test(this.a) {
+  final int a;
+  final int b;
+}
+''');
+    await assertHasFix('''
+class Test(this.a, {required this.b}) {
+  final int a;
+  final int b;
 }
 ''');
   }
@@ -580,6 +643,32 @@ class Test {
   final int b;
   final int c;
   Test(this.a, this.b, this.c);
+}
+''');
+  }
+
+  Future<void> test_inPrimaryConstructor_named() async {
+    await resolveTestCode('''
+class Test.named() {
+  final int a;
+}
+''');
+    await assertHasFix('''
+class Test.named(this.a) {
+  final int a;
+}
+''');
+  }
+
+  Future<void> test_inPrimaryConstructor_unnamed() async {
+    await resolveTestCode('''
+class Test() {
+  final int a;
+}
+''');
+    await assertHasFix('''
+class Test(this.a) {
+  final int a;
 }
 ''');
   }

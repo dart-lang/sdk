@@ -61,7 +61,16 @@ class A {
     );
   }
 
-  Future<void> test_constructor_redundant() async {
+  Future<void> test_constructor_primary_redundant() async {
+    await assertDiagnosticsFromMarkdown(r'''
+void f() {
+  A(p: [!true!]);
+}
+class A({bool p = true});
+''');
+  }
+
+  Future<void> test_constructor_secondary_redundant() async {
     await assertDiagnostics(
       r'''
 void f() {
@@ -75,7 +84,7 @@ class A {
     );
   }
 
-  Future<void> test_constructor_tearoff_redundant() async {
+  Future<void> test_constructor_secondary_tearoff_redundant() async {
     await assertDiagnostics(
       r'''
 void f() {

@@ -33,7 +33,7 @@ void assertNull(actual, [num? testid = null]) {
 void assertToStringEquals(str, match, num? testid) {
   var actual = [];
   for (int i = 0; i <= match.groupCount; i++) {
-    var g = match.group(i);
+    var g = match[i];
     actual.add((g == null) ? "" : g);
   }
   Expect.equals(str, actual.join(","), "Test $testid");
@@ -57,13 +57,13 @@ void shouldBe(actual, expected, [String message = '']) {
   } else {
     Expect.equals(expected.length, actual.groupCount + 1);
     for (int i = 0; i <= actual.groupCount; i++) {
-      Expect.equals(expected[i], actual.group(i), message);
+      Expect.equals(expected[i], actual[i], message);
     }
   }
 }
 
 Match? firstMatch(String str, RegExp pattern) => pattern.firstMatch(str);
 List<String?> allStringMatches(String str, RegExp pattern) =>
-    pattern.allMatches(str).map((Match m) => m.group(0)).toList();
+    pattern.allMatches(str).map((Match m) => m[0]).toList();
 
 void description(str) {}

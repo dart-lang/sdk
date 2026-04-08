@@ -498,13 +498,11 @@ enum NoConstructorCalls {
   // As usual, redirecting generative constructors must redirect to
   // generative constructors.
   const NoConstructorCalls.badRedirect() : this.factory();
-  //    ^
-  // [cfe] Final field 'x' is not initialized by this constructor.
   //                                       ^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_GENERATIVE_TO_NON_GENERATIVE_CONSTRUCTOR
   //                                            ^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.REDIRECT_TO_NON_CONST_CONSTRUCTOR
-  // [cfe] Couldn't find constructor 'NoConstructorCalls.factory'.
+  // [cfe] Generative constructors can't redirect to a factory constructor.
 
   factory NoConstructorCalls.factory() => e1; // Valid.
 

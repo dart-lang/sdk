@@ -67,11 +67,7 @@ class JumpTarget {
     users.add(statement);
   }
 
-  void resolveBreaks(
-    Forest forest,
-    LabeledStatement target,
-    Statement targetStatement,
-  ) {
+  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
     assert(isBreakTarget);
     for (Statement user in users) {
       BreakStatementImpl breakStatement = user as BreakStatementImpl;
@@ -81,10 +77,7 @@ class JumpTarget {
     users.clear();
   }
 
-  List<BreakStatementImpl>? resolveContinues(
-    Forest forest,
-    LabeledStatement target,
-  ) {
+  List<BreakStatementImpl>? resolveContinues(LabeledStatement target) {
     assert(isContinueTarget);
     List<BreakStatementImpl> statements = <BreakStatementImpl>[];
     for (Statement user in users) {
@@ -96,7 +89,7 @@ class JumpTarget {
     return statements;
   }
 
-  void resolveGotos(Forest forest, SwitchCase target) {
+  void resolveGotos(SwitchCase target) {
     assert(isGotoTarget);
     for (Statement user in users) {
       ContinueSwitchStatement continueSwitchStatement =
@@ -174,26 +167,19 @@ class LabelTarget implements JumpTarget {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveBreaks(
-    Forest forest,
-    LabeledStatement target,
-    Statement targetStatement,
-  ) {
-    breakTarget.resolveBreaks(forest, target, targetStatement);
+  void resolveBreaks(LabeledStatement target, Statement targetStatement) {
+    breakTarget.resolveBreaks(target, targetStatement);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<BreakStatementImpl>? resolveContinues(
-    Forest forest,
-    LabeledStatement target,
-  ) {
-    return continueTarget.resolveContinues(forest, target);
+  List<BreakStatementImpl>? resolveContinues(LabeledStatement target) {
+    return continueTarget.resolveContinues(target);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void resolveGotos(Forest forest, SwitchCase target) {
+  void resolveGotos(SwitchCase target) {
     unsupported("resolveGotos", charOffset, fileUri);
   }
 }
@@ -431,13 +417,13 @@ class Label {
 }
 
 class ForInElements {
-  ExpressionVariable? explicitVariableDeclaration;
-  ExpressionVariable? syntheticVariableDeclaration;
+  VariableDeclaration? explicitVariableDeclaration;
+  VariableDeclaration? syntheticVariableDeclaration;
   Expression? syntheticAssignment;
   Expression? expressionProblem;
   Statement? expressionEffects;
 
-  ExpressionVariable get variable =>
+  VariableDeclaration get variable =>
       (explicitVariableDeclaration ?? syntheticVariableDeclaration)!;
 }
 

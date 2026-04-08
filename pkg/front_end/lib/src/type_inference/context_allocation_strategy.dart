@@ -145,16 +145,16 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
   }
 
   void handleDeclarationOfVariable(
-    ExpressionVariable variable, {
+    VariableDeclaration variable, {
     required CaptureKind captureKind,
   });
 
   void handleVariablesCapturedByNode(
     ContextConsumer node,
-    List<Variable> variables,
+    List<VariableBase> variables,
   ) {
     Set<VariableContext> contexts = {
-      for (Variable variable in variables) variable.context,
+      for (VariableBase variable in variables) variable.context,
     };
     (node.contexts ??= []).addAll(contexts);
   }
@@ -181,7 +181,7 @@ class TrivialContextAllocationStrategy
     extends ContextAllocationStrategy<ScopeProviderInfo> {
   @override
   void handleDeclarationOfVariable(
-    ExpressionVariable variable, {
+    VariableDeclaration variable, {
     required CaptureKind captureKind,
   }) {
     assert(_currentScopeProviderInfo != null);
@@ -256,7 +256,7 @@ class LoopDepthAllocationStrategy
 
   @override
   void handleDeclarationOfVariable(
-    ExpressionVariable variable, {
+    VariableDeclaration variable, {
     required CaptureKind captureKind,
   }) {
     CollectorScopeProviderInfo currentScope = _currentScopeProviderInfo!;

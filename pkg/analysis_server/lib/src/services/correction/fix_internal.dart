@@ -136,7 +136,6 @@ import 'package:analysis_server/src/services/correction/dart/remove_argument.dar
 import 'package:analysis_server/src/services/correction/dart/remove_assertion.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_assignment.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_async.dart';
-import 'package:analysis_server/src/services/correction/dart/remove_await.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_break.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_character.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_comma.dart';
@@ -160,6 +159,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_ignored_diag
 import 'package:analysis_server/src/services/correction/dart/remove_initializer.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_interpolation_braces.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_invocation.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_keyword.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_late.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_leading_underscore.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_lexeme.dart';
@@ -242,6 +242,7 @@ import 'package:analysis_server/src/services/correction/dart/replace_with_tear_o
 import 'package:analysis_server/src/services/correction/dart/replace_with_unicode_escape.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_var.dart';
 import 'package:analysis_server/src/services/correction/dart/replace_with_wildcard.dart';
+import 'package:analysis_server/src/services/correction/dart/simplify_directive_path.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_child_property_last.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_combinators.dart';
 import 'package:analysis_server/src/services/correction/dart/sort_constructor_first.dart';
@@ -311,7 +312,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.avoidUnusedConstructorParameters: [RemoveUnusedParameter.new],
   diag.avoidUnnecessaryContainers: [FlutterRemoveWidget.new],
   diag.avoidVoidAsync: [ReplaceReturnTypeFuture.new],
-  diag.awaitOnlyFutures: [RemoveAwait.new],
+  diag.awaitOnlyFutures: [RemoveKeyword.awaitKeyword],
   diag.cascadeInvocations: [ConvertToCascade.new, ConvertRelatedToCascade.new],
   diag.castNullableToNonNullable: [AddNullCheck.withoutAssignabilityCheck],
   diag.combinatorsOrdering: [SortCombinators.new],
@@ -415,6 +416,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.preferVoidToNull: [ReplaceNullWithVoid.new],
   diag.requireTrailingCommas: [AddTrailingComma.new],
+  diag.simpleDirectivePaths: [SimplifyDirectivePath.new],
   diag.simplifyVariablePattern: [RemoveUnnecessaryName.new],
   diag.sizedBoxForWhitespace: [ReplaceContainerWithSizedBox.new],
   diag.slashForDocComments: [ConvertDocumentationIntoLine.new],
@@ -432,7 +434,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.unawaitedFutures: [AddAwait.unawaited, WrapInUnawaited.new],
   diag.unnecessaryAsync: [RemoveAsync.unnecessary],
-  diag.unnecessaryAwaitInReturn: [RemoveAwait.new],
+  diag.unnecessaryAwaitInReturn: [RemoveKeyword.awaitKeyword],
   diag.unnecessaryBraceInStringInterps: [RemoveInterpolationBraces.new],
   diag.unnecessaryBreaks: [RemoveBreak.new],
   diag.unnecessaryConst: [RemoveUnnecessaryConst.new],
@@ -450,6 +452,9 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unnecessaryLibraryName: [RemoveLibraryName.new],
   diag.unnecessaryNew: [RemoveUnnecessaryNew.new],
   diag.unnecessaryNullAwareAssignments: [RemoveAssignment.new],
+  diag.unnecessaryNullAwareOperatorOnExtensionOnNullable: [
+    ReplaceWithNotNullAware.new,
+  ],
   diag.unnecessaryNullChecks: [RemoveNonNullAssertion.new],
   diag.unnecessaryNullInIfNullOperators: [RemoveIfNullOperator.new],
   diag.unnecessaryNullableForFinalVariableDeclarations: [
@@ -604,8 +609,8 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.implicitSuperInitializerMissingArguments: [AddSuperParameter.new],
   diag.implicitThisReferenceInInitializer: [
-    ConvertIntoGetter.implicitThis,
-    AddLate.implicitThis,
+    ConvertIntoGetter.this_,
+    AddLate.this_,
   ],
   diag.importOfNonLibrary: [RemoveUnusedImport.new],
   diag.importInternalLibrary: [RemoveUnusedImport.new],
@@ -621,8 +626,13 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     AddAwait.assignment,
   ],
   diag.invalidConstant: [RemoveConst.new],
+  diag.invalidCovariantModifierInPrimaryConstructor: [
+    RemoveKeyword.covariantKeyword,
+    ReplaceFinalWithVar.new,
+  ],
   diag.invalidModifierOnConstructor: [RemoveLexeme.modifier],
   diag.invalidModifierOnSetter: [RemoveLexeme.modifier],
+  diag.invalidReferenceToThis: [ConvertIntoGetter.this_, AddLate.this_],
   diag.invalidUseOfCovariant: [RemoveLexeme.keyword],
   diag.invocationOfNonFunctionExpression: [
     RemoveParenthesesInGetterInvocation.new,
@@ -707,6 +717,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.nullableTypeInWithClause: [RemoveQuestionMark.new],
   diag.obsoleteColonForDefaultValue: [ReplaceColonWithEquals.new],
   diag.recordLiteralOnePositionalNoTrailingCommaByType: [AddTrailingComma.new],
+  diag.representationFieldModifier: [RemoveKeyword.varKeyword],
   diag.returnOfInvalidTypeFromClosure: [AddAsync.wrongReturnType],
   diag.returnOfInvalidTypeFromFunction: [
     AddAsync.wrongReturnType,

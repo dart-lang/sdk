@@ -48,8 +48,10 @@ void main() {
   // Test visitDFS
   final preOrder = <String>[];
   final postOrder = <String>[];
-  a.visitDFS((node) => preOrder.add(node.prefix),
-      (node) => postOrder.add(node.prefix));
+  a.visitDFS(
+    (node) => preOrder.add(node.prefix),
+    (node) => postOrder.add(node.prefix),
+  );
   Expect.listEquals(['A', 'B', 'D', 'E', 'F', 'C'], preOrder);
   Expect.listEquals(['D', 'F', 'E', 'B', 'C', 'A'], postOrder);
 
@@ -71,4 +73,14 @@ void main() {
   Expect.isFalse(b.strictlyDominates(c));
   Expect.isFalse(d.strictlyDominates(e));
   Expect.isFalse(f.strictlyDominates(a));
+
+  // Test dominates
+  Expect.isTrue(a.dominates(a));
+  Expect.isTrue(a.dominates(b));
+  Expect.isTrue(a.dominates(f));
+  Expect.isTrue(b.dominates(d));
+  Expect.isTrue(b.dominates(f));
+  Expect.isFalse(b.dominates(c));
+  Expect.isFalse(d.dominates(e));
+  Expect.isFalse(f.dominates(a));
 }

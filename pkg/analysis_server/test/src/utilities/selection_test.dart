@@ -495,14 +495,12 @@ int x = 0]) {}
     );
   }
 
-  Future<void> test_dottedName_components() async {
+  Future<void> test_dottedName_tokens() async {
     var selection = await _computeSelection('''
 library a.[!b.c!].d;
 ''');
     _assertSelection(selection, r'''
 nodesInRange
-  SimpleIdentifierImpl: b
-  SimpleIdentifierImpl: c
 ''');
   }
 
@@ -857,17 +855,6 @@ nodesInRange
 library l;
 ''',
     );
-  }
-
-  Future<void> test_libraryIdentifier_components() async {
-    var selection = await _computeSelection('''
-library a.[!b.c!].d;
-''');
-    _assertSelection(selection, r'''
-nodesInRange
-  SimpleIdentifierImpl: b
-  SimpleIdentifierImpl: c
-''');
   }
 
   Future<void> test_listLiteral_elements() async {

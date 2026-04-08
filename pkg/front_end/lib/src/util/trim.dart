@@ -55,6 +55,7 @@ Future<void> createTrimmedCopy(TrimOptions options) async {
       Member() => node.enclosingLibrary,
       Class() => node.enclosingLibrary,
       ExtensionTypeDeclaration() => node.enclosingLibrary,
+      Extension() => node.enclosingLibrary,
       Library() => node,
       _ => throw 'Unexpected node ${node.runtimeType} $node',
     };

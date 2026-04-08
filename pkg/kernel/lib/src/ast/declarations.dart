@@ -39,8 +39,11 @@ class Class extends NamedNode implements TypeDeclaration {
   int fileEndOffset = TreeNode.noOffset;
 
   @override
-  List<int>? get fileOffsetsIfMultiple =>
-      [fileOffset, startFileOffset, fileEndOffset];
+  List<int>? get fileOffsetsIfMultiple => [
+    fileOffset,
+    startFileOffset,
+    fileEndOffset,
+  ];
 
   /// List of metadata annotations on the class.
   ///
@@ -139,8 +142,9 @@ class Class extends NamedNode implements TypeDeclaration {
   bool get isAnonymousMixin => flags & FlagAnonymousMixin != 0;
 
   void set isAnonymousMixin(bool value) {
-    flags =
-        value ? (flags | FlagAnonymousMixin) : (flags & ~FlagAnonymousMixin);
+    flags = value
+        ? (flags | FlagAnonymousMixin)
+        : (flags & ~FlagAnonymousMixin);
   }
 
   /// Whether this class was transformed from a mixin application.
@@ -149,8 +153,9 @@ class Class extends NamedNode implements TypeDeclaration {
   bool get isEliminatedMixin => flags & FlagEliminatedMixin != 0;
 
   void set isEliminatedMixin(bool value) {
-    flags =
-        value ? (flags | FlagEliminatedMixin) : (flags & ~FlagEliminatedMixin);
+    flags = value
+        ? (flags | FlagEliminatedMixin)
+        : (flags & ~FlagEliminatedMixin);
   }
 
   /// Whether this class is a mixin class.
@@ -207,9 +212,11 @@ class Class extends NamedNode implements TypeDeclaration {
       Class currentClass = current.classNode;
       Substitution substitution = Substitution.fromSupertype(current);
       constraints.add(
-          substitution.substituteSupertype(currentClass.implementedTypes[1]));
-      current =
-          substitution.substituteSupertype(currentClass.implementedTypes[0]);
+        substitution.substituteSupertype(currentClass.implementedTypes[1]),
+      );
+      current = substitution.substituteSupertype(
+        currentClass.implementedTypes[0],
+      );
     }
     return constraints..add(current!);
   }
@@ -279,8 +286,10 @@ class Class extends NamedNode implements TypeDeclaration {
     ensureLoaded();
     // If already dirty the caller just might as well add stuff directly too.
     if (dirty) return _constructorsInternal;
-    return _constructorsView ??=
-        new DirtifyingList(this, _constructorsInternal);
+    return _constructorsView ??= new DirtifyingList(
+      this,
+      _constructorsInternal,
+    );
   }
 
   /// Internal. Should *ONLY* be used from within kernel.
@@ -312,25 +321,25 @@ class Class extends NamedNode implements TypeDeclaration {
     _proceduresView = null;
   }
 
-  Class(
-      {required this.name,
-      bool isAbstract = false,
-      bool isAnonymousMixin = false,
-      this.supertype,
-      this.mixedInType,
-      List<TypeParameter>? typeParameters,
-      List<Supertype>? implementedTypes,
-      List<Constructor>? constructors,
-      List<Procedure>? procedures,
-      List<Field>? fields,
-      required this.fileUri,
-      Reference? reference})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.implementedTypes = implementedTypes ?? <Supertype>[],
-        this._fieldsInternal = fields ?? <Field>[],
-        this._constructorsInternal = constructors ?? <Constructor>[],
-        this._proceduresInternal = procedures ?? <Procedure>[],
-        super(reference) {
+  Class({
+    required this.name,
+    bool isAbstract = false,
+    bool isAnonymousMixin = false,
+    this.supertype,
+    this.mixedInType,
+    List<TypeParameter>? typeParameters,
+    List<Supertype>? implementedTypes,
+    List<Constructor>? constructors,
+    List<Procedure>? procedures,
+    List<Field>? fields,
+    required this.fileUri,
+    Reference? reference,
+  }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
+       this.implementedTypes = implementedTypes ?? <Supertype>[],
+       this._fieldsInternal = fields ?? <Field>[],
+       this._constructorsInternal = constructors ?? <Constructor>[],
+       this._proceduresInternal = procedures ?? <Procedure>[],
+       super(reference) {
     setParents(this.typeParameters, this);
     setParents(this._constructorsInternal, this);
     setParents(this._proceduresInternal, this);
@@ -435,11 +444,8 @@ class Class extends NamedNode implements TypeDeclaration {
   ///
   /// This getter is for convenience, not efficiency.  Consider manually
   /// iterating the members to speed up code in production.
-  Iterable<Member> get members => <Iterable<Member>>[
-        fields,
-        constructors,
-        procedures,
-      ].expand((x) => x);
+  Iterable<Member> get members =>
+      <Iterable<Member>>[fields, constructors, procedures].expand((x) => x);
 
   void forEachMember(void action(Member element)) {
     fields.forEach(action);
@@ -452,10 +458,10 @@ class Class extends NamedNode implements TypeDeclaration {
   /// This getter is for convenience, not efficiency.  Consider manually
   /// iterating the super types to speed up code in production.
   Iterable<Supertype> get supers => <Iterable<Supertype>>[
-        supertype == null ? const [] : [supertype!],
-        mixedInType == null ? const [] : [mixedInType!],
-        implementedTypes
-      ].expand((x) => x);
+    supertype == null ? const [] : [supertype!],
+    mixedInType == null ? const [] : [mixedInType!],
+    implementedTypes,
+  ].expand((x) => x);
 
   /// The library containing this class.
   Library get enclosingLibrary => parent as Library;
@@ -505,13 +511,17 @@ class Class extends NamedNode implements TypeDeclaration {
   R acceptReference<R>(Visitor<R> v) => v.visitClassReference(this);
 
   Supertype get asRawSupertype {
-    return new Supertype(this,
-        new List<DartType>.filled(typeParameters.length, const DynamicType()));
+    return new Supertype(
+      this,
+      new List<DartType>.filled(typeParameters.length, const DynamicType()),
+    );
   }
 
   Supertype get asThisSupertype {
     return new Supertype(
-        this, getAsTypeArguments(typeParameters, this.enclosingLibrary));
+      this,
+      getAsTypeArguments(typeParameters, this.enclosingLibrary),
+    );
   }
 
   /// Returns the type of `this` for the class using [coreTypes] for caching.
@@ -583,8 +593,12 @@ class Class extends NamedNode implements TypeDeclaration {
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "Class '$name'");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "Class '$name'",
+    );
   }
 }
 
@@ -645,17 +659,17 @@ class Extension extends NamedNode
     node.parent = this;
   }
 
-  Extension(
-      {required this.name,
-      List<TypeParameter>? typeParameters,
-      DartType? onType,
-      List<ExtensionMemberDescriptor>? memberDescriptors,
-      required this.fileUri,
-      Reference? reference})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.memberDescriptors =
-            memberDescriptors ?? <ExtensionMemberDescriptor>[],
-        super(reference) {
+  Extension({
+    required this.name,
+    List<TypeParameter>? typeParameters,
+    DartType? onType,
+    List<ExtensionMemberDescriptor>? memberDescriptors,
+    required this.fileUri,
+    Reference? reference,
+  }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
+       this.memberDescriptors =
+           memberDescriptors ?? <ExtensionMemberDescriptor>[],
+       super(reference) {
     setParents(this.typeParameters, this);
     if (onType != null) {
       this.onType = onType;
@@ -708,8 +722,12 @@ class Extension extends NamedNode
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "Extension '$name'");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "Extension '$name'",
+    );
   }
 
   @override
@@ -723,13 +741,7 @@ class Extension extends NamedNode
   }
 }
 
-enum ExtensionMemberKind {
-  Field,
-  Method,
-  Getter,
-  Setter,
-  Operator,
-}
+enum ExtensionMemberKind { Field, Method, Getter, Setter, Operator }
 
 /// Information about an member declaration in an extension.
 class ExtensionMemberDescriptor {
@@ -777,13 +789,14 @@ class ExtensionMemberDescriptor {
   /// off, if any.
   final Reference? tearOffReference;
 
-  ExtensionMemberDescriptor(
-      {required this.name,
-      required this.kind,
-      bool isStatic = false,
-      bool isInternalImplementation = false,
-      required this.memberReference,
-      required this.tearOffReference}) {
+  ExtensionMemberDescriptor({
+    required this.name,
+    required this.kind,
+    bool isStatic = false,
+    bool isInternalImplementation = false,
+    required this.memberReference,
+    required this.tearOffReference,
+  }) {
     this.isStatic = isStatic;
     this.isInternalImplementation = isInternalImplementation;
     assert(memberReference != null || tearOffReference != null);
@@ -887,21 +900,21 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
     node.parent = this;
   }
 
-  ExtensionTypeDeclaration(
-      {required this.name,
-      List<TypeParameter>? typeParameters,
-      DartType? declaredRepresentationType,
-      List<ExtensionTypeMemberDescriptor>? memberDescriptors,
-      List<TypeDeclarationType>? implements,
-      List<Procedure>? procedures,
-      required this.fileUri,
-      Reference? reference})
-      : this.typeParameters = typeParameters ?? <TypeParameter>[],
-        this.memberDescriptors =
-            memberDescriptors ?? <ExtensionTypeMemberDescriptor>[],
-        this.implements = implements ?? <TypeDeclarationType>[],
-        this._procedures = procedures ?? <Procedure>[],
-        super(reference) {
+  ExtensionTypeDeclaration({
+    required this.name,
+    List<TypeParameter>? typeParameters,
+    DartType? declaredRepresentationType,
+    List<ExtensionTypeMemberDescriptor>? memberDescriptors,
+    List<TypeDeclarationType>? implements,
+    List<Procedure>? procedures,
+    required this.fileUri,
+    Reference? reference,
+  }) : this.typeParameters = typeParameters ?? <TypeParameter>[],
+       this.memberDescriptors =
+           memberDescriptors ?? <ExtensionTypeMemberDescriptor>[],
+       this.implements = implements ?? <TypeDeclarationType>[],
+       this._procedures = procedures ?? <Procedure>[],
+       super(reference) {
     setParents(this.typeParameters, this);
     setParents(this._procedures, this);
     if (declaredRepresentationType != null) {
@@ -984,15 +997,21 @@ class ExtensionTypeDeclaration extends NamedNode implements TypeDeclaration {
   void transformOrRemoveChildren(RemovingTransformer v) {
     v.transformExpressionList(annotations, this);
     v.transformTypeParameterList(typeParameters, this);
-    declaredRepresentationType =
-        v.visitDartType(declaredRepresentationType, cannotRemoveSentinel);
+    declaredRepresentationType = v.visitDartType(
+      declaredRepresentationType,
+      cannotRemoveSentinel,
+    );
     v.transformProcedureList(procedures, this);
   }
 
   @override
   Location? _getLocationInEnclosingFile(int offset) {
-    return _getLocationInComponent(enclosingComponent, fileUri, offset,
-        viaForErrorMessage: "Extension type '$name'");
+    return _getLocationInComponent(
+      enclosingComponent,
+      fileUri,
+      offset,
+      viaForErrorMessage: "Extension type '$name'",
+    );
   }
 
   @override
@@ -1085,13 +1104,14 @@ class ExtensionTypeMemberDescriptor {
   /// declaration member tear off, if any.
   final Reference? tearOffReference;
 
-  ExtensionTypeMemberDescriptor(
-      {required this.name,
-      required this.kind,
-      bool isStatic = false,
-      bool isInternalImplementation = false,
-      required this.memberReference,
-      required this.tearOffReference}) {
+  ExtensionTypeMemberDescriptor({
+    required this.name,
+    required this.kind,
+    bool isStatic = false,
+    bool isInternalImplementation = false,
+    required this.memberReference,
+    required this.tearOffReference,
+  }) {
     this.isStatic = isStatic;
     this.isInternalImplementation = isInternalImplementation;
     assert(memberReference != null || tearOffReference != null);

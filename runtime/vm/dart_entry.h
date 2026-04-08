@@ -196,9 +196,6 @@ class ArgumentsDescriptor : public ValueObject {
 
   const Array& array_;
 
-  // A cache of VM heap allocated arguments descriptors.
-  static ArrayPtr cached_args_descriptors_[kCachedDescriptorCount];
-
   friend class Interpreter;
   friend class InterpreterHelpers;
   friend class VMSerializationRoots;
@@ -317,6 +314,9 @@ class DartLibraryCalls : public AllStatic {
   static ObjectPtr LookupOpenPorts();
 
   // Returns null on success, an ErrorPtr on failure.
+  //
+  // On an error, the caller should continue to drain the microtask
+  // queue after processing the error.
   static ObjectPtr DrainMicrotaskQueue();
 
   // Runs the `_rehashObjects()` function in `dart:compact_hash`.

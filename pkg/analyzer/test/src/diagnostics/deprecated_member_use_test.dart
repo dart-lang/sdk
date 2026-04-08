@@ -9,7 +9,7 @@ import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
 
-main() {
+void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(DeprecatedMemberUse_BlazeWorkspaceTest);
     defineReflectiveTests(DeprecatedMemberUse_GnWorkspaceTest);

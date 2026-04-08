@@ -485,8 +485,8 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
     @Deprecated('DAP never spawns DDS now, this `enableAuthCodes` does nothing')
     bool enableAuthCodes = true,
     this.logger,
-    Function? onError,
-  }) : super(channel, onError: onError) {
+    super.onError,
+  }) : super(channel) {
     channel.closed.then((_) => shutdown());
 
     final vmPath = Platform.resolvedExecutable;
@@ -1212,7 +1212,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// If no message could be extracted, returns the whole original error.
   String extractEvaluationErrorMessage(String rawError) {
     final match = _evalErrorMessagePattern.firstMatch(rawError);
-    final shortError = match?.group(1);
+    final shortError = match?[1];
     return shortError ?? rawError;
   }
 
@@ -1221,7 +1221,7 @@ abstract class DartDebugAdapter<TL extends LaunchRequestArguments,
   /// If no message could be extracted, returns the whole original error.
   String extractUnhandledExceptionMessage(String rawError) {
     final match = _exceptionMessagePattern.firstMatch(rawError);
-    final shortError = match?.group(1);
+    final shortError = match?[1];
     return shortError ?? rawError;
   }
 

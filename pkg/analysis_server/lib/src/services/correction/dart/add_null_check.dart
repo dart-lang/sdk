@@ -68,10 +68,9 @@ class AddNullCheck extends ResolvedCorrectionProducer {
     required super.context,
     required this.skipAssignabilityCheck,
     required this.applicability,
-    required Expression? target,
+    required this._target,
     required Token? nullAwareToken,
-  }) : _target = target,
-       _nullAwareToken = nullAwareToken,
+  }) : _nullAwareToken = nullAwareToken,
        fixKind = nullAwareToken == null
            ? DartFixKind.addNullCheck
            : DartFixKind.replaceWithNullAware;

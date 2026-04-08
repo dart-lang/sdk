@@ -1249,7 +1249,9 @@ mixin LspReverseRequestHelpersMixin {
           outboundRequest.then(
             (_) {},
             onError: (e) {
-              outboundRequestError = e;
+              outboundRequestError =
+                  'Expected to handle a $method reverse-request but no such request arrived. '
+                  'However, an outbound request returned an error that may be the cause: $e';
               return null;
             },
           );

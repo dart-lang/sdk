@@ -13,7 +13,7 @@ library;
 // ignore: implementation_imports
 import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart' as ir;
-import 'package:record_use/record_use_internal.dart';
+import 'package:record_use/record_use.dart';
 
 import '../common/elements.dart';
 import '../constants/values.dart';
@@ -55,7 +55,7 @@ class RecordUseCollector {
   JElementEnvironment get _elementEnvironment =>
       _closedWorld.elementEnvironment;
   late final RecordUseValueConverter _converter = RecordUseValueConverter(
-    _elementEnvironment,
+    _elementMap,
     _closedWorld.annotationsData,
   );
 
@@ -70,7 +70,7 @@ class RecordUseCollector {
     switch (recordedUse) {
       case RecordedCallWithArguments():
         final reference = CallWithArguments(
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          loadingUnit: LoadingUnit(loadingUnit),
           receiver: recordedUse.receiverInRecordUseFormat(_converter),
           namedArguments: recordedUse.namedArgumentsInRecordUseFormat(
             _converter,
@@ -83,23 +83,18 @@ class RecordUseCollector {
         break;
       case RecordedTearOff():
         final reference = CallTearoff(
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          loadingUnit: LoadingUnit(loadingUnit),
           receiver: recordedUse.receiverInRecordUseFormat(_converter),
         );
         callMap.putIfAbsent(recordedUse.function, () => []).add(reference);
         break;
       case RecordedConstInstance():
-        if (_elementEnvironment.isEnumClass(recordedUse.constantClass)) {
-          // TODO(https://github.com/dart-lang/native/issues/2908): Support enum
-          // constant instances.
-          break;
-        }
         final instanceValue = _converter.findInstanceValue(
           recordedUse.constant,
         );
         final reference = InstanceConstantReference(
-          instanceConstant: instanceValue as InstanceConstant,
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          instanceConstant: instanceValue,
+          loadingUnit: LoadingUnit(loadingUnit),
         );
         instanceMap
             .putIfAbsent(recordedUse.constantClass, () => [])
@@ -107,7 +102,8 @@ class RecordUseCollector {
         break;
       case RecordedInstanceCreation():
         final reference = InstanceCreationReference(
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          definition: _definitionFromMember(recordedUse.constructor),
+          loadingUnit: LoadingUnit(loadingUnit),
           namedArguments: recordedUse.namedArguments.map(
             (k, v) => MapEntry(k, _converter.findValueOrNonConst(v)),
           ),
@@ -119,15 +115,45 @@ class RecordUseCollector {
         break;
       case RecordedConstructorTearOff():
         final reference = ConstructorTearoffReference(
-          loadingUnits: [LoadingUnit(loadingUnit)],
+          definition: _definitionFromMember(recordedUse.constructor),
+          loadingUnit: LoadingUnit(loadingUnit),
         );
         instanceMap.putIfAbsent(recordedUse.cls, () => []).add(reference);
         break;
     }
   }
 
+  /// Returns a [Definition] for [cls].
+  ///
+  /// Currently only works for top-level classes and enums. If support for more
+  /// complex definition paths is needed, it should be added here.
+  DefinitionWithMembers _definitionFromClass(ClassEntity cls) {
+    final library = Library(cls.library.canonicalUri.toString());
+    final definition = _elementMap.getClassDefinition(cls);
+    final node = definition.node;
+    if (_elementEnvironment.isEnumClass(cls)) return Enum(cls.name, library);
+    if (node is ir.Class && node.isMixinDeclaration) {
+      return Mixin(cls.name, library);
+    }
+    return Class(cls.name, library);
+  }
+
+  /// Returns a [Definition] for [member].
+  ///
+  /// Currently only works for constructors and factories in top-level classes
+  /// and enums. If support for more complex definition paths is needed, it
+  /// should be added here.
+  Definition _definitionFromMember(MemberEntity member) {
+    final cls = member.enclosingClass!;
+    final parent = _definitionFromClass(cls);
+    final name = member.name!;
+    return name.isEmpty
+        ? Constructor.unnamed(parent)
+        : Constructor(name, parent);
+  }
+
   Map<String, dynamic> finish() {
-    final calls = <Definition, List<CallReference>>{};
+    final calls = <DefinitionWithStaticCalls, List<CallReference>>{};
     callMap.forEach((k, v) {
       final definition = _getDefinitionForFunction(k);
       // Multiple FunctionEntitys can map to the same Definition, for example
@@ -139,54 +165,35 @@ class RecordUseCollector {
       calls: calls,
       instances: instanceMap.map((key, value) {
         return MapEntry(
-          Definition(key.library.canonicalUri.toString(), [
-            Name(
-              key.name,
-              kind: _elementEnvironment.isEnumClass(key)
-                  ? DefinitionKind.enumKind
-                  : DefinitionKind.classKind,
-            ),
-          ]),
-          value,
+          _definitionFromClass(key) as DefinitionWithInstances,
+          value.toSet().toList(),
         );
       }),
     ).toJson();
   }
 
-  Definition _getDefinitionForFunction(FunctionEntity function) {
-    final libraryUri = function.library.canonicalUri.toString();
-    final String name = function.name!;
-
+  DefinitionWithStaticCalls _getDefinitionForFunction(FunctionEntity function) {
     final node = _elementMap.getMemberDefinition(function).node;
-    DefinitionKind kind = DefinitionKind.methodKind;
-    if (node is ir.Procedure) {
-      if (node.isExtensionMember || node.isExtensionTypeMember) {
-        kind = isExtensionMemberTearOff(node)
-            ? DefinitionKind.methodKind
-            : isExtensionMemberGetter(node)
-            ? DefinitionKind.getterKind
-            : isExtensionMemberSetter(node)
-            ? DefinitionKind.setterKind
-            : isExtensionMemberOperator(node)
-            ? DefinitionKind.operatorKind
-            : DefinitionKind.methodKind;
-      } else {
-        kind = switch (node.kind) {
-          ir.ProcedureKind.Getter => DefinitionKind.getterKind,
-          ir.ProcedureKind.Setter => DefinitionKind.setterKind,
-          ir.ProcedureKind.Operator => DefinitionKind.operatorKind,
-          ir.ProcedureKind.Factory => DefinitionKind.constructorKind,
-          ir.ProcedureKind.Method => DefinitionKind.methodKind,
-        };
-      }
-    } else if (function is ConstructorEntity) {
-      kind = DefinitionKind.constructorKind;
+    if (node is ir.Procedure && isTearOffLowering(node)) {
+      final target = getConstructorEffectiveTarget(node);
+      return _definitionFromMember(_elementMap.getMember(target))
+          as DefinitionWithStaticCalls;
     }
+
+    final libraryUri = function.library.canonicalUri.toString();
+    final library = Library(libraryUri);
+    final String name = function.name!;
 
     final String? qualifiedExtensionName =
         extractQualifiedNameFromExtensionMethodName(name);
     if (qualifiedExtensionName != null) {
       final List<String> parts = qualifiedExtensionName.split('.');
+      final DefinitionWithMembers extension =
+          (node is ir.Procedure && node.isExtensionTypeMember)
+          ? ExtensionType(parts[0], library)
+          : (hasUnnamedExtensionNamePrefix(name)
+                ? Extension.unnamed(library)
+                : Extension(parts[0], library));
 
       var originallyInstance = false;
       _elementEnvironment.forEachParameter(function, (
@@ -199,37 +206,64 @@ class RecordUseCollector {
         }
       });
 
-      return Definition(libraryUri, [
-        Name(
-          hasUnnamedExtensionNamePrefix(name) ? '<unnamed>' : parts[0],
-          kind: (node is ir.Procedure && node.isExtensionTypeMember)
-              ? DefinitionKind.extensionTypeKind
-              : DefinitionKind.extensionKind,
-        ),
-        Name(
-          parts[1],
-          kind: kind,
-          disambiguators: {
-            originallyInstance
-                ? DefinitionDisambiguator.instanceDisambiguator
-                : DefinitionDisambiguator.staticDisambiguator,
-          },
-        ),
-      ]);
+      return _createMemberFromFunction(
+            function,
+            node,
+            extension,
+            parts[1],
+            isInstance: originallyInstance,
+          )
+          as DefinitionWithStaticCalls;
     }
 
-    return Definition(libraryUri, [
-      if (function.enclosingClass != null)
-        Name(function.enclosingClass!.name, kind: DefinitionKind.classKind),
-      Name(
-        name,
-        kind: kind,
-        disambiguators: {
-          (function.isStatic || function.isTopLevel)
-              ? DefinitionDisambiguator.staticDisambiguator
-              : DefinitionDisambiguator.instanceDisambiguator,
-        },
-      ),
-    ]);
+    final ScopeWithMembers parent = function.enclosingClass != null
+        ? _definitionFromClass(function.enclosingClass!)
+        : library;
+
+    return _createMemberFromFunction(
+          function,
+          node,
+          parent,
+          name,
+          isInstance: !(function.isStatic || function.isTopLevel),
+        )
+        as DefinitionWithStaticCalls;
   }
+
+  Definition _createMemberFromFunction(
+    FunctionEntity function,
+    ir.Node? node,
+    ScopeWithMembers parent,
+    String name, {
+    required bool isInstance,
+  }) => switch (node) {
+    ir.Procedure p
+        when p.kind == ir.ProcedureKind.Operator ||
+            isExtensionMemberOperator(p) =>
+      Operator(name, parent as DefinitionWithMembers),
+    ir.Procedure p when p.kind == ir.ProcedureKind.Method => Method(
+      name,
+      parent,
+      isInstanceMember: isInstance,
+    ),
+    ir.Procedure p when p.kind == ir.ProcedureKind.Getter => Getter(
+      name,
+      parent,
+      isInstanceMember: isInstance,
+    ),
+    ir.Procedure p when p.kind == ir.ProcedureKind.Setter => Setter(
+      name,
+      parent,
+      isInstanceMember: isInstance,
+    ),
+    ir.Procedure p when p.kind == ir.ProcedureKind.Factory =>
+      name.isEmpty
+          ? Constructor.unnamed(parent as DefinitionWithMembers)
+          : Constructor(name, parent as DefinitionWithMembers),
+    _ when function is ConstructorEntity =>
+      name.isEmpty
+          ? Constructor.unnamed(parent as DefinitionWithMembers)
+          : Constructor(name, parent as DefinitionWithMembers),
+    _ => throw UnsupportedError('Unsupported member: $node ($function)'),
+  };
 }

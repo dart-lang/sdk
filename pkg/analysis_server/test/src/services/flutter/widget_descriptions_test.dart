@@ -355,6 +355,14 @@ void f() {
 ''');
   }
 
+  @FailingTest(
+    reason:
+        'This test relies on the formatter failing in order to return the '
+        'error, but ChangeBuilder now guards against formatter errors. If this '
+        'code is in use, we should change the handler to parse the resulting '
+        'content and check whether there are parse errors, instead of using '
+        'the formatter for this',
+  )
   Future<void> test_expression_formatError() async {
     await resolveTestCode('''
 import 'package:flutter/material.dart';

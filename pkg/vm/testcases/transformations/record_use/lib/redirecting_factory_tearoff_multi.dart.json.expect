@@ -1,0 +1,45 @@
+{
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "HasInstances"
+        }
+      ],
+      "uri": "package:record_use_test/redirecting_factory_tearoff_multi.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "HasInstances"
+        },
+        {
+          "kind": "constructor",
+          "name": ""
+        }
+      ],
+      "uri": "package:record_use_test/redirecting_factory_tearoff_multi.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "type": "tearoff"
+          }
+        ]
+      }
+    ]
+  }
+}

@@ -418,23 +418,16 @@ IndexExpression
 ''');
   }
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_read_ofExtension_augmentation() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part of 'test.dart';
-
-augment extension E {
-  bool operator[](int index) => false;
-}
-''');
-
     await assertNoErrorsInCode(r'''
-part 'a.dart';
-
 extension E on int {}
 
 void f() {
   0[1];
+}
+
+augment extension E {
+  bool operator[](int index) => false;
 }
 ''');
 
@@ -447,11 +440,10 @@ IndexExpression
   leftBracket: [
   index: IntegerLiteral
     literal: 1
-    parameter: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]::@parameter::index
+    correspondingParameter: <testLibrary>::@extension::E::@method::[]::@formalParameter::index
     staticType: int
   rightBracket: ]
-  staticElement: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]
-  element: <testLibrary>::@fragment::package:test/a.dart::@extensionAugmentation::E::@method::[]#element
+  element: <testLibrary>::@extension::E::@method::[]
   staticType: bool
 ''');
   }

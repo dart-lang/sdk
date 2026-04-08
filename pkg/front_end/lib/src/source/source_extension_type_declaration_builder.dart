@@ -10,19 +10,20 @@ import 'package:kernel/reference_from_index.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
+import '../base/lookup_result.dart';
 import '../base/messages.dart';
 import '../base/modifiers.dart';
 import '../base/name_space.dart';
 import '../base/problems.dart';
 import '../base/scope.dart';
 import '../builder/augmentation_iterator.dart';
-import '../builder/builder.dart';
 import '../builder/constructor_reference_builder.dart';
 import '../builder/declaration_builders.dart';
 import '../builder/formal_parameter_builder.dart';
 import '../builder/library_builder.dart';
 import '../builder/member_builder.dart';
 import '../builder/metadata_builder.dart';
+import '../builder/omitted_type_builder.dart';
 import '../builder/record_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../fragment/fragment.dart';
@@ -33,7 +34,6 @@ import '../type_inference/type_inference_engine.dart';
 import 'name_scheme.dart';
 import 'name_space_builder.dart';
 import 'source_builder_mixins.dart';
-import 'source_constructor_builder.dart';
 import 'source_factory_builder.dart';
 import 'source_library_builder.dart';
 import 'source_member_builder.dart';
@@ -43,7 +43,9 @@ import 'source_type_parameter_builder.dart';
 class SourceExtensionTypeDeclarationBuilder
     extends ExtensionTypeDeclarationBuilderImpl
     with SourceDeclarationBuilderBaseMixin, SourceDeclarationBuilderMixin
-    implements Comparable<SourceExtensionTypeDeclarationBuilder> {
+    implements
+        Comparable<SourceExtensionTypeDeclarationBuilder>,
+        InferredTypeListener {
   @override
   final SourceLibraryBuilder parent;
 
@@ -103,6 +105,8 @@ class SourceExtensionTypeDeclarationBuilder
        _representationFieldFragment = representationFieldFragment {
     _introductory.builder = this;
     _introductory.bodyScope.declarationBuilder = this;
+
+    _representationFieldFragment?.type.registerInferredTypeListener(this);
 
     // TODO(johnniwinther): Move this to the [build] once augmentations are
     // handled through fragments.
@@ -422,7 +426,13 @@ class SourceExtensionTypeDeclarationBuilder
         }
       }
     }
+    _buildRepresentationType();
+    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
 
+    return _extensionTypeDeclaration;
+  }
+
+  void _buildRepresentationType() {
     DartType representationType;
     String representationName;
     if (_representationFieldFragment != null) {
@@ -462,19 +472,20 @@ class SourceExtensionTypeDeclarationBuilder
             representationType = const InvalidType();
           }
         }
+        _extensionTypeDeclaration.declaredRepresentationType =
+            representationType;
       } else {
-        representationType = const DynamicType();
+        // representationType = const DynamicType();
+        // _extensionTypeDeclaration.declaredRepresentationType =
+        //     representationType;
       }
       representationName = _representationFieldFragment!.name;
     } else {
       representationType = const InvalidType();
       representationName = '#';
+      _extensionTypeDeclaration.declaredRepresentationType = representationType;
     }
-    _extensionTypeDeclaration.declaredRepresentationType = representationType;
     _extensionTypeDeclaration.representationName = representationName;
-    buildInternal(coreLibrary, addMembersToLibrary: addMembersToLibrary);
-
-    return _extensionTypeDeclaration;
   }
 
   bool _checkRepresentationDependency(
@@ -679,13 +690,13 @@ class SourceExtensionTypeDeclarationBuilder
         );
         if (interface is InterfaceType) {
           if (!hierarchyBuilder.types.isSubtypeOf(
-            declaredRepresentationType,
+            _declaredRepresentationType,
             interface,
           )) {
             libraryBuilder.addProblem(
               diag.invalidExtensionTypeSuperInterface.withArguments(
                 interfaceType: interface,
-                representationType: declaredRepresentationType,
+                representationType: _declaredRepresentationType,
                 extensionTypeName: name,
               ),
               typeBuilder.charOffset!,
@@ -695,7 +706,7 @@ class SourceExtensionTypeDeclarationBuilder
           }
         } else if (interface is ExtensionType) {
           if (!hierarchyBuilder.types.isSubtypeOf(
-            declaredRepresentationType,
+            _declaredRepresentationType,
             interface,
           )) {
             DartType instantiatedImplementedRepresentationType =
@@ -703,12 +714,12 @@ class SourceExtensionTypeDeclarationBuilder
                   interface.extensionTypeDeclaration.declaredRepresentationType,
                 );
             if (!hierarchyBuilder.types.isSubtypeOf(
-              declaredRepresentationType,
+              _declaredRepresentationType,
               instantiatedImplementedRepresentationType,
             )) {
               libraryBuilder.addProblem(
                 diag.invalidExtensionTypeSuperExtensionType.withArguments(
-                  representationType: declaredRepresentationType,
+                  representationType: _declaredRepresentationType,
                   extensionTypeName: name,
                   implementedExtensionRepresentationType:
                       instantiatedImplementedRepresentationType,
@@ -1004,21 +1015,16 @@ class SourceExtensionTypeDeclarationBuilder
 
   /// Looks up the constructor by [name] on the class built by this class
   /// builder.
-  SourceConstructorBuilder? lookupConstructor(Name name) {
+  MemberLookupResult? lookupConstructor(Name name) {
     if (name.text == "new") {
       // Coverage-ignore-block(suite): Not run.
       name = new Name("", name.library);
     }
 
-    Builder? builder = nameSpace.lookupConstructor(name.text)?.getable;
-    if (builder is SourceConstructorBuilder) {
-      return builder;
-    }
-    return null;
+    return nameSpace.lookupConstructor(name.text);
   }
 
-  @override
-  DartType get declaredRepresentationType =>
+  DartType get _declaredRepresentationType =>
       _extensionTypeDeclaration.declaredRepresentationType;
 
   BodyBuilderContext createBodyBuilderContext() {
@@ -1061,4 +1067,9 @@ class SourceExtensionTypeDeclarationBuilder
   @override
   // Coverage-ignore(suite): Not run.
   Reference get reference => _extensionTypeDeclaration.reference;
+
+  @override
+  void onInferredType(DartType type) {
+    _extensionTypeDeclaration.declaredRepresentationType = type;
+  }
 }

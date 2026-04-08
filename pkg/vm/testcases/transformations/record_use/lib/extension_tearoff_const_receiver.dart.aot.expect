@@ -11,6 +11,7 @@ extension Ext on core::String {
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
+[@vm.unboxing-info.metadata=[!regcc]]
 @#C1
 static extension-member method Ext|foo([@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "42")] lowered final core::String #this) → void {
   core::print(#this);
@@ -18,6 +19,7 @@ static extension-member method Ext|foo([@vm.inferred-arg-type.metadata=dart.core
 
 [@vm.inferred-return-type.metadata=dart.core::_Closure (closure 1 in #lib::Ext|get#foo)]
 [@vm.closure-id=1]
+[@vm.unboxing-info.metadata=[!regcc]]
 static extension-member method Ext|get#foo([@vm.inferred-type.metadata=dart.core::_OneByteString (value: "42")] [@vm.inferred-arg-type.metadata=dart.core::_OneByteString (value: "42")] lowered final core::String #this) → () → void
   return [@vm.closure-id=1]() → void => [@vm.inferred-type.metadata=dart.core::Null? (value: null)] self::Ext|foo(#this);
 

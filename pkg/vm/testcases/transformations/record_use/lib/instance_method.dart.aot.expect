@@ -1,12 +1,20 @@
 library #lib;
 import self as self;
+import "package:meta/meta.dart" as meta;
 import "dart:core" as core;
 
-abstract final class MyClass extends core::Object /*hasConstConstructor*/  {
+import "package:meta/meta.dart" show RecordUse;
+
+@#C1
+final class MyClass extends core::Object /*hasConstConstructor*/  {
 
   [@vm.unreachable.metadata=]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   final field core::int i;
+
+  [@vm.unreachable.metadata=]
+  const constructor •(core::int i) → self::MyClass
+    throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
@@ -17,4 +25,7 @@ static method main() → void {
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method doSomething() → void {
   core::print("a");
+}
+constants  {
+  #C1 = meta::RecordUse {}
 }

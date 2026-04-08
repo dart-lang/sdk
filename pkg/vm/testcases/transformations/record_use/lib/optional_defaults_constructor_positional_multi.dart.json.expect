@@ -1,0 +1,100 @@
+{
+  "constants": [
+    {
+      "type": "int",
+      "value": 4
+    },
+    {
+      "type": "int",
+      "value": 11
+    },
+    {
+      "type": "int",
+      "value": 19
+    },
+    {
+      "type": "int",
+      "value": 20
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "i": 0
+      }
+    },
+    {
+      "definition_index": 0,
+      "type": "instance",
+      "value": {
+        "i": 1
+      }
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        }
+      ],
+      "uri": "package:record_use_test/optional_defaults_constructor_positional_multi.dart"
+    },
+    {
+      "path": [
+        {
+          "kind": "class",
+          "name": "SomeClass"
+        },
+        {
+          "kind": "constructor",
+          "name": "positionalBoth"
+        }
+      ],
+      "uri": "package:record_use_test/optional_defaults_constructor_positional_multi.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "instances": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "constant_index": 4,
+            "loading_unit_index": 0,
+            "type": "constant"
+          },
+          {
+            "constant_index": 5,
+            "loading_unit_index": 0,
+            "type": "constant"
+          },
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "positional": [
+              1,
+              2
+            ],
+            "type": "creation"
+          },
+          {
+            "definition_index": 1,
+            "loading_unit_index": 0,
+            "positional": [
+              3,
+              2
+            ],
+            "type": "creation"
+          }
+        ]
+      }
+    ]
+  }
+}
