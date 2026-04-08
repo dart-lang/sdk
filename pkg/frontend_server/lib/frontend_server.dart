@@ -37,6 +37,7 @@ import 'package:package_config/package_config.dart';
 import 'package:vm/incremental_compiler.dart' show IncrementalCompiler;
 import 'package:vm/kernel_front_end.dart';
 import 'package:vm/target_os.dart'; // For possible --target-os values.
+import 'package:vm/transformations/record_use/record_use.dart' as record_use;
 
 import 'src/javascript_bundle.dart';
 import 'src/uuid.dart';
@@ -163,6 +164,7 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
     'native-assets',
     help: 'Provide the native-assets mapping for @Native external functions.',
   )
+  ..addOption('recorded-uses', help: 'Write the recorded uses to <file name>.')
   ..addFlag(
     'native-assets-only',
     help:
@@ -461,6 +463,9 @@ abstract class CompilerInterface {
   /// Sets the native assets mapping to be embedded in the kernel.
   Future<bool> setNativeAssets(String nativeAssets);
 
+  /// Sets the recorded uses output file.
+  Future<void> setRecordedUses(String recordedUses);
+
   /// Assuming some Dart program was previously compiled, recompile it again
   /// taking into account some changed(invalidated) sources.
   ///
@@ -605,6 +610,9 @@ class FrontendCompiler implements CompilerInterface {
   /// Initialized in [compile] from options, or (re)set in [setNativeAssets].
   Uri? _nativeAssets;
 
+  /// Initialized in [compile] from options, or (re)set in [setRecordedUses].
+  Uri? _recordedUses;
+
   /// Cached compilation of [_nativeAssets].
   ///
   /// Managed by [_compileNativeAssets] and [setNativeAssets].
@@ -658,6 +666,14 @@ class FrontendCompiler implements CompilerInterface {
     final String? nativeAssets = options['native-assets'] as String?;
     if (_nativeAssets == null && nativeAssets != null) {
       _nativeAssets = resolveInputUri(nativeAssets);
+    }
+    final String? recordedUses = options['recorded-uses'] as String?;
+    if (_recordedUses == null && recordedUses != null) {
+      _recordedUses = resolveInputUri(recordedUses);
+    }
+    if (_recordedUses != null && !options['aot']) {
+      print('Error: --recorded-uses option must be used with --aot');
+      return false;
     }
     _kernelBinaryFilenameFull = _options['output-dill'] ?? '$entryPoint.dill';
     _kernelBinaryFilenameIncremental =
@@ -828,6 +844,10 @@ class FrontendCompiler implements CompilerInterface {
 
       await _compileNativeAssets();
 
+      if (_recordedUses != null) {
+        record_use.transformComponent(component, _recordedUses!);
+      }
+
       results = new KernelCompilationResults.named(
         component: component,
         nativeAssetsLibrary: _nativeAssetsLibrary,
@@ -853,6 +873,7 @@ class FrontendCompiler implements CompilerInterface {
             options: compilerOptions,
             additionalSources: _additionalSources,
             nativeAssets: _nativeAssets,
+            recordedUsages: _recordedUses,
             includePlatform: options['link-platform'],
             deleteToStringPackageUris: options['delete-tostring-package-uri'],
             keepClassNamesImplementing:
@@ -980,6 +1001,11 @@ class FrontendCompiler implements CompilerInterface {
     _nativeAssetsLibrary = null; // Purge compiled cache.
     _nativeAssets = resolveInputUri(nativeAssets);
     return true;
+  }
+
+  @override
+  Future<void> setRecordedUses(String recordedUses) async {
+    _recordedUses = resolveInputUri(recordedUses);
   }
 
   /// Compiles [_nativeAssets] into [_nativeAssetsLibrary].
@@ -1267,6 +1293,10 @@ class FrontendCompiler implements CompilerInterface {
     transformer?.transform(deltaProgram);
 
     await _compileNativeAssets();
+
+    if (_recordedUses != null) {
+      record_use.transformComponent(deltaProgram, _recordedUses!);
+    }
 
     KernelCompilationResults results = new KernelCompilationResults.named(
       component: deltaProgram,
@@ -1661,6 +1691,7 @@ StreamSubscription<String> listenAndCompile(
         const String RECOMPILE_RESTART_INSTRUCTION_SPACE = 'recompile-restart ';
         const String NATIVE_ASSETS_INSTRUCTION_SPACE = 'native-assets ';
         const String NATIVE_ASSETS_ONLY_INSTRUCTION = 'native-assets-only';
+        const String RECORDED_USES_INSTRUCTION_SPACE = 'recorded-uses ';
         const String COMPILE_EXPRESSION_INSTRUCTION_SPACE =
             'compile-expression ';
         const String COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE =
@@ -1705,6 +1736,11 @@ StreamSubscription<String> listenAndCompile(
             NATIVE_ASSETS_INSTRUCTION_SPACE.length,
           );
           await compiler.setNativeAssets(nativeAssets);
+        } else if (string.startsWith(RECORDED_USES_INSTRUCTION_SPACE)) {
+          final String recordedUses = string.substring(
+            RECORDED_USES_INSTRUCTION_SPACE.length,
+          );
+          await compiler.setRecordedUses(recordedUses);
         } else if (string.startsWith(
           COMPILE_EXPRESSION_TO_JS_INSTRUCTION_SPACE,
         )) {
