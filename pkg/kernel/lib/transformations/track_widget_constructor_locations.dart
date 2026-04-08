@@ -396,7 +396,7 @@ class WidgetCreatorTracker {
     for (Library library in libraries) {
       final Uri importUri = library.importUri;
 
-      // Legacy Case: Search for harcoded Flutter classes.
+      // Legacy Case: Search for hardcoded Flutter classes.
       // TODO(schultek): Remove this once Flutter is migrated to the new API.
       if (importUri.isScheme('package')) {
         if (importUri.path == 'flutter/src/widgets/framework.dart') {

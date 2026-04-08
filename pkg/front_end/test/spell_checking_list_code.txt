@@ -1664,6 +1664,7 @@ scc
 scenarios
 scheglov
 schemas
+schultek
 scoped
 scoping
 scrutinee
