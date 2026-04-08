@@ -174,6 +174,17 @@ m() {
     );
   }
 
+  test_staticField_private_onClass() async {
+    await assertDiagnostics(
+      '''
+class C {
+  static int? _i;
+}
+''',
+      [lint(24, 2)],
+    );
+  }
+
   test_staticField_private_onExtension() async {
     await assertDiagnostics(
       '''
@@ -184,8 +195,6 @@ extension E on int {
       [lint(35, 2)],
     );
   }
-
-  // TODO(srawlins): Add test_staticField_private_onClass.
 
   test_staticField_public_onPrivateExtension() async {
     await assertDiagnostics(
