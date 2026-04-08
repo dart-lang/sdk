@@ -51,6 +51,24 @@ class A {
     );
   }
 
+  test_augment_emptyBody() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+part of 'test.dart';
+
+augment class C {
+  augment void foo();
+}
+''');
+
+    await assertNoErrorsInCode(r'''
+part 'a.dart';
+
+class C {
+  void foo() {}
+}
+''');
+  }
+
   test_direct() async {
     await assertErrorsInCode(
       '''
