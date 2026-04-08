@@ -258,7 +258,8 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
     negatable: true,
     hide: true,
   )
-  ..addFlag('track-creation-locations',
+  ..addFlag(
+    'track-creation-locations',
     help: 'Run a kernel transformer to track creation locations for widgets.',
     defaultsTo: false,
     aliases: [
