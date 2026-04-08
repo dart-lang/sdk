@@ -41,7 +41,10 @@ void main() {
   final Library coreLib = new Library(coreUri, fileUri: coreUri);
   final Class pragmaClass = new Class(name: 'pragma', fileUri: coreUri);
   coreLib.addClass(pragmaClass);
-  final Field pragmaNameField = new Field.immutable(new Name('name'), fileUri: coreUri);
+  final Field pragmaNameField = new Field.immutable(
+    new Name('name'),
+    fileUri: coreUri,
+  );
   pragmaClass.addField(pragmaNameField);
 
   final Uri testUri = Uri.parse('package:test/test.dart');
@@ -54,8 +57,9 @@ void main() {
         pragmaClass.reference,
         <DartType>[],
         <Reference, Constant>{
-          pragmaNameField.fieldReference:
-              new StringConstant('track-creation-locations'),
+          pragmaNameField.fieldReference: new StringConstant(
+            'track-creation-locations',
+          ),
         },
       ),
     ),
