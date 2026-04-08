@@ -28,6 +28,19 @@ dev_dependencies:
     );
   }
 
+  test_unnecessaryDevDependency_error_null() {
+    assertErrors(
+      '''
+name: sample
+dependencies:
+  null: any
+dev_dependencies:
+  null: any
+''',
+      [diag.unnecessaryDevDependency],
+    );
+  }
+
   test_unnecessaryDevDependency_noError() {
     assertNoErrors('''
 name: sample

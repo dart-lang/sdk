@@ -33,12 +33,9 @@ class MessageHandler : public PortHandler {
   virtual ~MessageHandler();
 
   typedef uword CallbackData;
-  typedef MessageStatus (*StartCallback)(CallbackData data);
   typedef void (*EndCallback)(CallbackData data);
 
   // Runs this message handler on the thread pool.
-  //
-  // Before processing messages, the optional StartFunction is run.
   //
   // A message handler will run until it terminates either normally or
   // abnormally.  Normal termination occurs when the message handler
@@ -48,10 +45,7 @@ class MessageHandler : public PortHandler {
 
   // Returns false if the handler terminated abnormally, otherwise it
   // returns true.
-  bool Run(ThreadPool* pool,
-           StartCallback start_callback,
-           EndCallback end_callback,
-           CallbackData data);
+  bool Run(ThreadPool* pool, EndCallback end_callback, CallbackData data);
 
   // Handles the next message for this message handler.  Should only
   // be used when not running the handler on the thread pool (via Run
@@ -232,7 +226,6 @@ class MessageHandler : public PortHandler {
   // This flag is not thread safe and can only reliably be accessed on a single
   // thread.
   bool oob_message_handling_allowed_;
-  bool paused_for_messages_;
 
   // Only accessed by [PortMap], protected by [PortMap]s lock. See ports()
   // getter.
@@ -251,7 +244,6 @@ class MessageHandler : public PortHandler {
 #endif
   bool task_running_;
   ThreadPool* pool_;
-  StartCallback start_callback_;
   EndCallback end_callback_;
   CallbackData callback_data_;
 

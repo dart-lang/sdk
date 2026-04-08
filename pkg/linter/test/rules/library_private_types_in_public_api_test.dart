@@ -113,6 +113,12 @@ extension type E(_C c) {}
     );
   }
 
+  test_extensionTypeDeclaration_representation_noType() async {
+    await assertNoDiagnostics(r'''
+extension type E(it) {}
+''');
+  }
+
   test_extensionTypeDeclaration_representation_private() async {
     await assertNoDiagnostics(r'''
 class _C {}

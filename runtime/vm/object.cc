@@ -11513,7 +11513,6 @@ const char* Function::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
   }
-  is_extension_type_member();
   return String::ScrubName(String::Handle(name()),
                            is_extension_member() || is_extension_type_member());
 }
@@ -19384,8 +19383,7 @@ const char* Bytecode::Name() const {
   if (fun.IsNull()) {
     return BytecodeStubName(*this);
   }
-  const char* function_name =
-      String::Handle(zone, fun.UserVisibleName()).ToCString();
+  const char* function_name = fun.UserVisibleNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
@@ -19395,8 +19393,7 @@ const char* Bytecode::QualifiedName() const {
   if (fun.IsNull()) {
     return BytecodeStubName(*this);
   }
-  const char* function_name =
-      String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
+  const char* function_name = fun.QualifiedScrubbedNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 

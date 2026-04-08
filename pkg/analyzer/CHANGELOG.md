@@ -1,7 +1,8 @@
-## 12.1.0-dev
+## 12.1.0
 
 * Support type aliases for `dynamic`, `Never`, and `void`. As a result, it is no longer safe to assume that
-  there is a single instance of `DynamicType`, `NeverType`, or `VoidType`. Use type checks (`is DynamicType`) instead of `identical()`.
+  there is a single instance of `DynamicType`, `NeverType`, or `VoidType`. Use type checks (`is DynamicType`)
+  instead of `identical()`.
 
 ## 12.0.0
 
@@ -85,6 +86,9 @@
 * Stabilize `FieldFormalParameterElement.isDeclaring` and `privateName`.
 * Stabilize `FieldFormalParameterFragment.privateName`.
 * Deprecate `LibraryFragment.isSynthetic`, use `isOriginNotExistingFile` instead.
+* **Breaking Change:** Identifiers and prefixed identifiers that resolve to a type (such as a class, type
+  alias, `dynamic`, or `Never`) in a value expression slot are now represented as `TypeLiteral` nodes instead of
+  `SimpleIdentifier` or `PrefixedIdentifier` nodes (Issues 62763, 63113).
 
 ## 10.0.2
 

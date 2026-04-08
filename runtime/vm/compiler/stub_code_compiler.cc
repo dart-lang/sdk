@@ -679,9 +679,6 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
                              InstantiateTypeABI::kResultTypeReg);
   }
 
-  __ LoadClassId(InstantiateTypeABI::kScratchReg,
-                 InstantiateTypeABI::kResultTypeReg);
-
   switch (nullability) {
     case Nullability::kNonNullable:
       __ Ret();

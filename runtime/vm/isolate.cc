@@ -2457,7 +2457,7 @@ void Isolate::SetStickyError(ErrorPtr sticky_error) {
 }
 
 void Isolate::Run() {
-  message_handler()->Run(group()->thread_pool(), nullptr, ShutdownIsolate,
+  message_handler()->Run(group()->thread_pool(), ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
 
