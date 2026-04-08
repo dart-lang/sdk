@@ -117,6 +117,14 @@ int computeIndexOfTypeParameter(ast.TypeParameter tp) {
   return index;
 }
 
+/// Return enclosing member of the given [node].
+ast.Member getEnclosingMember(ast.TreeNode node) {
+  do {
+    node = node.parent!;
+  } while (node is! ast.Member);
+  return node;
+}
+
 /// Returns true if [field] has a non-trivial initializer.
 ///
 /// VM does not allow field initializer functions for fields
