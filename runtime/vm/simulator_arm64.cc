@@ -1831,6 +1831,17 @@ struct CallbackContext {
 
 extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
                                         uword trampoline) {
+  // Assumptions in ffi_trampolines_arm64.S
+  COMPILE_ASSERT(sizeof(CallbackContext) == 144);
+  COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
+#if defined(DART_TARGET_OS_MACOS)
+  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2019);
+#else
+  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8163);
+#endif
+
   CallbackMetadata out;
   Thread* thread = DLRT_GetFfiCallbackMetadata(trampoline, &out);
   if (thread == nullptr) {

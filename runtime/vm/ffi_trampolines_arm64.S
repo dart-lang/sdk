@@ -6,6 +6,12 @@
 // This is not written as VM stub because we need it be executable in contexts where we cannot JIT.
 // (Alternatively, we could start requiring the VM snapshot to be provided in every mode.)
 
+#if defined(__APPLE__)
+#define LOCAL_SYMBOL(x) L##x
+#else
+#define LOCAL_SYMBOL(x) .L##x
+#endif
+
 #if defined(__aarch64__) && (defined(SIMULATOR_FFI) || (defined(DART_DYNAMIC_MODULES) && !defined(DART_PRECOMPILED_RUNTIME)))
 
 .text
@@ -31,11 +37,11 @@ FfiCallTrampoline:
   // Copy top frame from Dart stack to C stack
   ldr x0, [x19, #0]  // FfiCallArguments.stack_area
   ldr x1, [x19, #8]  // FfiCallArguments.stack_area_end
-.Lcopy1:
+LOCAL_SYMBOL(copy1):
   ldp x2, x3, [x1, #-16]!  // From stack_area
   stp x2, x3, [sp, #-16]!  // To C SP
   cmp x1, x0
-  b.gt .Lcopy1
+  b.gt LOCAL_SYMBOL(copy1)
 
   // Load the ABI argument registers. Note that Dart FFI does not support
   // full 128-bit SIMD arguments, so we don't need to set the full V
@@ -92,11 +98,11 @@ SimulatorFfiCalloutTrampoline:
   ldr x1, [x19, #24]  // CalloutContext.simulator_frame_pointer
   add x1, x1, 15   // Round up the frame pointer, since the Dart frame pointer
   and x1, x1, ~15  // is not double-word aligned.
-.Lcopy2:
+LOCAL_SYMBOL(copy2):
   ldp x2, x3, [x1, #-16]!  // From Dart FP
   stp x2, x3, [sp, #-16]!  // To C SP
   cmp x1, x0
-  b.gt .Lcopy2
+  b.gt LOCAL_SYMBOL(copy2)
 
   // Load the ABI argument registers. Note that Dart FFI does not support
   // full 128-bit SIMD arguments, so we don't need to set the full V
@@ -137,12 +143,16 @@ _SimulatorFfiCallbackTrampoline:
 .type SimulatorFfiCallbackTrampoline, %function
 SimulatorFfiCallbackTrampoline:
 #endif
-  // FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8150
-  .rept 8150
+LOCAL_SYMBOL(start):
+#if defined(__APPLE__)
+  .rept 2019 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
+#else
+  .rept 8163 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
+#endif
   adr x9, 0
-  b .Lbody
+  b LOCAL_SYMBOL(body)
   .endr
-.Lbody:
+LOCAL_SYMBOL(body):
   mov x10, sp
   stp fp, lr, [sp, #-16]!
   mov fp, sp
@@ -164,11 +174,17 @@ SimulatorFfiCallbackTrampoline:
   // Pass arguments registers and thunk address to the runtime.
   mov x0, sp
   mov x1, x9  // I.e., which callback.
+
+  adr x2, LOCAL_SYMBOL(start)
 #if defined(__APPLE__)
-  bl _DoRedirectedFfiCallback
+  and x2, x2, ~(0x4000-1)  // FfiCallbackMetadata::kPageSize = 16k
+  add x2, x2, 0x8000
 #else
-  bl DoRedirectedFfiCallback
+  and x2, x2, ~(0x10000-1)  // FfiCallbackMetadata::kPageSize = 64k
+  add x2, x2, 0x20000
 #endif
+  ldr x2, [x2, #8]  // FfiCallbackMetadata::kDoRedirectedFfiCallback
+  blr x2  // DoRedirectedFfiCallback
 
   // Load ABI result registers.
   ldp x0, x1, [sp, #0]  // CallbackContext.integer_arguments[0]
