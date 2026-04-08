@@ -3731,21 +3731,6 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void handleAugmentSuperExpression(
-    Token augmentToken,
-    Token superToken,
-    IdentifierContext context,
-  ) {
-    AugmentSuperExpressionHandle data = new AugmentSuperExpressionHandle(
-      ParserAstType.HANDLE,
-      augmentToken: augmentToken,
-      superToken: superToken,
-      context: context,
-    );
-    seen(data);
-  }
-
-  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
     SwitchCaseBegin data = new SwitchCaseBegin(
       ParserAstType.BEGIN,
@@ -10238,30 +10223,6 @@ class SuperExpressionHandle extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitSuperExpressionHandle(this);
 }
 
-class AugmentSuperExpressionHandle extends ParserAstNode {
-  final Token augmentToken;
-  final Token superToken;
-  final IdentifierContext context;
-
-  AugmentSuperExpressionHandle(
-    ParserAstType type, {
-    required this.augmentToken,
-    required this.superToken,
-    required this.context,
-  }) : super("AugmentSuperExpression", type);
-
-  @override
-  Map<String, Object?> get deprecatedArguments => {
-    "augmentToken": augmentToken,
-    "superToken": superToken,
-    "context": context,
-  };
-
-  @override
-  R accept<R>(ParserAstVisitor<R> v) =>
-      v.visitAugmentSuperExpressionHandle(this);
-}
-
 class SwitchCaseBegin extends ParserAstNode {
   final int labelCount;
   final int expressionCount;
@@ -11214,7 +11175,6 @@ abstract class ParserAstVisitor<R> {
   R visitQualifiedHandle(QualifiedHandle node);
   R visitStringPartHandle(StringPartHandle node);
   R visitSuperExpressionHandle(SuperExpressionHandle node);
-  R visitAugmentSuperExpressionHandle(AugmentSuperExpressionHandle node);
   R visitSwitchCaseBegin(SwitchCaseBegin node);
   R visitSwitchCaseEnd(SwitchCaseEnd node);
   R visitSwitchExpressionCaseBegin(SwitchExpressionCaseBegin node);
@@ -12559,10 +12519,6 @@ class RecursiveParserAstVisitor implements ParserAstVisitor<void> {
 
   @override
   void visitSuperExpressionHandle(SuperExpressionHandle node) =>
-      node.visitChildren(this);
-
-  @override
-  void visitAugmentSuperExpressionHandle(AugmentSuperExpressionHandle node) =>
       node.visitChildren(this);
 
   @override
@@ -14069,11 +14025,6 @@ class RecursiveParserAstVisitorWithDefaultNodeAsync
   @override
   Future<void> visitSuperExpressionHandle(SuperExpressionHandle node) =>
       defaultNode(node);
-
-  @override
-  Future<void> visitAugmentSuperExpressionHandle(
-    AugmentSuperExpressionHandle node,
-  ) => defaultNode(node);
 
   @override
   Future<void> visitSwitchCaseBegin(SwitchCaseBegin node) => defaultNode(node);

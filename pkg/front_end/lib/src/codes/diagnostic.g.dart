@@ -6491,13 +6491,6 @@ Message _withArgumentsInvalidAssignmentError({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode invalidAugmentSuper = const MessageCode(
-  "InvalidAugmentSuper",
-  problemMessage:
-      """'augment super' is only allowed in member augmentations.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required String label})> invalidBreakTarget =
     const Template(
       "InvalidBreakTarget",
@@ -9563,24 +9556,6 @@ const MessageCode neverValueError = const MessageCode(
 const MessageCode newAsSelector = const MessageCode(
   "NewAsSelector",
   problemMessage: """'new' can only be used as a constructor reference.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode noAugmentSuperInvokeTarget = const MessageCode(
-  "NoAugmentSuperInvokeTarget",
-  problemMessage: """Cannot call 'augment super'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode noAugmentSuperReadTarget = const MessageCode(
-  "NoAugmentSuperReadTarget",
-  problemMessage: """Cannot read from 'augment super'.""",
-);
-
-// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode noAugmentSuperWriteTarget = const MessageCode(
-  "NoAugmentSuperWriteTarget",
-  problemMessage: """Cannot write to 'augment super'.""",
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.

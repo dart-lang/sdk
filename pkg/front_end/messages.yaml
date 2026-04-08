@@ -3500,10 +3500,6 @@ superAsIdentifier:
       C.super();
     }
 
-invalidAugmentSuper:
-  parameters: none
-  problemMessage: "'augment super' is only allowed in member augmentations."
-
 superAsExpression:
   parameters: none
   problemMessage: "Can't use 'super' as an expression."
@@ -6813,21 +6809,6 @@ mixinApplicationNoConcreteMemberContext:
   parameters: none
   problemMessage: "This is the super-access that doesn't have a concrete target."
   severity: CONTEXT
-
-noAugmentSuperReadTarget:
-  parameters: none
-  problemMessage: "Cannot read from 'augment super'."
-  experiments: augmentations
-
-noAugmentSuperWriteTarget:
-  parameters: none
-  problemMessage: "Cannot write to 'augment super'."
-  experiments: augmentations
-
-noAugmentSuperInvokeTarget:
-  parameters: none
-  problemMessage: "Cannot call 'augment super'."
-  experiments: augmentations
 
 indexOutOfBoundInRecordIndexGet:
   parameters:

@@ -57,7 +57,6 @@ front_end/IncrementalCompilerIllegalParameter/example: missingExample # Expressi
 front_end/IncrementalCompilerIllegalTypeParameter/example: missingExample # Expression compilation.
 front_end/IndexOutOfBoundInRecordIndexGet/example: missingExample # Not covered.
 front_end/InputFileNotFound/example: missingExample # Issued for additional dills that doesn't exist.
-front_end/InvalidAugmentSuper/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
 front_end/InvalidCastFunctionExpr/example: missingExample # Seemingly not actually issued in any tests.
 front_end/InvalidCastLiteralList/example: missingExample # Seemingly not actually issued in any tests.
 front_end/InvalidCastLiteralMap/example: missingExample # Seemingly not actually issued in any tests.
@@ -131,9 +130,6 @@ front_end/NeverReachableSwitchDefaultError/example: missingExample # Probably on
 front_end/NeverReachableSwitchExpressionError/example: missingExample # No coverage.
 front_end/NeverReachableSwitchStatementError/example: missingExample # No coverage.
 front_end/NeverValueError/example: missingExample # No coverage.
-front_end/NoAugmentSuperInvokeTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-front_end/NoAugmentSuperReadTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
-front_end/NoAugmentSuperWriteTarget/example: missingExample # Doesn't seem to be any (direct?) way to get this for now
 front_end/NonPartOfDirectiveInPart/script1: hasOnlyUnrelatedMessages # Specifically ignored in `isIgnoredParserError`?!?
 front_end/NoUnnamedConstructorInObject/example: missingExample # No coverage.
 front_end/PatchClassTypeParametersMismatch/example: missingExample # Patching.

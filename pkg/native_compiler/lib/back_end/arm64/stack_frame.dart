@@ -63,9 +63,16 @@ final class Arm64StackFrame extends StackFrame {
   int spillSlotAlignmentInWords(RegisterClass registerClass) => 1;
 
   @override
-  int argumentsStackSlots(CallInstruction instr) {
+  int argumentsStackSlots(Instruction instr) {
     // TODO: pass arguments on registers
-    return instr.inputCount;
+    switch (instr) {
+      case CallInstruction():
+        return instr.inputCount;
+      case TypeLiteral():
+        return 4; // Result + 3 arguments for InstantiateType runtime call.
+      default:
+        return 0;
+    }
   }
 
   @override

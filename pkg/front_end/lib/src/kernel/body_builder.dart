@@ -91,7 +91,6 @@ import '../source/diet_parser.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
-import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_parameter_builder.dart';
 import '../source/stack_listener_impl.dart'
@@ -7609,30 +7608,6 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       push(new IncompleteErrorGenerator(this, token, diag.superAsIdentifier));
     }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void handleAugmentSuperExpression(
-    Token augmentToken,
-    Token superToken,
-    IdentifierContext context,
-  ) {
-    debugEvent("AugmentSuperExpression");
-    AugmentSuperTarget? augmentSuperTarget = _context.augmentSuperTarget;
-    if (augmentSuperTarget != null) {
-      push(
-        new AugmentSuperAccessGenerator(this, augmentToken, augmentSuperTarget),
-      );
-      return;
-    }
-    push(
-      new IncompleteErrorGenerator(
-        this,
-        augmentToken,
-        diag.invalidAugmentSuper,
-      ),
-    );
   }
 
   @override

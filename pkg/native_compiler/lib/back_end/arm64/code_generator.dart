@@ -1080,7 +1080,44 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitTypeLiteral(TypeLiteral instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeLiteral');
+    final instantiatorTypeArgsReg = inputReg(instr, 0);
+    final functionTypeArgsReg = inputReg(instr, 1);
+    final resultReg = outputReg(instr);
+    final type = instr.uninstantiatedType;
+    if (type is ast.TypeParameterType &&
+        type.nullability != ast.Nullability.nullable) {
+      final declaration = type.parameter.declaration;
+      final index = computeIndexOfTypeParameter(type.parameter);
+      final typeArgsReg = (declaration is ast.Class)
+          ? instantiatorTypeArgsReg
+          : functionTypeArgsReg;
+      final done = Label();
+      if (resultReg != typeArgsReg) {
+        _asm.mov(resultReg, nullReg);
+      }
+      _asm.cmp(typeArgsReg, nullReg);
+      _asm.b(done, .equal);
+      _asm.ldr(
+        resultReg,
+        _asm.address(
+          typeArgsReg,
+          vmOffsets.TypeArguments_types_offset +
+              index * objectLayout.compressedWordSize,
+        ),
+      );
+      _asm.bind(done);
+      return;
+    }
+    assert(stackFrame.maxArgumentsStackSlots >= 4);
+    _asm.loadFromPool(tempReg, type);
+    _asm.stp(
+      functionTypeArgsReg,
+      instantiatorTypeArgsReg,
+      RegOffsetAddress(stackPointerReg, 0),
+    );
+    _asm.stp(tempReg, nullReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+    _asm.callRuntime(RuntimeEntry.InstantiateType, 3);
+    _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 3 * wordSize));
   }
 
   @override
@@ -1439,9 +1476,54 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .shiftLeft:
       case .shiftRight:
       case .unsignedShiftRight:
-        _asm.unimplemented(
-          'Unimplemented: code generation for BinaryIntOp ${instr.op.token}',
-        );
+        final done = Label();
+        late final Label slowPath = addSlowPath(() {
+          _asm.unimplemented(
+            'Unimplemented: code generation for slow path of BinaryIntOp ${instr.op.token}',
+          );
+          _asm.b(done);
+        });
+        if (right is Constant) {
+          final shift = right.value.intValue;
+          if (shift < 0) {
+            _asm.b(slowPath);
+          } else if (shift > 0 && shift < 64) {
+            switch (instr.op) {
+              case .shiftLeft:
+                _asm.lsl(resultReg, leftReg, shift);
+                break;
+              case .shiftRight:
+                _asm.asr(resultReg, leftReg, shift);
+                break;
+              case .unsignedShiftRight:
+                _asm.lsr(resultReg, leftReg, shift);
+                break;
+              default:
+                throw "Unexpected shift op ${instr.op}";
+            }
+          } else {
+            // Guaranteed by simplification pass.
+            throw 'Unexpected shift amount $shift';
+          }
+        } else {
+          final rightReg = inputReg(instr, 1);
+          _asm.cmp(rightReg, Immediate(63));
+          _asm.b(slowPath, .unsignedGreater);
+          switch (instr.op) {
+            case .shiftLeft:
+              _asm.lslv(resultReg, leftReg, rightReg);
+              break;
+            case .shiftRight:
+              _asm.asrv(resultReg, leftReg, rightReg);
+              break;
+            case .unsignedShiftRight:
+              _asm.lsrv(resultReg, leftReg, rightReg);
+              break;
+            default:
+              throw "Unexpected shift op ${instr.op}";
+          }
+        }
+        _asm.bind(done);
         break;
     }
   }

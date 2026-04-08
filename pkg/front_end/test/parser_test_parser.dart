@@ -2515,19 +2515,6 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseAugmentSuperExpression(Token token, IdentifierContext context) {
-    doPrint(
-      'parseAugmentSuperExpression('
-      '$token, '
-      '$context)',
-    );
-    indent++;
-    var result = super.parseAugmentSuperExpression(token, context);
-    indent--;
-    return result;
-  }
-
-  @override
   Token parseLiteralListSuffix(Token token, Token? constKeyword) {
     doPrint(
       'parseLiteralListSuffix('

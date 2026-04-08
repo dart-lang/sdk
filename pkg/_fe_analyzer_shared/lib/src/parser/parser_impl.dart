@@ -7924,9 +7924,6 @@ class Parser {
         return parseThisExpression(token, context);
       } else if (identical(value, "super")) {
         return parseSuperExpression(token, context);
-      } else if (identical(value, "augment") &&
-          token.next!.next!.isA(Keyword.SUPER)) {
-        return parseAugmentSuperExpression(token, context);
       } else if (identical(value, "new")) {
         return parseNewExpression(token);
       } else if (identical(value, "const")) {
@@ -8217,21 +8214,6 @@ class Parser {
       listener.handleSend(superToken, token);
     } else if (next.isA(TokenType.QUESTION_PERIOD)) {
       reportRecoverableError(next, diag.superNullAware);
-    }
-    return token;
-  }
-
-  Token parseAugmentSuperExpression(Token token, IdentifierContext context) {
-    Token augmentToken = token = token.next!;
-    assert(token.isA(Keyword.AUGMENT));
-    Token superToken = token = token.next!;
-    assert(token.isA(Keyword.SUPER));
-    listener.handleAugmentSuperExpression(augmentToken, superToken, context);
-    Token next = token.next!;
-    if (next.isA(TokenType.OPEN_PAREN)) {
-      listener.handleNoTypeArguments(next);
-      token = parseArguments(token);
-      listener.handleSend(augmentToken, token);
     }
     return token;
   }
