@@ -4201,22 +4201,6 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void handleAugmentSuperExpression(
-    Token augmentToken,
-    Token superToken,
-    IdentifierContext context,
-  ) {
-    seen(augmentToken);
-    seen(superToken);
-    doPrint(
-      'handleAugmentSuperExpression('
-      '$augmentToken, '
-      '$superToken, '
-      '$context)',
-    );
-  }
-
-  @override
   void beginSwitchCase(int labelCount, int expressionCount, Token beginToken) {
     seen(beginToken);
     doPrint(
