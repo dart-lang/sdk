@@ -70,7 +70,10 @@ class IncrementalJavaScriptBundler {
 
   /// Initialize the incremental bundler from a full component.
   Future<void> initialize(
-      Component fullComponent, Uri mainUri, PackageConfig packageConfig) async {
+    Component fullComponent,
+    Uri mainUri,
+    PackageConfig packageConfig,
+  ) async {
     _lastFullComponent = fullComponent;
     _currentComponent = fullComponent;
     // Initialize fresh hot reload metadata for this compile and throw out all
@@ -88,17 +91,22 @@ class IncrementalJavaScriptBundler {
       initialLibraryUris =
           _strongComponents.libraryBundleImportToLibraries.keys;
     } else {
-      initialLibraryUris =
-          fullComponent.libraries.map((library) => library.importUri);
+      initialLibraryUris = fullComponent.libraries.map(
+        (library) => library.importUri,
+      );
     }
     _updateSummaries(initialLibraryUris, packageConfig);
   }
 
   /// Update the incremental bundler from a partial component and the last full
   /// component.
-  Future<void> invalidate(Component partialComponent,
-      Component lastFullComponent, Uri mainUri, PackageConfig packageConfig,
-      {required bool recompileRestart}) async {
+  Future<void> invalidate(
+    Component partialComponent,
+    Component lastFullComponent,
+    Uri mainUri,
+    PackageConfig packageConfig, {
+    required bool recompileRestart,
+  }) async {
     if (canaryFeatures &&
         _moduleFormat == ModuleFormat.ddc &&
         !recompileRestart) {
@@ -108,11 +116,15 @@ class IncrementalJavaScriptBundler {
       // Find any potential hot reload rejections before updating the strongly
       // connected component graph.
       final List<String> errors = _deltaInspector.compareGenerations(
-          lastFullComponent, partialComponent);
+        lastFullComponent,
+        partialComponent,
+      );
       if (errors.isNotEmpty) {
-        throw new Exception(errors.join('/n') +
-            '\nHot reload rejected due to unsupported changes. '
-                'Try performing a hot restart instead.');
+        throw new Exception(
+          errors.join('/n') +
+              '\nHot reload rejected due to unsupported changes. '
+                  'Try performing a hot restart instead.',
+        );
       }
     }
     _currentComponent = partialComponent;
@@ -132,12 +144,13 @@ class IncrementalJavaScriptBundler {
       });
       invalidatedLibraryUris = <Uri>{
         for (Library library in partialComponent.libraries)
-          _strongComponents
-              .libraryImportToLibraryBundleImport[library.importUri]!,
+          _strongComponents.libraryImportToLibraryBundleImport[library
+              .importUri]!,
       };
     } else {
-      invalidatedLibraryUris =
-          partialComponent.libraries.map((library) => library.importUri);
+      invalidatedLibraryUris = partialComponent.libraries.map(
+        (library) => library.importUri,
+      );
     }
     _updateSummaries(invalidatedLibraryUris, packageConfig);
   }
@@ -165,7 +178,9 @@ class IncrementalJavaScriptBundler {
 
   /// Update the summaries using the [libraryBundleImports].
   void _updateSummaries(
-      Iterable<Uri> libraryBundleImports, PackageConfig packageConfig) {
+    Iterable<Uri> libraryBundleImports,
+    PackageConfig packageConfig,
+  ) {
     final Map<Uri, Library> libraryUriToLibrary = {
       for (Library library in _lastFullComponent.libraries)
         library.importUri: library,
@@ -197,8 +212,9 @@ class IncrementalJavaScriptBundler {
       for (Component summary in oldSummaries) {
         _summaryToLibraryBundleName.remove(summary);
       }
-      _libraryToSummary
-          .removeWhere((key, value) => oldSummaries.contains(value));
+      _libraryToSummary.removeWhere(
+        (key, value) => oldSummaries.contains(value),
+      );
 
       for (Library library in summaryComponent.libraries) {
         assert(!_libraryToSummary.containsKey(library));
@@ -211,7 +227,10 @@ class IncrementalJavaScriptBundler {
   /// Reports if [option] in [extraDdcOptions] was overridden or extended
   /// to [newValue] before being passed to DDC.
   void _checkOverriddenExtraDdcOption(
-      ArgResults extraDdcOptionsResults, String option, dynamic newValue) {
+    ArgResults extraDdcOptionsResults,
+    String option,
+    dynamic newValue,
+  ) {
     if (extraDdcOptionsResults.wasParsed(option)) {
       if (newValue is List) {
         if (listEquals(extraDdcOptionsResults[option], newValue)) return;
@@ -248,8 +267,8 @@ class IncrementalJavaScriptBundler {
       }
 
       final Uri libraryOrLibraryBundleImportUri = useStronglyConnectedComponents
-          ? _strongComponents
-              .libraryImportToLibraryBundleImport[library.importUri]!
+          ? _strongComponents.libraryImportToLibraryBundleImport[library
+                .importUri]!
           : library.importUri;
       if (visited.containsKey(libraryOrLibraryBundleImportUri)) {
         kernel2JsCompilers[library.importUri.toString()] =
@@ -260,28 +279,50 @@ class IncrementalJavaScriptBundler {
       final Component summaryComponent =
           _uriToComponent[libraryOrLibraryBundleImportUri]!;
 
-      final String componentUrl =
-          urlForComponentUri(libraryOrLibraryBundleImportUri, packageConfig);
+      final String componentUrl = urlForComponentUri(
+        libraryOrLibraryBundleImportUri,
+        packageConfig,
+      );
       // Library bundle name to use in trackLibraries. Use the full path for
       // tracking if library bundle uri is not a package uri.
       final String libraryBundleName = makeLibraryBundleName(componentUrl);
       // Issue a warning when provided [extraDdcOptions] were overridden.
-      final ArgResults extraDdcOptionsResults =
-          Options.nonSdkArgParser().parse(extraDdcOptions);
+      final ArgResults extraDdcOptionsResults = Options.nonSdkArgParser().parse(
+        extraDdcOptions,
+      );
       _checkOverriddenExtraDdcOption(
-          extraDdcOptionsResults, 'source-map', true);
+        extraDdcOptionsResults,
+        'source-map',
+        true,
+      );
       _checkOverriddenExtraDdcOption(
-          extraDdcOptionsResults, 'summarize', false);
-      _checkOverriddenExtraDdcOption(extraDdcOptionsResults,
-          'experimental-emit-debug-metadata', emitDebugMetadata);
+        extraDdcOptionsResults,
+        'summarize',
+        false,
+      );
       _checkOverriddenExtraDdcOption(
-          extraDdcOptionsResults, 'emit-debug-symbols', emitDebugSymbols);
+        extraDdcOptionsResults,
+        'experimental-emit-debug-metadata',
+        emitDebugMetadata,
+      );
       _checkOverriddenExtraDdcOption(
-          extraDdcOptionsResults, 'canary', canaryFeatures);
+        extraDdcOptionsResults,
+        'emit-debug-symbols',
+        emitDebugSymbols,
+      );
       _checkOverriddenExtraDdcOption(
-          extraDdcOptionsResults, 'module-name', libraryBundleName);
+        extraDdcOptionsResults,
+        'canary',
+        canaryFeatures,
+      );
       _checkOverriddenExtraDdcOption(
-          extraDdcOptionsResults, 'modules', [libraryBundleName]);
+        extraDdcOptionsResults,
+        'module-name',
+        libraryBundleName,
+      );
+      _checkOverriddenExtraDdcOption(extraDdcOptionsResults, 'modules', [
+        libraryBundleName,
+      ]);
       // Apply existing Frontend Server flags over options selected in
       // [extraDdcOptions].
       final List<String> ddcArgs = [
@@ -296,8 +337,9 @@ class IncrementalJavaScriptBundler {
         '--module-name=$libraryBundleName',
         '--modules=${_moduleFormat.flagName}',
       ];
-      final Options ddcOptions =
-          new Options.fromArguments(Options.nonSdkArgParser().parse(ddcArgs));
+      final Options ddcOptions = new Options.fromArguments(
+        Options.nonSdkArgParser().parse(ddcArgs),
+      );
       Compiler compiler;
       if (ddcOptions.emitLibraryBundle) {
         compiler = new LibraryBundleCompiler(
@@ -333,7 +375,8 @@ class IncrementalJavaScriptBundler {
         // make relative paths in the source map we get the absolute uri for
         // the library bundle and make them relative to that.
         sourceMapBase = p.dirname(
-            (packageConfig.resolve(libraryOrLibraryBundleImportUri))!.path);
+          (packageConfig.resolve(libraryOrLibraryBundleImportUri))!.path,
+        );
       }
 
       final JSCode code = jsProgramToCode(
@@ -357,10 +400,12 @@ class IncrementalJavaScriptBundler {
       );
       final Uint8List codeBytes = utf8.encode(code.code);
       final Uint8List sourceMapBytes = utf8.encode(json.encode(code.sourceMap));
-      final Uint8List? metadataBytes =
-          emitDebugMetadata ? utf8.encode(json.encode(code.metadata)) : null;
-      final Uint8List? symbolsBytes =
-          emitDebugSymbols ? utf8.encode(json.encode(code.symbols)) : null;
+      final Uint8List? metadataBytes = emitDebugMetadata
+          ? utf8.encode(json.encode(code.metadata))
+          : null;
+      final Uint8List? symbolsBytes = emitDebugSymbols
+          ? utf8.encode(json.encode(code.symbols))
+          : null;
 
       codeSink.add(codeBytes);
       sourceMapsSink.add(sourceMapBytes);
@@ -376,12 +421,12 @@ class IncrementalJavaScriptBundler {
         'code': <int>[codeOffset, codeOffset += codeBytes.length],
         'sourcemap': <int>[
           sourceMapOffset,
-          sourceMapOffset += sourceMapBytes.length
+          sourceMapOffset += sourceMapBytes.length,
         ],
         if (emitDebugMetadata)
           'metadata': <int>[
             metadataOffset,
-            metadataOffset += metadataBytes!.length
+            metadataOffset += metadataBytes!.length,
           ],
         if (emitDebugSymbols)
           'symbols': <int>[
@@ -422,8 +467,9 @@ class IncrementalJavaScriptBundler {
     final Uri resolvedUri = packageConfig.resolve(componentUri)!;
     final Package package = packageConfig.packageOf(resolvedUri)!;
     final Uri root = package.root;
-    final String relativeRoot =
-        root.pathSegments.lastWhere((segment) => segment.isNotEmpty);
+    final String relativeRoot = root.pathSegments.lastWhere(
+      (segment) => segment.isNotEmpty,
+    );
     final String relativeUrl = resolvedUri.toString().replaceFirst('$root', '');
 
     // Relative component url (used as server path in the browser):

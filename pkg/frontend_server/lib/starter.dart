@@ -35,8 +35,11 @@ Future<int> starter(
   }
   if (options['resident-info-file-name'] != null) {
     StreamSubscription<Socket>? serverSubscription =
-        await residentListenAndCompile(InternetAddress.loopbackIPv4, 0,
-            new File(options['resident-info-file-name']));
+        await residentListenAndCompile(
+          InternetAddress.loopbackIPv4,
+          0,
+          new File(options['resident-info-file-name']),
+        );
     return serverSubscription == null ? 1 : 0;
   }
 
@@ -48,8 +51,9 @@ Future<int> starter(
     final String input = options.rest[0];
     final String sdkRoot = options['sdk-root'];
     final String? platform = options['platform'];
-    final Directory temp =
-        Directory.systemTemp.createTempSync('train_frontend_server');
+    final Directory temp = Directory.systemTemp.createTempSync(
+      'train_frontend_server',
+    );
     try {
       final String outputTrainingDill = path.join(temp.path, 'app.dill');
       final List<String> args = <String>[
@@ -61,8 +65,10 @@ Future<int> starter(
         args.add('--platform=${new Uri.file(platform)}');
       }
       options = argParser.parse(args);
-      compiler ??=
-          new FrontendCompiler(output, printerFactory: binaryPrinterFactory);
+      compiler ??= new FrontendCompiler(
+        output,
+        printerFactory: binaryPrinterFactory,
+      );
 
       await compiler.compile(input, options, generator: generator);
       compiler.acceptLastDelta();
@@ -99,16 +105,23 @@ Future<int> starter(
   }
 
   if (options.rest.isNotEmpty) {
-    return await compiler.compile(options.rest[0], options,
-            generator: generator)
+    return await compiler.compile(
+          options.rest[0],
+          options,
+          generator: generator,
+        )
         ? 0
         : 254;
   }
 
   Completer<int> completer = new Completer<int>();
   StreamSubscription<String> subscription = listenAndCompile(
-      compiler, input ?? stdin, options, completer,
-      generator: generator);
+    compiler,
+    input ?? stdin,
+    options,
+    completer,
+    generator: generator,
+  );
   return completer.future.then((value) {
     subscription.cancel();
     return value;

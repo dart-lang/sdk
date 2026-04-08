@@ -38,8 +38,13 @@ Future<void> main(List<String> args) async {
 }
 
 Future compileTests(
-    String? flutterDir, String? flutterPlatformDir, Logger logger,
-    {String? filter, int shards = 1, int shard = 0}) async {
+  String? flutterDir,
+  String? flutterPlatformDir,
+  Logger logger, {
+  String? filter,
+  int shards = 1,
+  int shard = 0,
+}) async {
   if (flutterDir == null || !(new Directory(flutterDir).existsSync())) {
     throw "Didn't get a valid flutter directory to work with.";
   }
@@ -53,18 +58,24 @@ Future compileTests(
     throw "Shard must be < shards";
   }
   // Ensure the path ends in a slash.
-  final Directory flutterDirectory =
-      new Directory.fromUri(new Directory(flutterDir).uri);
+  final Directory flutterDirectory = new Directory.fromUri(
+    new Directory(flutterDir).uri,
+  );
 
-  List<FileSystemEntity> allFlutterFiles =
-      flutterDirectory.listSync(recursive: true, followLinks: false);
+  List<FileSystemEntity> allFlutterFiles = flutterDirectory.listSync(
+    recursive: true,
+    followLinks: false,
+  );
   Directory flutterPlatformDirectoryTmp;
 
   if (flutterPlatformDir == null) {
-    List<File> platformFiles = new List<File>.from(allFlutterFiles.where((f) =>
-        f.uri
-            .toString()
-            .endsWith("/flutter_patched_sdk/platform_strong.dill")));
+    List<File> platformFiles = new List<File>.from(
+      allFlutterFiles.where(
+        (f) => f.uri.toString().endsWith(
+          "/flutter_patched_sdk/platform_strong.dill",
+        ),
+      ),
+    );
     if (platformFiles.isEmpty) {
       throw "Expected to find a flutter platform file but didn't.";
     }
@@ -76,21 +87,25 @@ Future compileTests(
     throw "$flutterPlatformDirectoryTmp doesn't exist.";
   }
   // Ensure the path ends in a slash.
-  final Directory flutterPlatformDirectory =
-      new Directory.fromUri(flutterPlatformDirectoryTmp.uri);
+  final Directory flutterPlatformDirectory = new Directory.fromUri(
+    flutterPlatformDirectoryTmp.uri,
+  );
 
   if (!new File.fromUri(
-          flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
-      .existsSync()) {
+    flutterPlatformDirectory.uri.resolve("platform_strong.dill"),
+  ).existsSync()) {
     throw "$flutterPlatformDirectory doesn't contain a "
         "platform_strong.dill file.";
   }
   logger.notice("Using $flutterPlatformDirectory as platform directory.");
-  List<File> packageConfigFiles = new List<File>.from(allFlutterFiles.where(
+  List<File> packageConfigFiles = new List<File>.from(
+    allFlutterFiles.where(
       (f) =>
           (f.uri.toString().contains("/examples/") ||
               f.uri.toString().contains("/packages/")) &&
-          f.uri.toString().endsWith("/.dart_tool/package_config.json")));
+          f.uri.toString().endsWith("/.dart_tool/package_config.json"),
+    ),
+  );
 
   List<String> allCompilationErrors = [];
   final Directory systemTempDir = Directory.systemTemp;
@@ -98,23 +113,25 @@ Future compileTests(
   int totalFiles = 0;
   for (int i = 0; i < packageConfigFiles.length; i++) {
     File packageConfig = packageConfigFiles[i];
-    Directory testDir =
-        new Directory.fromUri(packageConfig.parent.uri.resolve("../test/"));
+    Directory testDir = new Directory.fromUri(
+      packageConfig.parent.uri.resolve("../test/"),
+    );
     if (!testDir.existsSync()) continue;
     if (testDir.toString().contains("packages/flutter_web_plugins/test/")) {
       // TODO(jensj): Figure out which tests are web-tests, and compile those
       // in a setup that can handle that.
       continue;
     }
-    List<File> testFiles =
-        new List<File>.from(testDir.listSync(recursive: true).where((f) {
-      if (!f.path.endsWith("_test.dart")) return false;
-      if (filter != null) {
-        String testName = f.path.substring(flutterDirectory.path.length);
-        if (!testName.startsWith(filter)) return false;
-      }
-      return true;
-    }));
+    List<File> testFiles = new List<File>.from(
+      testDir.listSync(recursive: true).where((f) {
+        if (!f.path.endsWith("_test.dart")) return false;
+        if (filter != null) {
+          String testName = f.path.substring(flutterDirectory.path.length);
+          if (!testName.startsWith(filter)) return false;
+        }
+        return true;
+      }),
+    );
 
     if (testFiles.isEmpty) continue;
     queue.add(new _QueueEntry(testFiles, packageConfig, testDir));
@@ -141,15 +158,16 @@ Future compileTests(
       }
 
       await _processFiles(
-          systemTempDir,
-          chunk,
-          flutterPlatformDirectory,
-          queueEntry.packageConfig,
-          queueEntry.testDir,
-          flutterDirectory,
-          logger,
-          filter,
-          allCompilationErrors);
+        systemTempDir,
+        chunk,
+        flutterPlatformDirectory,
+        queueEntry.packageConfig,
+        queueEntry.testDir,
+        flutterDirectory,
+        logger,
+        filter,
+        allCompilationErrors,
+      );
     } else {
       // None of these files are part of the chunk.
       processedFiles += queueEntry.files.length;
@@ -158,7 +176,8 @@ Future compileTests(
 
   if (allCompilationErrors.isNotEmpty) {
     logger.notice(
-        "Had a total of ${allCompilationErrors.length} compilation errors:");
+      "Had a total of ${allCompilationErrors.length} compilation errors:",
+    );
     allCompilationErrors.forEach(logger.notice);
     exitCode = 1;
   }
@@ -173,29 +192,33 @@ class _QueueEntry {
 }
 
 Future<void> _processFiles(
-    Directory systemTempDir,
-    List<File> files,
-    Directory flutterPlatformDirectory,
-    File packageConfig,
-    Directory testDir,
-    Directory flutterDirectory,
-    Logger logger,
-    String? filter,
-    List<String> allCompilationErrors) async {
+  Directory systemTempDir,
+  List<File> files,
+  Directory flutterPlatformDirectory,
+  File packageConfig,
+  Directory testDir,
+  Directory flutterDirectory,
+  Logger logger,
+  String? filter,
+  List<String> allCompilationErrors,
+) async {
   Directory tempDir = systemTempDir.createTempSync('flutter_frontend_test');
   try {
     List<String> compilationErrors = await attemptStuff(
-        files,
-        tempDir,
-        flutterPlatformDirectory,
-        packageConfig,
-        testDir,
-        flutterDirectory,
-        logger,
-        filter);
+      files,
+      tempDir,
+      flutterPlatformDirectory,
+      packageConfig,
+      testDir,
+      flutterDirectory,
+      logger,
+      filter,
+    );
     if (compilationErrors.isNotEmpty) {
-      logger.notice("Notice that we had ${compilationErrors.length} "
-          "compilation errors for $testDir");
+      logger.notice(
+        "Notice that we had ${compilationErrors.length} "
+        "compilation errors for $testDir",
+      );
       allCompilationErrors.addAll(compilationErrors);
     }
   } finally {
@@ -204,14 +227,15 @@ Future<void> _processFiles(
 }
 
 Future<List<String>> attemptStuff(
-    List<File> testFiles,
-    Directory tempDir,
-    Directory flutterPlatformDirectory,
-    File packageConfig,
-    Directory testDir,
-    Directory flutterDirectory,
-    Logger logger,
-    String? filter) async {
+  List<File> testFiles,
+  Directory tempDir,
+  Directory flutterPlatformDirectory,
+  File packageConfig,
+  Directory testDir,
+  Directory flutterDirectory,
+  Logger logger,
+  String? filter,
+) async {
   if (testFiles.isEmpty) return [];
 
   File dillFile = new File('${tempDir.path}/dill.dill');
@@ -220,8 +244,8 @@ Future<List<String>> attemptStuff(
   }
 
   Uint8List platformData = new File.fromUri(
-          flutterPlatformDirectory.uri.resolve("platform_strong.dill"))
-      .readAsBytesSync();
+    flutterPlatformDirectory.uri.resolve("platform_strong.dill"),
+  ).readAsBytesSync();
   final String targetName = 'flutter';
   final Target target = createFrontEndTarget(targetName)!;
   final List<String> args = <String>[
@@ -264,26 +288,31 @@ Future<List<String>> attemptStuff(
   /// This is specialized for how it's actually written in the production code
   /// (via `openWrite`) and will fail if that changes (at which point it will
   /// have to be updated).
-  final Future<int> result = IOOverrides.runZoned(() {
-    return starter(args, input: inputStreamController.stream, output: ioSink);
-  }, createFile: (String path) {
-    if (files[path] != null) return files[path]!;
-    File f = parentZone.run(() => new File(path));
-    if (path.endsWith(".dill")) return files[path] = new _MockFile(f);
-    return f;
-  });
+  final Future<int> result = IOOverrides.runZoned(
+    () {
+      return starter(args, input: inputStreamController.stream, output: ioSink);
+    },
+    createFile: (String path) {
+      if (files[path] != null) return files[path]!;
+      File f = parentZone.run(() => new File(path));
+      if (path.endsWith(".dill")) return files[path] = new _MockFile(f);
+      return f;
+    },
+  );
 
   Set<Library> alreadyVerifiedLibraries = new HashSet.identity();
   MultiBinaryLoader multiBinaryLoader = new MultiBinaryLoader();
 
-  String testName =
-      testFileIterator.current.path.substring(flutterDirectory.path.length);
+  String testName = testFileIterator.current.path.substring(
+    flutterDirectory.path.length,
+  );
 
   logger.logTestStart(testName);
   logger.notice("    => $testName");
   Stopwatch stopwatch2 = new Stopwatch()..start();
-  inputStreamController
-      .add('compile ${testFileIterator.current.path}\n'.codeUnits);
+  inputStreamController.add(
+    'compile ${testFileIterator.current.path}\n'.codeUnits,
+  );
   int compilations = 0;
   List<String> compilationErrors = [];
   receivedResults.stream.listen((Result compiledResult) {
@@ -317,8 +346,12 @@ Future<List<String>> attemptStuff(
         // representing a sub components bytes if available, which will allow it
         // to not having to compare bytes, but simple use an identity hash on
         // the list.
-        Component component = multiBinaryLoader.load(
-            [platformData, resultBytes], (Uint8List data, int from, int to) {
+        Component
+        component = multiBinaryLoader.load([platformData, resultBytes], (
+          Uint8List data,
+          int from,
+          int to,
+        ) {
           if (!identical(data, resultBytes)) return null;
           // We're asked if we have an alternative to the bytes in [data]
           // between [from] and [to]: We search the chunks used, and return the
@@ -346,7 +379,8 @@ Future<List<String>> attemptStuff(
               !alreadyVerifiedLibraries.add(library),
         );
         logger.log(
-            "        => verified in ${stopwatch2.elapsedMilliseconds} ms.");
+          "        => verified in ${stopwatch2.elapsedMilliseconds} ms.",
+        );
       } catch (e, st) {
         logger.log("Crash when trying to verify:");
         logger.log("Error: $e");
@@ -379,14 +413,17 @@ Future<List<String>> attemptStuff(
       return;
     }
 
-    testName =
-        testFileIterator.current.path.substring(flutterDirectory.path.length);
+    testName = testFileIterator.current.path.substring(
+      flutterDirectory.path.length,
+    );
     logger.logTestStart(testName);
     logger.notice("    => $testName");
-    inputStreamController.add('recompile ${testFileIterator.current.path} abc\n'
-            '${testFileIterator.current.uri}\n'
-            'abc\n'
-        .codeUnits);
+    inputStreamController.add(
+      'recompile ${testFileIterator.current.path} abc\n'
+              '${testFileIterator.current.uri}\n'
+              'abc\n'
+          .codeUnits,
+    );
   });
 
   int resultDone = await result;
@@ -396,8 +433,10 @@ Future<List<String>> attemptStuff(
 
   await inputStreamController.close();
 
-  logger.log("Did $compilations compilations and verifications in "
-      "${stopwatch.elapsedMilliseconds} ms.");
+  logger.log(
+    "Did $compilations compilations and verifications in "
+    "${stopwatch.elapsedMilliseconds} ms.",
+  );
 
   return compilationErrors;
 }
@@ -440,11 +479,14 @@ class OutputParser {
       }
       // Second boundaryKey indicates end of frontend server response
       expectSources = true;
-      _receivedResults.add(new Result(
+      _receivedResults.add(
+        new Result(
           s.length > _boundaryKey!.length
               ? s.substring(_boundaryKey!.length + 1)
               : null,
-          _receivedSources));
+          _receivedSources,
+        ),
+      );
       _boundaryKey = null;
     } else {
       if (_readingSources) {
