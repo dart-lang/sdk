@@ -1,0 +1,36 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/enum_async.dart:7:8: Error: A primary constructor body can't have the modifier 'async'.
+// Try removing the modifier.
+//   this async {}
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_async.dart:7:14: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   this async {}
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_async.dart:7:14: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+//   this async {}
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_async.dart:6:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   v;
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E v = invalid-expression "A const constructor can't have a body.";
+  static const field core::List<self::E> values = invalid-expression "A const constructor can't have a body.";
+  const constructor •(core::int #index, core::String #name) → self::E
+    : invalid-initializer "pkg/front_end/testcases/primary_constructors/enum_async.dart:7:14: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
+  this async {}
+             ^" {}
+  method core::_enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
