@@ -982,13 +982,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final doneTrue = Label();
     final done = Label();
 
-    late final Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for TypeTest slow path',
-      );
-      _asm.b(done);
-    });
-
     // Handle a few built-in types, use STC for other types.
     final type = instr.testedType;
     switch (type) {
@@ -996,38 +989,36 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.cmp(operandReg, nullReg);
         _asm.b(doneTrue, .notEqual);
       case NullType():
-        _asm.cmp(resultReg, nullReg);
+        _asm.cmp(operandReg, nullReg);
         _asm.b(doneTrue, .equal);
       case IntType():
-        _asm.tbz(resultReg, smiBit, doneTrue);
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.tbz(operandReg, smiBit, doneTrue);
+        _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.MintCid.index);
         _asm.b(doneTrue, .equal);
       case DoubleType():
-        _asm.tbz(resultReg, smiBit, doneFalse);
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.tbz(operandReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.DoubleCid.index);
         _asm.b(doneTrue, .equal);
       case BoolType():
-        _asm.tbz(resultReg, smiBit, doneFalse);
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.tbz(operandReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.BoolCid.index);
         _asm.b(doneTrue, .equal);
       case StringType():
-        _asm.tbz(resultReg, smiBit, doneFalse);
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.tbz(operandReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.OneByteStringCid.index);
         _asm.b(doneTrue, .equal);
         _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
         _asm.b(doneTrue, .equal);
       default:
-        _asm.tbz(
-          resultReg,
-          smiBit,
-          const IntType().isSubtypeOf(type) ? doneTrue : doneFalse,
-        );
+        if (const IntType().isSubtypeOf(type)) {
+          _asm.tbz(operandReg, smiBit, doneTrue);
+        }
         if (type.isNullable) {
-          _asm.cmp(resultReg, nullReg);
+          _asm.cmp(operandReg, nullReg);
           _asm.b(doneTrue, .equal);
         }
         bool isNullConstant(Definition def) =>
@@ -1052,6 +1043,34 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _ =>
             throw 'Unexpected number of SubtypeTestCache inputs ${stc.numInputs} (type $type)',
         };
+
+        final Label slowPath = addSlowPath(() {
+          assert(stackFrame.maxArgumentsStackSlots >= 6);
+          _asm.loadFromPool(tempReg, type.dartType);
+          _asm.stp(
+            TypeTestingStub.subtypeTestCacheReg,
+            hasFunctionTypeArgs
+                ? TypeTestingStub.functionTypeArgumentsReg
+                : nullReg,
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _asm.stp(
+            hasInstantiatorTypeArgs
+                ? TypeTestingStub.instantiatorTypeArgumentsReg
+                : nullReg,
+            tempReg,
+            RegOffsetAddress(stackPointerReg, 2 * wordSize),
+          );
+          _asm.stp(
+            TypeTestingStub.instanceReg,
+            nullReg, // Space for result
+            RegOffsetAddress(stackPointerReg, 4 * wordSize),
+          );
+          _asm.callRuntime(RuntimeEntry.Instanceof, 5);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 5 * wordSize));
+          _asm.b(done);
+        });
+
         _asm.loadFromPool(TypeTestingStub.subtypeTestCacheReg, stc);
         _asm.loadFromPool(codeReg, stub);
         _asm.ldr(
