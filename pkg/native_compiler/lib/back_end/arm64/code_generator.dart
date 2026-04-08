@@ -1080,7 +1080,44 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitTypeLiteral(TypeLiteral instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeLiteral');
+    final instantiatorTypeArgsReg = inputReg(instr, 0);
+    final functionTypeArgsReg = inputReg(instr, 1);
+    final resultReg = outputReg(instr);
+    final type = instr.uninstantiatedType;
+    if (type is ast.TypeParameterType &&
+        type.nullability != ast.Nullability.nullable) {
+      final declaration = type.parameter.declaration;
+      final index = computeIndexOfTypeParameter(type.parameter);
+      final typeArgsReg = (declaration is ast.Class)
+          ? instantiatorTypeArgsReg
+          : functionTypeArgsReg;
+      final done = Label();
+      if (resultReg != typeArgsReg) {
+        _asm.mov(resultReg, nullReg);
+      }
+      _asm.cmp(typeArgsReg, nullReg);
+      _asm.b(done, .equal);
+      _asm.ldr(
+        resultReg,
+        _asm.address(
+          typeArgsReg,
+          vmOffsets.TypeArguments_types_offset +
+              index * objectLayout.compressedWordSize,
+        ),
+      );
+      _asm.bind(done);
+      return;
+    }
+    assert(stackFrame.maxArgumentsStackSlots >= 4);
+    _asm.loadFromPool(tempReg, type);
+    _asm.stp(
+      functionTypeArgsReg,
+      instantiatorTypeArgsReg,
+      RegOffsetAddress(stackPointerReg, 0),
+    );
+    _asm.stp(tempReg, nullReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+    _asm.callRuntime(RuntimeEntry.InstantiateType, 3);
+    _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 3 * wordSize));
   }
 
   @override

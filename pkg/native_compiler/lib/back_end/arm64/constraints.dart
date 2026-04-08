@@ -288,9 +288,9 @@ final class Arm64Constraints extends Constraints {
 
   @override
   InstructionConstraints? visitTypeLiteral(TypeLiteral instr) =>
-      InstructionConstraints(anyCpuRegister, [
-        anyRegisterOrImmediate(instr.inputDefAt(0)),
-        anyRegisterOrImmediate(instr.inputDefAt(1)),
+      const InstructionConstraints(anyCpuRegister, [
+        anyCpuRegister,
+        anyCpuRegister,
       ]);
 
   @override

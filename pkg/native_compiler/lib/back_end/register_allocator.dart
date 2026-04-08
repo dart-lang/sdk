@@ -205,9 +205,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
       for (final instr in block.reversed) {
         currentInstruction = instr;
-        if (instr is CallInstruction) {
-          backEndState.stackFrame.allocateArgumentsSlots(instr);
-        }
+        backEndState.stackFrame.allocateArgumentsSlots(instr);
         final pos = instructionPos(instr);
         final constr = constraints.getConstraints(instr);
         if (constr == null) {
