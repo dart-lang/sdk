@@ -23,6 +23,7 @@ namespace dart {
 class Code;
 class Isolate;
 class ObjectPointerVisitor;
+class Thread;
 
 // Is it permitted for the stubs above to refer to Object::null(), which is
 // allocated in the VM isolate and shared across all isolates.
@@ -49,10 +50,12 @@ class StubCode : public AllStatic {
 
   // Check if specified pc is in the dart invocation stub used for
   // transitioning into dart code.
-  static bool InInvocationStub(uword pc, bool is_interpreted_frame = false);
+  static bool InInvocationStub(Thread* T,
+                               uword pc,
+                               bool is_interpreted_frame = false);
 
   // Check if the specified pc is in the jump to frame stub.
-  static bool InJumpToFrameStub(uword pc);
+  static bool InJumpToFrameStub(Thread* T, uword pc);
 
   // Returns nullptr if no stub found.
   static const char* NameOfStub(uword entry_point);
@@ -69,8 +72,7 @@ class StubCode : public AllStatic {
 
 // Define the shared stub code accessors.
 #define STUB_CODE_ACCESSOR(name)                                               \
-  static const Code& name() { return Roots::stub_handle(k##name##Index); }     \
-  static intptr_t name##Size() { return name().Size(); }
+  static const Code& name() { return Roots::stub_handle(k##name##Index); }
   VM_STUB_CODE_LIST(STUB_CODE_ACCESSOR);
 #undef STUB_CODE_ACCESSOR
 

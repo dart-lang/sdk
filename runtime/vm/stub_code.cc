@@ -128,8 +128,14 @@ void StubCode::Cleanup() {
   initialized_.store(false, std::memory_order_release);
 }
 
-bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
-  ASSERT(HasBeenInitialized());
+bool StubCode::InInvocationStub(Thread* T,
+                                uword pc,
+                                bool is_interpreted_frame) {
+  // T might differ from the current thread on platforms where profiling is
+  // cross thread, like Mac/Windows/Fuchsia.
+  Roots* roots = T->isolate_group()->roots();
+  if (roots == nullptr) return false;
+
 #if defined(DART_DYNAMIC_MODULES)
   if (is_interpreted_frame) {
     // Recognize special marker set up by interpreter in entry frame.
@@ -137,22 +143,29 @@ bool StubCode::InInvocationStub(uword pc, bool is_interpreted_frame) {
         reinterpret_cast<const KBCInstr*>(pc));
   }
   {
-    uword entry = StubCode::InvokeDartCodeFromBytecode().EntryPoint();
-    uword size = StubCode::InvokeDartCodeFromBytecodeSize();
+    const Code& stub = roots->x_stub_handle(kInvokeDartCodeFromBytecodeIndex);
+    uword entry = Code::StubEntryPointOf(stub.ptr());
+    uword size = Code::StubPayloadSizeOf(stub.ptr());
     if ((pc >= entry) && (pc < (entry + size))) {
       return true;
     }
   }
 #endif  // defined(DART_DYNAMIC_MODULES)
-  uword entry = StubCode::InvokeDartCode().EntryPoint();
-  uword size = StubCode::InvokeDartCodeSize();
+  const Code& stub = roots->x_stub_handle(kInvokeDartCodeIndex);
+  uword entry = Code::StubEntryPointOf(stub.ptr());
+  uword size = Code::StubPayloadSizeOf(stub.ptr());
   return (pc >= entry) && (pc < (entry + size));
 }
 
-bool StubCode::InJumpToFrameStub(uword pc) {
-  ASSERT(HasBeenInitialized());
-  uword entry = StubCode::JumpToFrame().EntryPoint();
-  uword size = StubCode::JumpToFrameSize();
+bool StubCode::InJumpToFrameStub(Thread* T, uword pc) {
+  // T might differ from the current thread on platforms where profiling is
+  // cross thread, like Mac/Windows/Fuchsia.
+  Roots* roots = T->isolate_group()->roots();
+  if (roots == nullptr) return false;
+
+  const Code& stub = roots->x_stub_handle(kJumpToFrameIndex);
+  uword entry = Code::StubEntryPointOf(stub.ptr());
+  uword size = Code::StubPayloadSizeOf(stub.ptr());
   return (pc >= entry) && (pc < (entry + size));
 }
 

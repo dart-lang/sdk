@@ -31,7 +31,7 @@ Message::Message(Dart_Port dest_port,
 
 Message::Message(Dart_Port dest_port, ObjectPtr raw_obj, Priority priority)
     : dest_port_(dest_port), payload_(raw_obj), priority_(priority) {
-  ASSERT(!raw_obj->IsHeapObject() || raw_obj->untag()->InVMIsolateHeap());
+  ASSERT(!raw_obj->IsHeapObject());
   ASSERT(IsRaw());
 }
 

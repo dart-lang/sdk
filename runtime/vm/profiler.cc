@@ -1149,7 +1149,6 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         lr_(reinterpret_cast<uword*>(lr)) {}
 
   void walk() {
-    RELEASE_ASSERT(StubCode::HasBeenInitialized());
     if (thread_->IsDeoptimizing()) {
       sample_->set_ignore_sample(true);
       return;
@@ -1186,10 +1185,10 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
       const bool is_interpreted_frame = IsInterpretedFrame();
       const bool is_entry_frame =
 #if defined(TARGET_ARCH_IA32) || defined(TARGET_ARCH_X64)
-          StubCode::InInvocationStub(Stack(0), is_interpreted_frame) ||
-          StubCode::InInvocationStub(Stack(1), is_interpreted_frame);
+          StubCode::InInvocationStub(thread_, Stack(0), is_interpreted_frame) ||
+          StubCode::InInvocationStub(thread_, Stack(1), is_interpreted_frame);
 #else
-          StubCode::InInvocationStub(reinterpret_cast<uword>(lr_),
+          StubCode::InInvocationStub(thread_, reinterpret_cast<uword>(lr_),
                                      is_interpreted_frame);
 #endif
       if (is_entry_frame) {
@@ -1208,7 +1207,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
 
     for (;;) {
       // Skip entry frame.
-      if (StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
+      if (StubCode::InInvocationStub(thread_, reinterpret_cast<uword>(pc_),
                                      IsInterpretedFrame())) {
         pc_ = nullptr;
         fp_ = ExitLink();
@@ -1221,8 +1220,8 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
         fp_ = CallerFP();
 
         // At least one frame between exit and next entry frame.
-        RELEASE_ASSERT(!StubCode::InInvocationStub(reinterpret_cast<uword>(pc_),
-                                                   IsInterpretedFrame()));
+        RELEASE_ASSERT(!StubCode::InInvocationStub(
+            thread_, reinterpret_cast<uword>(pc_), IsInterpretedFrame()));
       }
 
       if (!Append(reinterpret_cast<uword>(pc_), reinterpret_cast<uword>(fp_))) {
@@ -1338,11 +1337,11 @@ static void CollectSample(Isolate* isolate,
       // Always walk the native stack collecting both native and Dart frames.
       counters->stack_walker_native.fetch_add(1);
       native_stack_walker->walk();
-    } else if (StubCode::HasBeenInitialized() && exited_dart_code) {
+    } else if (exited_dart_code) {
       counters->stack_walker_dart_exit.fetch_add(1);
       // We have a valid exit frame info, use the Dart stack walker.
       dart_stack_walker->walk();
-    } else if (StubCode::HasBeenInitialized() && in_dart_code) {
+    } else if (in_dart_code) {
       counters->stack_walker_dart.fetch_add(1);
       // We are executing Dart code. We have frame pointers.
       dart_stack_walker->walk();
@@ -1534,7 +1533,7 @@ void Profiler::SampleThread(Thread* thread,
     return;
   }
 
-  if (StubCode::HasBeenInitialized() && StubCode::InJumpToFrameStub(state.pc)) {
+  if (StubCode::InJumpToFrameStub(thread, state.pc)) {
     // The JumpToFrame stub manually adjusts the stack pointer, frame
     // pointer, and some isolate state.  It is not safe to walk the
     // stack when executing this stub.

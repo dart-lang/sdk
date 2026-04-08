@@ -87,6 +87,10 @@ List<ObjectCopyOperation> getCopyOperations(
 
   TimelineEvent? start = null;
 
+  events.sort((a, b) {
+    if (a.tid == b.tid) return a.ts.compareTo(b.ts);
+    return a.tid.compareTo(b.tid);
+  });
   for (final e in events) {
     if (e.isolateId != isolateId) continue;
     if (e.name != 'CopyMutableObjectGraph') continue;

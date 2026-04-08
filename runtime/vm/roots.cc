@@ -4,18 +4,22 @@
 
 #include "vm/roots.h"
 
+#include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
+#include "vm/handles.h"
 #include "vm/object.h"
 #include "vm/visitor.h"
 
 namespace dart {
 
-Roots Roots::roots_ = {};
-
-COMPILE_ASSERT(ArgumentsDescriptor::kCachedDescriptorCount == 35);
-COMPILE_ASSERT(ICData::kCachedICDataArrayCount == 4);
-
 void Roots::VisitObjectPointers(ObjectPointerVisitor* visitor) {
+  COMPILE_ASSERT(ARRAY_SIZE(raw_.cached_args_descriptors_) ==
+                 ArgumentsDescriptor::kCachedDescriptorCount);
+  COMPILE_ASSERT(ARRAY_SIZE(raw_.cached_icdata_arrays_) ==
+                 ICData::kCachedICDataArrayCount);
+  COMPILE_ASSERT(sizeof(Roots::ApiHandle) == sizeof(LocalHandle));
+  COMPILE_ASSERT(sizeof(Roots::VMHandle) == kVMHandleSizeInWords * kWordSize);
+
   ObjectPtr* from = reinterpret_cast<ObjectPtr*>(&raw_);
   visitor->VisitPointers(from, from + sizeof(Raw) / sizeof(ObjectPtr) - 1);
 
