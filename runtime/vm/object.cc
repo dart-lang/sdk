@@ -11513,7 +11513,6 @@ const char* Function::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
   }
-  is_extension_type_member();
   return String::ScrubName(String::Handle(name()),
                            is_extension_member() || is_extension_type_member());
 }
