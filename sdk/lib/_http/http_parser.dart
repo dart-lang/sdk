@@ -748,8 +748,15 @@ class _HttpParser extends Stream<_HttpIncoming> {
               }
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
-              if (_caseInsensitiveCompare("chunked".codeUnits, _headerValue)) {
-                _chunked = true;
+              // RFC 7230 section 3.3.1: Transfer-Encoding can be a
+              // comma-separated list (e.g. "gzip, chunked"). Check each
+              // token individually to avoid CL/TE request smuggling.
+              List<String> tokens = _tokenizeFieldValue(headerValue);
+              for (var token in tokens) {
+                if (token.trim().toLowerCase() == "chunked") {
+                  _chunked = true;
+                  break;
+                }
               }
               _contentLength = false;
             }
