@@ -17,7 +17,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/utilities_general.dart' show toBool;
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -96,8 +95,8 @@ final class AnalysisOptionsBuilder {
     var useFormatter = false;
     if (codeStyle is YamlMap) {
       var formatNode = codeStyle.valueAt(AnalysisOptionsFile.format);
-      if (formatNode != null) {
-        var formatValue = toBool(formatNode);
+      if (formatNode is YamlScalar) {
+        var formatValue = formatNode.toBool();
         if (formatValue is bool) {
           useFormatter = formatValue;
         }

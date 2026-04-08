@@ -27,13 +27,11 @@ void screenshotsValidator(PubspecValidationContext ctx) {
     if (entry is! YamlMap) continue;
     var entryValue = entry.valueAt(PubspecField.PATH_FIELD);
     if (entryValue is! YamlScalar) continue;
-    var path = entryValue.value;
+    Object? path = entryValue.value;
     if (path is String && !fileExistsAtPath(path)) {
       ctx.reportErrorForNode(
         entryValue,
-        diag.pathDoesNotExist.withArguments(
-          path: entryValue.valueOrThrow.toString(),
-        ),
+        diag.pathDoesNotExist.withArguments(path: path),
       );
     }
   }
