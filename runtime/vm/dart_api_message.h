@@ -17,9 +17,6 @@ namespace dart {
 
 // This class handles translation of certain ObjectPtrs to CObjects for
 // NativeMessageHandlers.
-//
-// TODO(zra): Expand to support not only null, but also other VM heap objects
-// as well.
 class ApiObjectConverter : public AllStatic {
  public:
   static bool CanConvert(const ObjectPtr raw_obj) {
