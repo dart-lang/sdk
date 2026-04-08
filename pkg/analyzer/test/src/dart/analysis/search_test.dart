@@ -325,6 +325,29 @@ testFile
     );
   }
 
+  test_declarations_class_unnamed() async {
+    await resolveTestCode('''
+class {
+  void foo() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+''',
+    );
+  }
+
   test_declarations_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
@@ -413,6 +436,29 @@ testFile
   ENUM_CONSTANT ccc
     offset: 18 2:10
     codeOffset: 18 + 3
+''',
+    );
+  }
+
+  test_declarations_enum_unnamed() async {
+    await resolveTestCode('''
+enum {
+  foo
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 ''',
     );
   }
@@ -509,6 +555,27 @@ testFile
     );
   }
 
+  test_declarations_extensionType_unnamed() async {
+    await resolveTestCode('''
+extension type (int foo) {}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+''',
+    );
+  }
+
   test_declarations_fuzzyMatch() async {
     await resolveTestCode('''
 class A {}
@@ -599,6 +666,29 @@ testFile
     codeOffset: 58 + 11
     mixinName: M
     parameters: ()
+''',
+    );
+  }
+
+  test_declarations_mixin_unnamed() async {
+    await resolveTestCode('''
+mixin {
+  void foo() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 ''',
     );
   }
