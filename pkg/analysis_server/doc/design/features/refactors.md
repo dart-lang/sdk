@@ -121,4 +121,57 @@ compile. There are a couple of known exceptions:
   user indicates that they want to proceed, then it makes sense to proceed with
   the refactor.
 
+## Generated code
+
+Most refactors produce code as part of their function. This section describes
+the practices that should be followed when generating code.
+
+One of the best ways to adhere to these practices is to use the utilities
+defined in the `DartFileEditBuilder` and `DartEditBuilder` classes when
+generating code.
+
+### Style
+
+The generated code should be as close as possible to what the user would likely
+write. For example, if we believe that users are more likely to write methods
+with block bodies than with expression bodies, then we should produce block
+bodies when generating a method. Similarly, if we believe that most users use
+`async` for methods that return a `Future`, then we should include the modifier
+when generating such a method.
+
+The generated code should, where possible, follow the style that is enforced by
+the enabled lints. For example, if the lint is enabled that enforces the use of
+one delimiter for string literals, then any string literals that are generated
+should use that delimiter.
+
+The generated code should be formatted similar to what the formatter produces.
+Reasonable attempts are made to generate code with appropriate indentation and
+space characters between tokens, but generated code does not need to include
+line-wrapping, intentionally added or omitted commas, etc. If we get the
+ability to run the formatter over portions of a file, then we should use the
+formatter on generated code.
+
+### Incomplete code
+
+Sometimes it's necessary to generate incomplete code. For example, when
+generating a method based on an example invocation, the server can infer the
+number and types of the parameters and even the return type, but can't know how
+to implement the method.
+
+When incomplete code is generated, it should be as obvious as possible that the
+code is incomplete. There are two ways to do this: generating code that has a
+compilation error or generating a `TODO` comment as part of the generated code.
+For example, if a method that returns a value is being generated, then we could
+choose to generate code that returns `null`. However, if the return type is
+nullable, then there won't be any signal that the method is incomplete. It would
+be better to generate code that doesn't return a value.
+
+As a counter-example, when the server generates an override of a concrete method
+it adds a super-invocation of the overridden method. If the method returns a
+value then we return the value from the overridden method. That leaves the code
+with no diagnostics, so we add a `TODO` comment. It also leaves the code being
+semantically equivalent. That might seem like it violates the advice above, but
+technically the code isn't incomplete, even though it usually isn't what the
+user intends to write.
+
 [textDocument_codeActions]: https://microsoft.github.io/language-server-protocol/specifications/lsp/3.17/specification/#textDocument_codeActions

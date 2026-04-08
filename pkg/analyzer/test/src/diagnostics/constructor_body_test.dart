@@ -22,7 +22,7 @@ class const C() {
   this {}
 }
 ''',
-      [error(diag.constConstructorWithBody, 25, 1)],
+      [error(diag.constPrimaryConstructorWithBlockBody, 25, 1)],
     );
   }
 
@@ -49,10 +49,7 @@ class const C() {
   this => null;
 }
 ''',
-      [
-        error(diag.expectedIdentifierButGotKeyword, 20, 4),
-        error(diag.missingMethodParameters, 20, 4),
-      ],
+      [error(diag.constPrimaryConstructorWithExpressionBody, 25, 2)],
     );
   }
 
@@ -60,6 +57,50 @@ class const C() {
     await assertNoErrorsInCode(r'''
 class const C() {}
 ''');
+  }
+
+  test_class_primaryConstructor_expressionBody() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  this => 0;
+}
+''',
+      [error(diag.primaryConstructorBodyWithExpressionBody, 19, 2)],
+    );
+  }
+
+  test_class_primaryConstructor_modifier_async() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  this async {}
+}
+''',
+      [error(diag.primaryConstructorBodyWithModifier, 19, 5)],
+    );
+  }
+
+  test_class_primaryConstructor_modifier_asyncStar() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  this async* {}
+}
+''',
+      [error(diag.primaryConstructorBodyWithModifier, 19, 5)],
+    );
+  }
+
+  test_class_primaryConstructor_modifier_syncStar() async {
+    await assertErrorsInCode(
+      r'''
+class A() {
+  this sync* {}
+}
+''',
+      [error(diag.primaryConstructorBodyWithModifier, 19, 4)],
+    );
   }
 
   test_class_secondaryConstructor_constFactory_blockBody() async {
@@ -356,7 +397,7 @@ enum const E() {
   this {}
 }
 ''',
-      [error(diag.constConstructorWithBody, 29, 1)],
+      [error(diag.constPrimaryConstructorWithBlockBody, 29, 1)],
     );
   }
 
@@ -386,10 +427,7 @@ enum const E() {
   this => null;
 }
 ''',
-      [
-        error(diag.expectedIdentifierButGotKeyword, 24, 4),
-        error(diag.missingMethodParameters, 24, 4),
-      ],
+      [error(diag.constPrimaryConstructorWithExpressionBody, 29, 2)],
     );
   }
 
@@ -399,6 +437,63 @@ enum const E() {
   v;
 }
 ''');
+  }
+
+  test_enum_primaryConstructor_expressionBody() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  this => 0;
+}
+''',
+      [error(diag.constPrimaryConstructorWithExpressionBody, 23, 2)],
+    );
+  }
+
+  test_enum_primaryConstructor_modifier_async() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  this async {}
+}
+''',
+      [
+        error(diag.primaryConstructorBodyWithModifier, 23, 5),
+        error(diag.constPrimaryConstructorWithBlockBody, 29, 1),
+      ],
+    );
+  }
+
+  test_enum_primaryConstructor_modifier_asyncStar() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  this async* {}
+}
+''',
+      [
+        error(diag.primaryConstructorBodyWithModifier, 23, 5),
+        error(diag.constPrimaryConstructorWithBlockBody, 30, 1),
+      ],
+    );
+  }
+
+  test_enum_primaryConstructor_modifier_syncStar() async {
+    await assertErrorsInCode(
+      r'''
+enum E() {
+  v;
+  this sync* {}
+}
+''',
+      [
+        error(diag.primaryConstructorBodyWithModifier, 23, 4),
+        error(diag.constPrimaryConstructorWithBlockBody, 29, 1),
+      ],
+    );
   }
 
   test_enum_secondaryConstructor_constFactory_blockBody() async {
@@ -682,7 +777,7 @@ extension type const E(int it) {
   this {}
 }
 ''',
-      [error(diag.constConstructorWithBody, 40, 1)],
+      [error(diag.constPrimaryConstructorWithBlockBody, 40, 1)],
     );
   }
 
@@ -709,10 +804,7 @@ extension type const E(int it) {
   this => null;
 }
 ''',
-      [
-        error(diag.expectedIdentifierButGotKeyword, 35, 4),
-        error(diag.missingFunctionParameters, 35, 4),
-      ],
+      [error(diag.constPrimaryConstructorWithExpressionBody, 40, 2)],
     );
   }
 
@@ -720,6 +812,50 @@ extension type const E(int it) {
     await assertNoErrorsInCode(r'''
 extension type const E(int it) {}
 ''');
+  }
+
+  test_extensionType_primaryConstructor_expressionBody() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int x) {
+  this => 0;
+}
+''',
+      [error(diag.primaryConstructorBodyWithExpressionBody, 33, 2)],
+    );
+  }
+
+  test_extensionType_primaryConstructor_modifier_async() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int x) {
+  this async {}
+}
+''',
+      [error(diag.primaryConstructorBodyWithModifier, 33, 5)],
+    );
+  }
+
+  test_extensionType_primaryConstructor_modifier_asyncStar() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int x) {
+  this async* {}
+}
+''',
+      [error(diag.primaryConstructorBodyWithModifier, 33, 5)],
+    );
+  }
+
+  test_extensionType_primaryConstructor_modifier_syncStar() async {
+    await assertErrorsInCode(
+      r'''
+extension type A(int x) {
+  this sync* {}
+}
+''',
+      [error(diag.primaryConstructorBodyWithModifier, 33, 4)],
+    );
   }
 
   test_extensionType_secondaryConstructor_constFactory_blockBody() async {

@@ -140,9 +140,15 @@ void OSThread::SetName(const char* name) {
 DART_NOINLINE
 uword OSThread::GetCurrentStackPointer() {
 #ifdef _MSC_VER
-  return reinterpret_cast<uword>(_AddressOfReturnAddress());
+  return reinterpret_cast<uword>(_AddressOfReturnAddress()) + kWordSize;
 #elif __GNUC__
+#if defined(HOST_ARCH_RISCV32) || defined(HOST_ARCH_RISCV64)
+  // RISC-V has unusual choice of FP as SP at entry (i.e., DWARF CFA).
   return reinterpret_cast<uword>(__builtin_frame_address(0));
+#else
+  // Usually FP is address of saved FP, two slots from SP at entry.
+  return reinterpret_cast<uword>(__builtin_frame_address(0)) + 2 * kWordSize;
+#endif
 #else
 #error Unimplemented
 #endif

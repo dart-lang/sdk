@@ -160,7 +160,8 @@ abstract class DartEditBuilder implements EditBuilder {
   });
 
   /// Writes the code for a list of [parameters], including the surrounding
-  /// parentheses and default values (unless [includeDefaultValues] is `false`).
+  /// parentheses (unless [includeParentheses] is `false`) and default values
+  /// (unless [includeDefaultValues] is `false`).
   ///
   /// {@macro typeParametersInScope}
   ///
@@ -170,8 +171,9 @@ abstract class DartEditBuilder implements EditBuilder {
     List<TypeParameterElement>? typeParametersInScope,
     String? groupNamePrefix,
     bool fillParameterNames = true,
+    bool includeParentheses = true,
     bool includeDefaultValues = true,
-    bool requiredTypes,
+    bool requiredTypes = false,
   });
 
   /// Writes the code for a declaration of a function with the given [name].
@@ -186,15 +188,22 @@ abstract class DartEditBuilder implements EditBuilder {
   /// was written it will be in the linked edit group with that name. If a
   /// [parameterWriter] is provided, then it will be invoked to write the
   /// declarations of the parameters to the function. (The parentheses around
-  /// the parameters will automatically be written.)
+  /// the parameters will automatically be written.) If a
+  /// [typeParameterWriter] is provided, then it will be invoked to write the
+  /// declarations of the type parameters to the function. (The brackets around
+  /// the parameters are not automatically written allowing the function to
+  /// determine whether to add them.) If [returnType] is `dynamic`, it will be
+  /// omitted unless [alwaysWriteType] is `true`.
   void writeFunctionDeclaration(
     String name, {
     void Function()? bodyWriter,
     bool isStatic = false,
     String? nameGroupName,
     void Function()? parameterWriter,
+    void Function()? typeParameterWriter,
     DartType? returnType,
     String? returnTypeGroupName,
+    List<TypeParameterElement>? typeParametersInScope,
   });
 
   /// Writes the code for a declaration of a getter with the given [name].

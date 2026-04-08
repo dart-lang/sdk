@@ -169,7 +169,7 @@ VariableGet createVariableGet(
 
 /// Creates a [VariableSet] of [variable] with the [value].
 Expression createVariableSet(
-  Variable variable,
+  VariableDeclaration variable,
   Expression value, {
   bool allowFinalAssignment = false,
   required int fileOffset,

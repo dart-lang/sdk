@@ -5139,54 +5139,81 @@ static const MethodParameter* const get_persistent_handles_params[] = {
     nullptr,
 };
 
-template <typename T>
 class PersistentHandleVisitor : public HandleVisitor {
  public:
-  explicit PersistentHandleVisitor(JSONArray* handles)
-      : HandleVisitor(), handles_(handles) {
-    ASSERT(handles_ != nullptr);
-  }
+  explicit PersistentHandleVisitor(Zone* zone)
+      : HandleVisitor(), zone_(zone), objects_(zone, 0) {}
 
-  void Append(PersistentHandle* persistent_handle) {
-    JSONObject obj(handles_);
-    obj.AddProperty("type", "_PersistentHandle");
-    const Object& object = Object::Handle(persistent_handle->ptr());
-    obj.AddProperty("object", object);
-  }
-
-  void Append(FinalizablePersistentHandle* weak_persistent_handle) {
-    if (!weak_persistent_handle->ptr()->IsHeapObject()) {
-      return;  // Free handle.
+  void Serialize(JSONArray* array) {
+    for (intptr_t i = 0, n = objects_.length(); i < n; ++i) {
+      JSONObject js_obj(array);
+      js_obj.AddProperty("type", "_PersistentHandle");
+      js_obj.AddProperty("object", *objects_[i]);
     }
-
-    JSONObject obj(handles_);
-    obj.AddProperty("type", "_WeakPersistentHandle");
-    const Object& object = Object::Handle(weak_persistent_handle->ptr());
-    obj.AddProperty("object", object);
-    obj.AddPropertyF(
-        "peer", "0x%" Px "",
-        reinterpret_cast<uintptr_t>(weak_persistent_handle->peer()));
-    obj.AddPropertyF(
-        "callbackAddress", "0x%" Px "",
-        reinterpret_cast<uintptr_t>(weak_persistent_handle->callback()));
-    // Attempt to include a native symbol name.
-    const char* name = NativeSymbolResolver::LookupSymbolName(
-        reinterpret_cast<uword>(weak_persistent_handle->callback()), nullptr);
-    obj.AddProperty("callbackSymbolName", (name == nullptr) ? "" : name);
-    if (name != nullptr) {
-      NativeSymbolResolver::FreeSymbolName(name);
-    }
-    obj.AddPropertyF("externalSize", "%" Pd "",
-                     weak_persistent_handle->external_size());
   }
 
  protected:
   void VisitHandle(uword addr) override {
-    T* handle = reinterpret_cast<T*>(addr);
-    Append(handle);
+    auto* const handle = reinterpret_cast<PersistentHandle*>(addr);
+    const Object& obj = Object::Handle(zone_, handle->ptr());
+    objects_.Add(&obj);
   }
 
-  JSONArray* handles_;
+  Zone* const zone_;
+  ZoneGrowableArray<const Object*> objects_;
+};
+
+class WeakPersistentHandleVisitor : public HandleVisitor {
+ public:
+  explicit WeakPersistentHandleVisitor(Zone* zone)
+      : HandleVisitor(),
+        zone_(zone),
+        objects_(zone, 0),
+        peers_(zone, 0),
+        callbacks_(zone, 0),
+        names_(zone, 0),
+        external_sizes_(zone, 0) {}
+
+  void Serialize(JSONArray* array) {
+    for (intptr_t i = 0, n = objects_.length(); i < n; ++i) {
+      JSONObject js_obj(array);
+      js_obj.AddProperty("type", "_WeakPersistentHandle");
+      js_obj.AddProperty("object", *objects_[i]);
+      js_obj.AddPropertyF("peer", "0x%" Px "", peers_[i]);
+      js_obj.AddPropertyF("callbackAddress", "0x%" Px "", callbacks_[i]);
+      js_obj.AddProperty("callbackSymbolName", names_[i]);
+      js_obj.AddPropertyF("externalSize", "%" Pd "", external_sizes_[i]);
+    }
+  }
+
+ protected:
+  void VisitHandle(uword addr) override {
+    auto* const handle = reinterpret_cast<FinalizablePersistentHandle*>(addr);
+    if (!handle->ptr()->IsHeapObject()) {
+      return;  // Free handle.
+    }
+    const Object& obj = Object::Handle(zone_, handle->ptr());
+    objects_.Add(&obj);
+    peers_.Add(reinterpret_cast<uword>(handle->peer()));
+    auto const callback = reinterpret_cast<uword>(handle->callback());
+    callbacks_.Add(callback);
+    // Attempt to include a native symbol name.
+    if (auto* const name =
+            NativeSymbolResolver::LookupSymbolName(callback, nullptr)) {
+      names_.Add(OS::SCreate(zone_, "%s", name));
+      NativeSymbolResolver::FreeSymbolName(name);
+    } else {
+      names_.Add("");
+    }
+    external_sizes_.Add(handle->external_size());
+  }
+
+  Zone* const zone_;
+  ZoneGrowableArray<const Object*> objects_;
+  ZoneGrowableArray<uword> peers_;
+  ZoneGrowableArray<uword> callbacks_;
+  ZoneGrowableArray<const char*> names_;
+  ZoneGrowableArray<intptr_t> external_sizes_;
 };
 
 static void GetPersistentHandles(Thread* thread, JSONStream* js) {
@@ -5196,28 +5223,30 @@ static void GetPersistentHandles(Thread* thread, JSONStream* js) {
   ApiState* api_state = isolate->group()->api_state();
   ASSERT(api_state != nullptr);
 
+  auto* const zone = thread->zone();
   {
     JSONObject obj(js);
     obj.AddProperty("type", "_PersistentHandles");
-    // Persistent handles.
+
+    // For each set of handles, separate out retrieval and serialization,
+    // since the former requires a no safepoint scope and the latter may
+    // cause allocation.
     {
-      JSONArray persistent_handles(&obj, "persistentHandles");
+      PersistentHandleVisitor visitor(zone);
       api_state->RunWithLockedPersistentHandles(
-          [&](PersistentHandles& handles) {
-            PersistentHandleVisitor<PersistentHandle> visitor(
-                &persistent_handles);
-            handles.Visit(&visitor);
-          });
+          [&](PersistentHandles& handles) { handles.Visit(&visitor); });
+      JSONArray persistent_handles(&obj, "persistentHandles");
+      visitor.Serialize(&persistent_handles);
     }
-    // Weak persistent handles.
+
     {
-      JSONArray weak_persistent_handles(&obj, "weakPersistentHandles");
+      WeakPersistentHandleVisitor visitor(zone);
       api_state->RunWithLockedWeakPersistentHandles(
           [&](FinalizablePersistentHandles& handles) {
-            PersistentHandleVisitor<FinalizablePersistentHandle> visitor(
-                &weak_persistent_handles);
             handles.VisitHandles(&visitor);
           });
+      JSONArray weak_persistent_handles(&obj, "weakPersistentHandles");
+      visitor.Serialize(&weak_persistent_handles);
     }
   }
 }

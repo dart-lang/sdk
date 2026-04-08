@@ -6956,11 +6956,11 @@ class VMSerializationRoots : public SerializationRoots {
                      "ExceptionHandlers", "<empty async>");
 
     for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
-      s->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i],
-                       "ArgumentsDescriptor", "<cached arguments descriptor>");
+      s->AddBaseObject(Roots::cached_args_descriptor(i), "ArgumentsDescriptor",
+                       "<cached arguments descriptor>");
     }
     for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-      s->AddBaseObject(ICData::cached_icdata_arrays_[i], "Array",
+      s->AddBaseObject(Roots::cached_icdata_array(i), "Array",
                        "<empty icdata entries>");
     }
 
@@ -7073,10 +7073,10 @@ class VMDeserializationRoots : public DeserializationRoots {
     d->AddBaseObject(Object::empty_async_exception_handlers().ptr());
 
     for (intptr_t i = 0; i < ArgumentsDescriptor::kCachedDescriptorCount; i++) {
-      d->AddBaseObject(ArgumentsDescriptor::cached_args_descriptors_[i]);
+      d->AddBaseObject(Roots::cached_args_descriptor(i));
     }
     for (intptr_t i = 0; i < ICData::kCachedICDataArrayCount; i++) {
-      d->AddBaseObject(ICData::cached_icdata_arrays_[i]);
+      d->AddBaseObject(Roots::cached_icdata_array(i));
     }
 
     ClassTable* table = d->isolate_group()->class_table();
@@ -7100,9 +7100,7 @@ class VMDeserializationRoots : public DeserializationRoots {
 
   void ReadRoots(Deserializer* d) override {
     for (intptr_t i = 0; i < Symbols::kMaxPredefinedId; i++) {
-      String* symbol = String::ReadOnlyHandle();
-      *symbol ^= d->ReadRef();
-      Symbols::InitSymbol(i, symbol);
+      Symbols::InitSymbol(i, static_cast<StringPtr>(d->ReadRef()));
     }
     symbol_table_ ^= d->ReadRef();
     if (!symbol_table_.IsNull()) {
@@ -7111,9 +7109,7 @@ class VMDeserializationRoots : public DeserializationRoots {
     Symbols::InitFromSnapshot(d->isolate_group());
     if (Snapshot::IncludesCode(d->kind())) {
       for (intptr_t i = 0; i < StubCode::NumEntries(); i++) {
-        Code* code = Code::ReadOnlyHandle();
-        *code ^= d->ReadRef();
-        StubCode::EntryAtPut(i, code);
+        StubCode::EntryAtPut(i, static_cast<CodePtr>(d->ReadRef()));
       }
       StubCode::InitializationDone();
     }

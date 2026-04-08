@@ -202,15 +202,12 @@ class InvalidExpression extends Expression {
 
 class VariableGet extends Expression {
   /// The target variable.
-  Variable expressionVariable;
+  VariableDeclaration variable;
 
   /// Null if not promoted.
   DartType? promotedType;
 
-  VariableGet(this.expressionVariable, [this.promotedType]);
-
-  /// The target variable as [VariableDeclaration].
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
+  VariableGet(this.variable, [this.promotedType]);
 
   @override
   DartType getStaticType(StaticTypeContext context) =>
@@ -218,7 +215,7 @@ class VariableGet extends Expression {
 
   @override
   DartType getStaticTypeInternal(StaticTypeContext context) {
-    return promotedType ?? expressionVariable.type;
+    return promotedType ?? variable.type;
   }
 
   @override
@@ -259,7 +256,7 @@ class VariableGet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(expressionVariable));
+    printer.write(printer.getVariableName(variable));
     if (promotedType != null) {
       printer.write('{');
       printer.writeType(promotedType!);
@@ -272,15 +269,12 @@ class VariableGet extends Expression {
 ///
 /// Evaluates to the value of [value].
 class VariableSet extends Expression {
-  /// The target variable as [VariableDeclaration].
-  VariableDeclaration get variable => expressionVariable as VariableDeclaration;
-
   /// The target variable.
-  Variable expressionVariable;
+  VariableDeclaration variable;
 
   Expression value;
 
-  VariableSet(this.expressionVariable, this.value) {
+  VariableSet(this.variable, this.value) {
     value.parent = this;
   }
 
@@ -323,7 +317,7 @@ class VariableSet extends Expression {
 
   @override
   void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(expressionVariable));
+    printer.write(printer.getVariableName(variable));
     printer.write(' = ');
     printer.writeExpression(value);
   }
@@ -5565,114 +5559,5 @@ class TypedefTearOff extends Expression {
     printer.writeExpression(expression);
     printer.writeTypeArguments(typeArguments);
     printer.write(")");
-  }
-}
-
-/// [VariableRead] nodes are the replacement for the VariableGet nodes.
-///
-/// Despite of the  name, [VariableRead] can't read [TypeVariable]s,
-/// which are also [VariableBase]s.
-class VariableRead extends Expression {
-  final Variable variable;
-
-  VariableRead({required this.variable});
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
-  }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) {
-    // TODO(cstefantsova): Implement getStaticTypeInternal.
-    throw UnimplementedError();
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
-
-  @override
-  String toString() {
-    return "VariableRead(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
-  }
-}
-
-/// [VariableWrite] nodes are the replacement for the VariableSet nodes.
-///
-/// Despite of the  name, [VariableWrite] can't write into
-/// [TypeVariable]s, which are also [VariableBase]s.
-class VariableWrite extends Expression {
-  final Variable variable;
-  final Expression value;
-
-  VariableWrite({required this.variable, required this.value});
-
-  @override
-  R accept<R>(ExpressionVisitor<R> v) {
-    // TODO(cstefantsova): Implement accept.
-    throw UnimplementedError();
-  }
-
-  @override
-  R accept1<R, A>(ExpressionVisitor1<R, A> v, A arg) {
-    // TODO(cstefantsova): Implement accept1.
-    throw UnimplementedError();
-  }
-
-  @override
-  DartType getStaticTypeInternal(StaticTypeContext context) {
-    // TODO(cstefantsova): Implement getStaticTypeInternal.
-    throw UnimplementedError();
-  }
-
-  @override
-  void transformChildren(Transformer v) {
-    // TODO(cstefantsova): Implement transformChildren.
-  }
-
-  @override
-  void transformOrRemoveChildren(RemovingTransformer v) {
-    // TODO(cstefantsova): Implement transformOrRemoveChildren.
-  }
-
-  @override
-  void visitChildren(Visitor v) {
-    // TODO(cstefantsova): Implement visitChildren.
-  }
-
-  @override
-  String toString() {
-    return "VariableWrite(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write(printer.getVariableName(variable));
-    printer.write(' = ');
-    printer.writeExpression(value);
   }
 }

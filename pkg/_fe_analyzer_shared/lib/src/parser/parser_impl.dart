@@ -347,6 +347,9 @@ class Parser {
   /// expressions.
   bool get allowedToShortcutParseExpression => true;
 
+  /// `true` if the 'augmentations' feature is enabled.
+  final bool _isAugmentationsFeatureEnabled;
+
   Parser(
     this.listener, {
     this.useImplicitCreationExpression = true,
@@ -359,7 +362,9 @@ class Parser {
        isPrimaryConstructorsFeatureEnabled = experimentalFeatures
            .isExperimentEnabled(ExperimentalFlag.primaryConstructors),
        _isAnonymousMethodsFeatureEnabled = experimentalFeatures
-           .isExperimentEnabled(ExperimentalFlag.anonymousMethods);
+           .isExperimentEnabled(ExperimentalFlag.anonymousMethods),
+       _isAugmentationsFeatureEnabled = experimentalFeatures
+           .isExperimentEnabled(ExperimentalFlag.augmentations);
 
   /// Executes [callback]; however if `this` is the `TestParser` (from
   /// `pkg/front_end/test/parser_test_parser.dart`) then no output is printed
@@ -3761,6 +3766,20 @@ class Parser {
     Token? beforeInitializers = token;
     token = parseInitializersOpt(beforeInitializers);
 
+    Token next = token.next!;
+    if (next.isA(Keyword.ASYNC) || next.isA(Keyword.SYNC)) {
+      String modifier = next.lexeme;
+      if (next.next!.isA(TokenType.STAR)) {
+        modifier += '*';
+      }
+      reportRecoverableError(
+        next,
+        diag.primaryConstructorBodyWithModifier.withArguments(
+          modifier: modifier,
+        ),
+      );
+    }
+
     token = parseAsyncModifierOpt(token);
     token = parseFunctionBody(
       token,
@@ -4464,7 +4483,7 @@ class Parser {
     token = parseFunctionBody(
       token,
       /* ofFunctionExpression = */ false,
-      isExternal,
+      isExternal || _isAugmentationsFeatureEnabled,
     );
     asyncState = savedAsyncModifier;
     listener.endTopLevelMethod(beforeStart.next!, getOrSet, token);
@@ -5372,7 +5391,10 @@ class Parser {
         Token next2 = next.next!;
         if (next2.isA(TokenType.COLON) ||
             next2.isA(TokenType.SEMICOLON) ||
-            next2.isA(TokenType.OPEN_CURLY_BRACKET)) {
+            next2.isA(TokenType.OPEN_CURLY_BRACKET) ||
+            next2.isA(TokenType.FUNCTION) || // =>
+            next2.isA(Keyword.ASYNC) ||
+            next2.isA(Keyword.SYNC)) {
           if (!isPrimaryConstructorsFeatureEnabled) {
             reportExperimentNotEnabled(
               ExperimentalFlag.primaryConstructors,
@@ -5881,7 +5903,10 @@ class Parser {
       token = parseFunctionBody(
         token,
         /* ofFunctionExpression = */ false,
-        (staticToken == null || externalToken != null) && inPlainSync,
+        /* allowAbstract = */ (staticToken == null ||
+                externalToken != null ||
+                _isAugmentationsFeatureEnabled) &&
+            inPlainSync,
       );
     }
     asyncState = savedAsyncModifier;

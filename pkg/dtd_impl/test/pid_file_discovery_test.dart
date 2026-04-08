@@ -167,6 +167,22 @@ void main() {
       expect(await process.exitCode, isNot(0));
     });
 
+    test('connection info contains IDE information from env vars', () async {
+      env['DASH__IDE_NAME'] = 'TEST IDE';
+      final (process, _) = await startDtdProcess();
+      addTearDown(process.kill);
+
+      final dataHome = getDartDataHome(dtdDirName, environment: env);
+      final file = File(p.join(dataHome, process.pid.toString()));
+      expect(file.existsSync(), isTrue);
+
+      final content = file.readAsStringSync();
+      final json = jsonDecode(content) as Map<String, Object?>;
+      final info = DTDConnectionInfo.fromJson(json);
+
+      expect(info.ideName, 'TEST IDE');
+    });
+
     test('list cleans up stale pid files', () async {
       final dataHome = getDartDataHome(dtdDirName, environment: env);
       final garbageFile = File(p.join(dataHome, '999999'));

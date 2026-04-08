@@ -536,23 +536,22 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   const intptr_t shared_stub_start = __ CodeSize();
 
   // Save THR which is callee-saved.
+  __ EnterFrame(0);
   __ pushq(THR);
   __ pushq(R12);
-  __ pushq(R13);
-
-  // 4 = return address, THR, R12, R13
+  // 4 = return address, FP, THR, R12
   COMPILE_ASSERT(4 == FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta);
-
-  // Save all registers which might hold arguments.
-  __ PushRegisters(kArgumentRegisterSet);
 
   // Load the thread, verify the callback ID and exit the safepoint.
   //
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size of this shared stub.
   {
+    // Save all registers which might hold arguments.
+    __ PushRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
     COMPILE_ASSERT(RAX != CallingConventions::kArg1Reg);
     __ movq(CallingConventions::kArg1Reg, RAX);
+    __ movq(CallingConventions::kArg2Reg, RSP);
 
 #if defined(DART_TARGET_OS_FUCHSIA)
     // TODO(https://dartbug.com/52579): Remove.
@@ -568,25 +567,19 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
         FfiCallbackMetadata::kGetFfiCallbackMetadata, RAX);
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
 
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(3 * target::kWordSize);
-    __ movq(CallingConventions::kArg2Reg, RSP);
-
     __ CallCFunction(RAX, /*restore_rsp=*/true);
     __ movq(THR, RAX);
 
     __ movq(RAX, Address(RSP, 0 * target::kWordSize));  // entry_point
-    __ movq(R12, Address(RSP, 1 * target::kWordSize));  // is_tail
-    __ movq(R13, Address(RSP, 2 * target::kWordSize));  // epilogue
+    __ movq(TMP, Address(RSP, 1 * target::kWordSize));  // is_tail
+    __ movq(R12, Address(RSP, 2 * target::kWordSize));  // epilogue
 
-    __ LeaveFrame();
+    // Restore the arguments.
+    __ PopRegistersAligned(kArgumentRegisterSet, 3 * target::kWordSize);
   }
 
-  // Restore the arguments.
-  __ PopRegisters(kArgumentRegisterSet);
-
   Label tail;
-  __ cmpq(R12, Immediate(0));
+  __ cmpq(TMP, Immediate(0));
   __ j(NOT_ZERO, &tail);
 
   const RegisterSet return_registers(
@@ -597,16 +590,16 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   {
     __ call(RAX);  // entry_point
-    __ PushRegisters(return_registers);
+    __ PushRegistersAligned(return_registers, 0);
     __ movq(CallingConventions::kArg1Reg, THR);
-    __ CallCFunction(R13, /*restore_rsp=*/true);  // DLRT_ExitSyncCallback, etc
+    __ CallCFunction(R12, /*restore_rsp=*/true);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ CallCFunction(RAX, /*restore_rsp=*/true);  // dart_msan_unpoison_retval
     }
-    __ PopRegisters(return_registers);
-    __ popq(R13);
+    __ PopRegistersAligned(return_registers, 0);
     __ popq(R12);
     __ popq(THR);
+    __ LeaveFrame();
     __ ret();
   }
 
@@ -614,10 +607,10 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ Bind(&tail);
     __ call(RAX);  // entry_point
     __ movq(CallingConventions::kArg1Reg, THR);
-    __ movq(RAX, R13);
-    __ popq(R13);
+    __ movq(RAX, R12);
     __ popq(R12);
     __ popq(THR);
+    __ LeaveFrame();
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
@@ -3320,15 +3313,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
         __ PopRegisters(saved_registers);
         __ Ret();
       });
-}
-
-// Return the current stack pointer address, used to stack alignment
-// checks.
-// TOS + 0: return address
-// Result in RAX.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ leaq(RAX, Address(RSP, target::kWordSize));
-  __ ret();
 }
 
 // Jump to a frame on the call stack.

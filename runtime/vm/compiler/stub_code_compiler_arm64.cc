@@ -499,14 +499,15 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // aligned.
   COMPILE_ASSERT(FfiCallbackMetadata::kNativeCallbackTrampolineStackDelta == 4);
   SPILLS_LR_TO_FRAME(__ stp(
-      THR, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
-  __ stp(R20, R21, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
+      FP, LR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex)));
+  __ mov(FP, CSP);
+  __ stp(R20, THR, Address(CSP, -2 * target::kWordSize, Address::PairPreIndex));
 
   COMPILE_ASSERT(!IsArgumentRegister(THR));
 
-  RegisterSet all_registers;
-  all_registers.AddAllArgumentRegisters();
-  all_registers.Add(Location::RegisterLocation(
+  RegisterSet argument_registers;
+  argument_registers.AddAllArgumentRegisters();
+  argument_registers.Add(Location::RegisterLocation(
       CallingConventions::kPointerToReturnStructRegisterCall));
 
   // Load the thread, verify the callback ID and exit the safepoint.
@@ -514,14 +515,9 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   // We exit the safepoint inside DLRT_GetFfiCallbackMetadata in order to save
   // code size on this shared stub.
   {
-    __ SetupDartSP();
-
-    __ EnterFrame(0);
+    __ mov(SP, CSP);
     // This saves too much: we only need the D half of Q registers.
-    __ PushRegisters(all_registers);
-
-    __ EnterFrame(0);
-    __ ReserveAlignedFrameSpace(3 * target::kWordSize);
+    __ PushRegistersAligned(argument_registers, 3 * target::kWordSize);
     __ mov(R0, R9);
     __ mov(R1, SP);
 
@@ -549,18 +545,17 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mov(THR, R0);
     COMPILE_ASSERT(!IsCalleeSavedRegister(R10) && !IsArgumentRegister(R10));
     __ ldr(R10, Address(CSP, 0 * target::kWordSize));  // entry_point
-    __ ldr(R20, Address(CSP, 1 * target::kWordSize));  // is_tail
-    __ ldr(R21, Address(CSP, 2 * target::kWordSize));  // epilogue
+    COMPILE_ASSERT(!IsCalleeSavedRegister(R11) && !IsArgumentRegister(R11));
+    __ ldr(R11, Address(CSP, 1 * target::kWordSize));  // is_tail
+    COMPILE_ASSERT(IsCalleeSavedRegister(R20));
+    __ ldr(R20, Address(CSP, 2 * target::kWordSize));  // epilogue
 
-    __ LeaveFrame();
-    __ PopRegisters(all_registers);
-    __ LeaveFrame();
-
-    __ RestoreCSP();
+    __ PopRegistersAligned(argument_registers, 3 * target::kWordSize);
+    __ mov(CSP, SP);
   }
 
   Label tail;
-  __ cbnz(&tail, R20);
+  __ cbnz(&tail, R11);
 
   {
     __ blr(R10);  // entry_point
@@ -568,17 +563,17 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ fstp(V0, V1, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
     __ fstp(V2, V3, Address(CSP, -2 * 8, Address::PairPreIndex), kDWord);
     __ mov(R0, THR);
-    __ blr(R21);  // DLRT_ExitSyncCallback, etc
+    __ blr(R20);  // DLRT_ExitSyncCallback, etc
     if (FLAG_target_memory_sanitizer) {
       __ blr(R0);  // dart_msan_unpoison_retval
     }
     __ fldp(V2, V3, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ fldp(V0, V1, Address(CSP, 2 * 8, Address::PairPostIndex), kDWord);
     __ ldp(R0, R1, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
-    __ ldp(R20, R21,
+    __ ldp(R20, THR,
            Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     RESTORES_LR_FROM_FRAME(__ ldp(
-        THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
+        FP, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
     __ ret();
   }
 
@@ -587,11 +582,11 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ Bind(&tail);
     __ blr(R10);
     __ mov(R0, THR);
-    __ mov(R1, R21);
-    __ ldp(R20, R21,
+    __ mov(R1, R20);
+    __ ldp(R20, THR,
            Address(CSP, 2 * target::kWordSize, Address::PairPostIndex));
     RESTORES_LR_FROM_FRAME(__ ldp(
-        THR, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
+        FP, LR, Address(CSP, 2 * target::kWordSize, Address::PairPostIndex)));
     // Tail-call DLRT_ExitTemporaryIsolate. It is not safe to return to this
     // stub, since it might be deleted once DLRT_ExitTemporaryIsolate proceeds
     // enough for VM shutdown.
@@ -3356,11 +3351,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
         __ MoveRegister(TypeTestABI::kSubtypeTestCacheResultReg, NULL_REG);
         __ Ret();
       });
-}
-
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ mov(R0, CSP);
-  __ ret();
 }
 
 // Jump to a frame on the call stack.

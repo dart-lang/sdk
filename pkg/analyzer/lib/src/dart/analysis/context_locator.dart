@@ -15,6 +15,7 @@ import 'package:analyzer/src/lint/pub.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/yaml.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
+import 'package:analyzer/src/utilities/uri_cache.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
@@ -138,6 +139,9 @@ class _ContextLocator {
 
   final List<Folder> _excludedFolders;
 
+  /// A cache of options file contents for each [SourceFactory].
+  final Map<SourceFactory, OptionsCache> _optionsCaches = {};
+
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
 
@@ -192,21 +196,19 @@ class _ContextLocator {
 
     var buildGnFile = _findBuildGnFile(parent);
 
-    var rootFolder = _lowest([optionsFolderToChooseRoot, buildGnFile?.parent]);
-
-    // If default packages file is given, create workspace for it.
+    // If a default package config file is given, create workspace for it.
     var workspace = _createWorkspace(
       folder: parent,
       packageConfigFile: packageConfigFile,
       buildGnFile: buildGnFile,
     );
 
-    if (workspace is! BasicWorkspace) {
-      rootFolder = _lowest([
-        rootFolder,
+    var rootFolder = _lowest([
+      optionsFolderToChooseRoot,
+      buildGnFile?.parent,
+      if (workspace is! BasicWorkspace)
         _resourceProvider.getFolder(workspace.root),
-      ]);
-    }
+    ]);
 
     if (workspace is PackageConfigWorkspace) {
       packageConfigFile ??= workspace.packageConfigFile;
@@ -455,30 +457,22 @@ class _ContextLocator {
       }
     }
 
-    Packages packages;
-    if (packageConfigFile != null) {
-      packages = parsePackageConfigJsonFile(
-        _resourceProvider,
-        packageConfigFile,
-      );
-    } else {
-      packages = Packages.empty;
-    }
+    Packages packages = packageConfigFile != null
+        ? parsePackageConfigJsonFile(_resourceProvider, packageConfigFile)
+        : Packages.empty;
 
     var rootPath = folder.path;
 
-    Workspace? workspace;
-    workspace = BlazeWorkspace.find(
-      _resourceProvider,
-      rootPath,
-      lookForBuildFileSubstitutes: false,
-    );
-    workspace = _mostSpecificWorkspace(
-      workspace,
+    Workspace? workspace = _mostSpecificWorkspace(
+      BlazeWorkspace.find(
+        _resourceProvider,
+        rootPath,
+        lookForBuildFileSubstitutes: false,
+      ),
       PackageConfigWorkspace.find(_resourceProvider, packages, rootPath),
     );
-    workspace ??= BasicWorkspace.find(_resourceProvider, packages, rootPath);
-    return workspace;
+    return workspace ??
+        BasicWorkspace.find(_resourceProvider, packages, rootPath);
   }
 
   File? _findBuildGnFile(Folder folder) {
@@ -517,6 +511,39 @@ class _ContextLocator {
     return null;
   }
 
+  Map<({Uri? containingUri, Uri uri}), YamlMap> _getCache(
+    SourceFactory sourceFactory,
+  ) {
+    return _optionsCaches.putIfAbsent(
+      sourceFactory,
+      () => CanonicalizedMap(
+        (key) {
+          var (:containingUri, :uri) = key;
+          if (uri.isScheme('package')) return uri;
+          if (uri.isScheme('file') || uri.scheme.isEmpty) {
+            if (uri.isAbsolute) return uri;
+            if (containingUri != null) {
+              return uriCache.resolveRelative(containingUri, uri);
+            }
+          }
+          return uri;
+        },
+        isValidKey: (key) {
+          // We can canonicalize a URI if it is a 'package:' URI (as this is per
+          // SourceFactory), or if it is an absolute 'file:' URI, or if it is a
+          // relative 'file:' URI and we have a "containing" URI which it is
+          // relative to (via `UriCache.resolveRelative`).
+          var (:containingUri, :uri) = key;
+          if (uri.isScheme('package')) return true;
+          if (uri.isScheme('file') || uri.scheme.isEmpty) {
+            return uri.isAbsolute || containingUri != null;
+          }
+          return false;
+        },
+      ),
+    );
+  }
+
   /// Gets the set of enabled legacy plugins for [optionsFile], taking into
   /// account any includes.
   Set<String> _getEnabledLegacyPlugins(Workspace workspace, File? optionsFile) {
@@ -525,9 +552,12 @@ class _ContextLocator {
     }
     try {
       var provider = AnalysisOptionsProvider(workspace.partialSourceFactory);
-
+      var optionsCache = _getCache(workspace.partialSourceFactory);
       var options = AnalysisOptionsImpl.fromYaml(
-        optionsMap: provider.getOptionsFromFile(optionsFile),
+        optionsMap: provider.getOptionsFromFile(
+          optionsFile,
+          optionsCache: optionsCache,
+        ),
         file: optionsFile,
         resourceProvider: _resourceProvider,
       );
@@ -551,9 +581,10 @@ class _ContextLocator {
 
     YamlMap options;
     try {
+      var optionsCache = _getCache(sourceFactory);
       options = AnalysisOptionsProvider(
         sourceFactory,
-      ).getOptionsFromFile(optionsFile);
+      ).getOptionsFromFile(optionsFile, optionsCache: optionsCache);
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
       // aren't any excluded files that need to be read.

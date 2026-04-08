@@ -103,7 +103,7 @@ DEFINE_FLAG(bool,
             false,
             "Cause a GC when falling off the fast path for fast object copy.");
 
-const char* kFastAllocationFailed = "fast allocation failed";
+const char* const kFastAllocationFailed = "fast allocation failed";
 
 struct PtrTypes {
   using Object = ObjectPtr;

@@ -16,14 +16,14 @@ abstract class D2 extends C with T<int> {}
 //             ^
 // [cfe] Can't use 'Object' as a mixin because it has constructors.
 //                               ^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'Object' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 abstract class D4 = C with T<void>;
 //             ^
 // [cfe] Can't use 'Object' as a mixin because it has constructors.
 //                         ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARES_CONSTRUCTOR
+// [analyzer] COMPILE_TIME_ERROR.CLASS_USED_AS_MIXIN
 // [cfe] The class 'Object' can't be used as a mixin because it isn't a mixin class nor a mixin.
 
 main() {

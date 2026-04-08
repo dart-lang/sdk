@@ -24,26 +24,39 @@ class Options {
   final String flutterPlatformDir;
 
   Options(
-      this.configurationName,
-      this.verbose,
-      this.printFailureLog,
-      this.outputDirectory,
-      this.testFilter,
-      this.flutterDir,
-      this.flutterPlatformDir);
+    this.configurationName,
+    this.verbose,
+    this.printFailureLog,
+    this.outputDirectory,
+    this.testFilter,
+    this.flutterDir,
+    this.flutterPlatformDir,
+  );
 
   static Options parse(List<String> args) {
     ArgParser parser = new ArgParser()
-      ..addOption("named-configuration",
-          abbr: "n",
-          defaultsTo: suiteNamePrefix,
-          help: "configuration name to use for emitting json result files")
-      ..addOption("output-directory",
-          help: "directory to which results.json and logs.json are written")
-      ..addFlag("verbose",
-          abbr: "v", help: "print additional information", defaultsTo: false)
-      ..addFlag("print",
-          abbr: "p", help: "print failure logs", defaultsTo: false)
+      ..addOption(
+        "named-configuration",
+        abbr: "n",
+        defaultsTo: suiteNamePrefix,
+        help: "configuration name to use for emitting json result files",
+      )
+      ..addOption(
+        "output-directory",
+        help: "directory to which results.json and logs.json are written",
+      )
+      ..addFlag(
+        "verbose",
+        abbr: "v",
+        help: "print additional information",
+        defaultsTo: false,
+      )
+      ..addFlag(
+        "print",
+        abbr: "p",
+        help: "print failure logs",
+        defaultsTo: false,
+      )
       ..addOption("flutterDir")
       ..addOption("flutterPlatformDir");
     ArgResults parsedArguments = parser.parse(args);
@@ -77,29 +90,34 @@ class ResultLogger extends Logger {
 
   void handleTestResult(String testName, bool matchedExpectations) {
     String fullTestName = "$suiteNamePrefix/$testName";
-    suiteConfiguration.resultsPort.send(jsonEncode({
-      "name": fullTestName,
-      "configuration": suiteConfiguration.configurationName,
-      "suite": suiteNamePrefix,
-      "test_name": testName,
-      "time_ms": stopwatches[testName]!.elapsedMilliseconds,
-      "expected": "Pass",
-      "result": matchedExpectations ? "Pass" : "Fail",
-      "matches": matchedExpectations,
-    }));
+    suiteConfiguration.resultsPort.send(
+      jsonEncode({
+        "name": fullTestName,
+        "configuration": suiteConfiguration.configurationName,
+        "suite": suiteNamePrefix,
+        "test_name": testName,
+        "time_ms": stopwatches[testName]!.elapsedMilliseconds,
+        "expected": "Pass",
+        "result": matchedExpectations ? "Pass" : "Fail",
+        "matches": matchedExpectations,
+      }),
+    );
     if (!matchedExpectations) {
       String failureLog = _log.join("\n");
-      failureLog = "$failureLog\n\nRe-run this test: dart --enable-asserts "
+      failureLog =
+          "$failureLog\n\nRe-run this test: dart --enable-asserts "
           "pkg/frontend_server/test/test.dart "
           "--flutterDir=${suiteConfiguration.flutterDir} "
           "--flutterPlatformDir=${suiteConfiguration.flutterPlatformDir} "
           "-p $testName";
-      suiteConfiguration.logsPort.send(jsonEncode({
-        "name": fullTestName,
-        "configuration": suiteConfiguration.configurationName,
-        "result": matchedExpectations ? "OK" : "Failure",
-        "log": failureLog,
-      }));
+      suiteConfiguration.logsPort.send(
+        jsonEncode({
+          "name": fullTestName,
+          "configuration": suiteConfiguration.configurationName,
+          "result": matchedExpectations ? "OK" : "Failure",
+          "log": failureLog,
+        }),
+      );
       if (suiteConfiguration.printFailureLog) {
         print('FAILED: $fullTestName');
         print(failureLog);
@@ -155,16 +173,17 @@ class SuiteConfiguration {
   final String flutterPlatformDir;
 
   const SuiteConfiguration(
-      this.resultsPort,
-      this.logsPort,
-      this.verbose,
-      this.printFailureLog,
-      this.configurationName,
-      this.testFilter,
-      this.flutterDir,
-      this.flutterPlatformDir,
-      this.shard,
-      this.shards);
+    this.resultsPort,
+    this.logsPort,
+    this.verbose,
+    this.printFailureLog,
+    this.configurationName,
+    this.testFilter,
+    this.flutterDir,
+    this.flutterPlatformDir,
+    this.shard,
+    this.shards,
+  );
 }
 
 Future<void> runSuite(SuiteConfiguration configuration) async {
@@ -184,8 +203,9 @@ Future<void> runSuite(SuiteConfiguration configuration) async {
 }
 
 void writeLinesToFile(Uri uri, List<String> lines) {
-  new File.fromUri(uri)
-      .writeAsStringSync(lines.map((line) => "$line\n").join());
+  new File.fromUri(
+    uri,
+  ).writeAsStringSync(lines.map((line) => "$line\n").join());
 }
 
 Future<void> main([List<String> arguments = const <String>[]]) async {
@@ -220,8 +240,11 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
       Stopwatch stopwatch = new Stopwatch()..start();
       print("Running suite shard $shard of $shards");
       Isolate isolate = await Isolate.spawn<SuiteConfiguration>(
-          runSuite, configuration,
-          onExit: exitPort.sendPort, onError: errorPort.sendPort);
+        runSuite,
+        configuration,
+        onExit: exitPort.sendPort,
+        onError: errorPort.sendPort,
+      );
       bool gotError = false;
       StreamSubscription errorSubscription = errorPort.listen((message) {
         print("Got error: $message!");
@@ -231,8 +254,10 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
       bool timedOut = false;
       Timer timer = new Timer(timeoutDuration, () {
         timedOut = true;
-        print("Suite timed out after "
-            "${timeoutDuration.inMilliseconds}ms");
+        print(
+          "Suite timed out after "
+          "${timeoutDuration.inMilliseconds}ms",
+        );
         isolate.kill(priority: Isolate.immediate);
       });
       await exitPort.first;
@@ -258,8 +283,10 @@ Future<void> main([List<String> arguments = const <String>[]]) async {
   Uri logsJsonUri = options.outputDirectory.resolve("logs.json");
   writeLinesToFile(resultJsonUri, results);
   writeLinesToFile(logsJsonUri, logs);
-  print("Log files written to ${resultJsonUri.toFilePath()} and"
-      " ${logsJsonUri.toFilePath()}");
+  print(
+    "Log files written to ${resultJsonUri.toFilePath()} and"
+    " ${logsJsonUri.toFilePath()}",
+  );
 
   exitCode = timeoutOrCrash ? 1 : 0;
 }

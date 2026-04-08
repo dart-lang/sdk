@@ -902,22 +902,26 @@ class AstBuilder extends StackListener {
 
   void doInvocation(
     TypeArgumentListImpl? typeArguments,
-    MethodInvocationImpl arguments,
+    ArgumentListImpl argumentList,
   ) {
     var receiver = pop() as ExpressionImpl;
     switch (receiver) {
       case SimpleIdentifierImpl():
-        arguments.methodName = receiver;
-        if (typeArguments != null) {
-          arguments.typeArguments = typeArguments;
-        }
-        push(arguments);
+        push(
+          MethodInvocationImpl(
+            target: null,
+            operator: null,
+            methodName: receiver,
+            typeArguments: typeArguments,
+            argumentList: argumentList,
+          ),
+        );
       default:
         push(
           FunctionExpressionInvocationImpl(
             function: receiver,
             typeArguments: typeArguments,
-            argumentList: arguments.argumentList,
+            argumentList: argumentList,
           ),
         );
     }
@@ -984,7 +988,7 @@ class AstBuilder extends StackListener {
       reportErrorIfSuper(expression);
     }
 
-    var arguments = ArgumentListImpl(
+    var argumentList = ArgumentListImpl(
       leftParenthesis: leftParenthesis,
       arguments: expressions,
       rightParenthesis: rightParenthesis,
@@ -1006,15 +1010,7 @@ class AstBuilder extends StackListener {
       }
     }
 
-    push(
-      MethodInvocationImpl(
-        target: null,
-        operator: null,
-        methodName: _tmpSimpleIdentifier(),
-        typeArguments: null,
-        argumentList: arguments,
-      ),
-    );
+    push(argumentList);
   }
 
   @override
@@ -2486,7 +2482,7 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull('.', periodBeforeName));
     debugEvent("Metadata");
 
-    var invocation = pop() as MethodInvocationImpl?;
+    var argumentList = pop() as ArgumentListImpl?;
     var constructorName = periodBeforeName != null
         ? pop() as SimpleIdentifierImpl
         : null;
@@ -2506,7 +2502,7 @@ class AstBuilder extends StackListener {
         typeArguments: typeArguments,
         period: periodBeforeName,
         constructorName: constructorName,
-        arguments: invocation?.argumentList,
+        arguments: argumentList,
       ),
     );
   }
@@ -4095,25 +4091,23 @@ class AstBuilder extends StackListener {
   @override
   void handleEnumElement(Token beginToken, Token? augmentToken) {
     debugEvent("EnumElement");
-    var tmpArguments = pop() as MethodInvocationImpl?;
+    var argumentList = pop() as ArgumentListImpl?;
     var tmpConstructor = pop() as ConstructorNameImpl?;
     var constant = pop() as EnumConstantDeclarationImpl;
 
     if (!enableEnhancedEnums &&
-        (tmpArguments != null ||
+        (argumentList != null ||
             tmpConstructor != null &&
                 (tmpConstructor.type.typeArguments != null ||
                     tmpConstructor.name != null))) {
-      Token token = tmpArguments != null
-          ? tmpArguments.argumentList.beginToken
+      Token token = argumentList != null
+          ? argumentList.beginToken
           : tmpConstructor!.beginToken;
       _reportFeatureNotEnabled(
         feature: ExperimentalFeatures.enhanced_enums,
         startToken: token,
       );
     }
-
-    var argumentList = tmpArguments?.argumentList;
 
     TypeArgumentListImpl? typeArguments;
     ConstructorSelectorImpl? constructorSelector;
@@ -5564,10 +5558,10 @@ class AstBuilder extends StackListener {
   void handleSend(Token beginToken, Token endToken) {
     debugEvent("Send");
 
-    var arguments = pop() as MethodInvocationImpl?;
+    var argumentList = pop() as ArgumentListImpl?;
     var typeArguments = pop() as TypeArgumentListImpl?;
-    if (arguments != null) {
-      doInvocation(typeArguments, arguments);
+    if (argumentList != null) {
+      doInvocation(typeArguments, argumentList);
     } else {
       doPropertyGet();
     }
@@ -6339,7 +6333,7 @@ class AstBuilder extends StackListener {
   }
 
   void _handleInstanceCreation(Token? token) {
-    var arguments = pop() as MethodInvocationImpl;
+    var argumentList = pop() as ArgumentListImpl;
     ConstructorNameImpl constructorName;
     TypeArgumentListImpl? typeArguments;
     var object = pop();
@@ -6353,7 +6347,7 @@ class AstBuilder extends StackListener {
       InstanceCreationExpressionImpl(
         keyword: token,
         constructorName: constructorName,
-        argumentList: arguments.argumentList,
+        argumentList: argumentList,
         typeArguments: typeArguments,
       ),
     );
@@ -6412,12 +6406,6 @@ class AstBuilder extends StackListener {
       leftDelimiter: null,
       rightDelimiter: null,
       rightParenthesis: right,
-    );
-  }
-
-  SimpleIdentifierImpl _tmpSimpleIdentifier() {
-    return SimpleIdentifierImpl(
-      token: StringToken(TokenType.STRING, '__tmp', -1),
     );
   }
 

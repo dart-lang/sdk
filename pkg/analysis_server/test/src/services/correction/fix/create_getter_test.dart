@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -40,6 +41,30 @@ void f() {
   print(v);
 }
 ''');
+  }
+
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+mixin A;
+
+void f() {
+  A v = .test;
+}
+''');
+    await assertHasFix(
+      '''
+mixin A {
+  static A get test => null;
+}
+
+void f() {
+  A v = .test;
+}
+''',
+      filter: (e) {
+        return e.diagnosticCode == diag.dotShorthandUndefinedGetter;
+      },
+    );
   }
 
   Future<void> test_inExtensionGetter() async {
@@ -237,6 +262,25 @@ extension type A(int i) {
 void f() {
   A v = .getter;
   print(v);
+}
+''');
+  }
+
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+class A;
+
+void f(A a) {
+  int _ = a.test;
+}
+''');
+    await assertHasFix('''
+class A {
+  int get test => null;
+}
+
+void f(A a) {
+  int _ = a.test;
 }
 ''');
   }

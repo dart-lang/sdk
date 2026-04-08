@@ -607,7 +607,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForStatement(ForStatement node) {
-    List<VariableInitialization> variables = node.variableInitializations
+    List<VariableInitializationBase> variables = node.variableInitializations
         .map(clone)
         .toList();
     return new ForStatement(
@@ -620,7 +620,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    Variable newVariable = clone(node.expressionVariable);
+    VariableDeclaration newVariable = clone(node.expressionVariable);
     return new ForInStatement(
       newVariable,
       clone(node.iterable),
@@ -705,19 +705,126 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitVariableDeclaration(VariableDeclaration node) {
+    throw new UnimplementedError(
+      "${this.runtimeType}.visitVariableDeclaration",
+    );
+  }
+
+  @override
+  TreeNode visitPositionalParameter(PositionalParameter node) {
     return setVariableClone(
       node,
-      new VariableDeclaration(
+      new PositionalParameter(
+          cosmeticName: node.cosmeticName,
+          type: visitType(node.type),
+          defaultValue: cloneOptional(node.defaultValue),
+        )
+        ..flags = node.flags
+        ..annotations = _cloneAnnotations(node)
+        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+    );
+  }
+
+  @override
+  TreeNode visitNamedParameter(NamedParameter node) {
+    return setVariableClone(
+      node,
+      new NamedParameter(
+          parameterName: node.parameterName,
+          type: visitType(node.type),
+          defaultValue: cloneOptional(node.defaultValue),
+        )
+        ..flags = node.flags
+        ..annotations = _cloneAnnotations(node)
+        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+    );
+  }
+
+  @override
+  TreeNode visitCatchVariable(CatchVariable node) {
+    return setVariableClone(
+      node,
+      new CatchVariable(
+          name: node.catchVariableName,
+          type: visitOptionalType(node.type),
+        )
+        ..flags = node.flags
+        ..annotations = _cloneAnnotations(node)
+        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+    );
+  }
+
+  @override
+  TreeNode visitLocalVariable(LocalVariable node) {
+    return setVariableClone(
+      node,
+      new LocalVariable(
+          cosmeticName: node.cosmeticName,
+          type: visitOptionalType(node.type),
+        )
+        ..flags = node.flags
+        ..annotations = _cloneAnnotations(node)
+        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+    );
+  }
+
+  @override
+  TreeNode visitSyntheticVariable(SyntheticVariable node) {
+    return setVariableClone(
+      node,
+      SyntheticVariable(
+          cosmeticName: node.cosmeticName,
+          type: visitType(node.type),
+        )
+        ..flags = node.flags
+        ..annotations = _cloneAnnotations(node)
+        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+    );
+  }
+
+  @override
+  TreeNode visitThisVariable(ThisVariable node) {
+    return setVariableClone(
+      node,
+      new ThisVariable(type: visitType(node.type))
+        ..flags = node.flags
+        ..annotations = _cloneAnnotations(node)
+        ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
+    );
+  }
+
+  @override
+  TreeNode visitVariableStatement(VariableStatement node) {
+    return setVariableClone(
+      node,
+      new VariableStatement(
           node.name,
           initializer: cloneOptional(node.initializer),
           type: visitType(node.type),
           flags: node.flags,
         )
-        ..annotations = cloneAnnotations && !node.annotations.isEmpty
-            ? node.annotations.map(clone).toList()
-            : const <Expression>[]
+        ..annotations = _cloneAnnotations(node)
         ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset),
     );
+  }
+
+  List<Expression> _cloneAnnotations(Annotatable node) {
+    return cloneAnnotations && !node.annotations.isEmpty
+        ? node.annotations.map(clone).toList()
+        : const <Expression>[];
+  }
+
+  @override
+  TreeNode visitVariableInitialization(VariableInitialization node) {
+    return new VariableInitialization(
+        variable: clone(node.variable),
+        initializer: cloneOptional(node.initializer),
+      )
+      ..flags = node.flags
+      ..annotations = cloneAnnotations && !node.annotations.isEmpty
+          ? node.annotations.map(clone).toList()
+          : const <Expression>[]
+      ..fileEqualsOffset = _cloneFileOffset(node.fileEqualsOffset);
   }
 
   @override

@@ -294,6 +294,24 @@ var ^V = 42;
     await assertNoAssist();
   }
 
+  Future<void> test_primaryConstructorBody_brace() async {
+    await resolveTestCode('''
+class A() {
+  this ^{}
+}
+''');
+    await assertNoAssist();
+  }
+
+  Future<void> test_primaryConstructorBody_keyword() async {
+    await resolveTestCode('''
+class A() {
+  ^this {}
+}
+''');
+    await assertNoAssist();
+  }
+
   Future<void> test_topFunction_onReturnStatement() async {
     await resolveTestCode('''
 fff() {

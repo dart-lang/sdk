@@ -192,6 +192,7 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
     ClassHierarchy classHierarchy,
     List<DelayedDefaultValueCloner> delayedDefaultValueCloners,
   ) {
+    DeclarationBuilder? declarationBuilder = this.declarationBuilder;
     if (!hasBuiltOutlineExpressions) {
       _introductoryField?.buildFieldOutlineExpressions(
         classHierarchy: classHierarchy,
@@ -203,7 +204,10 @@ class SourcePropertyBuilder extends SourceMemberBuilderImpl
             writeTarget as Annotatable,
         ],
         annotatablesFileUri: readTarget!.fileUri,
-        isClassInstanceMember: isClassInstanceMember,
+        forConstantConstructor:
+            declarationBuilder is SourceClassBuilder &&
+            !isStatic &&
+            declarationBuilder.declaresConstConstructor,
       );
       _introductoryGetable?.buildGetterOutlineExpressions(
         classHierarchy: classHierarchy,

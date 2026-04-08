@@ -1,3 +1,7 @@
+## 3.13.0
+
+**Released on:** Unreleased
+
 ## 3.12.0
 
 **Released on:** Unreleased
@@ -72,7 +76,16 @@ main() {
   wrapper function that is returned from `Function.toJS` or
   `Function.toJSCaptureThis`.
 
+- Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
+  and `JSIteratorResult` types to model JavaScript's [iteration protocols].
+  `JSArray` and `JSString` now implement `JSIterable`.
+
+- Added extension types to provide `Iterable.toJSIterable`,
+  `JSIterable.toDartIterable`, `Iterator.toJSIterator`, and
+  `JSIterator.toDartIterator`.
+
 [#56905]: https://github.com/dart-lang/sdk/issues/56905
+[iteration protocols]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
 
 ### Tools
 

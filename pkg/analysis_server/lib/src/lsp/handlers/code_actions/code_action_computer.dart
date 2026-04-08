@@ -319,7 +319,7 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
           for (var computer in actionComputers)
             ...await performance.runAsync(
               '${computer.name}.getFixActions',
-              (_) => computer.getFixActions(performance),
+              (childPerf) => computer.getFixActions(childPerf),
             ),
         ]),
 
@@ -329,14 +329,14 @@ class CodeActionComputer with HandlerHelperMixin<AnalysisServer> {
           for (var computer in actionComputers)
             ...await performance.runAsync(
               '${computer.name}.getAssistActions',
-              (_) => computer.getAssistActions(performance: performance),
+              (childPerf) => computer.getAssistActions(performance: childPerf),
             ),
         ]),
       if (includeRefactors)
         for (var computer in actionComputers)
           ...await performance.runAsync(
             '${computer.name}.getRefactorActions',
-            (_) => computer.getRefactorActions(performance),
+            (childPerf) => computer.getRefactorActions(childPerf),
           ),
     ];
     return allActions;

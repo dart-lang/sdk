@@ -100,9 +100,7 @@ void _checkAugmentation(
             ? diag.unmatchedPatchDeclaration.withArguments(
                 declarationName: declaration.displayName,
               )
-            :
-              // Coverage-ignore(suite): Not run.
-              diag.unmatchedAugmentationDeclaration.withArguments(
+            : diag.unmatchedAugmentationDeclaration.withArguments(
                 declarationName: declaration.displayName,
               );
     }
@@ -673,7 +671,6 @@ class BuilderFactory {
       name: fragment.name,
       typeParameters: typeParameters,
       underscoreEnumTypeBuilder: _loader.target.underscoreEnumType,
-      interfaceBuilders: fragment.interfaces,
       enumElements: fragment.enumElements,
       libraryBuilder: _enclosingLibraryBuilder,
       fileUri: fragment.fileUri,
@@ -687,6 +684,7 @@ class BuilderFactory {
         fragment,
         _loader.target.underscoreEnumType,
       ),
+      modifiers: fragment.modifiers,
     );
     fragment.builder = enumBuilder;
     fragment.bodyScope.declarationBuilder = enumBuilder;

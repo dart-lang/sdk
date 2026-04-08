@@ -22,6 +22,31 @@ class CreateFieldEnumTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createField;
 
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+enum E;
+
+int f(E e) {
+  return e.a;
+}
+''');
+    await assertHasFix(
+      '''
+enum E {
+  final int a;
+}
+
+int f(E e) {
+  return e.a;
+}
+''',
+      filter: (error) {
+        // Filter to ignore enum_without_constants
+        return error.diagnosticCode == diag.undefinedGetter;
+      },
+    );
+  }
+
   Future<void> test_initializingFormal_dynamic() async {
     await resolveTestCode('''
 enum E {
@@ -147,6 +172,25 @@ class CreateFieldMixinTest extends FixProcessorTest {
   Future<void> test_dotShorthand() async {
     await resolveTestCode('''
 mixin A {}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+    await assertHasFix('''
+mixin A {
+  static A test;
+}
+void f() {
+  A v = .test;
+  print(v);
+}
+''');
+  }
+
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+mixin A;
 void f() {
   A v = .test;
   print(v);
@@ -313,6 +357,25 @@ void f() {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+class A;
+
+void f(A a) {
+  a.test;
+}
+''');
+    await assertHasFix('''
+class A {
+  var test;
+}
+
+void f(A a) {
+  a.test;
+}
+''');
   }
 
   Future<void> test_getter_generic() async {

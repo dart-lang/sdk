@@ -72,14 +72,14 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   for (VariableDeclaration positionalParameter
       in functionExpression.function.positionalParameters) {
     int key = unnamedParameterIndex++;
-    if (!(positionalParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(positionalParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
   for (VariableDeclaration namedParameter
       in functionExpression.function.namedParameters) {
     String key = namedParameter.name!;
-    if (!(namedParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(namedParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
@@ -148,8 +148,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
   InferenceDataForTesting? get dataForTesting => _inferrer.dataForTesting;
 
-  FlowAnalysis<TreeNode, Statement, Expression, Variable> get flowAnalysis =>
-      _inferrer.flowAnalysis;
+  FlowAnalysis<TreeNode, Statement, Expression, VariableDeclaration>
+  get flowAnalysis => _inferrer.flowAnalysis;
 
   /// Provides access to the [OperationsCfe] object.  This is needed by
   /// [isAssignable] and for caching types.
@@ -252,13 +252,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           }
           TreeNode origNode = node;
           while (origNode is VariableGet &&
-              origNode.expressionVariable.cosmeticName == null &&
-              origNode.expressionVariable.initializer != null) {
+              origNode.variable.cosmeticName == null &&
+              origNode.variable.initializer != null) {
             // This is a read of a synthetic variable, presumably from a "let".
             // Find the original expression.
             // TODO(johnniwinther): add a general solution for getting the
             // original node for testing.
-            origNode = origNode.expressionVariable.initializer!;
+            origNode = origNode.variable.initializer!;
           }
           dataForTesting!.flowAnalysisResult.nonPromotionReasons[origNode] =
               nonPromotionReasonText;
@@ -2366,7 +2366,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       VariableDeclaration parameter = positionalParameters[i];
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      Variable parameterAstVariable =
+      VariableDeclaration parameterAstVariable =
           (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
         parameterAstVariable,
@@ -2386,7 +2386,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     for (VariableDeclaration parameter in function.namedParameters) {
       // TODO(62401): Remove the cast when the flow analysis uses
       // [InternalExpressionVariable]s.
-      Variable parameterAstVariable =
+      VariableDeclaration parameterAstVariable =
           (parameter as InternalVariable).astVariable;
       flowAnalysis.declare(
         parameterAstVariable,
@@ -2877,7 +2877,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         functionType: null,
       )..fileOffset = fileOffset;
     } else if (receiver is VariableGet) {
-      Variable variable = receiver.expressionVariable;
+      VariableDeclaration variable = receiver.variable;
       TreeNode? parent = variable.parent;
       if (parent is FunctionDeclaration) {
         assert(
@@ -2886,7 +2886,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         localName = variable.cosmeticName!;
         expression = new LocalFunctionInvocation(
-          variable as VariableDeclaration,
+          variable,
           createArgumentsFromInternalNode(
             result.typeArguments,
             result.positional,
@@ -4033,9 +4033,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       result.applyResult(
         createSuperMethodInvocation(
           isClosureContextLoweringEnabled
-              ?
-                // Coverage-ignore(suite): Not run.
-                (new VariableGet(internalThisVariable)..fileOffset = fileOffset)
+              ? (new VariableGet(internalThisVariable)..fileOffset = fileOffset)
               : (new ThisExpression()..fileOffset = fileOffset),
           name,
           procedure,
@@ -4079,9 +4077,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         //  supported by backends.
         new SuperPropertyGet(
           isClosureContextLoweringEnabled
-              ?
-                // Coverage-ignore(suite): Not run.
-                (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
+              ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
               : (new ThisExpression()..fileOffset = nameOffset),
           name,
           member,
@@ -4153,9 +4149,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       assert(node == null, "Unexpected node for super property set $node.");
       node = new SuperPropertySet(
         isClosureContextLoweringEnabled
-            ?
-              // Coverage-ignore(suite): Not run.
-              (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
+            ? (new VariableGet(internalThisVariable)..fileOffset = nameOffset)
             : (new ThisExpression()..fileOffset = nameOffset),
         name,
         rhs,
@@ -4272,7 +4266,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         flowAnalysis.getExpressionInfo(node),
       );
     } else {
-      resultExpression = node..expressionVariable = variable.astVariable;
+      resultExpression = node..variable = variable.astVariable;
     }
 
     bool isUnassigned = !flowAnalysis.isAssigned(variable.astVariable);
@@ -4324,11 +4318,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 compilerContext: compilerContext,
                 expression: resultExpression,
                 message: diag.finalNotAssignedError.withArguments(
-                  variableName: node.expressionVariable.cosmeticName!,
+                  variableName: node.variable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
-                length: node.expressionVariable.cosmeticName!.length,
+                length: node.variable.cosmeticName!.length,
               ),
             );
           } else if (declaredOrInferredType.isPotentiallyNonNullable) {
@@ -4338,11 +4332,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 compilerContext: compilerContext,
                 expression: resultExpression,
                 message: diag.nonNullableNotAssignedError.withArguments(
-                  variableName: node.expressionVariable.cosmeticName!,
+                  variableName: node.variable.cosmeticName!,
                 ),
                 fileUri: fileUri,
                 fileOffset: node.fileOffset,
-                length: node.expressionVariable.cosmeticName!.length,
+                length: node.variable.cosmeticName!.length,
               ),
             );
           }
@@ -4416,7 +4410,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
     } else {
       node.value = rhs..parent = node;
-      resultExpression = node..expressionVariable = variable.astVariable;
+      resultExpression = node..variable = variable.astVariable;
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
@@ -4432,11 +4426,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               compilerContext: compilerContext,
               expression: resultExpression,
               message: diag.lateDefinitelyAssignedError.withArguments(
-                variableName: node.expressionVariable.cosmeticName!,
+                variableName: node.variable.cosmeticName!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
-              length: node.expressionVariable.cosmeticName!.length,
+              length: node.variable.cosmeticName!.length,
             ),
           );
         }
@@ -4448,11 +4442,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               compilerContext: compilerContext,
               expression: resultExpression,
               message: diag.finalPossiblyAssignedError.withArguments(
-                variableName: node.expressionVariable.cosmeticName!,
+                variableName: node.variable.cosmeticName!,
               ),
               fileUri: fileUri,
               fileOffset: node.fileOffset,
-              length: node.expressionVariable.cosmeticName!.length,
+              length: node.variable.cosmeticName!.length,
             ),
           );
         }
@@ -4796,7 +4790,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Expression? initializer = first.initializer;
     if (initializer is! StaticInvocation) return false;
     if (initializer.target != engine.setFactory) return false;
-    return value.expressionVariable == first;
+    return value.variable == first;
   }
 
   /// Determines if the given [expression]'s type is precisely known at compile
@@ -4847,7 +4841,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
     if (expression is VariableGet) {
-      Variable variable = expression.expressionVariable;
+      VariableDeclaration variable = expression.variable;
       if (variable is VariableDeclarationImpl && variable.isLocalFunction) {
         return diag.invalidCastLocalFunction;
       }
@@ -5599,7 +5593,12 @@ FunctionType replaceReturnType(FunctionType functionType, DartType returnType) {
 }
 
 class _WhyNotPromotedVisitor
-    implements NonPromotionReasonVisitor<List<LocatedMessage>, Node, Variable> {
+    implements
+        NonPromotionReasonVisitor<
+          List<LocatedMessage>,
+          Node,
+          VariableDeclaration
+        > {
   final InferenceVisitorBase inferrer;
 
   Member? propertyReference;
@@ -5608,7 +5607,7 @@ class _WhyNotPromotedVisitor
 
   @override
   List<LocatedMessage> visitDemoteViaExplicitWrite(
-    DemoteViaExplicitWrite<Variable> reason,
+    DemoteViaExplicitWrite<VariableDeclaration> reason,
   ) {
     TreeNode node = reason.node as TreeNode;
     if (inferrer.dataForTesting != null) {

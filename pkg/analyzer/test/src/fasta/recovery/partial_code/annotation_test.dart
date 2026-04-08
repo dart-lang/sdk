@@ -2358,7 +2358,6 @@ CompilationUnit
     parseResult.assertErrors([
       error(diag.missingConstFinalVarOrType, 10, 1),
       error(diag.expectedToken, 14, 1),
-      error(diag.missingFunctionBody, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

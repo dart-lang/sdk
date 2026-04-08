@@ -55,30 +55,40 @@ List<String> preprocessArgs(List<String> args) {
 /// An [ArgParser] for generating kernel summaries.
 final ArgParser summaryArgsParser = new ArgParser()
   ..addFlag('help', negatable: false, abbr: 'h')
-  ..addFlag('exclude-non-sources',
-      negatable: false,
-      help: 'Whether source files loaded implicitly should be included as '
-          'part of the summary.')
-  ..addFlag('summary-only',
-      defaultsTo: true,
-      negatable: true,
-      help: 'Whether to only build summary files.')
-  ..addFlag('summary',
-      defaultsTo: true,
-      negatable: true,
-      help: 'Whether or not to build summary files.')
-  ..addOption('target',
-      allowed: const [
-        'vm',
-        'flutter',
-        'flutter_runner',
-        'dart2js',
-        'dart2js_summary',
-        'dart2wasm',
-        'ddc',
-      ],
-      help: 'Build kernel for the vm, flutter, flutter_runner, dart2js, '
-          'dart2wasm or ddc.')
+  ..addFlag(
+    'exclude-non-sources',
+    negatable: false,
+    help:
+        'Whether source files loaded implicitly should be included as '
+        'part of the summary.',
+  )
+  ..addFlag(
+    'summary-only',
+    defaultsTo: true,
+    negatable: true,
+    help: 'Whether to only build summary files.',
+  )
+  ..addFlag(
+    'summary',
+    defaultsTo: true,
+    negatable: true,
+    help: 'Whether or not to build summary files.',
+  )
+  ..addOption(
+    'target',
+    allowed: const [
+      'vm',
+      'flutter',
+      'flutter_runner',
+      'dart2js',
+      'dart2js_summary',
+      'dart2wasm',
+      'ddc',
+    ],
+    help:
+        'Build kernel for the vm, flutter, flutter_runner, dart2js, '
+        'dart2wasm or ddc.',
+  )
   ..addOption('dart-sdk-summary')
   ..addMultiOption('redirect')
   ..addMultiOption('input-summary')
@@ -101,35 +111,48 @@ final ArgParser summaryArgsParser = new ArgParser()
     ],
   )
   ..addFlag('include-unsupported-platform-library-stubs', defaultsTo: false)
-  ..addMultiOption('enable-experiment',
-      help: 'Enable a language experiment when invoking the CFE.')
+  ..addMultiOption(
+    'enable-experiment',
+    help: 'Enable a language experiment when invoking the CFE.',
+  )
   ..addMultiOption('define', abbr: 'D')
   ..addFlag('verbose', defaultsTo: false)
   // TODO(jensj): Remove this.
   ..addFlag('sound-null-safety', defaultsTo: true)
   ..addFlag('null-environment', defaultsTo: false, negatable: false)
-  ..addOption('verbosity',
-      defaultsTo: fe.Verbosity.defaultValue,
-      help: 'Sets the verbosity level used for filtering messages during '
-          'compilation.',
-      allowed: fe.Verbosity.allowedValues,
-      allowedHelp: fe.Verbosity.allowedValuesHelp)
+  ..addOption(
+    'verbosity',
+    defaultsTo: fe.Verbosity.defaultValue,
+    help:
+        'Sets the verbosity level used for filtering messages during '
+        'compilation.',
+    allowed: fe.Verbosity.allowedValues,
+    allowedHelp: fe.Verbosity.allowedValuesHelp,
+  )
   // TODO(johnniwinther): Remove the macros-related options.
-  ..addFlag('require-prebuilt-macros',
-      defaultsTo: false,
-      help: 'Require that prebuilt macros for all macro applications be '
-          'passed via --precompiled-macro. If not, fail the build.')
-  ..addMultiOption('precompiled-macro',
-      help: 'Configuration for precompiled macro binaries or kernel files.\n'
-          'The expected format of this option is as follows: '
-          '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
-          '--precompiled-macro="/path/to/compiled/macro;'
-          'package:some_macro/some_macro.dart". Multiple library uris may be '
-          'passed as well (separated by semicolons).')
-  ..addOption('macro-serialization-mode',
-      help: 'The serialization mode for communicating with macros.',
-      allowed: ['bytedata', 'json'],
-      defaultsTo: 'bytedata')
+  ..addFlag(
+    'require-prebuilt-macros',
+    defaultsTo: false,
+    help:
+        'Require that prebuilt macros for all macro applications be '
+        'passed via --precompiled-macro. If not, fail the build.',
+  )
+  ..addMultiOption(
+    'precompiled-macro',
+    help:
+        'Configuration for precompiled macro binaries or kernel files.\n'
+        'The expected format of this option is as follows: '
+        '<absolute-path-to-binary>;<macro-library-uri>\nFor example: '
+        '--precompiled-macro="/path/to/compiled/macro;'
+        'package:some_macro/some_macro.dart". Multiple library uris may be '
+        'passed as well (separated by semicolons).',
+  )
+  ..addOption(
+    'macro-serialization-mode',
+    help: 'The serialization mode for communicating with macros.',
+    allowed: ['bytedata', 'json'],
+    defaultsTo: 'bytedata',
+  )
   ..addOption('native-assets', help: 'Path to native assets yaml file.');
 
 class ComputeKernelResult {
@@ -147,11 +170,13 @@ class ComputeKernelResult {
 /// instead of printed to the console.
 ///
 /// Returns whether or not the summary was successfully output.
-Future<ComputeKernelResult> computeKernel(List<String> args,
-    {bool isWorker = false,
-    StringBuffer? outputBuffer,
-    Map<Uri, List<int>>? inputDigests,
-    fe.InitializedCompilerState? previousState}) async {
+Future<ComputeKernelResult> computeKernel(
+  List<String> args, {
+  bool isWorker = false,
+  StringBuffer? outputBuffer,
+  Map<Uri, List<int>>? inputDigests,
+  fe.InitializedCompilerState? previousState,
+}) async {
   inputDigests ??= <Uri, List<int>>{};
   StringSink out = outputBuffer ?? stderr;
   bool succeeded = true;
@@ -167,16 +192,19 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   // Bazel creates an overlay file system where some files may be located in the
   // source tree, some in a gendir, and some in a bindir. The multi-root file
   // system hides this from the front end.
-  List<Uri> multiRoots =
-      (parsedArgs['multi-root'] as List<String>).map(Uri.base.resolve).toList();
+  List<Uri> multiRoots = (parsedArgs['multi-root'] as List<String>)
+      .map(Uri.base.resolve)
+      .toList();
   if (multiRoots.isEmpty) multiRoots.add(Uri.base);
   MultiRootFileSystem mrfs = new MultiRootFileSystem(
-      parsedArgs['multi-root-scheme'],
-      multiRoots,
-      fe.StandardFileSystem.instance);
+    parsedArgs['multi-root-scheme'],
+    multiRoots,
+    fe.StandardFileSystem.instance,
+  );
   FileSystem fileSystem = mrfs;
-  List<Uri> sources =
-      (parsedArgs['source'] as List<String>).map(toUri).toList();
+  List<Uri> sources = (parsedArgs['source'] as List<String>)
+      .map(toUri)
+      .toList();
   bool excludeNonSources = parsedArgs['exclude-non-sources'] as bool;
 
   bool summaryOnly = parsedArgs['summary-only'] as bool;
@@ -193,9 +221,10 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
   String targetName =
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
   TargetFlags targetFlags = new TargetFlags(
-      trackCreationLocations: trackCreationLocations,
-      includeUnsupportedPlatformLibraryStubs:
-          includeUnsupportedPlatformLibraryStubs);
+    trackCreationLocations: trackCreationLocations,
+    includeUnsupportedPlatformLibraryStubs:
+        includeUnsupportedPlatformLibraryStubs,
+  );
   Target target;
   switch (targetName) {
     case 'vm':
@@ -208,39 +237,54 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       target = new FlutterTarget(targetFlags);
       if (summaryOnly) {
         throw new ArgumentError(
-            'error: --summary-only not supported for the flutter target');
+          'error: --summary-only not supported for the flutter target',
+        );
       }
       break;
     case 'flutter_runner':
       target = new FlutterRunnerTarget(targetFlags);
       if (summaryOnly) {
-        throw new ArgumentError('error: --summary-only not supported for the '
-            'flutter_runner target');
+        throw new ArgumentError(
+          'error: --summary-only not supported for the '
+          'flutter_runner target',
+        );
       }
       break;
     case 'dart2js':
       target = new Dart2jsTarget('dart2js', targetFlags);
       if (summaryOnly) {
         out.writeln(
-            'error: --summary-only not supported for the dart2js target');
+          'error: --summary-only not supported for the dart2js target',
+        );
       }
       break;
     case 'dart2js_summary':
       target = new Dart2jsSummaryTarget(
-          'dart2js', sources, excludeNonSources, targetFlags);
+        'dart2js',
+        sources,
+        excludeNonSources,
+        targetFlags,
+      );
       if (!summaryOnly) {
-        out.writeln('error: --no-summary-only not supported for '
-            'the dart2js summary target');
+        out.writeln(
+          'error: --no-summary-only not supported for '
+          'the dart2js summary target',
+        );
       }
       break;
     case 'ddc':
       // TODO(jakemac):If `generateKernel` changes to return a summary
       // component, process the component instead.
-      target =
-          new DevCompilerSummaryTarget(sources, excludeNonSources, targetFlags);
+      target = new DevCompilerSummaryTarget(
+        sources,
+        excludeNonSources,
+        targetFlags,
+      );
       if (!summaryOnly) {
-        out.writeln('error: --no-summary-only not supported for the '
-            'ddc target');
+        out.writeln(
+          'error: --no-summary-only not supported for the '
+          'ddc target',
+        );
       }
       break;
     case 'dart2wasm':
@@ -251,29 +295,35 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
       return new ComputeKernelResult(false, previousState);
   }
 
-  List<Uri> linkedInputs =
-      (parsedArgs['input-linked'] as List<String>).map(toUri).toList();
+  List<Uri> linkedInputs = (parsedArgs['input-linked'] as List<String>)
+      .map(toUri)
+      .toList();
 
-  List<Uri> summaryInputs =
-      (parsedArgs['input-summary'] as List<String>).map(toUri).toList();
+  List<Uri> summaryInputs = (parsedArgs['input-summary'] as List<String>)
+      .map(toUri)
+      .toList();
 
   fe.InitializedCompilerState state;
   bool usingIncrementalCompiler = parsedArgs['use-incremental-compiler'];
   bool recordUsedInputs = parsedArgs["used-inputs"] != null;
   bool usingNullEnvironment = parsedArgs['null-environment'];
   Map<String, String>? nullableEnvironmentDefines;
-  Map<String, String> environmentDefines =
-      _parseEnvironmentDefines(parsedArgs['define']);
+  Map<String, String> environmentDefines = _parseEnvironmentDefines(
+    parsedArgs['define'],
+  );
   if (usingNullEnvironment) {
     if (environmentDefines.isNotEmpty) {
       throw new ArgumentError(
-          '`--null-environment` not supported with defines.');
+        '`--null-environment` not supported with defines.',
+      );
     } else if (!target.constantsBackend.supportsUnevaluatedConstants) {
       throw new ArgumentError(
-          '`--null-environment` not supported on `$targetName`.');
+        '`--null-environment` not supported on `$targetName`.',
+      );
     } else if (usingIncrementalCompiler) {
       throw new ArgumentError(
-          '`--null-environment` not supported with incremental compilation.');
+        '`--null-environment` not supported with incremental compilation.',
+      );
     }
   } else {
     nullableEnvironmentDefines = environmentDefines;
@@ -305,23 +355,26 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     // Make the filesystem map from a to b, so that if asked to read a,
     // actually return data from b. If asked to read b throw.
     fe.InitializedCompilerState helper = fe.initializeCompiler(
-        null,
-        sdkSummaryUri,
-        toUriNullable(parsedArgs['libraries-file']),
-        toUriNullable(parsedArgs['packages-file']),
-        [...summaryInputs, ...linkedInputs],
-        target,
-        fileSystem,
-        parsedArgs['enable-experiment'] as List<String>,
-        nullableEnvironmentDefines,
-        verbose: verbose);
+      null,
+      sdkSummaryUri,
+      toUriNullable(parsedArgs['libraries-file']),
+      toUriNullable(parsedArgs['packages-file']),
+      [...summaryInputs, ...linkedInputs],
+      target,
+      fileSystem,
+      parsedArgs['enable-experiment'] as List<String>,
+      nullableEnvironmentDefines,
+      verbose: verbose,
+    );
     UriTranslator uriTranslator = await helper.processedOpts.getUriTranslator();
-    _FakeFileSystem fakeFileSystem =
-        fileSystem = new _FakeFileSystem(fileSystem);
+    _FakeFileSystem fakeFileSystem = fileSystem = new _FakeFileSystem(
+      fileSystem,
+    );
     for (MapEntry<Uri, Uri> entry in redirectsToFrom.entries) {
       fakeFileSystem.addRedirect(
-          uriTranslator.translate(entry.value, false) ?? entry.value,
-          uriTranslator.translate(entry.key, false) ?? entry.key);
+        uriTranslator.translate(entry.value, false) ?? entry.value,
+        uriTranslator.translate(entry.key, false) ?? entry.key,
+      );
     }
   }
 
@@ -343,38 +396,40 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
     }
 
     state = await fe.initializeIncrementalCompiler(
-        previousState,
-        {
-          "target=$targetName",
-          "trackCreationLocations=$trackCreationLocations",
-          "multiRootScheme=${mrfs.markerScheme}",
-          "multiRootRoots=${mrfs.roots}",
-        },
-        sdkSummaryUri,
-        toUriNullable(parsedArgs['packages-file']),
-        toUriNullable(parsedArgs['libraries-file']),
-        [...summaryInputs, ...linkedInputs],
-        inputDigests,
-        target,
-        fileSystem,
-        (parsedArgs['enable-experiment'] as List<String>),
-        summaryOnly,
-        nullableEnvironmentDefines!,
-        trackNeededDillLibraries: recordUsedInputs,
-        verbose: verbose);
+      previousState,
+      {
+        "target=$targetName",
+        "trackCreationLocations=$trackCreationLocations",
+        "multiRootScheme=${mrfs.markerScheme}",
+        "multiRootRoots=${mrfs.roots}",
+      },
+      sdkSummaryUri,
+      toUriNullable(parsedArgs['packages-file']),
+      toUriNullable(parsedArgs['libraries-file']),
+      [...summaryInputs, ...linkedInputs],
+      inputDigests,
+      target,
+      fileSystem,
+      (parsedArgs['enable-experiment'] as List<String>),
+      summaryOnly,
+      nullableEnvironmentDefines!,
+      trackNeededDillLibraries: recordUsedInputs,
+      verbose: verbose,
+    );
   } else {
     state = fe.initializeCompiler(
-        // TODO(sigmund): pass an old state once we can make use of it.
-        null,
-        sdkSummaryUri,
-        toUriNullable(parsedArgs['libraries-file']),
-        toUriNullable(parsedArgs['packages-file']),
-        [...summaryInputs, ...linkedInputs],
-        target,
-        fileSystem,
-        parsedArgs['enable-experiment'] as List<String>,
-        nullableEnvironmentDefines,
-        verbose: verbose);
+      // TODO(sigmund): pass an old state once we can make use of it.
+      null,
+      sdkSummaryUri,
+      toUriNullable(parsedArgs['libraries-file']),
+      toUriNullable(parsedArgs['packages-file']),
+      [...summaryInputs, ...linkedInputs],
+      target,
+      fileSystem,
+      parsedArgs['enable-experiment'] as List<String>,
+      nullableEnvironmentDefines,
+      verbose: verbose,
+    );
   }
 
   void onDiagnostic(fe.CfeDiagnosticMessage message) {
@@ -395,16 +450,20 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
 
     nativeAssetsLibrary =
         await NativeAssetsSynthesizer.synthesizeLibraryFromYamlFile(
-            nativeAssetsUri, new ErrorDetector());
+          nativeAssetsUri,
+          new ErrorDetector(),
+        );
   }
 
   if (usingIncrementalCompiler) {
     state.options.onDiagnostic = onDiagnostic;
-    IncrementalCompilerResult incrementalCompilerResult =
-        await state.incrementalCompiler!.computeDelta(
-            entryPoints: sources,
-            fullComponent: true,
-            trackNeededDillLibraries: recordUsedInputs);
+    IncrementalCompilerResult incrementalCompilerResult = await state
+        .incrementalCompiler!
+        .computeDelta(
+          entryPoints: sources,
+          fullComponent: true,
+          trackNeededDillLibraries: recordUsedInputs,
+        );
     Component incrementalComponent = incrementalCompilerResult.component;
 
     if (recordUsedInputs) {
@@ -413,8 +472,10 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         if (lib.importUri.isScheme("dart")) continue;
         Uri? uri = state.libraryToInputDill![lib.importUri];
         if (uri == null) {
-          throw new StateError("Library ${lib.importUri} was recorded as used, "
-              "but was not in the list of known libraries.");
+          throw new StateError(
+            "Library ${lib.importUri} was recorded as used, "
+            "but was not in the list of known libraries.",
+          );
         }
         usedOutlines.add(uri);
       }
@@ -431,36 +492,55 @@ Future<ComputeKernelResult> computeKernel(List<String> args,
         incrementalComponent.setMainMethodAndMode(null, true);
         target.performOutlineTransformations(incrementalComponent);
         makeStable(incrementalComponent);
-        return new Future.value(fe.serializeComponent(incrementalComponent,
-            includeSources: false, includeOffsets: false));
+        return new Future.value(
+          fe.serializeComponent(
+            incrementalComponent,
+            includeSources: false,
+            includeOffsets: false,
+          ),
+        );
       }
 
       makeStable(incrementalComponent);
       setNativeAssetsLibrary(incrementalComponent, nativeAssetsLibrary);
 
-      return new Future.value(fe.serializeComponent(incrementalComponent,
+      return new Future.value(
+        fe.serializeComponent(
+          incrementalComponent,
           filter: excludeNonSources
               ? (library) =>
-                  sources.contains(library.importUri) ||
-                  library == nativeAssetsLibrary
+                    sources.contains(library.importUri) ||
+                    library == nativeAssetsLibrary
               : null,
-          includeOffsets: true));
+          includeOffsets: true,
+        ),
+      );
     });
   } else if (summaryOnly) {
-    kernel = await fe.compileSummary(state, sources, onDiagnostic,
-        includeOffsets: false);
+    kernel = await fe.compileSummary(
+      state,
+      sources,
+      onDiagnostic,
+      includeOffsets: false,
+    );
   } else {
-    Component? component = await fe
-        .compileComponent(state, sources, onDiagnostic, buildSummary: summary);
+    Component? component = await fe.compileComponent(
+      state,
+      sources,
+      onDiagnostic,
+      buildSummary: summary,
+    );
     if (component != null) {
       setNativeAssetsLibrary(component, nativeAssetsLibrary);
-      kernel = fe.serializeComponent(component,
-          filter: excludeNonSources
-              ? (library) =>
+      kernel = fe.serializeComponent(
+        component,
+        filter: excludeNonSources
+            ? (library) =>
                   sources.contains(library.importUri) ||
                   library == nativeAssetsLibrary
-              : null,
-          includeOffsets: true);
+            : null,
+        includeOffsets: true,
+      );
     }
   }
   state.options.onDiagnostic = null; // See http://dartbug.com/36983.
@@ -492,8 +572,9 @@ void setNativeAssetsLibrary(Component component, Library? nativeAssetsLibrary) {
     return;
   }
   assert(nativeAssetsLibrary.importUri == _nativeAssetsLibraryUri);
-  component.libraries
-      .removeWhere((l) => l.importUri == _nativeAssetsLibraryUri);
+  component.libraries.removeWhere(
+    (l) => l.importUri == _nativeAssetsLibraryUri,
+  );
   component.libraries.add(nativeAssetsLibrary..parent = component);
 }
 
@@ -537,8 +618,10 @@ class DevCompilerSummaryTarget extends DevCompilerTarget with SummaryMixin {
   final bool excludeNonSources;
 
   DevCompilerSummaryTarget(
-      this.sources, this.excludeNonSources, TargetFlags targetFlags)
-      : super(targetFlags);
+    this.sources,
+    this.excludeNonSources,
+    TargetFlags targetFlags,
+  ) : super(targetFlags);
 }
 
 Uri? toUriNullable(String? uriString) {

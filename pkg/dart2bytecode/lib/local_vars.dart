@@ -12,7 +12,7 @@ import 'options.dart' show BytecodeOptions;
 
 class LocalVariables {
   final _scopes = new Map<TreeNode, Scope>();
-  final _vars = new Map<Variable, VarDesc>();
+  final _vars = new Map<VariableDeclaration, VarDesc>();
   Map<TreeNode, List<int>>? _temps;
   Map<TreeNode, VariableDeclaration>? _capturedSavedContextVars;
   Map<TreeNode, VariableDeclaration>? _capturedExceptionVars;
@@ -27,11 +27,11 @@ class LocalVariables {
   Frame? _currentFrameInternal;
   Frame get _currentFrame => _currentFrameInternal!;
 
-  VarDesc _getVarDesc(Variable variable) =>
+  VarDesc _getVarDesc(VariableDeclaration variable) =>
       _vars[variable] ??
       (throw 'Variable descriptor is not created for $variable');
 
-  int _getVarIndex(Variable variable, bool isCaptured) {
+  int _getVarIndex(VariableDeclaration variable, bool isCaptured) {
     final v = _getVarDesc(variable);
     if (v.isCaptured != isCaptured) {
       throw 'Mismatch in captured state of $variable';
@@ -39,11 +39,14 @@ class LocalVariables {
     return v.index ?? (throw 'Variable $variable is not allocated');
   }
 
-  bool isCaptured(Variable variable) => _getVarDesc(variable).isCaptured;
+  bool isCaptured(VariableDeclaration variable) =>
+      _getVarDesc(variable).isCaptured;
 
-  int getVarIndexInFrame(Variable variable) => _getVarIndex(variable, false);
+  int getVarIndexInFrame(VariableDeclaration variable) =>
+      _getVarIndex(variable, false);
 
-  int getVarIndexInContext(Variable variable) => _getVarIndex(variable, true);
+  int getVarIndexInContext(VariableDeclaration variable) =>
+      _getVarIndex(variable, true);
 
   int getOriginalParamSlotIndex(VariableDeclaration variable) =>
       _getVarDesc(variable).originalParamSlotIndex ??
@@ -69,13 +72,13 @@ class LocalVariables {
       _currentFrame.contextLevelAtEntry ??
       (throw "Current frame is top level and it doesn't have a context at entry");
 
-  int getContextLevelOfVar(Variable variable) {
+  int getContextLevelOfVar(VariableDeclaration variable) {
     final v = _getVarDesc(variable);
     assert(v.isCaptured);
     return v.scope.contextLevel!;
   }
 
-  int getVarContextId(Variable variable) {
+  int getVarContextId(VariableDeclaration variable) {
     final v = _getVarDesc(variable);
     assert(v.isCaptured);
     return v.scope.contextId!;
@@ -123,13 +126,13 @@ class LocalVariables {
 
   bool get hasFactoryTypeArgsVar => _currentFrame.factoryTypeArgsVar != null;
 
-  Variable get receiverVar =>
+  VariableDeclaration get receiverVar =>
       _currentFrame.receiverVar ??
       (throw 'Receiver variable is not declared in ${_currentFrame.function}');
 
   bool get hasCapturedReceiverVar => _currentFrame.capturedReceiverVar != null;
 
-  Variable get capturedReceiverVar =>
+  VariableDeclaration get capturedReceiverVar =>
       _currentFrame.capturedReceiverVar ??
       (throw 'Captured receiver variable is not declared in ${_currentFrame.function}');
 
@@ -195,7 +198,7 @@ class LocalVariables {
 }
 
 class VarDesc {
-  final Variable declaration;
+  final VariableDeclaration declaration;
   Scope scope;
   bool isCaptured = false;
   int? index;
@@ -237,8 +240,8 @@ class Frame {
   bool hasOptionalParameters = false;
   bool hasCapturedParameters = false;
   bool hasClosures = false;
-  Variable? receiverVar;
-  Variable? capturedReceiverVar;
+  VariableDeclaration? receiverVar;
+  VariableDeclaration? capturedReceiverVar;
   VariableDeclaration? functionTypeArgsVar;
   VariableDeclaration? factoryTypeArgsVar;
   VariableDeclaration? closureVar;
@@ -477,7 +480,7 @@ class _ScopeBuilder extends RecursiveVisitor {
     _currentScopeInternal = _currentScope.parent;
   }
 
-  void _declareVariable(Variable variable, [Scope? scope]) {
+  void _declareVariable(VariableDeclaration variable, [Scope? scope]) {
     if (scope == null) {
       scope = _currentScope;
     }
@@ -489,7 +492,7 @@ class _ScopeBuilder extends RecursiveVisitor {
     locals._vars[variable] = v;
   }
 
-  void _useVariable(Variable variable) {
+  void _useVariable(VariableDeclaration variable) {
     final VarDesc? v = locals._vars[variable];
     if (v == null) {
       throw 'Variable $variable is used before declared';
@@ -550,11 +553,11 @@ class _ScopeBuilder extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
+  void visitVariableInitialization(VariableInitializationBase node) {
     _handleVariableInitialization(node);
   }
 
-  void _handleVariableInitialization(VariableInitialization node) {
+  void _handleVariableInitialization(VariableInitializationBase node) {
     _declareVariable(node.variable);
     node.visitChildren(this);
   }
@@ -582,15 +585,15 @@ class _ScopeBuilder extends RecursiveVisitor {
 
   @override
   void visitVariableGet(VariableGet node) {
-    _useVariable(node.expressionVariable);
-    if (node.expressionVariable.isLate) {
-      node.expressionVariable.initializer?.accept(this);
+    _useVariable(node.variable);
+    if (node.variable.isLate) {
+      node.variable.initializer?.accept(this);
     }
   }
 
   @override
   void visitVariableSet(VariableSet node) {
-    _useVariable(node.expressionVariable);
+    _useVariable(node.variable);
     node.visitChildren(this);
   }
 
@@ -671,7 +674,7 @@ class _ScopeBuilder extends RecursiveVisitor {
     node.iterable.accept(this);
     ++_loopDepth;
     _enterScope(node);
-    node.expressionVariable.accept(this);
+    node.variable.accept(this);
     node.body.accept(this);
     _leaveScope();
     --_loopDepth;
@@ -889,7 +892,7 @@ class _Allocator extends RecursiveVisitor {
     );
   }
 
-  void _allocateVariable(Variable variable, {int? paramSlotIndex}) {
+  void _allocateVariable(VariableDeclaration variable, {int? paramSlotIndex}) {
     final VarDesc v = locals._getVarDesc(variable);
 
     assert(!v.isAllocated);
@@ -921,7 +924,7 @@ class _Allocator extends RecursiveVisitor {
     _updateFrameSize();
   }
 
-  void _ensureVariableAllocated(Variable? variable) {
+  void _ensureVariableAllocated(VariableDeclaration? variable) {
     if (variable != null) {
       final VarDesc v = locals._getVarDesc(variable);
       if (!v.isAllocated) {
@@ -930,7 +933,7 @@ class _Allocator extends RecursiveVisitor {
     }
   }
 
-  void _allocateParameter(Variable node, int i) {
+  void _allocateParameter(VariableDeclaration node, int i) {
     final numParameters = _currentFrame.numParameters;
     assert(0 <= i && i < numParameters);
     assert(
@@ -1112,11 +1115,11 @@ class _Allocator extends RecursiveVisitor {
   }
 
   @override
-  void visitVariableInitialization(VariableInitialization node) {
+  void visitVariableInitialization(VariableInitializationBase node) {
     _handleVariableInitialization(node);
   }
 
-  void _handleVariableInitialization(VariableInitialization node) {
+  void _handleVariableInitialization(VariableInitializationBase node) {
     _allocateVariable(node.variable);
     node.visitChildren(this);
   }
@@ -1172,7 +1175,7 @@ class _Allocator extends RecursiveVisitor {
     node.iterable.accept(this);
 
     _enterScope(node);
-    node.expressionVariable.accept(this);
+    node.variable.accept(this);
     node.body.accept(this);
     _leaveScope();
 
@@ -1276,14 +1279,13 @@ class _Allocator extends RecursiveVisitor {
 
   @override
   void visitVariableGet(VariableGet node) {
-    _visit(node, temps: node.expressionVariable.isLate ? 1 : 0);
+    _visit(node, temps: node.variable.isLate ? 1 : 0);
   }
 
   @override
   void visitVariableSet(VariableSet node) {
     final bool needsTemp =
-        node.parent is! ExpressionStatement &&
-        locals.isCaptured(node.expressionVariable);
+        node.parent is! ExpressionStatement && locals.isCaptured(node.variable);
     _visit(node, temps: needsTemp ? 1 : 0);
   }
 

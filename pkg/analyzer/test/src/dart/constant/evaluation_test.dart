@@ -57,6 +57,17 @@ Null null
 ''');
   }
 
+  test_asExpression_null_neverQuestion() async {
+    await assertNoErrorsInCode(r'''
+const x = null as Never?;
+''');
+    var result = _topLevelVar('x');
+    assertDartObjectText(result, '''
+Null null
+  variable: <testLibrary>::@topLevelVariable::x
+''');
+  }
+
   test_asExpression_toExtensionType() async {
     await assertNoErrorsInCode(r'''
 extension type const E(int it) {}

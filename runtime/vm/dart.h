@@ -18,7 +18,6 @@ namespace dart {
 // Forward declarations.
 class Isolate;
 class LocalHandle;
-class ReadOnlyHandles;
 class ThreadPool;
 namespace kernel {
 class Program;
@@ -76,12 +75,6 @@ class Dart : public AllStatic {
   static int64_t UptimeMillis() {
     return UptimeMicros() / kMicrosecondsPerMillisecond;
   }
-
-  static LocalHandle* AllocateReadOnlyApiHandle();
-  static bool IsReadOnlyApiHandle(Dart_Handle handle);
-
-  static uword AllocateReadOnlyHandle();
-  static bool IsReadOnlyHandle(uword address);
 
   // The returned string has to be free()ed.
   static char* FeaturesString(IsolateGroup* isolate_group,
@@ -152,7 +145,6 @@ class Dart : public AllStatic {
   static Isolate* vm_isolate_;
   static int64_t start_time_micros_;
   static ThreadPool* thread_pool_;
-  static ReadOnlyHandles* predefined_handles_;
   static Snapshot::Kind vm_snapshot_kind_;
   static Dart_ThreadStartCallback thread_start_callback_;
   static Dart_ThreadExitCallback thread_exit_callback_;

@@ -31,7 +31,7 @@ Uri computePackageConfig(Uri repoDir) =>
 /// nominality. For instance the name of a variable declaration is taking as
 /// defining its identity.
 const Map<String, String?> _declarativeClassesNames = const {
-  'VariableDeclaration': 'name',
+  'LegacyVariableDeclaration': 'name',
   'TypeParameter': 'name',
   'StructuralParameter': 'name',
   'LabeledStatement': null,
@@ -63,6 +63,7 @@ const Set<String> _interchangeableClasses = const {
   'DartType',
   'Initializer',
   'Pattern',
+  'VariableDeclaration',
 };
 
 /// Names of subclasses of [NamedNode] that do _not_ have a `visitXReference`
@@ -124,8 +125,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'TypedefTearOffConstant': {'parameters': FieldRule(isDeclaration: true)},
   'LocalInitializer': {'variable': FieldRule(isDeclaration: true)},
   'Let': {'variable': FieldRule(isDeclaration: true)},
-  'VariableGet': {'expressionVariable': FieldRule(isDeclaration: false)},
-  'VariableSet': {'expressionVariable': FieldRule(isDeclaration: false)},
+  'VariableGet': {'variable': FieldRule(isDeclaration: false)},
+  'VariableSet': {'variable': FieldRule(isDeclaration: false)},
   'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
   'LocalVariable': {'variableInitialization': FieldRule(isDeclaration: false)},
   'BreakStatement': {'target': FieldRule(isDeclaration: false)},
@@ -134,8 +135,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'SwitchStatement': {'cases': FieldRule(isDeclaration: true)},
   'ContinueSwitchStatement': {'target': FieldRule(isDeclaration: false)},
   'Catch': {
-    'exceptionCatchVariable': FieldRule(isDeclaration: true),
-    'stackTraceCatchVariable': FieldRule(isDeclaration: true),
+    'exception': FieldRule(isDeclaration: true),
+    'stackTrace': FieldRule(isDeclaration: true),
   },
   'LocalFunctionIdGenerator': {'_counter': null},
   'FunctionExpression': {'id': null},
@@ -159,8 +160,12 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'PatternSwitchCase': {'jointVariables': FieldRule(isDeclaration: true)},
   'PatternSwitchStatement': {'cases': FieldRule(isDeclaration: true)},
   'TypeVariable': {'parameter': FieldRule(isDeclaration: false)},
-  'ClassTypeParameterType': {'parameter': FieldRule(isDeclaration: false)},
+  'ClassTypeParameterType': {
+    'parameter': FieldRule(isDeclaration: false),
+    'thisVariable': FieldRule(isDeclaration: false),
+  },
   'NominalParameter': {'_variance': FieldRule(name: 'variance')},
+  'VariableInitialization': {'variable': FieldRule(isDeclaration: false)},
 };
 
 /// Data that determines exceptions to how fields are used.

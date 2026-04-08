@@ -1,0 +1,32 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/enum_async.dart:7:8: Error: A primary constructor body can't have the modifier 'async'.
+// Try removing the modifier.
+//   this async {}
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_async.dart:7:14: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   this async {}
+//              ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E v = const self::E::•(0, "v");
+  static const field core::List<self::E> values = const <self::E>[self::E::v];
+  const constructor •(core::int #index, core::String #name) → self::E
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///enum_async.dart:6:3 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "v"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///enum_async.dart:5:6 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "v"}])
+Extra constant evaluation: evaluated: 7, effectively constant: 2

@@ -20,6 +20,25 @@ class CreateSetterMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createSetter;
 
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+mixin M;
+
+void f(M m) {
+  m.test = 0;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  set test(int test) {}
+}
+
+void f(M m) {
+  m.test = 0;
+}
+''');
+  }
+
   Future<void> test_main_part() async {
     var partPath = join(testPackageLibPath, 'part.dart');
     newFile(partPath, '''
@@ -151,6 +170,23 @@ mixin M {
 class CreateSetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createSetter;
+
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+class A;
+void f(A a) {
+  a.test = 0;
+}
+''');
+    await assertHasFix('''
+class A {
+  set test(int test) {}
+}
+void f(A a) {
+  a.test = 0;
+}
+''');
+  }
 
   Future<void> test_extension_type() async {
     await resolveTestCode('''

@@ -690,6 +690,48 @@ void f() {
 ''');
   }
 
+  test_primaryConstructorParameter_named_declaring_final() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C({final [!p1!]});
+''');
+  }
+
+  test_primaryConstructorParameter_named_declaring_typed() async {
+    await assertNoDiagnostics(r'''
+class C({required int p1});
+''');
+  }
+
+  test_primaryConstructorParameter_named_declaring_var() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C({var [!p1!]});
+''');
+  }
+
+  test_primaryConstructorParameter_positional() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C([!p1!]);
+''');
+  }
+
+  test_primaryConstructorParameter_positional_declaring_final() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(final [!p1!]);
+''');
+  }
+
+  test_primaryConstructorParameter_positional_declaring_var() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(var [!p1!]);
+''');
+  }
+
+  test_primaryConstructorParameter_positional_typed() async {
+    await assertNoDiagnostics(r'''
+class C(int p1);
+''');
+  }
+
   test_reflectiveTest_nonTest() async {
     await assertDiagnostics(
       r'''

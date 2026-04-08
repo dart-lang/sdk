@@ -108,9 +108,11 @@ extension type A(int it) {
 
   Future<void> test_function() async {
     await resolveTestCode('''
+// @dart = 3.5
 void f();
 ''');
     await assertHasFix('''
+// @dart = 3.5
 void f() {
   // TODO: implement f
 }
@@ -166,11 +168,13 @@ class A {
 
   Future<void> test_static_getter() async {
     await resolveTestCode('''
+// @dart = 3.5
 class C {
   static int get g;
 }
 ''');
     await assertHasFix('''
+// @dart = 3.5
 class C {
   static int get g {
     // TODO: implement g
@@ -182,11 +186,13 @@ class C {
 
   Future<void> test_static_setter() async {
     await resolveTestCode('''
+// @dart = 3.5
 class C {
   static set(int i);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.5
 class C {
   static set(int i) {
     // TODO: implement set

@@ -20,6 +20,7 @@ patterns/pattern_variable_final: FormatterCrash
 primary_constructors/body_without_primary: FormatterCrash
 primary_constructors/class_primary_constructor: FormatterCrash
 primary_constructors/class_primary_declaring_parameters: FormatterCrash
+primary_constructors/const_parameters: FormatterCrash
 primary_constructors/const_class: FormatterCrash
 primary_constructors/duplicate_initialization: FormatterCrash
 primary_constructors/enum_primary_constructor: FormatterCrash
