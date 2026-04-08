@@ -26850,6 +26850,45 @@ library
 ''');
   }
 
+  test_augmented_constructors_augment_nothing() async {
+    var library = await buildLibrary(r'''
+class A {}
+
+augment class A {
+  augment A.named();
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          constructors
+            #F3 augment isOriginDeclaration named (nameOffset:42) (firstTokenOffset:32) (offset:42)
+              element: <testLibrary>::@class::A::@constructor::named
+              typeName: A
+              typeNameOffset: 40
+              periodOffset: 41
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginDeclaration named
+          reference: <testLibrary>::@class::A::@constructor::named
+          firstFragment: #F3
+''');
+  }
+
   test_augmented_field_augment_constructor() async {
     var library = await buildLibrary(r'''
 class A {
@@ -27672,6 +27711,78 @@ library
           reference: <testLibrary>::@class::A::@method::foo
           firstFragment: #F4
           returnType: void
+''');
+  }
+
+  test_augmented_field_augment_nothing() async {
+    var library = await buildLibrary(r'''
+class A {}
+
+augment class A {
+  augment int foo = 0;
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          fields
+            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
+              element: <testLibrary>::@class::A::@field::foo
+          getters
+            #F5 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F6 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+  classes
+    hasNonFinalField class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      fields
+        hasInitializer isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F4
+          type: int
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      getters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: int
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F6
+          formalParameters
+            #E0 requiredPositional value
+              firstFragment: #F7
+              type: int
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
 ''');
   }
 
@@ -29696,6 +29807,51 @@ library
             #F7 augment isOriginDeclaration foo (nameOffset:107) (firstTokenOffset:94) (offset:107)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F5
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: void
+''');
+  }
+
+  test_augmented_methods_augment_nothing() async {
+    var library = await buildLibrary(r'''
+class A {}
+
+augment class A {
+  augment void foo() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+        #F2 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          methods
+            #F4 augment isOriginDeclaration foo (nameOffset:45) (firstTokenOffset:32) (offset:45)
+              element: <testLibrary>::@class::A::@method::foo
   classes
     class A
       reference: <testLibrary>::@class::A

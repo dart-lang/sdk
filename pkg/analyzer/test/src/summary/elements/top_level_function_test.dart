@@ -1284,6 +1284,33 @@ library
 ''');
   }
 
+  test_augment_nothing() async {
+    var library = await buildLibrary(r'''
+augment void foo() {}
+''');
+
+    configuration.withExportScope = true;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isOriginDeclaration foo (nameOffset:13) (firstTokenOffset:0) (offset:13)
+          element: <testLibrary>::@function::foo
+  functions
+    isOriginDeclaration foo
+      reference: <testLibrary>::@function::foo
+      firstFragment: #F1
+      returnType: void
+  exportedReferences
+    declared <testLibrary>::@function::foo
+  exportNamespace
+    foo: <testLibrary>::@function::foo
+''');
+  }
+
   test_augment_setter() async {
     var library = await buildLibrary(r'''
 set foo(int _) {}
