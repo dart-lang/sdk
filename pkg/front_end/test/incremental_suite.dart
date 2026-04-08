@@ -724,10 +724,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           forceLateLoweringForTesting: NewWorldTestProperties
               .forceLateLoweringForTesting
               .read(map, keys),
-          trackCreationLocations: NewWorldTestProperties.trackCreationLocations.read(
-            map,
-            keys,
-          ),
+          trackCreationLocations: NewWorldTestProperties.trackCreationLocations
+              .read(map, keys),
           incrementalSerialization: NewWorldTestProperties
               .incrementalSerialization
               .read(map, keys),

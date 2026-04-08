@@ -37,39 +37,29 @@ void main() {
   creationLocationClass.addConstructor(creationLocationConstructor);
   developerLib.addClass(creationLocationClass);
 
-  final Class trackCreationLocationsAnnotationClass = new Class(
-    name: '_TrackCreationLocations',
-    fileUri: developerUri,
-  );
-  trackCreationLocationsAnnotationClass.addConstructor(
-    new Constructor(
-      new FunctionNode(null),
-      name: new Name(''),
-      fileUri: developerUri,
-    ),
-  );
-  developerLib.addClass(trackCreationLocationsAnnotationClass);
-
-  final Field trackCreationLocationsField = new Field.immutable(
-    new Name('trackCreationLocations'),
-    type: new InterfaceType(
-      trackCreationLocationsAnnotationClass,
-      Nullability.nonNullable,
-    ),
-    initializer: new ConstructorInvocation(
-      trackCreationLocationsAnnotationClass.constructors.first,
-      new Arguments([]),
-    ),
-    isStatic: true,
-    fileUri: developerUri,
-  );
-  developerLib.addField(trackCreationLocationsField);
+  final Uri coreUri = Uri.parse('dart:core');
+  final Library coreLib = new Library(coreUri, fileUri: coreUri);
+  final Class pragmaClass = new Class(name: 'pragma', fileUri: coreUri);
+  coreLib.addClass(pragmaClass);
+  final Field pragmaNameField = new Field.immutable(new Name('name'), fileUri: coreUri);
+  pragmaClass.addField(pragmaNameField);
 
   final Uri testUri = Uri.parse('package:test/test.dart');
   final Library testLib = new Library(testUri, fileUri: testUri);
 
   final Class myWidgetClass = new Class(name: 'MyWidget', fileUri: testUri);
-  myWidgetClass.addAnnotation(new StaticGet(trackCreationLocationsField));
+  myWidgetClass.addAnnotation(
+    new ConstantExpression(
+      new InstanceConstant(
+        pragmaClass.reference,
+        <DartType>[],
+        <Reference, Constant>{
+          pragmaNameField.fieldReference:
+              new StringConstant('track-creation-locations'),
+        },
+      ),
+    ),
+  );
   myWidgetClass.addConstructor(
     new Constructor(
       new FunctionNode(new Block([])),

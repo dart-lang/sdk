@@ -45,7 +45,8 @@ part of dart.developer;
 class CreationLocation {
   /// Returns the creation location of [object].
   ///
-  /// The provided object must be an instance of a class annotated with [trackCreationLocations].
+  /// The provided object must be an instance of a class annotated with 
+  /// `@pragma('track-creation-locations')`.
   static CreationLocation? of(Object? object) {
     if (object is _HasCreationLocation) {
       return object._location;

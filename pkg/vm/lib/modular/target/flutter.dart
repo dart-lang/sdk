@@ -4,6 +4,7 @@
 
 import 'package:kernel/target/targets.dart';
 import 'package:vm/modular/target/vm.dart' show VmTarget;
+
 class FlutterTarget extends VmTarget {
   FlutterTarget(TargetFlags flags) : super(flags);
 
