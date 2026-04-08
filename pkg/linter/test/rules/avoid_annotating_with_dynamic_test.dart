@@ -127,11 +127,6 @@ augment void f(dynamic o) { }
     await assertNoDiagnosticsInFile(b.path);
   }
 
-  // TODO(srawlins): Test parameter of function-typed typedef (both old and
-  // new style).
-  // Test parameter of function-typed parameter (`f(void g(dynamic x))`).
-  // Test parameter with a default value.
-
   test_fieldFormals() async {
     await assertDiagnostics(
       r'''
@@ -141,6 +136,24 @@ class A {
 }
 ''',
       [lint(23, 14)],
+    );
+  }
+
+  test_functionTypedParameter() async {
+    await assertDiagnostics(
+      r'''
+void f(void g(dynamic x)) {}
+''',
+      [lint(14, 9)],
+    );
+  }
+
+  test_genericTypedef() async {
+    await assertDiagnostics(
+      r'''
+typedef F = void Function(dynamic x);
+''',
+      [lint(26, 9)],
     );
   }
 
@@ -163,6 +176,15 @@ void f({dynamic p}) {}
     await assertDiagnostics(
       r'''
 void f([dynamic p]) {}
+''',
+      [lint(8, 9)],
+    );
+  }
+
+  test_parameter_defaultValue() async {
+    await assertDiagnostics(
+      r'''
+void f([dynamic x = 1]) {}
 ''',
       [lint(8, 9)],
     );
@@ -228,6 +250,15 @@ class B extends A {
 }
 ''',
       [lint(75, 15), lint(92, 15)],
+    );
+  }
+
+  test_typedef() async {
+    await assertDiagnostics(
+      r'''
+typedef void F(dynamic x);
+''',
+      [lint(15, 9)],
     );
   }
 }
