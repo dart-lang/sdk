@@ -1985,9 +1985,8 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
-    result =
-        I->message_handler()->Run(I->group()->thread_pool(), nullptr,
-                                  RunLoopDone, reinterpret_cast<uword>(&data));
+    result = I->message_handler()->Run(I->group()->thread_pool(), RunLoopDone,
+                                       reinterpret_cast<uword>(&data));
     if (result) {
       while (!data.done) {
         ml.Wait();
