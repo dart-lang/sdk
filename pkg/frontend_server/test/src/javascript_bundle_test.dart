@@ -86,35 +86,47 @@ final Map<String, List<String>> requiredTopLevels = {
 
 void main() {
   Map<String, List<String>> allRequiredTypes = _combineMaps(
-      CoreTypes.requiredClasses,
-      additionalRequiredClasses
-          .map((k, v) => new MapEntry(k, v.keys.toList())));
+    CoreTypes.requiredClasses,
+    additionalRequiredClasses.map((k, v) => new MapEntry(k, v.keys.toList())),
+  );
   List<String> allRequiredLibraries = [
     ...allRequiredTypes.keys,
     ...requiredTopLevels.keys,
   ];
   List<Library> testCoreLibraries = [];
   for (String requiredLibrary in allRequiredLibraries) {
-    Library library = new Library(Uri.parse(requiredLibrary),
-        fileUri: Uri.parse(requiredLibrary));
+    Library library = new Library(
+      Uri.parse(requiredLibrary),
+      fileUri: Uri.parse(requiredLibrary),
+    );
     for (String requiredClass in allRequiredTypes[requiredLibrary] ?? []) {
-      library.addClass(new Class(
+      List<String> requiredMembers =
+          (additionalRequiredClasses[requiredLibrary]?[requiredClass] ?? []);
+      library.addClass(
+        new Class(
           name: requiredClass,
           fileUri: Uri.parse(requiredLibrary),
           procedures: [
-            for (String requiredMember
-                in (additionalRequiredClasses[requiredLibrary]
-                        ?[requiredClass] ??
-                    []))
-              new Procedure(new Name(requiredMember, library),
-                  ProcedureKind.Method, new FunctionNode(new EmptyStatement()),
-                  fileUri: Uri.parse(requiredLibrary))
-          ]));
+            for (String requiredMember in requiredMembers)
+              new Procedure(
+                new Name(requiredMember, library),
+                ProcedureKind.Method,
+                new FunctionNode(new EmptyStatement()),
+                fileUri: Uri.parse(requiredLibrary),
+              ),
+          ],
+        ),
+      );
     }
     for (String requiredMember in requiredTopLevels[requiredLibrary] ?? []) {
-      library.addProcedure(new Procedure(new Name(requiredMember, library),
-          ProcedureKind.Method, new FunctionNode(new EmptyStatement()),
-          fileUri: Uri.parse(requiredLibrary)));
+      library.addProcedure(
+        new Procedure(
+          new Name(requiredMember, library),
+          ProcedureKind.Method,
+          new FunctionNode(new EmptyStatement()),
+          fileUri: Uri.parse(requiredLibrary),
+        ),
+      );
     }
     testCoreLibraries.add(library);
   }
@@ -122,11 +134,7 @@ void main() {
   final PackageConfig packageConfig = PackageConfig.parseJson({
     'configVersion': 2,
     'packages': [
-      {
-        'name': 'a',
-        'rootUri': 'file:///pkg/a',
-        'packageUri': 'lib/',
-      }
+      {'name': 'a', 'rootUri': 'file:///pkg/a', 'packageUri': 'lib/'},
     ],
   }, Uri.base);
   final String multiRootScheme = 'org-dartlang-app';
@@ -138,16 +146,18 @@ void main() {
 
         final IncrementalJavaScriptBundler javaScriptBundler =
             new IncrementalJavaScriptBundler(
-          null,
-          {},
-          multiRootScheme,
-          useDebuggerModuleNames: debuggerNames,
-        );
+              null,
+              {},
+              multiRootScheme,
+              useDebuggerModuleNames: debuggerNames,
+            );
 
-        final String componentUrl =
-            javaScriptBundler.urlForComponentUri(fileUri, packageConfig);
-        final String libraryBundleName =
-            javaScriptBundler.makeLibraryBundleName(componentUrl);
+        final String componentUrl = javaScriptBundler.urlForComponentUri(
+          fileUri,
+          packageConfig,
+        );
+        final String libraryBundleName = javaScriptBundler
+            .makeLibraryBundleName(componentUrl);
         expect(componentUrl, '/c.dart');
         expect(libraryBundleName, 'c.dart');
       });
@@ -157,20 +167,26 @@ void main() {
 
         final IncrementalJavaScriptBundler javaScriptBundler =
             new IncrementalJavaScriptBundler(
-          null,
-          {},
-          multiRootScheme,
-          useDebuggerModuleNames: debuggerNames,
-        );
+              null,
+              {},
+              multiRootScheme,
+              useDebuggerModuleNames: debuggerNames,
+            );
 
-        final String componentUrl =
-            javaScriptBundler.urlForComponentUri(packageUri, packageConfig);
-        final String libraryBundleName =
-            javaScriptBundler.makeLibraryBundleName(componentUrl);
-        expect(componentUrl,
-            debuggerNames ? 'packages/a/lib/a.dart' : '/packages/a/a.dart');
-        expect(libraryBundleName,
-            debuggerNames ? 'packages/a/lib/a.dart' : 'packages/a/a.dart');
+        final String componentUrl = javaScriptBundler.urlForComponentUri(
+          packageUri,
+          packageConfig,
+        );
+        final String libraryBundleName = javaScriptBundler
+            .makeLibraryBundleName(componentUrl);
+        expect(
+          componentUrl,
+          debuggerNames ? 'packages/a/lib/a.dart' : '/packages/a/a.dart',
+        );
+        expect(
+          libraryBundleName,
+          debuggerNames ? 'packages/a/lib/a.dart' : 'packages/a/a.dart',
+        );
       });
 
       test('compiles JavaScript code', () async {
@@ -179,20 +195,24 @@ void main() {
           uri,
           fileUri: uri,
           procedures: [
-            new Procedure(new Name('ArbitrarilyChosen'), ProcedureKind.Method,
-                new FunctionNode(new Block([])),
-                fileUri: uri)
+            new Procedure(
+              new Name('ArbitrarilyChosen'),
+              ProcedureKind.Method,
+              new FunctionNode(new Block([])),
+              fileUri: uri,
+            ),
           ],
         );
-        final Component testComponent =
-            new Component(libraries: [library, ...testCoreLibraries]);
+        final Component testComponent = new Component(
+          libraries: [library, ...testCoreLibraries],
+        );
         final IncrementalJavaScriptBundler javaScriptBundler =
             new IncrementalJavaScriptBundler(
-          null,
-          {},
-          multiRootScheme,
-          useDebuggerModuleNames: debuggerNames,
-        );
+              null,
+              {},
+              multiRootScheme,
+              useDebuggerModuleNames: debuggerNames,
+            );
 
         await javaScriptBundler.initialize(testComponent, uri, packageConfig);
 
@@ -214,8 +234,9 @@ void main() {
           symbolsSink,
         );
 
-        final Map<String, dynamic> manifest =
-            json.decode(utf8.decode(manifestSink.buffer));
+        final Map<String, dynamic> manifest = json.decode(
+          utf8.decode(manifestSink.buffer),
+        );
         final String code = utf8.decode(codeSink.buffer);
 
         expect(manifest, {
@@ -240,25 +261,32 @@ void main() {
           importUri,
           fileUri: fileUri,
           procedures: [
-            new Procedure(new Name('ArbitrarilyChosen'), ProcedureKind.Method,
-                new FunctionNode(new Block([])),
-                fileUri: fileUri)
+            new Procedure(
+              new Name('ArbitrarilyChosen'),
+              ProcedureKind.Method,
+              new FunctionNode(new Block([])),
+              fileUri: fileUri,
+            ),
           ],
         );
 
-        final Component testComponent =
-            new Component(libraries: [library, ...testCoreLibraries]);
+        final Component testComponent = new Component(
+          libraries: [library, ...testCoreLibraries],
+        );
 
         final IncrementalJavaScriptBundler javaScriptBundler =
             new IncrementalJavaScriptBundler(
-          null,
-          {},
-          multiRootScheme,
-          useDebuggerModuleNames: debuggerNames,
-        );
+              null,
+              {},
+              multiRootScheme,
+              useDebuggerModuleNames: debuggerNames,
+            );
 
         await javaScriptBundler.initialize(
-            testComponent, importUri, packageConfig);
+          testComponent,
+          importUri,
+          packageConfig,
+        );
 
         final _MemorySink manifestSink = new _MemorySink();
         final _MemorySink codeSink = new _MemorySink();
@@ -278,12 +306,15 @@ void main() {
           symbolsSink,
         );
 
-        final Map<String, dynamic> manifest =
-            json.decode(utf8.decode(manifestSink.buffer));
+        final Map<String, dynamic> manifest = json.decode(
+          utf8.decode(manifestSink.buffer),
+        );
         final String code = utf8.decode(codeSink.buffer);
 
         final String componentUrl = javaScriptBundler.urlForComponentUri(
-            library.importUri, packageConfig);
+          library.importUri,
+          packageConfig,
+        );
 
         expect(manifest, {
           '$componentUrl.lib.js': {
@@ -297,100 +328,111 @@ void main() {
         expect(code, contains('sourceMappingURL=a.dart.lib.js.map'));
       });
 
-      test('multi-root uris create library bundles relative to the root',
-          () async {
-        Uri importUri = Uri.parse('$multiRootScheme:/web/main.dart');
-        Uri fileUri = importUri;
-        final Library library = new Library(
-          importUri,
-          fileUri: fileUri,
-          procedures: [
-            new Procedure(new Name('ArbitrarilyChosen'), ProcedureKind.Method,
+      test(
+        'multi-root uris create library bundles relative to the root',
+        () async {
+          Uri importUri = Uri.parse('$multiRootScheme:/web/main.dart');
+          Uri fileUri = importUri;
+          final Library library = new Library(
+            importUri,
+            fileUri: fileUri,
+            procedures: [
+              new Procedure(
+                new Name('ArbitrarilyChosen'),
+                ProcedureKind.Method,
                 new FunctionNode(new Block([])),
-                fileUri: fileUri)
-          ],
-        );
+                fileUri: fileUri,
+              ),
+            ],
+          );
 
-        final Component testComponent =
-            new Component(libraries: [library, ...testCoreLibraries]);
+          final Component testComponent = new Component(
+            libraries: [library, ...testCoreLibraries],
+          );
 
-        final IncrementalJavaScriptBundler javaScriptBundler =
-            new IncrementalJavaScriptBundler(
-          null,
-          {},
-          multiRootScheme,
-          useDebuggerModuleNames: debuggerNames,
-        );
+          final IncrementalJavaScriptBundler javaScriptBundler =
+              new IncrementalJavaScriptBundler(
+                null,
+                {},
+                multiRootScheme,
+                useDebuggerModuleNames: debuggerNames,
+              );
 
-        await javaScriptBundler.initialize(
-            testComponent, importUri, packageConfig);
+          await javaScriptBundler.initialize(
+            testComponent,
+            importUri,
+            packageConfig,
+          );
 
-        final _MemorySink manifestSink = new _MemorySink();
-        final _MemorySink codeSink = new _MemorySink();
-        final _MemorySink sourcemapSink = new _MemorySink();
-        final _MemorySink metadataSink = new _MemorySink();
-        final _MemorySink symbolsSink = new _MemorySink();
-        final CoreTypes coreTypes = new CoreTypes(testComponent);
+          final _MemorySink manifestSink = new _MemorySink();
+          final _MemorySink codeSink = new _MemorySink();
+          final _MemorySink sourcemapSink = new _MemorySink();
+          final _MemorySink metadataSink = new _MemorySink();
+          final _MemorySink symbolsSink = new _MemorySink();
+          final CoreTypes coreTypes = new CoreTypes(testComponent);
 
-        await javaScriptBundler.compile(
-          new ClassHierarchy(testComponent, coreTypes),
-          coreTypes,
-          packageConfig,
-          codeSink,
-          manifestSink,
-          sourcemapSink,
-          metadataSink,
-          symbolsSink,
-        );
+          await javaScriptBundler.compile(
+            new ClassHierarchy(testComponent, coreTypes),
+            coreTypes,
+            packageConfig,
+            codeSink,
+            manifestSink,
+            sourcemapSink,
+            metadataSink,
+            symbolsSink,
+          );
 
-        final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
-        final String code = utf8.decode(codeSink.buffer);
+          final Map manifest = json.decode(utf8.decode(manifestSink.buffer));
+          final String code = utf8.decode(codeSink.buffer);
 
-        expect(manifest, {
-          '${importUri.path}.lib.js': {
-            'code': [0, codeSink.buffer.length],
-            'sourcemap': [0, sourcemapSink.buffer.length],
-          },
-        });
-        expect(code, contains('ArbitrarilyChosen'));
+          expect(manifest, {
+            '${importUri.path}.lib.js': {
+              'code': [0, codeSink.buffer.length],
+              'sourcemap': [0, sourcemapSink.buffer.length],
+            },
+          });
+          expect(code, contains('ArbitrarilyChosen'));
 
-        // Verify source map url is correct.
-        expect(code, contains('sourceMappingURL=main.dart.lib.js.map'));
-      });
+          // Verify source map url is correct.
+          expect(code, contains('sourceMappingURL=main.dart.lib.js.map'));
+        },
+      );
     });
   }
 
   test('can combine strongly connected components', () async {
     // Create three libraries A, B, C where A is the entrypoint and B & C
     // circularly import each other.
-    final Library libraryC =
-        new Library(new Uri.file('/c.dart'), fileUri: new Uri.file('/c.dart'));
-    final Library libraryB =
-        new Library(new Uri.file('/b.dart'), fileUri: new Uri.file('/b.dart'));
+    final Library libraryC = new Library(
+      new Uri.file('/c.dart'),
+      fileUri: new Uri.file('/c.dart'),
+    );
+    final Library libraryB = new Library(
+      new Uri.file('/b.dart'),
+      fileUri: new Uri.file('/b.dart'),
+    );
     libraryC.dependencies.add(new LibraryDependency.import(libraryB));
     libraryB.dependencies.add(new LibraryDependency.import(libraryC));
     final Uri uriA = new Uri.file('/a.dart');
     final Library libraryA = new Library(
       uriA,
       fileUri: uriA,
-      dependencies: [
-        new LibraryDependency.import(libraryB),
-      ],
+      dependencies: [new LibraryDependency.import(libraryB)],
       procedures: [
-        new Procedure(new Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            new FunctionNode(new Block([])),
-            fileUri: uriA)
+        new Procedure(
+          new Name('ArbitrarilyChosen'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriA,
+        ),
       ],
     );
     final Component testComponent = new Component(
-        libraries: [libraryA, libraryB, libraryC, ...testCoreLibraries]);
+      libraries: [libraryA, libraryB, libraryC, ...testCoreLibraries],
+    );
 
     final IncrementalJavaScriptBundler javaScriptBundler =
-        new IncrementalJavaScriptBundler(
-      null,
-      {},
-      multiRootScheme,
-    );
+        new IncrementalJavaScriptBundler(null, {}, multiRootScheme);
 
     await javaScriptBundler.initialize(testComponent, uriA, packageConfig);
 
@@ -413,8 +455,9 @@ void main() {
     );
 
     final String code = utf8.decode(codeSink.buffer);
-    final Map<String, dynamic> manifest =
-        json.decode(utf8.decode(manifestSink.buffer));
+    final Map<String, dynamic> manifest = json.decode(
+      utf8.decode(manifestSink.buffer),
+    );
 
     // There should only be two modules since C and B should be combined.
     final String moduleHeader = r"define(['dart_sdk'], (function load__";
@@ -433,7 +476,8 @@ void main() {
 
     final List<dynamic> offsets = manifest['/a.dart.lib.js']['sourcemap'];
     final Map<String, dynamic> sourcemapModuleA = json.decode(
-        utf8.decode(sourcemapSink.buffer.sublist(offsets.first, offsets.last)));
+      utf8.decode(sourcemapSink.buffer.sublist(offsets.first, offsets.last)),
+    );
 
     // Verify source maps are pointing at correct source files.
     expect(sourcemapModuleA['file'], 'a.dart.lib.js');
@@ -453,24 +497,22 @@ void main() {
     final Library libraryA = new Library(
       uriA,
       fileUri: uriA,
-      dependencies: [
-        new LibraryDependency.import(libraryB),
-      ],
+      dependencies: [new LibraryDependency.import(libraryB)],
       procedures: [
-        new Procedure(new Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            new FunctionNode(new Block([])),
-            fileUri: uriA)
+        new Procedure(
+          new Name('ArbitrarilyChosen'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriA,
+        ),
       ],
     );
     final Component testComponent = new Component(
-        libraries: [libraryA, libraryB, libraryC, ...testCoreLibraries]);
+      libraries: [libraryA, libraryB, libraryC, ...testCoreLibraries],
+    );
 
     final IncrementalJavaScriptBundler javaScriptBundler =
-        new IncrementalJavaScriptBundler(
-      null,
-      {},
-      multiRootScheme,
-    );
+        new IncrementalJavaScriptBundler(null, {}, multiRootScheme);
 
     await javaScriptBundler.initialize(testComponent, uriA, packageConfig);
 
@@ -481,21 +523,27 @@ void main() {
     final Library libraryA2 = new Library(
       uriA,
       fileUri: uriA,
-      dependencies: [
-        new LibraryDependency.import(libraryB2),
-      ],
+      dependencies: [new LibraryDependency.import(libraryB2)],
       procedures: [
-        new Procedure(new Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            new FunctionNode(new Block([])),
-            fileUri: uriA)
+        new Procedure(
+          new Name('ArbitrarilyChosen'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriA,
+        ),
       ],
     );
-    final Component partialComponent =
-        new Component(libraries: [libraryA2, libraryB2, libraryC2]);
+    final Component partialComponent = new Component(
+      libraries: [libraryA2, libraryB2, libraryC2],
+    );
 
     await javaScriptBundler.invalidate(
-        partialComponent, testComponent, uriA, packageConfig,
-        recompileRestart: false);
+      partialComponent,
+      testComponent,
+      uriA,
+      packageConfig,
+      recompileRestart: false,
+    );
 
     final _MemorySink manifestSink = new _MemorySink();
     final _MemorySink codeSink = new _MemorySink();
@@ -516,8 +564,9 @@ void main() {
     );
 
     final String code = utf8.decode(codeSink.buffer);
-    final Map<String, dynamic> manifest =
-        json.decode(utf8.decode(manifestSink.buffer));
+    final Map<String, dynamic> manifest = json.decode(
+      utf8.decode(manifestSink.buffer),
+    );
 
     // There should be 3 modules since A, B, C are now compiled separately
     final String moduleHeader = r"define(['dart_sdk'], (function load__";
@@ -538,7 +587,8 @@ void main() {
 
     final List<dynamic> offsets = manifest['/a.dart.lib.js']['sourcemap'];
     final Map<String, dynamic> sourcemapModuleA = json.decode(
-        utf8.decode(sourcemapSink.buffer.sublist(offsets.first, offsets.last)));
+      utf8.decode(sourcemapSink.buffer.sublist(offsets.first, offsets.last)),
+    );
 
     // Verify source maps are pointing at correct source files.
     expect(sourcemapModuleA['file'], 'a.dart.lib.js');
@@ -551,9 +601,12 @@ void main() {
       uriC,
       fileUri: uriC,
       procedures: [
-        new Procedure(new Name('CheckForContents'), ProcedureKind.Method,
-            new FunctionNode(new Block([])),
-            fileUri: uriC)
+        new Procedure(
+          new Name('CheckForContents'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriC,
+        ),
       ],
     );
     final Uri uriB = new Uri.file('/b.dart');
@@ -563,24 +616,22 @@ void main() {
     final Library libraryA = new Library(
       uriA,
       fileUri: uriA,
-      dependencies: [
-        new LibraryDependency.import(libraryB),
-      ],
+      dependencies: [new LibraryDependency.import(libraryB)],
       procedures: [
-        new Procedure(new Name('ArbitrarilyChosen'), ProcedureKind.Method,
-            new FunctionNode(new Block([])),
-            fileUri: uriA)
+        new Procedure(
+          new Name('ArbitrarilyChosen'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriA,
+        ),
       ],
     );
     final Component testComponent = new Component(
-        libraries: [libraryA, libraryB, libraryC, ...testCoreLibraries]);
+      libraries: [libraryA, libraryB, libraryC, ...testCoreLibraries],
+    );
 
     final IncrementalJavaScriptBundler javaScriptBundler =
-        new IncrementalJavaScriptBundler(
-      null,
-      {},
-      multiRootScheme,
-    );
+        new IncrementalJavaScriptBundler(null, {}, multiRootScheme);
 
     await javaScriptBundler.initialize(testComponent, uriA, packageConfig);
 
@@ -589,17 +640,24 @@ void main() {
       uriC,
       fileUri: uriC,
       procedures: [
-        new Procedure(new Name('AlternativeContents'), ProcedureKind.Method,
-            new FunctionNode(new Block([])),
-            fileUri: uriC)
+        new Procedure(
+          new Name('AlternativeContents'),
+          ProcedureKind.Method,
+          new FunctionNode(new Block([])),
+          fileUri: uriC,
+        ),
       ],
     );
 
     final Component partialComponent = new Component(libraries: [libraryC2]);
 
     await javaScriptBundler.invalidate(
-        partialComponent, testComponent, uriA, packageConfig,
-        recompileRestart: false);
+      partialComponent,
+      testComponent,
+      uriA,
+      packageConfig,
+      recompileRestart: false,
+    );
 
     final _MemorySink manifestSink = new _MemorySink();
     final _MemorySink codeSink = new _MemorySink();
@@ -651,8 +709,9 @@ Map<String, List<String>> _combineMaps(
   Map<String, List<String>> left,
   Map<String, List<String>> right,
 ) {
-  final Map<String, List<String>> result =
-      new Map<String, List<String>>.of(left);
+  final Map<String, List<String>> result = new Map<String, List<String>>.of(
+    left,
+  );
   for (String key in right.keys) {
     (result[key] ??= []).addAll(right[key]!);
   }

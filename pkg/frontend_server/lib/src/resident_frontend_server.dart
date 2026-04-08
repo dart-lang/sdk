@@ -41,16 +41,14 @@ extension on DateTime {
   /// the last compile time, it will be correctly detected as being modified.
   DateTime floorTime() {
     const Duration stateGranularity = const Duration(seconds: 1);
-    return new DateTime.fromMillisecondsSinceEpoch(millisecondsSinceEpoch -
-        millisecondsSinceEpoch % stateGranularity.inMilliseconds);
+    return new DateTime.fromMillisecondsSinceEpoch(
+      millisecondsSinceEpoch -
+          millisecondsSinceEpoch % stateGranularity.inMilliseconds,
+    );
   }
 }
 
-enum _ResidentState {
-  waitingForFirstCompile,
-  compiling,
-  waitingForRecompile,
-}
+enum _ResidentState { waitingForFirstCompile, compiling, waitingForRecompile }
 
 /// A wrapper around the FrontendCompiler, along with all the state needed
 /// to perform incremental compilations
@@ -111,14 +109,15 @@ class ResidentCompiler {
     if (newOptions.arguments.length != _compileOptions.arguments.length) {
       return true;
     }
-    if (!newOptions.arguments
-        .toSet()
-        .containsAll(_compileOptions.arguments.toSet())) {
+    if (!newOptions.arguments.toSet().containsAll(
+      _compileOptions.arguments.toSet(),
+    )) {
       return true;
     }
     return _currentPackage != null &&
-        !_lastCompileStartTime
-            .isAfter(_currentPackage!.statSync().modified.floorTime());
+        !_lastCompileStartTime.isAfter(
+          _currentPackage!.statSync().modified.floorTime(),
+        );
   }
 
   /// Compiles the entry point that this ResidentCompiler is hooked to, abiding
@@ -134,15 +133,19 @@ class ResidentCompiler {
     // compilation request. If no files have been modified, we can return
     // the cached kernel. Otherwise, perform an incremental compilation.
     if (_state == _ResidentState.waitingForRecompile) {
-      List<Uri> invalidatedUris =
-          await _getSourceFilesToRecompile(_lastCompileStartTime);
+      List<Uri> invalidatedUris = await _getSourceFilesToRecompile(
+        _lastCompileStartTime,
+      );
       // No changes to source files detected and cached kernel file exists
       // If a kernel file is removed in between compilation requests,
       // fall through to produce the kernel in recompileDelta.
       if (invalidatedUris.isEmpty && _outputDill.existsSync()) {
         return _createResponseMap(
-            _outputDill.path, _formattedOutput, _compiler.errors.length,
-            usingCachedKernel: true);
+          _outputDill.path,
+          _formattedOutput,
+          _compiler.errors.length,
+          usingCachedKernel: true,
+        );
       }
       _state = _ResidentState.compiling;
       incremental = true;
@@ -159,10 +162,12 @@ class ResidentCompiler {
       await _compiler.compile(_entryPoint.path, _compileOptions);
     }
 
-    _interpretCompilerOutput(new LineSplitter()
-        .convert(_compilerOutput.toString())
-        .where((line) => line.isNotEmpty)
-        .toList());
+    _interpretCompilerOutput(
+      new LineSplitter()
+          .convert(_compilerOutput.toString())
+          .where((line) => line.isNotEmpty)
+          .toList(),
+    );
     _compilerOutput.clear();
 
     if (incrementalMode) {
@@ -177,8 +182,11 @@ class ResidentCompiler {
     }
 
     return _createResponseMap(
-        _outputDill.path, _formattedOutput, _compiler.errors.length,
-        incrementalCompile: incremental);
+      _outputDill.path,
+      _formattedOutput,
+      _compiler.errors.length,
+      incrementalCompile: incremental,
+    );
   }
 
   /// WARNING: [compile] must be called on this compiler to populate the
@@ -241,8 +249,9 @@ class ResidentCompiler {
     _formattedOutput.clear();
     int outputLineIndex = 0;
     bool acceptingErrorsOrVerboseOutput = true;
-    final String boundaryKey = outputLines[outputLineIndex]
-        .substring(outputLines[outputLineIndex++].indexOf(' ') + 1);
+    final String boundaryKey = outputLines[outputLineIndex].substring(
+      outputLines[outputLineIndex++].indexOf(' ') + 1,
+    );
     String line = outputLines[outputLineIndex++];
 
     while (acceptingErrorsOrVerboseOutput || !line.startsWith(boundaryKey)) {
@@ -270,11 +279,13 @@ class ResidentCompiler {
   /// the second. This has no effect on correctness but may result in more
   /// files being marked as invalid than are strictly required.
   Future<List<Uri>> _getSourceFilesToRecompile(
-      DateTime lastKernelCompileTime) async {
+    DateTime lastKernelCompileTime,
+  ) async {
     final List<Uri> sourcesToRecompile = <Uri>[];
     for (Uri uri in trackedSources) {
-      final DateTime sourceModifiedTime =
-          new File(uri.toFilePath()).statSync().modified.floorTime();
+      final DateTime sourceModifiedTime = new File(
+        uri.toFilePath(),
+      ).statSync().modified.floorTime();
       if (!lastKernelCompileTime.isAfter(sourceModifiedTime)) {
         sourcesToRecompile.add(uri);
       }
@@ -290,15 +301,14 @@ class ResidentCompiler {
     int errorCount, {
     bool usingCachedKernel = false,
     bool incrementalCompile = false,
-  }) =>
-      <String, Object>{
-        "success": errorCount == 0,
-        "errorCount": errorCount,
-        "compilerOutputLines": formattedErrors,
-        "output-dill": outputDillPath,
-        if (usingCachedKernel) "returnedStoredKernel": true, // used for testing
-        if (incrementalCompile) "incremental": true, // used for testing
-      };
+  }) => <String, Object>{
+    "success": errorCount == 0,
+    "errorCount": errorCount,
+    "compilerOutputLines": formattedErrors,
+    "output-dill": outputDillPath,
+    if (usingCachedKernel) "returnedStoredKernel": true, // used for testing
+    if (incrementalCompile) "incremental": true, // used for testing
+  };
 }
 
 /// Maintains [FrontendCompiler] instances for kernel compilations, meant to be
@@ -337,16 +347,20 @@ class ResidentFrontendServer {
   static const String _scriptUriString = 'scriptUri';
   static const String _isStaticString = 'isStatic';
   static const String _shutdownString = 'shutdown';
+  static const String _recordUsesString = 'record-uses';
   static const int _compilerLimit = 3;
 
-  static final String shutdownCommand =
-      jsonEncode(<String, Object>{_commandString: _shutdownString});
-  static final String _shutdownJsonResponse =
-      jsonEncode(<String, Object>{_shutdownString: true});
+  static final String shutdownCommand = jsonEncode(<String, Object>{
+    _commandString: _shutdownString,
+  });
+  static final String _shutdownJsonResponse = jsonEncode(<String, Object>{
+    _shutdownString: true,
+  });
   static final Uri _sdkBinariesUri = computePlatformBinariesLocation();
   static final Uri _sdkUri = _sdkBinariesUri.resolve('../../');
-  static final Uri _platformKernelUri =
-      _sdkBinariesUri.resolve('vm_platform.dill');
+  static final Uri _platformKernelUri = _sdkBinariesUri.resolve(
+    'vm_platform.dill',
+  );
   static final Map<String, ResidentCompiler> compilers = {};
 
   /// Returns a [ResidentCompiler] that has been configured with
@@ -394,22 +408,24 @@ class ResidentFrontendServer {
       );
     }
 
-    final File replacementDillFile =
-        new File(request[_replacementDillPathString]);
+    final File replacementDillFile = new File(
+      request[_replacementDillPathString],
+    );
 
     final String canonicalizedLibraryPath;
     try {
-      final Component component =
-          loadComponentFromBytes(replacementDillFile.readAsBytesSync());
+      final Component component = loadComponentFromBytes(
+        replacementDillFile.readAsBytesSync(),
+      );
       canonicalizedLibraryPath = path.canonicalize(
         component.mainMethod!.enclosingLibrary.fileUri.toFilePath(),
       );
 
       final String cachedDillPath;
       try {
-        cachedDillPath =
-            computeCachedDillAndCompilerOptionsPaths(canonicalizedLibraryPath)
-                .cachedDillPath;
+        cachedDillPath = computeCachedDillAndCompilerOptionsPaths(
+          canonicalizedLibraryPath,
+        ).cachedDillPath;
       } on Exception catch (e) {
         return _encodeErrorMessage(e.toString());
       }
@@ -422,9 +438,7 @@ class ResidentFrontendServer {
       compilers[canonicalizedLibraryPath]!.resetStateToWaitingForFirstCompile();
     }
 
-    return jsonEncode({
-      _successString: true,
-    });
+    return jsonEncode({_successString: true});
   }
 
   static Future<String> _handleCompileRequest(
@@ -437,8 +451,16 @@ class ResidentFrontendServer {
       );
     }
 
-    final String canonicalizedExecutablePath =
-        path.canonicalize(request[_executableString]);
+    if (request[_recordUsesString] != null && !(request['aot'] ?? false)) {
+      return _encodeErrorMessage(
+        "The '$_recordUsesString' property is only supported for "
+        "AOT compilation.",
+      );
+    }
+
+    final String canonicalizedExecutablePath = path.canonicalize(
+      request[_executableString],
+    );
 
     final String cachedDillPath;
     final File cachedCompilerOptions;
@@ -446,8 +468,9 @@ class ResidentFrontendServer {
       final CachedDillAndCompilerOptionsPaths computationResult =
           computeCachedDillAndCompilerOptionsPaths(canonicalizedExecutablePath);
       cachedDillPath = computationResult.cachedDillPath;
-      cachedCompilerOptions =
-          new File(computationResult.cachedCompilerOptionsPath);
+      cachedCompilerOptions = new File(
+        computationResult.cachedCompilerOptionsPath,
+      );
     } on Exception catch (e) {
       return _encodeErrorMessage(e.toString());
     }
@@ -500,8 +523,9 @@ class ResidentFrontendServer {
           Uri.parse(request[_rootLibraryUriString]).toFilePath(),
         );
       } else {
-        canonicalizedLibraryPath = path
-            .canonicalize(Uri.parse(request[_libraryUriString]).toFilePath());
+        canonicalizedLibraryPath = path.canonicalize(
+          Uri.parse(request[_libraryUriString]).toFilePath(),
+        );
       }
     } catch (e) {
       return _encodeErrorMessage(
@@ -515,8 +539,9 @@ class ResidentFrontendServer {
       final CachedDillAndCompilerOptionsPaths computationResult =
           computeCachedDillAndCompilerOptionsPaths(canonicalizedLibraryPath);
       cachedDillPath = computationResult.cachedDillPath;
-      cachedCompilerOptions =
-          new File(computationResult.cachedCompilerOptionsPath);
+      cachedCompilerOptions = new File(
+        computationResult.cachedCompilerOptionsPath,
+      );
     } on Exception catch (e) {
       return _encodeErrorMessage(e.toString());
     }
@@ -608,7 +633,8 @@ class ResidentFrontendServer {
         return _shutdownJsonResponse;
       default:
         return _encodeErrorMessage(
-            'Unsupported command: ${request[_commandString]}.');
+          'Unsupported command: ${request[_commandString]}.',
+        );
     }
   }
 
@@ -628,13 +654,14 @@ class ResidentFrontendServer {
       // If [request[_useCachedCompilerOptionsAsBaseString]] is true, then we
       // start with the cached options and apply any options specified in
       // [request] as overrides.
-      final String cachedCompilerOptionsContents =
-          cachedCompilerOptions.readAsStringSync();
+      final String cachedCompilerOptionsContents = cachedCompilerOptions
+          .readAsStringSync();
       final List<String> cachedCompilerOptionsAsList =
           (jsonDecode(cachedCompilerOptionsContents) as List<dynamic>)
               .cast<String>();
-      final ArgResults cachedOptions =
-          argParser.parse(cachedCompilerOptionsAsList);
+      final ArgResults cachedOptions = argParser.parse(
+        cachedCompilerOptionsAsList,
+      );
       for (final String option in cachedOptions.options) {
         options[option] = cachedOptions[option];
       }
@@ -678,6 +705,8 @@ class ResidentFrontendServer {
         for (String experiment in request['enable-experiment']) experiment,
       if (request['native-assets'] != null)
         '--native-assets=${request['native-assets']}',
+      if (request[_recordUsesString] != null)
+        '--recorded-uses=${request[_recordUsesString]}',
     ]);
 
     for (final String option in overrides.options) {
@@ -705,8 +734,8 @@ class ResidentFrontendServer {
 
   /// Encodes the [message] in JSON to be sent over the socket.
   static String _encodeErrorMessage(String message) => jsonEncode(
-        <String, Object>{_successString: false, 'errorMessage': message},
-      );
+    <String, Object>{_successString: false, 'errorMessage': message},
+  );
 
   /// Used to create compile requests for the ResidentFrontendServer.
   /// Returns a JSON string that the resident compiler will be able to
@@ -728,6 +757,7 @@ class ResidentFrontendServer {
     List<String>? enableExperiment,
     bool verbose = false,
     String? nativeAssetsYaml,
+    String? recordUses,
   }) {
     return jsonEncode(<String, Object>{
       "command": "compile",
@@ -748,6 +778,7 @@ class ResidentFrontendServer {
       if (verbosity != null) "verbosity": verbosity,
       "verbose": verbose,
       if (nativeAssetsYaml != null) "native-assets": nativeAssetsYaml,
+      if (recordUses != null) _recordUsesString: recordUses,
     });
   }
 }
@@ -755,7 +786,9 @@ class ResidentFrontendServer {
 /// Closes the ServerSocket and removes the [serverInfoFile] that is used
 /// to access this instance of the Resident Frontend Server.
 Future<void> residentServerCleanup(
-    ServerSocket server, File serverInfoFile) async {
+  ServerSocket server,
+  File serverInfoFile,
+) async {
   try {
     if (_cleanupHandler != null) {
       await _cleanupHandler!.cancel();
@@ -775,7 +808,10 @@ Future<void> residentServerCleanup(
 /// Starts a timer that will shut down the resident frontend server in
 /// the amount of time specified by [timerDuration], if it is not cancelled.
 Timer startShutdownTimer(
-    Duration timerDuration, ServerSocket server, File serverInfoFile) {
+  Duration timerDuration,
+  ServerSocket server,
+  File serverInfoFile,
+) {
   return new Timer(timerDuration, () async {
     await residentServerCleanup(server, serverInfoFile);
   });
@@ -786,8 +822,11 @@ Timer startShutdownTimer(
 /// If the last request exceeds the amount of time specified by
 /// [inactivityTimeout], the server will bring itself down
 Future<StreamSubscription<Socket>?> residentListenAndCompile(
-    InternetAddress address, int port, File serverInfoFile,
-    {Duration inactivityTimeout = const Duration(minutes: 30)}) async {
+  InternetAddress address,
+  int port,
+  File serverInfoFile, {
+  Duration inactivityTimeout = const Duration(minutes: 30),
+}) async {
   ServerSocket server;
   try {
     try {
@@ -827,32 +866,48 @@ Future<StreamSubscription<Socket>?> residentListenAndCompile(
     await residentServerCleanup(server, serverInfoFile);
     exit(1);
   });
-  Timer shutdownTimer =
-      startShutdownTimer(inactivityTimeout, server, serverInfoFile);
+  Timer shutdownTimer = startShutdownTimer(
+    inactivityTimeout,
+    server,
+    serverInfoFile,
+  );
   // TODO: This should be changed to print to stderr so we don't change the
   // stdout text for regular apps.
-  print('The Resident Frontend Compiler is listening at '
-      '${server.address.address}:${server.port}');
+  print(
+    'The Resident Frontend Compiler is listening at '
+    '${server.address.address}:${server.port}',
+  );
 
-  return server.listen((client) {
-    client.listen((Uint8List data) async {
-      String result = await ResidentFrontendServer.handleRequest(
-          new String.fromCharCodes(data));
-      client.write(result);
+  return server.listen(
+    (client) {
+      client.listen(
+        (Uint8List data) async {
+          String result = await ResidentFrontendServer.handleRequest(
+            new String.fromCharCodes(data),
+          );
+          client.write(result);
+          shutdownTimer.cancel();
+          if (result == ResidentFrontendServer._shutdownJsonResponse) {
+            await residentServerCleanup(server, serverInfoFile);
+          } else {
+            shutdownTimer = startShutdownTimer(
+              inactivityTimeout,
+              server,
+              serverInfoFile,
+            );
+          }
+        },
+        onError: (error) {
+          client.close();
+        },
+        onDone: () {
+          client.close();
+        },
+      );
+    },
+    onError: (_) async {
       shutdownTimer.cancel();
-      if (result == ResidentFrontendServer._shutdownJsonResponse) {
-        await residentServerCleanup(server, serverInfoFile);
-      } else {
-        shutdownTimer =
-            startShutdownTimer(inactivityTimeout, server, serverInfoFile);
-      }
-    }, onError: (error) {
-      client.close();
-    }, onDone: () {
-      client.close();
-    });
-  }, onError: (_) async {
-    shutdownTimer.cancel();
-    await residentServerCleanup(server, serverInfoFile);
-  });
+      await residentServerCleanup(server, serverInfoFile);
+    },
+  );
 }

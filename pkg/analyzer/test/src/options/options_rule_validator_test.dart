@@ -809,6 +809,7 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
       resourceProvider: resourceProvider,
       sourceFactory: sourceFactory,
       sdkVersionConstraint: sdk,
+      analysisOptionsCache: {},
     );
     validator.validate(
       reporter,

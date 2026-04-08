@@ -23,7 +23,10 @@ final class ResidentCompilerInfo {
   /// Extracts the value associated with a key from [entries], where [entries]
   /// is a [String] with the format '$key1:$value1 $key2:$value2 ...'.
   static String _extractValueAssociatedWithKey(String entries, String key) =>
-      new RegExp('$key:' r'(\S+)(\s|$)').allMatches(entries).first[1]!;
+      new RegExp(
+        '$key:'
+        r'(\S+)(\s|$)',
+      ).allMatches(entries).first[1]!;
 
   static ResidentCompilerInfo fromFile(File file) {
     final String fileContents = file.readAsStringSync();
@@ -33,10 +36,7 @@ final class ResidentCompilerInfo {
           ? _extractValueAssociatedWithKey(fileContents, 'sdkHash')
           : null,
       address: new InternetAddress(
-        _extractValueAssociatedWithKey(
-          fileContents,
-          'address',
-        ),
+        _extractValueAssociatedWithKey(fileContents, 'address'),
       ),
       port: int.parse(_extractValueAssociatedWithKey(fileContents, 'port')),
     );
@@ -51,7 +51,7 @@ final class ResidentCompilerInfo {
 
 typedef CachedDillAndCompilerOptionsPaths = ({
   String cachedDillPath,
-  String cachedCompilerOptionsPath
+  String cachedCompilerOptionsPath,
 });
 
 /// Returns the absolute paths to the cached kernel file and the cached compiler
@@ -63,10 +63,7 @@ CachedDillAndCompilerOptionsPaths computeCachedDillAndCompilerOptionsPaths(
   final String basename = path.basename(canonicalizedLibraryPath);
 
   final String cachedKernelDirectoryPath = path.join(
-    path.join(
-      Directory.systemTemp.path,
-      'dart_resident_compiler_kernel_cache',
-    ),
+    path.join(Directory.systemTemp.path, 'dart_resident_compiler_kernel_cache'),
     dirname.replaceAll(new RegExp(r':|\\|\/'), '_'),
   );
 
@@ -78,13 +75,17 @@ CachedDillAndCompilerOptionsPaths computeCachedDillAndCompilerOptionsPaths(
     );
   }
 
-  final String cachedDillPath =
-      path.join(cachedKernelDirectoryPath, '$basename.dill');
-  final String cachedCompilerOptionsPath =
-      path.join(cachedKernelDirectoryPath, '${basename}_options.json');
+  final String cachedDillPath = path.join(
+    cachedKernelDirectoryPath,
+    '$basename.dill',
+  );
+  final String cachedCompilerOptionsPath = path.join(
+    cachedKernelDirectoryPath,
+    '${basename}_options.json',
+  );
   return (
     cachedDillPath: cachedDillPath,
-    cachedCompilerOptionsPath: cachedCompilerOptionsPath
+    cachedCompilerOptionsPath: cachedCompilerOptionsPath,
   );
 }
 

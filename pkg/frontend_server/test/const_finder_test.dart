@@ -80,34 +80,34 @@ void _checkConsts(String dillPath, Compiler compiler) {
       <String, dynamic>{
         'stringValue': '100',
         'intValue': 100,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{
         'stringValue': '102',
         'intValue': 102,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{'stringValue': '101', 'intValue': 101},
       <String, dynamic>{
         'stringValue': '103',
         'intValue': 103,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{
         'stringValue': '105',
         'intValue': 105,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{'stringValue': '104', 'intValue': 104},
       <String, dynamic>{
         'stringValue': '106',
         'intValue': 106,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{
         'stringValue': '108',
         'intValue': 108,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{'stringValue': '107', 'intValue': 107},
       <String, dynamic>{'stringValue': '1', 'intValue': 1, 'targetValue': null},
@@ -118,24 +118,24 @@ void _checkConsts(String dillPath, Compiler compiler) {
       <String, dynamic>{
         'stringValue': '10',
         'intValue': 10,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{'stringValue': '9', 'intValue': 9},
       <String, dynamic>{'stringValue': '7', 'intValue': 7, 'targetValue': null},
       <String, dynamic>{
         'stringValue': '11',
         'intValue': 11,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{
         'stringValue': '12',
         'intValue': 12,
-        'targetValue': null
+        'targetValue': null,
       },
       <String, dynamic>{
         'stringValue': 'package',
         'intValue': -1,
-        'targetValue': null
+        'targetValue': null,
       },
     ],
     'nonConstantLocations': <dynamic>[],
@@ -157,33 +157,26 @@ void _checkConsts(String dillPath, Compiler compiler) {
       },
     ];
   }
-  expectInstances(
-    finder.findInstances(),
-    expectation,
-    compiler,
-  );
+  expectInstances(finder.findInstances(), expectation, compiler);
 
   final ConstFinder finder2 = new ConstFinder(
     kernelFilePath: dillPath,
     classLibraryUri: 'package:const_finder_fixtures/target.dart',
     className: 'MixedInTarget',
   );
-  expectInstances(
-    finder2.findInstances(),
-    <String, dynamic>{
-      'constantInstances': <Map<String, dynamic>>[
-        <String, dynamic>{'val': '13'},
-      ],
-      'nonConstantLocations': <dynamic>[],
-    },
-    compiler,
-  );
+  expectInstances(finder2.findInstances(), <String, dynamic>{
+    'constantInstances': <Map<String, dynamic>>[
+      <String, dynamic>{'val': '13'},
+    ],
+    'nonConstantLocations': <dynamic>[],
+  }, compiler);
 }
 
 void _checkAnnotation(String dillPath, Compiler compiler) {
   stdout.writeln(
-      'Checking constant instances in a class annotated with instance of '
-      'StaticIconProvider are ignored with $compiler');
+    'Checking constant instances in a class annotated with instance of '
+    'StaticIconProvider are ignored with $compiler',
+  );
   final ConstFinder finder = new ConstFinder(
     kernelFilePath: dillPath,
     classLibraryUri: 'package:const_finder_fixtures/target.dart',
@@ -193,27 +186,23 @@ void _checkAnnotation(String dillPath, Compiler compiler) {
         'package:const_finder_fixtures/static_icon_provider.dart',
   );
   final Map<String, dynamic> instances = finder.findInstances();
-  expectInstances(
-    instances,
-    <String, dynamic>{
-      'constantInstances': <Map<String, Object?>>[
-        <String, Object?>{
-          'stringValue': 'used1',
-          'intValue': 1,
-          'targetValue': null,
-        },
-        <String, Object?>{
-          'stringValue': 'used2',
-          'intValue': 2,
-          'targetValue': null,
-        },
-      ],
-      // TODO(fujino): This should have non-constant locations from the use of
-      // a tear-off, see https://github.com/flutter/flutter/issues/116797
-      'nonConstantLocations': <Object?>[],
-    },
-    compiler,
-  );
+  expectInstances(instances, <String, dynamic>{
+    'constantInstances': <Map<String, Object?>>[
+      <String, Object?>{
+        'stringValue': 'used1',
+        'intValue': 1,
+        'targetValue': null,
+      },
+      <String, Object?>{
+        'stringValue': 'used2',
+        'intValue': 2,
+        'targetValue': null,
+      },
+    ],
+    // TODO(fujino): This should have non-constant locations from the use of
+    // a tear-off, see https://github.com/flutter/flutter/issues/116797
+    'nonConstantLocations': <Object?>[],
+  }, compiler);
 }
 
 void _checkNonConstsFrontend(String dillPath, Compiler compiler) {
@@ -227,72 +216,48 @@ void _checkNonConstsFrontend(String dillPath, Compiler compiler) {
       ? '/$fixtures'.replaceAll(Platform.pathSeparator, '/')
       : fixtures;
 
-  expectInstances(
-    finder.findInstances(),
-    <String, dynamic>{
-      'constantInstances': <dynamic>[
-        <String, dynamic>{
-          'stringValue': '1',
-          'intValue': 1,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': '4',
-          'intValue': 4,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': '6',
-          'intValue': 6,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': '8',
-          'intValue': 8,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': '10',
-          'intValue': 10,
-          'targetValue': null
-        },
-        <String, dynamic>{'stringValue': '9', 'intValue': 9},
-        <String, dynamic>{
-          'stringValue': '7',
-          'intValue': 7,
-          'targetValue': null
-        },
-      ],
-      'nonConstantLocations': <dynamic>[
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 17,
-          'column': 26,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 20,
-          'column': 7,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 20,
-          'column': 22,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 21,
-          'column': 26,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/pkg/package.dart',
-          'line': 17,
-          'column': 25,
-        }
-      ]
-    },
-    compiler,
-  );
+  expectInstances(finder.findInstances(), <String, dynamic>{
+    'constantInstances': <dynamic>[
+      <String, dynamic>{'stringValue': '1', 'intValue': 1, 'targetValue': null},
+      <String, dynamic>{'stringValue': '4', 'intValue': 4, 'targetValue': null},
+      <String, dynamic>{'stringValue': '6', 'intValue': 6, 'targetValue': null},
+      <String, dynamic>{'stringValue': '8', 'intValue': 8, 'targetValue': null},
+      <String, dynamic>{
+        'stringValue': '10',
+        'intValue': 10,
+        'targetValue': null,
+      },
+      <String, dynamic>{'stringValue': '9', 'intValue': 9},
+      <String, dynamic>{'stringValue': '7', 'intValue': 7, 'targetValue': null},
+    ],
+    'nonConstantLocations': <dynamic>[
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+        'line': 17,
+        'column': 26,
+      },
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+        'line': 20,
+        'column': 7,
+      },
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+        'line': 20,
+        'column': 22,
+      },
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+        'line': 21,
+        'column': 26,
+      },
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/pkg/package.dart',
+        'line': 17,
+        'column': 25,
+      },
+    ],
+  }, compiler);
 }
 
 // Note, since web dills don't have tree shaking, we aren't able to eliminate
@@ -309,77 +274,53 @@ void _checkNonConstsWeb(String dillPath, Compiler compiler) {
   final String fixturesUrl = Platform.isWindows
       ? '/$fixtures'.replaceAll(Platform.pathSeparator, '/')
       : fixtures;
-  expectInstances(
-    finder.findInstances(),
-    <String, dynamic>{
-      'constantInstances': <dynamic>[
-        <String, dynamic>{
-          'stringValue': '1',
-          'intValue': 1,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': '4',
-          'intValue': 4,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': '6',
-          'intValue': 6,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': '8',
-          'intValue': 8,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': '10',
-          'intValue': 10,
-          'targetValue': null
-        },
-        <String, dynamic>{'stringValue': '9', 'intValue': 9},
-        <String, dynamic>{
-          'stringValue': '7',
-          'intValue': 7,
-          'targetValue': null
-        },
-        <String, dynamic>{
-          'stringValue': 'package',
-          'intValue': -1,
-          'targetValue': null
-        },
-      ],
-      'nonConstantLocations': <dynamic>[
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 17,
-          'column': 26,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 20,
-          'column': 7,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 20,
-          'column': 22,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
-          'line': 21,
-          'column': 26,
-        },
-        <String, dynamic>{
-          'file': 'file://$fixturesUrl/pkg/package.dart',
-          'line': 17,
-          'column': 25,
-        }
-      ],
-    },
-    compiler,
-  );
+  expectInstances(finder.findInstances(), <String, dynamic>{
+    'constantInstances': <dynamic>[
+      <String, dynamic>{'stringValue': '1', 'intValue': 1, 'targetValue': null},
+      <String, dynamic>{'stringValue': '4', 'intValue': 4, 'targetValue': null},
+      <String, dynamic>{'stringValue': '6', 'intValue': 6, 'targetValue': null},
+      <String, dynamic>{'stringValue': '8', 'intValue': 8, 'targetValue': null},
+      <String, dynamic>{
+        'stringValue': '10',
+        'intValue': 10,
+        'targetValue': null,
+      },
+      <String, dynamic>{'stringValue': '9', 'intValue': 9},
+      <String, dynamic>{'stringValue': '7', 'intValue': 7, 'targetValue': null},
+      <String, dynamic>{
+        'stringValue': 'package',
+        'intValue': -1,
+        'targetValue': null,
+      },
+    ],
+    'nonConstantLocations': <dynamic>[
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+        'line': 17,
+        'column': 26,
+      },
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+        'line': 20,
+        'column': 7,
+      },
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+        'line': 20,
+        'column': 22,
+      },
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/lib/consts_and_non.dart',
+        'line': 21,
+        'column': 26,
+      },
+      <String, dynamic>{
+        'file': 'file://$fixturesUrl/pkg/package.dart',
+        'line': 17,
+        'column': 25,
+      },
+    ],
+  }, compiler);
 }
 
 void checkProcessResult(ProcessResult result) {
@@ -390,11 +331,15 @@ void checkProcessResult(ProcessResult result) {
   expect(result.exitCode, 0);
 }
 
-final String basePath = path
-    .canonicalize(path.join(path.dirname(Platform.script.toFilePath()), '..'));
+final String basePath = path.canonicalize(
+  path.join(path.dirname(Platform.script.toFilePath()), '..'),
+);
 final String fixtures = path.join(basePath, 'test', 'fixtures');
-final String packageConfig =
-    path.join(fixtures, '.dart_tool', 'package_config.json');
+final String packageConfig = path.join(
+  fixtures,
+  '.dart_tool',
+  'package_config.json',
+);
 
 // TODO(johnniwinther): Add unittests to package:kernel.
 // TODO(johnniwinther): Avoid emitting .deps files during testing.
@@ -490,8 +435,10 @@ Future<void> main() async {
         test.dispose();
       }
     } finally {
-      stdout.writeln('Tests ${exitCode == 0 ? 'succeeded' : 'failed'} '
-          '- exit code: $exitCode');
+      stdout.writeln(
+        'Tests ${exitCode == 0 ? 'succeeded' : 'failed'} '
+        '- exit code: $exitCode',
+      );
     }
   }
 }
@@ -547,17 +494,19 @@ class _Test {
   }
 
   void _compileAOTDill() {
-    checkProcessResult(Process.runSync(dart, <String>[
-      frontendServer,
-      '--sdk-root=$sdkRoot',
-      '--platform=vm_platform.dill',
-      '--target=vm',
-      '--aot',
-      '--tfa',
-      '--packages=$packageConfig',
-      '--output-dill=$dillPath',
-      dartSource,
-    ]));
+    checkProcessResult(
+      Process.runSync(dart, <String>[
+        frontendServer,
+        '--sdk-root=$sdkRoot',
+        '--platform=vm_platform.dill',
+        '--target=vm',
+        '--aot',
+        '--tfa',
+        '--packages=$packageConfig',
+        '--output-dill=$dillPath',
+        dartSource,
+      ]),
+    );
 
     resourcesToDispose.add(dillPath);
   }

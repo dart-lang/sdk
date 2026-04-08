@@ -9,8 +9,11 @@ import 'package:test/test.dart';
 void main() {
   test('empty component', () {
     final Component testComponent = new Component(libraries: []);
-    final StrongComponents strongComponents =
-        new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
+    final StrongComponents strongComponents = new StrongComponents(
+      testComponent,
+      {},
+      new Uri.file('/c.dart'),
+    );
     strongComponents.computeLibraryBundles();
 
     expect(strongComponents.libraryBundleImportToLibraries, {});
@@ -24,24 +27,21 @@ void main() {
     final Library libraryB = new Library(
       new Uri.file('/b.dart'),
       fileUri: new Uri.file('/b.dart'),
-      dependencies: [
-        new LibraryDependency.import(libraryA),
-      ],
+      dependencies: [new LibraryDependency.import(libraryA)],
     );
     final Library libraryC = new Library(
       new Uri.file('/c.dart'),
       fileUri: new Uri.file('/c.dart'),
-      dependencies: [
-        new LibraryDependency.import(libraryB),
-      ],
+      dependencies: [new LibraryDependency.import(libraryB)],
     );
-    final Component testComponent = new Component(libraries: [
-      libraryA,
-      libraryB,
-      libraryC,
-    ]);
-    final StrongComponents strongComponents =
-        new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
+    final Component testComponent = new Component(
+      libraries: [libraryA, libraryB, libraryC],
+    );
+    final StrongComponents strongComponents = new StrongComponents(
+      testComponent,
+      {},
+      new Uri.file('/c.dart'),
+    );
     strongComponents.computeLibraryBundles();
 
     expect(strongComponents.libraryBundleImportToLibraries, {
@@ -58,37 +58,28 @@ void main() {
 
   test('no circular imports with partial component', () {
     final Uri uriA = new Uri.file('/a.dart');
-    final Library libraryA = new Library(
-      uriA,
-      fileUri: uriA,
-    );
+    final Library libraryA = new Library(uriA, fileUri: uriA);
     final Uri uriB = new Uri.file('/b.dart');
     final Library libraryB = new Library(
       uriB,
       fileUri: uriB,
-      dependencies: [
-        new LibraryDependency.import(libraryA),
-      ],
+      dependencies: [new LibraryDependency.import(libraryA)],
     );
     final Uri uriC = new Uri.file('/c.dart');
     final Library libraryC = new Library(
       uriC,
       fileUri: uriC,
-      dependencies: [
-        new LibraryDependency.import(libraryB),
-      ],
+      dependencies: [new LibraryDependency.import(libraryB)],
     );
-    final Library partialA = new Library(
-      uriA,
-      fileUri: uriA,
+    final Library partialA = new Library(uriA, fileUri: uriA);
+    final Component testComponent = new Component(
+      libraries: [libraryA, libraryB, libraryC],
     );
-    final Component testComponent = new Component(libraries: [
-      libraryA,
-      libraryB,
-      libraryC,
-    ]);
-    final StrongComponents strongComponents =
-        new StrongComponents(testComponent, {}, uriC);
+    final StrongComponents strongComponents = new StrongComponents(
+      testComponent,
+      {},
+      uriC,
+    );
     strongComponents.computeLibraryBundles({uriA: partialA});
 
     expect(strongComponents.libraryBundleImportToLibraries, {
@@ -118,17 +109,16 @@ void main() {
     final Library libraryC = new Library(
       new Uri.file('/c.dart'),
       fileUri: new Uri.file('/c.dart'),
-      dependencies: [
-        new LibraryDependency.import(libraryB),
-      ],
+      dependencies: [new LibraryDependency.import(libraryB)],
     );
-    final Component testComponent = new Component(libraries: [
-      libraryA,
-      libraryB,
-      libraryC,
-    ]);
-    final StrongComponents strongComponents =
-        new StrongComponents(testComponent, {}, new Uri.file('/c.dart'));
+    final Component testComponent = new Component(
+      libraries: [libraryA, libraryB, libraryC],
+    );
+    final StrongComponents strongComponents = new StrongComponents(
+      testComponent,
+      {},
+      new Uri.file('/c.dart'),
+    );
     strongComponents.computeLibraryBundles();
 
     expect(strongComponents.libraryBundleImportToLibraries, {
@@ -165,14 +155,14 @@ void main() {
         new LibraryDependency.import(libraryDart),
       ],
     );
-    final Component testComponent = new Component(libraries: [
-      libraryLoaded,
-      libraryDart,
-      libraryUnrelated,
-      libraryC,
-    ]);
+    final Component testComponent = new Component(
+      libraries: [libraryLoaded, libraryDart, libraryUnrelated, libraryC],
+    );
     final StrongComponents strongComponents = new StrongComponents(
-        testComponent, {libraryLoaded}, new Uri.file('/c.dart'));
+      testComponent,
+      {libraryLoaded},
+      new Uri.file('/c.dart'),
+    );
     strongComponents.computeLibraryBundles();
 
     expect(strongComponents.libraryBundleImportToLibraries, {

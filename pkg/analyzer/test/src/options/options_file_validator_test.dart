@@ -86,6 +86,7 @@ class OptionsFileValidatorTest
     optionsProvider: optionsProvider,
     resourceProvider: resourceProvider,
     sourceFactory: SourceFactory([ResourceUriResolver(resourceProvider)]),
+    analysisOptionsCache: {},
   );
   final optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
 

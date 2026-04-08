@@ -77,12 +77,15 @@ class AnalysisOptionsAnalyzer {
   /// [SourceSpan]s of those `include` directives.
   final Map<Source, SourceSpan> includeChain = {};
 
+  final AnalysisOptionsCache _analysisOptionsCache;
+
   factory AnalysisOptionsAnalyzer({
     required Source initialSource,
     required SourceFactory sourceFactory,
     required String contextRoot,
     required VersionConstraint? sdkVersionConstraint,
     required ResourceProvider resourceProvider,
+    AnalysisOptionsCache? analysisOptionsCache,
   }) {
     var initialDiagnosticListener = RecordingDiagnosticListener();
     var initialDiagnosticReporter = DiagnosticReporter(
@@ -99,6 +102,7 @@ class AnalysisOptionsAnalyzer {
       sdkVersionConstraint: sdkVersionConstraint,
       resourceProvider: resourceProvider,
       optionsProvider: AnalysisOptionsProvider(sourceFactory),
+      analysisOptionsCache: analysisOptionsCache ?? {},
     );
   }
 
@@ -112,7 +116,8 @@ class AnalysisOptionsAnalyzer {
     required this.sdkVersionConstraint,
     required this.resourceProvider,
     required this.optionsProvider,
-  });
+    required AnalysisOptionsCache analysisOptionsCache,
+  }) : _analysisOptionsCache = analysisOptionsCache;
 
   Source get initialSource => initialDiagnosticReporter.source;
 
@@ -158,6 +163,7 @@ class AnalysisOptionsAnalyzer {
       optionsProvider: optionsProvider,
       sourceFactory: sourceFactory,
       resourceProvider: resourceProvider,
+      analysisOptionsCache: _analysisOptionsCache,
     ).validate(options, diagnosticReporter);
 
     var includeNode = options.valueAt(AnalysisOptionsFile.include);
@@ -314,6 +320,7 @@ class OptionsFileValidator {
     required AnalysisOptionsProvider optionsProvider,
     required ResourceProvider resourceProvider,
     required SourceFactory sourceFactory,
+    required AnalysisOptionsCache analysisOptionsCache,
   }) : _validators = [
          AnalyzerOptionsValidator(),
          _CodeStyleOptionsValidator(),
@@ -325,6 +332,7 @@ class OptionsFileValidator {
            sourceFactory: sourceFactory,
            sdkVersionConstraint: sdkVersionConstraint,
            isPrimarySource: isPrimarySource,
+           analysisOptionsCache: analysisOptionsCache,
          ),
          _PluginsOptionsValidator(
            contextRoot: contextRoot,
