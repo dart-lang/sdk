@@ -5,8 +5,7 @@
 import 'dart:io';
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
-    show ScannerConfiguration;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:dart_style/dart_style.dart'
     show DartFormatter, FormatterException;
@@ -22,11 +21,11 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
+import 'testing/environment_keys.dart';
 import 'testing/experimental_features.dart';
+import 'testing/folder_options.dart';
 import 'utils/kernel_chain.dart' show MatchContext;
 import 'utils/suite_utils.dart';
-import 'testing/environment_keys.dart';
-import 'testing/folder_options.dart';
 
 const int minSupportedMajorVersion = 2;
 const int minSupportedMinorVersion = 12;
@@ -116,12 +115,7 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
           new ExperimentalFeaturesFromFlags(experimentalFlags);
       String? result = textualOutline(
         bytes,
-        new ScannerConfiguration(
-          enableTripleShift: isExperimentEnabled(
-            ExperimentalFlag.tripleShift,
-            explicitExperimentalFlags: experimentalFlags,
-          ),
-        ),
+        experimentalFeatures.buildScannerConfiguration(),
         throwOnUnexpected: true,
         performModelling: modelled,
         returnNullOnError: false,

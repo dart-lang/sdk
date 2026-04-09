@@ -22,11 +22,7 @@ void main(List<String> args) {
     throw "File $f doesn't exist.";
   }
   Uint8List contentBytes = f.readAsBytesSync();
-  ScannerResult scanResult = scan(
-    contentBytes,
-    configuration: new ScannerConfiguration(enableTripleShift: true),
-    includeComments: true,
-  );
+  ScannerResult scanResult = scan(contentBytes, includeComments: true);
 
   const int iterations = 1000;
 

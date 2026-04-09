@@ -7,7 +7,7 @@ import 'dart:convert' show JsonEncoder;
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
-    show ExperimentalFeatures;
+    show ExperimentalFeatures, ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
@@ -1196,14 +1196,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           );
           return null;
         }
-        ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-          enableTripleShift:
-              /* should this be on the library? */
-              /* this is effectively what the constant evaluator does */
-              context.options.globalFeatures.tripleShift.isEnabled,
-        );
         ExperimentalFeatures experimentalFeatures =
             new ExperimentalFeaturesFromVersion(builder.languageVersion);
+        ScannerConfiguration scannerConfiguration = experimentalFeatures
+            .buildScannerConfiguration();
         String? before = textualOutline(
           previousSource,
           scannerConfiguration,

@@ -15,8 +15,6 @@ import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show NullListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
@@ -587,14 +585,9 @@ List<Test> extractTests(Uint8List rawBytes, Uri uriForReporting) {
 }
 
 Token scanRawBytes(Uint8List rawBytes, {List<int>? lineStarts}) {
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-  );
-
   Utf8BytesScanner scanner = new Utf8BytesScanner(
     rawBytes,
     includeComments: true,
-    configuration: scannerConfiguration,
     languageVersionChanged: (scanner, languageVersion) {
       // For now don't do anything, but having it (making it non-null) means the
       // configuration won't be reset.

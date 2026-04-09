@@ -2,9 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ScannerConfiguration, scanString;
+import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show scanString;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -124,14 +124,11 @@ class Foo {
       Keyword.REQUIRED,
       Keyword.STATIC,
       Keyword.VAR,
+      if (ExperimentalFlag.augmentations.isEnabledByDefault) Keyword.AUGMENT,
     ]);
     for (Keyword keyword in Keyword.values) {
       var isModifier = modifierKeywords.contains(keyword);
-      Token token = scanString(
-        keyword.lexeme,
-        configuration: ScannerConfiguration.nonNullable,
-        includeComments: true,
-      ).tokens;
+      Token token = scanString(keyword.lexeme, includeComments: true).tokens;
       expect(token.isModifier, isModifier, reason: keyword.name);
       if (isModifier) {
         expect(token.isTopLevelKeyword, isFalse, reason: keyword.name);

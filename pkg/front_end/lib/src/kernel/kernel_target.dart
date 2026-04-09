@@ -20,8 +20,7 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show VerificationStage;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
-import '../api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, GlobalFeatures;
+import '../api_prototype/experimental_flags.dart' show GlobalFeatures;
 import '../api_prototype/file_system.dart' show FileSystem;
 import '../base/compiler_context.dart' show CompilerContext;
 import '../base/crash.dart' show withCrashReporting;
@@ -184,18 +183,6 @@ class KernelTarget {
   }
 
   GlobalFeatures get globalFeatures => _options.globalFeatures;
-
-  bool isExperimentEnabledInLibraryByVersion(
-    ExperimentalFlag flag,
-    Uri importUri,
-    Version version,
-  ) {
-    return _options.isExperimentEnabledInLibraryByVersion(
-      flag,
-      importUri,
-      version,
-    );
-  }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
 

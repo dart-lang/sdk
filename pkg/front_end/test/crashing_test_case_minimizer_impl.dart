@@ -1120,12 +1120,12 @@ worlds:
       // instead.
       if (uri.toString().endsWith(".dart")) {
         Version languageVersion = _getLanguageVersion(uri, crashOnFail: false);
+        ExperimentalFeatures experimentalFeatures =
+            new ExperimentalFeaturesFromVersion(languageVersion);
         String? textualOutlined = textualOutline(
           data!,
-          _getScannerConfiguration(languageVersion),
-          experimentalFeatures: new ExperimentalFeaturesFromVersion(
-            languageVersion,
-          ),
+          experimentalFeatures.buildScannerConfiguration(),
+          experimentalFeatures: experimentalFeatures,
         )?.replaceAll(RegExp(r'\n+'), "\n");
 
         bool outlined = false;
@@ -2031,13 +2031,6 @@ worlds:
     return false;
   }
 
-  ScannerConfiguration _getScannerConfiguration(Version languageVersion) {
-    return new ScannerConfiguration(
-      enableTripleShift:
-          languageVersion >= ExperimentalFlag.tripleShift.enabledVersion,
-    );
-  }
-
   Version _getLanguageVersion(Uri uri, {bool crashOnFail = true}) {
     if (_latestCrashingKnownInitialBuilders == null) {
       // It crashed on the first compile so we have no builders.
@@ -2350,9 +2343,8 @@ worlds:
     return !parserErrorListener.gotError;
   }
 
-  ScannerConfiguration _scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-  );
+  ScannerConfiguration _scannerConfiguration =
+      const DefaultExperimentalFeatures().buildScannerConfiguration();
 
   List<int>? _dataCache;
   String? _dataCacheString;
