@@ -2662,6 +2662,7 @@ CompileTimeErrorCode:
       isn't marked as being `const`:
 
       ```dart
+      %language=3.10
       enum E {
         e;
 

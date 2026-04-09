@@ -1128,6 +1128,14 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.metadata = _buildMetadata(node.metadata);
     fragment.typeName = node.typeName?.name;
 
+    if (_enclosingContext.fragment is EnumFragmentImpl &&
+        fragment.isGenerative &&
+        _libraryBuilder.element.featureSet.isEnabled(
+          Feature.primary_constructors,
+        )) {
+      fragment.isConst = true;
+    }
+
     if (fragment.isConst || fragment.isFactory) {
       fragment.constantInitializers = node.initializers;
     }
