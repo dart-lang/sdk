@@ -503,13 +503,7 @@ class C {
   C.named();
 }
 ''',
-      [
-        lint(22, 1),
-        // TODO(srawlins): See if we can skip reporting a declaration if its
-        // enclosing declaration is being reported.
-        lint(28, 1),
-        lint(37, 5),
-      ],
+      [lint(22, 1)],
     );
   }
 
@@ -954,7 +948,7 @@ void f([C? c]) {
   if (c case const C()) {}
 }
 ''',
-      [lint(6, 1), lint(18, 1)],
+      [lint(6, 1)],
     );
   }
 
@@ -973,7 +967,7 @@ void f([C? c]) {
   if (c case const C<int>()) {}
 }
 ''',
-      [lint(6, 1), lint(21, 1)],
+      [lint(6, 1)],
     );
   }
 
@@ -1794,7 +1788,7 @@ class B {
   Widget foo() => Text('');
 }
 ''',
-      [lint(109, 1), lint(244, 3)],
+      [lint(109, 1)],
     );
   }
 
@@ -1846,7 +1840,7 @@ class B {
   const B();
 }
 ''',
-      [lint(70, 1), lint(170, 1)],
+      [lint(70, 1)],
     );
   }
 
@@ -1918,7 +1912,7 @@ class Preview {
 @Preview()
 void f6() {}
 ''',
-      [lint(22, 7), lint(40, 7), lint(151, 2)],
+      [lint(22, 7), lint(151, 2)],
     );
   }
 }

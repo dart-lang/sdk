@@ -103,6 +103,8 @@ static constexpr uint32_t MH_DYLDLINK = 0x4;
 // The object file does not re-export any of its input dynamic
 // libraries.
 static constexpr uint32_t MH_NO_REEXPORTED_DYLIBS = 0x100000;
+// The object file uses two-level namespace bindings.
+static constexpr uint32_t MH_TWOLEVEL = 0x80;
 
 struct load_command {
   // The tag that specifies the load command for the following

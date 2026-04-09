@@ -1269,6 +1269,7 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
 
   auto spawning_group = group;
 
+  Roots::SetCurrent(group->roots());
   Isolate* isolate = reinterpret_cast<Isolate*>(
       CreateIsolate(spawning_group, /*is_new_group=*/false, name,
                     /*isolate_data=*/nullptr, error));
@@ -1913,7 +1914,9 @@ DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
     FATAL("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(16615): Validate isolate parameter.
+  Roots::SetCurrent(reinterpret_cast<Isolate*>(isolate)->group()->roots());
   const char* error = reinterpret_cast<Isolate*>(isolate)->MakeRunnable();
+  Roots::ClearCurrent();
   if (error != nullptr) {
     return Utils::StrDup(error);
   }

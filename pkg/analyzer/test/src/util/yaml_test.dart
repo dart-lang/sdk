@@ -160,7 +160,7 @@ main() {
 final Merger merger = Merger();
 
 Object merge(Object o1, Object o2) =>
-    merger.merge(wrap(o1), wrap(o2)).valueOrThrow;
+    merger.merge(wrap(o1), wrap(o2)).value as Object;
 
 YamlMap mergeYamlMaps(YamlMap defaults, YamlMap overrides) =>
     Merger().mergeMap(defaults, overrides);

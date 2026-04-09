@@ -1391,9 +1391,7 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   Roots::void_type().InitializeTypeTestingStubNonAtomic(code);
 }
 
-void Object::Cleanup() {
-  Roots::Current().Reset();
-}
+void Object::Cleanup() {}
 
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.  Also precalculates hash

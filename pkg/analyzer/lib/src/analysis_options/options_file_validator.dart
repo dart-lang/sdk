@@ -15,7 +15,6 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
-import 'package:analyzer/src/generated/utilities_general.dart';
 import 'package:analyzer/src/lint/options_rule_validator.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/util/yaml.dart';
@@ -468,13 +467,13 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
       );
       return;
     }
-    var formatValue = toBool(format.valueOrThrow);
+    var formatValue = format.toBool();
     if (formatValue == null) {
       reporter.report(
         diag.unsupportedValue
             .withArguments(
               optionName: AnalysisOptionsFile.format,
-              invalidValue: format.valueOrThrow.toString(),
+              invalidValue: format.value.toString(),
               legalValues: AnalysisOptionsFile.trueOrFalseProposal,
             )
             .atSourceSpan(format.span),
@@ -558,7 +557,7 @@ class _ErrorBuilder {
           diag.unsupportedOptionWithoutValues
               .withArguments(
                 sectionName: scopeName,
-                optionKey: node.valueOrThrow.toString(),
+                optionKey: node.value.toString(),
               )
               .atSourceSpan(node.span),
         ),
@@ -569,7 +568,7 @@ class _ErrorBuilder {
           diag.unsupportedOptionWithLegalValue
               .withArguments(
                 sectionName: scopeName,
-                optionKey: node.valueOrThrow.toString(),
+                optionKey: node.value.toString(),
                 legalValue: supportedOptions.single,
               )
               .atSourceSpan(node.span),
@@ -581,7 +580,7 @@ class _ErrorBuilder {
           diag.unsupportedOptionWithLegalValues
               .withArguments(
                 sectionName: scopeName,
-                optionKey: node.valueOrThrow.toString(),
+                optionKey: node.value.toString(),
                 legalValues: supportedOptions.quotedAndCommaSeparatedWithAnd,
               )
               .atSourceSpan(node.span),
@@ -630,7 +629,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
         filters.nodes.forEach((k, v) {
           String? value;
           if (k is YamlScalar) {
-            value = toUpperCase(k.value);
+            value = k.toUpperCase();
             if (!_diagnosticCodes.contains(value) &&
                 !_lintCodes.contains(value) &&
                 !_removedDiagnosticCodes.contains(value)) {
@@ -642,7 +641,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
             }
           }
           if (v is YamlScalar) {
-            value = toLowerCase(v.value);
+            value = v.toLowerCase();
             if (!legalValues.contains(value)) {
               reporter.report(
                 diag.unsupportedOptionWithLegalValues
@@ -803,7 +802,7 @@ class _LanguageOptionValidator extends OptionsValidator {
       var language = analyzer.valueAt(AnalysisOptionsFile.language);
       if (language is YamlMap) {
         language.nodes.forEach((k, v) {
-          String? key, value;
+          String? key;
           bool validKey = false;
           if (k is YamlScalar) {
             key = k.value?.toString();
@@ -815,15 +814,14 @@ class _LanguageOptionValidator extends OptionsValidator {
             }
           }
           if (validKey && v is YamlScalar) {
-            value = toLowerCase(v.value);
-            // `null` is not a valid key, so we can safely assume `key` is
-            // non-`null`.
-            if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
+            if (v.toBool() == null) {
+              // `null` is not a valid key, so we can safely assume `key` is
+              // non-`null`.
               reporter.report(
                 diag.unsupportedValue
                     .withArguments(
                       optionName: key!,
-                      invalidValue: v.valueOrThrow.toString(),
+                      invalidValue: v.value.toString(),
                       legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
@@ -963,7 +961,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
     if (analyzer is YamlMap) {
       var v = analyzer.valueAt(AnalysisOptionsFile.optionalChecks);
       if (v is YamlScalar) {
-        var value = toLowerCase(v.value);
+        var value = v.toLowerCase();
         if (!AnalysisOptionsFile.optionalChecksOptions.contains(value)) {
           _builder.reportError(
             reporter,
@@ -975,9 +973,8 @@ class _OptionalChecksValueValidator extends OptionsValidator {
         }
       } else if (v is YamlMap) {
         v.nodes.forEach((k, v) {
-          String? key, value;
           if (k is YamlScalar) {
-            key = k.value?.toString();
+            var key = k.value?.toString();
             if (!AnalysisOptionsFile.optionalChecksOptions.contains(key)) {
               _builder.reportError(
                 reporter,
@@ -987,13 +984,12 @@ class _OptionalChecksValueValidator extends OptionsValidator {
                 k,
               );
             } else {
-              value = toLowerCase(v.value);
-              if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
+              if (v is! YamlScalar || v.toBool() == null) {
                 reporter.report(
                   diag.unsupportedValue
                       .withArguments(
                         optionName: key!,
-                        invalidValue: v.valueOrThrow.toString(),
+                        invalidValue: v.value.toString(),
                         legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                       )
                       .atSourceSpan(v.span),
@@ -1148,7 +1144,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
             diag.unsupportedValue
                 .withArguments(
                   optionName: AnalysisOptionsFile.strongMode,
-                  invalidValue: v.valueOrThrow.toString(),
+                  invalidValue: v.value.toString(),
                   legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                 )
                 .atSourceSpan(v.span),
@@ -1156,13 +1152,12 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
         } else {
           // The key is valid.
           if (v is YamlScalar) {
-            var value = toLowerCase(v.value);
-            if (!AnalysisOptionsFile.trueOrFalse.contains(value)) {
+            if (v.toBool() == null) {
               reporter.report(
                 diag.unsupportedValue
                     .withArguments(
                       optionName: key!,
-                      invalidValue: v.valueOrThrow.toString(),
+                      invalidValue: v.value.toString(),
                       legalValues: AnalysisOptionsFile.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
@@ -1208,7 +1203,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
     node.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         if (!supportedOptions.contains(k.value)) {
-          var optionKey = k.valueOrThrow.toString();
+          var optionKey = k.value.toString();
           var locatableDiagnostic = supportedOptions.length == 1
               ? diag.unsupportedOptionWithLegalValue.withArguments(
                   sectionName: sectionName,

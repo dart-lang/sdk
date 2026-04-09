@@ -189,8 +189,6 @@ class JSONStream : ValueObject {
   ObjectPtr GetObjectParameterKey(intptr_t i) const;
   ObjectPtr GetObjectParameterValue(intptr_t i) const;
 
-  void PostNullReply(Dart_Port port);
-
   void OpenObject(const char* property_name = nullptr) {
     if (ignore_object_depth_ > 0 ||
         (property_name != nullptr && !IsAllowableKey(property_name))) {

@@ -20,14 +20,12 @@ namespace dart {
 class ApiObjectConverter : public AllStatic {
  public:
   static bool CanConvert(const ObjectPtr raw_obj) {
-    return !raw_obj->IsHeapObject() || (raw_obj == Object::null());
+    return !raw_obj->IsHeapObject();
   }
 
   static bool Convert(const ObjectPtr raw_obj, Dart_CObject* c_obj) {
     if (!raw_obj->IsHeapObject()) {
       ConvertSmi(static_cast<const SmiPtr>(raw_obj), c_obj);
-    } else if (raw_obj == Object::null()) {
-      ConvertNull(c_obj);
     } else {
       return false;
     }
@@ -45,11 +43,6 @@ class ApiObjectConverter : public AllStatic {
       c_obj->type = Dart_CObject_kInt64;
       c_obj->value.as_int64 = static_cast<int64_t>(value);
     }
-  }
-
-  static void ConvertNull(Dart_CObject* c_obj) {
-    c_obj->type = Dart_CObject_kNull;
-    c_obj->value.as_int64 = 0;
   }
 };
 

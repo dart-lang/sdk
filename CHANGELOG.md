@@ -94,11 +94,34 @@ main() {
 - The new `simple_directive_paths` lint and its associated fix
   flag and simplify unnecessarily complex `import` and `export` paths,
   such as those containing redundant `./` or backtracking `../` segments.
+
+  Use `dart fix --code=simple_directive_paths` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `prefer_initializing_formals` lint rule will report named parameters
+  which could be private named parameters, if the package's Dart SDK constraint
+  is set to enable the language feature (for example, `sdk: ^3.12.0`).
+
+  Use `dart fix --code=prefer_initializing_formals` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `avoid_final_parameters` lint violations can now be fixed with `dart fix
+  --code=avoid_final_parameters` (with either `--dry-run` or `--apply`).
 - The analyzer now warns when a function which contains a parameter which is
   annotated with `@mustBeConst` is torn off.
 - The `invalid_runtime_check_with_js_interop_types` rule now checks for JS
   interop types in the type in a catch clause and instructs users to use `isA`
   for type checks instead.
+- Analyzer plugins: Initial support for 'print debugging' via new sections in
+  the "Plugins" Insights (Diagnostics) page. When a plugin is computing lint
+  and warning diagnostics, `print` calls are now redirected to the analysis
+  server, which presents the messages in the appropriate plugin's section on
+  the Plugins page.
+- Improved support for extension types in many existing lint rules.
+- Improved support for null-aware elements in existing lint rules.
+- The analysis server starts up faster with the help of improved analysis
+  options file caching. The improvement depends on the number of analysis
+  options files in the workspace, and the number of `include`d analysis options
+  files. The improvement is greater for systems with slower disk access.
+- Various other improvements to analysis performance.
 
 #### Pub
 

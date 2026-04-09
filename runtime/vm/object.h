@@ -7031,6 +7031,13 @@ class Code : public Object {
     return Instructions::EntryPoint(instr);
 #endif
   }
+  static uword StubEntryPointOf(const CodePtr code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return code->untag()->entry_point_;
+#else
+    return Instructions::EntryPoint(InstructionsOf(code));
+#endif
+  }
 
   static uword UncheckedEntryPointOf(const CodePtr code) {
     return code->untag()->unchecked_entry_point_;
@@ -7078,6 +7085,13 @@ class Code : public Object {
       return 0;
     }
     return Instructions::Size(instr);
+#endif
+  }
+  static uword StubPayloadSizeOf(const CodePtr code) {
+#if defined(DART_PRECOMPILED_RUNTIME)
+    return code->untag()->instructions_length_;
+#else
+    return Instructions::Size(InstructionsOf(code));
 #endif
   }
 

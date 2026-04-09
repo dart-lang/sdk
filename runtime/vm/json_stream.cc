@@ -182,11 +182,6 @@ void JSONStream::PrintError(intptr_t code, const char* details_format, ...) {
   }
 }
 
-void JSONStream::PostNullReply(Dart_Port port) {
-  PortMap::PostMessage(
-      Message::New(port, Object::null(), Message::kNormalPriority));
-}
-
 static void Finalizer(void* isolate_callback_data, void* buffer) {
   free(buffer);
 }
@@ -215,7 +210,9 @@ void JSONStream::PostReply() {
       free(cstr);
     }
     // JSON-RPC 2.0 says that a request with a null ID shouldn't get a reply.
-    PostNullReply(port);
+    Dart_CObject message;
+    message.type = Dart_CObject_kNull;
+    Dart_PostCObject(port, &message);
     return;
   }
   ASSERT(port != ILLEGAL_PORT);

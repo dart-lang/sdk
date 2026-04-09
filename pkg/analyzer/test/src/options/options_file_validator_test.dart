@@ -392,10 +392,17 @@ analyzer:
     );
   }
 
-  test_codeStyle_format_false() {
+  test_codeStyle_format_bool_false() {
     validate('''
 code-style:
   format: false
+''', []);
+  }
+
+  test_codeStyle_format_bool_true() {
+    validate('''
+code-style:
+  format: true
 ''', []);
   }
 
@@ -409,10 +416,31 @@ code-style:
     );
   }
 
-  test_codeStyle_format_true() {
+  test_codeStyle_format_string_false() {
     validate('''
 code-style:
-  format: true
+  format: "false"
+''', []);
+  }
+
+  test_codeStyle_format_string_true() {
+    validate('''
+code-style:
+  format: "true"
+''', []);
+  }
+
+  test_codeStyle_format_string_true_mixedCase() {
+    validate('''
+code-style:
+  format: "True"
+''', []);
+  }
+
+  test_codeStyle_format_string_true_upperCase() {
+    validate('''
+code-style:
+  format: "TRUE"
 ''', []);
   }
 
