@@ -1834,7 +1834,10 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
   // Assumptions in ffi_trampolines_arm64.S
   COMPILE_ASSERT(sizeof(CallbackContext) == 144);
   COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
-#if defined(DART_TARGET_OS_MACOS)
+#if defined(DART_TARGET_OS_FUCHSIA)
+  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
+  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
+#elif defined(DART_TARGET_OS_MACOS)
   COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
   COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2019);
 #else

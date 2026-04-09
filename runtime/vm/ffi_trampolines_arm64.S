@@ -144,7 +144,9 @@ _SimulatorFfiCallbackTrampoline:
 SimulatorFfiCallbackTrampoline:
 #endif
 LOCAL_SYMBOL(start):
-#if defined(__APPLE__)
+#if defined(__Fuchsia__)
+  .rept 483 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
+#elif defined(__APPLE__)
   .rept 2019 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
 #else
   .rept 8163 // FfiCallbackMetadata::NumCallbackTrampolinesPerPage()
@@ -176,7 +178,10 @@ LOCAL_SYMBOL(body):
   mov x1, x9  // I.e., which callback.
 
   adr x2, LOCAL_SYMBOL(start)
-#if defined(__APPLE__)
+#if defined(__Fuchsia__)
+  and x2, x2, ~(0x1000-1)  // FfiCallbackMetadata::kPageSize = 4k
+  add x2, x2, 0x2000
+#elif defined(__APPLE__)
   and x2, x2, ~(0x4000-1)  // FfiCallbackMetadata::kPageSize = 16k
   add x2, x2, 0x8000
 #else
