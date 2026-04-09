@@ -63,8 +63,9 @@ class CreateExtensionGetter extends _CreateExtensionMember {
       targetType = target.extendedType;
       extensionElement = target.element;
     } else if (target == null) {
-      extensionElement = node.enclosingInstanceElement?.ifTypeOrNull();
-      targetType = extensionElement?.thisType;
+      var enclosingInstanceElement = node.enclosingInstanceElement;
+      extensionElement = enclosingInstanceElement?.ifTypeOrNull();
+      targetType = enclosingInstanceElement?.thisType;
     } else {
       // We need the type for the extension.
       targetType = target.staticType;
@@ -91,14 +92,17 @@ class CreateExtensionGetter extends _CreateExtensionMember {
       return;
     }
 
-    void writeGetter(DartEditBuilder builder) {
+    void writeGetter(
+      DartEditBuilder builder, [
+      List<TypeParameterElement>? typeParametersInScope,
+    ]) {
       if (addStaticKeyword) {
         builder.write('static ');
       }
       if (fieldType != null) {
         builder.writeType(
           fieldType,
-          typeParametersInScope: methodBeingCopied?.typeParameters,
+          typeParametersInScope: typeParametersInScope,
         );
         builder.write(' ');
       }
@@ -224,25 +228,38 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       );
     }
 
-    if (returnType is! FunctionType && !isInvocation) {
+    FunctionType? functionType;
+    List<DartType> typesInMemberScope;
+    if (isInvocation) {
+      functionType = null;
+      typesInMemberScope = [
+        ?returnType,
+        ...?invocation?.typeArguments?.arguments.map((a) => a.type),
+        ...?invocation?.argumentList.arguments.map((e) => e.staticType),
+      ].nonNulls.toList();
+    } else if (returnType is FunctionType) {
+      functionType = returnType;
+      typesInMemberScope = [
+        functionType.returnType,
+        ...functionType.typeParameters.map((e) => e.bound),
+        ...functionType.formalParameters.map((e) => e.type),
+      ].nonNulls.toList();
+    } else {
       return;
     }
 
-    var functionType = !isInvocation ? returnType as FunctionType : null;
-
-    void writeMethod(DartEditBuilder builder) {
+    void writeMethod(
+      DartEditBuilder builder,
+      List<TypeParameterElement> typeParametersInScope,
+    ) {
       if (addStaticKeyword) {
         builder.write('static ');
       }
 
       if (builder.writeType(
-        isInvocation ? returnType : functionType?.returnType,
+        functionType?.returnType ?? returnType,
         groupName: 'RETURN_TYPE',
-        typeParametersInScope:
-            methodBeingCopied?.typeParameters ??
-            (isInvocation
-                ? [if (returnType is TypeParameterType) returnType.element]
-                : functionType?.typeParameters),
+        typeParametersInScope: typeParametersInScope,
       )) {
         builder.write(' ');
       }
@@ -252,12 +269,9 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       });
 
       builder.writeTypeParameters(
-        ([
-              isInvocation ? returnType : functionType?.returnType,
-              ...?functionType?.formalParameters.map((e) => e.type),
-              ...?invocation?.argumentList.arguments.map((e) => e.staticType),
-            ].typeParameters..addAll([...?functionType?.typeParameters]))
-            .whereNot([targetType].typeParameters.contains)
+        typesInMemberScope
+            .typeParameters()
+            .whereNot([targetType].typeParameters().contains)
             .toList(),
       );
 
@@ -265,17 +279,22 @@ class CreateExtensionMethod extends _CreateExtensionMember {
         builder.write('(');
         builder.writeParametersMatchingArguments(
           arguments,
-          typeParametersInScope: methodBeingCopied?.typeParameters,
+          typeParametersInScope: typeParametersInScope,
         );
         builder.write(')');
       } else if (functionType != null) {
         builder.writeFormalParameters(
           functionType.formalParameters,
-          typeParametersInScope: methodBeingCopied?.typeParameters,
+          typeParametersInScope: typeParametersInScope,
         );
       }
       builder.write(' {}');
     }
+
+    var typeParametersInMemberScope = typesInMemberScope
+        .whereType<TypeParameterType>()
+        .map((e) => e.element)
+        .toList();
 
     bool updatedExisting;
     if (extensionElement != null) {
@@ -284,7 +303,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
         extensionElement,
         (extension, builder) {
           builder.insertMethod(extension, (builder) {
-            writeMethod(builder);
+            writeMethod(builder, typeParametersInMemberScope);
           });
         },
       );
@@ -294,7 +313,7 @@ class CreateExtensionMethod extends _CreateExtensionMember {
         builder,
       ) {
         builder.insertMethod(extension, (builder) {
-          writeMethod(builder);
+          writeMethod(builder, typeParametersInMemberScope);
         });
       });
     }
@@ -302,7 +321,13 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       return;
     }
 
-    await _addNewExtension(builder, targetType, nameNode, writeMethod);
+    await _addNewExtension(
+      builder,
+      targetType,
+      nameNode,
+      writeMethod,
+      typeParametersInMemberScope: typeParametersInMemberScope,
+    );
   }
 }
 
@@ -397,11 +422,14 @@ class CreateExtensionOperator extends _CreateExtensionMember {
       return;
     }
 
-    void writeMethod(DartEditBuilder builder) {
+    void writeMethod(
+      DartEditBuilder builder, [
+      List<TypeParameterElement>? typeParametersInScope,
+    ]) {
       if (builder.writeType(
         returnType,
         groupName: 'RETURN_TYPE',
-        typeParametersInScope: methodBeingCopied?.typeParameters,
+        typeParametersInScope: typeParametersInScope,
       )) {
         builder.write(' ');
       }
@@ -414,7 +442,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
         builder.writeFormalParameter(
           indexSetter ? 'index' : 'other',
           type: parameterType,
-          typeParametersInScope: methodBeingCopied?.typeParameters,
+          typeParametersInScope: typeParametersInScope,
         );
       }
       if (indexSetter) {
@@ -422,7 +450,7 @@ class CreateExtensionOperator extends _CreateExtensionMember {
         builder.writeFormalParameter(
           'newValue',
           type: assigningType,
-          typeParametersInScope: methodBeingCopied?.typeParameters,
+          typeParametersInScope: typeParametersInScope,
         );
       }
       builder.write(') {}');
@@ -506,8 +534,9 @@ class CreateExtensionSetter extends _CreateExtensionMember {
       targetType = target.extendedType;
       extensionElement = target.element;
     } else if (target == null) {
-      extensionElement = node.enclosingInstanceElement?.ifTypeOrNull();
-      targetType = extensionElement?.thisType;
+      var enclosingInstanceElement = node.enclosingInstanceElement;
+      extensionElement = enclosingInstanceElement?.ifTypeOrNull();
+      targetType = enclosingInstanceElement?.thisType;
     } else {
       // We need the type for the extension.
       targetType = target.staticType;
@@ -534,14 +563,17 @@ class CreateExtensionSetter extends _CreateExtensionMember {
       return;
     }
 
-    void writeSetter(DartEditBuilder builder) {
+    void writeSetter(
+      DartEditBuilder builder, [
+      List<TypeParameterElement>? typeParametersInScope,
+    ]) {
       builder.writeSetterDeclaration(
         _setterName,
         nameGroupName: 'NAME',
         parameterType: fieldType,
         isStatic: addStaticKeyword,
         parameterTypeGroupName: 'TYPE',
-        typeParametersInScope: methodBeingCopied?.typeParameters,
+        typeParametersInScope: typeParametersInScope,
       );
     }
 
@@ -608,7 +640,12 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
     DartType targetType,
     AstNode nameNode,
-    void Function(DartEditBuilder builder) write, {
+    void Function(
+      DartEditBuilder builder,
+      List<TypeParameterElement> typeParametersInScope,
+    )
+    write, {
+    List<TypeParameterElement>? typeParametersInMemberScope,
     List<DartType?> involvedTypes = const [],
   }) async {
     // The new extension should be added after it.
@@ -617,7 +654,10 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
       return;
     }
 
-    var extensionTypeParameters = [targetType, ...involvedTypes].typeParameters;
+    var extensionTypeParameters = [
+      targetType,
+      ...involvedTypes,
+    ].typeParameters();
 
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(enclosingUnitChild.end, (builder) {
@@ -627,18 +667,21 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
         if (extensionTypeParameters.isNotEmpty) {
           builder.writeTypeParameters(
             extensionTypeParameters,
-            typeParametersInScope: methodBeingCopied?.typeParameters,
+            typeParametersInScope: extensionTypeParameters,
           );
           builder.write(' ');
         }
         builder.write('on ');
         builder.writeType(
           targetType,
-          typeParametersInScope: methodBeingCopied?.typeParameters,
+          typeParametersInScope: extensionTypeParameters,
         );
         builder.writeln(' {');
         builder.write('  ');
-        write(builder);
+        write(builder, [
+          ...extensionTypeParameters,
+          ...?typeParametersInMemberScope,
+        ]);
         builder.writeln();
         builder.write('}');
       });
@@ -743,14 +786,40 @@ extension on List<DartType?> {
   /// it uses and get any type parameters they use by using this same getter.
   ///
   /// These types are added internally to a set so that we don't add duplicates.
-  List<TypeParameterElement> get typeParameters => {
-    for (var type in whereType<TypeParameterType>()) ...[
-      type.element,
-      ...[type.bound].typeParameters,
-    ],
-    for (var type in whereType<InterfaceType>())
-      ...type.typeArguments.typeParameters,
-  }.toList();
+  List<TypeParameterElement> typeParameters([List<DartType?>? visited]) {
+    visited ??= toList();
+    return {
+      for (var type in whereType<TypeParameterType>())
+        ...type.element.referencedTypeParameters(visited),
+      for (var type in whereType<InterfaceType>())
+        for (var parameter in type.typeArguments.typeParameters(visited))
+          ...parameter.referencedTypeParameters(visited),
+    }.toList();
+  }
+}
+
+extension on TypeParameterElement {
+  List<TypeParameterElement> referencedTypeParameters(List<DartType?> visited) {
+    if (bound case var bound? when !visited.contains(bound)) {
+      return [this, ...bound.recursiveTypeParameters(visited)];
+    } else {
+      return [this];
+    }
+  }
+}
+
+extension on DartType {
+  List<TypeParameterElement> recursiveTypeParameters(List<DartType?> visited) {
+    visited.add(this);
+    var self = this;
+    if (self is TypeParameterType) {
+      return self.element.referencedTypeParameters(visited);
+    } else if (self is InterfaceType) {
+      return self.typeArguments.typeParameters(visited);
+    } else {
+      return [];
+    }
+  }
 }
 
 extension on Element? {
