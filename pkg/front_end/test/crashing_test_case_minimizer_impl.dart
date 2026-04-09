@@ -2035,7 +2035,7 @@ worlds:
     if (_latestCrashingKnownInitialBuilders == null) {
       // It crashed on the first compile so we have no builders.
       // We'll just return something.
-      return ExperimentalFlag.nonNullable.enabledVersion;
+      return ExperimentalFlag.nonNullable.experimentEnabledVersion;
     }
     Uri asImportUri = _getImportUri(uri);
     LibraryBuilder? libraryBuilder =
