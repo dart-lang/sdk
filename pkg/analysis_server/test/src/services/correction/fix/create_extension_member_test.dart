@@ -1401,6 +1401,51 @@ extension E on int {
 ''');
   }
 
+  Future<void> test_record_returnType_missingNamedField() async {
+    await resolveTestCode('''
+extension E on int {
+  ({int b}) get test => (a: testMethod());
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  ({int b}) get test => (a: testMethod());
+
+  testMethod() {}
+}
+''', filter: (d) => d.diagnosticCode == diag.undefinedMethod);
+  }
+
+  Future<void> test_record_returnType_missingPositionalField() async {
+    await resolveTestCode('''
+extension E on int {
+  (int,) get test => (0, testMethod());
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  (int,) get test => (0, testMethod());
+
+  testMethod() {}
+}
+''', filter: (d) => d.diagnosticCode == diag.undefinedMethod);
+  }
+
+  Future<void> test_record_returnType_positionalField_afterNamedField() async {
+    await resolveTestCode('''
+extension E on int {
+  (int, {int a}) get test => (a: 0, testMethod());
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  (int, {int a}) get test => (a: 0, testMethod());
+
+  int testMethod() {}
+}
+''');
+  }
+
   Future<void> test_static() async {
     await resolveTestCode('''
 extension E on String {}

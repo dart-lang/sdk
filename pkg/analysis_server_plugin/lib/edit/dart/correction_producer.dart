@@ -24,9 +24,11 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// How broadly a [CorrectionProducer] can be applied.
@@ -530,13 +532,18 @@ abstract class ResolvedCorrectionProducer
       if (recordType is RecordType) {
         if (expression case NamedExpression named) {
           return recordType.namedFields
-              .firstWhere((field) => field.name == named.name.label.name)
-              .type;
+              .firstWhereOrNull((field) => field.name == named.name.label.name)
+              ?.type;
         } else {
-          var index = parent.fields.indexed
-              .firstWhere((record) => record.$2 == expression)
-              .$1;
-          return recordType.positionalFields[index].type;
+          var index = parent.fields
+              .whereNotType<NamedExpression>()
+              .indexed
+              .firstWhereOrNull((record) => record.$2 == expression)
+              ?.$1;
+          if (index != null && index < recordType.positionalFields.length) {
+            return recordType.positionalFields[index].type;
+          }
+          return null;
         }
       }
     }
