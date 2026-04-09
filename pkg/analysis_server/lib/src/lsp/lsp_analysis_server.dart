@@ -1055,7 +1055,6 @@ class LspAnalysisServer extends AnalysisServer {
       precomputedNewContentForChange: precomputedNewContentForChange,
     );
 
-    notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
   }
 
