@@ -18,7 +18,7 @@ class C<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field <S extends self::C::T% = dynamic>(S%) → void field13;
   covariant-by-class field <S extends self::C::T% = dynamic>(S%) → S% field14;
   covariant-by-class field (<S extends self::C::T% = dynamic>() → S%) → void field15;
-  constructor •(self::C::T% field1) → self::C<self::C::T%>
+  constructor •(initializing-formal self::C::T% field1) → self::C<self::C::T%>
     ;
   get getter1() → self::C::T%
     ;

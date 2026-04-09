@@ -91,24 +91,24 @@ class C2 extends core::Object /*hasConstConstructor*/  {
 }
 class C3 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final core::int x) → self::C3
+  const constructor •(final initializing-formal core::int x) → self::C3
     : self::C3::x = x, super core::Object::•()
     ;
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final core::int x) → self::C4
+  const constructor •(final initializing-formal core::int x) → self::C4
     : self::C4::x = x, super core::Object::•()
     ;
 }
 class A extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(final core::int x) → self::A
+  const constructor •(final initializing-formal core::int x) → self::A
     : self::A::x = x, super core::Object::•()
     ;
 }
 class C5 extends self::A /*hasConstConstructor*/  {
-  const constructor •(final core::int x) → self::C5
+  const constructor •(final super-initializing-formal core::int x) → self::C5
     : super self::A::•(x)
     ;
 }
@@ -119,7 +119,7 @@ Try using a constructor or factory that is 'const'.
   ^";
   final field core::int v;
   static const field core::List<self::E0> values = const <self::E0>[self::E0::e0];
-  constructor •(core::int #index, core::String #name, core::int v) → self::E0
+  constructor •(core::int #index, core::String #name, initializing-formal core::int v) → self::E0
     ;
   method core::_enumToString() → core::String
     return "E0.${this.{core::_Enum::_name}{core::String}}";
@@ -128,7 +128,7 @@ class E1 extends core::_Enum /*isEnum*/  {
   final field core::int v;
   enum-element static const field self::E1 e0 = const self::E1::•(0, "e0", 0);
   static const field core::List<self::E1> values = const <self::E1>[self::E1::e0];
-  const constructor •(core::int #index, core::String #name, final core::int v) → self::E1
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int v) → self::E1
     : self::E1::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -138,7 +138,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E2 e0 = const self::E2::someName(0, "e0", 0);
   final field core::int v;
   static const field core::List<self::E2> values = const <self::E2>[self::E2::e0];
-  const constructor someName(core::int #index, core::String #name, final core::int v) → self::E2
+  const constructor someName(core::int #index, core::String #name, final initializing-formal core::int v) → self::E2
     : self::E2::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -164,13 +164,13 @@ extension type ET2(core::int v) {
   constructor someName = self::ET2|constructor#someName;
   constructor tearoff someName = self::ET2|constructor#_#someName#tearOff;
 }
-static extension-type-member const method ET1|constructor#(core::int v) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ET1|constructor#(initializing-formal core::int v) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = v;
   return #this;
 }
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int v) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(v);
-static extension-type-member const method ET2|constructor#someName(core::int v) → self::ET2% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ET2|constructor#someName(initializing-formal core::int v) → self::ET2% /* erasure=core::int, declared=! */ {
   lowered final self::ET2% /* erasure=core::int, declared=! */ #this = v;
   return #this;
 }

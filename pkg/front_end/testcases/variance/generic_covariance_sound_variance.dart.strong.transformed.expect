@@ -56,7 +56,7 @@ abstract class D<T extends core::Object? = dynamic> extends core::Object {
 }
 class E<invariant T extends core::Object? = dynamic> extends core::Object {
   final field (self::E::T%) → void f;
-  constructor •((self::E::T%) → void f) → self::E<self::E::T%>
+  constructor •(initializing-formal (self::E::T%) → void f) → self::E<self::E::T%>
     : self::E::f = f, super core::Object::•()
     ;
   method method(self::E::T% x) → core::int {

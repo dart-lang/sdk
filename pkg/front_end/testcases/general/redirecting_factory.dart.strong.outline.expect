@@ -26,7 +26,7 @@ abstract class Foo<T extends core::Object? = dynamic> extends core::Object imple
 }
 class Bar<Sb extends core::Object? = dynamic, Tb extends core::Object? = dynamic> extends core::Object implements self::Foo<self::Bar::Tb%> {
   field core::int x;
-  constructor •(core::int x) → self::Bar<self::Bar::Sb%, self::Bar::Tb%>
+  constructor •(initializing-formal core::int x) → self::Bar<self::Bar::Sb%, self::Bar::Tb%>
     ;
 }
 class Builder<X extends core::Object? = dynamic> extends core::Object {

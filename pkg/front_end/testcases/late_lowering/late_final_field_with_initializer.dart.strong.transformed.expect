@@ -5,7 +5,7 @@ import "dart:_internal" as _in;
 
 class B extends core::Object {
   final field core::int x;
-  constructor •(core::int x) → self::B
+  constructor •(initializing-formal core::int x) → self::B
     : self::B::x = x, super core::Object::•()
     ;
 }
@@ -31,7 +31,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   final field self::Class::T% field;
   field self::Class::T? _#Class#lateGenericField = null;
   field core::bool _#Class#lateGenericField#isSet = false;
-  constructor •(self::Class::T% field) → self::Class<self::Class::T%>
+  constructor •(initializing-formal self::Class::T% field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
     ;
   static method initLateStaticField1(core::int value) → core::int {

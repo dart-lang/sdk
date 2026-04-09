@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Default extends core::Object /*hasConstConstructor*/  {
   final field core::Object? defaultValue;
-  const constructor •(core::Object? defaultValue) → self::Default
+  const constructor •(initializing-formal core::Object? defaultValue) → self::Default
     : self::Default::defaultValue = defaultValue, super core::Object::•()
     ;
 }
@@ -22,7 +22,7 @@ abstract class _SSettings extends core::Object implements self::Settings {
 }
 class _$_SSettings extends core::Object implements self::_SSettings /*hasConstConstructor*/  {
   final field self::Sidebar sidebar;
-  const constructor •({self::Sidebar sidebar = #C1}) → self::_$_SSettings
+  const constructor •({initializing-formal self::Sidebar sidebar = #C1}) → self::_$_SSettings
     : self::_$_SSettings::sidebar = sidebar, super core::Object::•()
     ;
 }

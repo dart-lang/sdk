@@ -4,22 +4,22 @@ import "dart:core" as core;
 
 class C0 extends core::Object {
   field core::int a;
-  constructor •([core::int a = 0]) → self::C0
+  constructor •([initializing-formal core::int a = 0]) → self::C0
     ;
 }
 class C1 extends core::Object {
   final field core::bool b;
-  constructor •([final core::bool b = true]) → self::C1
+  constructor •([final initializing-formal core::bool b = true]) → self::C1
     ;
 }
 class C2 extends core::Object {
   field core::String c;
-  constructor •({core::String c = "foo"}) → self::C2
+  constructor •({initializing-formal core::String c = "foo"}) → self::C2
     ;
 }
 class C3 extends core::Object {
   final field core::List<core::int> d;
-  constructor •({final core::List<core::int> d = const <core::int>[0]}) → self::C3
+  constructor •({final initializing-formal core::List<core::int> d = const <core::int>[0]}) → self::C3
     ;
 }
 class C4 extends core::Object {

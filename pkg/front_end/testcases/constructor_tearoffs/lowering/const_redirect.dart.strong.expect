@@ -25,10 +25,10 @@ typedef Alias = self::Const;
 typedef ImplAlias<T extends core::num> = self::_ConstImpl<T>;
 class Class extends core::Object /*hasConstConstructor*/  {
   final field core::List<self::Const> constants;
-  constructor •({core::List<self::Const> constants = #C3}) → self::Class
+  constructor •({initializing-formal core::List<self::Const> constants = #C3}) → self::Class
     : self::Class::constants = constants, super core::Object::•()
     ;
-  const constructor named({core::List<self::Const> constants = #C3}) → self::Class
+  const constructor named({initializing-formal core::List<self::Const> constants = #C3}) → self::Class
     : self::Class::constants = constants, super core::Object::•()
     ;
   static synthetic method _#new#tearOff({core::List<self::Const> constants = #C3}) → self::Class

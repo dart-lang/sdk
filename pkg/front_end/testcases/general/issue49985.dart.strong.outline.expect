@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef A<T extends core::Object? = dynamic> = self::C<T%, core::int>;
 class B<X extends core::Object? = dynamic, Y extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::B::X% x;
-  constructor •(self::B::X% x) → self::B<self::B::X%, self::B::Y%>
+  constructor •(initializing-formal self::B::X% x) → self::B<self::B::X%, self::B::Y%>
     ;
 }
 abstract class Mixin extends core::Object /*isMixinDeclaration*/  {

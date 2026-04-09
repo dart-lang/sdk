@@ -24,7 +24,7 @@ extension type E2(core::int i) {
   static redirecting-factory toString = self::E2|constructor#toString;
   static redirecting-factory tearoff toString = self::E2|constructor#_#toString#tearOff;
 }
-static extension-type-member method E1|constructor#(core::int i) → self::E1% /* erasure=core::int, declared=! */ {
+static extension-type-member method E1|constructor#(initializing-formal core::int i) → self::E1% /* erasure=core::int, declared=! */ {
   lowered final self::E1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -51,7 +51,7 @@ static extension-type-member method E1|constructor#toString(core::int i) → sel
 }
 static extension-type-member synthetic method E1|constructor#_#toString#tearOff(core::int i) → self::E1% /* erasure=core::int, declared=! */
   return self::E1|constructor#toString(i);
-static extension-type-member method E2|constructor#(core::int i) → self::E2% /* erasure=core::int, declared=! */ {
+static extension-type-member method E2|constructor#(initializing-formal core::int i) → self::E2% /* erasure=core::int, declared=! */ {
   lowered final self::E2% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

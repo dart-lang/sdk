@@ -8,7 +8,7 @@ class Foo<T extends core::Object? = dynamic> extends core::Object {
   final field (self::Foo::T%) → void callbackField;
   late covariant-by-class field self::Foo::T% mutableField;
   late field (self::Foo::T%) → void mutableCallbackField;
-  constructor •(self::Foo::T% finalField, (self::Foo::T%) → void callbackField) → self::Foo<self::Foo::T%>
+  constructor •(initializing-formal self::Foo::T% finalField, initializing-formal (self::Foo::T%) → void callbackField) → self::Foo<self::Foo::T%>
     ;
   method method(covariant-by-class self::Foo::T% x) → void
     ;

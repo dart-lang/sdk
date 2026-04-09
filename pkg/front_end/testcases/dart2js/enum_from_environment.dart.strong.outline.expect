@@ -7,7 +7,7 @@ class A extends core::_Enum /*isEnum*/  {
   enum-element static const field self::A b = const self::A::•(1, "b", self::B::b);
   final field self::B value;
   static const field core::List<self::A> values = const <self::A>[self::A::a, self::A::b];
-  const constructor •(core::int #index, core::String #name, self::B value) → self::A
+  const constructor •(core::int #index, core::String #name, initializing-formal self::B value) → self::A
     : self::A::value = value, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -17,7 +17,7 @@ class B extends core::Object /*hasConstConstructor*/  {
   final field core::int value;
   static const field self::B a = const self::B::•(const core::int::fromEnvironment("a"));
   static const field self::B b = const self::B::•(const core::int::fromEnvironment("b"));
-  const constructor •(core::int value) → self::B
+  const constructor •(initializing-formal core::int value) → self::B
     : self::B::value = value, super core::Object::•()
     ;
   static synthetic method _#new#tearOff(core::int value) → self::B

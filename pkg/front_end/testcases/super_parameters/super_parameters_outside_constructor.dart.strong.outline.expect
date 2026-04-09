@@ -9,16 +9,16 @@ class A extends core::Object {
 class B extends self::A {
   constructor •() → self::B
     ;
-  static factory foo(dynamic x) → self::B
+  static factory foo(super-initializing-formal dynamic x) → self::B
     ;
 }
 class C extends core::Object {
   synthetic constructor •() → self::C
     ;
-  set foo(dynamic value) → void
+  set foo(super-initializing-formal dynamic value) → void
     ;
 }
-static method foo(dynamic x) → dynamic
+static method foo(super-initializing-formal dynamic x) → dynamic
   ;
 static method main() → dynamic
   ;

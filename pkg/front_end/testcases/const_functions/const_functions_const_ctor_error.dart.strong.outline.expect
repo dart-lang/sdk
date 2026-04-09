@@ -14,13 +14,13 @@ import "package:expect/expect.dart";
 
 class Simple extends core::Object /*hasConstConstructor*/  {
   final field core::String name;
-  const constructor •(core::String name) → self::Simple
+  const constructor •(initializing-formal core::String name) → self::Simple
     : self::Simple::name = name, super core::Object::•()
     ;
 }
 class Simple2 extends core::Object /*hasConstConstructor*/  {
   final field core::String name;
-  const constructor •(core::String name) → self::Simple2
+  const constructor •(initializing-formal core::String name) → self::Simple2
     : self::Simple2::name = name, super core::Object::•()
     ;
 }

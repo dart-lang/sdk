@@ -164,7 +164,7 @@ abstract class A extends core::Object {
   static field core::int staticField;
   static final field core::int finalStaticField;
   late field core::int lateInstanceField;
-  constructor •(core::int initializedField1) → self::A
+  constructor •(initializing-formal core::int initializedField1) → self::A
     ;
   abstract get fieldWithInitializer() → core::int;
   abstract set fieldWithInitializer(synthesized core::int #externalFieldValue) → void;

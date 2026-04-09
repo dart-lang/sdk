@@ -16,7 +16,7 @@ class A extends core::Object {
   [@vm.inferred-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:5,getterSelectorId:6]
   field core::String? alwaysNull;
-  constructor •([@vm.inferred-arg-type.metadata=dart.core::_OneByteString] core::String? nonNullable, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString?] core::String? nullable) → self::A
+  constructor •([@vm.inferred-arg-type.metadata=dart.core::_OneByteString] initializing-formal core::String? nonNullable, [@vm.inferred-arg-type.metadata=dart.core::_OneByteString?] initializing-formal core::String? nullable) → self::A
     : self::A::nonNullable = nonNullable, self::A::nullable = nullable, self::A::alwaysNull = #C1, super core::Object::•()
     ;
 }

@@ -39,7 +39,7 @@ final class MyClass extends core::Object /*hasConstConstructor*/  {
   final field core::String? n;
 
   [@vm.unreachable.metadata=]
-  const constructor •({required core::int i, required core::String s, required core::Map<core::String, core::bool> m, required core::bool b, required core::List<core::Map<core::String, core::int>> l, required core::String? n}) → self::MyClass
+  const constructor •({required initializing-formal core::int i, required initializing-formal core::String s, required initializing-formal core::Map<core::String, core::bool> m, required initializing-formal core::bool b, required initializing-formal core::List<core::Map<core::String, core::int>> l, required initializing-formal core::String? n}) → self::MyClass
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 }
 

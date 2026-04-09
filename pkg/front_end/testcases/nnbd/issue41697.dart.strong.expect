@@ -25,7 +25,7 @@ typedef H<invariant T extends core::Object? = dynamic> = <S extends FutureOr<T%>
 class C<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field <S extends self::C::T% = dynamic>(S%) → dynamic field1;
   covariant-by-class field <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2;
-  constructor •(<S extends self::C::T% = dynamic>(S%) → dynamic field1, <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2) → self::C<self::C::T%>
+  constructor •(initializing-formal <S extends self::C::T% = dynamic>(S%) → dynamic field1, initializing-formal <S extends FutureOr<self::C::T%> = dynamic>(S%, FutureOr<self::C::T%>) → dynamic field2) → self::C<self::C::T%>
     : self::C::field1 = field1, self::C::field2 = field2, super core::Object::•()
     ;
 }

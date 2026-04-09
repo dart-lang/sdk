@@ -18,7 +18,7 @@ extension type E(invalid-type it) {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(self::E% /* erasure=invalid-type, declared=! */ it) → self::E% /* erasure=invalid-type, declared=! */ {
+static extension-type-member method E|constructor#(initializing-formal self::E% /* erasure=invalid-type, declared=! */ it) → self::E% /* erasure=invalid-type, declared=! */ {
   lowered final self::E% /* erasure=invalid-type, declared=! */ #this = it;
   return #this;
 }

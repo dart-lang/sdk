@@ -183,7 +183,7 @@ static extension-member method E|barOptionalNamedImplicit(lowered final self::A 
   ;
 static extension-member method E|get#barOptionalNamedImplicit(lowered final self::A #this) → ({x: core::int}) → void
   return ({core::int x}) → void => self::E|barOptionalNamedImplicit(#this, x: x);
-static extension-type-member method ET|constructor#(self::A it) → self::ET% /* erasure=self::A, declared=! */
+static extension-type-member method ET|constructor#(initializing-formal self::A it) → self::ET% /* erasure=self::A, declared=! */
   ;
 static extension-type-member synthetic method ET|constructor#_#new#tearOff(self::A it) → self::ET% /* erasure=self::A, declared=! */
   return self::ET|constructor#(it);

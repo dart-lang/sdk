@@ -6,7 +6,7 @@ import "dart:async" as asy;
 class Foo<T extends core::Object? = dynamic> extends core::Object {
   final field () → asy::Future<dynamic> quux;
   covariant-by-class field self::Foo::T% t;
-  constructor •(() → asy::Future<dynamic> quux, self::Foo::T% t) → self::Foo<self::Foo::T%>
+  constructor •(initializing-formal () → asy::Future<dynamic> quux, initializing-formal self::Foo::T% t) → self::Foo<self::Foo::T%>
     : self::Foo::quux = quux, self::Foo::t = t, super core::Object::•()
     ;
   method call() → asy::Future<self::Foo::T%>

@@ -12,7 +12,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int field;
-  constructor •([core::int field = #C1]) → self::A
+  constructor •([initializing-formal core::int field = #C1]) → self::A
     : self::A::field = field, super core::Object::•()
     ;
   static factory redirect([erroneously-initialized core::int field = #C1]) → self::A /* redirection-target: self::A::• */

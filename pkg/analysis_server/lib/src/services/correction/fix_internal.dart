@@ -716,6 +716,9 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.nullableTypeInOnClause: [RemoveQuestionMark.new],
   diag.nullableTypeInWithClause: [RemoveQuestionMark.new],
   diag.obsoleteColonForDefaultValue: [ReplaceColonWithEquals.new],
+  diag.primaryConstructorBodyWithExpressionBody: [
+    ConvertIntoBlockBody.missingBody,
+  ],
   diag.recordLiteralOnePositionalNoTrailingCommaByType: [AddTrailingComma.new],
   diag.representationFieldModifier: [RemoveKeyword.varKeyword],
   diag.returnOfInvalidTypeFromClosure: [AddAsync.wrongReturnType],

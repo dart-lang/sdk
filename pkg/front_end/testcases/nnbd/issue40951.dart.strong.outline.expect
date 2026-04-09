@@ -9,9 +9,9 @@ class A extends core::Object {
     ;
   constructor foo() → self::A
     ;
-  constructor bar(core::num field1) → self::A
+  constructor bar(initializing-formal core::num field1) → self::A
     ;
-  constructor baz(core::num field1, core::num field2) → self::A
+  constructor baz(initializing-formal core::num field1, initializing-formal core::num field2) → self::A
     ;
 }
 abstract class B extends core::Object {
@@ -21,9 +21,9 @@ abstract class B extends core::Object {
     ;
   constructor foo() → self::B
     ;
-  constructor bar(core::num field1) → self::B
+  constructor bar(initializing-formal core::num field1) → self::B
     ;
-  constructor baz(core::num field1, core::num field2) → self::B
+  constructor baz(initializing-formal core::num field1, initializing-formal core::num field2) → self::B
     ;
 }
 class C extends core::Object {
@@ -33,9 +33,9 @@ class C extends core::Object {
     ;
   constructor foo() → self::C
     ;
-  constructor bar(core::num? field1) → self::C
+  constructor bar(initializing-formal core::num? field1) → self::C
     ;
-  constructor baz(core::num? field1, core::num? field2) → self::C
+  constructor baz(initializing-formal core::num? field1, initializing-formal core::num? field2) → self::C
     ;
 }
 abstract class D extends core::Object {
@@ -45,9 +45,9 @@ abstract class D extends core::Object {
     ;
   constructor foo() → self::D
     ;
-  constructor bar(core::num? field1) → self::D
+  constructor bar(initializing-formal core::num? field1) → self::D
     ;
-  constructor baz(core::num? field1, core::num? field2) → self::D
+  constructor baz(initializing-formal core::num? field1, initializing-formal core::num? field2) → self::D
     ;
 }
 static method main() → dynamic

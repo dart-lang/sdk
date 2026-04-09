@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class<T extends core::Object> extends core::Object {
   covariant-by-class field self::Class::T field;
-  constructor •(self::Class::T field) → self::Class<self::Class::T>
+  constructor •(initializing-formal self::Class::T field) → self::Class<self::Class::T>
     : self::Class::field = field, super core::Object::•()
     ;
 }

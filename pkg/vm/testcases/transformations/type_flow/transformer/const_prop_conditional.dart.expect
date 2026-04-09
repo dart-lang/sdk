@@ -10,7 +10,7 @@ class DefaultEq extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
 
   [@vm.unboxing-info.metadata=(i)->b]
-  const constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int i) → self::DefaultEq
+  const constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi] initializing-formal core::int i) → self::DefaultEq
     : self::DefaultEq::i = i, super core::Object::•()
     ;
 
@@ -28,7 +28,7 @@ class OverriddenEq extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
 
   [@vm.unboxing-info.metadata=(i)->b]
-  const constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi] core::int i) → self::OverriddenEq
+  const constructor •([@vm.inferred-arg-type.metadata=dart.core::_Smi] initializing-formal core::int i) → self::OverriddenEq
     : self::OverriddenEq::i = i, super core::Object::•()
     ;
 

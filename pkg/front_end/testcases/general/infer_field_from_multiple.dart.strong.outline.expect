@@ -250,7 +250,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   field core::int? field16;
   field core::int field17;
   field core::int? field18;
-  constructor •(self::A::T% field10, self::A::T% field11, self::A::T% field12, self::A::T% field13, self::A::T% field14) → self::A<self::A::T%>
+  constructor •(initializing-formal self::A::T% field10, initializing-formal self::A::T% field11, initializing-formal self::A::T% field12, initializing-formal self::A::T% field13, initializing-formal self::A::T% field14) → self::A<self::A::T%>
     ;
 }
 class B<T extends core::Object? = dynamic, S extends core::Object? = dynamic> extends core::Object {
@@ -272,7 +272,7 @@ class B<T extends core::Object? = dynamic, S extends core::Object? = dynamic> ex
   field core::int field16;
   field core::String? field17;
   field core::String field18;
-  constructor •(self::B::T% field10, self::B::S% field11, self::B::T% field12, self::B::T% field13, self::B::S% field14) → self::B<self::B::T%, self::B::S%>
+  constructor •(initializing-formal self::B::T% field10, initializing-formal self::B::S% field11, initializing-formal self::B::T% field12, initializing-formal self::B::T% field13, initializing-formal self::B::S% field14) → self::B<self::B::T%, self::B::S%>
     ;
 }
 class C extends core::Object implements self::A<core::int>, self::B<core::int, core::String> {
@@ -294,7 +294,7 @@ class C extends core::Object implements self::A<core::int>, self::B<core::int, c
   field invalid-type field16;
   field invalid-type field17;
   field invalid-type field18;
-  constructor •(core::int field1, invalid-type field2, core::int field3, invalid-type field4, core::int? field5, invalid-type field6, core::int? field7, invalid-type field8, dynamic field9, core::int field10, invalid-type field11, core::int? field12, core::int field13, core::int? field14, invalid-type field15, invalid-type field16, invalid-type field17, invalid-type field18) → self::C
+  constructor •(initializing-formal core::int field1, initializing-formal invalid-type field2, initializing-formal core::int field3, initializing-formal invalid-type field4, initializing-formal core::int? field5, initializing-formal invalid-type field6, initializing-formal core::int? field7, initializing-formal invalid-type field8, initializing-formal dynamic field9, initializing-formal core::int field10, initializing-formal invalid-type field11, initializing-formal core::int? field12, initializing-formal core::int field13, initializing-formal core::int? field14, initializing-formal invalid-type field15, initializing-formal invalid-type field16, initializing-formal invalid-type field17, initializing-formal invalid-type field18) → self::C
     ;
 }
 class D<T extends core::Object? = dynamic> extends core::Object implements self::A<self::D::T%>, self::B<self::D::T%, self::D::T%> {
@@ -316,6 +316,6 @@ class D<T extends core::Object? = dynamic> extends core::Object implements self:
   field invalid-type field16;
   field invalid-type field17;
   field invalid-type field18;
-  constructor •(core::int field1, invalid-type field2, core::int field3, invalid-type field4, core::int? field5, invalid-type field6, core::int? field7, invalid-type field8, dynamic field9, self::D::T% field10, self::D::T% field11, self::D::T% field12, self::D::T% field13, self::D::T% field14, invalid-type field15, invalid-type field16, invalid-type field17, invalid-type field18) → self::D<self::D::T%>
+  constructor •(initializing-formal core::int field1, initializing-formal invalid-type field2, initializing-formal core::int field3, initializing-formal invalid-type field4, initializing-formal core::int? field5, initializing-formal invalid-type field6, initializing-formal core::int? field7, initializing-formal invalid-type field8, initializing-formal dynamic field9, initializing-formal self::D::T% field10, initializing-formal self::D::T% field11, initializing-formal self::D::T% field12, initializing-formal self::D::T% field13, initializing-formal self::D::T% field14, initializing-formal invalid-type field15, initializing-formal invalid-type field16, initializing-formal invalid-type field17, initializing-formal invalid-type field18) → self::D<self::D::T%>
     ;
 }

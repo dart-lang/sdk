@@ -14,7 +14,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends self::B {
-  constructor •({required invalid-type field}) → self::A
+  constructor •({required super-initializing-formal invalid-type field}) → self::A
     : invalid-initializer "pkg/front_end/testcases/general/issue50382.dart:6:3: Error: The superclass, 'B', has no unnamed constructor that takes no arguments.
   A({required super.field});
   ^"
@@ -22,12 +22,12 @@ class A extends self::B {
 }
 class B extends core::Object {
   final field core::int field;
-  constructor named({required core::int field}) → self::B
+  constructor named({required initializing-formal core::int field}) → self::B
     : self::B::field = field, super core::Object::•()
     ;
 }
 class C extends self::D {
-  constructor •({required core::int field}) → self::C
+  constructor •({required super-initializing-formal core::int field}) → self::C
     : invalid-initializer "pkg/front_end/testcases/general/issue50382.dart:16:3: Error: The superclass, 'D', has no unnamed constructor that takes no arguments.
   C({required int super.field});
   ^"
@@ -35,7 +35,7 @@ class C extends self::D {
 }
 class D extends core::Object {
   final field core::int field;
-  constructor named({required core::int field}) → self::D
+  constructor named({required initializing-formal core::int field}) → self::D
     : self::D::field = field, super core::Object::•()
     ;
 }

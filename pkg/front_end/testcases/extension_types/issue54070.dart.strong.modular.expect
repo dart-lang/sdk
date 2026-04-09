@@ -18,10 +18,10 @@ class AssertIdentical extends core::Object /*hasConstConstructor*/  {
 }
 class C<T extends core::Object? = dynamic> extends core::Object {
   final field self::C::T% value;
-  constructor •(self::C::T% value) → self::C<self::C::T%>
+  constructor •(initializing-formal self::C::T% value) → self::C<self::C::T%>
     : self::C::value = value, super core::Object::•()
     ;
-  constructor named(self::C::T% value) → self::C<self::C::T%>
+  constructor named(initializing-formal self::C::T% value) → self::C<self::C::T%>
     : self::C::value = value, super core::Object::•()
     ;
   constructor redirect(self::C::T% value) → self::C<self::C::T%>
@@ -86,13 +86,13 @@ static method checkClass() → void {
   #C1;
   #C1;
 }
-static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(self::E|constructor#::T% value) → self::E<self::E|constructor#::T%>% /* erasure=self::E|constructor#::T%, declared=! */ {
+static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(initializing-formal self::E|constructor#::T% value) → self::E<self::E|constructor#::T%>% /* erasure=self::E|constructor#::T%, declared=! */ {
   lowered final self::E<self::E|constructor#::T%>% /* erasure=self::E|constructor#::T%, declared=! */ #this = value;
   return #this;
 }
 static extension-type-member synthetic method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::T% value) → self::E<self::E|constructor#_#new#tearOff::T%>% /* erasure=self::E|constructor#_#new#tearOff::T%, declared=! */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::T%>(value);
-static extension-type-member method E|constructor#named<T extends core::Object? = dynamic>(self::E|constructor#named::T% value) → self::E<self::E|constructor#named::T%>% /* erasure=self::E|constructor#named::T%, declared=! */ {
+static extension-type-member method E|constructor#named<T extends core::Object? = dynamic>(initializing-formal self::E|constructor#named::T% value) → self::E<self::E|constructor#named::T%>% /* erasure=self::E|constructor#named::T%, declared=! */ {
   lowered final self::E<self::E|constructor#named::T%>% /* erasure=self::E|constructor#named::T%, declared=! */ #this = value;
   return #this;
 }

@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -44,12 +45,26 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
 
     // The variable must be not synthetic, and have no setter yet.
     var variable = getter.variable;
-    if (!variable.isOriginDeclaration || variable.setter != null) {
+    if (variable.setter != null) {
       return;
     }
+    if (variable.isOriginDeclaration) {
+      await _makeDeclaredFieldNotFinal(builder, variable);
+    } else if (variable is FieldElement &&
+        variable.isOriginDeclaringFormalParameter) {
+      var parameter = variable.declaringFormalParameter;
+      if (parameter != null) {
+        await _makeDeclaredParameterNotFinal(builder, parameter);
+      }
+    }
+  }
 
+  Future<void> _makeDeclaredFieldNotFinal(
+    ChangeBuilder builder,
+    PropertyInducingElement variable,
+  ) async {
     // It must be a field declaration.
-    if (getter.enclosingElement is! ClassElement) {
+    if (variable.enclosingElement is! ClassElement) {
       return;
     }
 
@@ -92,6 +107,28 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
           builder.write('var ');
         });
       }
+    });
+  }
+
+  Future<void> _makeDeclaredParameterNotFinal(
+    ChangeBuilder builder,
+    FieldFormalParameterElement parameter,
+  ) async {
+    var declaration = await sessionHelper.getFragmentDeclaration(
+      parameter.firstFragment,
+    );
+    var parameterNode = declaration?.node;
+    if (parameterNode is! SimpleFormalParameter) {
+      return;
+    }
+    var finalKeyword = parameterNode.keyword;
+    if (finalKeyword?.keyword != Keyword.FINAL) {
+      return;
+    }
+
+    _fieldName = parameter.displayName;
+    await builder.addDartFileEdit(file, (builder) {
+      builder.addSimpleReplacement(range.token(finalKeyword!), 'var');
     });
   }
 }

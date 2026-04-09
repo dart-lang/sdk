@@ -57,12 +57,12 @@ import "org-dartlang-testcase:///issue31767.dart";
 class A extends core::Object {
   final field core::int w;
   final field iss::_A a;
-  constructor foo(core::int x, [core::int y = iss::_private, core::int z = iss::_private, iss::_A a = const iss::_A::•(5)]) → iss::A
+  constructor foo(core::int x, [core::int y = iss::_private, core::int z = iss::_private, initializing-formal iss::_A a = const iss::_A::•(5)]) → iss::A
     ;
 }
 class _A extends core::Object /*hasConstConstructor*/  {
   final field core::int field;
-  const constructor •(core::int field) → iss::_A
+  const constructor •(initializing-formal core::int field) → iss::_A
     : iss::_A::field = field, super core::Object::•()
     ;
 }

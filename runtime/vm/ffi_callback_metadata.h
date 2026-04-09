@@ -62,10 +62,7 @@ class FfiCallbackMetadata {
 
   enum RuntimeFunctions {
     kGetFfiCallbackMetadata,
-    kExitTemporaryIsolate,
-    kExitIsolateGroupBoundIsolate,
-    kExitSyncCallbackTargetIsolate,
-    kExitSyncCallback,
+    kDoRedirectedFfiCallback,
     kNumRuntimeFunctions,
   };
 
@@ -396,15 +393,6 @@ class FfiCallbackMetadata {
   uword offset_of_first_trampoline_in_page_ = 0;
   MetadataEntry* free_list_head_ = nullptr;
   MetadataEntry* free_list_tail_ = nullptr;
-
-#if (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
-  // TODO(https://dartbug.com/52579): Remove.
-  // On simulator FFI, SimulatorFfiCallbackTrampoline cannot be duplicated
-  // because it contains a PC-relative call. It would need to be replaced with
-  // something like normal stub's PC-relative loading to a corresponding data
-  // page, or if we can assume the initial-exec code model a TLS load.
-  VirtualMemory* original_metadata_page_ = nullptr;
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
 
   DISALLOW_COPY_AND_ASSIGN(FfiCallbackMetadata);
 };

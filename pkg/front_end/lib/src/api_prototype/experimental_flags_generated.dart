@@ -28,7 +28,6 @@ class ExperimentalFlag {
   /// Libraries can still opt out of the feature by using a language version
   /// below the [experimentEnabledVersion].
   final bool isExpired;
-  final Version enabledVersion;
 
   /// The minimum version that enables the feature by default.
   ///
@@ -48,7 +47,6 @@ class ExperimentalFlag {
     required this.name,
     required this.isEnabledByDefault,
     required this.isExpired,
-    required this.enabledVersion,
     required this.experimentEnabledVersion,
     required this.experimentReleasedVersion,
   });
@@ -57,7 +55,6 @@ class ExperimentalFlag {
         name: 'alternative-invalidation-strategy',
         isEnabledByDefault: true,
         isExpired: true,
-        enabledVersion: const Version(2, 18),
         experimentEnabledVersion: const Version(2, 18),
         experimentReleasedVersion: const Version(2, 18),
       );
@@ -66,7 +63,6 @@ class ExperimentalFlag {
     name: 'anonymous-methods',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -75,7 +71,6 @@ class ExperimentalFlag {
     name: 'augmentations',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: const Version(3, 6),
   );
@@ -84,7 +79,6 @@ class ExperimentalFlag {
     name: 'class-modifiers',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 0),
     experimentEnabledVersion: const Version(3, 0),
     experimentReleasedVersion: const Version(3, 0),
   );
@@ -93,7 +87,6 @@ class ExperimentalFlag {
     name: 'const-functions',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -102,7 +95,6 @@ class ExperimentalFlag {
     name: 'constant-update-2018',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 0),
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
   );
@@ -111,7 +103,6 @@ class ExperimentalFlag {
     name: 'constructor-tearoffs',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 15),
     experimentEnabledVersion: const Version(2, 15),
     experimentReleasedVersion: const Version(2, 15),
   );
@@ -120,7 +111,6 @@ class ExperimentalFlag {
     name: 'control-flow-collections',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 0),
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
   );
@@ -129,7 +119,6 @@ class ExperimentalFlag {
     name: 'data-assets',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -138,7 +127,6 @@ class ExperimentalFlag {
     name: 'digit-separators',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 6),
     experimentEnabledVersion: const Version(3, 6),
     experimentReleasedVersion: const Version(3, 6),
   );
@@ -147,7 +135,6 @@ class ExperimentalFlag {
     name: 'dot-shorthands',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 10),
     experimentEnabledVersion: const Version(3, 10),
     experimentReleasedVersion: const Version(3, 9),
   );
@@ -156,7 +143,6 @@ class ExperimentalFlag {
     name: 'enhanced-enums',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 17),
     experimentEnabledVersion: const Version(2, 17),
     experimentReleasedVersion: const Version(2, 17),
   );
@@ -165,7 +151,6 @@ class ExperimentalFlag {
     name: 'enhanced-parts',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: const Version(3, 6),
   );
@@ -174,7 +159,6 @@ class ExperimentalFlag {
     name: 'extension-methods',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 6),
     experimentEnabledVersion: const Version(2, 6),
     experimentReleasedVersion: const Version(2, 6),
   );
@@ -183,7 +167,6 @@ class ExperimentalFlag {
     name: 'generic-metadata',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 14),
     experimentEnabledVersion: const Version(2, 14),
     experimentReleasedVersion: const Version(2, 14),
   );
@@ -192,7 +175,6 @@ class ExperimentalFlag {
     name: 'getter-setter-error',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 9),
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
   );
@@ -201,7 +183,6 @@ class ExperimentalFlag {
     name: 'inference-update-1',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 18),
     experimentEnabledVersion: const Version(2, 18),
     experimentReleasedVersion: const Version(2, 18),
   );
@@ -210,7 +191,6 @@ class ExperimentalFlag {
     name: 'inference-update-2',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 2),
     experimentEnabledVersion: const Version(3, 2),
     experimentReleasedVersion: const Version(3, 2),
   );
@@ -219,7 +199,6 @@ class ExperimentalFlag {
     name: 'inference-update-3',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 4),
     experimentEnabledVersion: const Version(3, 4),
     experimentReleasedVersion: const Version(3, 4),
   );
@@ -228,7 +207,6 @@ class ExperimentalFlag {
     name: 'inference-update-4',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -237,7 +215,6 @@ class ExperimentalFlag {
     name: 'inference-using-bounds',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 7),
     experimentEnabledVersion: const Version(3, 7),
     experimentReleasedVersion: const Version(3, 7),
   );
@@ -246,7 +223,6 @@ class ExperimentalFlag {
     name: 'inline-class',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 3),
     experimentEnabledVersion: const Version(3, 3),
     experimentReleasedVersion: const Version(3, 3),
   );
@@ -255,7 +231,6 @@ class ExperimentalFlag {
     name: 'macros',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: const Version(3, 3),
   );
@@ -264,7 +239,6 @@ class ExperimentalFlag {
     name: 'named-arguments-anywhere',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 17),
     experimentEnabledVersion: const Version(2, 17),
     experimentReleasedVersion: const Version(2, 17),
   );
@@ -273,7 +247,6 @@ class ExperimentalFlag {
     name: 'native-assets',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 10),
     experimentEnabledVersion: const Version(3, 10),
     experimentReleasedVersion: const Version(3, 9),
   );
@@ -282,7 +255,6 @@ class ExperimentalFlag {
     name: 'non-nullable',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 12),
     experimentEnabledVersion: const Version(2, 12),
     experimentReleasedVersion: const Version(2, 10),
   );
@@ -291,7 +263,6 @@ class ExperimentalFlag {
     name: 'nonfunction-type-aliases',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 13),
     experimentEnabledVersion: const Version(2, 13),
     experimentReleasedVersion: const Version(2, 13),
   );
@@ -300,7 +271,6 @@ class ExperimentalFlag {
     name: 'null-aware-elements',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 8),
     experimentEnabledVersion: const Version(3, 8),
     experimentReleasedVersion: const Version(3, 8),
   );
@@ -309,7 +279,6 @@ class ExperimentalFlag {
     name: 'patterns',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 0),
     experimentEnabledVersion: const Version(3, 0),
     experimentReleasedVersion: const Version(3, 0),
   );
@@ -318,7 +287,6 @@ class ExperimentalFlag {
     name: 'primary-constructors',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: const Version(3, 12),
   );
@@ -327,7 +295,6 @@ class ExperimentalFlag {
     name: 'private-named-parameters',
     isEnabledByDefault: true,
     isExpired: false,
-    enabledVersion: const Version(3, 12),
     experimentEnabledVersion: const Version(3, 12),
     experimentReleasedVersion: const Version(3, 12),
   );
@@ -336,7 +303,6 @@ class ExperimentalFlag {
     name: 'record-use',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -345,7 +311,6 @@ class ExperimentalFlag {
     name: 'records',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 0),
     experimentEnabledVersion: const Version(3, 0),
     experimentReleasedVersion: const Version(3, 0),
   );
@@ -354,7 +319,6 @@ class ExperimentalFlag {
     name: 'sealed-class',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 0),
     experimentEnabledVersion: const Version(3, 0),
     experimentReleasedVersion: const Version(3, 0),
   );
@@ -363,7 +327,6 @@ class ExperimentalFlag {
     name: 'set-literals',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 0),
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
   );
@@ -372,7 +335,6 @@ class ExperimentalFlag {
     name: 'sound-flow-analysis',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 9),
     experimentEnabledVersion: const Version(3, 9),
     experimentReleasedVersion: const Version(3, 9),
   );
@@ -381,7 +343,6 @@ class ExperimentalFlag {
     name: 'spread-collections',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 0),
     experimentEnabledVersion: const Version(2, 0),
     experimentReleasedVersion: const Version(2, 0),
   );
@@ -390,7 +351,6 @@ class ExperimentalFlag {
     name: 'static-extensions',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -399,7 +359,6 @@ class ExperimentalFlag {
     name: 'super-parameters',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 17),
     experimentEnabledVersion: const Version(2, 17),
     experimentReleasedVersion: const Version(2, 17),
   );
@@ -408,7 +367,6 @@ class ExperimentalFlag {
     name: 'test-experiment',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -417,7 +375,6 @@ class ExperimentalFlag {
     name: 'triple-shift',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 14),
     experimentEnabledVersion: const Version(2, 14),
     experimentReleasedVersion: const Version(2, 14),
   );
@@ -426,7 +383,6 @@ class ExperimentalFlag {
     name: 'unnamed-libraries',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(2, 19),
     experimentEnabledVersion: const Version(2, 19),
     experimentReleasedVersion: const Version(2, 19),
   );
@@ -435,7 +391,6 @@ class ExperimentalFlag {
     name: 'unquoted-imports',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -444,7 +399,6 @@ class ExperimentalFlag {
     name: 'variance',
     isEnabledByDefault: false,
     isExpired: false,
-    enabledVersion: defaultLanguageVersion,
     experimentEnabledVersion: defaultLanguageVersion,
     experimentReleasedVersion: defaultLanguageVersion,
   );
@@ -453,7 +407,6 @@ class ExperimentalFlag {
     name: 'wildcard-variables',
     isEnabledByDefault: true,
     isExpired: true,
-    enabledVersion: const Version(3, 7),
     experimentEnabledVersion: const Version(3, 7),
     experimentReleasedVersion: const Version(3, 7),
   );

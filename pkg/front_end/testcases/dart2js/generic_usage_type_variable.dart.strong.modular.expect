@@ -16,7 +16,7 @@ abstract class C extends core::Object {
   constructor •() → self::C
     : self::C::v5 = null, self::C::v7 = null, super core::Object::•()
     ;
-  constructor name1(self::D? v5, Null v7) → self::C
+  constructor name1(initializing-formal self::D? v5, initializing-formal Null v7) → self::C
     : self::C::v5 = v5, self::C::v7 = v7, super core::Object::•()
     ;
   static factory name2(self::D arg1, Null arg2) → self::C /* redirection-target: self::C1::name1 */

@@ -6,5 +6,5 @@ class Foo extends core::Object {
   field core::int x;
   constructor •() → self::Foo
     ;
-  external constructor n24(core::int x) → self::Foo;
+  external constructor n24(initializing-formal core::int x) → self::Foo;
 }

@@ -178,7 +178,7 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
-    node.visitChildren(this);
+    _scopeContext.visitFieldDeclaration(node, visitor: this);
   }
 
   @override
@@ -283,9 +283,9 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     if (element == null) {
       node.type = InvalidTypeImpl.instance;
     } else if (element is TypeParameterElementImpl) {
-      node.type = TypeParameterTypeImpl(
+      node.type = _scopeContext.instantiateTypeParameter(
         element: element,
-        nullabilitySuffix: nullabilitySuffix,
+        nullability: nullabilitySuffix,
       );
     } else {
       var builder = NamedTypeBuilder.of(

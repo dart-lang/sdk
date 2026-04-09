@@ -6,7 +6,7 @@ import "package:expect/expect.dart";
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field core::int y;
-  const constructor •(core::int y) → self::A
+  const constructor •(initializing-formal core::int y) → self::A
     : self::A::y = y, super core::Object::•()
     ;
 }

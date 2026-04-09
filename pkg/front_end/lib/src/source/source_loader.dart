@@ -6,19 +6,14 @@ import 'dart:collection' show Queue;
 import 'dart:convert' show utf8;
 import 'dart:typed_data' show Uint8List;
 
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show ForwardingListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthForToken;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show
-        ErrorToken,
-        LanguageVersionToken,
-        Scanner,
-        ScannerConfiguration,
-        ScannerResult,
-        Token,
-        scan;
+    show ErrorToken, LanguageVersionToken, Scanner, ScannerResult, Token, scan;
 import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
     show Importability;
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
@@ -1176,18 +1171,13 @@ severity: $severity
     ScannerResult result = scan(
       bytes,
       includeComments: includeComments,
-      configuration: new ScannerConfiguration(
-        enableTripleShift: target.isExperimentEnabledInLibraryByVersion(
-          ExperimentalFlag.tripleShift,
+      configuration: new LibraryExperimentalFeatures(
+        new LibraryFeatures(
+          target.globalFeatures,
           compilationUnit.importUri,
           compilationUnit.packageLanguageVersion.version,
         ),
-        forAugmentationLibrary: target.isExperimentEnabledInLibraryByVersion(
-          ExperimentalFlag.augmentations,
-          compilationUnit.importUri,
-          compilationUnit.packageLanguageVersion.version,
-        ),
-      ),
+      ).buildScannerConfiguration(),
       languageVersionChanged: (Scanner scanner, LanguageVersionToken version) {
         if (!suppressLexicalErrors) {
           compilationUnit.registerExplicitLanguageVersion(
@@ -1196,12 +1186,9 @@ severity: $severity
             length: version.length,
           );
         }
-        scanner.configuration = new ScannerConfiguration(
-          enableTripleShift:
-              compilationUnit.libraryFeatures.tripleShift.isEnabled,
-          forAugmentationLibrary:
-              compilationUnit.libraryFeatures.augmentations.isEnabled,
-        );
+        scanner.configuration = new LibraryExperimentalFeatures(
+          compilationUnit.libraryFeatures,
+        ).buildScannerConfiguration();
       },
       allowLazyStrings: allowLazyStrings,
     );

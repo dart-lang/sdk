@@ -127,7 +127,7 @@ static extension-member method Extension|instanceMethod<T13 extends dynamic, T14
 static extension-member method Extension|get#instanceMethod<T13 extends dynamic>(lowered final self::Class<self::Extension|get#instanceMethod::T13%> #this) → <T14 extends dynamic>(self::Extension|get#instanceMethod::T13%, T14%) → void
   return <T14 extends dynamic>(self::Extension|get#instanceMethod::T13% t13, T14% t14) → void => self::Extension|instanceMethod<self::Extension|get#instanceMethod::T13%, T14%>(#this, t13, t14);
 static extension-member method Extension|staticMethod<T15 extends dynamic>(self::Extension|staticMethod::T15% t15) → void {}
-static extension-type-member method ExtensionType|constructor#<T16 extends dynamic>(self::ExtensionType|constructor#::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#::T16%>% /* erasure=self::ExtensionType|constructor#::T16%, declared=! */ {
+static extension-type-member method ExtensionType|constructor#<T16 extends dynamic>(initializing-formal self::ExtensionType|constructor#::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#::T16%>% /* erasure=self::ExtensionType|constructor#::T16%, declared=! */ {
   lowered final self::ExtensionType<self::ExtensionType|constructor#::T16%>% /* erasure=self::ExtensionType|constructor#::T16%, declared=! */ #this = t16;
   return #this;
 }
@@ -149,7 +149,7 @@ static extension-type-member method ExtensionType|get#instanceMethod<T16 extends
   return <T17 extends dynamic>(self::ExtensionType|get#instanceMethod::T16% t16, T17% t17) → void => self::ExtensionType|instanceMethod<self::ExtensionType|get#instanceMethod::T16%, T17%>(#this, t16, t17);
 static extension-type-member method ExtensionType|staticMethod<T18 extends dynamic>(self::ExtensionType|staticMethod::T18% t18) → void {}
 static method topLevelMethod<T19 extends dynamic>(self::topLevelMethod::T19% t19) → void {}
-static extension-type-member method ET|constructor#<X4 extends dynamic>(self::ET|constructor#::X4% x4) → self::ET<self::ET|constructor#::X4%>% /* erasure=self::ET|constructor#::X4%, declared=! */ {
+static extension-type-member method ET|constructor#<X4 extends dynamic>(initializing-formal self::ET|constructor#::X4% x4) → self::ET<self::ET|constructor#::X4%>% /* erasure=self::ET|constructor#::X4%, declared=! */ {
   lowered final self::ET<self::ET|constructor#::X4%>% /* erasure=self::ET|constructor#::X4%, declared=! */ #this = x4;
   return #this;
 }

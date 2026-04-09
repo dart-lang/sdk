@@ -78,7 +78,7 @@ extension type B(js_::JSObject /* erasure=dart._interceptors::JSObject */ a) imp
 }
 static extension-type-member synthetic method B|constructor#_#_#tearOff(js_::JSObject /* erasure=dart._interceptors::JSObject */ a) → self::B /* erasure=dart._interceptors::JSObject */
   return self::B|constructor#_(a);
-static extension-type-member method B|constructor#_(js_::JSObject /* erasure=dart._interceptors::JSObject */ a) → self::B /* erasure=dart._interceptors::JSObject */ {
+static extension-type-member method B|constructor#_(initializing-formal js_::JSObject /* erasure=dart._interceptors::JSObject */ a) → self::B /* erasure=dart._interceptors::JSObject */ {
   lowered final self::B /* erasure=dart._interceptors::JSObject */ #this = a;
   return #this;
 }

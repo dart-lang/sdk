@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field core::int? _foo;
-  constructor •({core::int? foo = null}) → self::C
+  constructor •({initializing-formal core::int? foo = null}) → self::C
     ;
 }
 static method main() → dynamic

@@ -254,7 +254,7 @@ class A<T extends core::Object? = dynamic> extends core::Object {
   field core::int? field16 = null;
   field core::int field17 = 0;
   field core::int? field18 = null;
-  constructor •(self::A::T% field10, self::A::T% field11, self::A::T% field12, self::A::T% field13, self::A::T% field14) → self::A<self::A::T%>
+  constructor •(initializing-formal self::A::T% field10, initializing-formal self::A::T% field11, initializing-formal self::A::T% field12, initializing-formal self::A::T% field13, initializing-formal self::A::T% field14) → self::A<self::A::T%>
     : self::A::field10 = field10, self::A::field11 = field11, self::A::field12 = field12, self::A::field13 = field13, self::A::field14 = field14, super core::Object::•()
     ;
 }
@@ -277,7 +277,7 @@ class B<T extends core::Object? = dynamic, S extends core::Object? = dynamic> ex
   field core::int field16 = 0;
   field core::String? field17 = null;
   field core::String field18 = "";
-  constructor •(self::B::T% field10, self::B::S% field11, self::B::T% field12, self::B::T% field13, self::B::S% field14) → self::B<self::B::T%, self::B::S%>
+  constructor •(initializing-formal self::B::T% field10, initializing-formal self::B::S% field11, initializing-formal self::B::T% field12, initializing-formal self::B::T% field13, initializing-formal self::B::S% field14) → self::B<self::B::T%, self::B::S%>
     : self::B::field10 = field10, self::B::field11 = field11, self::B::field12 = field12, self::B::field13 = field13, self::B::field14 = field14, super core::Object::•()
     ;
 }
@@ -300,7 +300,7 @@ class C extends core::Object implements self::A<core::int>, self::B<core::int, c
   field invalid-type field16;
   field invalid-type field17;
   field invalid-type field18;
-  constructor •(core::int field1, invalid-type field2, core::int field3, invalid-type field4, core::int? field5, invalid-type field6, core::int? field7, invalid-type field8, dynamic field9, core::int field10, invalid-type field11, core::int? field12, core::int field13, core::int? field14, invalid-type field15, invalid-type field16, invalid-type field17, invalid-type field18) → self::C
+  constructor •(initializing-formal core::int field1, initializing-formal invalid-type field2, initializing-formal core::int field3, initializing-formal invalid-type field4, initializing-formal core::int? field5, initializing-formal invalid-type field6, initializing-formal core::int? field7, initializing-formal invalid-type field8, initializing-formal dynamic field9, initializing-formal core::int field10, initializing-formal invalid-type field11, initializing-formal core::int? field12, initializing-formal core::int field13, initializing-formal core::int? field14, initializing-formal invalid-type field15, initializing-formal invalid-type field16, initializing-formal invalid-type field17, initializing-formal invalid-type field18) → self::C
     : self::C::field1 = field1, self::C::field2 = field2, self::C::field3 = field3, self::C::field4 = field4, self::C::field5 = field5, self::C::field6 = field6, self::C::field7 = field7, self::C::field8 = field8, self::C::field9 = field9, self::C::field10 = field10, self::C::field11 = field11, self::C::field12 = field12, self::C::field13 = field13, self::C::field14 = field14, self::C::field15 = field15, self::C::field16 = field16, self::C::field17 = field17, self::C::field18 = field18, super core::Object::•()
     ;
 }
@@ -325,7 +325,7 @@ class D<T extends core::Object? = dynamic> extends core::Object implements self:
   field invalid-type field16;
   field invalid-type field17;
   field invalid-type field18;
-  constructor •(core::int field1, invalid-type field2, core::int field3, invalid-type field4, core::int? field5, invalid-type field6, core::int? field7, invalid-type field8, dynamic field9, self::D::T% field10, self::D::T% field11, self::D::T% field12, self::D::T% field13, self::D::T% field14, invalid-type field15, invalid-type field16, invalid-type field17, invalid-type field18) → self::D<self::D::T%>
+  constructor •(initializing-formal core::int field1, initializing-formal invalid-type field2, initializing-formal core::int field3, initializing-formal invalid-type field4, initializing-formal core::int? field5, initializing-formal invalid-type field6, initializing-formal core::int? field7, initializing-formal invalid-type field8, initializing-formal dynamic field9, initializing-formal self::D::T% field10, initializing-formal self::D::T% field11, initializing-formal self::D::T% field12, initializing-formal self::D::T% field13, initializing-formal self::D::T% field14, initializing-formal invalid-type field15, initializing-formal invalid-type field16, initializing-formal invalid-type field17, initializing-formal invalid-type field18) → self::D<self::D::T%>
     : self::D::field1 = field1, self::D::field2 = field2, self::D::field3 = field3, self::D::field4 = field4, self::D::field5 = field5, self::D::field6 = field6, self::D::field7 = field7, self::D::field8 = field8, self::D::field9 = field9, self::D::field10 = field10, self::D::field11 = field11, self::D::field12 = field12, self::D::field13 = field13, self::D::field14 = field14, self::D::field15 = field15, self::D::field16 = field16, self::D::field17 = field17, self::D::field18 = field18, super core::Object::•()
     ;
 }

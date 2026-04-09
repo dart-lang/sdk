@@ -5,7 +5,7 @@
 import 'dart:io';
 
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ErrorToken, ScannerConfiguration, StringScanner;
+    show ErrorToken, StringScanner;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show BeginToken, SimpleToken, Token, TokenType;
 
@@ -353,15 +353,7 @@ List<ExtendedLines>? _extend(
 }
 
 Token _scan(String data) {
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-    forAugmentationLibrary: false,
-  );
-
-  StringScanner scanner = new StringScanner(
-    data,
-    configuration: scannerConfiguration,
-  );
+  StringScanner scanner = new StringScanner(data);
   Token firstToken = scanner.tokenize();
   return firstToken;
 }

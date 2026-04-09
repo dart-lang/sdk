@@ -39,7 +39,7 @@ extension type SomeExtensionType(core::int foo) {
 
 [@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(i)->i]
-static extension-type-member method IC2|constructor#([@vm.inferred-arg-type.metadata=int] core::int id) → self::IC2% /* erasure=core::int, declared=! */ {
+static extension-type-member method IC2|constructor#([@vm.inferred-arg-type.metadata=int] initializing-formal core::int id) → self::IC2% /* erasure=core::int, declared=! */ {
   lowered final self::IC2% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
@@ -56,7 +56,7 @@ static extension-type-member method IC2|bar1() → self::IC2% /* erasure=core::i
 
 [@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(i)->i]
-static extension-type-member method SomeExtensionType|constructor#([@vm.inferred-arg-type.metadata=int] core::int foo) → self::SomeExtensionType% /* erasure=core::int, declared=! */ {
+static extension-type-member method SomeExtensionType|constructor#([@vm.inferred-arg-type.metadata=int] initializing-formal core::int foo) → self::SomeExtensionType% /* erasure=core::int, declared=! */ {
   lowered final self::SomeExtensionType% /* erasure=core::int, declared=! */ #this = foo;
   return #this;
 }

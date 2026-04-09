@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///main_lib.dart";
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field mai::B b;
-  const constructor •({required mai::B b}) → self::A
+  const constructor •({required initializing-formal mai::B b}) → self::A
     : self::A::b = b, super core::Object::•()
     ;
 }
@@ -19,7 +19,7 @@ import "dart:core" as core;
 
 class B extends core::Object /*hasConstConstructor*/  {
   final field mai::C c;
-  const constructor •({required mai::C c}) → mai::B
+  const constructor •({required initializing-formal mai::C c}) → mai::B
     : mai::B::c = c, super core::Object::•()
     ;
   static factory redirect({required mai::C c}) → mai::B /* redirection-target: mai::B::• */

@@ -29,7 +29,7 @@ static extension-member method _extension#0|get#setter(lowered final core::Objec
   ;
 static extension-member method _extension#0|set#getter(lowered final core::Object #this, core::int value) → void
   ;
-static extension-type-member method InlineClass|constructor#(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
+static extension-type-member method InlineClass|constructor#(initializing-formal core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method InlineClass|constructor#_#new#tearOff(core::int it) → self::InlineClass% /* erasure=core::int, declared=! */
   return self::InlineClass|constructor#(it);

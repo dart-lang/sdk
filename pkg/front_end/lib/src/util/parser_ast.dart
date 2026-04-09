@@ -5,7 +5,6 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/experiments/flags.dart';
 import 'package:_fe_analyzer_shared/src/messages/codes.dart';
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
@@ -33,11 +32,8 @@ CompilationUnitEnd getAST(
   List<Token>? languageVersionsSeen,
   List<int>? lineStarts,
 }) {
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: experimentalFeatures.isExperimentEnabled(
-      ExperimentalFlag.tripleShift,
-    ),
-  );
+  ScannerConfiguration scannerConfiguration = experimentalFeatures
+      .buildScannerConfiguration();
 
   ScannerResult scanResult = scan(
     rawBytes,

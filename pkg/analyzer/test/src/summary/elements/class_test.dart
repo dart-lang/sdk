@@ -10869,6 +10869,77 @@ library
 ''');
   }
 
+  test_class_field_static_typeParameter() async {
+    var library = await buildLibrary('''
+class A<T> {
+  static T? foo;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          fields
+            #F3 isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:25) (offset:25)
+              element: <testLibrary>::@class::A::@field::foo
+          constructors
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          getters
+            #F5 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@getter::foo
+          setters
+            #F6 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+              element: <testLibrary>::@class::A::@setter::foo
+              formalParameters
+                #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+                  element: <testLibrary>::@class::A::@setter::foo::@formalParameter::value
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      fields
+        static isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@field::foo
+          firstFragment: #F3
+          type: InvalidType
+          getter: <testLibrary>::@class::A::@getter::foo
+          setter: <testLibrary>::@class::A::@setter::foo
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F4
+      getters
+        static isOriginVariable foo
+          reference: <testLibrary>::@class::A::@getter::foo
+          firstFragment: #F5
+          returnType: InvalidType
+          variable: <testLibrary>::@class::A::@field::foo
+      setters
+        static isOriginVariable foo
+          reference: <testLibrary>::@class::A::@setter::foo
+          firstFragment: #F6
+          formalParameters
+            #E1 requiredPositional value
+              firstFragment: #F7
+              type: InvalidType
+          returnType: void
+          variable: <testLibrary>::@class::A::@field::foo
+''');
+  }
+
   test_class_field_type_explicit() async {
     var library = await buildLibrary(r'''
 class C {
@@ -13956,6 +14027,50 @@ library
           reference: <testLibrary>::@class::C::@method::f
           firstFragment: #F3
           returnType: dynamic
+''');
+  }
+
+  test_class_method_static_typeParameter() async {
+    var library = await buildLibrary('''
+class A<T> {
+  static T? foo() => null;
+}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          typeParameters
+            #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+          constructors
+            #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: <testLibrary>::@class::A::@constructor::new
+              typeName: A
+          methods
+            #F4 isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:15) (offset:25)
+              element: <testLibrary>::@class::A::@method::foo
+  classes
+    class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F2
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::A::@constructor::new
+          firstFragment: #F3
+      methods
+        static isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F4
+          returnType: InvalidType
 ''');
   }
 

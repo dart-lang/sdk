@@ -7,7 +7,7 @@ import "org-dartlang-testcase:///synthesized_super_constructor_with_parameters_l
 
 class A1 extends core::Object {
   final field core::int a;
-  constructor •(core::int a) → self::A1
+  constructor •(initializing-formal core::int a) → self::A1
     ;
 }
 abstract class B1 extends core::Object /*isMixinDeclaration*/  {
@@ -18,12 +18,12 @@ class C1 = self::A1 with self::B1 {
     ;
 }
 class D1 extends self::C1 {
-  constructor •(core::int a) → self::D1
+  constructor •(super-initializing-formal core::int a) → self::D1
     ;
 }
 class A2 extends core::Object {
   final field core::int a;
-  constructor •({core::int a = 0}) → self::A2
+  constructor •({initializing-formal core::int a = 0}) → self::A2
     ;
 }
 abstract class B2 extends core::Object /*isMixinDeclaration*/  {
@@ -34,12 +34,12 @@ class C2 = self::A2 with self::B2 {
     ;
 }
 class D2 extends self::C2 {
-  constructor •({core::int a = 0}) → self::D2
+  constructor •({super-initializing-formal core::int a = 0}) → self::D2
     ;
 }
 class A3 extends core::Object {
   final field core::int a;
-  constructor •([core::int a = 0]) → self::A3
+  constructor •([initializing-formal core::int a = 0]) → self::A3
     ;
 }
 abstract class B3 extends core::Object /*isMixinDeclaration*/  {
@@ -50,11 +50,11 @@ class C3 = self::A3 with self::B3 {
     ;
 }
 class D3 extends self::C3 {
-  constructor •([core::int a = 0]) → self::D3
+  constructor •([super-initializing-formal core::int a = 0]) → self::D3
     ;
 }
 class D4 extends self::C4 {
-  constructor •([core::int foo = 42]) → self::D4
+  constructor •([super-initializing-formal core::int foo = 42]) → self::D4
     ;
 }
 class C4 = self::A4 with self::B4 {
@@ -65,16 +65,16 @@ class C4 = self::A4 with self::B4 {
 abstract class B4 extends core::Object /*isMixinDeclaration*/  {
 }
 class A4 extends self::AA4 {
-  constructor •([core::int foo = 42]) → self::A4
+  constructor •([super-initializing-formal core::int foo = 42]) → self::A4
     ;
 }
 class AA4 extends core::Object {
   final field core::int foo;
-  constructor •([core::int foo = 42]) → self::AA4
+  constructor •([initializing-formal core::int foo = 42]) → self::AA4
     ;
 }
 class D5 extends self::C5c {
-  constructor •([core::int foo = 42]) → self::D5
+  constructor •([super-initializing-formal core::int foo = 42]) → self::D5
     ;
 }
 class C5c = self::C5b with self::B5 {
@@ -95,16 +95,16 @@ class C5a = self::A5 with self::B5 {
 abstract class B5 extends core::Object /*isMixinDeclaration*/  {
 }
 class A5 extends self::AA5 {
-  constructor •([core::int foo = 42]) → self::A5
+  constructor •([super-initializing-formal core::int foo = 42]) → self::A5
     ;
 }
 class AA5 extends core::Object {
   final field core::int foo;
-  constructor •([core::int foo = 42]) → self::AA5
+  constructor •([initializing-formal core::int foo = 42]) → self::AA5
     ;
 }
 class D6 extends syn::C6 {
-  constructor •({core::int a = 0}) → self::D6
+  constructor •({super-initializing-formal core::int a = 0}) → self::D6
     ;
 }
 abstract class B7 extends core::Object /*isMixinDeclaration*/  {
@@ -115,11 +115,11 @@ class C7 = syn::A7 with self::B7 {
     ;
 }
 class D7 extends self::C7 {
-  constructor •([core::int a = 0]) → self::D7
+  constructor •([super-initializing-formal core::int a = 0]) → self::D7
     ;
 }
 class D8 extends syn::C8 {
-  constructor •({core::int? a = null}) → self::D8
+  constructor •({super-initializing-formal core::int? a = null}) → self::D8
     ;
 }
 abstract class B9 extends core::Object /*isMixinDeclaration*/  {
@@ -130,7 +130,7 @@ class C9 = syn::A9 with self::B9 {
     ;
 }
 class D9 extends self::C9 {
-  constructor •([core::int? a = null]) → self::D9
+  constructor •([super-initializing-formal core::int? a = null]) → self::D9
     ;
 }
 static method main() → dynamic
@@ -142,7 +142,7 @@ import "dart:core" as core;
 
 class A6 extends core::Object {
   final field core::int a;
-  constructor •({core::int a = 0}) → syn::A6
+  constructor •({initializing-formal core::int a = 0}) → syn::A6
     ;
 }
 abstract class B6 extends core::Object /*isMixinDeclaration*/  {
@@ -154,12 +154,12 @@ class C6 = syn::A6 with syn::B6 {
 }
 class A7 extends core::Object {
   final field core::int a;
-  constructor •([core::int a = 0]) → syn::A7
+  constructor •([initializing-formal core::int a = 0]) → syn::A7
     ;
 }
 class A8 extends core::Object {
   final field core::int? a;
-  constructor •({core::int? a = null}) → syn::A8
+  constructor •({initializing-formal core::int? a = null}) → syn::A8
     ;
 }
 abstract class B8 extends core::Object /*isMixinDeclaration*/  {
@@ -171,6 +171,6 @@ class C8 = syn::A8 with syn::B8 {
 }
 class A9 extends core::Object {
   final field core::int? a;
-  constructor •([core::int? a = null]) → syn::A9
+  constructor •([initializing-formal core::int? a = null]) → syn::A9
     ;
 }

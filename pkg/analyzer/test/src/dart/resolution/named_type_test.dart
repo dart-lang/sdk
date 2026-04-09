@@ -262,7 +262,7 @@ NamedType
         type: int
     rightBracket: >
   element: #E0 T
-  type: T
+  type: InvalidType
 ''');
   }
 

@@ -42,7 +42,7 @@ extension type Foo(dynamic d) {
   constructor • = self::Foo|constructor#;
   constructor tearoff • = self::Foo|constructor#_#new#tearOff;
 }
-static extension-type-member method Foo|constructor#(dynamic d) → self::Foo% /* erasure=dynamic, declared=! */ {
+static extension-type-member method Foo|constructor#(initializing-formal dynamic d) → self::Foo% /* erasure=dynamic, declared=! */ {
   lowered final self::Foo% /* erasure=dynamic, declared=! */ #this = d;
   return #this;
 }

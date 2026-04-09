@@ -10,7 +10,7 @@ abstract class A extends core::Object {
 }
 class B<T extends core::Object? = dynamic> extends self::A {
   final field core::double foo;
-  constructor •({core::double foo = 10.0}) → self::B<self::B::T%>
+  constructor •({initializing-formal core::double foo = 10.0}) → self::B<self::B::T%>
     ;
 }
 static method main() → void

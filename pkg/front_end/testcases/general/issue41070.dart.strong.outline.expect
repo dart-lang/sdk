@@ -6,7 +6,7 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
 }
 class Base extends core::Object /*hasConstConstructor*/  {
   final field core::int x;
-  const constructor •(core::int x) → self::Base
+  const constructor •(initializing-formal core::int x) → self::Base
     : self::Base::x = x, super core::Object::•()
     ;
 }

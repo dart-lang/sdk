@@ -8,7 +8,7 @@ import 'package:_fe_analyzer_shared/src/parser/forwarding_listener.dart'
     show ForwardingListener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart' show Parser;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
-    show ScannerConfiguration, StringScanner;
+    show StringScanner;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 
 void main(List<String> args) {
@@ -18,14 +18,9 @@ void main(List<String> args) {
 }
 """;
 
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-    enableTripleShift: true,
-  );
-
   StringScanner scanner = new StringScanner(
     source,
     includeComments: true,
-    configuration: scannerConfiguration,
     languageVersionChanged: (scanner, languageVersion) {
       // For now don't do anything, but having it (making it non-null) means the
       // configuration won't be reset.
