@@ -39,4 +39,29 @@ f() {
 }
 ''');
   }
+
+  Future<void> test_primaryConstructor_patternAssignment() async {
+    await resolveTestCode('''
+class C(int x) {
+  this {
+    var a = 0;
+    var b = 0;
+    //ignore: unused_local_variable
+    (var a, b) = (x, 2);
+    print((a, b));
+  }
+}
+''');
+    await assertHasFix('''
+class C(int x) {
+  this {
+    var a = 0;
+    var b = 0;
+    //ignore: unused_local_variable
+    (a, b) = (x, 2);
+    print((a, b));
+  }
+}
+''');
+  }
 }
