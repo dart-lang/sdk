@@ -169,6 +169,15 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
     }
 
     switch (node) {
+      case Block block:
+        if (block.parent case FunctionBody body) {
+          if (body.parent case PrimaryConstructorBody parentBody) {
+            if (parentBody.declaration?.constKeyword case var constKeyword?) {
+              await _deleteConstKeyword(builder, constKeyword);
+            }
+          }
+        }
+        return;
       case ClassDeclaration declaration:
         var first = declaration.firstTokenAfterCommentAndMetadata;
         if (first.previous case var constKeyword?) {
@@ -179,8 +188,12 @@ abstract class _RemoveConst extends ParsedCorrectionProducer {
         await _deleteRangeFromError(builder);
         return;
       case ConstructorDeclaration declaration:
-        var constKeyword = declaration.constKeyword;
-        if (constKeyword != null) {
+        if (declaration.constKeyword case var constKeyword?) {
+          await _deleteConstKeyword(builder, constKeyword);
+        }
+        return;
+      case PrimaryConstructorDeclaration declaration:
+        if (declaration.constKeyword case var constKeyword?) {
           await _deleteConstKeyword(builder, constKeyword);
         }
         return;

@@ -442,9 +442,15 @@ const_constructor_with_mixin_with_fields:
 const_constructor_with_non_const_super:
   status: noFix
 const_constructor_with_non_final_field:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Currently supported via `RemoveConst`.
+    Another fix to consider is making the non-final fields `final`.
 const_primary_constructor_with_block_body:
-  status: needsEvaluation
+  status: hasFix
+  notes: |-
+    Currently supported via `RemoveConst`.
+    Another fix to consider is removing the block body entirely.
 const_primary_constructor_with_expression_body:
   status: needsEvaluation
 const_deferred_class:
