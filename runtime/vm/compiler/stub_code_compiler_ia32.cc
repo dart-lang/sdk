@@ -173,13 +173,6 @@ void StubCodeCompiler::GenerateExitSafepointStub() {
   __ ret();
 }
 
-void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
-                                            Register dst,
-                                            Register tmp) {
-  // Only used in AOT.
-  __ Breakpoint();
-}
-
 // Calls a native function inside a safepoint.
 //
 // On entry:

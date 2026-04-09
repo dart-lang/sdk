@@ -59,20 +59,7 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
 
   offset_of_first_trampoline_in_page_ = code_start - page_start;
 
-#if defined(DART_TARGET_OS_FUCHSIA)
-  // On Fuchsia we can't currently duplicate pages, so use the first page of
-  // trampolines. Store the stub page's metadata in a separately allocated RW
-  // page.
-  // TODO(https://dartbug.com/52579): Remove.
-  original_metadata_page_ = VirtualMemory::AllocateAligned(
-      MappingSize(), MappingAlignment(), /*is_executable=*/false,
-      /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
-  MetadataEntry* metadata_entry = reinterpret_cast<MetadataEntry*>(
-      original_metadata_page_->start() + MetadataOffset());
-  for (intptr_t i = 0; i < NumCallbackTrampolinesPerPage(); ++i) {
-    AddToFreeListLocked(&metadata_entry[i]);
-  }
-#elif defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
   if (FLAG_use_simulator) {
     original_metadata_page_ = VirtualMemory::AllocateAligned(
         MappingSize(), MappingAlignment(), /*is_executable=*/false,
@@ -93,8 +80,7 @@ FfiCallbackMetadata::~FfiCallbackMetadata() {
     delete trampoline_pages_[i];
   }
 
-#if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
-    (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
   // TODO(https://dartbug.com/52579): Remove.
   delete original_metadata_page_;
 #endif  // defined(DART_TARGET_OS_FUCHSIA)
@@ -131,11 +117,6 @@ void FfiCallbackMetadata::FillRuntimeFunction(VirtualMemory* page,
 }
 
 VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
-#if defined(DART_TARGET_OS_FUCHSIA)
-  // TODO(https://dartbug.com/52579): Remove.
-  UNREACHABLE();
-  return nullptr;
-#else
 #if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
   if (FLAG_use_simulator) {
     UNREACHABLE();
@@ -156,6 +137,9 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   // codesigning violation if hardened runtime is enabled or we will simply
   // not be able to execute trampoline code.
   const bool is_executable = !should_remap_stub_page;
+#elif defined(DART_HOST_OS_FUCHSIA)
+  // The initial allocation needs to be marked executable.
+  const bool is_executable = true;
 #else
   // On other operating systems we can simply flip RW->RX as necessary.
   const bool is_executable = false;
@@ -210,7 +194,6 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
 #endif
 
   return new_page;
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
 }
 
 void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
@@ -441,9 +424,6 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadataEntry(
     return start + offset_of_first_trampoline_in_page_ +
            index * kNativeCallbackTrampolineSize;
   }
-#elif defined(DART_TARGET_OS_FUCHSIA)
-  return StubCode::FfiCallbackTrampoline().EntryPoint() +
-         index * kNativeCallbackTrampolineSize;
 #else
   return start + offset_of_first_trampoline_in_page_ +
          index * kNativeCallbackTrampolineSize;
@@ -452,20 +432,7 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadataEntry(
 
 FfiCallbackMetadata::MetadataEntry*
 FfiCallbackMetadata::MetadataEntryOfTrampoline(Trampoline trampoline) const {
-#if defined(DART_TARGET_OS_FUCHSIA)
-  // On Fuchsia the metadata page is separate to the trampoline page.
-  // TODO(https://dartbug.com/52579): Remove.
-  const uword page_start =
-      Utils::RoundDown(trampoline - offset_of_first_trampoline_in_page_,
-                       VirtualMemory::PageSize());
-  const uword index =
-      (trampoline - offset_of_first_trampoline_in_page_ - page_start) /
-      kNativeCallbackTrampolineSize;
-  ASSERT(index < NumCallbackTrampolinesPerPage());
-  MetadataEntry* metadata_etnry_table = reinterpret_cast<MetadataEntry*>(
-      original_metadata_page_->start() + MetadataOffset());
-  return metadata_etnry_table + index;
-#elif defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
   if (FLAG_use_simulator) {
     const uword page_start =
         Utils::RoundDown(trampoline - offset_of_first_trampoline_in_page_,
