@@ -27,8 +27,9 @@ void validateDynamicModule(
   CoreTypes coreTypes,
   ClassHierarchy hierarchy,
   List<Library> libraries,
-  SourceLoader loader,
-) {
+  SourceLoader loader, {
+  bool allowDynamicCallsInDynamicModules = false,
+}) {
   final DynamicInterfaceSpecification spec = new DynamicInterfaceSpecification(
     dynamicInterfaceSpecification,
     dynamicInterfaceSpecificationUri,
@@ -42,6 +43,7 @@ void validateDynamicModule(
     new Set.of(libraries),
     hierarchy,
     loader,
+    allowDynamicCallsInDynamicModules: allowDynamicCallsInDynamicModules,
   );
   for (Library library in libraries) {
     library.accept(validator);
@@ -446,6 +448,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   final Set<Library> moduleLibraries;
   final ClassHierarchy hierarchy;
   final SourceLoader loader;
+  final bool allowDynamicCallsInDynamicModules;
   final Set<Constant> _visitedConstants = new Set<Constant>.identity();
 
   TreeNode? _enclosingTreeNode;
@@ -455,8 +458,9 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     this.languageImplPragmas,
     this.moduleLibraries,
     this.hierarchy,
-    this.loader,
-  ) {
+    this.loader, {
+    this.allowDynamicCallsInDynamicModules = false,
+  }) {
     _expandNodes(spec.callable);
     _expandNodes(spec.extendable);
     _expandNodes(spec.canBeOverridden);

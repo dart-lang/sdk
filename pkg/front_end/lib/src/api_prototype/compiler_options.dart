@@ -91,6 +91,9 @@ class CompilerOptions {
   /// restrictions.
   Uri? dynamicInterfaceSpecificationUri;
 
+  /// Whether to allow dynamic calls in dynamic modules.
+  bool allowDynamicCallsInDynamicModules = false;
+
   /// The declared variables for use by configurable imports and constant
   /// evaluation.
   Map<String, String>? declaredVariables;

@@ -1814,6 +1814,8 @@ class KernelTarget {
           loader.hierarchy,
           loader.libraries,
           loader,
+          allowDynamicCallsInDynamicModules:
+              _options.allowDynamicCallsInDynamicModules,
         );
       }
     }

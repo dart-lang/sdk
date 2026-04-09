@@ -133,6 +133,9 @@ class ProcessedOptions {
   Uri? get dynamicInterfaceSpecificationUri =>
       _raw.dynamicInterfaceSpecificationUri;
 
+  bool get allowDynamicCallsInDynamicModules =>
+      _raw.allowDynamicCallsInDynamicModules;
+
   String? _dynamicInterfaceSpecificationContents;
   bool _triedLoadingDynamicInterfaceSpecification = false;
 
