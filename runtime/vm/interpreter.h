@@ -243,8 +243,6 @@ class Interpreter {
                        ObjectPtr* FP,
                        ObjectPtr* SP);
   bool AllocateClosure(Thread* thread,
-                       FunctionPtr function,
-                       SmiPtr length_and_flags,
                        const KBCInstr* pc,
                        ObjectPtr* FP,
                        ObjectPtr* SP);

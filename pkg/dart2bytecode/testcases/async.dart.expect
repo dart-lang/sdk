@@ -9,53 +9,52 @@ Class '', script = 'DART_SDK/pkg/dart2bytecode/testcases/async.dart'
 Field 'asyncInFieldInitializer', type = FunctionType (dart:async::Future < dart:core::int >) -> dart:async::Future < Null >, getter = 'get:asyncInFieldInitializer', reflectable, static, is-late, has-initializer
     initializer
 Bytecode {
-  Entry                3
+  Entry                2
   CheckStack           0
-  AllocateClosure      CP#15
-  StoreLocal           r2
-  Push                 r2
+  PushConstant         CP#0
   Push                 r0
-  StoreClosureElement  0
+  PushNull
+  AllocateClosure
   ReturnTOS
 }
 ConstantPool {
   [0] = ClosureFunction 0
-  [1] = Type dart:async::Future < dart:core::int >
-  [2] = ObjectRef 'x'
-  [3] = SubtypeTestCache
-  [4] = ObjectRef < Null >
-  [5] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
-  [6] = Reserved
-  [7] = Type dynamic
-  [8] = DirectCall 'dart:async::_SuspendState::_await', ArgDesc num-args 2, num-type-args 0, names []
-  [9] = Reserved
-  [10] = DirectCall 'dart:async::_SuspendState::_returnAsync', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = Type dart:async::Future < dart:core::int >
+  [4] = ObjectRef 'x'
+  [5] = SubtypeTestCache
+  [6] = ObjectRef < Null >
+  [7] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [8] = Reserved
+  [9] = Type dynamic
+  [10] = DirectCall 'dart:async::_SuspendState::_await', ArgDesc num-args 2, num-type-args 0, names []
   [11] = Reserved
-  [12] = DirectCall 'dart:async::_SuspendState::_handleException', ArgDesc num-args 3, num-type-args 0, names []
+  [12] = DirectCall 'dart:async::_SuspendState::_returnAsync', ArgDesc num-args 2, num-type-args 0, names []
   [13] = Reserved
-  [14] = EndClosureFunctionScope
-  [15] = AllocateClosure 0, num-elements: 1, flags: 0
-  [16] = Reserved
+  [14] = DirectCall 'dart:async::_SuspendState::_handleException', ArgDesc num-args 3, num-type-args 0, names []
+  [15] = Reserved
+  [16] = EndClosureFunctionScope
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/async.dart::asyncInFieldInitializer (field)::'<anonymous closure>' async (dart:async::Future < dart:core::int > x) -> dart:async::Future < Null >
 ClosureCode {
   EntrySuspendable     2, 0, 0
   Frame                5
   Push                 r1
-  LoadClosureElement   0
+  LoadFieldTOS         CP#1
   PopLocal             r3
   CheckStack           0
   JumpIfUnchecked      L1
   Push                 r2
-  PushConstant         CP#1
+  PushConstant         CP#3
   PushNull
   PushNull
-  PushConstant         CP#2
-  AssertAssignable     0, CP#3
+  PushConstant         CP#4
+  AssertAssignable     0, CP#5
   Drop1
 L1:
-  PushConstant         CP#4
-  DirectCall           CP#5, 1
+  PushConstant         CP#6
+  DirectCall           CP#7, 1
   PopLocal             r0
 Try #0 start:
   Push                 r2
@@ -63,7 +62,7 @@ Try #0 start:
   Suspend              L2
   Push                 r0
   Push                 r6
-  DirectCall           CP#8, 2
+  DirectCall           CP#10, 2
   ReturnTOS
 L2:
   Drop1
@@ -73,7 +72,7 @@ L2:
   Push                 r5
   PushNull
   PopLocal             r0
-  DirectCall           CP#10, 2
+  DirectCall           CP#12, 2
   ReturnTOS
 Try #0 end:
 Try #0 handler:
@@ -85,7 +84,7 @@ Try #0 handler:
   Push                 r0
   MoveSpecial          stackTrace, r0
   Push                 r0
-  DirectCall           CP#12, 3
+  DirectCall           CP#14, 3
   ReturnTOS
 L3:
   MoveSpecial          exception, r0
@@ -530,7 +529,7 @@ Function 'closure', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                4
+  Entry                3
   CheckStack           0
   AllocateContext      0, 2
   PopLocal             r0
@@ -540,44 +539,43 @@ Bytecode {
   Push                 r0
   PushInt              3
   StoreContextVar      0, 1
-  AllocateClosure      CP#15
-  StoreLocal           r3
-  Push                 r3
+  PushConstant         CP#0
   Push                 r0
-  StoreClosureElement  0
+  PushNull
+  AllocateClosure
   PopLocal             r2
   Push                 r2
   ReturnTOS
 }
 ConstantPool {
   [0] = ClosureFunction 0
-  [1] = ObjectRef < dart:core::int >
-  [2] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
-  [3] = Reserved
-  [4] = Type dynamic
-  [5] = DirectCall 'dart:async::_SuspendState::_await', ArgDesc num-args 2, num-type-args 0, names []
-  [6] = Reserved
-  [7] = ObjectRef 'fin'
-  [8] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [9] = Reserved
-  [10] = DirectCall 'dart:async::_SuspendState::_returnAsync', ArgDesc num-args 2, num-type-args 0, names []
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ObjectRef < dart:core::int >
+  [4] = DirectCall 'dart:async::_SuspendState::_initAsync', ArgDesc num-args 0, num-type-args 1, names []
+  [5] = Reserved
+  [6] = Type dynamic
+  [7] = DirectCall 'dart:async::_SuspendState::_await', ArgDesc num-args 2, num-type-args 0, names []
+  [8] = Reserved
+  [9] = ObjectRef 'fin'
+  [10] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [11] = Reserved
-  [12] = DirectCall 'dart:async::_SuspendState::_handleException', ArgDesc num-args 3, num-type-args 0, names []
+  [12] = DirectCall 'dart:async::_SuspendState::_returnAsync', ArgDesc num-args 2, num-type-args 0, names []
   [13] = Reserved
-  [14] = EndClosureFunctionScope
-  [15] = AllocateClosure 0, num-elements: 1, flags: 0
-  [16] = Reserved
+  [14] = DirectCall 'dart:async::_SuspendState::_handleException', ArgDesc num-args 3, num-type-args 0, names []
+  [15] = Reserved
+  [16] = EndClosureFunctionScope
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/async.dart::closure::'nested' async () -> dart:async::Future < dart:core::int >
 ClosureCode {
   EntrySuspendable     1, 0, 0
   Frame                8
   Push                 r1
-  LoadClosureElement   0
+  LoadFieldTOS         CP#1
   PopLocal             r2
   CheckStack           0
-  PushConstant         CP#1
-  DirectCall           CP#2, 1
+  PushConstant         CP#3
+  DirectCall           CP#4, 1
   PopLocal             r0
 Try #0 start:
   PushInt              4
@@ -594,7 +592,7 @@ Try #1 start:
   Suspend              L1
   Push                 r0
   Push                 r8
-  DirectCall           CP#5, 2
+  DirectCall           CP#7, 2
   ReturnTOS
 L1:
   PopLocal             r5
@@ -611,8 +609,8 @@ Try #1 handler:
   PopLocal             r2
   MoveSpecial          exception, r6
   MoveSpecial          stackTrace, r7
-  PushConstant         CP#7
-  DirectCall           CP#8, 1
+  PushConstant         CP#9
+  DirectCall           CP#10, 1
   Drop1
   Push                 r6
   Push                 r7
@@ -620,8 +618,8 @@ Try #1 handler:
 L2:
   Push                 r6
   PopLocal             r2
-  PushConstant         CP#7
-  DirectCall           CP#8, 1
+  PushConstant         CP#9
+  DirectCall           CP#10, 1
   Drop1
   Push                 r4
   PopLocal             r4
@@ -629,7 +627,7 @@ L2:
   Push                 r4
   PushNull
   PopLocal             r0
-  DirectCall           CP#10, 2
+  DirectCall           CP#12, 2
   ReturnTOS
 Try #0 end:
 Try #0 handler:
@@ -641,7 +639,7 @@ Try #0 handler:
   Push                 r0
   MoveSpecial          stackTrace, r0
   Push                 r0
-  DirectCall           CP#12, 3
+  DirectCall           CP#14, 3
   ReturnTOS
 L3:
   MoveSpecial          exception, r0

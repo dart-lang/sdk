@@ -574,7 +574,6 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kExternalCall,
     kFfiCall,
     kDeferredLibraryPrefix,
-    kAllocateClosure,
   };
 
   Object& obj = Object::Handle(Z);
@@ -766,32 +765,6 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
           enclosing_library.AddObject(LibraryPrefix::Cast(obj), name);
         }
         ASSERT(LibraryPrefix::Cast(obj).GetLibrary(0) == target_library.ptr());
-      } break;
-      case ConstantPoolTag::kAllocateClosure: {
-        const intptr_t closure_index = reader_.ReadUInt();
-        const intptr_t num_elements = reader_.ReadUInt();
-        const intptr_t flags = reader_.ReadUInt();
-        // AllocateClosure flags, must be in sync with ConstantAllocateClosure
-        // constants in pkg/dart2bytecode/lib/constant_pool.dart.
-        const intptr_t kHasDelayedTypeArguments = 1 << 0;
-        const intptr_t kHasInstantiatorTypeArguments = 1 << 1;
-        const intptr_t kHasFunctionTypeArguments = 1 << 2;
-        // AllocateClosure constant occupies 2 entries:
-        // function and length_and_flags.
-        obj = closures_->At(closure_index);
-        ASSERT(obj.IsFunction());
-        // Set current entry.
-        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
-                       ObjectPool::Patchability::kNotPatchable,
-                       ObjectPool::SnapshotBehavior::kNotSnapshotable);
-        pool.SetObjectAt(i, obj);
-        ++i;
-        ASSERT(i < obj_count);
-        // The second entry is used for encoded length and flags.
-        obj = Smi::New(UntaggedClosure::EncodeLengthAndFlags(
-            (flags & kHasDelayedTypeArguments) != 0,
-            (flags & kHasInstantiatorTypeArguments) != 0,
-            (flags & kHasFunctionTypeArguments) != 0, num_elements));
       } break;
       default:
         UNREACHABLE();

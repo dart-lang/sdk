@@ -250,10 +250,10 @@ class ObjectPointerVisitor;
   RW(Code, allocate_float32x4_array_stub)                                      \
   RW(Code, allocate_int32x4_array_stub)                                        \
   RW(Code, allocate_float64x2_array_stub)                                      \
-  RW(Code, allocate_closure1_stub)                                             \
-  RW(Code, allocate_closure2_stub)                                             \
-  RW(Code, allocate_closure3_stub)                                             \
-  RW(Code, allocate_closure4_stub)                                             \
+  RW(Code, allocate_closure_stub)                                              \
+  RW(Code, allocate_closure_generic_stub)                                      \
+  RW(Code, allocate_closure_ta_stub)                                           \
+  RW(Code, allocate_closure_ta_generic_stub)                                   \
   RW(Code, allocate_context_stub)                                              \
   RW(Code, allocate_growable_array_stub)                                       \
   RW(Code, allocate_object_stub)                                               \
@@ -358,10 +358,10 @@ class ObjectPointerVisitor;
   DO(allocate_float32x4_array_stub, AllocateFloat32x4Array)                    \
   DO(allocate_int32x4_array_stub, AllocateInt32x4Array)                        \
   DO(allocate_float64x2_array_stub, AllocateFloat64x2Array)                    \
-  DO(allocate_closure1_stub, AllocateClosure1)                                 \
-  DO(allocate_closure2_stub, AllocateClosure2)                                 \
-  DO(allocate_closure3_stub, AllocateClosure3)                                 \
-  DO(allocate_closure4_stub, AllocateClosure4)                                 \
+  DO(allocate_closure_stub, AllocateClosure)                                   \
+  DO(allocate_closure_generic_stub, AllocateClosureGeneric)                    \
+  DO(allocate_closure_ta_stub, AllocateClosureTA)                              \
+  DO(allocate_closure_ta_generic_stub, AllocateClosureTAGeneric)               \
   DO(allocate_context_stub, AllocateContext)                                   \
   DO(allocate_growable_array_stub, AllocateGrowableArray)                      \
   DO(allocate_object_stub, AllocateObject)                                     \

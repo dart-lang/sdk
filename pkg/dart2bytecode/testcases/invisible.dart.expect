@@ -72,44 +72,43 @@ Bytecode {
   Push                 r0
   Push                 FP[-5]
   StoreContextVar      0, 0
-  AllocateClosure      CP#6
-  StoreLocal           r3
-  Push                 r3
+  PushConstant         CP#0
   Push                 r0
-  StoreClosureElement  0
+  PushNull
+  AllocateClosure
   PopLocal             r2
   Push                 r2
   Push                 r2
-  UncheckedClosureCall CP#4, 1
+  UncheckedClosureCall CP#6, 1
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = ClosureFunction 0
-  [1] = ObjectRef 'visibleInner'
-  [2] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [3] = Reserved
-  [4] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [5] = EndClosureFunctionScope
-  [6] = AllocateClosure 0, num-elements: 1, flags: 0
-  [7] = Reserved
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ObjectRef 'visibleInner'
+  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [7] = EndClosureFunctionScope
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/invisible.dart::visibleClosure::'visibleInner' () -> Null
 ClosureCode {
   Entry                3
   Push                 FP[-5]
-  LoadClosureElement   0
+  LoadFieldTOS         CP#1
   PopLocal             r0
   CheckStack           0
-  PushConstant         CP#1
-  DirectCall           CP#2, 1
+  PushConstant         CP#3
+  DirectCall           CP#4, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 0
   StoreLocal           r2
   Push                 r2
-  UncheckedClosureCall CP#4, 1
+  UncheckedClosureCall CP#6, 1
   Drop1
   PushNull
   ReturnTOS
@@ -128,45 +127,44 @@ Bytecode {
   Push                 r0
   Push                 FP[-5]
   StoreContextVar      0, 0
-  AllocateClosure      CP#6
-  StoreLocal           r3
-  Push                 r3
+  PushConstant         CP#0
   Push                 r0
-  StoreClosureElement  0
+  PushNull
+  AllocateClosure
   PopLocal             r2
   Push                 r2
   Push                 r2
-  UncheckedClosureCall CP#4, 1
+  UncheckedClosureCall CP#6, 1
   Drop1
   PushNull
   ReturnTOS
 }
 ConstantPool {
   [0] = ClosureFunction 0
-  [1] = ObjectRef 'invisibleInner'
-  [2] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [3] = Reserved
-  [4] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
-  [5] = EndClosureFunctionScope
-  [6] = AllocateClosure 0, num-elements: 1, flags: 0
-  [7] = Reserved
+  [1] = InstanceField dart:core::_Closure::_context (field)
+  [2] = Reserved
+  [3] = ObjectRef 'invisibleInner'
+  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [5] = Reserved
+  [6] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
+  [7] = EndClosureFunctionScope
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/invisible.dart::invisibleClosure::'invisibleInner' invisible annotations const List<dynamic> [const dart:core::pragma {dart:core::pragma::name (field): 'vm:invisible', dart:core::pragma::options (field): null}]
  () -> Null
 ClosureCode {
   Entry                3
   Push                 FP[-5]
-  LoadClosureElement   0
+  LoadFieldTOS         CP#1
   PopLocal             r0
   CheckStack           0
-  PushConstant         CP#1
-  DirectCall           CP#2, 1
+  PushConstant         CP#3
+  DirectCall           CP#4, 1
   Drop1
   Push                 r0
   LoadContextVar       0, 0
   StoreLocal           r2
   Push                 r2
-  UncheckedClosureCall CP#4, 1
+  UncheckedClosureCall CP#6, 1
   Drop1
   PushNull
   ReturnTOS

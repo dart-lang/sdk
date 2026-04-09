@@ -226,7 +226,7 @@ CodePtr StubCode::GetAllocationStubForClass(const Class& cls) {
     case kInt32x4Cid:
       return object_store->allocate_int32x4_stub();
     case kClosureCid:
-      return object_store->allocate_closure1_stub();
+      return object_store->allocate_closure_stub();
     case kRecordCid:
       return object_store->allocate_record_stub();
   }

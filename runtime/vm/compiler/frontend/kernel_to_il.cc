@@ -278,14 +278,12 @@ Fragment FlowGraphBuilder::CatchBlockEntry(const Array& handler_types,
       CurrentException()->is_captured() || CurrentCatchContext()->is_captured();
   LocalVariable* context_variable = parsed_function_->current_context_var();
   if (should_restore_closure_context) {
-    const auto& function = parsed_function_->function();
-    ASSERT(function.IsClosureFunction());
+    ASSERT(parsed_function_->function().IsClosureFunction());
 
     LocalVariable* closure_parameter = parsed_function_->ParameterVariable(0);
     ASSERT(!closure_parameter->is_captured());
     instructions += LoadLocal(closure_parameter);
-    instructions +=
-        LoadNativeField(Slot::GetClosureContextSlot(thread_, function));
+    instructions += LoadNativeField(Slot::Closure_context());
     instructions += StoreLocal(TokenPosition::kNoSource, context_variable);
     instructions += Drop();
   }
@@ -897,7 +895,6 @@ const Function& TypedListGetNativeFunction(Thread* thread, classid_t cid) {
   V(ByteDataViewLength, TypedDataBase_length)                                  \
   V(ByteDataViewOffsetInBytes, TypedDataView_offset_in_bytes)                  \
   V(ByteDataViewTypedData, TypedDataView_typed_data)                           \
-  V(Closure_hash, Closure_hash)                                                \
   V(Finalizer_getCallback, Finalizer_callback)                                 \
   V(FinalizerBase_getAllEntries, FinalizerBase_all_entries)                    \
   V(FinalizerBase_getDetachments, FinalizerBase_detachments)                   \
@@ -2283,31 +2280,17 @@ Fragment FlowGraphBuilder::BuildImplicitClosureCreation(
   ASSERT(!target.HasGenericParent());
   ASSERT(target.IsImplicitInstanceClosureFunction());
 
-  const bool has_delayed_type_args =
-      Closure::HasDelayedTypeArgumentsField(target);
-  const bool has_instantiator_type_args =
-      Closure::HasInstantiatorTypeArgumentsField(target);
-  ASSERT(!Closure::HasFunctionTypeArgumentsField(target));
-
   Fragment fragment;
   fragment += Constant(target);
   fragment += LoadLocal(parsed_function_->receiver_var());
-  fragment += AllocateClosure(
-      position, has_delayed_type_args, has_instantiator_type_args,
-      /*has_function_type_args=*/false, /*is_tear_off=*/true);
-
   // The function signature can have uninstantiated class type parameters.
+  const bool has_instantiator_type_args =
+      !target.HasInstantiatedSignature(kCurrentClass);
   if (has_instantiator_type_args) {
-    LocalVariable* closure = MakeTemporary();
-    fragment += LoadLocal(closure);
     fragment += LoadInstantiatorTypeArguments();
-    fragment += StoreNativeField(
-        Slot::GetClosureElementSlot(
-            thread_, compiler::target::Closure::element_offset(
-                         UntaggedClosure::InstantiatorTypeArgumentsIndex(
-                             has_delayed_type_args))),
-        StoreFieldInstr::Kind::kInitializing);
   }
+  fragment += AllocateClosure(position, has_instantiator_type_args,
+                              target.IsGeneric(), /*is_tear_off=*/true);
 
   return fragment;
 }
@@ -2907,9 +2890,10 @@ struct FlowGraphBuilder::ClosureCallInfo {
   LocalVariable* named_parameter_names = nullptr;
   LocalVariable* parameter_types = nullptr;
   LocalVariable* type_parameters = nullptr;
-  LocalVariable* closure_length_and_flags = nullptr;
   LocalVariable* num_type_parameters = nullptr;
   LocalVariable* type_parameter_flags = nullptr;
+  LocalVariable* instantiator_type_args = nullptr;
+  LocalVariable* parent_function_type_args = nullptr;
   LocalVariable* num_parent_type_args = nullptr;
 };
 
@@ -3018,17 +3002,9 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
     return store_provided;
   }
 
-  Fragment instructions;
-  JoinEntryInstr* end = BuildJoinEntry();
-  TargetEntryInstr *has_delayed_type_args, *no_delayed_type_args;
-
-  instructions += LoadLocal(info.vars->delayed_type_args);
-  instructions += Constant(Object::empty_type_arguments());
-  instructions += BranchIfEqual(&no_delayed_type_args, &has_delayed_type_args);
-
   // Load the defaults, instantiating or replacing them with the other type
   // arguments as appropriate.
-  Fragment store_default(no_delayed_type_args);
+  Fragment store_default;
   store_default += LoadLocal(info.closure);
   store_default += LoadNativeField(Slot::Closure_function());
   store_default += LoadNativeField(Slot::Function_data());
@@ -3072,10 +3048,10 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
 
   Fragment do_instantiation(needs_instantiation);
   // Load the instantiator type arguments.
-  do_instantiation += LoadLocal(info.vars->instantiator_type_args);
+  do_instantiation += LoadLocal(info.instantiator_type_args);
   // Load the parent function type arguments. (No local function type arguments
   // can be used within the defaults).
-  do_instantiation += LoadLocal(info.vars->parent_function_type_args);
+  do_instantiation += LoadLocal(info.parent_function_type_args);
   // Load the default type arguments to instantiate.
   do_instantiation += LoadLocal(info.type_parameters);
   do_instantiation += LoadNativeField(Slot::TypeParameters_defaults());
@@ -3085,7 +3061,7 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   do_instantiation += Goto(done);
 
   Fragment share_instantiator(can_share_instantiator);
-  share_instantiator += LoadLocal(info.vars->instantiator_type_args);
+  share_instantiator += LoadLocal(info.instantiator_type_args);
   share_instantiator += StoreLocal(info.vars->function_type_args);
   share_instantiator += Drop();
   share_instantiator += Goto(done);
@@ -3093,7 +3069,7 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   Fragment share_function(can_share_function);
   // Since the defaults won't have local type parameters, these must all be
   // from the parent function type arguments, so we can just use it.
-  share_function += LoadLocal(info.vars->parent_function_type_args);
+  share_function += LoadLocal(info.parent_function_type_args);
   share_function += StoreLocal(info.vars->function_type_args);
   share_function += Drop();
   share_function += Goto(done);
@@ -3101,16 +3077,15 @@ Fragment FlowGraphBuilder::BuildClosureCallDefaultTypeHandling(
   store_default.current = done;  // Return here after branching.
   store_default += DropTemporary(&default_tav_kind);
   store_default += DropTemporary(&closure_data);
-  store_default += Goto(end);
 
-  Fragment store_delayed(has_delayed_type_args);
-  store_delayed += LoadLocal(info.vars->delayed_type_args);
+  Fragment store_delayed;
+  store_delayed += LoadLocal(info.closure);
+  store_delayed += LoadNativeField(Slot::Closure_delayed_type_arguments());
   store_delayed += StoreLocal(info.vars->function_type_args);
   store_delayed += Drop();
-  store_delayed += Goto(end);
 
-  instructions.current = end;
-  return instructions;
+  // Use the delayed type args if present, else the default ones.
+  return TestDelayedTypeArgs(info.closure, store_delayed, store_default);
 }
 
 Fragment FlowGraphBuilder::BuildClosureCallNamedArgumentsCheck(
@@ -3255,15 +3230,12 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
   Fragment check_entry;
   // We only need to check the length of any explicitly provided type arguments.
   if (info.descriptor.TypeArgsLen() > 0) {
-    TargetEntryInstr *has_delayed_type_args, *no_delayed_type_args;
-
-    check_entry += LoadLocal(info.vars->delayed_type_args);
-    check_entry += Constant(Object::empty_type_arguments());
-    check_entry += BranchIfEqual(&no_delayed_type_args, &has_delayed_type_args);
-
-    Fragment(has_delayed_type_args) + Goto(info.throw_no_such_method);
-
-    Fragment check_type_args_length(no_delayed_type_args);
+    Fragment check_type_args_length;
+    check_type_args_length += LoadLocal(info.type_parameters);
+    TargetEntryInstr* null;
+    TargetEntryInstr* not_null;
+    check_type_args_length += BranchIfNull(&null, &not_null);
+    check_type_args_length.current = not_null;  // Continue in non-error case.
     check_type_args_length += LoadLocal(info.signature);
     check_type_args_length += BuildExtractUnboxedSlotBitFieldIntoSmi<
         UntaggedFunctionType::PackedNumTypeParameters>(
@@ -3272,11 +3244,19 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentsValidCheck(
     TargetEntryInstr* equal;
     TargetEntryInstr* not_equal;
     check_type_args_length += BranchIfEqual(&equal, &not_equal);
+    check_type_args_length.current = equal;  // Continue in non-error case.
+
+    // The function is not generic.
+    Fragment(null) + Goto(info.throw_no_such_method);
 
     // An incorrect number of type arguments were passed.
     Fragment(not_equal) + Goto(info.throw_no_such_method);
 
-    check_entry.current = equal;  // Continue in non-error case.
+    // Type arguments should not be provided if there are delayed type
+    // arguments, as then the closure itself is not generic.
+    check_entry += TestDelayedTypeArgs(
+        info.closure, /*present=*/Goto(info.throw_no_such_method),
+        /*absent=*/check_type_args_length);
   }
 
   check_entry += LoadLocal(info.has_named_params);
@@ -3444,7 +3424,7 @@ Fragment FlowGraphBuilder::BuildClosureCallTypeArgumentsTypeCheck(
 
   Fragment loop_call_check(call);
   // Load instantiators.
-  loop_call_check += LoadLocal(info.vars->instantiator_type_args);
+  loop_call_check += LoadLocal(info.instantiator_type_args);
   loop_call_check += LoadLocal(info.vars->function_type_args);
   // Load instantiated type parameter.
   loop_call_check += LoadLocal(info.vars->current_type_param);
@@ -3491,7 +3471,7 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentTypeCheck(
   instructions += LoadIndexed(
       kArrayCid, /*index_scale*/ compiler::target::kCompressedWordSize);
   // Load instantiator type arguments.
-  instructions += LoadLocal(info.vars->instantiator_type_args);
+  instructions += LoadLocal(info.instantiator_type_args);
   // Load the full set of function type arguments.
   instructions += LoadLocal(info.vars->function_type_args);
   // Check that the value has the right type.
@@ -3530,51 +3510,6 @@ Fragment FlowGraphBuilder::BuildClosureCallArgumentTypeChecks(
         Symbols::dynamic_assert_assignable_stc_check());
   }
 
-  return instructions;
-}
-
-Fragment FlowGraphBuilder::BuildLoadDynamicClosureElement(
-    LocalVariable* closure,
-    LocalVariable* length_and_flags,
-    LocalVariable* result,
-    intptr_t present_mask,
-    intptr_t element_offset,
-    intptr_t index_mask,
-    intptr_t index_shift) {
-  Fragment instructions;
-  TargetEntryInstr *present, *absent;
-  JoinEntryInstr* done = BuildJoinEntry();
-
-  instructions += LoadLocal(length_and_flags);
-  instructions += IntConstant(present_mask);
-  instructions += SmiBinaryOp(Token::kBIT_AND);
-  instructions += IntConstant(0);
-  instructions += BranchIfEqual(&absent, &present);
-
-  Fragment load(present);
-  load += LoadLocal(closure);
-  if (element_offset >= 0) {
-    load +=
-        LoadNativeField(Slot::GetClosureElementSlot(thread_, element_offset));
-  } else {
-    load += LoadLocal(length_and_flags);
-    load += IntConstant(index_mask);
-    load += SmiBinaryOp(Token::kBIT_AND);
-    load += IntConstant(index_shift);
-    load += SmiBinaryOp(Token::kSHR);
-    load += LoadIndexed(kClosureCid, compiler::target::kCompressedWordSize);
-  }
-  load += StoreLocal(result);
-  load += Drop();
-  load += Goto(done);
-
-  Fragment store_null(absent);
-  store_null += NullConstant();
-  store_null += StoreLocal(result);
-  store_null += Drop();
-  store_null += Goto(done);
-
-  instructions.current = done;
   return instructions;
 }
 
@@ -3629,29 +3564,12 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   info.type_parameters = MakeTemporary("type_parameters");
 
   body += LoadLocal(info.closure);
-  body += LoadNativeField(Slot::Closure_length_and_flags());
-  info.closure_length_and_flags = MakeTemporary("closure_length_and_flags");
+  body += LoadNativeField(Slot::Closure_instantiator_type_arguments());
+  info.instantiator_type_args = MakeTemporary("instantiator_type_args");
 
-  body += BuildLoadDynamicClosureElement(
-      info.closure, info.closure_length_and_flags,
-      info.vars->instantiator_type_args,
-      UntaggedClosure::HasInstantiatorTypeArgumentsBit::mask_in_place(), -1,
-      UntaggedClosure::InstantiatorTypeArgumentsIndexBits::mask_in_place(),
-      UntaggedClosure::InstantiatorTypeArgumentsIndexBits::shift());
-
-  body += BuildLoadDynamicClosureElement(
-      info.closure, info.closure_length_and_flags,
-      info.vars->parent_function_type_args,
-      UntaggedClosure::HasFunctionTypeArgumentsBit::mask_in_place(), -1,
-      UntaggedClosure::FunctionTypeArgumentsIndexBits::mask_in_place(),
-      UntaggedClosure::FunctionTypeArgumentsIndexBits::shift());
-
-  body += BuildLoadDynamicClosureElement(
-      info.closure, info.closure_length_and_flags, info.vars->delayed_type_args,
-      UntaggedClosure::HasDelayedTypeArgumentsBit::mask_in_place(),
-      compiler::target::Closure::element_offset(
-          UntaggedClosure::kDelayedTypeArgumentsIndex),
-      0, 0);
+  body += LoadLocal(info.closure);
+  body += LoadNativeField(Slot::Closure_function_type_arguments());
+  info.parent_function_type_args = MakeTemporary("parent_function_type_args");
 
   // At this point, all the read-only temporaries stored in the ClosureCallInfo
   // should be either loaded or still nullptr, if not needed for this function.
@@ -3662,7 +3580,7 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // args. Thus, use whatever was stored for the parent function type arguments,
   // which has already been checked against any parent type parameter bounds.
   Fragment not_generic;
-  not_generic += LoadLocal(info.vars->parent_function_type_args);
+  not_generic += LoadLocal(info.parent_function_type_args);
   not_generic += StoreLocal(info.vars->function_type_args);
   not_generic += Drop();
 
@@ -3697,7 +3615,7 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // Load the local function type args.
   generic += LoadLocal(info.vars->function_type_args);
   // Load the parent function type args.
-  generic += LoadLocal(info.vars->parent_function_type_args);
+  generic += LoadLocal(info.parent_function_type_args);
   // Load the number of parent type parameters.
   generic += LoadLocal(info.num_parent_type_args);
   // Load the number of total type parameters.
@@ -3717,21 +3635,8 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   // the type system and need not be checked again at the call site.
   auto const check_bounds = BuildClosureCallTypeArgumentsTypeCheck(info);
   if (FLAG_eliminate_type_checks) {
-    JoinEntryInstr* done = BuildJoinEntry();
-    TargetEntryInstr *has_delayed_type_args, *no_delayed_type_args;
-
-    generic += LoadLocal(info.vars->delayed_type_args);
-    generic += Constant(Object::empty_type_arguments());
-    generic += BranchIfEqual(&no_delayed_type_args, &has_delayed_type_args);
-
-    Fragment present(has_delayed_type_args);
-    present += Goto(done);
-
-    Fragment absent(no_delayed_type_args);
-    absent += check_bounds;
-    absent += Goto(done);
-
-    generic.current = done;
+    generic += TestDelayedTypeArgs(info.closure, /*present=*/{},
+                                   /*absent=*/check_bounds);
   } else {
     generic += check_bounds;
   }
@@ -3748,7 +3653,8 @@ Fragment FlowGraphBuilder::BuildDynamicClosureCallChecks(
   body += BuildClosureCallArgumentTypeChecks(info);
 
   // Drop all the read-only temporaries at the end of the fragment.
-  body += DropTemporary(&info.closure_length_and_flags);
+  body += DropTemporary(&info.parent_function_type_args);
+  body += DropTemporary(&info.instantiator_type_args);
   body += DropTemporary(&info.type_parameters);
   body += DropTemporary(&info.parameter_types);
   body += DropTemporary(&info.named_parameter_names);
@@ -4168,55 +4074,35 @@ Fragment FlowGraphBuilder::BuildDefaultTypeHandling(const Function& function) {
     // the closure object instead.
     LocalVariable* const closure = parsed_function_->ParameterVariable(0);
     auto const mode = function.default_type_arguments_instantiation_mode();
-    const bool has_delayed_type_args =
-        Closure::HasDelayedTypeArgumentsField(function);
-    const bool has_instantiator_type_args =
-        Closure::HasInstantiatorTypeArgumentsField(function);
-    const bool has_function_type_args =
-        Closure::HasFunctionTypeArgumentsField(function);
 
     switch (mode) {
       case InstantiationMode::kIsInstantiated:
         use_defaults += Constant(default_types);
         break;
       case InstantiationMode::kSharesInstantiatorTypeArguments:
-        ASSERT(has_instantiator_type_args);
         use_defaults += LoadLocal(closure);
-        use_defaults += LoadNativeField(Slot::GetClosureElementSlot(
-            thread_, compiler::target::Closure::element_offset(
-                         UntaggedClosure::InstantiatorTypeArgumentsIndex(
-                             has_delayed_type_args))));
+        use_defaults +=
+            LoadNativeField(Slot::Closure_instantiator_type_arguments());
         break;
       case InstantiationMode::kSharesFunctionTypeArguments:
-        ASSERT(has_function_type_args);
         use_defaults += LoadLocal(closure);
-        use_defaults += LoadNativeField(Slot::GetClosureElementSlot(
-            thread_,
-            compiler::target::Closure::element_offset(
-                UntaggedClosure::FunctionTypeArgumentsIndex(
-                    has_delayed_type_args, has_instantiator_type_args))));
+        use_defaults +=
+            LoadNativeField(Slot::Closure_function_type_arguments());
         break;
       case InstantiationMode::kNeedsInstantiation:
         // Only load the instantiator or function type arguments from the
         // closure if they're needed for instantiation.
         if (!default_types.IsInstantiated(kCurrentClass)) {
-          ASSERT(has_instantiator_type_args);
           use_defaults += LoadLocal(closure);
-          use_defaults += LoadNativeField(Slot::GetClosureElementSlot(
-              thread_, compiler::target::Closure::element_offset(
-                           UntaggedClosure::InstantiatorTypeArgumentsIndex(
-                               has_delayed_type_args))));
+          use_defaults +=
+              LoadNativeField(Slot::Closure_instantiator_type_arguments());
         } else {
           use_defaults += NullConstant();
         }
-        if (has_function_type_args &&
-            !default_types.IsInstantiated(kFunctions)) {
+        if (!default_types.IsInstantiated(kFunctions)) {
           use_defaults += LoadLocal(closure);
-          use_defaults += LoadNativeField(Slot::GetClosureElementSlot(
-              thread_,
-              compiler::target::Closure::element_offset(
-                  UntaggedClosure::FunctionTypeArgumentsIndex(
-                      has_delayed_type_args, has_instantiator_type_args))));
+          use_defaults +=
+              LoadNativeField(Slot::Closure_function_type_arguments());
         } else {
           use_defaults += NullConstant();
         }
@@ -4392,7 +4278,7 @@ FlowGraph* FlowGraphBuilder::BuildGraphOfImplicitClosureFunction(
   } else if (!target.is_static()) {
     // The closure context is the receiver.
     closure += LoadLocal(parsed_function_->ParameterVariable(0));
-    closure += LoadNativeField(Slot::GetClosureContextSlot(thread_, function));
+    closure += LoadNativeField(Slot::Closure_context());
   }
 
   closure += PushExplicitParameters(function);

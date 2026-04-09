@@ -111,36 +111,6 @@ extension ComputedOffsets on VMOffsets {
         (encodedSize << UntaggedObject_kSizeTagPos) |
         (cid.index << UntaggedObject_kClassIdTagPos);
   }
-
-  int encodeClosureLengthAndFlags(
-    int numElements, {
-    required bool hasDelayedTypeArgs,
-    required bool hasInstantiatorTypeArgs,
-    required bool hasFunctionTypeArgs,
-  }) {
-    assert(
-      (0 <= numElements) &&
-          (numElements < (1 << UntaggedClosure_kLengthBitsSize)),
-    );
-    final functionTypeArgsIndex =
-        (hasDelayedTypeArgs ? 1 : 0) + (hasInstantiatorTypeArgs ? 1 : 0);
-    assert(
-      functionTypeArgsIndex <
-          (1 << UntaggedClosure_kFunctionTypeArgumentsIndexBitsSize),
-    );
-    return (hasDelayedTypeArgs
-            ? (1 << UntaggedClosure_kHasDelayedTypeArgumentsBit)
-            : 0) |
-        (hasInstantiatorTypeArgs
-            ? (1 << UntaggedClosure_kHasInstantiatorTypeArgumentsBit)
-            : 0) |
-        (hasFunctionTypeArgs
-            ? ((1 << UntaggedClosure_kHasFunctionTypeArgumentsBit) |
-                  (functionTypeArgsIndex <<
-                      UntaggedClosure_kFunctionTypeArgumentsIndexBitsPos))
-            : 0) |
-        (numElements << UntaggedClosure_kLengthBitsPos);
-  }
 }
 
 // Symbol names used in Dart snapshots.

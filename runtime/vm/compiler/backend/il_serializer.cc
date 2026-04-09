@@ -2413,9 +2413,6 @@ void Slot::Write(FlowGraphSerializer* s) const {
     case Kind::kRecordField:
       s->Write<intptr_t>(offset_in_bytes_);
       break;
-    case Kind::kClosureElement:
-      s->Write<intptr_t>(offset_in_bytes_);
-      break;
     case Kind::kCapturedVariable:
       s->Write<int8_t>(flags_);
       s->Write<intptr_t>(offset_in_bytes_);
@@ -2464,14 +2461,6 @@ const Slot& Slot::Read(FlowGraphDeserializer* d) {
       flags = IsCompressedBit::encode(Record::ContainsCompressedPointers());
       offset = d->Read<intptr_t>();
       data = ":record_field";
-      type = CompileType::Dynamic();
-      break;
-    case Kind::kClosureElement:
-      flags = IsCompressedBit::encode(Closure::ContainsCompressedPointers());
-      offset = d->Read<intptr_t>();
-      data = OS::SCreate(
-          d->zone(), ":closure_element[%" Pd "]",
-          compiler::target::Closure::element_index_at_offset(offset));
       type = CompileType::Dynamic();
       break;
     case Kind::kCapturedVariable:

@@ -55,12 +55,8 @@ namespace dart {
   V(Allocate_Wide,                         D, WIDE, lit, ___, ___)             \
   V(AllocateT,                             0, ORDN, ___, ___, ___)             \
   V(CreateArrayTOS,                        0, ORDN, ___, ___, ___)             \
-  V(AllocateClosure,                       D, ORDN, lit, ___, ___)             \
-  V(AllocateClosure_Wide,                  D, WIDE, lit, ___, ___)             \
-  V(LoadClosureElement,                    D, ORDN, num, ___, ___)             \
-  V(LoadClosureElement_Wide,               D, WIDE, num, ___, ___)             \
-  V(StoreClosureElement,                   D, ORDN, num, ___, ___)             \
-  V(StoreClosureElement_Wide,              D, WIDE, num, ___, ___)             \
+  V(AllocateClosure,                       0, ORDN, ___, ___, ___)             \
+  V(Unused03,                              0, RESV, ___, ___, ___)             \
   V(AllocateContext,                     A_E, ORDN, num, num, ___)             \
   V(AllocateContext_Wide,                A_E, WIDE, num, num, ___)             \
   V(CloneContext,                        A_E, ORDN, num, num, ___)             \
@@ -227,8 +223,7 @@ namespace dart {
   V(VMInternal_ImplicitSharedStaticGetter,        0, ORDN, ___, ___, ___)      \
   V(VMInternal_ImplicitStaticSetter,              0, ORDN, ___, ___, ___)      \
   V(VMInternal_ImplicitSharedStaticSetter,        0, ORDN, ___, ___, ___)      \
-  V(VMInternal_MethodExtractorWithITA,            0, ORDN, ___, ___, ___)      \
-  V(VMInternal_MethodExtractorWithoutITA,         0, ORDN, ___, ___, ___)      \
+  V(VMInternal_MethodExtractor,                   0, ORDN, ___, ___, ___)      \
   V(VMInternal_InvokeClosure,                     0, ORDN, ___, ___, ___)      \
   V(VMInternal_InvokeField,                       0, ORDN, ___, ___, ___)      \
   V(VMInternal_ForwardDynamicInvocation,          0, ORDN, ___, ___, ___)      \
@@ -270,7 +265,7 @@ class KernelBytecode {
   static const intptr_t kMagicValue = 0x44424333;  // 'DBC3'
   // Bytecode format version supported by the VM
   // (should match pkg/dart2bytecode/lib/dbc.dart).
-  static const intptr_t kBytecodeFormatVersion = 2;
+  static const intptr_t kBytecodeFormatVersion = 1;
 
   enum Opcode {
 #define DECLARE_BYTECODE(name, encoding, kind, op1, op2, op3) k##name,

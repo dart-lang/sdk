@@ -1076,19 +1076,37 @@ class _Allocator extends RecursiveVisitor {
     _visitFunction(node);
   }
 
+  // A temporary is only needed for function declarations or expressions when:
+  // * There are function type arguments to capture.
+  // * The function is generic and so the delayed type arguments field of the
+  //   closure must be empty-initialized, not null-initialized.
+  bool _closureAllocationNeedsTemp(FunctionNode function) =>
+      _currentFrame.functionTypeArgsVar != null ||
+      function.typeParameters.isNotEmpty;
+
   @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     _allocateVariable(node.variable);
-    _allocateTemp(node);
+    final needsTemp = _closureAllocationNeedsTemp(node.function);
+    if (needsTemp) {
+      _allocateTemp(node);
+    }
     _visitFunction(node);
-    _freeTemp(node);
+    if (needsTemp) {
+      _freeTemp(node);
+    }
   }
 
   @override
   void visitFunctionExpression(FunctionExpression node) {
-    _allocateTemp(node);
+    final needsTemp = _closureAllocationNeedsTemp(node.function);
+    if (needsTemp) {
+      _allocateTemp(node);
+    }
     _visitFunction(node);
-    _freeTemp(node);
+    if (needsTemp) {
+      _freeTemp(node);
+    }
   }
 
   @override

@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/functions.dart';
+import 'package:cfg/ir/global_context.dart';
 import 'package:cfg/ir/instructions.dart';
 import 'package:cfg/ir/types.dart';
 import 'package:cfg/utils/misc.dart';
@@ -1202,50 +1203,18 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitAllocateClosure(AllocateClosure instr) {
-    final function = instr.function;
-    final hasDelayedTypeArgs = function.hasFunctionTypeParameters;
-    final hasInstantiatorTypeArgs = switch (function) {
-      LocalFunction() => containsClassTypeParameters(
-        function.functionNode!.computeFunctionType(ast.Nullability.nonNullable),
-      ),
-      TearOffFunction() =>
-        function.member.isInstanceMember &&
-            containsClassTypeParameters(
-              function.member.function!.computeFunctionType(
-                ast.Nullability.nonNullable,
-              ),
-            ),
-    };
-    final hasFunctionTypeArgs = switch (function) {
-      LocalFunction() => hasGenericEnclosingFunction(function.localFunction),
-      TearOffFunction() => false,
-    };
-    final numElements =
-        (hasDelayedTypeArgs ? 1 : 0) +
-        (hasInstantiatorTypeArgs ? 1 : 0) +
-        (hasFunctionTypeArgs ? 1 : 0) +
-        1 /* context */;
-    final lengthAndFlags = vmOffsets.encodeClosureLengthAndFlags(
-      numElements,
-      hasDelayedTypeArgs: hasDelayedTypeArgs,
-      hasInstantiatorTypeArgs: hasInstantiatorTypeArgs,
-      hasFunctionTypeArgs: hasFunctionTypeArgs,
+    final cls = GlobalContext.instance.coreTypes.index.getClass(
+      'dart:core',
+      '_Closure',
     );
-    final instanceSize = roundUp(
-      vmOffsets.Closure_elementsStartOffset +
-          numElements * objectLayout.compressedWordSize,
-      objectAlignment(wordSize),
-    );
-
+    final instanceSize = objectLayout.getInstanceSize(cls);
     final resultReg = AllocationStub.resultReg;
     assert(outputReg(instr) == resultReg);
 
-    final done = Label();
+    final initializeObject = Label();
     Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for AllocateClosure slow path',
-      );
-      _asm.b(done);
+      _asm.callStub(backEndState.stubFactory.getAllocationStub(cls));
+      _asm.b(initializeObject);
     });
 
     _asm.loadImmediate(
@@ -1265,21 +1234,16 @@ final class Arm64CodeGenerator extends CodeGenerator {
       slowPath,
       initializeFields: true,
     );
+
+    _asm.bind(initializeObject);
     final fieldReg = AllocationStub.scratch1Reg;
-    _asm.loadFromPool(fieldReg, function);
+    _asm.loadFromPool(fieldReg, instr.function);
     _asm.str(
       fieldReg,
       _asm.fieldAddress(resultReg, vmOffsets.Closure_function_offset),
     );
-    _asm.loadImmediate(fieldReg, lengthAndFlags << smiShift);
-    _asm.str(
-      fieldReg,
-      _asm.fieldAddress(resultReg, vmOffsets.Closure_length_and_flags_offset),
-    );
-    _asm.str(ZR, _asm.fieldAddress(resultReg, vmOffsets.Closure_hash_offset));
     // TODO: initialize the rest of the fields.
     assert(instr.inputCount == 0);
-    _asm.bind(done);
   }
 
   @override

@@ -1174,11 +1174,6 @@ class AssemblerBase : public StackResource {
   // or the architecture must define a TMP register, which is clobbered.
   virtual void LslRegister(Register dst, Register shift) = 0;
 
-  virtual void ExtractBitField(Register dst,
-                               Register src,
-                               intptr_t low_bit,
-                               intptr_t width) = 0;
-
   // Performs CombineHashes from runtime/vm/hash.h on the hashes contained in
   // dst and other. Puts the result in dst. Clobbers other.
   //

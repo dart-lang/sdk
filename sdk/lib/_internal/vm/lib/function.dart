@@ -14,21 +14,44 @@ final class _Closure implements Function {
   external bool operator ==(Object other);
 
   int get hashCode {
-    int hash = _hash;
-    if (hash == 0) {
-      hash = _computeHash();
-    }
-    return hash;
+    _hash ??= _computeHash();
+    return _hash;
   }
 
   @pragma("vm:entry-point")
   _Closure get call => this;
 
-  @pragma("vm:recognized", "other")
-  @pragma("vm:prefer-inline")
-  external int get _hash;
-
   @pragma("vm:external-name", "Closure_computeHash")
-  @pragma("vm:exact-result-type", "dart:core#_Smi")
   external int _computeHash();
+
+  // No instance fields should be declared before the following fields whose
+  // offsets must be identical in Dart and C++.
+
+  // The following fields are declared both in raw_object.h (for direct access
+  // from C++ code) and also here so that the offset-to-field map used by
+  // deferred objects is properly initialized.
+  // Caution: These fields are not Dart instances, but VM objects. Their Dart
+  // names do not need to match the C++ names, but they must be private.
+  @pragma("vm:entry-point")
+  var _instantiator_type_arguments;
+  @pragma("vm:entry-point")
+  var _function_type_arguments;
+  @pragma("vm:entry-point")
+  var _delayed_type_arguments;
+  @pragma("vm:entry-point")
+  var _function;
+  @pragma("vm:entry-point")
+  var _context;
+
+  // Note: _Closure objects are created by VM "magically", without invoking
+  // constructor. So, _Closure default constructor is never compiled and
+  // detection of default-initialized fields is not performed.
+  // As a consequence, VM incorrectly assumes that _hash field is not
+  // nullable and may incorrectly remove 'if (_hash == null)' in get:hashCode.
+  // This initializer makes _hash field nullable even without constructor
+  // compilation.
+  @pragma("vm:entry-point")
+  // Harmless race lazily computing the hash.
+  @pragma("vm:no-sanitize-thread")
+  var _hash = null;
 }

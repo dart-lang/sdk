@@ -5257,7 +5257,7 @@ class ClosureSerializationCluster : public SerializationCluster {
   ClosureSerializationCluster(bool is_canonical, bool is_deeply_immutable)
       : SerializationCluster("Closure",
                              kClosureCid,
-                             kSizeVaries,
+                             compiler::target::Closure::InstanceSize(),
                              is_canonical,
                              is_deeply_immutable) {}
   ~ClosureSerializationCluster() {}
@@ -5265,9 +5265,7 @@ class ClosureSerializationCluster : public SerializationCluster {
   void Trace(Serializer* s, ObjectPtr object) {
     ClosurePtr closure = Closure::RawCast(object);
     objects_.Add(closure);
-    const intptr_t length = UntaggedClosure::LengthBits::decode(
-        Smi::Value(closure->untag()->length_and_flags()));
-    PushFromTo(closure, length);
+    PushFromTo(closure);
   }
 
   void WriteAlloc(Serializer* s) {
@@ -5276,11 +5274,6 @@ class ClosureSerializationCluster : public SerializationCluster {
     for (intptr_t i = 0; i < count; i++) {
       ClosurePtr closure = objects_[i];
       s->AssignRef(closure);
-      AutoTraceObject(closure);
-      const intptr_t length = UntaggedClosure::LengthBits::decode(
-          Smi::Value(closure->untag()->length_and_flags()));
-      s->WriteUnsigned(length);
-      target_memory_size_ += compiler::target::Closure::InstanceSize(length);
     }
   }
 
@@ -5288,11 +5281,8 @@ class ClosureSerializationCluster : public SerializationCluster {
     const intptr_t count = objects_.length();
     for (intptr_t i = 0; i < count; i++) {
       ClosurePtr closure = objects_[i];
-      const intptr_t length = UntaggedClosure::LengthBits::decode(
-          Smi::Value(closure->untag()->length_and_flags()));
       AutoTraceObject(closure);
-      s->WriteUnsigned(length);
-      WriteFromTo(closure, length);
+      WriteFromTo(closure);
     }
   }
 
@@ -5314,13 +5304,7 @@ class ClosureDeserializationCluster
   ~ClosureDeserializationCluster() {}
 
   void ReadAlloc(Deserializer* d) override {
-    start_index_ = d->next_index();
-    const intptr_t count = d->ReadUnsigned();
-    for (intptr_t i = 0; i < count; i++) {
-      const intptr_t length = d->ReadUnsigned();
-      d->AssignRef(d->Allocate(Closure::InstanceSize(length)));
-    }
-    stop_index_ = d->next_index();
+    ReadAllocFixedSize(d, Closure::InstanceSize());
   }
 
   void ReadFill(Deserializer* d_) override {
@@ -5329,11 +5313,10 @@ class ClosureDeserializationCluster
     const bool mark_canonical = is_root_unit_ && is_canonical();
     for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
       ClosurePtr closure = static_cast<ClosurePtr>(d.Ref(id));
-      const intptr_t length = d.ReadUnsigned();
       Deserializer::InitializeHeader(closure, kClosureCid,
-                                     Closure::InstanceSize(length),
-                                     mark_canonical, is_deeply_immutable());
-      d.ReadFromTo(closure, length);
+                                     Closure::InstanceSize(), mark_canonical,
+                                     is_deeply_immutable());
+      d.ReadFromTo(closure);
 #if defined(DART_PRECOMPILED_RUNTIME)
       closure->untag()->entry_point_ = 0;
 #endif

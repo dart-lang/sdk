@@ -288,9 +288,9 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
     const Code& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
-    // Using a tear-off of target of the callback function as a dummy closure.
+    // Using a FfiCallbackKind::kSync function as a dummy closure.
     const Function& closure_func = Function::Handle(
-        Function::Handle(func.FfiCallbackTarget()).ImplicitClosureFunction());
+        CreateTestFunction(FfiCallbackKind::kIsolateLocalStaticCallback));
     const Context& context = Context::Handle(Context::null());
     const Closure& closure1 = Closure::Handle(
         Closure::New(Object::null_type_arguments(),

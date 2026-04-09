@@ -4799,26 +4799,6 @@ void Assembler::CompareObject(Register reg, const Object& object) {
   }
 }
 
-void Assembler::ExtractBitField(Register dst,
-                                Register src,
-                                intptr_t low_bit,
-                                intptr_t width) {
-  ASSERT((0 <= low_bit) && (low_bit + width <= XLEN));
-  if (width == 1) {
-    if (low_bit == 0) {
-      andi(dst, src, 1);
-      return;
-    } else if (Supports(RV_Zbs)) {
-      bexti(dst, src, low_bit);
-      return;
-    }
-  }
-  if (low_bit + width < XLEN) {
-    slli(dst, src, XLEN - (low_bit + width));
-  }
-  srli(dst, dst, XLEN - width);
-}
-
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
   ASSERT(target::UntaggedObject::kClassIdTagSize == 20);

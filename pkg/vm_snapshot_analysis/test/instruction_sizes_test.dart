@@ -806,7 +806,6 @@ void main() async {
                       '#type': 'class',
                       'makeSomeClosures': {
                         '#type': 'function',
-                        '#size': lessThan(0),
                         '<anonymous closure>': {
                           '#type': 'function',
                           '#size': lessThan(0),

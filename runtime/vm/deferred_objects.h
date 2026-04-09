@@ -202,7 +202,6 @@ class DeferredObject {
   enum {
     kClassIndex = 0,
 
-    // For closure: encoded length and flags.
     // For contexts: number of context variables.
     // For arrays and typed data objects: number of elements.
     // For records: shape.

@@ -1885,8 +1885,7 @@ void LoadIndexedInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   } else {
     ASSERT(rep == kTagged);
     ASSERT((class_id() == kArrayCid) || (class_id() == kImmutableArrayCid) ||
-           (class_id() == kTypeArgumentsCid) || (class_id() == kClosureCid) ||
-           (class_id() == kRecordCid));
+           (class_id() == kTypeArgumentsCid) || (class_id() == kRecordCid));
     Register result = locs()->out(0).reg();
     __ LoadCompressed(result, element_address);
   }

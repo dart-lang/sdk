@@ -13,7 +13,7 @@ Function 'testVoidNoArg', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                6
+  Entry                5
   CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
@@ -24,11 +24,10 @@ Bytecode {
   Push                 r0
   Push                 r2
   StoreContextVar      0, 0
-  AllocateClosure      CP#7
-  StoreLocal           r5
-  Push                 r5
+  PushConstant         CP#4
   Push                 r0
-  StoreClosureElement  0
+  PushNull
+  AllocateClosure
   PopLocal             r4
   Push                 r4
   Push                 r0
@@ -49,10 +48,10 @@ ConstantPool {
   [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 2, num-type-args 0, names []
   [3] = Reserved
   [4] = ClosureFunction 0
-  [5] = FfiCall
-  [6] = EndClosureFunctionScope
-  [7] = AllocateClosure 0, num-elements: 1, flags: 0
-  [8] = Reserved
+  [5] = InstanceField dart:core::_Closure::_context (field)
+  [6] = Reserved
+  [7] = FfiCall
+  [8] = EndClosureFunctionScope
   [9] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::testVoidNoArg::'#ffiClosure0' annotations const List<dynamic> [const dart:core::pragma {dart:core::pragma::name (field): 'vm:ffi:call-closure', dart:core::pragma::options (field): const dart:ffi::_FfiCall < FunctionType () -> dart:ffi::Void > {dart:ffi::_FfiCall::isLeaf (field): const false}}]
@@ -60,12 +59,12 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::testVoidNoArg::'#ffiClosu
 ClosureCode {
   Entry                2
   Push                 FP[-5]
-  LoadClosureElement   0
+  LoadFieldTOS         CP#5
   PopLocal             r0
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
-  FfiCall              CP#5
+  FfiCall              CP#7
   ReturnTOS
 }
 
@@ -75,7 +74,7 @@ Function 'testIntInt', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                6
+  Entry                5
   CheckStack           0
   PushConstant         CP#0
   PushConstant         CP#1
@@ -86,11 +85,10 @@ Bytecode {
   Push                 r0
   Push                 r2
   StoreContextVar      0, 0
-  AllocateClosure      CP#10
-  StoreLocal           r5
-  Push                 r5
+  PushConstant         CP#4
   Push                 r0
-  StoreClosureElement  0
+  PushNull
+  AllocateClosure
   PopLocal             r4
   Push                 r4
   Push                 r0
@@ -110,13 +108,13 @@ ConstantPool {
   [2] = DirectCall 'dart:ffi::Pointer::fromAddress (constructor)', ArgDesc num-args 2, num-type-args 0, names []
   [3] = Reserved
   [4] = ClosureFunction 0
-  [5] = Type dart:core::int
-  [6] = ObjectRef 'arg1'
-  [7] = SubtypeTestCache
-  [8] = FfiCall
-  [9] = EndClosureFunctionScope
-  [10] = AllocateClosure 0, num-elements: 1, flags: 0
-  [11] = Reserved
+  [5] = InstanceField dart:core::_Closure::_context (field)
+  [6] = Reserved
+  [7] = Type dart:core::int
+  [8] = ObjectRef 'arg1'
+  [9] = SubtypeTestCache
+  [10] = FfiCall
+  [11] = EndClosureFunctionScope
   [12] = ObjectRef ArgDesc num-args 2, num-type-args 0, names []
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::testIntInt::'#ffiClosure1' annotations const List<dynamic> [const dart:core::pragma {dart:core::pragma::name (field): 'vm:ffi:call-closure', dart:core::pragma::options (field): const dart:ffi::_FfiCall < FunctionType (dart:ffi::Int64) -> dart:ffi::Int32 > {dart:ffi::_FfiCall::isLeaf (field): const false}}]
@@ -124,16 +122,16 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/ffi.dart::testIntInt::'#ffiClosure1
 ClosureCode {
   Entry                2
   Push                 FP[-6]
-  LoadClosureElement   0
+  LoadFieldTOS         CP#5
   PopLocal             r0
   CheckStack           0
   JumpIfUnchecked      L1
   Push                 FP[-5]
-  PushConstant         CP#5
+  PushConstant         CP#7
   PushNull
   PushNull
-  PushConstant         CP#6
-  AssertAssignable     1, CP#7
+  PushConstant         CP#8
+  AssertAssignable     1, CP#9
   Drop1
 L1:
   PushNull
@@ -141,7 +139,7 @@ L1:
   Push                 FP[-5]
   Push                 r0
   LoadContextVar       0, 0
-  FfiCall              CP#8
+  FfiCall              CP#10
   ReturnTOS
 }
 

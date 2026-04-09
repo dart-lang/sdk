@@ -2843,7 +2843,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kDartField:
-    case Slot::Kind::kClosureElement:
     case Slot::Kind::kCapturedVariable:
     case Slot::Kind::kRecordField:
       // Use default value.
@@ -2873,7 +2872,6 @@ void LoadFieldInstr::InferRange(RangeAnalysis* analysis, Range* range) {
       break;
 
     case Slot::Kind::kClosure_hash:
-    case Slot::Kind::kClosure_length_and_flags:
     case Slot::Kind::kLinkedHashBase_hash_mask:
     case Slot::Kind::kLinkedHashBase_used_data:
     case Slot::Kind::kLinkedHashBase_deleted_keys:

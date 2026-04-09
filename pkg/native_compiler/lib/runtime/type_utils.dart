@@ -150,35 +150,3 @@ bool hasNonTrivialInitializer(ast.Field field) {
     };
   }
 }
-
-/// Returns true if [type] references class type parameters.
-bool containsClassTypeParameters(ast.DartType type) {
-  final visitor = _FindClassTypeParameters();
-  type.accept(visitor);
-  return visitor.containsClassTypeParams;
-}
-
-class _FindClassTypeParameters extends ast.RecursiveVisitor {
-  bool containsClassTypeParams = false;
-
-  _FindClassTypeParameters();
-
-  @override
-  void visitTypeParameterType(ast.TypeParameterType node) {
-    if (node.parameter.declaration is ast.Class) {
-      containsClassTypeParams = true;
-    }
-  }
-}
-
-bool hasGenericEnclosingFunction(ast.TreeNode node) {
-  for (;;) {
-    node = node.parent!;
-    if (node is ast.Member) {
-      return false;
-    }
-    if (node is ast.FunctionNode && node.typeParameters.isNotEmpty) {
-      return true;
-    }
-  }
-}

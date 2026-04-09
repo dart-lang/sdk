@@ -93,7 +93,6 @@ Representation RepresentationUtils::RepresentationOfArrayElement(
 #define ARRAY_CASE(Name) case k##Name##Cid:
     CLASS_LIST_ARRAYS(ARRAY_CASE)
 #undef ARRAY_CASE
-    case kClosureCid:
     case kRecordCid:
     case kTypeArgumentsCid:
       return kTagged;

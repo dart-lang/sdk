@@ -326,8 +326,6 @@ Fragment PrologueBuilder::BuildParameterHandling() {
 }
 
 Fragment PrologueBuilder::BuildClosureContextHandling() {
-  const auto& function = parsed_function_->function();
-  ASSERT(function.IsClosureFunction());
   LocalVariable* closure_parameter = parsed_function_->ParameterVariable(0);
   LocalVariable* context = parsed_function_->current_context_var();
 
@@ -335,8 +333,7 @@ Fragment PrologueBuilder::BuildClosureContextHandling() {
   // (both load/store happen on the copied-down places).
   Fragment populate_context;
   populate_context += LoadLocal(closure_parameter);
-  populate_context +=
-      LoadNativeField(Slot::GetClosureContextSlot(thread_, function));
+  populate_context += LoadNativeField(Slot::Closure_context());
   populate_context += StoreLocal(TokenPosition::kNoSource, context);
   populate_context += Drop();
   return populate_context;
@@ -371,7 +368,7 @@ Fragment PrologueBuilder::BuildTypeArgumentsHandling() {
 
 Fragment PrologueBuilder::BuildClosureDelayedTypeArgumentsHandling() {
   const auto& function = parsed_function_->function();
-  ASSERT(function.IsClosureFunction() && function.IsGeneric());
+  ASSERT(function.IsClosureFunction());
   LocalVariable* const type_args_var =
       parsed_function_->RawTypeArgumentsVariable();
   ASSERT(type_args_var != nullptr);
@@ -383,9 +380,8 @@ Fragment PrologueBuilder::BuildClosureDelayedTypeArgumentsHandling() {
   // correct in number and bound.
   Fragment use_delayed_type_args;
   use_delayed_type_args += LoadLocal(closure);
-  use_delayed_type_args += LoadNativeField(Slot::GetClosureElementSlot(
-      thread_, compiler::target::Closure::element_offset(
-                   UntaggedClosure::kDelayedTypeArgumentsIndex)));
+  use_delayed_type_args +=
+      LoadNativeField(Slot::Closure_delayed_type_arguments());
   use_delayed_type_args += StoreLocal(TokenPosition::kNoSource, type_args_var);
   use_delayed_type_args += Drop();
 

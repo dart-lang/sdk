@@ -389,20 +389,13 @@ Fragment BaseFlowGraphBuilder::TestTypeArgsLen(Fragment eq_branch,
 Fragment BaseFlowGraphBuilder::TestDelayedTypeArgs(LocalVariable* closure,
                                                    Fragment present,
                                                    Fragment absent) {
-  const auto& function = parsed_function_->function();
-  ASSERT(function.IsClosureFunction());
-
-  if (!function.IsGeneric()) {
-    return absent;
-  }
-
   Fragment test;
+
   TargetEntryInstr* absent_entry;
   TargetEntryInstr* present_entry;
+
   test += LoadLocal(closure);
-  test += LoadNativeField(Slot::GetClosureElementSlot(
-      thread_, compiler::target::Closure::element_offset(
-                   UntaggedClosure::kDelayedTypeArgumentsIndex)));
+  test += LoadNativeField(Slot::Closure_delayed_type_arguments());
   test += Constant(Object::empty_type_arguments());
   test += BranchIfEqual(&absent_entry, &present_entry);
 
@@ -1004,16 +997,16 @@ Fragment BaseFlowGraphBuilder::AllocateContext(
 }
 
 Fragment BaseFlowGraphBuilder::AllocateClosure(TokenPosition position,
-                                               bool has_delayed_type_args,
                                                bool has_instantiator_type_args,
-                                               bool has_function_type_args,
+                                               bool is_generic,
                                                bool is_tear_off) {
+  Value* instantiator_type_args =
+      (has_instantiator_type_args ? Pop() : nullptr);
   auto const context = Pop();
   auto const function = Pop();
   auto* allocate = new (Z) AllocateClosureInstr(
-      InstructionSource(position), function, context, has_delayed_type_args,
-      has_instantiator_type_args, has_function_type_args, is_tear_off,
-      GetNextDeoptId());
+      InstructionSource(position), function, context, instantiator_type_args,
+      is_generic, is_tear_off, GetNextDeoptId());
   Push(allocate);
   return Fragment(allocate);
 }

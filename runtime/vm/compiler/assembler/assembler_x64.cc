@@ -2770,17 +2770,6 @@ void Assembler::EmitGenericShift(bool wide,
   EmitOperand(rm, Operand(operand));
 }
 
-void Assembler::ExtractBitField(Register dst,
-                                Register src,
-                                intptr_t low_bit,
-                                intptr_t width) {
-  MoveRegister(dst, src);
-  if (low_bit > 0) {
-    LsrImmediate(dst, low_bit);
-  }
-  AndImmediate(dst, Immediate((1 << width) - 1));
-}
-
 void Assembler::ExtractClassIdFromTags(Register result, Register tags) {
   ASSERT(target::UntaggedObject::kClassIdTagPos == 12);
   ASSERT(target::UntaggedObject::kClassIdTagSize == 20);

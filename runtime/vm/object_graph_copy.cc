@@ -167,7 +167,7 @@ static bool CanShareObject(ObjectPtr obj, uword tags) {
 
     if (cid == kClosureCid) {
       // We can share a closure iff it doesn't close over any state.
-      return Closure::RawContextOf(Closure::RawCast(obj)) == Object::null();
+      return Closure::RawCast(obj)->untag()->context() == Object::null();
     }
 
     // All other objects that have immutability bit set are deeply immutable.
@@ -290,9 +290,6 @@ void UpdateLengthField(intptr_t cid, ObjectPtr from, ObjectPtr to) {
   if (cid == kArrayCid || cid == kImmutableArrayCid) {
     static_cast<UntaggedArray*>(to.untag())->length_ =
         static_cast<UntaggedArray*>(from.untag())->length_;
-  } else if (cid == kClosureCid) {
-    static_cast<UntaggedClosure*>(to.untag())->length_and_flags_ =
-        static_cast<UntaggedClosure*>(from.untag())->length_and_flags_;
   } else if (cid == kContextCid) {
     static_cast<UntaggedContext*>(to.untag())->num_variables_ =
         static_cast<UntaggedContext*>(from.untag())->num_variables_;
@@ -1782,16 +1779,14 @@ class ObjectCopy : public Base {
     Base::ForwardCompressedPointers(from, to, kWordSize, instance_size);
   }
   void CopyClosure(typename Types::Closure from, typename Types::Closure to) {
-    const intptr_t length = Closure::LengthOf(Types::GetClosurePtr(from));
-    Base::StoreCompressedPointersNoBarrier(
-        from, to, OFFSET_OF(UntaggedClosure, length_and_flags_),
-        OFFSET_OF(UntaggedClosure, hash_));
-    Base::StoreCompressedPointers(from, to,
-                                  OFFSET_OF(UntaggedClosure, function_),
-                                  OFFSET_OF(UntaggedClosure, function_));
-    Base::ForwardCompressedPointers(
-        from, to, Closure::element_offset(0),
-        Closure::element_offset(0) + Closure::kBytesPerElement * length);
+    Base::StoreCompressedPointers(
+        from, to, OFFSET_OF(UntaggedClosure, instantiator_type_arguments_),
+        OFFSET_OF(UntaggedClosure, function_));
+    Base::ForwardCompressedPointer(from, to,
+                                   OFFSET_OF(UntaggedClosure, context_));
+    Base::StoreCompressedPointersNoBarrier(from, to,
+                                           OFFSET_OF(UntaggedClosure, hash_),
+                                           OFFSET_OF(UntaggedClosure, hash_));
     ONLY_IN_PRECOMPILED(UntagClosure(to)->entry_point_ =
                             UntagClosure(from)->entry_point_);
   }
