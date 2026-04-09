@@ -103,6 +103,13 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
       instance_size = InstructionsSection::InstanceSize(section_size);
       break;
     }
+    case kClosureCid: {
+      const ClosurePtr raw_closure = static_cast<const ClosurePtr>(this);
+      intptr_t num_elements = UntaggedClosure::LengthBits::decode(
+          Smi::Value(raw_closure->untag()->length_and_flags()));
+      instance_size = Closure::InstanceSize(num_elements);
+      break;
+    }
     case kContextCid: {
       const ContextPtr raw_context = static_cast<const ContextPtr>(this);
       intptr_t num_variables = raw_context->untag()->num_variables_;
@@ -526,7 +533,9 @@ COMPRESSED_VISITOR(FunctionType)
 COMPRESSED_VISITOR(RecordType)
 COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
-COMPRESSED_VISITOR(Closure)
+VARIABLE_COMPRESSED_VISITOR(Closure,
+                            UntaggedClosure::LengthBits::decode(Smi::Value(
+                                raw_obj->untag()->length_and_flags())))
 COMPRESSED_VISITOR(LibraryPrefix)
 COMPRESSED_VISITOR(Bytecode)
 REGULAR_VISITOR(SingleTargetCache)

@@ -61,6 +61,12 @@ DEFINE_FLAG(bool,
 DECLARE_FLAG(bool, inline_alloc);
 DECLARE_FLAG(bool, use_slow_path);
 
+// Macro for shared code generation methods (EmitNativeCode and
+// MakeLocationSummary). Only assembly code that can be shared across all
+// architectures can be used. Machine specific register allocation and code
+// generation is located in il_<arch>.cc
+#define __ compiler->assembler()->
+
 class SubtypeFinder {
  public:
   SubtypeFinder(Zone* zone,
@@ -961,11 +967,6 @@ LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
                Location::RegisterLocation(AllocateClosureABI::kFunctionReg));
   locs->set_in(kContextPos,
                Location::RegisterLocation(AllocateClosureABI::kContextReg));
-  if (has_instantiator_type_args()) {
-    locs->set_in(kInstantiatorTypeArgsPos,
-                 Location::RegisterLocation(
-                     AllocateClosureABI::kInstantiatorTypeArgsReg));
-  }
   locs->set_out(0, Location::RegisterLocation(AllocateClosureABI::kResultReg));
   return locs;
 }
@@ -973,19 +974,25 @@ LocationSummary* AllocateClosureInstr::MakeLocationSummary(Zone* zone,
 void AllocateClosureInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   auto object_store = compiler->isolate_group()->object_store();
   Code& stub = Code::ZoneHandle(compiler->zone());
-  if (has_instantiator_type_args()) {
-    if (is_generic()) {
-      stub = object_store->allocate_closure_ta_generic_stub();
-    } else {
-      stub = object_store->allocate_closure_ta_stub();
-    }
-  } else {
-    if (is_generic()) {
-      stub = object_store->allocate_closure_generic_stub();
-    } else {
-      stub = object_store->allocate_closure_stub();
-    }
+  const intptr_t num_elements = NumElements();
+  switch (num_elements) {
+    case 1:
+      stub = object_store->allocate_closure1_stub();
+      break;
+    case 2:
+      stub = object_store->allocate_closure2_stub();
+      break;
+    case 3:
+      stub = object_store->allocate_closure3_stub();
+      break;
+    case 4:
+      stub = object_store->allocate_closure4_stub();
+      break;
+    default:
+      UNREACHABLE();
   }
+  __ LoadImmediate(AllocateClosureABI::kLengthAndFlagsReg,
+                   compiler::target::ToRawSmi(EncodedLengthAndFlags()));
   compiler->GenerateStubCall(source(), stub, UntaggedPcDescriptors::kOther,
                              locs(), deopt_id(), env());
 }
@@ -2754,8 +2761,21 @@ bool LoadFieldInstr::TryEvaluateLoad(const Object& instance,
         const Record& record = Record::Cast(instance);
         if (index < record.num_fields()) {
           *result = record.FieldAt(index);
+          return true;
         }
-        return true;
+      }
+      return false;
+
+    case Slot::Kind::kClosureElement:
+      if (instance.IsClosure()) {
+        const intptr_t index =
+            compiler::target::Closure::element_index_at_offset(
+                field.offset_in_bytes());
+        const Closure& closure = Closure::Cast(instance);
+        if (index < closure.length()) {
+          *result = closure.ElementAt(index);
+          return true;
+        }
       }
       return false;
 
@@ -4246,13 +4266,6 @@ void CallTargets::Print() const {
               TargetAt(i)->target->ToQualifiedCString());
   }
 }
-
-// Shared code generation methods (EmitNativeCode and
-// MakeLocationSummary). Only assembly code that can be shared across all
-// architectures can be used. Machine specific register allocation and code
-// generation is located in intermediate_language_<arch>.cc
-
-#define __ compiler->assembler()->
 
 LocationSummary* GraphEntryInstr::MakeLocationSummary(Zone* zone,
                                                       bool optimizing) const {

@@ -97,7 +97,11 @@ namespace dart {
   V(DynamicCallCurrentNumProcessedVar, ":dyn_call_current_num_processed")      \
   V(DynamicCallCurrentParamIndexVar, ":dyn_call_current_param_index")          \
   V(DynamicCallCurrentTypeParamVar, ":dyn_call_current_type_param")            \
+  V(DynamicCallDelayedTypeArgsVar, ":dyn_call_delayed_type_args")              \
   V(DynamicCallFunctionTypeArgsVar, ":dyn_call_function_type_args")            \
+  V(DynamicCallInstantiatorTypeArgsVar, ":dyn_call_instantiator_type_args")    \
+  V(DynamicCallParentFunctionTypeArgsVar,                                      \
+    ":dyn_call_parent_function_type_args")                                     \
   V(DynamicImplicitCall, "dyn:implicit:call")                                  \
   V(DynamicPrefix, "dyn:")                                                     \
   V(EntryPointsTemp, ":entry_points_temp")                                     \

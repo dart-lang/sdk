@@ -55,40 +55,6 @@ static void Finish(Thread* thread) {
   Class& cls = Class::Handle(zone, object_store->closure_class());
   cls.EnsureIsFinalized(thread);
 
-  // Make sure _Closure fields are not marked as unboxed as they are accessed
-  // with plain loads.
-  const Array& fields = Array::Handle(zone, cls.fields());
-  Field& field = Field::Handle(zone);
-  for (intptr_t i = 0; i < fields.Length(); ++i) {
-    field ^= fields.At(i);
-    field.set_is_unboxed(false);
-  }
-  // _Closure._hash field should be explicitly marked as nullable because
-  // VM creates instances of _Closure without compiling its constructors,
-  // so it won't get nullability info from a constructor.
-  field ^= fields.At(fields.Length() - 1);
-  // Note that UserVisibleName depends on --show-internal-names.
-  ASSERT(strncmp(field.UserVisibleNameCString(), "_hash", 5) == 0);
-  field.RecordStore(Object::null_object());
-
-#if defined(DEBUG)
-  // Verify that closure field offsets are identical in Dart and C++.
-  ASSERT_EQUAL(fields.Length(), 6);
-  field ^= fields.At(0);
-  ASSERT_EQUAL(field.HostOffset(),
-               Closure::instantiator_type_arguments_offset());
-  field ^= fields.At(1);
-  ASSERT_EQUAL(field.HostOffset(), Closure::function_type_arguments_offset());
-  field ^= fields.At(2);
-  ASSERT_EQUAL(field.HostOffset(), Closure::delayed_type_arguments_offset());
-  field ^= fields.At(3);
-  ASSERT_EQUAL(field.HostOffset(), Closure::function_offset());
-  field ^= fields.At(4);
-  ASSERT_EQUAL(field.HostOffset(), Closure::context_offset());
-  field ^= fields.At(5);
-  ASSERT_EQUAL(field.HostOffset(), Closure::hash_offset());
-#endif  // defined(DEBUG)
-
   // Eagerly compile to avoid repeated checks when loading constants or
   // serializing.
   cls = object_store->null_class();
