@@ -1829,6 +1829,8 @@ struct CallbackContext {
   uword sp;
 };
 
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+
 extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
                                         uword trampoline) {
   // Assumptions in ffi_trampolines_arm64.S
@@ -1857,6 +1859,8 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
   ASSERT(sim != nullptr);
   sim->DoRedirectedFfiCallback(thread, ctxt, &out);
 }
+
+#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
 
 // Compare FfiCallbackTrampolineStub.
 void Simulator::DoRedirectedFfiCallback(Thread* thread,
