@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Number extends core::Object {
   final field core::int value;
-  constructor •(core::int value) → self::Number
+  constructor •(initializing-formal core::int value) → self::Number
     ;
   get hashCode() → core::int
     ;
@@ -15,12 +15,12 @@ class Number extends core::Object {
 }
 class Class extends core::Object {
   field self::Number field;
-  constructor •(self::Number field) → self::Class
+  constructor •(initializing-formal self::Number field) → self::Class
     ;
 }
 class IntClass extends core::Object {
   field core::int field;
-  constructor •(core::int field) → self::IntClass
+  constructor •(initializing-formal core::int field) → self::IntClass
     ;
 }
 extension NumberExtension on self::Number {

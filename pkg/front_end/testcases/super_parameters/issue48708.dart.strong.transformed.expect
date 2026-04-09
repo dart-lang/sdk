@@ -11,12 +11,12 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
 }
 abstract class B<D extends core::Object? = dynamic> extends core::Object {
   final field self::B::D% field;
-  constructor •({required self::B::D% field}) → self::B<self::B::D%>
+  constructor •({required initializing-formal self::B::D% field}) → self::B<self::B::D%>
     : self::B::field = field, super core::Object::•()
     ;
 }
 class C extends self::_C&B&Mixin {
-  constructor •({required self::A field}) → self::C
+  constructor •({required super-initializing-formal self::A field}) → self::C
     : super self::_C&B&Mixin::•(field: field)
     ;
 }

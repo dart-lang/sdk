@@ -18,7 +18,7 @@ extension type E1(core::String foo) {
   static redirecting-factory redirectingFactoryToSubtype = self::E1|constructor#redirectingFactoryToSubtype;
   static redirecting-factory tearoff redirectingFactoryToSubtype = self::E1|constructor#_#redirectingFactoryToSubtype#tearOff;
 }
-static extension-type-member method E1|constructor#(core::String foo) → self::E1% /* erasure=core::String, declared=! */
+static extension-type-member method E1|constructor#(initializing-formal core::String foo) → self::E1% /* erasure=core::String, declared=! */
   ;
 static extension-type-member synthetic method E1|constructor#_#new#tearOff(core::String foo) → self::E1% /* erasure=core::String, declared=! */
   return self::E1|constructor#(foo);
@@ -51,7 +51,7 @@ extension type E2(core::String foo) implements #lib1::E1% /* erasure=core::Strin
   static redirecting-factory redirectingFactoryWithMismatchingParameters = self2::E2|constructor#redirectingFactoryWithMismatchingParameters;
   static redirecting-factory tearoff redirectingFactoryWithMismatchingParameters = self2::E2|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff;
 }
-static extension-type-member method E2|constructor#(core::String foo) → self2::E2% /* erasure=core::String, declared=! */
+static extension-type-member method E2|constructor#(initializing-formal core::String foo) → self2::E2% /* erasure=core::String, declared=! */
   ;
 static extension-type-member synthetic method E2|constructor#_#new#tearOff(core::String foo) → self2::E2% /* erasure=core::String, declared=! */
   return self2::E2|constructor#(foo);

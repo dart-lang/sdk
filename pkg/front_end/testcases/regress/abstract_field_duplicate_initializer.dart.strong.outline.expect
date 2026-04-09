@@ -13,7 +13,7 @@ import self as self;
 import "dart:core" as core;
 
 abstract class Foo extends core::Object {
-  constructor •(core::int foo, core::int foo) → self::Foo
+  constructor •(initializing-formal core::int foo, initializing-formal core::int foo) → self::Foo
     ;
   abstract get foo() → core::int;
   abstract set foo(synthesized core::int #externalFieldValue) → void;

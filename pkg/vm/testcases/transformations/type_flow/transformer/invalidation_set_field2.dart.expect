@@ -33,7 +33,7 @@ class Q<T extends core::Object? = dynamic> extends core::Object {
   [@vm.inferred-type.metadata=!]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:5]
   final field self::Q::T% result;
-  constructor •([@vm.inferred-arg-type.metadata=!] self::Q::T% result) → self::Q<self::Q::T%>
+  constructor •([@vm.inferred-arg-type.metadata=!] initializing-formal self::Q::T% result) → self::Q<self::Q::T%>
     : self::Q::result = result, super core::Object::•()
     ;
 }

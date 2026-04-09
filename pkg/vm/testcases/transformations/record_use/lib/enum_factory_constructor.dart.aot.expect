@@ -20,7 +20,7 @@ class MyEnum extends core::_Enum /*isEnum*/  {
   final field core::int value;
 
   [@vm.unreachable.metadata=]
-  const constructor •(core::int #index, core::String #name, core::int value) → self::MyEnum
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int value) → self::MyEnum
     throw "Attempt to execute method removed by Dart AOT compiler (TFA)";
 
   [@vm.inferred-return-type.metadata=!]

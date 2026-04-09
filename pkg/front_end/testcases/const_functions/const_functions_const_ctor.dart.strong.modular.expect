@@ -7,7 +7,7 @@ import "package:expect/expect.dart";
 
 class Simple extends core::Object /*hasConstConstructor*/  {
   final field core::String name;
-  const constructor •(core::String name) → self::Simple
+  const constructor •(initializing-formal core::String name) → self::Simple
     : self::Simple::name = name, super core::Object::•() {
     assert(this.{self::Simple::name}{core::String} =={core::String::==}{(core::Object) → core::bool} #C1);
   }

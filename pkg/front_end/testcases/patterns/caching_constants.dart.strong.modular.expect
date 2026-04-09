@@ -9,7 +9,7 @@ class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic
   field core::int containsKeyCount = 0;
   field core::int indexGetCount = 0;
   final field core::Map<self::MyMap::K%, self::MyMap::V%> _map;
-  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _map) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
+  constructor •(initializing-formal core::Map<self::MyMap::K%, self::MyMap::V%> _map) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
     : self::MyMap::_map = _map, super self::_MyMap&Object&MapMixin::•()
     ;
   method containsKey(core::Object? key) → core::bool {

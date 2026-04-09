@@ -7,7 +7,7 @@ class C extends core::Object {
   final field core::int? _b;
   field core::int _c;
   final field core::int _d;
-  constructor •({core::int? a = #C1, final core::int? b = #C1, required core::int c, required final core::int d}) → self::C
+  constructor •({initializing-formal core::int? a = #C1, final initializing-formal core::int? b = #C1, required initializing-formal core::int c, required final initializing-formal core::int d}) → self::C
     : self::C::_a = a, self::C::_b = b, self::C::_c = c, self::C::_d = d, super core::Object::•()
     ;
 }
@@ -17,7 +17,7 @@ class E extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E x = #C5;
   enum-element static const field self::E y = #C7;
   static const field core::List<self::E> values = #C8;
-  const constructor •(core::int #index, core::String #name, {final core::int? a = #C1, required final core::int b}) → self::E
+  const constructor •(core::int #index, core::String #name, {final initializing-formal core::int? a = #C1, required final initializing-formal core::int b}) → self::E
     : self::E::_a = a, self::E::_b = b, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -33,13 +33,13 @@ extension type ET2(core::int _a) {
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#({core::int? a = #C1}) → self::ET1% /* erasure=core::int?, declared=! */ {
+static extension-type-member method ET1|constructor#({initializing-formal core::int? a = #C1}) → self::ET1% /* erasure=core::int?, declared=! */ {
   lowered final self::ET1% /* erasure=core::int?, declared=! */ #this = a;
   return #this;
 }
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff({core::int? a = #C1}) → self::ET1% /* erasure=core::int?, declared=! */
   return self::ET1|constructor#(a: a);
-static extension-type-member method ET2|constructor#({required core::int a}) → self::ET2% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET2|constructor#({required initializing-formal core::int a}) → self::ET2% /* erasure=core::int, declared=! */ {
   lowered final self::ET2% /* erasure=core::int, declared=! */ #this = a;
   return #this;
 }

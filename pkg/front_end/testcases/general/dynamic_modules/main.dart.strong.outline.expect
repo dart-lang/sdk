@@ -58,11 +58,11 @@ class Impl2 extends self::_Impl2&Object&Mixin implements mai::Interface {
     ;
 }
 class C6Ext extends mai::C6 {
-  constructor •({core::Object param = const mai::_ConstForC6::•(mai::_privateMethodForC6)}) → self::C6Ext
+  constructor •({super-initializing-formal core::Object param = const mai::_ConstForC6::•(mai::_privateMethodForC6)}) → self::C6Ext
     ;
 }
 class C7Ext extends mai::C7 {
-  constructor •({core::Object param = const mai::_ConstForC7::•(mai::_privateMethodForC7)}) → self::C7Ext
+  constructor •({super-initializing-formal core::Object param = const mai::_ConstForC7::•(mai::_privateMethodForC7)}) → self::C7Ext
     ;
 }
 abstract class _F1&Object&M1 = core::Object with mai::M1 /*isAnonymousMixin,hasConstConstructor*/  {
@@ -163,13 +163,13 @@ abstract class Mixin extends core::Object /*isMixinDeclaration*/  {
 }
 class _C5 extends core::Object /*hasConstConstructor*/  {
   final field core::Function func;
-  const constructor •(core::Function func) → mai::_C5
+  const constructor •(initializing-formal core::Function func) → mai::_C5
     : mai::_C5::func = func, super core::Object::•()
     ;
 }
 class _ConstForC6 extends core::Object /*hasConstConstructor*/  {
   final field core::Function _f;
-  const constructor •(core::Function _f) → mai::_ConstForC6
+  const constructor •(initializing-formal core::Function _f) → mai::_ConstForC6
     : mai::_ConstForC6::_f = _f, super core::Object::•()
     ;
 }
@@ -179,7 +179,7 @@ class C6 extends core::Object {
 }
 class _ConstForC7 extends core::Object /*hasConstConstructor*/  {
   final field core::Function _f;
-  const constructor •(core::Function _f) → mai::_ConstForC7
+  const constructor •(initializing-formal core::Function _f) → mai::_ConstForC7
     : mai::_ConstForC7::_f = _f, super core::Object::•()
     ;
 }
@@ -327,7 +327,7 @@ static method _privateMethodForC6() → void
   ;
 static method _privateMethodForC7() → void
   ;
-static extension-type-member method ExtType1|constructor#(core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType1|constructor#(initializing-formal core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType1|constructor#_#new#tearOff(core::int raw) → mai::ExtType1% /* erasure=core::int, declared=! */
   return mai::ExtType1|constructor#(raw);
@@ -341,25 +341,25 @@ static extension-member method Ext4|get#isNegative4(lowered final core::int #thi
   ;
 static extension-member method Ext5|get#isNegative5(lowered final core::int #this) → core::bool
   ;
-static extension-type-member method ExtType2|constructor#(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType2|constructor#(initializing-formal core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType2|constructor#_#new#tearOff(core::int raw) → mai::ExtType2% /* erasure=core::int, declared=! */
   return mai::ExtType2|constructor#(raw);
 static extension-type-member method ExtType2|get#isPositive(lowered final mai::ExtType2% /* erasure=core::int, declared=! */ #this) → core::bool
   ;
-static extension-type-member method ExtType3|constructor#(core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType3|constructor#(initializing-formal core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType3|constructor#_#new#tearOff(core::int raw) → mai::ExtType3% /* erasure=core::int, declared=! */
   return mai::ExtType3|constructor#(raw);
 static extension-type-member method ExtType3|get#isPositive(lowered final mai::ExtType3% /* erasure=core::int, declared=! */ #this) → core::bool
   ;
-static extension-type-member method ExtType4|constructor#(core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType4|constructor#(initializing-formal core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType4|constructor#_#new#tearOff(core::int raw) → mai::ExtType4% /* erasure=core::int, declared=! */
   return mai::ExtType4|constructor#(raw);
 static extension-type-member method ExtType4|get#isPositive(lowered final mai::ExtType4% /* erasure=core::int, declared=! */ #this) → core::bool
   ;
-static extension-type-member method ExtType5|constructor#_(core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType5|constructor#_(initializing-formal core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType5|constructor#_#_#tearOff(core::int raw) → mai::ExtType5% /* erasure=core::int, declared=! */
   return mai::ExtType5|constructor#_(raw);
@@ -369,19 +369,19 @@ static extension-type-member method ExtType5|constructor#plus1(core::int n) → 
   ;
 static extension-type-member method ExtType5|get#isPositive(lowered final mai::ExtType5% /* erasure=core::int, declared=! */ #this) → core::bool
   ;
-static extension-type-member method ExtType10|constructor#(core::int raw) → mai::ExtType10% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType10|constructor#(initializing-formal core::int raw) → mai::ExtType10% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType10|constructor#_#new#tearOff(core::int raw) → mai::ExtType10% /* erasure=core::int, declared=! */
   return mai::ExtType10|constructor#(raw);
-static extension-type-member method ExtType11|constructor#(core::int raw) → mai::ExtType11% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType11|constructor#(initializing-formal core::int raw) → mai::ExtType11% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType11|constructor#_#new#tearOff(core::int raw) → mai::ExtType11% /* erasure=core::int, declared=! */
   return mai::ExtType11|constructor#(raw);
-static extension-type-member method ExtType12|constructor#(core::int raw) → mai::ExtType12% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType12|constructor#(initializing-formal core::int raw) → mai::ExtType12% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType12|constructor#_#new#tearOff(core::int raw) → mai::ExtType12% /* erasure=core::int, declared=! */
   return mai::ExtType12|constructor#(raw);
-static extension-type-member method ExtType13|constructor#(core::int raw) → mai::ExtType13% /* erasure=core::int, declared=! */
+static extension-type-member method ExtType13|constructor#(initializing-formal core::int raw) → mai::ExtType13% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtType13|constructor#_#new#tearOff(core::int raw) → mai::ExtType13% /* erasure=core::int, declared=! */
   return mai::ExtType13|constructor#(raw);
@@ -418,7 +418,7 @@ extension type Lib3ExtType(core::int raw) {
 static field core::int? lib3Field;
 static method lib3Method() → void
   ;
-static extension-type-member method Lib3ExtType|constructor#(core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */
+static extension-type-member method Lib3ExtType|constructor#(initializing-formal core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method Lib3ExtType|constructor#_#new#tearOff(core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */
   return mai2::Lib3ExtType|constructor#(raw);
@@ -438,7 +438,7 @@ extension type Lib4ExtType(core::int raw) {
   constructor • = self3::Lib4ExtType|constructor#;
   constructor tearoff • = self3::Lib4ExtType|constructor#_#new#tearOff;
 }
-static extension-type-member method Lib4ExtType|constructor#(core::int raw) → self3::Lib4ExtType% /* erasure=core::int, declared=! */
+static extension-type-member method Lib4ExtType|constructor#(initializing-formal core::int raw) → self3::Lib4ExtType% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method Lib4ExtType|constructor#_#new#tearOff(core::int raw) → self3::Lib4ExtType% /* erasure=core::int, declared=! */
   return self3::Lib4ExtType|constructor#(raw);

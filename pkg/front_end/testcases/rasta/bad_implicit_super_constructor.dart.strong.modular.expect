@@ -15,7 +15,7 @@ import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
-  constructor •(dynamic x) → self::A
+  constructor •(initializing-formal dynamic x) → self::A
     : invalid-initializer "pkg/front_end/testcases/rasta/bad_implicit_super_constructor.dart:6:10: Error: 'x' isn't an instance field of this class.
   A(this.x);
          ^"

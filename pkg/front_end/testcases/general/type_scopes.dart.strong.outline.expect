@@ -132,7 +132,7 @@ static extension-member method Extension|get#instanceMethod<T13 extends dynamic>
   return <T14 extends dynamic>(self::Extension|get#instanceMethod::T13% t13, T14% t14) → void => self::Extension|instanceMethod<self::Extension|get#instanceMethod::T13%, T14%>(#this, t13, t14);
 static extension-member method Extension|staticMethod<T15 extends dynamic>(self::Extension|staticMethod::T15% t15) → void
   ;
-static extension-type-member method ExtensionType|constructor#<T16 extends dynamic>(self::ExtensionType|constructor#::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#::T16%>% /* erasure=self::ExtensionType|constructor#::T16%, declared=! */
+static extension-type-member method ExtensionType|constructor#<T16 extends dynamic>(initializing-formal self::ExtensionType|constructor#::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#::T16%>% /* erasure=self::ExtensionType|constructor#::T16%, declared=! */
   ;
 static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff<T16 extends dynamic>(self::ExtensionType|constructor#_#new#tearOff::T16% t16) → self::ExtensionType<self::ExtensionType|constructor#_#new#tearOff::T16%>% /* erasure=self::ExtensionType|constructor#_#new#tearOff::T16%, declared=! */
   return self::ExtensionType|constructor#<self::ExtensionType|constructor#_#new#tearOff::T16%>(t16);
@@ -152,7 +152,7 @@ static extension-type-member method ExtensionType|staticMethod<T18 extends dynam
   ;
 static method topLevelMethod<T19 extends dynamic>(self::topLevelMethod::T19% t19) → void
   ;
-static extension-type-member method ET|constructor#<X4 extends dynamic>(self::ET|constructor#::X4% x4) → self::ET<self::ET|constructor#::X4%>% /* erasure=self::ET|constructor#::X4%, declared=! */
+static extension-type-member method ET|constructor#<X4 extends dynamic>(initializing-formal self::ET|constructor#::X4% x4) → self::ET<self::ET|constructor#::X4%>% /* erasure=self::ET|constructor#::X4%, declared=! */
   ;
 static extension-type-member synthetic method ET|constructor#_#new#tearOff<X4 extends dynamic>(self::ET|constructor#_#new#tearOff::X4% x4) → self::ET<self::ET|constructor#_#new#tearOff::X4%>% /* erasure=self::ET|constructor#_#new#tearOff::X4%, declared=! */
   return self::ET|constructor#<self::ET|constructor#_#new#tearOff::X4%>(x4);

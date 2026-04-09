@@ -5,7 +5,7 @@ import "dart:core" as core;
 typedef Function2<contravariant S extends core::Object? = dynamic, T extends core::Object? = dynamic> = ([S%]) → T%;
 class Foo extends core::Object {
   field core::List<core::int> x;
-  constructor •([core::List<core::int> x = const <core::int>[1]]) → self::Foo
+  constructor •([initializing-formal core::List<core::int> x = const <core::int>[1]]) → self::Foo
     ;
   constructor named([core::List<core::int> x = const <core::int>[1]]) → self::Foo
     ;

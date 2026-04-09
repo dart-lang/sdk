@@ -247,7 +247,7 @@ extension type ET2<T extends core::Object? = dynamic>(T% t) {
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -266,7 +266,7 @@ static extension-type-member method ET1|get#foo(lowered final self::ET1% /* eras
 static extension-type-member method ET1|get#getter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this) → core::int
   return #this as{Unchecked} core::int;
 static extension-type-member method ET1|set#setter(lowered final self::ET1% /* erasure=core::int, declared=! */ #this, core::int value) → void {}
-static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% t) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ {
+static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(initializing-formal self::ET2|constructor#::T% t) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ {
   lowered final self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */ #this = t;
   return #this;
 }

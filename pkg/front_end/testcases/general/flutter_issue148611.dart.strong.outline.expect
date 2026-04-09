@@ -12,6 +12,6 @@ class A<X extends core::Object? = dynamic> extends self::P<self::A::X%> /*hasCon
   const constructor foo(self::A::X% x) → self::A<self::A::X%>
     : super self::P::•(x)
     ;
-  constructor •(self::A::X% x) → self::A<self::A::X%>
+  constructor •(super-initializing-formal self::A::X% x) → self::A<self::A::X%>
     ;
 }

@@ -8,7 +8,7 @@ import "dart:collection";
 class MyMap<K extends core::Object? = dynamic, V extends core::Object? = dynamic> extends col::MapBase<self::MyMap::K%, self::MyMap::V%> {
   covariant-by-class field core::Map<self::MyMap::K%, self::MyMap::V%> _inner;
   field core::String log = "";
-  constructor •(core::Map<self::MyMap::K%, self::MyMap::V%> _inner) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
+  constructor •(initializing-formal core::Map<self::MyMap::K%, self::MyMap::V%> _inner) → self::MyMap<self::MyMap::K%, self::MyMap::V%>
     : self::MyMap::_inner = _inner, super col::MapBase::•()
     ;
   @#C1

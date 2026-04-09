@@ -14,17 +14,17 @@ import "dart:core" as core;
 
 class C1 extends core::Object {
   final field core::int _;
-  constructor •(final wildcard core::int _#wc0#formal) → self::C1
+  constructor •(final wildcard initializing-formal core::int _#wc0#formal) → self::C1
     ;
 }
 class C2 extends core::Object {
   field core::int _;
-  constructor •(wildcard core::int _#wc1#formal) → self::C2
+  constructor •(wildcard initializing-formal core::int _#wc1#formal) → self::C2
     ;
 }
 class C3 extends core::Object {
   final field core::int _;
-  constructor •(final wildcard core::int _#wc2#formal, final wildcard core::int _#wc3#formal) → self::C3
+  constructor •(final wildcard initializing-formal core::int _#wc2#formal, final wildcard initializing-formal core::int _#wc3#formal) → self::C3
     ;
 }
 class C4 extends core::Object {
@@ -34,7 +34,7 @@ class C4 extends core::Object {
 class C5 extends core::Object {
   field core::int _;
   field core::int x;
-  constructor •(wildcard core::int _#wc6#formal) → self::C5
+  constructor •(wildcard initializing-formal core::int _#wc6#formal) → self::C5
     ;
 }
 extension type ET1(core::int _) {
@@ -52,15 +52,15 @@ extension type ET3(core::int _) {
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(wildcard core::int _#wc7#formal) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member method ET1|constructor#(wildcard initializing-formal core::int _#wc7#formal) → self::ET1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int _#wc7#formal) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(_#wc7#formal);
-static extension-type-member method ET2|constructor#(final wildcard core::int _#wc8#formal) → self::ET2% /* erasure=core::int, declared=! */
+static extension-type-member method ET2|constructor#(final wildcard initializing-formal core::int _#wc8#formal) → self::ET2% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int _#wc8#formal) → self::ET2% /* erasure=core::int, declared=! */
   return self::ET2|constructor#(_#wc8#formal);
-static extension-type-member method ET3|constructor#(wildcard core::int _#wc9#formal) → self::ET3% /* erasure=core::int, declared=! */
+static extension-type-member method ET3|constructor#(wildcard initializing-formal core::int _#wc9#formal) → self::ET3% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int _#wc9#formal) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(_#wc9#formal);

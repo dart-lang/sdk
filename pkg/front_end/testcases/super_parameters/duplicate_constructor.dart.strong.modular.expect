@@ -14,12 +14,12 @@ import "dart:core" as core;
 
 class Super extends core::Object {
   final field core::int field;
-  constructor •(core::int field) → self::Super
+  constructor •(initializing-formal core::int field) → self::Super
     : self::Super::field = field, super core::Object::•()
     ;
 }
 class Sub extends self::Super {
-  constructor •(invalid-type field) → self::Sub
+  constructor •(super-initializing-formal invalid-type field) → self::Sub
     : invalid-initializer "pkg/front_end/testcases/super_parameters/duplicate_constructor.dart:13:3: Error: Can't use 'new' because it is declared more than once.
   Sub(super.field);
   ^"

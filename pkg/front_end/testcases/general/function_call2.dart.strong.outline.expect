@@ -25,7 +25,7 @@ class _Closure1 extends core::Object {
 }
 class _Closure2 extends core::Object {
   final field () → void call;
-  constructor •(() → void call) → self::_Closure2
+  constructor •(initializing-formal () → void call) → self::_Closure2
     ;
 }
 late static field self::_Closure1 closure1;

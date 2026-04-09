@@ -13,7 +13,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   class Foo extends dart.core::Object {
     final field dynamic message;
-    constructor •(dynamic message) → main::Foo
+    constructor •(initializing-formal dynamic message) → main::Foo
       : main::Foo::message = message, super dart.core::Object::•()
       ;
     @#C1

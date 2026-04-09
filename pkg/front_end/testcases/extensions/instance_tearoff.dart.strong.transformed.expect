@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class1 extends core::Object {
   field core::int field;
-  constructor •(core::int field) → self::Class1
+  constructor •(initializing-formal core::int field) → self::Class1
     : self::Class1::field = field, super core::Object::•()
     ;
   method toString() → core::String
@@ -12,7 +12,7 @@ class Class1 extends core::Object {
 }
 class Class2 extends core::Object {
   field core::int field;
-  constructor •(core::int field) → self::Class2
+  constructor •(initializing-formal core::int field) → self::Class2
     : self::Class2::field = field, super core::Object::•()
     ;
   method toString() → core::String

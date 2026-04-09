@@ -6,7 +6,7 @@ typedef F<contravariant T extends core::Object? = dynamic> = (T%) → void;
 typedef G<contravariant T extends core::Object? = dynamic> = () → (T%) → void;
 class C<T extends core::Object? = dynamic> extends core::Object {
   field (self::C::T%) → void _x;
-  constructor •((self::C::T%) → void _x) → self::C<self::C::T%>
+  constructor •(initializing-formal (self::C::T%) → void _x) → self::C<self::C::T%>
     : self::C::_x = _x, super core::Object::•()
     ;
   method f() → (self::C::T%) → void

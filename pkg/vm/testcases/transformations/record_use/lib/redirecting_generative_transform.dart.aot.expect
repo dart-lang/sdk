@@ -19,7 +19,7 @@ final class C extends core::Object {
     ;
 
   [@vm.unboxing-info.metadata=[!regcc]]
-  constructor b([@vm.inferred-arg-type.metadata=int] core::int i) → self::C
+  constructor b([@vm.inferred-arg-type.metadata=int] initializing-formal core::int i) → self::C
     : self::C::i = i, super core::Object::•()
     ;
 }

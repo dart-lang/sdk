@@ -12,7 +12,7 @@ abstract sealed class Shape extends core::Object {
 }
 class Square extends core::Object implements self::Shape {
   final field core::double length;
-  constructor •(core::double length) → self::Square
+  constructor •(initializing-formal core::double length) → self::Square
     : self::Square::length = length, super core::Object::•()
     ;
   method calculateArea() → core::double
@@ -20,7 +20,7 @@ class Square extends core::Object implements self::Shape {
 }
 class Circle extends core::Object implements self::Shape {
   final field core::double radius;
-  constructor •(core::double radius) → self::Circle
+  constructor •(initializing-formal core::double radius) → self::Circle
     : self::Circle::radius = radius, super core::Object::•()
     ;
   method calculateArea() → core::double

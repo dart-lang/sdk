@@ -63,14 +63,14 @@ import "dart:core" as core;
 
 class Class1 extends core::Object {
   final field core::int id;
-  constructor n(core::int id) → self::Class1
+  constructor n(initializing-formal core::int id) → self::Class1
     ;
   static get n() → core::int
     ;
 }
 class Class2 extends core::Object /*hasConstConstructor*/  {
   final field core::int id;
-  const constructor n(core::int id) → self::Class2
+  const constructor n(initializing-formal core::int id) → self::Class2
     : self::Class2::id = id, super core::Object::•()
     ;
   static method n() → core::int
@@ -78,7 +78,7 @@ class Class2 extends core::Object /*hasConstConstructor*/  {
 }
 class Class3 extends core::Object {
   final field core::int id;
-  constructor •(core::int id) → self::Class3
+  constructor •(initializing-formal core::int id) → self::Class3
     ;
   static method n() → core::int
     ;
@@ -88,7 +88,7 @@ class Class3 extends core::Object {
 class Class4 extends core::Object {
   final field core::int id;
   static field core::int n;
-  constructor n(core::int id) → self::Class4
+  constructor n(initializing-formal core::int id) → self::Class4
     ;
 }
 extension type ET1(core::int id) {
@@ -124,29 +124,29 @@ extension type ET4(core::int id) {
   constructor tearoff n = self::ET4|constructor#_#n#tearOff;
 }
 static field core::int ET4|n;
-static extension-type-member method ET1|constructor#(core::int id) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member method ET1|constructor#(initializing-formal core::int id) → self::ET1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(id);
 static extension-type-member get ET1|n() → core::int
   ;
-static extension-type-member method ET1|constructor#n(core::int id) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member method ET1|constructor#n(initializing-formal core::int id) → self::ET1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#n#tearOff(core::int id) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#n(id);
-static extension-type-member method ET2|constructor#(core::int id) → self::ET2% /* erasure=core::int, declared=! */
+static extension-type-member method ET2|constructor#(initializing-formal core::int id) → self::ET2% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int id) → self::ET2% /* erasure=core::int, declared=! */
   return self::ET2|constructor#(id);
 static extension-type-member method ET2|n() → core::int
   ;
-static extension-type-member const method ET2|constructor#n(core::int id) → self::ET2% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ET2|constructor#n(initializing-formal core::int id) → self::ET2% /* erasure=core::int, declared=! */ {
   lowered final self::ET2% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }
 static extension-type-member synthetic method ET2|constructor#_#n#tearOff(core::int id) → self::ET2% /* erasure=core::int, declared=! */
   return self::ET2|constructor#n(id);
-static extension-type-member method ET3|constructor#(core::int id) → self::ET3% /* erasure=core::int, declared=! */
+static extension-type-member method ET3|constructor#(initializing-formal core::int id) → self::ET3% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(id);
@@ -156,11 +156,11 @@ static extension-type-member method ET3|constructor#n(core::int id) → self::ET
   return self::ET3|constructor#(id);
 static extension-type-member synthetic method ET3|constructor#_#n#tearOff(core::int id) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(id);
-static extension-type-member method ET4|constructor#(core::int id) → self::ET4% /* erasure=core::int, declared=! */
+static extension-type-member method ET4|constructor#(initializing-formal core::int id) → self::ET4% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET4|constructor#_#new#tearOff(core::int id) → self::ET4% /* erasure=core::int, declared=! */
   return self::ET4|constructor#(id);
-static extension-type-member method ET4|constructor#n(core::int id) → self::ET4% /* erasure=core::int, declared=! */
+static extension-type-member method ET4|constructor#n(initializing-formal core::int id) → self::ET4% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET4|constructor#_#n#tearOff(core::int id) → self::ET4% /* erasure=core::int, declared=! */
   return self::ET4|constructor#n(id);

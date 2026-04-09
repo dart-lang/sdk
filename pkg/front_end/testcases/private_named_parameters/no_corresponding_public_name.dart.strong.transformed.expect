@@ -26,16 +26,16 @@ class C extends core::Object {
   field core::int? __extraPrivate;
   field core::int? _123;
   field core::int? _for;
-  constructor onlyUnderscore({wildcard core::int? _#wc0#formal = #C1}) → self::C
+  constructor onlyUnderscore({wildcard initializing-formal core::int? _#wc0#formal = #C1}) → self::C
     : self::C::_for = null, self::C::_123 = null, self::C::__extraPrivate = null, self::C::_ = _#wc0#formal, super core::Object::•()
     ;
-  constructor stillPrivate({core::int? __extraPrivate = #C1}) → self::C
+  constructor stillPrivate({initializing-formal core::int? __extraPrivate = #C1}) → self::C
     : self::C::_for = null, self::C::_123 = null, self::C::_ = null, self::C::__extraPrivate = __extraPrivate, super core::Object::•()
     ;
-  constructor notIdentifier({core::int? _123 = #C1}) → self::C
+  constructor notIdentifier({initializing-formal core::int? _123 = #C1}) → self::C
     : self::C::_for = null, self::C::__extraPrivate = null, self::C::_ = null, self::C::_123 = _123, super core::Object::•()
     ;
-  constructor reservedWord({core::int? _for = #C1}) → self::C
+  constructor reservedWord({initializing-formal core::int? _for = #C1}) → self::C
     : self::C::_123 = null, self::C::__extraPrivate = null, self::C::_ = null, self::C::_for = _for, super core::Object::•()
     ;
 }

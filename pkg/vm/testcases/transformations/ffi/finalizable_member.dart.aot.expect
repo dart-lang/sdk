@@ -21,7 +21,7 @@ class B extends core::Object implements ffi::Finalizable {
   [@vm.inferred-type.metadata=#lib::A]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasNonThisUses:false,hasTearOffUses:false,getterSelectorId:1]
   final field self::A a;
-  constructor •([@vm.inferred-arg-type.metadata=#lib::A] self::A a) → self::B
+  constructor •([@vm.inferred-arg-type.metadata=#lib::A] initializing-formal self::A a) → self::B
     : self::B::a = a, super core::Object::•() {
     ;
     _in::reachabilityFence(this);

@@ -42,7 +42,7 @@ extension type ET(self::C c) {
 static extension-member method E|foo(lowered final self::C #this, {self::A a = #C1}) → dynamic {}
 static extension-member method E|get#foo(lowered final self::C #this) → ({a: self::A}) → dynamic
   return ({self::A a = #C1}) → dynamic => self::E|foo(#this, a: a);
-static extension-type-member method ET|constructor#(self::C c) → self::ET% /* erasure=self::C, declared=! */ {
+static extension-type-member method ET|constructor#(initializing-formal self::C c) → self::ET% /* erasure=self::C, declared=! */ {
   lowered final self::ET% /* erasure=self::C, declared=! */ #this = c;
   return #this;
 }

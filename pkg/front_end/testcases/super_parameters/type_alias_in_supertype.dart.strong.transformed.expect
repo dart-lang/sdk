@@ -20,45 +20,45 @@ typedef TTA4 = self::A4;
 typedef TA4 = self::A4;
 class A1 extends core::Object {
   final field core::String foo;
-  constructor •(core::String foo) → self::A1
+  constructor •(initializing-formal core::String foo) → self::A1
     : self::A1::foo = foo, super core::Object::•()
     ;
 }
 class D1 extends self::A1 {
-  constructor •(core::String foo) → self::D1
+  constructor •(super-initializing-formal core::String foo) → self::D1
     : super self::A1::•(foo)
     ;
 }
 class A2 extends core::Object {
   final field core::String foo;
-  constructor •({core::String foo = #C1}) → self::A2
+  constructor •({initializing-formal core::String foo = #C1}) → self::A2
     : self::A2::foo = foo, super core::Object::•()
     ;
 }
 class D2 extends self::A2 {
-  constructor •({core::String foo = #C1}) → self::D2
+  constructor •({super-initializing-formal core::String foo = #C1}) → self::D2
     : super self::A2::•(foo: foo)
     ;
 }
 class A3 extends core::Object {
   final field core::String foo;
-  constructor •([core::String foo = #C1]) → self::A3
+  constructor •([initializing-formal core::String foo = #C1]) → self::A3
     : self::A3::foo = foo, super core::Object::•()
     ;
 }
 class D3 extends self::A3 {
-  constructor •([core::String foo = #C1]) → self::D3
+  constructor •([super-initializing-formal core::String foo = #C1]) → self::D3
     : super self::A3::•(foo)
     ;
 }
 class D4 extends self::A4 {
-  constructor •([core::String foo = #C1]) → self::D4
+  constructor •([super-initializing-formal core::String foo = #C1]) → self::D4
     : super self::A4::•(foo)
     ;
 }
 class A4 extends core::Object {
   final field core::String foo;
-  constructor •([core::String foo = #C1]) → self::A4
+  constructor •([initializing-formal core::String foo = #C1]) → self::A4
     : self::A4::foo = foo, super core::Object::•()
     ;
 }

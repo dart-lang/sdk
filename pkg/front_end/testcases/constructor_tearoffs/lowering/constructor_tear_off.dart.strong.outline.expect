@@ -16,14 +16,14 @@ class Class2 extends core::Object {
 }
 class Class3 extends core::Object {
   final field core::int field;
-  constructor •(core::int field) → self::Class3
+  constructor •(initializing-formal core::int field) → self::Class3
     ;
   static synthetic method _#new#tearOff(core::int field) → self::Class3
     return new self::Class3::•(field);
 }
 class Class4 extends core::Object {
   final field core::int? field;
-  constructor •([core::int? field = null]) → self::Class4
+  constructor •([initializing-formal core::int? field = null]) → self::Class4
     ;
   static synthetic method _#new#tearOff([core::int? field]) → self::Class4
     return new self::Class4::•(field);
@@ -31,7 +31,7 @@ class Class4 extends core::Object {
 class Class5 extends core::Object {
   final field core::int field1;
   final field core::int? field2;
-  constructor •(core::int field1, [core::int? field2 = null]) → self::Class5
+  constructor •(initializing-formal core::int field1, [initializing-formal core::int? field2 = null]) → self::Class5
     ;
   static synthetic method _#new#tearOff(core::int field1, [core::int? field2]) → self::Class5
     return new self::Class5::•(field1, field2);
@@ -40,7 +40,7 @@ class Class6 extends core::Object {
   final field core::int field1;
   final field core::int? field2;
   final field core::int field3;
-  constructor •(core::int field1, {core::int? field2 = null, required core::int field3}) → self::Class6
+  constructor •(initializing-formal core::int field1, {initializing-formal core::int? field2 = null, required initializing-formal core::int field3}) → self::Class6
     ;
   static synthetic method _#new#tearOff(core::int field1, {core::int? field2, required core::int field3}) → self::Class6
     return new self::Class6::•(field1, field2: field2, field3: field3);

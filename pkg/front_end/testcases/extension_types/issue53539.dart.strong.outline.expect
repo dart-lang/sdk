@@ -8,7 +8,7 @@ extension type ET(core::int id) {
   constructor • = self::ET|constructor#;
   constructor tearoff • = self::ET|constructor#_#new#tearOff;
 }
-static extension-type-member method ET|constructor#(core::int id) → self::ET% /* erasure=core::int, declared=! */
+static extension-type-member method ET|constructor#(initializing-formal core::int id) → self::ET% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int id) → self::ET% /* erasure=core::int, declared=! */
   return self::ET|constructor#(id);
