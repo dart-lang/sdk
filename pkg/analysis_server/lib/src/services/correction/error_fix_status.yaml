@@ -1104,6 +1104,8 @@ mixin_application_not_implemented_interface:
   status: hasFix
 mixin_class_declaration_extends_not_object:
   status: hasFix
+mixin_class_declaration_with_clause:
+  status: needsEvaluation
 mixin_class_declares_non_trivial_generative_constructor:
   status: needsFix
   notes: |-
@@ -1118,6 +1120,8 @@ mixin_inherits_from_not_object:
     Remove the extends clause.
 mixin_instantiate:
   status: noFix
+mixin_modifier_mixin_application_class_with_multiple_mixins:
+  status: needsEvaluation
 mixin_of_disallowed_class:
   status: hasFix
 mixin_of_non_class:
