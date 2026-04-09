@@ -61,6 +61,31 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_constructor_factory_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C {
+  factory (int a) => C._();
+
+  C._();
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C {
+  factory (int a, double d) => C._();
+
+  C._();
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+  }
+
   Future<void> test_constructor_implicitSuper() async {
     // https://github.com/dart-lang/sdk/issues/61927
     await resolveTestCode('''
@@ -87,6 +112,44 @@ class A {
 }
 void f() {
   new A.named(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_new_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C {
+  new (int a);
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C {
+  new (int a, double d);
+}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_primary_unnamed_hasOne() async {
+    await resolveTestCode('''
+class C(int a) {}
+
+void f() {
+  new C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C(int a, double d) {}
+
+void f() {
+  new C(1, 2.0);
 }
 ''');
   }
