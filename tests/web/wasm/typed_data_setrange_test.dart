@@ -38,19 +38,33 @@ main() {
   verifyDoubleArray(Float64List(size)..setRange(start, end, jsF64, offset));
 
   verifyIntViewToView(
+    Uint8List.new,
+    (buffer, byteOffset, length) => Uint8List.view(buffer, byteOffset, length),
+    1,
+  );
+  verifyIntViewToView(
+    Uint16List.new,
     (buffer, byteOffset, length) => Uint16List.view(buffer, byteOffset, length),
     2,
   );
   verifyIntViewToView(
+    Uint32List.new,
     (buffer, byteOffset, length) => Uint32List.view(buffer, byteOffset, length),
     4,
   );
+  verifyIntViewToView(
+    Int64List.new,
+    (buffer, byteOffset, length) => Int64List.view(buffer, byteOffset, length),
+    8,
+  );
   verifyDoubleViewToView(
+    Float32List.new,
     (buffer, byteOffset, length) =>
         Float32List.view(buffer, byteOffset, length),
     4,
   );
   verifyDoubleViewToView(
+    Float64List.new,
     (buffer, byteOffset, length) =>
         Float64List.view(buffer, byteOffset, length),
     8,
@@ -78,13 +92,14 @@ void verifyIntArray(List<int> list, int elementSize) {
 }
 
 void verifyIntViewToView(
+  TypedData Function(int) makeStorage,
   List<int> Function(ByteBuffer, int, int) makeView,
   int elementSize,
 ) {
-  final srcBacking = Uint8List((size + offset + 1) * elementSize);
-  final destBacking = Uint8List((size + 1) * elementSize);
-  final srcView = makeView(srcBacking.buffer, elementSize, size);
-  final destView = makeView(destBacking.buffer, elementSize, size);
+  final srcStorage = makeStorage(size + offset + 1);
+  final destStorage = makeStorage(size + 1);
+  final srcView = makeView(srcStorage.buffer, elementSize, size);
+  final destView = makeView(destStorage.buffer, elementSize, size);
 
   initIntArray(srcView);
   destView.setRange(start, end, srcView, offset);
@@ -111,13 +126,14 @@ void verifyDoubleArray(List<double> list) {
 }
 
 void verifyDoubleViewToView(
+  TypedData Function(int) makeStorage,
   List<double> Function(ByteBuffer, int, int) makeView,
   int elementSize,
 ) {
-  final srcBacking = Uint8List((size + offset + 1) * elementSize);
-  final destBacking = Uint8List((size + 1) * elementSize);
-  final srcView = makeView(srcBacking.buffer, elementSize, size);
-  final destView = makeView(destBacking.buffer, elementSize, size);
+  final srcStorage = makeStorage(size + offset + 1);
+  final destStorage = makeStorage(size + 1);
+  final srcView = makeView(srcStorage.buffer, elementSize, size);
+  final destView = makeView(destStorage.buffer, elementSize, size);
 
   initDoubleArray(srcView);
   destView.setRange(start, end, srcView, offset);
