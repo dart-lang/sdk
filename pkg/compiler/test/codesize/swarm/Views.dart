@@ -39,7 +39,7 @@ class EventListeners {
     listeners.add(listener);
   }
 
-  void fire(var event) {
+  void fire(event) {
     for (final listener in listeners) {
       listener(event);
     }

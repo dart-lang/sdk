@@ -54,10 +54,8 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.parent is GenericFunctionType) return;
 
     for (var param in node.parameters) {
-      if (param.notDefault
-          case SimpleFormalParameter(:var keyword?) ||
-              FieldFormalParameter(:var keyword?) ||
-              SuperFormalParameter(:var keyword?) when param.isFinal) {
+      if (!param.isFinal) continue;
+      if (param.notDefault case SimpleFormalParameter(:var keyword?)) {
         rule.reportAtToken(keyword);
       }
     }

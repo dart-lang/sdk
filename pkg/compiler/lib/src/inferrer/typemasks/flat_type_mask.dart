@@ -841,7 +841,7 @@ class FlatTypeMask extends TypeMask {
   }
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! FlatTypeMask) return false;
     return (_flags == other._flags) && (base == other.base);

@@ -2,7 +2,7 @@ library;
 //
 // Problems in library:
 //
-// pkg/front_end/testcases/nnbd/required_2.dart:31:8: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
+// pkg/front_end/testcases/nnbd/required_2_legacy.dart:32:8: Error: The parameter 'x' can't have a value of 'null' because of its type 'int', but the implicit default value is 'null'.
 // Try adding either an explicit non-'null' default value or the 'required' modifier.
 //   foo({x}) {}
 //        ^
@@ -15,7 +15,7 @@ typedef Typedef2 = ({a: core::int, required b: core::int}) → dynamic;
 class Class extends core::Object {
   synthetic constructor •() → self::Class
     ;
-  method method({core::int a = 42, required core::int b, required covariant-by-declaration core::int c}) → dynamic
+  method method({core::int a = 42, required core::int b, required final core::int c, required covariant-by-declaration final core::int d}) → dynamic
     ;
 }
 abstract class A extends core::Object {
@@ -36,7 +36,7 @@ class C extends self::A {
     ;
 }
 static field ({a: core::int, required b: core::int}) → dynamic field;
-static method method({has-declared-initializer core::int a, required core::int b, required core::int c}) → dynamic
+static method method({has-declared-initializer core::int a, required core::int b, required final core::int c}) → dynamic
   ;
 static method ok() → dynamic
   ;

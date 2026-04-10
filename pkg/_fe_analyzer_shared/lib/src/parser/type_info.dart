@@ -156,7 +156,7 @@ bool isValidNonRecordTypeReference(Token token) {
 /// If [inDeclaration] is `true`, then this will more aggressively recover
 /// given unbalanced `<` `>` and invalid parameters or arguments.
 TypeInfo computeType(
-  final Token token,
+  Token token,
   bool required, [
   bool inDeclaration = false,
   bool acceptKeywordForSimpleType = false,

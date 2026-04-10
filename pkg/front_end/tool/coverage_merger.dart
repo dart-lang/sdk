@@ -444,7 +444,7 @@ CoverageInfo _process(
       }
     }
 
-    void addChunk(int from, final int to) {
+    void addChunk(int from, int to) {
       if (addAndRemoveCommentsInFiles && removeFrom.isNotEmpty) {
         int fromIndex = binarySearch(removeFrom, from);
         if (removeFrom[fromIndex] < from && removeTo[fromIndex] < from) {
@@ -970,9 +970,9 @@ class AstIndexerAndIgnoreCollector extends AstIndexer {
   /// If there is not it will add a note to add one if that makes sense (in that
   /// there is possible coverage but no actual coverage).
   bool _checkCommentAndIgnoreCoverageWithBeginAndEnd(
-    final Token tokenWithPossibleComment,
-    final Token beginToken,
-    final Token endToken, {
+    Token tokenWithPossibleComment,
+    Token beginToken,
+    Token endToken, {
     required bool allowReplace,
     bool isBlock = false,
     bool allowOnBraceStart = false,

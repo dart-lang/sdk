@@ -9,12 +9,7 @@ import '../rule_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     // TODO(srawlins): Add more tests:
-    // * indirect extension (C extends B extends A),
     // * implementation (B implements A),
-    // * mixing in
-    // * mix-in applications
-    // * renaming with `_`
-    // * renaming with `__` (like `m(_, __)`)
     defineReflectiveTests(AvoidRenamingMethodParametersTest);
   });
 }
@@ -83,6 +78,53 @@ enum A with C {
 }
 ''',
       [lint(88, 1)],
+    );
+  }
+
+  test_extends_indirectly() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {}
+class C extends B {
+  @override
+  void m(int q) {}
+}
+''',
+      [lint(97, 1)],
+    );
+  }
+
+  test_mixedIn() async {
+    await assertDiagnostics(
+      r'''
+mixin M {
+  void m(int p) {}
+}
+class C with M {
+  @override
+  void m(int q) {}
+}
+''',
+      [lint(73, 1)],
+    );
+  }
+
+  test_mixinApplication() async {
+    await assertDiagnostics(
+      r'''
+mixin M {
+  void m(int p) {}
+}
+abstract class C = Object with M;
+class D extends C {
+  @override
+  void m(int q) {}
+}
+''',
+      [lint(110, 1)],
     );
   }
 
@@ -160,6 +202,33 @@ class A {
 }
 class B extends A {
   void m(int p) {}
+}
+''');
+  }
+
+  test_renamingWithDoubleUnderscore() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  @override
+  void m(int __) {}
+}
+''',
+      [lint(76, 2)],
+    );
+  }
+
+  test_renamingWithWildcard() async {
+    await assertNoDiagnostics(r'''
+class A {
+  void m(int p) {}
+}
+class B extends A {
+  @override
+  void m(int _) {}
 }
 ''');
   }

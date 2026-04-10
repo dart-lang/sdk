@@ -1326,7 +1326,7 @@ worlds:
     _fs.data[uri] = latestCrashData;
   }
 
-  Future<void> _deleteBlocks(final Uri uri, Component initialComponent) async {
+  Future<void> _deleteBlocks(Uri uri, Component initialComponent) async {
     if (uri.toString().endsWith(".json")) {
       // Try to find annoying
       //
@@ -1747,7 +1747,7 @@ worlds:
   Future<void> _deleteBlocksHelper(
     ClassOrMixinOrExtensionBodyEnd body,
     _CompilationHelperClass helper,
-    final Uri uri,
+    Uri uri,
     Component initialComponent,
   ) async {
     for (ParserAstNode child in body.children!) {

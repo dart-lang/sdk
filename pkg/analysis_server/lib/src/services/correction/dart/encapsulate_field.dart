@@ -7,6 +7,7 @@ import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -305,6 +306,10 @@ class EncapsulateField extends ResolvedCorrectionProducer {
     required Token? separator,
     required NodeList<ConstructorInitializer>? initializers,
   }) {
+    // If we rename a parameter, keep track of it so we can update any
+    // references in initializers.
+    FieldFormalParameterElement? renamedParameterElement;
+
     // Update any field formal parameter that refers to the field.
     for (var parameter in parameters.parameters) {
       var identifier = parameter.name;
@@ -340,6 +345,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       } else {
         // Rename the parameter.
         builder.addSimpleReplacement(range.token(identifier), '_$name');
+        renamedParameterElement = parameterElement;
       }
 
       // Change `final` to `var` in declaring parameters.
@@ -359,6 +365,17 @@ class EncapsulateField extends ResolvedCorrectionProducer {
           builder.addSimpleReplacement(
             range.node(initializer.fieldName),
             '_$name',
+          );
+        }
+
+        // Update any references to the renamed parameter in initializers.
+        if (renamedParameterElement != null) {
+          initializer.accept(
+            _InitializerReferenceUpdater(
+              builder,
+              renamedParameterElement,
+              '_$name',
+            ),
           );
         }
       }
@@ -399,6 +416,26 @@ class EncapsulateField extends ResolvedCorrectionProducer {
           initializers: constructor.initializers,
         );
       }
+    }
+  }
+}
+
+/// Updates references to [parameterElement] to use [newName].
+class _InitializerReferenceUpdater extends RecursiveAstVisitor<void> {
+  final DartFileEditBuilder builder;
+  final FieldFormalParameterElement parameterElement;
+  final String newName;
+
+  _InitializerReferenceUpdater(
+    this.builder,
+    this.parameterElement,
+    this.newName,
+  );
+
+  @override
+  void visitSimpleIdentifier(SimpleIdentifier node) {
+    if (node.element == parameterElement) {
+      builder.addSimpleReplacement(range.token(node.token), newName);
     }
   }
 }

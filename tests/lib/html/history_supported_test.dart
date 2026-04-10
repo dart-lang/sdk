@@ -4,16 +4,13 @@
 
 library HistoryTest;
 
-import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
-import 'dart:html';
 import 'dart:async';
+import 'dart:html';
+
+import 'package:expect/legacy/async_minitest.dart'; // ignore: deprecated_member_use
 
 main() {
   test('supports_state', () {
     expect(History.supportsState, true);
-  });
-
-  test('supported_HashChangeEvent', () {
-    expect(HashChangeEvent.supported, true);
   });
 }

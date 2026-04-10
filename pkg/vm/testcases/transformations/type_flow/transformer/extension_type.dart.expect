@@ -22,7 +22,7 @@ class Run<T extends core::Object? = dynamic> extends core::Object {
 
   [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
   [@vm.procedure-attributes.metadata=methodOrSetterCalledDynamically:false,getterCalledDynamically:false,hasThisUses:false,hasTearOffUses:false,methodOrSetterSelectorId:3,getterSelectorId:4]
-  method execute([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int> (skip check)] covariant-by-class final core::List<self::Run::T%> list) → void {}
+  method execute([@vm.inferred-arg-type.metadata=dart.core::_GrowableList<dart.core::int> (skip check)] covariant-by-class core::List<self::Run::T%> list) → void {}
 }
 abstract class C5<T extends core::Object? = dynamic> extends core::Object {
 }
@@ -63,7 +63,7 @@ static extension-type-member method SomeExtensionType|constructor#([@vm.inferred
 
 [@vm.inferred-return-type.metadata=dart.core::Null? (value: null)]
 static method testTypeCheckRemoval() → void {
-  final core::List<self::SomeExtensionType% /* erasure=core::int, declared=! */> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::generate<self::SomeExtensionType% /* erasure=core::int, declared=! */>(10, (final core::int a) → self::SomeExtensionType% /* erasure=core::int, declared=! */ => [@vm.inferred-type.metadata=int] self::SomeExtensionType|constructor#(a));
+  final core::List<self::SomeExtensionType% /* erasure=core::int, declared=! */> list = [@vm.inferred-type.metadata=dart.core::_GrowableList<dart.core::int>] core::_GrowableList::generate<self::SomeExtensionType% /* erasure=core::int, declared=! */>(10, (core::int a) → self::SomeExtensionType% /* erasure=core::int, declared=! */ => [@vm.inferred-type.metadata=int] self::SomeExtensionType|constructor#(a));
   final self::Run<self::SomeExtensionType% /* erasure=core::int, declared=! */> obj = new self::Run::•<self::SomeExtensionType% /* erasure=core::int, declared=! */>();
   [@vm.call-site-attributes.metadata=receiverType:#lib::Run<#lib::SomeExtensionType>] [@vm.direct-call.metadata=#lib::Run.execute] [@vm.inferred-type.metadata=? (skip check)] obj.{self::Run::execute}(list){(core::List<self::SomeExtensionType% /* erasure=core::int, declared=! */>) → void};
 }

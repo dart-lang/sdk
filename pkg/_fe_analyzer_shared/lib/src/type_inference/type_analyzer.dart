@@ -2172,7 +2172,7 @@ mixin TypeAnalyzer<
   SwitchStatementTypeAnalysisResult<Error> analyzeSwitchStatement(
     Statement node,
     Expression scrutinee,
-    final int numCases,
+    int numCases,
   ) {
     // Stack: ()
     ExpressionTypeAnalysisResult scrutineeAnalysisResult = analyzeExpression(

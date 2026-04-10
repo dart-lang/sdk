@@ -595,7 +595,7 @@ class TestParser extends Parser {
 
   @override
   Token parseRecordType(
-    final Token start,
+    Token start,
     Token token,
     bool isQuestionMarkPartOfType,
   ) {
@@ -851,7 +851,7 @@ class TestParser extends Parser {
 
   @override
   Token? recoverySmallLookAheadSkipTokens(
-    final Token token,
+    Token token,
     List<TokenType> lookFor,
   ) {
     doPrint(
@@ -1585,7 +1585,7 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseSuperInitializerExpression(final Token start) {
+  Token parseSuperInitializerExpression(Token start) {
     doPrint(
       'parseSuperInitializerExpression('
       '$start)',
@@ -2553,10 +2553,7 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseLiteralListSetMapOrFunction(
-    final Token start,
-    Token? constKeyword,
-  ) {
+  Token parseLiteralListSetMapOrFunction(Token start, Token? constKeyword) {
     doPrint(
       'parseLiteralListSetMapOrFunction('
       '$start, '
@@ -2944,7 +2941,7 @@ class TestParser extends Parser {
   }
 
   @override
-  Token parseExpressionStatementOrConstDeclaration(final Token start) {
+  Token parseExpressionStatementOrConstDeclaration(Token start) {
     doPrint(
       'parseExpressionStatementOrConstDeclaration('
       '$start)',
@@ -2957,7 +2954,7 @@ class TestParser extends Parser {
 
   @override
   Token parseExpressionStatementOrDeclaration(
-    final Token start, [
+    Token start, [
     ForPartsContext? forPartsContext,
   ]) {
     doPrint(
