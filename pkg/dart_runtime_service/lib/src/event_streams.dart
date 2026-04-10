@@ -268,7 +268,15 @@ class EventStreamManager implements EventStreamMethods {
     // Tell the backend to start sending events for this stream if this is the
     // first listener.
     if (listeners.length == 1) {
-      _backend.onStreamListen(streamId: streamId, params: params);
+      if (!_backend.onStreamListen(streamId: streamId, params: params)) {
+        client.logger.warning(
+          'Attempted to subscribe to an invalid stream ID: $streamId.',
+        );
+        streamListeners.remove(streamId);
+        RpcException.invalidParams.throwExceptionWithDetails(
+          details: "streamListen: invalid 'streamId' parameter: $streamId",
+        );
+      }
     }
     if (streamId == EventStreams.kService) {
       // Send all previously registered service extensions when a client

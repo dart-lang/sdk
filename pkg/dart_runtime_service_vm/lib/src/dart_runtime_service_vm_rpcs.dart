@@ -25,14 +25,17 @@ final class DartRuntimeServiceVmRpcs {
   static const _kGetSupportedProtocols = 'getSupportedProtocols';
   static const _kCreateIdZone = 'createIdZone';
   static const _kDeleteIdZone = 'deleteIdZone';
+  static const _kStreamCpuSamplesWithUserTag = 'streamCpuSamplesWithUserTag';
 
   static const _kIsolateId = 'isolateId';
   static const _kIdZoneId = 'idZoneId';
+  static const _kUserTags = 'userTags';
 
   late final rpcs = UnmodifiableListView<ServiceRpcHandler>([
     (_kGetSupportedProtocols, getSupportedProtocols),
     (_kCreateIdZone, createIdZone),
     (_kDeleteIdZone, deleteIdZone),
+    (_kStreamCpuSamplesWithUserTag, streamCpuSamplesWithUserTag),
   ]);
 
   /// Returns the list of protocols implemented by the service.
@@ -93,5 +96,16 @@ final class DartRuntimeServiceVmRpcs {
       idZoneId: parameters[_kIdZoneId].asString,
     );
     return result;
+  }
+
+  /// The `streamCpuSamplesWithUserTag` RPC is deprecated and calling it will
+  /// cause no effect.
+  // TODO(https://github.com/dart-lang/sdk/issues/63094): remove for protocol
+  // version 5.0.
+  Future<RpcResponse> streamCpuSamplesWithUserTag(
+    json_rpc_2.Parameters parameters,
+  ) async {
+    parameters[_kUserTags].asList;
+    return Success().toJson();
   }
 }
