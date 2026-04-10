@@ -31,6 +31,7 @@ class DartRuntimeServiceVMBackend
     required super.frontend,
     required this.signalWatch,
     required Stream<VmRunningIsolate> runningIsolatesStream,
+    required this._ddsManager,
   }) : isolateManager = VmIsolateManager(
          runningIsolatesStream: runningIsolatesStream,
        );
@@ -79,9 +80,16 @@ class DartRuntimeServiceVMBackend
 
   final _vmServiceRpcs = DartRuntimeServiceVmRpcs();
 
+  /// Adds support for launching and accepting connections from the
+  /// Dart Development Service.
+  final DartDevelopmentServiceManager _ddsManager;
+
   @override
-  UnmodifiableListView<ServiceRpcHandler> get rpcs =>
-      UnmodifiableListView([..._vmServiceRpcs.rpcs, ..._devFs.rpcs]);
+  UnmodifiableListView<ServiceRpcHandler> get rpcs => UnmodifiableListView([
+    ..._vmServiceRpcs.rpcs,
+    ..._devFs.rpcs,
+    ..._ddsManager.rpcs,
+  ]);
 
   @override
   UnmodifiableListView<RpcHandlerWithParameters>
@@ -118,6 +126,7 @@ class DartRuntimeServiceVMBackend
   @override
   Future<void> shutdown() async {
     _logger.info('Shutting down...');
+    await _ddsManager.shutdown();
     await Future.wait([
       _sigquitSubscription?.cancel() ?? Future<void>.value(),
       _nativeRpcClientStreamChannelController.local.sink.close(),
@@ -145,7 +154,10 @@ class DartRuntimeServiceVMBackend
     required Uri httpUri,
     required Uri wsUri,
   }) async {
-    // TODO(bkonyi): handle DDS connection case.
+    if (_ddsManager.launchOnStart) {
+      await _ddsManager.start(vmServiceUri: httpUri);
+      httpUri = await _ddsManager.ddsConnected;
+    }
     stdout.writeln('The Dart VM service is listening on $httpUri/');
     _nativeBindings.onServerAddressChange(httpUri.toString());
   }
@@ -173,7 +185,12 @@ class DartRuntimeServiceVMBackend
   /// Sends service requests to the Dart VM runtime for processing.
   Future<RpcResponse> sendToRuntime(json_rpc.Parameters request) async {
     final method = request.method;
-    final params = request.asMap.cast<String, Object?>();
+    // It's possible that a client will omit the parameters map for RPCs with
+    // no parameters. Don't try and cast the request unless the value is
+    // actually a map, otherwise assume there's no arugments.
+    final params = request.value is Map
+        ? request.asMap.cast<String, Object?>()
+        : const <String, Object?>{};
     if (params case {'isolateId': final String _}) {
       _logger.info(
         'Sending request to isolate. Method: $method Params: $params',
@@ -194,7 +211,7 @@ class DartRuntimeServiceVMBackend
   ///     Service.toggleWebServer())
   ///   - Isolate startup and shutdown notifications
   void _vmMessageHandler(List<Object?> message) {
-    _logger.info('VM message: $message');
+    _logger.fine('VM message: $message');
     switch (message) {
       case [final String streamId, final String eventJsonString]:
         // This is an event.

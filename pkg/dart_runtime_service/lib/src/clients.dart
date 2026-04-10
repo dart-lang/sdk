@@ -25,6 +25,7 @@ base class Client {
     required UnmodifiableClientNamedLookup clients,
     required EventStreamMethods eventStreamMethods,
     required this.backend,
+    required this.artificial,
     String? name,
   }) {
     _name = name ?? defaultClientName;
@@ -42,6 +43,17 @@ base class Client {
   late json_rpc.Peer _clientPeer;
   late final DartRuntimeServiceRpcs _internalRpcs;
   final DartRuntimeServiceBackend backend;
+
+  /// If `true`, this client was created via
+  /// [DartRuntimeService.addArtificialClient].
+  ///
+  /// [DartRuntimeServiceBackend]s sometimes need to be able to create clients
+  /// that aren't associated with an active connection to the service. For
+  /// example, the Dart VM provides native APIs to invoke service RPCs. This
+  /// can be implemented by manually creating a [StreamChannel] for native RPC
+  /// invocations to be added to, which is then used to create an artificial
+  /// client.
+  final bool artificial;
 
   /// The logger to be used when handling requests from this client.
   Logger get logger => Logger(toString());
@@ -177,16 +189,42 @@ base class Client {
   String toString() => 'Client ($name)';
 }
 
+/// An interface that allows for controlling whether or not new [Client]
+/// connections should be accepted or rejected.
+abstract interface class ClientConnectionController {
+  /// Accept connection requests from new [Client]s.
+  void acceptConnections();
+
+  /// Reject connection requests from new [Client]s, redirecting them to
+  /// connect to [redirectUri] instead.
+  void rejectConnections({required Uri redirectUri});
+}
+
 /// Used for keeping track and managing clients that are connected to a given
 /// service.
 ///
 /// Call [addClient] when a client connects to your service.
-base class ClientManager {
+base class ClientManager implements ClientConnectionController {
   ClientManager({required this.backend, required this.eventStreamMethods});
 
   static const _kServicePrologue = 's';
   final DartRuntimeServiceBackend backend;
   final EventStreamMethods eventStreamMethods;
+
+  final _logger = Logger('$ClientManager');
+
+  /// Returns `true` if new [Client] connections should be accepted.
+  ///
+  /// If `false`, [redirectUri] will be non-null and should be included in a
+  /// redirect response.
+  bool get acceptNewConnections => redirectUri == null;
+
+  /// The [Uri] pointing to the service that [Client]s should attempt to connect
+  /// to.
+  ///
+  /// Returns `null` if [acceptNewConnections] is `true`.
+  Uri? get redirectUri => _redirectUri;
+  Uri? _redirectUri;
 
   /// The set of [Client]s currently connected to the service.
   ///
@@ -194,22 +232,44 @@ base class ClientManager {
   /// [_kServicePrologue] (e.g., 's1'). This identifier is used when invoking
   /// service extensions registered by the client to indicate which client
   /// is responsible for handling the service extension invocation.
-  final clients = ClientNamedLookup(prefix: _kServicePrologue);
+  UnmodifiableClientNamedLookup get clients =>
+      UnmodifiableClientNamedLookup(_clients);
+  final _clients = ClientNamedLookup(prefix: _kServicePrologue);
+
+  @override
+  void acceptConnections() {
+    _redirectUri = null;
+    _logger.info('Accepting new connections.');
+  }
+
+  @override
+  void rejectConnections({required Uri redirectUri}) {
+    _redirectUri = redirectUri;
+    _logger.info(
+      'No longer accepting new connections. Redirecting connections to '
+      '$redirectUri.',
+    );
+  }
 
   /// Creates a [Client] from [connection] and adds it to the list of connected
   /// clients.
   ///
   /// This should be called when a client connects to the service.
   @mustCallSuper
-  Client addClient({required StreamChannel<String> connection, String? name}) {
+  Client addClient({
+    required StreamChannel<String> connection,
+    String? name,
+    bool artificial = false,
+  }) {
     final client = Client(
       connection: connection,
-      clients: UnmodifiableClientNamedLookup(clients),
+      clients: clients,
       eventStreamMethods: eventStreamMethods,
       backend: backend,
       name: name,
+      artificial: artificial,
     );
-    final namespace = clients.add(client);
+    final namespace = _clients.add(client);
     client.initialize(namespace: namespace).then((_) {
       // Remove the client from the clients list when it disconnects.
       removeClient(client);
@@ -224,8 +284,8 @@ base class ClientManager {
   @mustCallSuper
   @visibleForOverriding
   void removeClient(Client client) {
-    if (clients.contains(client)) {
-      clients.remove(client);
+    if (_clients.contains(client)) {
+      _clients.remove(client);
     }
   }
 
@@ -235,7 +295,7 @@ base class ClientManager {
     // Close all incoming websocket connections.
     final futures = <Future<void>>[];
     // Copy `clients` to guard against modification while iterating.
-    for (final client in clients.toList()) {
+    for (final client in _clients.toList()) {
       futures.add(
         Future.sync(() => removeClient(client)).whenComplete(client.close),
       );

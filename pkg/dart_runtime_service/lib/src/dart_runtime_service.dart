@@ -103,14 +103,20 @@ class DartRuntimeService {
 
   final _logger = Logger('$DartRuntimeService');
 
+  /// Exposes methods for controlling acceptance of new [Client] connections.
+  ClientConnectionController get clientConnectionController => clientManager;
+
   @visibleForTesting
   late final ClientManager clientManager = ClientManager(
     backend: backend,
     eventStreamMethods: eventStreamManager,
   );
 
-  UnmodifiableClientNamedLookup get clients =>
-      UnmodifiableClientNamedLookup(clientManager.clients);
+  /// The set of currently connected [Client]s.
+  UnmodifiableClientNamedLookup get clients => clientManager.clients;
+
+  /// Exposes methods for interacting with event streams.
+  EventStreamMethods get eventStreams => eventStreamManager;
 
   @visibleForTesting
   late final eventStreamManager = EventStreamManager(
@@ -181,7 +187,11 @@ class DartRuntimeService {
     required StreamChannel<String> connection,
     required String name,
   }) {
-    return clientManager.addClient(connection: connection, name: name);
+    return clientManager.addClient(
+      connection: connection,
+      name: name,
+      artificial: true,
+    );
   }
 
   Future<void> _startServer() async {

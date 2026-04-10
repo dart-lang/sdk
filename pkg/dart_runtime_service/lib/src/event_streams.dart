@@ -26,7 +26,7 @@ abstract base class StreamEvent {
   final int timestamp = DateTime.now().millisecondsSinceEpoch;
 
   void send({
-    required EventStreamManager eventStreamMethods,
+    required EventStreamMethods eventStreamMethods,
     Client? excludedClient,
   }) {
     eventStreamMethods.streamNotify(
@@ -161,17 +161,26 @@ class EventStreamManager implements EventStreamMethods {
     final streamLogger = Logger('${_logger.name} ($streamId)');
     if (streamListeners.containsKey(streamId)) {
       final listeners = streamListeners[streamId]!;
-      String eventString;
-      if (data is Uint8List) {
-        eventString = '<binary data>';
-      } else if (data is StreamEvent) {
-        eventString = data.toJson().toString();
-      } else {
-        eventString = '<unknown>';
+      // Don't log event string for streams known to send large amounts of
+      // data.
+      if (!const {
+        EventStreams.kStdout,
+        EventStreams.kStderr,
+        EventStreams.kHeapSnapshot,
+        EventStreams.kLogging,
+      }.contains(streamId)) {
+        String eventString;
+        if (data is Uint8List) {
+          eventString = '<binary data>';
+        } else if (data is StreamEvent) {
+          eventString = data.toJson().toString();
+        } else {
+          eventString = '<unknown>';
+        }
+        streamLogger.info(
+          'Sending event to ${listeners.length} clients: $eventString.',
+        );
       }
-      streamLogger.info(
-        'Sending event to ${listeners.length} clients: $eventString',
-      );
 
       for (final listener in listeners) {
         if (listener == excludedClient) {

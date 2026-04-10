@@ -18,6 +18,10 @@ import 'clients.dart';
 import 'dart_runtime_service.dart';
 import 'dart_runtime_service_backend.dart';
 
+/// Return from a handler to indicate that the request can't be handled by the
+/// current handler.
+Response notHandledByHandler() => Response.notFound('');
+
 /// Creates [Middleware] responsible for logging the result of HTTP requests.
 ///
 /// Note: this only outputs logs when the response is sent. Connections that
@@ -161,14 +165,34 @@ Handler httpRequestHandler({required DartRuntimeService frontend}) =>
     };
 
 /// Creates a [Handler] for incoming web socket connections.
-Handler webSocketClientHandler({required ClientManager clientManager}) =>
-    webSocketHandler((WebSocketChannel ws, _) {
-      // Note: the WebSocketChannel type below is needed for compatibility with
-      // package:shelf_web_socket v2.
-      final logger = Logger('WebSocketHandler');
-      logger.info('New web socket connection. Creating $Client.');
-      clientManager.addClient(connection: ws.cast<String>());
-    });
+Handler webSocketClientHandler({required ClientManager clientManager}) {
+  final logger = Logger('WebSocketHandler');
+  // Note: the WebSocketChannel type below is needed for compatibility with
+  // package:shelf_web_socket v2.
+  final handler = webSocketHandler((WebSocketChannel ws, _) {
+    logger.info('New web socket connection. Creating $Client.');
+    clientManager.addClient(connection: ws.cast<String>());
+  });
+
+  return (request) {
+    if (!request.isWebSocketUpgradeRequest) {
+      return notHandledByHandler();
+    }
+    if (!clientManager.acceptNewConnections) {
+      logger.info(
+        'New connections not accepted. Rejecting web socket connection.',
+      );
+      final redirectUri = clientManager.redirectUri;
+      if (redirectUri != null) {
+        return Response.seeOther(clientManager.redirectUri.toString());
+      }
+      return Response.forbidden(
+        'New connections not accepted. Rejecting web socket connection.',
+      );
+    }
+    return handler(request);
+  };
+}
 
 /// Creates a [Handler] for incoming SSE connections.
 Handler sseClientHandler({
@@ -176,7 +200,6 @@ Handler sseClientHandler({
   required String sseHandlerPath,
   required String? authCode,
 }) {
-  final logger = Logger('SSEClientHandler');
   // Give connections time to reestablish before considering them closed.
   // Required to reestablish connections killed by UberProxy.
   const sseKeepAlive = Duration(seconds: 30);
@@ -186,10 +209,35 @@ Handler sseClientHandler({
     keepAlive: sseKeepAlive,
   );
 
-  handler.connections.rest.listen((sseConnection) {
-    logger.info('New SSE connection. Creating $Client.');
-    clientManager.addClient(connection: sseConnection);
-  });
+  final logger = Logger('SSEClientHandler');
 
-  return handler.handler;
+  return (request) {
+    if (!clientManager.acceptNewConnections && request.isSSEConnectionRequest) {
+      logger.info('New connections not accepted. Rejecting SSE connection.');
+      final redirectUri = clientManager.redirectUri;
+      if (redirectUri != null) {
+        return Response.seeOther(clientManager.redirectUri.toString());
+      }
+      return Response.forbidden(
+        'New connections not accepted. Rejecting SSE connection.',
+      );
+    }
+
+    handler.connections.rest.listen((sseConnection) {
+      logger.info('New SSE connection. Creating $Client.');
+      clientManager.addClient(connection: sseConnection);
+    });
+
+    return handler.handler(request);
+  };
+}
+
+/// Adds checks for specific headers to determine if a [Request] is attempting
+/// to establish a web socket or SSE connection.
+extension on Request {
+  bool get isWebSocketUpgradeRequest =>
+      headers.containsKey('Sec-WebSocket-Key');
+
+  bool get isSSEConnectionRequest =>
+      headers['accept'] == 'text/event-stream' && method == 'GET';
 }
