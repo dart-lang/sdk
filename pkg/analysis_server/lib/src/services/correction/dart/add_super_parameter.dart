@@ -36,20 +36,41 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
       return;
     }
 
-    var constructorDeclaration = node.parent;
-    if (constructorDeclaration is! ConstructorDeclaration) return;
+    AstNode? candidate = node;
+    if (candidate is ConstructorDeclaration) {
+      var classElement = candidate.declaredFragment!.element.enclosingElement;
+      if (classElement is! ClassElement) return;
+      await _addToConstructor(builder, classElement, candidate.parameters);
+    } else if (candidate is PrimaryConstructorDeclaration) {
+      var classElement = candidate.declaredFragment!.element.enclosingElement;
+      if (classElement is! ClassElement) return;
+      await _addToConstructor(
+        builder,
+        classElement,
+        candidate.formalParameters,
+      );
+    } else {
+      candidate = candidate.parent;
+      if (candidate is ConstructorDeclaration) {
+        var classElement = candidate.declaredFragment!.element.enclosingElement;
+        if (classElement is! ClassElement) return;
+        await _addToConstructor(builder, classElement, candidate.parameters);
+      }
+    }
+  }
 
-    var classDeclaration = constructorDeclaration.parent?.parent;
-    if (classDeclaration is! ClassDeclaration) return;
-
-    var classElement = classDeclaration.declaredFragment!.element;
+  Future<void> _addToConstructor(
+    ChangeBuilder builder,
+    ClassElement classElement,
+    FormalParameterList parameterList,
+  ) async {
     var superType = classElement.supertype;
     var superElement = superType?.element;
     var superUnnamedConstructor = superElement?.unnamedConstructor;
     if (superUnnamedConstructor == null) return;
 
     var superParameters = superUnnamedConstructor.formalParameters;
-    var parameters = constructorDeclaration.parameters.parameters;
+    var parameters = parameterList.parameters;
     var missingNamedParameters = <FormalParameterElement>[];
     var superPositionalParameters = <FormalParameterElement>[];
     for (var superParameter in superParameters) {
@@ -93,7 +114,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
         missingPositionalParameters.length + missingNamedParameters.length;
 
     if (parameters.isEmpty) {
-      var offset = constructorDeclaration.parameters.leftParenthesis.end;
+      var offset = parameterList.leftParenthesis.end;
       await builder.addDartFileEdit(file, (builder) {
         builder.addInsertion(offset, (builder) {
           _writePositional(
@@ -115,7 +136,7 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
       );
       if (missingPositionalParameters.isNotEmpty) {
         var offset = lastPositionalParameter == null
-            ? constructorDeclaration.parameters.leftParenthesis.end
+            ? parameterList.leftParenthesis.end
             : lastPositionalParameter.end;
 
         await builder.addDartFileEdit(file, (builder) {
@@ -139,13 +160,10 @@ class AddSuperParameter extends ResolvedCorrectionProducer {
         } else if (lastPositionalParameter != null) {
           replacementRange = range.endStart(
             lastPositionalParameter,
-            constructorDeclaration.parameters.rightParenthesis,
+            parameterList.rightParenthesis,
           );
         } else {
-          replacementRange = SourceRange(
-            constructorDeclaration.parameters.leftParenthesis.end,
-            0,
-          );
+          replacementRange = SourceRange(parameterList.leftParenthesis.end, 0);
         }
 
         await builder.addDartFileEdit(file, (builder) {
