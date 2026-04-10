@@ -89,7 +89,8 @@ namespace dart {
   V(Bytecode, implicit_shared_static_getter_bytecode)                          \
   V(Bytecode, implicit_static_setter_bytecode)                                 \
   V(Bytecode, implicit_shared_static_setter_bytecode)                          \
-  V(Bytecode, method_extractor_bytecode)                                       \
+  V(Bytecode, method_extractor_with_ita_bytecode)                              \
+  V(Bytecode, method_extractor_without_ita_bytecode)                           \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
   V(Bytecode, nsm_dispatcher_bytecode)                                         \

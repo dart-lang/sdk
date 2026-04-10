@@ -3100,53 +3100,114 @@ class UntaggedTypeParameter : public UntaggedAbstractType {
 };
 
 class UntaggedClosure : public UntaggedInstance {
+ public:
+  using HasDelayedTypeArgumentsBit = BitField<intptr_t, bool, 0, 1>;
+  static constexpr intptr_t kHasDelayedTypeArgumentsBit =
+      HasDelayedTypeArgumentsBit::shift();
+
+  using HasInstantiatorTypeArgumentsBit =
+      BitField<intptr_t, bool, HasDelayedTypeArgumentsBit::kNextBit, 1>;
+  static constexpr intptr_t kHasInstantiatorTypeArgumentsBit =
+      HasInstantiatorTypeArgumentsBit::shift();
+
+  using HasFunctionTypeArgumentsBit =
+      BitField<intptr_t, bool, HasInstantiatorTypeArgumentsBit::kNextBit, 1>;
+  static constexpr intptr_t kHasFunctionTypeArgumentsBit =
+      HasFunctionTypeArgumentsBit::shift();
+
+  // Same as HasDelayedTypeArgumentsBit.
+  using InstantiatorTypeArgumentsIndexBits =
+      BitField<intptr_t,
+               uint8_t,
+               HasDelayedTypeArgumentsBit::shift(),
+               HasDelayedTypeArgumentsBit::bitsize()>;
+
+  using FunctionTypeArgumentsIndexBits =
+      BitField<intptr_t, uint8_t, HasFunctionTypeArgumentsBit::kNextBit, 2>;
+  static constexpr intptr_t kFunctionTypeArgumentsIndexBitsPos =
+      FunctionTypeArgumentsIndexBits::shift();
+  static constexpr intptr_t kFunctionTypeArgumentsIndexBitsSize =
+      FunctionTypeArgumentsIndexBits::bitsize();
+
+  using LengthBits = BitField<intptr_t,
+                              intptr_t,
+                              FunctionTypeArgumentsIndexBits::kNextBit,
+                              compiler::target::kSmiBits -
+                                  FunctionTypeArgumentsIndexBits::kNextBit>;
+  static_assert(LengthBits::kNextBit <= compiler::target::kSmiBits,
+                "Length and flags should fit into a Smi");
+  static constexpr intptr_t kLengthBitsPos = LengthBits::shift();
+  static constexpr intptr_t kLengthBitsSize = LengthBits::bitsize();
+
+  static constexpr intptr_t kDelayedTypeArgumentsIndex = 0;
+
+  static intptr_t InstantiatorTypeArgumentsIndex(bool has_delayed_type_args) {
+    return static_cast<intptr_t>(has_delayed_type_args);
+  }
+  static intptr_t FunctionTypeArgumentsIndex(bool has_delayed_type_args,
+                                             bool has_instantiator_type_args) {
+    return static_cast<intptr_t>(has_delayed_type_args) +
+           static_cast<intptr_t>(has_instantiator_type_args);
+  }
+  static intptr_t ContextIndex(bool has_delayed_type_args,
+                               bool has_instantiator_type_args,
+                               bool has_function_type_args) {
+    return static_cast<intptr_t>(has_delayed_type_args) +
+           static_cast<intptr_t>(has_instantiator_type_args) +
+           static_cast<intptr_t>(has_function_type_args);
+  }
+
+  static intptr_t EncodeLengthAndFlags(bool has_delayed_type_args,
+                                       bool has_instantiator_type_args,
+                                       bool has_function_type_args,
+                                       intptr_t num_elements) {
+    return HasDelayedTypeArgumentsBit::encode(has_delayed_type_args) |
+           HasInstantiatorTypeArgumentsBit::encode(has_instantiator_type_args) |
+           HasFunctionTypeArgumentsBit::encode(has_function_type_args) |
+           FunctionTypeArgumentsIndexBits::encode(
+               has_function_type_args
+                   ? FunctionTypeArgumentsIndex(has_delayed_type_args,
+                                                has_instantiator_type_args)
+                   : 0) |
+           LengthBits::encode(num_elements);
+  }
+
  private:
   RAW_HEAP_OBJECT_IMPLEMENTATION(Closure);
 
-  // The following fields are also declared in the Dart source of class
-  // _Closure, and so must be the first fields in the object and must appear
-  // in the same order, so the offsets are identical in Dart and C++.
-  //
-  // Note that the type of a closure is defined by instantiating the
-  // signature of the closure function with the instantiator, function, and
-  // delayed (if non-empty) type arguments stored in the closure value.
-
-  // Stores the instantiator type arguments provided when the closure was
-  // created.
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, instantiator_type_arguments)
-  VISIT_FROM(instantiator_type_arguments)
-  // Stores the function type arguments provided for any generic parent
-  // functions when the closure was created.
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, function_type_arguments)
-  // If this field contains the empty type argument vector, then the closure
-  // value is generic.
-  //
-  // To create a new closure that is a specific type instantiation of a generic
-  // closure, a copy of the closure is created where the empty type argument
-  // vector in this field is replaced with the vector of local type arguments.
-  // The resulting closure value is not generic, and so an attempt to provide
-  // type arguments when invoking the new closure value is treated the same as
-  // calling any other non-generic function with unneeded type arguments.
-  //
-  // If the signature for the closure function has no local type parameters,
-  // the only guarantee about this field is that it never contains the empty
-  // type arguments vector. Thus, only this field need be inspected to
-  // determine whether a given closure value is generic.
-  COMPRESSED_POINTER_FIELD(TypeArgumentsPtr, delayed_type_arguments)
-  COMPRESSED_POINTER_FIELD(FunctionPtr, function)
-  // For tear-offs - captured receiver.
-  // For ordinary closures - Context object with captured variables.
-  COMPRESSED_POINTER_FIELD(ObjectPtr, context)
-  COMPRESSED_POINTER_FIELD(SmiPtr, hash)
-  VISIT_TO(hash)
-
-  // We have an extra word in the object due to alignment rounding, so use it in
-  // bare instructions mode to cache the entry point from the closure function
-  // to avoid an extra redirection on call. Closure functions only have
-  // one entry point, as dynamic calls use dynamic closure call dispatchers.
+  // Cached entry point from the closure function to avoid an extra
+  // indirection on call. Closure functions only have one entry point,
+  // as dynamic calls use dynamic closure call dispatchers.
   ONLY_IN_PRECOMPILED(uword entry_point_);
 
-  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
+#if defined(DART_COMPRESSED_POINTERS)
+  // This explicit padding avoids implicit padding between [function] and
+  // [data]. Closure allocation doesn't initialize the implicit padding but
+  // GC scans everything between 'from' (length_and_flags) and 'to'
+  // (end of data), so it would see garbage if implicit padding is inserted.
+  uint32_t padding_;
+#endif
+
+  COMPRESSED_SMI_FIELD(SmiPtr, length_and_flags)
+  VISIT_FROM(length_and_flags)
+  COMPRESSED_SMI_FIELD(SmiPtr, hash)
+  COMPRESSED_POINTER_FIELD(FunctionPtr, function)
+
+  // Variable length data follows here.
+  // It contains (in order):
+  //  - delayed type arguments (if function is generic);
+  //  - instantiator type arguments (if enclosing class is generic);
+  //  - parent function type arguments (if enclosing function has type args);
+  //  - captured values and contexts.
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_elements) {
+    return to(num_elements);
+  }
+
+  friend void UpdateLengthField(intptr_t,
+                                ObjectPtr,
+                                ObjectPtr);  // length_and_flags
 
   friend class Interpreter;
   friend class UnitDeserializationRoots;

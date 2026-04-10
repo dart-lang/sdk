@@ -1531,7 +1531,8 @@ class AstToIr extends ast.RecursiveVisitor {
       _typeTranslator.translate(node.constructedType),
       typeArguments: typeArguments,
     );
-    final argsWithoutTypes = ast.Arguments(args.positional, named: args.named);
+    final argsWithoutTypes = ast.Arguments(args.positional, named: args.named)
+      ..parent = node;
     final inputCount = _translateArguments(null, argsWithoutTypes);
     if (_handleUnreachableExpression(inputCount + 1)) return;
     builder.addDirectCall(

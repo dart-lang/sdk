@@ -1377,11 +1377,11 @@ bool Interpreter::AssertAssignable(Thread* thread,
     TypeArgumentsPtr delayed_function_type_arguments;
     if (cid == kClosureCid) {
       ClosurePtr closure = static_cast<ClosurePtr>(instance);
-      instance_type_arguments = closure->untag()->instantiator_type_arguments();
+      instance_type_arguments = Closure::instantiator_type_arguments(closure);
       parent_function_type_arguments =
-          closure->untag()->function_type_arguments();
+          Closure::function_type_arguments(closure);
       delayed_function_type_arguments =
-          closure->untag()->delayed_type_arguments();
+          Closure::delayed_type_arguments(closure);
       instance_cid_or_function =
           closure->untag()->function()->untag()->signature();
     } else {
@@ -1770,10 +1770,14 @@ bool Interpreter::AllocateContext(Thread* thread,
 // Allocate a _Closure and put it into SP[0].
 // Returns false on exception.
 bool Interpreter::AllocateClosure(Thread* thread,
+                                  FunctionPtr function,
+                                  SmiPtr length_and_flags,
                                   const KBCInstr* pc,
                                   ObjectPtr* FP,
                                   ObjectPtr* SP) {
-  const intptr_t instance_size = Closure::InstanceSize();
+  const intptr_t length =
+      UntaggedClosure::LengthBits::decode(Smi::Value(length_and_flags));
+  const intptr_t instance_size = Closure::InstanceSize(length);
   ClosurePtr result;
   if (TryAllocate(thread, kClosureCid, instance_size,
                   reinterpret_cast<ObjectPtr*>(&result))) {
@@ -1782,15 +1786,21 @@ bool Interpreter::AllocateClosure(Thread* thread,
                              Closure::ContainsCompressedPointers(),
                              Object::from_offset<Closure>(),
                              Object::to_offset<Closure>());
+    result->untag()->set_function(function);
+    ONLY_IN_PRECOMPILED(result->untag()->entry_point_ =
+                            function->untag()->entry_point_);
+    result->untag()->set_length_and_flags(length_and_flags);
+    result->untag()->set_hash(Smi::New(0));
     SP[0] = result;
     return true;
   } else {
     SP[0] = 0;  // Space for the result.
-    SP[1] = thread->isolate_group()->object_store()->closure_class();
-    SP[2] = Object::null();  // Type arguments.
-    Exit(thread, FP, SP + 3, pc);
-    NativeArguments args(thread, 2, SP + 1, SP);
-    return InvokeRuntime(thread, this, DRT_AllocateObject, args);
+    SP[1] = function;
+    SP[2] = length_and_flags;
+    SP[3] = Object::null();  // Context.
+    Exit(thread, FP, SP + 4, pc);
+    NativeArguments args(thread, 3, SP + 1, SP);
+    return InvokeRuntime(thread, this, DRT_AllocateClosure, args);
   }
 }
 
@@ -3485,28 +3495,36 @@ SwitchDispatchNoSingleStep:
   }
 
   {
-    BYTECODE(AllocateClosure, 0);
-    ++SP;
-    if (!AllocateClosure(thread, pc, FP, SP)) {
-      HANDLE_EXCEPTION;
-    }
-    ClosurePtr closure = Closure::RawCast(SP[0]);
-    FunctionPtr function = Function::RawCast(SP[-3]);
-    ObjectPtr context = SP[-2];
-    TypeArgumentsPtr instantiator_type_arguments =
-        TypeArguments::RawCast(SP[-1]);
-
+    BYTECODE(AllocateClosure, D);
+    FunctionPtr function = Function::RawCast(LOAD_CONSTANT(rD));
     ASSERT((Function::KindOf(function) == UntaggedFunction::kClosureFunction) ||
            (Function::KindOf(function) ==
             UntaggedFunction::kImplicitClosureFunction));
-    closure->untag()->set_function(function);
-    ONLY_IN_PRECOMPILED(closure->untag()->entry_point_ =
-                            function->untag()->entry_point_);
-    closure->untag()->set_context(context);
-    closure->untag()->set_instantiator_type_arguments(
-        instantiator_type_arguments);
-    SP -= 3;
-    SP[0] = closure;
+    SmiPtr length_and_flags = Smi::RawCast(LOAD_CONSTANT(rD + 1));
+    ++SP;
+    if (!AllocateClosure(thread, function, length_and_flags, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(LoadClosureElement, D);
+    ClosurePtr instance = Closure::RawCast(SP[0]);
+    ASSERT((0 <= rD) && (rD < UntaggedClosure::LengthBits::decode(Smi::Value(
+                                  instance->untag()->length_and_flags()))));
+    SP[0] = instance->untag()->element(rD);
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(StoreClosureElement, D);
+    ClosurePtr instance = Closure::RawCast(SP[-1]);
+    ObjectPtr value = static_cast<ObjectPtr>(SP[0]);
+    ASSERT((0 <= rD) && (rD < UntaggedClosure::LengthBits::decode(Smi::Value(
+                                  instance->untag()->length_and_flags()))));
+    instance->untag()->set_element(rD, value);
+    SP -= 2;
     DISPATCH();
   }
 
@@ -3827,34 +3845,87 @@ SwitchDispatchNoSingleStep:
   }
 
   {
-    BYTECODE(VMInternal_MethodExtractor, 0);
+    BYTECODE(VMInternal_MethodExtractorWithITA, 0);
 
     FunctionPtr function = FrameFunction(FP);
     ASSERT(Function::KindOf(function) == UntaggedFunction::kMethodExtractor);
     function = Function::RawCast(function->untag()->data());
     ASSERT(Function::KindOf(function) ==
            UntaggedFunction::kImplicitClosureFunction);
-
     ASSERT(InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) == 0);
+    const bool has_delayed_type_args =
+        FunctionType::RawCast(function->untag()->signature())
+            ->untag()
+            ->type_parameters() != TypeParameters::null();
+    const bool has_instantiator_type_args = true;
+    const bool has_function_type_args = false;
+    const intptr_t length =
+        UntaggedClosure::ContextIndex(has_delayed_type_args,
+                                      has_instantiator_type_args,
+                                      has_function_type_args) +
+        1;
+    SmiPtr length_and_flags = Smi::New(UntaggedClosure::EncodeLengthAndFlags(
+        has_delayed_type_args, has_instantiator_type_args,
+        has_function_type_args, length));
 
     ++SP;
-    if (!AllocateClosure(thread, pc, FP, SP)) {
+    if (!AllocateClosure(thread, function, length_and_flags, pc, FP, SP)) {
       HANDLE_EXCEPTION;
     }
 
+    ClosurePtr closure = Closure::RawCast(SP[0]);
     InstancePtr instance = Instance::RawCast(FrameArguments(FP, 1)[0]);
+    intptr_t index = 0;
+    if (has_delayed_type_args) {
+      closure->untag()->set_element(index++,
+                                    Object::empty_type_arguments().ptr());
+    }
+    closure->untag()->set_element(
+        index++, InterpreterHelpers::GetTypeArguments(thread, instance));
+    closure->untag()->set_element(index++, instance);
+    ASSERT(index == length);
 
-    ClosurePtr closure = Closure::RawCast(*SP);
-    closure->untag()->set_instantiator_type_arguments(
-        InterpreterHelpers::GetTypeArguments(thread, instance));
-    // function_type_arguments is already null
-    closure->untag()->set_delayed_type_arguments(
-        Object::empty_type_arguments().ptr());
-    closure->untag()->set_function(function);
-    ONLY_IN_PRECOMPILED(closure->untag()->entry_point_ =
-                            function->untag()->entry_point_);
-    closure->untag()->set_context(instance);
-    // hash is already null
+    DISPATCH();
+  }
+
+  {
+    BYTECODE(VMInternal_MethodExtractorWithoutITA, 0);
+
+    FunctionPtr function = FrameFunction(FP);
+    ASSERT(Function::KindOf(function) == UntaggedFunction::kMethodExtractor);
+    function = Function::RawCast(function->untag()->data());
+    ASSERT(Function::KindOf(function) ==
+           UntaggedFunction::kImplicitClosureFunction);
+    ASSERT(InterpreterHelpers::ArgDescTypeArgsLen(argdesc_) == 0);
+    const bool has_delayed_type_args =
+        FunctionType::RawCast(function->untag()->signature())
+            ->untag()
+            ->type_parameters() != TypeParameters::null();
+    const bool has_instantiator_type_args = false;
+    const bool has_function_type_args = false;
+    const intptr_t length =
+        UntaggedClosure::ContextIndex(has_delayed_type_args,
+                                      has_instantiator_type_args,
+                                      has_function_type_args) +
+        1;
+    SmiPtr length_and_flags = Smi::New(UntaggedClosure::EncodeLengthAndFlags(
+        has_delayed_type_args, has_instantiator_type_args,
+        has_function_type_args, length));
+
+    ++SP;
+    if (!AllocateClosure(thread, function, length_and_flags, pc, FP, SP)) {
+      HANDLE_EXCEPTION;
+    }
+
+    ClosurePtr closure = Closure::RawCast(SP[0]);
+    InstancePtr instance = Instance::RawCast(FrameArguments(FP, 1)[0]);
+    intptr_t index = 0;
+    if (has_delayed_type_args) {
+      closure->untag()->set_element(index++,
+                                    Object::empty_type_arguments().ptr());
+    }
+    closure->untag()->set_element(index++, instance);
+    ASSERT(index == length);
 
     DISPATCH();
   }
@@ -4130,9 +4201,7 @@ SwitchDispatchNoSingleStep:
       }
     } else {
       TypeArgumentsPtr delayed_type_arguments =
-          Closure::RawCast(argv[receiver_idx])
-              ->untag()
-              ->delayed_type_arguments();
+          Closure::delayed_type_arguments(Closure::RawCast(argv[receiver_idx]));
       if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
         if (type_args_len > 0) {
           SP[1] = function;
@@ -4194,7 +4263,7 @@ SwitchDispatchNoSingleStep:
       }
     } else {
       TypeArgumentsPtr delayed_type_arguments =
-          closure->untag()->delayed_type_arguments();
+          Closure::delayed_type_arguments(closure);
       if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
         if (type_args_len > 0) {
           SP[1] = function;
@@ -4205,7 +4274,7 @@ SwitchDispatchNoSingleStep:
         *++SP = delayed_type_arguments;
         ObjectPtr* call_base = SP;
         // Captured receiver.
-        *++SP = closure->untag()->context();
+        *++SP = Closure::RawContextOf(closure);
         // Copy the rest of the arguments.
         for (intptr_t i = receiver_idx + 1; i < argc; i++) {
           *++SP = argv[i];
@@ -4235,7 +4304,7 @@ SwitchDispatchNoSingleStep:
 
     // Replace closure receiver with captured receiver
     // and call target function.
-    argv[receiver_idx] = closure->untag()->context();
+    argv[receiver_idx] = Closure::RawContextOf(closure);
     SP[1] = target;
 
     goto TailCallSP1;
@@ -4281,9 +4350,7 @@ SwitchDispatchNoSingleStep:
       type_args = TypeArguments::null();
     } else {
       TypeArgumentsPtr delayed_type_arguments =
-          Closure::RawCast(argv[receiver_idx])
-              ->untag()
-              ->delayed_type_arguments();
+          Closure::delayed_type_arguments(Closure::RawCast(argv[receiver_idx]));
       if (delayed_type_arguments != Object::empty_type_arguments().ptr()) {
         if (type_args_len > 0) {
           SP[1] = function;

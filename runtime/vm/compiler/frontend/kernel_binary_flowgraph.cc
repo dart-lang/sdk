@@ -502,12 +502,22 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
     LocalVariable* closure = parsed_function()->ParameterVariable(0);
     LocalVariable* fn_type_args = parsed_function()->function_type_arguments();
     ASSERT(fn_type_args != nullptr && closure != nullptr);
+    ASSERT(Closure::HasFunctionTypeArgumentsField(dart_function));
+
+    const bool has_instantiator_type_args =
+        Closure::HasInstantiatorTypeArgumentsField(dart_function);
 
     if (dart_function.IsGeneric()) {
+      ASSERT(Closure::HasDelayedTypeArgumentsField(dart_function));
+      const intptr_t function_type_args_index =
+          UntaggedClosure::FunctionTypeArgumentsIndex(
+              /*has_delayed_type_args=*/true, has_instantiator_type_args);
       prologue += LoadLocal(fn_type_args);
 
       prologue += LoadLocal(closure);
-      prologue += LoadNativeField(Slot::Closure_function_type_arguments());
+      prologue += LoadNativeField(Slot::GetClosureElementSlot(
+          thread(),
+          compiler::target::Closure::element_offset(function_type_args_index)));
 
       prologue += IntConstant(dart_function.NumParentTypeArguments());
 
@@ -521,8 +531,14 @@ Fragment StreamingFlowGraphBuilder::TypeArgumentsHandling(
       prologue += StoreLocal(TokenPosition::kNoSource, fn_type_args);
       prologue += Drop();
     } else {
+      ASSERT(!Closure::HasDelayedTypeArgumentsField(dart_function));
+      const intptr_t function_type_args_index =
+          UntaggedClosure::FunctionTypeArgumentsIndex(
+              /*has_delayed_type_args=*/false, has_instantiator_type_args);
       prologue += LoadLocal(closure);
-      prologue += LoadNativeField(Slot::Closure_function_type_arguments());
+      prologue += LoadNativeField(Slot::GetClosureElementSlot(
+          thread(),
+          compiler::target::Closure::element_offset(function_type_args_index)));
       prologue += StoreLocal(TokenPosition::kNoSource, fn_type_args);
       prologue += Drop();
     }
@@ -5938,6 +5954,13 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   ASSERT(function.kernel_offset() == func_node_offset);
   SkipFunctionNode();
 
+  const bool has_delayed_type_args =
+      Closure::HasDelayedTypeArgumentsField(function);
+  const bool has_instantiator_type_args =
+      Closure::HasInstantiatorTypeArgumentsField(function);
+  const bool has_function_type_args =
+      Closure::HasFunctionTypeArgumentsField(function);
+
   Fragment instructions;
   instructions += Constant(function);
   if (scopes()->IsClosureWithEmptyContext(func_node_offset)) {
@@ -5945,24 +5968,37 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   } else {
     instructions += LoadLocal(parsed_function()->current_context_var());
   }
-  // The function signature can have uninstantiated class type parameters.
-  const bool has_instantiator_type_args =
-      !function.HasInstantiatedSignature(kCurrentClass);
-  if (has_instantiator_type_args) {
-    instructions += LoadInstantiatorTypeArguments();
-  }
   instructions += flow_graph_builder_->AllocateClosure(
-      function.token_pos(), has_instantiator_type_args, function.IsGeneric(),
+      function.token_pos(), has_delayed_type_args, has_instantiator_type_args,
+      has_function_type_args,
       /*is_tear_off=*/false);
   LocalVariable* closure = MakeTemporary();
 
-  // TODO(30455): We only need to save these if the closure uses any captured
-  // type parameters.
-  instructions += LoadLocal(closure);
-  instructions += LoadFunctionTypeArguments();
-  instructions += flow_graph_builder_->StoreNativeField(
-      Slot::Closure_function_type_arguments(),
-      StoreFieldInstr::Kind::kInitializing);
+  // The function signature can have uninstantiated class type parameters.
+  if (has_instantiator_type_args) {
+    instructions += LoadLocal(closure);
+    instructions += LoadInstantiatorTypeArguments();
+    instructions += flow_graph_builder_->StoreNativeField(
+        Slot::GetClosureElementSlot(
+            thread(), compiler::target::Closure::element_offset(
+                          UntaggedClosure::InstantiatorTypeArgumentsIndex(
+                              has_delayed_type_args))),
+        StoreFieldInstr::Kind::kInitializing);
+  }
+
+  if (has_function_type_args) {
+    // TODO(30455): We only need to save these if the closure uses any captured
+    // type parameters.
+    instructions += LoadLocal(closure);
+    instructions += LoadFunctionTypeArguments();
+    instructions += flow_graph_builder_->StoreNativeField(
+        Slot::GetClosureElementSlot(
+            thread(),
+            compiler::target::Closure::element_offset(
+                UntaggedClosure::FunctionTypeArgumentsIndex(
+                    has_delayed_type_args, has_instantiator_type_args))),
+        StoreFieldInstr::Kind::kInitializing);
+  }
 
   return instructions;
 }

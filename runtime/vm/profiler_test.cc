@@ -1020,7 +1020,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
     ProfileStackWalker walker(&profile);
 
     EXPECT_SUBSTRING("DRT_AllocateClosure", walker.VMTagName());
-    EXPECT_STREQ("[Stub] AllocateClosure", walker.CurrentName());
+    EXPECT_STREQ("[Stub] AllocateClosure1", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_SUBSTRING("foo", walker.CurrentName());
     EXPECT(!walker.Down());
