@@ -15,10 +15,6 @@ void main() {
 
 @reflectiveTest
 class PreferSpreadCollectionsTest extends LintRuleTest {
-  // TODO(srawlins): These tests mostly use a `dynamic` variable, but I don't
-  // think the lint rule is specific to `dynamic` values; it seems odd to
-  // specifically rely on them.
-
   @override
   String get lintRule => LintNames.prefer_spread_collections;
 
@@ -38,50 +34,55 @@ const cc = []..addAll(thangs);
   test_listLiteralTarget_conditional() async {
     await assertDiagnostics(
       r'''
-dynamic x;
-var y = ['a']..addAll(1 == 2 ? x : []);
+void f(List<String> x) {
+  var y = ['a']..addAll(1 == 2 ? x : []);
+}
 ''',
-      [lint(26, 6)],
+      [lint(42, 6)],
     );
   }
 
   test_listLiteralTarget_conditional_constList() async {
     await assertDiagnostics(
       r'''
-dynamic x;
-var y = ['a']..addAll(1 == 2 ? x : const []);
+void f(List<String> x) {
+  var y = ['a']..addAll(1 == 2 ? x : const []);
+}
 ''',
-      [lint(26, 6)],
+      [lint(42, 6)],
     );
   }
 
   test_listLiteralTarget_identifier() async {
     await assertDiagnostics(
       r'''
-dynamic x;
-var y = []..addAll(x);
+void f(List<int> x) {
+  var y = <int>[]..addAll(x);
+}
 ''',
-      [lint(23, 6)],
+      [lint(41, 6)],
     );
   }
 
   test_listLiteralTarget_ifNull() async {
     await assertDiagnostics(
       r'''
-dynamic x;
-var y = ['a']..addAll(x ?? []);
+void f(List<String>? x) {
+  var y = ['a']..addAll(x ?? []);
+}
 ''',
-      [lint(26, 6)],
+      [lint(43, 6)],
     );
   }
 
   test_listLiteralTarget_ifNull_constList() async {
     await assertDiagnostics(
       r'''
-dynamic x;
-var y = ['a']..addAll(x ?? const []);
+void f(List<String>? x) {
+  var y = ['a']..addAll(x ?? const []);
+}
 ''',
-      [lint(26, 6)],
+      [lint(43, 6)],
     );
   }
 

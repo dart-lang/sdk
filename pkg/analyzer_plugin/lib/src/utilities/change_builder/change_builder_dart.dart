@@ -918,6 +918,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     void Function()? bodyWriter,
     bool isStatic = false,
     String? nameGroupName,
+    String? parameterName,
     DartType? parameterType,
     String? parameterTypeGroupName,
     bool alwaysWriteType = false,
@@ -949,7 +950,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     }
     // TODO(brianwilkerson): The name of the setter is unlikely to be a good
     // name for the parameter. We need to find a better name to produce here.
-    write(name);
+    write(parameterName ?? name);
     write(') ');
     if (bodyWriter == null) {
       write('{}');
@@ -2213,6 +2214,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit, {
     bool Function(ClassMember existingMember)? lastMemberFilter,
+    bool indent = true,
   }) {
     if (compilationUnitMember
         case ClassDeclaration(body: EmptyClassBody(:var sourceRange)) ||
@@ -2222,7 +2224,9 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
             EnumDeclaration(body: EmptyEnumBody(:var sourceRange))) {
       addReplacement(sourceRange, (builder) {
         builder.writeln(' {');
-        builder.write('  ');
+        if (indent) {
+          builder.write('  ');
+        }
         buildEdit(builder);
         builder.writeln();
         builder.write('}');
@@ -2240,7 +2244,7 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     }
 
     addInsertion(offset, insertBeforeExisting: false, (builder) {
-      preparer.writePrefix(builder);
+      preparer.writePrefix(builder, indent: indent);
       buildEdit(builder);
       preparer.writeSuffix(builder);
     });
@@ -3180,7 +3184,7 @@ class _InsertionPreparer {
   ///
   /// This method can only be invoked after [insertionLocation], which first
   /// determines the target member that the insertion follows.
-  void writePrefix(DartEditBuilder builder) {
+  void writePrefix(DartEditBuilder builder, {bool indent = true}) {
     if (_declaration.leftBracket?.isSynthetic ?? false) {
       builder.write(' {');
     }
@@ -3201,19 +3205,14 @@ class _InsertionPreparer {
       hasConstants = declaration.body.constants.isNotEmpty;
     }
 
-    if (_foundTargetMember) {
-      // After the target member, write two newlines.
+    // After the target member or after the last constant (and the semicolon),
+    // write an extra newline.
+    if (_foundTargetMember || declaration is EnumDeclaration && hasConstants) {
       builder.writeln();
-      builder.writeln();
-      builder.writeIndent();
-    } else if (declaration is EnumDeclaration && hasConstants) {
-      // After the last constant (and the semicolon), write two newlines.
-      builder.writeln();
-      builder.writeln();
-      builder.writeIndent();
-    } else {
-      // After the opening brace, just write one newline.
-      builder.writeln();
+    }
+
+    builder.writeln();
+    if (indent) {
       builder.writeIndent();
     }
   }

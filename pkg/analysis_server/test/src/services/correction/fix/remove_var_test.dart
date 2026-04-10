@@ -59,6 +59,25 @@ void f(int a) {}
 ''');
   }
 
+  Future<void> test_primaryConstructor_body_hasType() async {
+    await resolveTestCode('''
+class C() {
+  this {
+    var int x = 1;
+    print(x);
+  }
+}
+''');
+    await assertHasFix('''
+class C() {
+  this {
+    int x = 1;
+    print(x);
+  }
+}
+''');
+  }
+
   Future<void> test_returnType_function() async {
     await resolveTestCode('''
 var f() {}

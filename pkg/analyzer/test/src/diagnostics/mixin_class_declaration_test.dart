@@ -9,13 +9,12 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    defineReflectiveTests(MixinClassDeclarationExtendsNotObjectTest);
+    defineReflectiveTests(MixinClassDeclarationTest);
   });
 }
 
 @reflectiveTest
-class MixinClassDeclarationExtendsNotObjectTest
-    extends PubPackageResolutionTest {
+class MixinClassDeclarationTest extends PubPackageResolutionTest {
   test_class_extends_class() async {
     await assertErrorsInCode(
       r'''
@@ -38,7 +37,7 @@ mixin class A extends Object {}
 mixin M {}
 mixin class A extends Object with M {}
 ''',
-      [error(diag.mixinClassDeclarationExtendsNotObject, 40, 6)],
+      [error(diag.mixinClassDeclarationWithClause, 40, 6)],
     );
   }
 
@@ -56,7 +55,13 @@ mixin M1 {}
 mixin M2 {}
 mixin class A = Object with M1, M2;
 ''',
-      [error(diag.mixinClassDeclarationExtendsNotObject, 47, 11)],
+      [
+        error(
+          diag.mixinModifierMixinApplicationClassWithMultipleMixins,
+          47,
+          11,
+        ),
+      ],
     );
   }
 }

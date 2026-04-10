@@ -240,6 +240,23 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_inClass() async {
+    await resolveTestCode('''
+class C {
+  int get foo => test;
+}
+''');
+    await assertHasFix('''
+class C {
+  int get foo => test;
+}
+
+extension on C {
+  int get test => null;
+}
+''');
+  }
+
   Future<void> test_inExtensionGetter() async {
     await resolveTestCode('''
 void f(int i) => i.foo;
@@ -515,6 +532,23 @@ extension E on int {
   (int,) get test => (a,);
 
   int get a => null;
+}
+''');
+  }
+
+  Future<void> test_recursiveType() async {
+    await resolveTestCode('''
+class C<T extends C<T>> {
+  T get foo => test;
+}
+''');
+    await assertHasFix('''
+class C<T extends C<T>> {
+  T get foo => test;
+}
+
+extension <T extends C<T>> on C<T> {
+  T get test => null;
 }
 ''');
   }
@@ -2217,6 +2251,27 @@ extension on String {
 }
 
 extension on int {}
+''');
+  }
+
+  Future<void> test_inClass() async {
+    await resolveTestCode('''
+class C {
+  void m() {
+    test = 0;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  void m() {
+    test = 0;
+  }
+}
+
+extension on C {
+  set test(int test) {}
+}
 ''');
   }
 

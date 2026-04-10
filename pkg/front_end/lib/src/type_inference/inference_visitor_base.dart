@@ -42,7 +42,7 @@ import '../source/source_library_builder.dart'
 import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
 import '../util/helpers.dart';
-import 'closure_context.dart';
+import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
@@ -2419,7 +2419,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust
+    // Let `N'` be `N[T/S]`.  The [BodyInferenceContext] constructor will adjust
     // accordingly if the closure is declared with `async`, `async*`, or
     // `sync*`.
     if (returnContext is! UnknownType) {
@@ -2429,7 +2429,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
     bool needToSetReturnType = hasImplicitReturnType;
-    ClosureContext closureContext = new ClosureContext(
+    BodyInferenceContext bodyContext = new BodyInferenceContext(
       this,
       function.asyncMarker,
       returnContext,
@@ -2437,7 +2437,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
     StatementInferenceResult bodyResult = visitor.inferStatement(
       function.body!,
-      closureContext,
+      bodyContext,
     );
 
     // If the closure is declared with `async*` or `sync*`, let `M` be the
@@ -2446,7 +2446,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // the least upper bound of the types of the `return` expressions in `B’`,
     // or `void` if `B’` contains no `return` expressions.
     if (needToSetReturnType) {
-      DartType inferredReturnType = closureContext.inferReturnType(
+      DartType inferredReturnType = bodyContext.inferReturnType(
         this,
         hasImplicitReturn: flowAnalysis.isReachable,
       );
@@ -2456,13 +2456,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // `xi` denoted as optional or named parameters, if appropriate).
       function.returnType = inferredReturnType;
     }
-    bodyResult = closureContext.handleImplicitReturn(
+    bodyResult = bodyContext.handleImplicitReturn(
       this,
       function.body!,
       bodyResult,
       fileOffset,
     );
-    function.emittedValueType = closureContext.emittedValueType;
+    function.emittedValueType = bodyContext.emittedValueType;
 
     if (bodyResult.hasChanged) {
       function.body = bodyResult.statement..parent = function;

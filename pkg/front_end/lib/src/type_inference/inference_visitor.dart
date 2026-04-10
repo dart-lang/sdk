@@ -7,7 +7,6 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -63,7 +62,7 @@ import '../source/check_helper.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
-import 'closure_context.dart';
+import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
 import 'for_in.dart';
 import 'inference_results.dart';
@@ -95,11 +94,11 @@ abstract class InferenceVisitor {
 
   /// Performs type inference on the given [statement].
   ///
-  /// If [closureContext] is not null, the [statement] is inferred using
-  /// [closureContext] as the current context.
+  /// If [bodyContext] is not null, the [statement] is inferred using
+  /// [bodyContext] as the current context.
   StatementInferenceResult inferStatement(
     Statement statement, [
-    ClosureContext? closureContext,
+    BodyInferenceContext? bodyContext,
   ]);
 
   /// Performs type inference on the given [initializer].
@@ -142,7 +141,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
-  ClosureContext? _closureContext;
+  BodyInferenceContext? _bodyContext;
 
   /// If a switch statement is being visited and the type being switched on is a
   /// (possibly nullable) enumerated type, the set of enum values for which no
@@ -275,10 +274,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ClosureContext get closureContext => _closureContext!;
-
   @override
-  SharedBodyInferenceContext get bodyContext => closureContext;
+  BodyInferenceContext get bodyContext => _bodyContext!;
 
   @override
   ExpressionTypeAnalysisResult finishNullShorting(
@@ -360,11 +357,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult inferStatement(
     Statement statement, [
-    ClosureContext? closureContext,
+    BodyInferenceContext? bodyContext,
   ]) {
-    ClosureContext? oldClosureContext = _closureContext;
-    if (closureContext != null) {
-      _closureContext = closureContext;
+    BodyInferenceContext? oldBodyContext = _bodyContext;
+    if (bodyContext != null) {
+      _bodyContext = bodyContext;
     }
     registerIfUnreachableForTesting(statement);
 
@@ -376,7 +373,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       result = statement.accept(this);
     }
-    _closureContext = oldClosureContext;
+    _bodyContext = oldBodyContext;
     return result;
   }
 
@@ -12583,7 +12580,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitReturnStatement(
     covariant ReturnStatementImpl node,
   ) {
-    DartType typeContext = closureContext.returnContext;
+    DartType typeContext = bodyContext.returnContext;
     DartType inferredType;
     if (node.expression != null) {
       ExpressionInferenceResult expressionResult = inferExpression(
@@ -12596,7 +12593,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       inferredType = const NullType();
     }
-    closureContext.handleReturn(node, inferredType, node.isArrow);
+    bodyContext.handleReturn(node, inferredType, node.isArrow);
     flowAnalysis.handleReturn();
     return const StatementInferenceResult();
   }
@@ -13722,7 +13719,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       analysisResult.operandType.unwrapTypeView(),
       popRewrite() as Expression,
     );
-    closureContext.handleYield(node, expressionResult);
+    bodyContext.handleYield(node, expressionResult);
     return const StatementInferenceResult();
   }
 
