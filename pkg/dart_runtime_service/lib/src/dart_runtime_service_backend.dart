@@ -73,6 +73,10 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// started.
   Future<void> onServerStarted({required Uri httpUri, required Uri wsUri});
 
+  /// Invoked by the [DartRuntimeService] when the service's HTTP server has
+  /// shutdown.
+  Future<void> onServerShutdown();
+
   /// Invoked when [EventStreamManager.streamListen] is called and the first
   /// client has subscribed to [streamId].
   ///

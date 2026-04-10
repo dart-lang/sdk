@@ -35,6 +35,9 @@ base class FakeDartRuntimeServiceBackend extends Fake
   }) async {}
 
   @override
+  Future<void> onServerShutdown() async {}
+
+  @override
   UnmodifiableListView<ServiceRpcHandler> get rpcs =>
       UnmodifiableListView(const []);
 

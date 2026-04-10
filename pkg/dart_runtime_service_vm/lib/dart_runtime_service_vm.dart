@@ -164,8 +164,27 @@ class DartRuntimeServiceVMBackend
       await _ddsManager.start(vmServiceUri: httpUri);
       httpUri = await _ddsManager.ddsConnected;
     }
-    stdout.writeln('The Dart VM service is listening on $httpUri/');
+    frontend.printServiceOutput('The Dart VM service is listening on $httpUri');
+    final devToolsUri = _ddsManager.devToolsUri;
+    if (devToolsUri != null) {
+      frontend.printServiceOutput(
+        'The Dart DevTools debugger and profiler is available at: $devToolsUri',
+      );
+    }
+    final dtdUri = _ddsManager.dtdUri;
+    if (dtdUri != null) {
+      frontend.printServiceOutput(
+        'The Dart Tooling Daemon (DTD) is available at: $dtdUri',
+      );
+    }
     _nativeBindings.onServerAddressChange(httpUri.toString());
+  }
+
+  @override
+  Future<void> onServerShutdown() async {
+    // Cleanup DDS state so it can be reinitialized if the server is started
+    // again.
+    await _ddsManager.shutdown();
   }
 
   @override
@@ -255,7 +274,9 @@ class DartRuntimeServiceVMBackend
         // isolate.
         _isolateControlMessageHandler(opcode, portId, sendPort, name);
       default:
-        print('Internal vm-service error: ignoring illegal message: $message');
+        _logger.warning(
+          'Internal vm-service error: ignoring illegal message: $message',
+        );
     }
   }
 

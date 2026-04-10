@@ -21,6 +21,7 @@ final class DartDevelopmentServiceManager {
   DartDevelopmentServiceManager({
     required this.frontend,
     required this.launchOnStart,
+    required this.printDtd,
     required this.host,
     required this.port,
   });
@@ -30,6 +31,10 @@ final class DartDevelopmentServiceManager {
   /// `true` if a DDS instance should be started immediately after the service
   /// is initialized.
   final bool launchOnStart;
+
+  /// `true` if the URI for the DTD instance associated with DDS should be
+  /// made available.
+  final bool printDtd;
 
   /// The host DDS should attempt to bind to.
   final String host;
@@ -43,6 +48,17 @@ final class DartDevelopmentServiceManager {
   ///
   /// If DDS is not running, [uri] returns null.
   Uri? get uri => _launcher?.uri;
+
+  /// The HTTP [Uri] of the hosted DevTools instance.
+  ///
+  /// Returns `null` if DevTools is not running.
+  Uri? get devToolsUri => _launcher?.devToolsUri;
+
+  /// The [Uri] of the Dart Tooling Daemon instance that is hosted by DevTools.
+  ///
+  /// This will be null if DTD was not started by the DevTools server. For
+  /// example, it may have been started by an IDE.
+  Uri? get dtdUri => printDtd ? _launcher?.dtdUri : null;
 
   final _logger = Logger('$DartDevelopmentServiceManager');
   DartDevelopmentServiceLauncher? _launcher;

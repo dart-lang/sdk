@@ -88,7 +88,6 @@ bool _enableServicePortFallback = false;
 bool _waitForDdsToAdvertiseService = false;
 
 @entrypoint
-// ignore: unused_element
 bool _printDtd = false;
 
 // ignore: unused_element
@@ -128,6 +127,7 @@ Future<void> main([List<String> args = const []]) async {
       ddsManager: DartDevelopmentServiceManager(
         frontend: frontend,
         launchOnStart: _waitForDdsToAdvertiseService,
+        printDtd: _printDtd,
         host: _ddsIP,
         port: _ddsPort,
       ),
