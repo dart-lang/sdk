@@ -3,12 +3,14 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:html';
+import 'dart:js_interop';
+import 'dart:js_interop_unsafe';
 
 import 'package:expect/legacy/minitest.dart'; // ignore: deprecated_member_use_from_same_package
 
 main() {
   test('Basic TouchEvent', () {
-    if (TouchEvent.supported) {
+    if (globalContext.has('TouchEvent')) {
       var e = new TouchEvent('touch');
       expect(e is TouchEvent, isTrue);
     }
