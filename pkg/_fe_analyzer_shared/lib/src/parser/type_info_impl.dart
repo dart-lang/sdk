@@ -879,10 +879,7 @@ class ComplexTypeInfo implements TypeInfo {
   /// Check if the presumed record type has correct syntax between its
   /// parenthesis. If not [recovered] will be set to true.
   /// Keep in sync with [Parser.parseRecordType] et al.
-  void _checkIfRecordTypeParenthesisAreRecovered(
-    Token token,
-    final Token endGroup,
-  ) {
+  void _checkIfRecordTypeParenthesisAreRecovered(Token token, Token endGroup) {
     int parameterCount = 0;
     bool hasNamedFields = false;
     bool hasComma = false;

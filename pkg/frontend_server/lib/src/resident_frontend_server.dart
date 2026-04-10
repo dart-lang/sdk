@@ -368,9 +368,9 @@ class ResidentFrontendServer {
   /// entrypoint. This function also writes [compileOptions.arguments] to
   /// [cachedCompilerOptions] as a JSON list.
   static ResidentCompiler _getResidentCompilerForEntrypoint({
-    required final String canonicalizedLibraryPath,
-    required final ArgResults compileOptions,
-    required final File cachedCompilerOptions,
+    required String canonicalizedLibraryPath,
+    required ArgResults compileOptions,
+    required File cachedCompilerOptions,
   }) {
     cachedCompilerOptions.createSync();
     cachedCompilerOptions.writeAsStringSync(

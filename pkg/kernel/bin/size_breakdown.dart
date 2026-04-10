@@ -38,7 +38,7 @@ void main(args) {
 }
 
 class WrappedBinaryBuilder extends BinaryBuilder {
-  WrappedBinaryBuilder(var _bytes) : super(_bytes, disableLazyReading: true);
+  WrappedBinaryBuilder(_bytes) : super(_bytes, disableLazyReading: true);
   int offsetsSize = 0;
   int stringTableSize = 0;
   int linkTableSize = 0;

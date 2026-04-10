@@ -2,16 +2,17 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-// Test intended for post-primary constructors language versions, where
-// `final` cannot occur in non-primary parameters.
+// Version prior to primary constructors, to allow `final` in parameters.
+// @dart=3.11
 
-method({int a = 42, required int b, required int c}) {}
+method({int a = 42, required int b, required final int c}) {}
 
 class Class {
   method(
       {int a = 42,
         required int b,
-        required covariant int c}) {}
+        required final int c,
+        required covariant final int d}) {}
 }
 
 // TODO(johnniwinther): Pass the required property to the function types.

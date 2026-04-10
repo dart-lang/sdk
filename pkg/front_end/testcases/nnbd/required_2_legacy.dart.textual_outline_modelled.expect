@@ -1,3 +1,5 @@
+// @dart = 3.11
+
 Function({int a, required int b}) field = ({int a = 42, required int b}) {};
 
 abstract class A {
@@ -13,14 +15,19 @@ class C extends A {
 }
 
 class Class {
-  method({int a = 42, required int b, required covariant int c}) {}
+  method({
+    int a = 42,
+    required int b,
+    required final int c,
+    required covariant final int d,
+  }) {}
 }
 
 error() {}
 
 main() {}
 
-method({int a = 42, required int b, required int c}) {}
+method({int a = 42, required int b, required final int c}) {}
 
 ok() {}
 

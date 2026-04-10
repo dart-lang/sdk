@@ -965,7 +965,7 @@ class ScriptInsetElement extends CustomElement implements Renderable {
       }
 
       var position = 0;
-      consumeUntil(var stop) {
+      consumeUntil(stop) {
         if (stop <= position) {
           return null; // Empty gap between annotations/boundaries.
         }

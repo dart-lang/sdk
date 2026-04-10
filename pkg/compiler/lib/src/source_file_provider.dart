@@ -245,7 +245,7 @@ class FormattingDiagnosticHandler implements api.CompilerDiagnostics {
 
   @override
   void report(
-    var code,
+    code,
     Uri? uri,
     int? begin,
     int? end,

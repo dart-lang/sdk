@@ -1,7 +1,9 @@
-method({int a = 42, required int b, required int c}) {}
+// @dart = 3.11
+
+method({int a = 42, required int b, required final int c}) {}
 
 class Class {
-  method({int a = 42, required int b, required covariant int c}) {}
+  method( {int a = 42, required int b, required final int c, required covariant final int d}) {}
 }
 
 typedef Typedef1 = Function({int a, required int b});

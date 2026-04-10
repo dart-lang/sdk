@@ -1741,7 +1741,7 @@ class Parser {
   ///                           ( ',' recordTypeNamedField )* ','? '}'
   /// recordTypeNamedField  ::= metadata type identifier
   Token parseRecordType(
-    final Token start,
+    Token start,
     Token token,
     bool isQuestionMarkPartOfType,
   ) {
@@ -2840,7 +2840,7 @@ class Parser {
   /// and the last skipped token is returned.
   /// Otherwise null is returned.
   Token? recoverySmallLookAheadSkipTokens(
-    final Token token,
+    Token token,
     List<TokenType> lookFor,
   ) {
     // Recovery: Allow a small lookahead for '{'. E.g. the user might be in
@@ -4751,7 +4751,7 @@ class Parser {
   /// ```
   ///   'super' ('.' identifier)? arguments ;
   /// ```
-  Token parseSuperInitializerExpression(final Token start) {
+  Token parseSuperInitializerExpression(Token start) {
     Token token = start.next!;
     assert(token.isA(Keyword.SUPER));
     Token next = token.next!;
@@ -8519,10 +8519,7 @@ class Parser {
   ///   genericFunctionLiteral ::=
   ///       typeParameters formalParameterList functionBody
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
-  Token parseLiteralListSetMapOrFunction(
-    final Token start,
-    Token? constKeyword,
-  ) {
+  Token parseLiteralListSetMapOrFunction(Token start, Token? constKeyword) {
     assert(start.next!.isA(TokenType.LT));
     TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(
       start,
@@ -9547,7 +9544,7 @@ class Parser {
         token.isA(Keyword.SYNC);
   }
 
-  Token parseExpressionStatementOrConstDeclaration(final Token start) {
+  Token parseExpressionStatementOrConstDeclaration(Token start) {
     Token constToken = start.next!;
     assert(constToken.isA(Keyword.CONST));
     if (!isModifier(constToken.next!)) {
@@ -9596,7 +9593,7 @@ class Parser {
   /// local variable declaration nor a pattern variable declaration is found,
   /// then this method will return [start].
   Token parseExpressionStatementOrDeclaration(
-    final Token start, [
+    Token start, [
     ForPartsContext? forPartsContext,
   ]) {
     Token token = start;

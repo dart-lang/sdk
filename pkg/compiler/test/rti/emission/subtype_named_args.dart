@@ -36,9 +36,9 @@ class G<T, S, U, W> {}
 
 typedef classesFunc({A? a, B? b, C? c, D? d});
 typedef genericsFunc({Map<num, int>? m, List<List<B>>? l, G<A, B, C, D>? g});
-typedef dynamicFunc({var x, var y, var z, var v});
+typedef dynamicFunc({x, y, z, v});
 typedef funcFunc({classesFunc? f1, genericsFunc? f2, dynamicFunc? f3});
-typedef mixFunc({var x, B? b, G<A, B, C, D>? g, funcFunc? f});
+typedef mixFunc({x, B? b, G<A, B, C, D>? g, funcFunc? f});
 
 typedef okWithClassesFunc_1({A? a, A1? b, A1? c, A1? d});
 typedef okWithClassesFunc_2({D? a, D? b, D? c, D? d});
@@ -54,7 +54,7 @@ typedef okWithGenericsFunc_2({
   G<D, D, D, D>? g,
 });
 
-typedef okWithDynamicFunc_1({A? x, G? y, mixFunc? z, var v});
+typedef okWithDynamicFunc_1({A? x, G? y, mixFunc? z, v});
 typedef okWithDynamicFunc_2({int? x, bool? y, List<Map>? z, classesFunc? v});
 
 main() {
@@ -80,7 +80,7 @@ main() {
   );
   makeLive(
     /*checks=[$signature],instance*/
-    ({var a, var b, var c, var d}) {} is classesFunc,
+    ({a, b, c, d}) {} is classesFunc,
   );
   makeLive(
     /*checks=[$signature],instance*/
@@ -98,7 +98,7 @@ main() {
   );
   makeLive(
     /*checks=[$signature],instance*/
-    ({var m, var l, var g}) {} is genericsFunc,
+    ({m, l, g}) {} is genericsFunc,
   );
   makeLive(
     /*checks=[$signature],instance*/
@@ -107,7 +107,7 @@ main() {
 
   makeLive(
     /*checks=[$signature],instance*/
-    ({A? x, G? y, mixFunc? z, var v}) {} is dynamicFunc,
+    ({A? x, G? y, mixFunc? z, v}) {} is dynamicFunc,
   );
   makeLive(
     /*checks=[$signature],instance*/
