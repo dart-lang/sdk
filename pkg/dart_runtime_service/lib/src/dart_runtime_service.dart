@@ -107,10 +107,7 @@ class DartRuntimeService {
   ClientConnectionController get clientConnectionController => clientManager;
 
   @visibleForTesting
-  late final ClientManager clientManager = ClientManager(
-    backend: backend,
-    eventStreamMethods: eventStreamManager,
-  );
+  late final ClientManager clientManager = backend.clientManagerBuilder();
 
   /// The set of currently connected [Client]s.
   UnmodifiableClientNamedLookup get clients => clientManager.clients;

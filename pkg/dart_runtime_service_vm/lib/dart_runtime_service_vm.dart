@@ -17,6 +17,7 @@ import 'package:stream_channel/stream_channel.dart';
 
 import 'src/dart_runtime_service_vm_rpcs.dart';
 import 'src/native_bindings.dart';
+import 'src/vm_clients.dart';
 import 'src/vm_dev_fs.dart';
 import 'src/vm_expression_evaluator.dart';
 import 'src/vm_isolate_manager.dart';
@@ -79,7 +80,7 @@ class DartRuntimeServiceVMBackend
   @override
   late final VmExpressionEvaluator expressionEvaluator;
 
-  final _vmServiceRpcs = DartRuntimeServiceVmRpcs();
+  late final _vmServiceRpcs = DartRuntimeServiceVmRpcs(backend: this);
 
   /// Adds support for launching and accepting connections from the
   /// Dart Development Service.
@@ -102,6 +103,10 @@ class DartRuntimeServiceVMBackend
 
   @override
   OptionalHandler get httpHandler => _devFs.handlePutStreamRequest;
+
+  @override
+  VmClientManager clientManagerBuilder() =>
+      VmClientManager(backend: this, eventStreamMethods: frontend.eventStreams);
 
   @override
   Future<void> initialize() async {

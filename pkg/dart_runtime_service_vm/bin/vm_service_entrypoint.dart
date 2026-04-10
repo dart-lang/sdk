@@ -113,7 +113,7 @@ Future<void> main([List<String> args = const []]) async {
   }
   await DartRuntimeService.initialize(
     config: DartRuntimeServiceOptions(
-      enableLogging: true,
+      enableLogging: Platform.environment.containsKey('VM_SERVICE_LOGGING'),
       port: _port,
       disableAuthCodes: _authCodesDisabled,
       disableOriginCheck: _originCheckDisabled,

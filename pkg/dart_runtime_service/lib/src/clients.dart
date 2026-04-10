@@ -22,7 +22,8 @@ typedef ServiceAlias = String;
 typedef ServiceNameAliasPair = ({ServiceName service, ServiceAlias alias});
 
 /// Represents a client that is connected to a service.
-base class Client {
+base class Client<BE extends DartRuntimeServiceBackend> {
+  @protected
   Client({
     required this.connection,
     required UnmodifiableClientNamedLookup clients,
@@ -63,7 +64,7 @@ base class Client {
   final StreamChannel<Object?> connection;
   late json_rpc.Peer _clientPeer;
   late final DartRuntimeServiceRpcs _internalRpcs;
-  final DartRuntimeServiceBackend backend;
+  final BE backend;
 
   /// If `true`, this client was created via
   /// [DartRuntimeService.addArtificialClient].
@@ -86,11 +87,7 @@ base class Client {
     logger.info('Initializing...');
     this.namespace = namespace;
     registerRpcHandlers();
-    done = _listen().then((_) {
-      logger.info('Client connection closed.');
-      // Cleanup stream subscription state when the client disconnects.
-      _internalRpcs.eventStreamMethods.onClientDisconnect(this);
-    });
+    done = _listen().then((_) => cleanup());
     logger.info('Initialization complete.');
     return done;
   }
@@ -105,6 +102,14 @@ base class Client {
   Future<void> close() async {
     logger.info('Cleaning up.');
     await _clientPeer.close();
+  }
+
+  @protected
+  @mustCallSuper
+  Future<void> cleanup() async {
+    logger.info('Client connection closed.');
+    // Cleanup stream subscription state when the client disconnects.
+    _internalRpcs.eventStreamMethods.onClientDisconnect(this);
   }
 
   @mustCallSuper
@@ -242,11 +247,12 @@ abstract interface class ClientConnectionController {
 /// service.
 ///
 /// Call [addClient] when a client connects to your service.
-base class ClientManager implements ClientConnectionController {
+base class ClientManager<BE extends DartRuntimeServiceBackend>
+    implements ClientConnectionController {
   ClientManager({required this.backend, required this.eventStreamMethods});
 
   static const _kServicePrologue = 's';
-  final DartRuntimeServiceBackend backend;
+  final BE backend;
   final EventStreamMethods eventStreamMethods;
 
   final _logger = Logger('$ClientManager');
@@ -289,6 +295,25 @@ base class ClientManager implements ClientConnectionController {
     );
   }
 
+  @visibleForOverriding
+  Client clientBuilder({
+    required StreamChannel<Object?> connection,
+    required UnmodifiableClientNamedLookup clients,
+    required EventStreamMethods eventStreamMethods,
+    required BE backend,
+    required bool artificial,
+    String? name,
+  }) {
+    return Client(
+      connection: connection,
+      clients: clients,
+      eventStreamMethods: eventStreamMethods,
+      backend: backend,
+      name: name,
+      artificial: artificial,
+    );
+  }
+
   /// Creates a [Client] from [connection] and adds it to the list of connected
   /// clients.
   ///
@@ -299,7 +324,7 @@ base class ClientManager implements ClientConnectionController {
     String? name,
     bool artificial = false,
   }) {
-    final client = Client(
+    final client = clientBuilder(
       connection: connection,
       clients: clients,
       eventStreamMethods: eventStreamMethods,
