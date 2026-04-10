@@ -317,6 +317,34 @@ const Slot& Slot::GetRecordFieldSlot(Thread* thread, intptr_t offset_in_bytes) {
       offset_in_bytes, ":record_field", CompileType::Dynamic(), kTagged);
 }
 
+const Slot& Slot::GetClosureElementSlot(Thread* thread,
+                                        intptr_t offset_in_bytes) {
+  const char* name = OS::SCreate(
+      thread->zone(), ":closure_element[%" Pd "]",
+      compiler::target::Closure::element_index_at_offset(offset_in_bytes));
+  return GetCanonicalSlot(
+      thread, Kind::kClosureElement,
+      IsImmutableBit::encode(true) |
+          IsCompressedBit::encode(Closure::ContainsCompressedPointers()),
+      offset_in_bytes, name, CompileType::Dynamic(), kTagged);
+}
+
+const Slot& Slot::GetClosureContextSlot(Thread* thread,
+                                        const Function& function) {
+  ASSERT(function.IsClosureFunction());
+  const bool has_delayed_type_args =
+      Closure::HasDelayedTypeArgumentsField(function);
+  const bool has_instantiator_type_args =
+      Closure::HasInstantiatorTypeArgumentsField(function);
+  const bool has_function_type_args =
+      Closure::HasFunctionTypeArgumentsField(function);
+  return Slot::GetClosureElementSlot(
+      thread,
+      compiler::target::Closure::element_offset(UntaggedClosure::ContextIndex(
+          has_delayed_type_args, has_instantiator_type_args,
+          has_function_type_args)));
+}
+
 const Slot& Slot::GetCanonicalSlot(Thread* thread,
                                    Slot::Kind kind,
                                    int8_t flags,
@@ -487,6 +515,7 @@ bool Slot::Equals(const Slot& other) const {
     case Kind::kTypeArgumentsIndex:
     case Kind::kArrayElement:
     case Kind::kRecordField:
+    case Kind::kClosureElement:
       return true;
 
     case Kind::kCapturedVariable: {

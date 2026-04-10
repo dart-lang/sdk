@@ -215,10 +215,11 @@ Try #0 start:
   Push                 r0
   PushInt              2
   StoreContextVar      0, 1
-  PushConstant         CP#0
+  AllocateClosure      CP#6
+  StoreLocal           r5
+  Push                 r5
   Push                 r0
-  PushNull
-  AllocateClosure
+  StoreClosureElement  0
   PopLocal             r4
   Push                 r4
   Push                 r4
@@ -226,7 +227,7 @@ Try #0 start:
   Drop1
   Push                 r0
   LoadContextVar       0, 1
-  DirectCall           CP#4, 1
+  DirectCall           CP#2, 1
   Drop1
   Jump                 L1
 Try #0 end:
@@ -263,12 +264,13 @@ Try #0 handler:
   LoadContextVar       0, 2
   StoreIndexedTOS
   DirectCall           CP#11, 1
-  DirectCall           CP#4, 1
+  DirectCall           CP#2, 1
   Drop1
-  PushConstant         CP#13
+  AllocateClosure      CP#21
+  StoreLocal           r5
+  Push                 r5
   Push                 r0
-  PushNull
-  AllocateClosure
+  StoreClosureElement  0
   PopLocal             r6
   Push                 r6
   ReturnTOS
@@ -280,17 +282,17 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 20, end 56, handler 56, needs-stack-trace, types [CP#6]
+  try-index 0, outer -1, start 20, end 60, handler 60, needs-stack-trace, types [CP#4]
 }
 ConstantPool {
   [0] = ClosureFunction 0
-  [1] = InstanceField dart:core::_Closure::_context (field)
-  [2] = Reserved
-  [3] = ObjectRef 'danger foo'
-  [4] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [5] = Reserved
-  [6] = Type dart:core::Object
-  [7] = EndClosureFunctionScope
+  [1] = ObjectRef 'danger foo'
+  [2] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
+  [3] = Reserved
+  [4] = Type dart:core::Object
+  [5] = EndClosureFunctionScope
+  [6] = AllocateClosure 0, num-elements: 1, flags: 0
+  [7] = Reserved
   [8] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
   [9] = ObjectRef 'caught '
   [10] = ObjectRef ' '
@@ -304,19 +306,21 @@ ConstantPool {
   [18] = ObjectRef 'error '
   [19] = ObjectRef ', captured stack trace: '
   [20] = EndClosureFunctionScope
+  [21] = AllocateClosure 1, num-elements: 1, flags: 0
+  [22] = Reserved
 }
 Closure DART_SDK/pkg/dart2bytecode/testcases/try_blocks.dart::testTryCatch3::'foo' () -> void
 ClosureCode {
   Entry                5
   Push                 FP[-5]
-  LoadFieldTOS         CP#1
+  LoadClosureElement   0
   PopLocal             r0
   CheckStack           0
   Push                 r0
   PopLocal             r2
 Try #0 start:
-  PushConstant         CP#3
-  DirectCall           CP#4, 1
+  PushConstant         CP#1
+  DirectCall           CP#2, 1
   Drop1
   Jump                 L1
 Try #0 end:
@@ -330,7 +334,7 @@ Try #0 handler:
   PopLocal             r4
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#4, 1
+  DirectCall           CP#2, 1
   Drop1
   Push                 r0
   PushInt              3
@@ -345,14 +349,14 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/try_blocks.dart::testTryCatch3::'ba
 ClosureCode {
   Entry                6
   Push                 FP[-5]
-  LoadFieldTOS         CP#1
+  LoadClosureElement   0
   PopLocal             r0
   CheckStack           0
   Push                 r0
   PopLocal             r2
 Try #0 start:
   PushConstant         CP#14
-  DirectCall           CP#4, 1
+  DirectCall           CP#2, 1
   Drop1
   Jump                 L1
 Try #0 end:
@@ -390,7 +394,7 @@ Try #0 handler:
   LoadContextVar       0, 2
   StoreIndexedTOS
   DirectCall           CP#11, 1
-  DirectCall           CP#4, 1
+  DirectCall           CP#2, 1
   Drop1
   Jump                 L1
 L2:
@@ -588,10 +592,11 @@ Try #1 start:
   PushConstant         CP#5
   DirectCall           CP#3, 1
   Drop1
-  PushConstant         CP#6
+  AllocateClosure      CP#8
+  StoreLocal           r8
+  Push                 r8
   Push                 r0
-  PushNull
-  AllocateClosure
+  StoreClosureElement  0
   PopLocal             r7
   Push                 r7
   Push                 r7
@@ -648,8 +653,8 @@ L3:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 53, end 134, handler 134, needs-stack-trace, synthetic, types [CP#11]
-  try-index 1, outer 0, start 70, end 96, handler 96, needs-stack-trace, synthetic, types [CP#11]
+  try-index 0, outer -1, start 53, end 138, handler 138, needs-stack-trace, synthetic, types [CP#11]
+  try-index 1, outer 0, start 70, end 100, handler 100, needs-stack-trace, synthetic, types [CP#11]
 }
 ConstantPool {
   [0] = InterfaceCall 'dart:core::Object::==', ArgDesc num-args 2, num-type-args 0, names []
@@ -659,9 +664,9 @@ ConstantPool {
   [4] = Reserved
   [5] = ObjectRef 'try'
   [6] = ClosureFunction 0
-  [7] = InstanceField dart:core::_Closure::_context (field)
-  [8] = Reserved
-  [9] = EndClosureFunctionScope
+  [7] = EndClosureFunctionScope
+  [8] = AllocateClosure 0, num-elements: 1, flags: 0
+  [9] = Reserved
   [10] = ObjectRef ArgDesc num-args 1, num-type-args 0, names []
   [11] = Type dynamic
   [12] = ObjectRef 'finally 1'
@@ -673,7 +678,7 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/try_blocks.dart::testTryFinally2::'
 ClosureCode {
   Entry                2
   Push                 FP[-5]
-  LoadFieldTOS         CP#7
+  LoadClosureElement   0
   PopLocal             r0
   CheckStack           0
   Push                 r0
@@ -694,7 +699,7 @@ Function 'testTryFinally3', static, reflectable, debuggable
     return-type dynamic
 
 Bytecode {
-  Entry                5
+  Entry                6
   CheckStack           0
   AllocateContext      0, 1
   PopLocal             r0
@@ -706,22 +711,23 @@ Bytecode {
   Push                 r0
   PopLocal             r3
 Try #0 start:
-  PushConstant         CP#0
+  AllocateClosure      CP#7
+  StoreLocal           r5
+  Push                 r5
   Push                 r0
-  PushNull
-  AllocateClosure
+  StoreClosureElement  0
   PopLocal             r2
   Jump                 L1
 Try #0 end:
 Try #0 handler:
-  SetFrame             5
+  SetFrame             6
   Push                 r3
   PopLocal             r0
   MoveSpecial          exception, r3
   MoveSpecial          stackTrace, r4
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#3, 1
+  DirectCall           CP#1, 1
   Drop1
   Push                 r2
   DynamicCall          CP#9, 1
@@ -734,7 +740,7 @@ L1:
   PopLocal             r0
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#3, 1
+  DirectCall           CP#1, 1
   Drop1
   Push                 r2
   DynamicCall          CP#9, 1
@@ -746,18 +752,18 @@ L1:
   ReturnTOS
 }
 ExceptionsTable {
-  try-index 0, outer -1, start 23, end 35, handler 35, needs-stack-trace, synthetic, types [CP#6]
+  try-index 0, outer -1, start 23, end 39, handler 39, needs-stack-trace, synthetic, types [CP#4]
 }
 ConstantPool {
   [0] = ClosureFunction 0
-  [1] = InstanceField dart:core::_Closure::_context (field)
+  [1] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
   [2] = Reserved
-  [3] = DirectCall 'dart:core::print', ArgDesc num-args 1, num-type-args 0, names []
-  [4] = Reserved
-  [5] = ObjectRef 'try 1'
-  [6] = Type dynamic
-  [7] = ObjectRef 'try 2'
-  [8] = EndClosureFunctionScope
+  [3] = ObjectRef 'try 1'
+  [4] = Type dynamic
+  [5] = ObjectRef 'try 2'
+  [6] = EndClosureFunctionScope
+  [7] = AllocateClosure 0, num-elements: 1, flags: 0
+  [8] = Reserved
   [9] = DynamicCall 'implicit:call', ArgDesc num-args 1, num-type-args 0, names []
   [10] = Reserved
 }
@@ -765,18 +771,18 @@ Closure DART_SDK/pkg/dart2bytecode/testcases/try_blocks.dart::testTryFinally3::'
 ClosureCode {
   Entry                6
   Push                 FP[-5]
-  LoadFieldTOS         CP#1
+  LoadClosureElement   0
   PopLocal             r0
   CheckStack           0
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#3, 1
+  DirectCall           CP#1, 1
   Drop1
   Push                 r0
   PopLocal             r2
 Try #0 start:
-  PushConstant         CP#5
-  DirectCall           CP#3, 1
+  PushConstant         CP#3
+  DirectCall           CP#1, 1
   Drop1
   Jump                 L1
 Try #0 end:
@@ -789,8 +795,8 @@ Try #0 handler:
   Push                 r0
   PopLocal             r4
 Try #1 start:
-  PushConstant         CP#7
-  DirectCall           CP#3, 1
+  PushConstant         CP#5
+  DirectCall           CP#1, 1
   Drop1
   Jump                 L2
 Try #1 end:
@@ -802,7 +808,7 @@ Try #1 handler:
   MoveSpecial          stackTrace, r5
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#3, 1
+  DirectCall           CP#1, 1
   Drop1
   Push                 r4
   Push                 r5
@@ -812,7 +818,7 @@ L2:
   PopLocal             r0
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#3, 1
+  DirectCall           CP#1, 1
   Drop1
   PushInt              43
   ReturnTOS
@@ -822,8 +828,8 @@ L1:
   Push                 r0
   PopLocal             r4
 Try #2 start:
-  PushConstant         CP#7
-  DirectCall           CP#3, 1
+  PushConstant         CP#5
+  DirectCall           CP#1, 1
   Drop1
   Jump                 L3
 Try #2 end:
@@ -835,7 +841,7 @@ Try #2 handler:
   MoveSpecial          stackTrace, r5
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#3, 1
+  DirectCall           CP#1, 1
   Drop1
   Push                 r4
   Push                 r5
@@ -845,7 +851,7 @@ L3:
   PopLocal             r0
   Push                 r0
   LoadContextVar       0, 0
-  DirectCall           CP#3, 1
+  DirectCall           CP#1, 1
   Drop1
   PushInt              43
   ReturnTOS

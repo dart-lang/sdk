@@ -429,6 +429,16 @@ class UntaggedObject : public AllStatic {
   static bool IsTypedDataClassId(intptr_t cid);
 };
 
+class UntaggedClosure : public AllStatic {
+  static const word kHasDelayedTypeArgumentsBit;
+  static const word kHasInstantiatorTypeArgumentsBit;
+  static const word kHasFunctionTypeArgumentsBit;
+  static const word kFunctionTypeArgumentsIndexBitsPos;
+  static const word kFunctionTypeArgumentsIndexBitsSize;
+  static const word kLengthBitsPos;
+  static const word kLengthBitsSize;
+};
+
 class UntaggedAbstractType : public AllStatic {
  public:
   static const word kTypeStateFinalizedInstantiated;
@@ -1472,13 +1482,13 @@ class Context : public AllStatic {
 
 class Closure : public AllStatic {
  public:
-  static word context_offset();
-  static word delayed_type_arguments_offset();
   static word entry_point_offset();
   static word function_offset();
-  static word function_type_arguments_offset();
-  static word instantiator_type_arguments_offset();
   static word hash_offset();
+  static word length_and_flags_offset();
+  static word element_offset(intptr_t index);
+  static intptr_t element_index_at_offset(intptr_t offset_in_bytes);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
 };

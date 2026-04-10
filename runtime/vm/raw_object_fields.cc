@@ -151,11 +151,8 @@ namespace dart {
   F(TypeParameters, flags_)                                                    \
   F(TypeParameters, bounds_)                                                   \
   F(TypeParameters, defaults_)                                                 \
-  F(Closure, instantiator_type_arguments_)                                     \
-  F(Closure, function_type_arguments_)                                         \
-  F(Closure, delayed_type_arguments_)                                          \
   F(Closure, function_)                                                        \
-  F(Closure, context_)                                                         \
+  F(Closure, length_and_flags_)                                                \
   F(Closure, hash_)                                                            \
   F(String, length_)                                                           \
   F(Array, type_arguments_)                                                    \

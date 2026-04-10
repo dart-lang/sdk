@@ -852,24 +852,21 @@ DEFINE_RUNTIME_ENTRY(SubtypeCheck, 5) {
   UNREACHABLE();
 }
 
-// Allocate a new closure and initializes its function, context,
-// instantiator type arguments and delayed type arguments fields.
+// Allocate a new closure and initializes its function, length,
+// flags, context, hash and entry point.
 // Arg0: function.
-// Arg1: context.
-// Arg2: instantiator type arguments.
-// Arg3: delayed type arguments.
+// Arg1: length and flags.
+// Arg2: context.
 // Return value: newly allocated closure.
-DEFINE_RUNTIME_ENTRY(AllocateClosure, 4) {
+DEFINE_RUNTIME_ENTRY(AllocateClosure, 3) {
   const auto& function = Function::CheckedHandle(zone, arguments.ArgAt(0));
-  const auto& context = Object::Handle(zone, arguments.ArgAt(1));
-  const auto& instantiator_type_args =
-      TypeArguments::CheckedHandle(zone, arguments.ArgAt(2));
-  const auto& delayed_type_args =
-      TypeArguments::CheckedHandle(zone, arguments.ArgAt(3));
+  const intptr_t length_and_flags =
+      Smi::CheckedHandle(zone, arguments.ArgAt(1)).Value();
+  const auto& context = Object::Handle(zone, arguments.ArgAt(2));
   const Closure& closure = Closure::Handle(
-      zone, Closure::New(instantiator_type_args, Object::null_type_arguments(),
-                         delayed_type_args, function, context,
-                         SpaceForRuntimeAllocation()));
+      zone, Closure::New(length_and_flags, SpaceForRuntimeAllocation()));
+  closure.set_function(function);
+  closure.SetRawContext(context);
   arguments.SetReturn(closure);
   RuntimeAllocationEpilogue(thread);
 }

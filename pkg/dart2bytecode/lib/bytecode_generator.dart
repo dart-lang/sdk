@@ -1010,8 +1010,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     '_interpolate',
   );
 
-  late Class closureClass = libraryIndex.getClass('dart:core', '_Closure');
-
   late Procedure objectInstanceOf = libraryIndex.getProcedure(
     'dart:core',
     'Object',
@@ -1022,36 +1020,6 @@ class BytecodeGenerator extends RecursiveVisitor {
     'dart:core',
     'Object',
     '_simpleInstanceOf',
-  );
-
-  late Field closureInstantiatorTypeArguments = libraryIndex.getField(
-    'dart:core',
-    '_Closure',
-    '_instantiator_type_arguments',
-  );
-
-  late Field closureFunctionTypeArguments = libraryIndex.getField(
-    'dart:core',
-    '_Closure',
-    '_function_type_arguments',
-  );
-
-  late Field closureDelayedTypeArguments = libraryIndex.getField(
-    'dart:core',
-    '_Closure',
-    '_delayed_type_arguments',
-  );
-
-  late Field closureFunction = libraryIndex.getField(
-    'dart:core',
-    '_Closure',
-    '_function',
-  );
-
-  late Field closureContext = libraryIndex.getField(
-    'dart:core',
-    '_Closure',
-    '_context',
   );
 
   late Procedure prependTypeArguments = libraryIndex.getTopLevelProcedure(
@@ -2226,7 +2194,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     if (isClosure) {
       asm.emitPush(locals.closureVarIndexInFrame);
-      asm.emitLoadFieldTOS(cp.addInstanceField(closureContext));
+      asm.emitLoadClosureElement(contextClosureElement);
       asm.emitPopLocal(locals.contextVarIndexInFrame);
     }
 
@@ -2294,7 +2262,7 @@ class BytecodeGenerator extends RecursiveVisitor {
         final int numParentTypeArgs = locals.numParentTypeArguments;
         asm.emitPush(locals.functionTypeArgsVarIndexInFrame);
         asm.emitPush(locals.closureVarIndexInFrame);
-        asm.emitLoadFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
+        asm.emitLoadClosureElement(functionTypeArgumentsClosureElement);
         _genPushInt(numParentTypeArgs);
         _genPushInt(numParentTypeArgs + function.typeParameters.length);
         _genDirectCall(
@@ -2305,17 +2273,35 @@ class BytecodeGenerator extends RecursiveVisitor {
         asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
       } else {
         asm.emitPush(locals.closureVarIndexInFrame);
-        asm.emitLoadFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
+        asm.emitLoadClosureElement(functionTypeArgumentsClosureElement);
         asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
       }
     }
   }
 
+  bool get closureHasDelayedTypeArguments =>
+      enclosingFunction!.typeParameters.isNotEmpty;
+  bool get closureHasInstantiatorTypeArguments =>
+      instantiatorTypeArguments != null;
+  bool get closureHasFunctionTypeArguments =>
+      locals.hasFunctionTypeArgsVar && locals.numParentTypeArguments > 0;
+
+  int get delayedTypeArgumentsClosureElement => 0;
+  int get instantiatorTypeArgumentsClosureElement =>
+      (closureHasDelayedTypeArguments ? 1 : 0);
+  int get functionTypeArgumentsClosureElement =>
+      (closureHasDelayedTypeArguments ? 1 : 0) +
+      (closureHasInstantiatorTypeArguments ? 1 : 0);
+  int get contextClosureElement =>
+      (closureHasDelayedTypeArguments ? 1 : 0) +
+      (closureHasInstantiatorTypeArguments ? 1 : 0) +
+      (closureHasFunctionTypeArguments ? 1 : 0);
+
   void _handleDelayedTypeArguments(Label doneCheckingTypeArguments) {
     Label noDelayedTypeArgs = new Label();
 
     asm.emitPush(locals.closureVarIndexInFrame);
-    asm.emitLoadFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
+    asm.emitLoadClosureElement(delayedTypeArgumentsClosureElement);
     asm.emitStoreLocal(locals.functionTypeArgsVarIndexInFrame);
     asm.emitPushConstant(cp.addEmptyTypeArguments());
     asm.emitJumpIfEqStrict(noDelayedTypeArgs);
@@ -2347,7 +2333,7 @@ class BytecodeGenerator extends RecursiveVisitor {
           (t) => containsTypeParameter(t, functionTypeParametersSet!),
         )) {
       asm.emitPush(locals.closureVarIndexInFrame);
-      asm.emitLoadFieldTOS(cp.addInstanceField(closureFunctionTypeArguments));
+      asm.emitLoadClosureElement(functionTypeArgumentsClosureElement);
       asm.emitPopLocal(locals.functionTypeArgsVarIndexInFrame);
     }
 
@@ -2802,7 +2788,7 @@ class BytecodeGenerator extends RecursiveVisitor {
     );
     closures.add(closure);
 
-    final int closureFunctionIndex = cp.addClosureFunction(closureIndex);
+    cp.addClosureFunction(closureIndex);
 
     _recordSourcePosition(function.fileOffset, SourcePositions.syntheticFlag);
     _genPrologue(node, function);
@@ -2856,7 +2842,7 @@ class BytecodeGenerator extends RecursiveVisitor {
 
     _popAssemblerState();
 
-    return closureFunctionIndex;
+    return closureIndex;
   }
 
   ClosureDeclaration getClosureDeclaration(
@@ -2972,40 +2958,59 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   void _genAllocateClosureInstance(
     TreeNode node,
-    int closureFunctionIndex,
+    int closureIndex,
     FunctionNode function,
   ) {
-    asm.emitPushConstant(closureFunctionIndex);
-    asm.emitPush(locals.contextVarIndexInFrame);
-    _genPushInstantiatorTypeArguments();
-    asm.emitAllocateClosure();
+    final bool hasDelayedTypeArguments = function.typeParameters.isNotEmpty;
+    final bool hasInstantiatorTypeArguments = instantiatorTypeArguments != null;
+    final bool hasFunctionTypeArguments = locals.hasFunctionTypeArgsVar;
+    final numElements =
+        (hasDelayedTypeArguments ? 1 : 0) +
+        (hasInstantiatorTypeArguments ? 1 : 0) +
+        (hasFunctionTypeArguments ? 1 : 0) + /* context */
+        1;
 
-    final bool storeFunctionTAV = locals.hasFunctionTypeArgsVar;
-    final bool setEmptyDelayedTAV = function.typeParameters.isNotEmpty;
+    asm.emitAllocateClosure(
+      cp.addAllocateClosure(
+        closureIndex,
+        numElements,
+        hasDelayedTypeArguments: hasDelayedTypeArguments,
+        hasInstantiatorTypeArguments: hasInstantiatorTypeArguments,
+        hasFunctionTypeArguments: hasFunctionTypeArguments,
+      ),
+    );
 
-    if (storeFunctionTAV || setEmptyDelayedTAV) {
-      final int temp = locals.tempIndexInFrame(node);
-      asm.emitStoreLocal(temp);
+    final int temp = locals.tempIndexInFrame(node);
+    asm.emitStoreLocal(temp);
 
-      if (storeFunctionTAV) {
-        asm.emitPush(temp);
-        _genPushFunctionTypeArguments();
-        asm.emitStoreFieldTOS(
-          cp.addInstanceField(closureFunctionTypeArguments),
-        );
-      }
-
-      if (setEmptyDelayedTAV) {
-        asm.emitPush(temp);
-        asm.emitPushConstant(cp.addEmptyTypeArguments());
-        asm.emitStoreFieldTOS(cp.addInstanceField(closureDelayedTypeArguments));
-      }
+    var elementIndex = 0;
+    if (hasDelayedTypeArguments) {
+      asm.emitPush(temp);
+      asm.emitPushConstant(cp.addEmptyTypeArguments());
+      asm.emitStoreClosureElement(elementIndex++);
     }
+
+    if (hasInstantiatorTypeArguments) {
+      asm.emitPush(temp);
+      _genPushInstantiatorTypeArguments();
+      asm.emitStoreClosureElement(elementIndex++);
+    }
+
+    if (hasFunctionTypeArguments) {
+      asm.emitPush(temp);
+      _genPushFunctionTypeArguments();
+      asm.emitStoreClosureElement(elementIndex++);
+    }
+
+    asm.emitPush(temp);
+    asm.emitPush(locals.contextVarIndexInFrame);
+    asm.emitStoreClosureElement(elementIndex++);
+    assert(elementIndex == numElements);
   }
 
   void _genClosure(LocalFunction node, String name, FunctionNode function) {
-    final int closureFunctionIndex = _genClosureBytecode(node, name, function);
-    _genAllocateClosureInstance(node, closureFunctionIndex, function);
+    final int closureIndex = _genClosureBytecode(node, name, function);
+    _genAllocateClosureInstance(node, closureIndex, function);
   }
 
   void _allocateContextIfNeeded() {
@@ -4654,7 +4659,7 @@ class BytecodeGenerator extends RecursiveVisitor {
       // 1. Restore context from closure var.
       // This context has a context level at frame entry.
       asm.emitPush(locals.closureVarIndexInFrame);
-      asm.emitLoadFieldTOS(cp.addInstanceField(closureContext));
+      asm.emitLoadClosureElement(contextClosureElement);
       asm.emitPopLocal(locals.contextVarIndexInFrame);
 
       // 2. Restore context from captured :saved_try_context_var${depth}.
