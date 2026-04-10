@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:json_rpc_2/json_rpc_2.dart' as json_rpc;
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
@@ -21,7 +24,7 @@ typedef ServiceNameAliasPair = ({ServiceName service, ServiceAlias alias});
 /// Represents a client that is connected to a service.
 base class Client {
   Client({
-    required StreamChannel<String> connection,
+    required this.connection,
     required UnmodifiableClientNamedLookup clients,
     required EventStreamMethods eventStreamMethods,
     required this.backend,
@@ -29,7 +32,24 @@ base class Client {
     String? name,
   }) {
     _name = name ?? defaultClientName;
-    _clientPeer = json_rpc.Peer(connection, strictProtocolChecks: false);
+    // Manually create a StreamChannel<String> instead of calling
+    // .cast<String>() as cast() results in addStream() being called,
+    // binding the underlying sink. This results in a StateError being thrown
+    // if we try and add directly to the sink, which we do for binary events
+    // in [EventStreamMethod]'s streamNotify().
+    final manualConnectionSinkCast = StreamController<String>(sync: true)
+      ..stream
+          .cast<String>()
+          .listen((event) => connection.sink.add(event))
+          .onDone(() => connection.sink.close());
+    final manualConnectionStreamCast = connection.stream.cast<String>();
+    _clientPeer = json_rpc.Peer(
+      StreamChannel<String>(
+        manualConnectionStreamCast,
+        manualConnectionSinkCast,
+      ),
+      strictProtocolChecks: false,
+    );
     _internalRpcs = DartRuntimeServiceRpcs(
       clients: clients,
       eventStreamMethods: eventStreamMethods,
@@ -40,6 +60,7 @@ base class Client {
 
   late final String namespace;
 
+  final StreamChannel<Object?> connection;
   late json_rpc.Peer _clientPeer;
   late final DartRuntimeServiceRpcs _internalRpcs;
   final DartRuntimeServiceBackend backend;
@@ -160,6 +181,23 @@ base class Client {
     }
   }
 
+  /// Sends raw binary [data] to the client.
+  ///
+  /// This technically isn't compliant with the JSON-RPC specification and
+  /// should only be used to send binary events to streams.
+  void sendBinaryData({required Uint8List data}) {
+    if (_clientPeer.isClosed) {
+      RpcException.serviceDisappeared.throwException();
+    }
+
+    try {
+      connection.sink.add(data);
+      // ignore: avoid_catching_errors
+    } on StateError {
+      RpcException.serviceDisappeared.throwException();
+    }
+  }
+
   /// The set of services registered by this [Client].
   Iterable<ServiceNameAliasPair> get services =>
       _services.entries.map((e) => (service: e.key, alias: e.value));
@@ -257,7 +295,7 @@ base class ClientManager implements ClientConnectionController {
   /// This should be called when a client connects to the service.
   @mustCallSuper
   Client addClient({
-    required StreamChannel<String> connection,
+    required StreamChannel<Object?> connection,
     String? name,
     bool artificial = false,
   }) {

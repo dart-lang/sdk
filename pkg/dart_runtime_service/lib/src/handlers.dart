@@ -171,7 +171,7 @@ Handler webSocketClientHandler({required ClientManager clientManager}) {
   // package:shelf_web_socket v2.
   final handler = webSocketHandler((WebSocketChannel ws, _) {
     logger.info('New web socket connection. Creating $Client.');
-    clientManager.addClient(connection: ws.cast<String>());
+    clientManager.addClient(connection: ws.cast<Object?>());
   });
 
   return (request) {

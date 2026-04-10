@@ -7,6 +7,7 @@ import 'dart:collection';
 import 'dart:convert';
 import 'dart:io';
 import 'dart:isolate';
+import 'dart:typed_data';
 
 import 'package:dart_runtime_service/dart_runtime_service.dart';
 
@@ -213,12 +214,9 @@ class DartRuntimeServiceVMBackend
   void _vmMessageHandler(List<Object?> message) {
     _logger.fine('VM message: $message');
     switch (message) {
-      case [final String streamId, final String eventJsonString]:
+      case [final String streamId, final Object event]:
         // This is an event.
-        _eventMessageHandler(
-          streamId,
-          json.decode(eventJsonString) as Map<String, Object?>,
-        );
+        _eventMessageHandler(streamId, event);
       case [final int opcode]:
         // This is a control message directing the vm service to exit.
         assert(opcode == _kServiceExitMessageId);
@@ -257,9 +255,25 @@ class DartRuntimeServiceVMBackend
   }
 
   /// Forward VM service events sent from the VM.
-  void _eventMessageHandler(String streamId, Map<String, Object?> event) {
+  void _eventMessageHandler(String streamId, Object event) {
     frontend.sendEvent(
-      event: ForwardingStreamEvent(streamId: streamId, event: event),
+      event: switch (event) {
+        final String jsonString => ForwardingStreamEvent(
+          streamId: streamId,
+          event: json.decode(jsonString) as Map<String, Object?>,
+        ),
+        [final Uint8List utf8String] => ForwardingStreamEvent(
+          streamId: streamId,
+          event: json.decode(utf8.decode(utf8String)) as Map<String, Object?>,
+        ),
+        final Uint8List binaryData => BinaryStreamEvent(
+          streamId: streamId,
+          data: binaryData,
+        ),
+        _ => throw UnimplementedError(
+          'Unexpected event type: ${event.runtimeType}.',
+        ),
+      },
     );
   }
 
@@ -316,22 +330,15 @@ class DartRuntimeServiceVMBackend
     List<int> message,
     SendPort replyPort,
   ) async {
+    // The original VM service implementation could, in theory, handle binary
+    // and "UTF8String" responses. However, no binary or "UTF8String" responses
+    // are sent in response to service RPCs so we should be able to assume that
+    // `message` can be converted to a `String`.
+    //
+    // If this decode throws an exception, we'll need to revisit this.
     final messageStr = utf8.decode(message);
     _logger.info('Native RPC request: $messageStr');
     _nativeRpcClientStreamChannelController.local.sink.add(messageStr);
-
-    // TODO(bkonyi): handle non-string results
-    /*
-    late List<int> bytes;
-    switch (response.kind) {
-      case ResponsePayloadKind.String:
-        bytes = utf8.encode(response.payload as String);
-        bytes = bytes is Uint8List ? bytes : Uint8List.fromList(bytes);
-      case ResponsePayloadKind.Binary:
-      case ResponsePayloadKind.Utf8String:
-        bytes = response.payload as Uint8List;
-    }
-    */
 
     if (!await _nativeRpcClientResponseStream.moveNext()) {
       _logger.warning('Native RPC client stream has closed.');

@@ -14,16 +14,11 @@ import 'dart_runtime_service_backend.dart';
 import 'rpc_exceptions.dart';
 import 'utils.dart';
 
-/// A base class for events to be sent on [streamId] with a given [kind].
-abstract base class StreamEvent {
-  StreamEvent({required this.streamId, required this.kind});
-
-  static const kStreamId = 'streamId';
-  static const kEvent = 'event';
+/// A base class for events to be sent on [streamId].
+abstract base class StreamEventBase {
+  const StreamEventBase({required this.streamId});
 
   final String streamId;
-  final String kind;
-  final int timestamp = DateTime.now().millisecondsSinceEpoch;
 
   void send({
     required EventStreamMethods eventStreamMethods,
@@ -35,9 +30,28 @@ abstract base class StreamEvent {
       excludedClient: excludedClient,
     );
   }
+}
+
+/// A base class for JSON-RPC compliant events to be sent on [streamId] with a
+/// given [kind].
+abstract base class StreamEvent extends StreamEventBase {
+  StreamEvent({required super.streamId, required this.kind});
+
+  static const kStreamId = 'streamId';
+  static const kEvent = 'event';
+
+  final String kind;
+  final int timestamp = DateTime.now().millisecondsSinceEpoch;
 
   @mustCallSuper
   Map<String, Object?> toJson();
+}
+
+/// A class for sending non-JSON-RPC compliant binary events on [streamId].
+final class BinaryStreamEvent extends StreamEventBase {
+  const BinaryStreamEvent({required super.streamId, required this.data});
+
+  final Uint8List data;
 }
 
 /// Base class for service registration events which are sent on the Service
@@ -187,11 +201,8 @@ class EventStreamManager implements EventStreamMethods {
           continue;
         }
         switch (data) {
-          case Uint8List():
-            // TODO(bkonyi): support sending binary events (e.g., for heap
-            // snapshots).
-            // listener.connection.sink.add(data);
-            throw StateError('Cannot send binary data');
+          case BinaryStreamEvent(data: final binaryData):
+            listener.sendBinaryData(data: binaryData);
           case StreamEvent():
             listener.sendNotification(
               method: kStreamNotify,

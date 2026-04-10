@@ -262,7 +262,7 @@ class DartRuntimeService {
   }
 
   /// Send a [StreamEvent] to subscribed clients.
-  void sendEvent({required StreamEvent event}) {
+  void sendEvent({required StreamEventBase event}) {
     event.send(eventStreamMethods: eventStreamManager);
   }
 
