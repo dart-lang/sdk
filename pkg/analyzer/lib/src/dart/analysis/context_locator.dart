@@ -592,9 +592,11 @@ class _ContextLocator {
       return const [];
     }
 
-    var analyzerOptions = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzerOptions = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzerOptions is! YamlMap) return const [];
-    var excludeOptions = analyzerOptions.valueAt(AnalysisOptionsFile.exclude);
+    var excludeOptions = analyzerOptions.valueAt(
+      AnalysisOptionsFileKeys.exclude,
+    );
     if (excludeOptions is! YamlList) return const [];
     var pathContext = _resourceProvider.pathContext;
     List<LocatedGlob> patterns = [];
