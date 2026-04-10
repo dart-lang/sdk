@@ -289,13 +289,15 @@ class Interpreter {
   void FlushTraceBuffer();
   void WriteInstructionToTrace(const KBCInstr* pc);
 
-  // Prints at most the requested number of interpreted stack frames
-  // up to the most recent entry frame.
+  // Prints at most the requested number of interpreted stack frames.
   //
-  // If [depth] is non-positive, prints all interpreted stack frames
-  // up to the most recent entry frame.
+  // If [depth] is non-positive, prints all stack frames.
+  //
+  // If the top frame on the stack is an entry frame, should be
+  // called with pc == (const KBCInstr*)kEntryFramePcMarker.
   void PrintStackFrames(const ObjectPtr* FP,
                         const ObjectPtr* SP,
+                        const KBCInstr* pc,
                         intptr_t depth = 0);
 
   void* trace_file_;

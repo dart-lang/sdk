@@ -27,6 +27,7 @@
 #include "vm/runtime_entry.h"
 #include "vm/stack_frame_kbc.h"
 #include "vm/symbols.h"
+#include "vm/zone_text_buffer.h"
 
 namespace dart {
 
@@ -439,52 +440,164 @@ DART_NOINLINE void Interpreter::WriteInstructionToTrace(const KBCInstr* pc) {
   }
 }
 
+using StackSlotFormatter = void (*)(Zone*, BaseTextBuffer*, const ObjectPtr*);
+
+static void PrintStackSlot(Zone* zone,
+                           BaseTextBuffer* buffer,
+                           const ObjectPtr* address,
+                           const char* description = nullptr,
+                           StackSlotFormatter formatter = nullptr) {
+  buffer->Printf("  %#" Px ": ", reinterpret_cast<uword>(address));
+  // The value in the stack slot can be 0, which means using #% prints "0"
+  // instead of "0x0...0". Be explicit so the output is consistently formatted.
+  // Also print out unsigned to avoid weirdness if somehow negative.
+  const int hex_size = kWordSize * 2;
+  buffer->Printf("0x%0*.*" Px "", hex_size, hex_size,
+                 static_cast<uword>(*address));
+  if (description != nullptr || formatter != nullptr) {
+    buffer->AddString(" (");
+    if (description != nullptr) {
+      buffer->Printf("%s%s", description, formatter != nullptr ? ": " : "");
+    }
+    if (formatter != nullptr) {
+      formatter(zone, buffer, address);
+    }
+    buffer->AddString(")");
+  }
+  buffer->AddString("\n");
+}
+
+static void PrintStackSlot(Zone* zone,
+                           BaseTextBuffer* buffer,
+                           const ObjectPtr* address,
+                           StackSlotFormatter formatter) {
+  PrintStackSlot(zone, buffer, address, /*description=*/nullptr, formatter);
+}
+
+static void ObjectFormatter(Zone* zone,
+                            BaseTextBuffer* buffer,
+                            const ObjectPtr* address) {
+  if (!address->IsWellFormed()) {
+    buffer->AddString("<invalid>");
+    return;
+  }
+  const auto& obj = Object::Handle(zone, *address);
+  if (obj.IsNull()) {
+    buffer->AddString("<null>");
+  } else if (obj.IsString()) {
+    // Can't use EscapeSpecialCharacters as that allocates.
+    buffer->Printf("\"%s\"", obj.ToCString());
+  } else if (obj.IsFunction()) {
+    buffer->AddString(Function::Cast(obj).ToFullyQualifiedCString());
+  } else {
+    // Unless in a no safepoint scope, ToCString() calls may allocate
+    // (for example, when getting the type arguments of a generic instance).
+    NoSafepointScope scope;
+    buffer->AddString(obj.ToCString());
+  }
+}
+
+static void ArgumentsDescriptorFormatter(Zone* zone,
+                                         BaseTextBuffer* buffer,
+                                         const ObjectPtr* address) {
+  auto const ptr = *address;
+  if (ptr == Array::null()) {
+    buffer->AddString("<none>");
+  } else if (ptr->IsArray() || ptr->IsImmutableArray()) {
+    ArgumentsDescriptor args_desc(Array::Handle(zone, Array::RawCast(ptr)));
+    args_desc.PrintTo(buffer);
+  } else {
+    buffer->AddString("unexpected object: ");
+    // Fall back to ObjectFormatter.
+    ObjectFormatter(zone, buffer, address);
+  }
+}
+
 void Interpreter::PrintStackFrames(const ObjectPtr* FP,
                                    const ObjectPtr* SP,
+                                   const KBCInstr* pc,
                                    intptr_t depth) {
-  const word *fp = reinterpret_cast<const word*>(FP),
-             *sp = reinterpret_cast<const word*>(SP);
-  for (intptr_t i = 0; i < depth; i++) {
-    const word caller_pc = fp[kKBCSavedCallerPcSlotFromFp];
-    const bool is_entry_frame = caller_pc == kEntryFramePcMarker;
-    // The entry frame slots are printed separately from the rest of the frame.
-    auto* const frame_end = fp + (is_entry_frame ? kKBCEntrySavedSlots : 0);
+  Zone* const zone = Thread::Current()->zone();
+  ZoneTextBuffer buffer(zone);
+  buffer.AddString("Printing stack starting at:\n");
+  buffer.Printf("  FP = %#" Px "\n", reinterpret_cast<uword>(FP));
+  buffer.Printf("  SP = %#" Px "\n", reinterpret_cast<uword>(SP));
+  buffer.Printf("  pc = %#" Px "\n", reinterpret_cast<uword>(pc));
+  buffer.Printf("  stack base = %#" Px "\n", stack_base());
+  buffer.AddString("Current stack frames:\n");
+  intptr_t last_printed = 0;
+  // Depth >= 0 means print all frames on the stack.
+  for (intptr_t i = 0; depth <= 0 || i < depth; i++) {
+    // Stop if the current SP or FP is not part of the stack.
+    if (!HasFrame(reinterpret_cast<uword>(SP))) {
+      buffer.Printf("** INVALID SP: %#" Px " **\n",
+                    reinterpret_cast<uword>(SP));
+      break;
+    }
+    if (!HasFrame(reinterpret_cast<uword>(FP))) {
+      buffer.Printf("** INVALID FP: %#" Px " **\n",
+                    reinterpret_cast<uword>(FP));
+      break;
+    }
 
-    THR_Print("Frame %" Pd "%s:\n", i, is_entry_frame ? " (entry)" : "");
-    for (auto* current = sp; current >= frame_end; --current) {
-      THR_Print("  %#" Px ": %#" Px "\n", reinterpret_cast<uword>(current),
-                *current);
+    const bool is_entry_frame = IsEntryFrameMarker(pc);
+
+    auto* first_slot = FP;
+    if (is_entry_frame) {
+      // The reserved entry frame slots are printed separately from
+      // the rest of the frame.
+      first_slot += kKBCEntrySavedSlots;
+    }
+
+    for (auto* current = SP; current >= first_slot; --current) {
+      PrintStackSlot(zone, &buffer, current, ObjectFormatter);
     }
 
     if (is_entry_frame) {
-      THR_Print("  %#" Px ": %#" Px " (pool pointer)\n",
-                reinterpret_cast<uword>(fp + kKBCSavedPpSlotFromEntryFp),
-                fp[kKBCSavedPpSlotFromEntryFp]);
-      THR_Print("  %#" Px ": %#" Px " (args descriptor)\n",
-                reinterpret_cast<uword>(fp + kKBCSavedArgDescSlotFromEntryFp),
-                fp[kKBCSavedArgDescSlotFromEntryFp]);
-      THR_Print("  %#" Px ": %#" Px " (exit link)\n",
-                reinterpret_cast<uword>(fp + kKBCExitLinkSlotFromEntryFp),
-                fp[kKBCExitLinkSlotFromEntryFp]);
+      PrintStackSlot(zone, &buffer, FP + kKBCSavedPpSlotFromEntryFp,
+                     "pool pointer", ObjectFormatter);
+      PrintStackSlot(zone, &buffer, FP + kKBCSavedArgDescSlotFromEntryFp,
+                     "args descriptor", ArgumentsDescriptorFormatter);
+      PrintStackSlot(zone, &buffer, FP + kKBCExitLinkSlotFromEntryFp,
+                     "exit link");
     }
 
-    THR_Print("  %#" Px ": %#" Px " (saved caller fp)\n",
-              reinterpret_cast<uword>(fp + kKBCSavedCallerFpSlotFromFp),
-              fp[kKBCSavedCallerFpSlotFromFp]);
-    THR_Print("  %#" Px ": %#" Px " (saved caller pc)\n",
-              reinterpret_cast<uword>(fp + kKBCSavedCallerPcSlotFromFp),
-              fp[kKBCSavedCallerPcSlotFromFp]);
-    if (is_entry_frame) break;
-    THR_Print("  %#" Px ": %#" Px " (caller pc)\n",
-              reinterpret_cast<uword>(fp + kKBCPcMarkerSlotFromFp),
-              fp[kKBCPcMarkerSlotFromFp]);
-    THR_Print("  %#" Px ": %#" Px " (called function)\n",
-              reinterpret_cast<uword>(fp + kKBCFunctionSlotFromFp),
-              fp[kKBCFunctionSlotFromFp]);
-    sp = fp + kKBCCallerSpSlotFromFp;
-    fp = reinterpret_cast<const word*>(fp[kKBCSavedCallerFpSlotFromFp]);
-    THR_Print("\n");
+    // Stop iteration if we've hit the start of the stack.
+    if (reinterpret_cast<uword>(FP) == stack_base()) {
+      buffer.AddString("---------------stack start--------------\n");
+      break;
+    }
+
+    // Print the frame separator at the frame pointer, so the caller saved
+    // values are printed as part of the preceding frame.
+    buffer.Printf("-------------%s--------------\n",
+                  is_entry_frame ? "call boundary" : "-------------");
+
+    PrintStackSlot(zone, &buffer, FP + kKBCSavedCallerFpSlotFromFp,
+                   "saved caller fp");
+    PrintStackSlot(zone, &buffer, FP + kKBCSavedCallerPcSlotFromFp,
+                   "saved caller pc");
+    PrintStackSlot(zone, &buffer, FP + kKBCPcMarkerSlotFromFp, "bytecode",
+                   ObjectFormatter);
+    PrintStackSlot(zone, &buffer, FP + kKBCFunctionSlotFromFp, "function",
+                   ObjectFormatter);
+
+    // Calculate the next PC and SP _before_ FP.
+    pc = reinterpret_cast<const KBCInstr*>(
+        static_cast<uword>(FP[kKBCSavedCallerPcSlotFromFp]));
+    SP = FP + kKBCCallerSpSlotFromFp;
+    FP = reinterpret_cast<const ObjectPtr*>(
+        static_cast<uword>(FP[kKBCSavedCallerFpSlotFromFp]));
+
+    // Stop if the calculated SP underflows the stack.
+    if (!HasFrame(reinterpret_cast<uword>(SP))) {
+      buffer.AddString("----------------UNDERFLOW---------------\n");
+      break;
+    }
+    THR_Print("%s", buffer.buffer() + last_printed);
+    last_printed = buffer.length();
   }
+  THR_Print("%s", buffer.buffer() + last_printed);
 }
 
 #endif  // defined(DEBUG)
@@ -599,6 +712,7 @@ DART_NOINLINE bool Interpreter::InvokeCompiled(Thread* thread,
                                                ObjectPtr** FP,
                                                ObjectPtr** SP) {
   ASSERT(Function::HasCode(function));
+  ASSERT(!Function::IsInterpreted(function));
   ASSERT(function->untag()->code() != StubCode::LazyCompile().ptr());
   // TODO(regis): Once we share the same stack, try to invoke directly.
 #if defined(DEBUG)
