@@ -335,6 +335,73 @@ void f(A a) {
 ''');
   }
 
+  Future<void> test_initializer_reference() async {
+    await resolveTestCode('''
+class Foo {
+  final int ^a;
+  final int b;
+
+  Foo(this.a) : b = a + 1 {}
+}
+''');
+    await assertHasAssist('''
+class Foo {
+  int _a;
+
+  int get a => _a;
+  final int b;
+
+  Foo(this._a) : b = _a + 1 {}
+}
+''');
+  }
+
+  Future<void> test_initializer_reference_noPrivateNamedParameters() async {
+    await resolveTestCode('''
+// @dart=3.10
+
+class Foo {
+  final int ^a;
+  final int b;
+
+  Foo({required this.a}) : b = a + 1 {}
+}
+''');
+    await assertHasAssist('''
+// @dart=3.10
+
+class Foo {
+  int _a;
+
+  int get a => _a;
+  final int b;
+
+  Foo({required int a}) : _a = a, b = a + 1 {}
+}
+''');
+  }
+
+  Future<void> test_initializer_reference_privateNamedParameters() async {
+    await resolveTestCode('''
+class Foo {
+  final int ^a;
+  final int b;
+
+  Foo({required this.a}) : b = a + 1 {}
+}
+''');
+    await assertHasAssist('''
+class Foo {
+  int _a;
+
+  int get a => _a;
+  final int b;
+
+  Foo({required this._a}) : b = _a + 1 {}
+}
+''');
+  }
+
   Future<void> test_mixin_hasType() async {
     await resolveTestCode('''
 mixin M {
