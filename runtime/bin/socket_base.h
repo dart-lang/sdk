@@ -146,8 +146,8 @@ class InterfaceSocketAddress {
 
   SocketAddress* socket_address() const { return socket_address_; }
   const char* interface_name() const { return interface_name_; }
-  int interface_index() const { return interface_index_; }
-  int prefix_length() const { return prefix_length_; }
+  intptr_t interface_index() const { return interface_index_; }
+  intptr_t prefix_length() const { return prefix_length_; }
 
  private:
   SocketAddress* socket_address_;

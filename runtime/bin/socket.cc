@@ -1173,8 +1173,8 @@ CObject* Socket::ListInterfacesRequest(const CObjectArray& request) {
             new CObjectInt64(CObject::NewInt64(interface->interface_index()));
         entry->SetAt(4, interface_index);
 
-        CObjectInt32* prefix_length =
-            new CObjectInt32(CObject::NewInt32(interface->prefix_length()));
+        CObjectInt64* prefix_length =
+            new CObjectInt64(CObject::NewInt64(interface->prefix_length()));
         entry->SetAt(5, prefix_length);
 
         array->SetAt(i + 1, entry);
