@@ -36,6 +36,25 @@ main() {
   verifyIntArray(Uint32List(size)..setRange(start, end, jsInt32, offset), 4);
   verifyDoubleArray(Float32List(size)..setRange(start, end, jsF32, offset));
   verifyDoubleArray(Float64List(size)..setRange(start, end, jsF64, offset));
+
+  verifyIntViewToView(
+    (buffer, byteOffset, length) => Uint16List.view(buffer, byteOffset, length),
+    2,
+  );
+  verifyIntViewToView(
+    (buffer, byteOffset, length) => Uint32List.view(buffer, byteOffset, length),
+    4,
+  );
+  verifyDoubleViewToView(
+    (buffer, byteOffset, length) =>
+        Float32List.view(buffer, byteOffset, length),
+    4,
+  );
+  verifyDoubleViewToView(
+    (buffer, byteOffset, length) =>
+        Float64List.view(buffer, byteOffset, length),
+    8,
+  );
 }
 
 void initIntArray(List<int> list) {
@@ -58,6 +77,20 @@ void verifyIntArray(List<int> list, int elementSize) {
   }
 }
 
+void verifyIntViewToView(
+  List<int> Function(ByteBuffer, int, int) makeView,
+  int elementSize,
+) {
+  final srcBacking = Uint8List((size + offset + 1) * elementSize);
+  final destBacking = Uint8List((size + 1) * elementSize);
+  final srcView = makeView(srcBacking.buffer, elementSize, size);
+  final destView = makeView(destBacking.buffer, elementSize, size);
+
+  initIntArray(srcView);
+  destView.setRange(start, end, srcView, offset);
+  verifyIntArray(destView, elementSize);
+}
+
 void initDoubleArray(List<double> list) {
   for (int i = 0; i < list.length; ++i) {
     list[i] = 1.1314 * i;
@@ -75,4 +108,18 @@ void verifyDoubleArray(List<double> list) {
       Expect.equals(0.0, value);
     }
   }
+}
+
+void verifyDoubleViewToView(
+  List<double> Function(ByteBuffer, int, int) makeView,
+  int elementSize,
+) {
+  final srcBacking = Uint8List((size + offset + 1) * elementSize);
+  final destBacking = Uint8List((size + 1) * elementSize);
+  final srcView = makeView(srcBacking.buffer, elementSize, size);
+  final destView = makeView(destBacking.buffer, elementSize, size);
+
+  initDoubleArray(srcView);
+  destView.setRange(start, end, srcView, offset);
+  verifyDoubleArray(destView);
 }

@@ -1993,9 +1993,6 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
       final TypedData destTypedData = this;
       final TypedData fromTypedData = unsafeCast<TypedData>(from);
 
-      final ByteBuffer destBuffer = destTypedData.buffer;
-      final ByteBuffer fromBuffer = fromTypedData.buffer;
-
       final destDartElementSizeInBytes = destTypedData.elementSizeInBytes;
       final fromDartElementSizeInBytes = fromTypedData.elementSizeInBytes;
 
@@ -2018,6 +2015,78 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
       // receiver is an int array and if the buffer is a F32/F64 buffer that
       // means casting needs to happen when reading.
       if (destDartElementSizeInBytes == fromDartElementSizeInBytes) {
+        if (destDartElementSizeInBytes == 1 &&
+            destTypedData is WasmI8ArrayBase &&
+            fromTypedData is WasmI8ArrayBase) {
+          if (destTypedData is! U8ClampedList &&
+              destTypedData is! _SlowU8ClampedList) {
+            final WasmI8ArrayBase destI8 = unsafeCast<WasmI8ArrayBase>(
+              destTypedData,
+            );
+            final WasmI8ArrayBase fromI8 = unsafeCast<WasmI8ArrayBase>(
+              fromTypedData,
+            );
+            destI8.data.copy(
+              destI8.offsetInElements + start,
+              fromI8.data,
+              fromI8.offsetInElements + skipCount,
+              count,
+            );
+            return;
+          }
+        } else if (destDartElementSizeInBytes == 2 &&
+            destTypedData is WasmI16ArrayBase &&
+            fromTypedData is WasmI16ArrayBase) {
+          final WasmI16ArrayBase destI16 = unsafeCast<WasmI16ArrayBase>(
+            destTypedData,
+          );
+          final WasmI16ArrayBase fromI16 = unsafeCast<WasmI16ArrayBase>(
+            fromTypedData,
+          );
+          destI16.data.copy(
+            destI16.offsetInElements + start,
+            fromI16.data,
+            fromI16.offsetInElements + skipCount,
+            count,
+          );
+          return;
+        } else if (destDartElementSizeInBytes == 4 &&
+            destTypedData is _WasmI32ArrayBase &&
+            fromTypedData is _WasmI32ArrayBase) {
+          final _WasmI32ArrayBase destI32 = unsafeCast<_WasmI32ArrayBase>(
+            destTypedData,
+          );
+          final _WasmI32ArrayBase fromI32 = unsafeCast<_WasmI32ArrayBase>(
+            fromTypedData,
+          );
+          destI32.data.copy(
+            destI32.offsetInElements + start,
+            fromI32.data,
+            fromI32.offsetInElements + skipCount,
+            count,
+          );
+          return;
+        } else if (destDartElementSizeInBytes == 8 &&
+            destTypedData is _WasmI64ArrayBase &&
+            fromTypedData is _WasmI64ArrayBase) {
+          final _WasmI64ArrayBase destI64 = unsafeCast<_WasmI64ArrayBase>(
+            destTypedData,
+          );
+          final _WasmI64ArrayBase fromI64 = unsafeCast<_WasmI64ArrayBase>(
+            fromTypedData,
+          );
+          destI64.data.copy(
+            destI64.offsetInElements + start,
+            fromI64.data,
+            fromI64.offsetInElements + skipCount,
+            count,
+          );
+          return;
+        }
+
+        final ByteBuffer destBuffer = destTypedData.buffer;
+        final ByteBuffer fromBuffer = fromTypedData.buffer;
+
         if (destDartElementSizeInBytes == 1 &&
             destBuffer is _I8ByteBuffer &&
             fromBuffer is _I8ByteBuffer) {
@@ -2069,6 +2138,9 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
           }
         }
       }
+
+      final ByteBuffer destBuffer = destTypedData.buffer;
+      final ByteBuffer fromBuffer = fromTypedData.buffer;
 
       // TODO(#52971): Use unchecked list access functions below.
       if (destBuffer == fromBuffer) {
@@ -2435,9 +2507,6 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
       final TypedData destTypedData = this;
       final TypedData fromTypedData = unsafeCast<TypedData>(from);
 
-      final ByteBuffer destBuffer = destTypedData.buffer;
-      final ByteBuffer fromBuffer = fromTypedData.buffer;
-
       final destDartElementSizeInBytes = destTypedData.elementSizeInBytes;
       final fromDartElementSizeInBytes = fromTypedData.elementSizeInBytes;
 
@@ -2448,6 +2517,43 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
             (skipCount * fromDartElementSizeInBytes);
         final destBufferByteOffset =
             destTypedData.offsetInBytes + (start * destDartElementSizeInBytes);
+        if (destDartElementSizeInBytes == 4 &&
+            destTypedData is _WasmF32ArrayBase &&
+            fromTypedData is _WasmF32ArrayBase) {
+          final _WasmF32ArrayBase destF32 = unsafeCast<_WasmF32ArrayBase>(
+            destTypedData,
+          );
+          final _WasmF32ArrayBase fromF32 = unsafeCast<_WasmF32ArrayBase>(
+            fromTypedData,
+          );
+          destF32.data.copy(
+            destF32.offsetInElements + start,
+            fromF32.data,
+            fromF32.offsetInElements + skipCount,
+            count,
+          );
+          return;
+        } else if (destDartElementSizeInBytes == 8 &&
+            destTypedData is _WasmF64ArrayBase &&
+            fromTypedData is _WasmF64ArrayBase) {
+          final _WasmF64ArrayBase destF64 = unsafeCast<_WasmF64ArrayBase>(
+            destTypedData,
+          );
+          final _WasmF64ArrayBase fromF64 = unsafeCast<_WasmF64ArrayBase>(
+            fromTypedData,
+          );
+          destF64.data.copy(
+            destF64.offsetInElements + start,
+            fromF64.data,
+            fromF64.offsetInElements + skipCount,
+            count,
+          );
+          return;
+        }
+
+        final ByteBuffer destBuffer = destTypedData.buffer;
+        final ByteBuffer fromBuffer = fromTypedData.buffer;
+
         if (destDartElementSizeInBytes == 4 &&
             destBuffer is _F32ByteBuffer &&
             fromBuffer is _F32ByteBuffer) {
@@ -2474,6 +2580,9 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
           }
         }
       }
+
+      final ByteBuffer destBuffer = destTypedData.buffer;
+      final ByteBuffer fromBuffer = fromTypedData.buffer;
 
       if (destBuffer == fromBuffer) {
         final fromAsList = from as List<double>;
@@ -2661,6 +2770,14 @@ extension WasmI16ArrayBaseExt on WasmI16ArrayBase {
 extension WasmI32ArrayBaseExt on _WasmI32ArrayBase {
   @pragma('wasm:prefer-inline')
   WasmArray<WasmI32> get data => _data;
+
+  @pragma('wasm:prefer-inline')
+  int get offsetInElements => _offsetInElements;
+}
+
+extension WasmI64ArrayBaseExt on _WasmI64ArrayBase {
+  @pragma('wasm:prefer-inline')
+  WasmArray<WasmI64> get data => _data;
 
   @pragma('wasm:prefer-inline')
   int get offsetInElements => _offsetInElements;
