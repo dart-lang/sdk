@@ -52,15 +52,13 @@ String get message => p.join('hello', 'world');
       ]),
     ]).create();
     packageRoot = p.join(d.sandbox, 'a');
-    await Process.run(
-        Platform.resolvedExecutable,
-        [
-          'pub',
-          'get',
-        ],
-        workingDirectory: packageRoot);
+    await Process.run(Platform.resolvedExecutable, [
+      'pub',
+      'get',
+    ], workingDirectory: packageRoot);
     packageConfig = (await findPackageConfig(Directory(packageRoot)))!;
-    packagesJsonPath = findNearestPackageConfigPath(Directory(packageRoot)) ??
+    packagesJsonPath =
+        findNearestPackageConfigPath(Directory(packageRoot)) ??
         p.join(packageRoot, '.dart_tool', 'package_config.json');
   });
 
@@ -207,8 +205,9 @@ String get message => p.join('hello', 'world');
   });
 
   test('can compile and recompile a dartdevc app', () async {
-    final entrypoint =
-        p.toUri(p.join(packageRoot, 'bin', 'main.dart')).toString();
+    final entrypoint = p
+        .toUri(p.join(packageRoot, 'bin', 'main.dart'))
+        .toString();
     final dartDevcClient = client = await DartDevcFrontendServerClient.start(
       entrypoint,
       p.join(packageRoot, 'out.dill'),
