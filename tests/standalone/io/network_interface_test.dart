@@ -10,13 +10,13 @@ void testListLoopback() {
   NetworkInterface.list(includeLoopback: false).then((list) {
     for (var i in list) {
       for (var a in i.addresses) {
-        Expect.isFalse(a.isLoopback);
+        Expect.isFalse(a.address.isLoopback);
       }
     }
   });
 
   NetworkInterface.list(includeLoopback: true).then((list) {
-    Expect.isTrue(list.any((i) => i.addresses.any((a) => a.isLoopback)));
+    Expect.isTrue(list.any((i) => i.addresses.any((a) => a.address.isLoopback)));
   });
 }
 
@@ -24,7 +24,7 @@ void testListLinkLocal() {
   NetworkInterface.list(includeLinkLocal: false).then((list) {
     for (var i in list) {
       for (var a in i.addresses) {
-        Expect.isFalse(a.isLinkLocal);
+        Expect.isFalse(a.address.isLinkLocal);
       }
     }
   });

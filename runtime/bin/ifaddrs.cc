@@ -68,8 +68,12 @@ static void SetNetmask(struct ifaddrs* ifaddr, int family, int prefixlen) {
     mask->sin6_family = AF_INET6;
     memset(&mask->sin6_addr, 0, sizeof(mask->sin6_addr));
     uint8_t* m = mask->sin6_addr.s6_addr;
-    for (int i = 0; i < prefixlen / 8; ++i) m[i] = 0xFF;
-    if (prefixlen % 8) m[prefixlen / 8] = 0xFF << (8 - prefixlen % 8);
+    for (int i = 0; i < prefixlen / 8; ++i) {
+      m[i] = 0xFF;
+    }
+    if (prefixlen % 8) {
+      m[prefixlen / 8] = 0xFF << (8 - prefixlen % 8);
+    }
     ifaddr->ifa_netmask = reinterpret_cast<sockaddr*>(mask);
     return;
   }
