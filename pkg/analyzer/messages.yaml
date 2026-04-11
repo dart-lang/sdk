@@ -2210,7 +2210,8 @@ CompileTimeErrorCode:
       as a type because it's a built-in identifier:
 
       ```dart
-      [!import!]<int> x;
+      %ignore=undefined_class
+      [!import!]<int> x = [];
       ```
 
       #### Common fixes
@@ -2218,7 +2219,7 @@ CompileTimeErrorCode:
       Replace the built-in identifier with the name of a valid type:
 
       ```dart
-      List<int> x;
+      List<int> x = [];
       ```
   builtInIdentifierAsExtensionName:
     type: compileTimeError

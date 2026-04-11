@@ -29,8 +29,8 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
   static const kScope = 'scope';
   static const kDisableBreakpoints = 'disableBreakpoints';
 
-  // TODO(bkonyi): add ID zone support.
-  // static const kIdZoneId = 'idZoneId';
+  // ID zone support.
+  static const kIdZoneId = 'idZoneId';
 
   // `evaluate` specific parameters.
   static const kTargetId = 'targetId';
@@ -74,6 +74,9 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       disableBreakpoints: parameters[kDisableBreakpoints].exists
           ? parameters[kDisableBreakpoints].asBool
           : null,
+      idZoneId: parameters[kIdZoneId].exists
+          ? parameters[kIdZoneId].asString
+          : null,
     );
   }
 
@@ -90,6 +93,9 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       disableBreakpoints: parameters[kDisableBreakpoints].exists
           ? parameters[kDisableBreakpoints].asBool
           : null,
+      idZoneId: parameters[kIdZoneId].exists
+          ? parameters[kIdZoneId].asString
+          : null,
     );
   }
 
@@ -105,6 +111,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
     required String? targetId,
     required Map<String, String>? scope,
     required bool? disableBreakpoints,
+    required String? idZoneId,
   }) async {
     final buildScopeResponse = await _buildScope(
       isolateId: isolateId,
@@ -124,6 +131,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       targetId: targetId,
       scope: scope,
       disableBreakpoints: disableBreakpoints,
+      idZoneId: idZoneId,
       kernelBase64: kernelBase64,
     );
   }
@@ -206,6 +214,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
     required int? frameIndex,
     required String? targetId,
     required bool? disableBreakpoints,
+    required String? idZoneId,
     required String kernelBase64,
   }) {
     final params = <String, Object?>{
@@ -215,6 +224,7 @@ final class VmExpressionEvaluator extends ExpressionEvaluator {
       kFrameIndex: ?frameIndex,
       kTargetId: ?targetId,
       kDisableBreakpoints: ?disableBreakpoints,
+      kIdZoneId: ?idZoneId,
       kKernelBytes: kernelBase64,
     };
     return backend.sendToRuntime(

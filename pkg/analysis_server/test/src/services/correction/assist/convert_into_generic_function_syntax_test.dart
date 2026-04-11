@@ -93,6 +93,15 @@ g(Function(int x) f) {}
 ''');
   }
 
+  Future<void> test_functionTypedParameter_primaryConstructor() async {
+    await resolveTestCode('''
+class C(String ^f(int x)) {}
+''');
+    await assertHasAssist('''
+class C(String Function(int x) f) {}
+''');
+  }
+
   Future<void> test_functionTypedParameter_returnType() async {
     await resolveTestCode('''
 g(String ^f(int x)) {}

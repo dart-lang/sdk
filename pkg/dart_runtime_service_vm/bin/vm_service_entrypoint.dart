@@ -18,12 +18,10 @@ const entrypoint = pragma(
 
 // The TCP IP that DDS listens on.
 @entrypoint
-// ignore: unused_element
 String _ddsIP = '';
 
 // The TCP port that DDS listens on.
 @entrypoint
-// ignore: unused_element
 int _ddsPort = 0;
 
 // The TCP port that the HTTP server listens on.
@@ -45,7 +43,6 @@ bool _authCodesDisabled = false;
 
 // Should the HTTP server run in devmode?
 @entrypoint
-// ignore: unused_element
 bool _originCheckDisabled = false;
 
 // Location of file to output VM service connection info.
@@ -82,19 +79,15 @@ void _registerIsolate(int portId, SendPort sendPort, String name) =>
 StreamSubscription<ProcessSignal>? _signalSubscription;
 
 @entrypoint
-// ignore: unused_element
 bool _serveDevtools = true;
 
 @entrypoint
-// ignore: unused_element
 bool _enableServicePortFallback = false;
 
 @entrypoint
-// ignore: unused_element
 bool _waitForDdsToAdvertiseService = false;
 
 @entrypoint
-// ignore: unused_element
 bool _printDtd = false;
 
 // ignore: unused_element
@@ -119,16 +112,25 @@ Future<void> main([List<String> args = const []]) async {
   }
   await DartRuntimeService.initialize(
     config: DartRuntimeServiceOptions(
-      enableLogging: true,
+      enableLogging: Platform.environment.containsKey('VM_SERVICE_LOGGING'),
       port: _port,
       disableAuthCodes: _authCodesDisabled,
       disableOriginCheck: _originCheckDisabled,
       autoStart: _autoStart,
+      serveDevTools: _serveDevtools,
+      enableServicePortFallback: _enableServicePortFallback,
     ),
     backendBuilder: (frontend) => DartRuntimeServiceVMBackend(
       frontend: frontend,
       signalWatch: _signalWatch!,
       runningIsolatesStream: _isolateRegistrationStreamController.stream,
+      ddsManager: DartDevelopmentServiceManager(
+        frontend: frontend,
+        launchOnStart: _waitForDdsToAdvertiseService,
+        printDtd: _printDtd,
+        host: _ddsIP,
+        port: _ddsPort,
+      ),
     ),
   );
 }

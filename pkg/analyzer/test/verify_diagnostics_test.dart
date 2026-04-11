@@ -57,8 +57,6 @@ class DocumentationValidator {
 
     // Needs to be able to specify two expected diagnostics.
     'ambiguous_import',
-    // Produces two diagnostics when it should only produce one.
-    'built_in_identifier_as_type',
     // TODO(kallentu): This is always reported with
     // `argument_type_not_assignable` or is reported as
     // `const_eval_throws_exception` in const constructor evaluation.
@@ -228,6 +226,9 @@ class DocumentationValidator {
   /// The buffer to which validation errors are written.
   final StringBuffer buffer = StringBuffer();
 
+  /// The name of the package containing the variables currently being verified.
+  late String packageName;
+
   /// The name of the variable currently being verified.
   late String variableName;
 
@@ -243,9 +244,13 @@ class DocumentationValidator {
 
   /// Validate the documentation.
   Future<void> validate() async {
+    packageName = '_fe_analyzer_shared';
     await _validateMessages(feAnalyzerSharedMessages);
+    packageName = 'analyzer';
     await _validateMessages(analyzerMessages);
+    packageName = 'analysis_server';
     await _validateMessages(analysisServerMessages);
+    packageName = 'linter';
     await _validateMessages(lintMessages);
     if (buffer.isNotEmpty) {
       fail(buffer.toString());
@@ -257,6 +262,7 @@ class DocumentationValidator {
     bool errorRequired,
     Map<String, String> auxiliaryFiles,
     List<String> experiments,
+    List<String> ignores,
     String? languageVersion,
   ) {
     int rangeStart = snippet.indexOf(errorRangeStart);
@@ -270,6 +276,7 @@ class DocumentationValidator {
         0,
         auxiliaryFiles,
         experiments,
+        ignores,
         languageVersion,
       );
     }
@@ -282,6 +289,7 @@ class DocumentationValidator {
         0,
         auxiliaryFiles,
         experiments,
+        ignores,
         languageVersion,
       );
     } else if (snippet.indexOf(errorRangeStart, rangeEnd) > 0) {
@@ -303,6 +311,7 @@ class DocumentationValidator {
       rangeEnd - rangeStart - 2,
       auxiliaryFiles,
       experiments,
+      ignores,
       languageVersion,
     );
   }
@@ -331,6 +340,7 @@ class DocumentationValidator {
                 blockSection == BlockSection.examples,
                 auxiliaryFiles,
                 documentationPart.experiments,
+                documentationPart.ignores,
                 documentationPart.languageVersion,
               ),
             );
@@ -348,7 +358,7 @@ class DocumentationValidator {
     List<Diagnostic> diagnostics = const [],
   }) {
     if (!hasWrittenVariableName) {
-      buffer.writeln('  $variableName');
+      buffer.writeln('  $variableName ($packageName)');
       hasWrittenVariableName = true;
     }
     buffer.writeln('    $problem');
@@ -429,11 +439,21 @@ class DocumentationValidator {
     int index,
     _SnippetData snippet,
   ) async {
-    _SnippetTest test = _SnippetTest(snippet);
+    var test = _SnippetTest(snippet);
     test.setUp();
     await test.resolveTestFile();
-    List<Diagnostic> diagnostics = test.result.diagnostics;
-    int errorCount = diagnostics.length;
+    var diagnostics = test.result.diagnostics;
+    var errorCount = 0;
+    var unneededIgnores = snippet.ignores.toList();
+    for (var diagnostic in diagnostics) {
+      var diagnosticName = diagnostic.diagnosticCode.lowerCaseName;
+      if (snippet.ignores.contains(diagnosticName)) {
+        unneededIgnores.remove(diagnosticName);
+      } else {
+        errorCount++;
+      }
+    }
+
     if (snippet.offset < 0) {
       if (errorCount > 0) {
         _reportProblem(
@@ -445,7 +465,7 @@ class DocumentationValidator {
       if (errorCount == 0) {
         _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
-        Diagnostic diagnostic = diagnostics[0];
+        var diagnostic = diagnostics[0];
         if (diagnostic.diagnosticCode.lowerCaseName != codeName) {
           _reportProblem(
             'Expected an error with code $codeName, '
@@ -470,6 +490,10 @@ class DocumentationValidator {
           diagnostics: diagnostics,
         );
       }
+    }
+    if (unneededIgnores.isNotEmpty) {
+      var list = unneededIgnores.join(', ');
+      _reportProblem('Unneeded ignores: $list ($section $index).');
     }
   }
 }
@@ -532,6 +556,7 @@ class _SnippetData {
   final int length;
   final Map<String, String> auxiliaryFiles;
   final List<String> experiments;
+  final List<String> ignores;
   final String? languageVersion;
   String? lintCode;
 
@@ -541,6 +566,7 @@ class _SnippetData {
     this.length,
     this.auxiliaryFiles,
     this.experiments,
+    this.ignores,
     this.languageVersion,
   );
 }
