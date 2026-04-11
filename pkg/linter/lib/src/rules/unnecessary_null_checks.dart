@@ -4,7 +4,6 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
-import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
@@ -163,11 +162,7 @@ DartType? getExpectedType(
 
 class UnnecessaryNullChecks extends AnalysisRule {
   UnnecessaryNullChecks()
-    : super(
-        name: LintNames.unnecessary_null_checks,
-        description: _desc,
-        state: const RuleState.experimental(),
-      );
+    : super(name: LintNames.unnecessary_null_checks, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryNullChecks;

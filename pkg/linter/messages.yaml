@@ -14399,7 +14399,7 @@ LinterLintCode:
     problemMessage: "Unnecessary use of a null check ('!')."
     correctionMessage: "Try removing the null check."
     state:
-      experimental: "2.12"
+      stable: "3.13"
     categories: [brevity, style]
     hasPublishedDocs: true
     documentation: |-
