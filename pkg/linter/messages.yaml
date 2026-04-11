@@ -797,7 +797,7 @@ LinterLintCode:
       #### Common fixes
 
       Replace the conditional expression with the equivalent logical expression.
-      If the then expression is a literal, replace it with one of the following:
+      If the then expression is a boolean literal, replace it with one of the following:
 
       ```dart
       bool f(bool a, bool b) => a || b;  // replaces: a ? true : b
