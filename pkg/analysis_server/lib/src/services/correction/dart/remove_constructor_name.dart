@@ -35,6 +35,10 @@ class RemoveConstructorName extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(file, (builder) {
         builder.addDeletion(range.startStart(dotToken, node.token.next!));
       });
+    } else if (node is PrimaryConstructorName) {
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addDeletion(range.startStart(node.period, node.name.next!));
+      });
     }
   }
 }

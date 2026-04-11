@@ -6,7 +6,7 @@ import 'package:analyzer/source/error_processor.dart';
 import 'package:analyzer/src/utilities/extensions/string.dart';
 
 /// Options (keys) that can be specified in an analysis options file.
-final class AnalysisOptionsFile {
+final class AnalysisOptionsFileKeys {
   // Top-level options.
   static const String analyzer = 'analyzer';
   static const String codeStyle = 'code-style';
@@ -116,5 +116,5 @@ final class AnalysisOptionsFile {
 
   /// Proposed values for a `true` or `false` option.
   static String get trueOrFalseProposal =>
-      AnalysisOptionsFile.trueOrFalse.quotedAndCommaSeparatedWithAnd;
+      AnalysisOptionsFileKeys.trueOrFalse.quotedAndCommaSeparatedWithAnd;
 }

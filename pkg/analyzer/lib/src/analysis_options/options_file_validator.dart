@@ -29,11 +29,11 @@ import 'package:yaml/yaml.dart';
 /// Returns the name of the first legacy plugin, if one is specified in
 /// [options], otherwise `null`.
 String? _firstPluginName(YamlMap options) {
-  var analyzerMap = options.valueAt(AnalysisOptionsFile.analyzer);
+  var analyzerMap = options.valueAt(AnalysisOptionsFileKeys.analyzer);
   if (analyzerMap is! YamlMap) {
     return null;
   }
-  var plugins = analyzerMap.valueAt(AnalysisOptionsFile.plugins);
+  var plugins = analyzerMap.valueAt(AnalysisOptionsFileKeys.plugins);
   if (plugins is YamlScalar) {
     return plugins.value as String?;
   } else if (plugins is YamlList) {
@@ -165,7 +165,7 @@ class AnalysisOptionsAnalyzer {
       analysisOptionsCache: _analysisOptionsCache,
     ).validate(options, diagnosticReporter);
 
-    var includeNode = options.valueAt(AnalysisOptionsFile.include);
+    var includeNode = options.valueAt(AnalysisOptionsFileKeys.include);
     if (includeNode == null) {
       // Validate the 'plugins' option in [options], understanding that no other
       // options are included.
@@ -351,7 +351,10 @@ class OptionsFileValidator {
 /// Validates `analyzer` top-level options.
 class _AnalyzerTopLevelOptionsValidator extends _TopLevelOptionValidator {
   _AnalyzerTopLevelOptionsValidator()
-    : super(AnalysisOptionsFile.analyzer, AnalysisOptionsFile.analyzerOptions);
+    : super(
+        AnalysisOptionsFileKeys.analyzer,
+        AnalysisOptionsFileKeys.analyzerOptions,
+      );
 }
 
 /// Validates the `analyzer` `cannot-ignore` option.
@@ -376,15 +379,17 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var unignorableNames = analyzer.valueAt(AnalysisOptionsFile.cannotIgnore);
+      var unignorableNames = analyzer.valueAt(
+        AnalysisOptionsFileKeys.cannotIgnore,
+      );
       if (unignorableNames is YamlList) {
         var listedNames = <String>{};
         for (var unignorableNameNode in unignorableNames.nodes) {
           var unignorableName = unignorableNameNode.value;
           if (unignorableName is String) {
-            if (AnalysisOptionsFile.severities.contains(unignorableName)) {
+            if (AnalysisOptionsFileKeys.severities.contains(unignorableName)) {
               listedNames.add(unignorableName);
               continue;
             }
@@ -406,7 +411,9 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
           } else {
             reporter.report(
               diag.invalidSectionFormat
-                  .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+                  .withArguments(
+                    sectionName: AnalysisOptionsFileKeys.cannotIgnore,
+                  )
                   .atSourceSpan(unignorableNameNode.span),
             );
           }
@@ -414,7 +421,7 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
       } else if (unignorableNames != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.cannotIgnore)
               .atSourceSpan(unignorableNames.span),
         );
       }
@@ -426,17 +433,17 @@ class _CannotIgnoreOptionValidator extends OptionsValidator {
 class _CodeStyleOptionsValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var codeStyle = options.valueAt(AnalysisOptionsFile.codeStyle);
+    var codeStyle = options.valueAt(AnalysisOptionsFileKeys.codeStyle);
     if (codeStyle is YamlMap) {
       codeStyle.nodeMap.forEach((keyNode, valueNode) {
         var key = keyNode.value;
-        if (key == AnalysisOptionsFile.format) {
+        if (key == AnalysisOptionsFileKeys.format) {
           _validateFormat(reporter, valueNode);
         } else {
           reporter.report(
             diag.unsupportedOptionWithoutValues
                 .withArguments(
-                  sectionName: AnalysisOptionsFile.codeStyle,
+                  sectionName: AnalysisOptionsFileKeys.codeStyle,
                   optionKey: keyNode.toString(),
                 )
                 .atSourceSpan(keyNode.span),
@@ -446,13 +453,13 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
     } else if (codeStyle is YamlScalar && codeStyle.value != null) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.codeStyle)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.codeStyle)
             .atSourceSpan(codeStyle.span),
       );
     } else if (codeStyle is YamlList) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.codeStyle)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.codeStyle)
             .atSourceSpan(codeStyle.span),
       );
     }
@@ -462,7 +469,7 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
     if (format is! YamlScalar) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.format)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.format)
             .atSourceSpan(format.span),
       );
       return;
@@ -472,9 +479,9 @@ class _CodeStyleOptionsValidator extends OptionsValidator {
       reporter.report(
         diag.unsupportedValue
             .withArguments(
-              optionName: AnalysisOptionsFile.format,
+              optionName: AnalysisOptionsFileKeys.format,
               invalidValue: format.value.toString(),
-              legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+              legalValues: AnalysisOptionsFileKeys.trueOrFalseProposal,
             )
             .atSourceSpan(format.span),
       );
@@ -500,10 +507,10 @@ class _CompositeValidator extends OptionsValidator {
 class _EnableExperimentsValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
       var experimentNames = analyzer.valueAt(
-        AnalysisOptionsFile.enableExperiment,
+        AnalysisOptionsFileKeys.enableExperiment,
       );
       if (experimentNames is YamlList) {
         var flags = experimentNames.nodes
@@ -516,7 +523,7 @@ class _EnableExperimentsValidator extends OptionsValidator {
             reporter.report(
               diag.unsupportedOptionWithoutValues
                   .withArguments(
-                    sectionName: AnalysisOptionsFile.enableExperiment,
+                    sectionName: AnalysisOptionsFileKeys.enableExperiment,
                     optionKey: flags[flagIndex],
                   )
                   .atSourceSpan(span),
@@ -525,7 +532,7 @@ class _EnableExperimentsValidator extends OptionsValidator {
             reporter.report(
               diag.invalidOption
                   .withArguments(
-                    optionName: AnalysisOptionsFile.enableExperiment,
+                    optionName: AnalysisOptionsFileKeys.enableExperiment,
                     detailMessage: validationResult.message,
                   )
                   .atSourceSpan(span),
@@ -535,7 +542,9 @@ class _EnableExperimentsValidator extends OptionsValidator {
       } else if (experimentNames != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .withArguments(
+                sectionName: AnalysisOptionsFileKeys.enableExperiment,
+              )
               .atSourceSpan(experimentNames.span),
         );
       }
@@ -596,9 +605,9 @@ class _ErrorBuilder {
 class _ErrorFilterOptionValidator extends OptionsValidator {
   /// Legal values.
   static final List<String> legalValues = [
-    ...AnalysisOptionsFile.ignoreSynonyms,
-    ...AnalysisOptionsFile.includeSynonyms,
-    ...AnalysisOptionsFile.severities,
+    ...AnalysisOptionsFileKeys.ignoreSynonyms,
+    ...AnalysisOptionsFileKeys.includeSynonyms,
+    ...AnalysisOptionsFileKeys.severities,
   ];
 
   /// Pretty String listing legal values.
@@ -622,9 +631,9 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var filters = analyzer.valueAt(AnalysisOptionsFile.errors);
+      var filters = analyzer.valueAt(AnalysisOptionsFileKeys.errors);
       if (filters is YamlMap) {
         filters.nodes.forEach((k, v) {
           String? value;
@@ -646,7 +655,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
               reporter.report(
                 diag.unsupportedOptionWithLegalValues
                     .withArguments(
-                      sectionName: AnalysisOptionsFile.errors,
+                      sectionName: AnalysisOptionsFileKeys.errors,
                       optionKey: v.value.toString(),
                       legalValues: legalValueString,
                     )
@@ -657,7 +666,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
             reporter.report(
               diag.invalidSectionFormat
                   .withArguments(
-                    sectionName: AnalysisOptionsFile.enableExperiment,
+                    sectionName: AnalysisOptionsFileKeys.enableExperiment,
                   )
                   .atSourceSpan(v.span),
             );
@@ -666,7 +675,9 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
       } else if (filters != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .withArguments(
+                sectionName: AnalysisOptionsFileKeys.enableExperiment,
+              )
               .atSourceSpan(filters.span),
         );
       }
@@ -678,7 +689,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
 class _FormatterOptionsValidator extends OptionsValidator {
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var formatter = options.valueAt(AnalysisOptionsFile.formatter);
+    var formatter = options.valueAt(AnalysisOptionsFileKeys.formatter);
     if (formatter == null) {
       return;
     }
@@ -686,15 +697,15 @@ class _FormatterOptionsValidator extends OptionsValidator {
     if (formatter is YamlMap) {
       for (var MapEntry(key: keyNode, value: valueNode)
           in formatter.nodeMap.entries) {
-        if (keyNode.value == AnalysisOptionsFile.pageWidth) {
+        if (keyNode.value == AnalysisOptionsFileKeys.pageWidth) {
           _validatePageWidth(keyNode, valueNode, reporter);
-        } else if (keyNode.value == AnalysisOptionsFile.trailingCommas) {
+        } else if (keyNode.value == AnalysisOptionsFileKeys.trailingCommas) {
           _validateTrailingCommas(keyNode, valueNode, reporter);
         } else {
           reporter.report(
             diag.unsupportedOptionWithoutValues
                 .withArguments(
-                  sectionName: AnalysisOptionsFile.formatter,
+                  sectionName: AnalysisOptionsFileKeys.formatter,
                   optionKey: keyNode.toString(),
                 )
                 .atSourceSpan(keyNode.span),
@@ -704,7 +715,7 @@ class _FormatterOptionsValidator extends OptionsValidator {
     } else if (formatter.value != null) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.formatter)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.formatter)
             .atSourceSpan(formatter.span),
       );
     }
@@ -792,22 +803,26 @@ class _IncludedDiagnosticListener implements DiagnosticListener {
 /// Validates `analyzer` language configuration options.
 class _LanguageOptionValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile.languageOptions,
+    AnalysisOptionsFileKeys.languageOptions,
   );
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var language = analyzer.valueAt(AnalysisOptionsFile.language);
+      var language = analyzer.valueAt(AnalysisOptionsFileKeys.language);
       if (language is YamlMap) {
         language.nodes.forEach((k, v) {
           String? key;
           bool validKey = false;
           if (k is YamlScalar) {
             key = k.value?.toString();
-            if (!AnalysisOptionsFile.languageOptions.contains(key)) {
-              _builder.reportError(reporter, AnalysisOptionsFile.language, k);
+            if (!AnalysisOptionsFileKeys.languageOptions.contains(key)) {
+              _builder.reportError(
+                reporter,
+                AnalysisOptionsFileKeys.language,
+                k,
+              );
             } else {
               // If we have a valid key, go on and check the value.
               validKey = true;
@@ -822,7 +837,7 @@ class _LanguageOptionValidator extends OptionsValidator {
                     .withArguments(
                       optionName: key!,
                       invalidValue: v.value.toString(),
-                      legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                      legalValues: AnalysisOptionsFileKeys.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
               );
@@ -832,13 +847,13 @@ class _LanguageOptionValidator extends OptionsValidator {
       } else if (language is YamlScalar && language.value != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.language)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.language)
               .atSourceSpan(language.span),
         );
       } else if (language is YamlList) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.language)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.language)
               .atSourceSpan(language.span),
         );
       }
@@ -857,11 +872,11 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is! YamlMap) {
       return;
     }
-    var plugins = analyzer.valueAt(AnalysisOptionsFile.plugins);
+    var plugins = analyzer.valueAt(AnalysisOptionsFileKeys.plugins);
     if (plugins is YamlScalar && plugins.value != null) {
       if (_firstIncludedPluginName != null &&
           _firstIncludedPluginName != plugins.value) {
@@ -946,26 +961,29 @@ class _LegacyPluginsOptionValidator extends OptionsValidator {
 /// Validates `linter` top-level options.
 class _LinterTopLevelOptionsValidator extends _TopLevelOptionValidator {
   _LinterTopLevelOptionsValidator()
-    : super(AnalysisOptionsFile.linter, AnalysisOptionsFile.linterOptions);
+    : super(
+        AnalysisOptionsFileKeys.linter,
+        AnalysisOptionsFileKeys.linterOptions,
+      );
 }
 
 /// Validates `analyzer` optional-checks value configuration options.
 class _OptionalChecksValueValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile.optionalChecksOptions,
+    AnalysisOptionsFileKeys.optionalChecksOptions,
   );
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var v = analyzer.valueAt(AnalysisOptionsFile.optionalChecks);
+      var v = analyzer.valueAt(AnalysisOptionsFileKeys.optionalChecks);
       if (v is YamlScalar) {
         var value = v.toLowerCase();
-        if (!AnalysisOptionsFile.optionalChecksOptions.contains(value)) {
+        if (!AnalysisOptionsFileKeys.optionalChecksOptions.contains(value)) {
           _builder.reportError(
             reporter,
-            AnalysisOptionsFile
+            AnalysisOptionsFileKeys
                 .optionalChecksOptions
                 .quotedAndCommaSeparatedWithOr,
             v,
@@ -975,10 +993,10 @@ class _OptionalChecksValueValidator extends OptionsValidator {
         v.nodes.forEach((k, v) {
           if (k is YamlScalar) {
             var key = k.value?.toString();
-            if (!AnalysisOptionsFile.optionalChecksOptions.contains(key)) {
+            if (!AnalysisOptionsFileKeys.optionalChecksOptions.contains(key)) {
               _builder.reportError(
                 reporter,
-                AnalysisOptionsFile
+                AnalysisOptionsFileKeys
                     .optionalChecksOptions
                     .quotedAndCommaSeparatedWithOr,
                 k,
@@ -990,7 +1008,8 @@ class _OptionalChecksValueValidator extends OptionsValidator {
                       .withArguments(
                         optionName: key!,
                         invalidValue: v.value.toString(),
-                        legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                        legalValues:
+                            AnalysisOptionsFileKeys.trueOrFalseProposal,
                       )
                       .atSourceSpan(v.span),
                 );
@@ -1001,7 +1020,9 @@ class _OptionalChecksValueValidator extends OptionsValidator {
       } else if (v != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.enableExperiment)
+              .withArguments(
+                sectionName: AnalysisOptionsFileKeys.enableExperiment,
+              )
               .atSourceSpan(v.span),
         );
       }
@@ -1012,7 +1033,7 @@ class _OptionalChecksValueValidator extends OptionsValidator {
 /// Validates options for each `plugins` map value.
 class _PluginsOptionsValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile.pluginsOptions,
+    AnalysisOptionsFileKeys.pluginsOptions,
   );
 
   final String _contextRoot;
@@ -1035,7 +1056,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var plugins = options.valueAt(AnalysisOptionsFile.plugins);
+    var plugins = options.valueAt(AnalysisOptionsFileKeys.plugins);
     switch (plugins) {
       case YamlMap():
         var sourceDir = _resourceProvider.pathContext.dirname(_filePath);
@@ -1062,7 +1083,8 @@ class _PluginsOptionsValidator extends OptionsValidator {
               reporter.report(
                 diag.invalidSectionFormat
                     .withArguments(
-                      sectionName: '${AnalysisOptionsFile.plugins}/$pluginName',
+                      sectionName:
+                          '${AnalysisOptionsFileKeys.plugins}/$pluginName',
                     )
                     .atSourceSpan(plugins.span),
               );
@@ -1071,14 +1093,14 @@ class _PluginsOptionsValidator extends OptionsValidator {
       case YamlList():
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.plugins)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.plugins)
               .atSourceSpan(plugins.span),
         );
       case YamlScalar(:var value):
         if (value != null) {
           reporter.report(
             diag.invalidSectionFormat
-                .withArguments(sectionName: AnalysisOptionsFile.plugins)
+                .withArguments(sectionName: AnalysisOptionsFileKeys.plugins)
                 .atSourceSpan(plugins.span),
           );
         }
@@ -1092,10 +1114,10 @@ class _PluginsOptionsValidator extends OptionsValidator {
   ) {
     pluginValue.nodes.forEach((pluginMapKeyNode, pluginMapValueNode) {
       if (pluginMapKeyNode case YamlScalar(value: String pluginMapKey)) {
-        if (!AnalysisOptionsFile.pluginsOptions.contains(pluginMapKey)) {
+        if (!AnalysisOptionsFileKeys.pluginsOptions.contains(pluginMapKey)) {
           _builder.reportError(
             reporter,
-            '${AnalysisOptionsFile.plugins}/$pluginName',
+            '${AnalysisOptionsFileKeys.plugins}/$pluginName',
             pluginMapKeyNode,
           );
         }
@@ -1110,20 +1132,20 @@ class _PluginsOptionsValidator extends OptionsValidator {
 /// Validates `analyzer` strong-mode value configuration options.
 class _StrongModeOptionValueValidator extends OptionsValidator {
   final _ErrorBuilder _builder = _ErrorBuilder(
-    AnalysisOptionsFile.strongModeOptions,
+    AnalysisOptionsFileKeys.strongModeOptions,
   );
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
-    var analyzer = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
-      var strongModeNode = analyzer.valueAt(AnalysisOptionsFile.strongMode);
+      var strongModeNode = analyzer.valueAt(AnalysisOptionsFileKeys.strongMode);
       if (strongModeNode is YamlMap) {
         return _validateStrongModeAsMap(reporter, strongModeNode);
       } else if (strongModeNode != null) {
         reporter.report(
           diag.invalidSectionFormat
-              .withArguments(sectionName: AnalysisOptionsFile.strongMode)
+              .withArguments(sectionName: AnalysisOptionsFileKeys.strongMode)
               .atSourceSpan(strongModeNode.span),
         );
       }
@@ -1137,15 +1159,15 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
     strongModeNode.nodes.forEach((k, v) {
       if (k is YamlScalar) {
         var key = k.value?.toString();
-        if (!AnalysisOptionsFile.strongModeOptions.contains(key)) {
-          _builder.reportError(reporter, AnalysisOptionsFile.strongMode, k);
-        } else if (key == AnalysisOptionsFile.declarationCasts) {
+        if (!AnalysisOptionsFileKeys.strongModeOptions.contains(key)) {
+          _builder.reportError(reporter, AnalysisOptionsFileKeys.strongMode, k);
+        } else if (key == AnalysisOptionsFileKeys.declarationCasts) {
           reporter.report(
             diag.unsupportedValue
                 .withArguments(
-                  optionName: AnalysisOptionsFile.strongMode,
+                  optionName: AnalysisOptionsFileKeys.strongMode,
                   invalidValue: v.value.toString(),
-                  legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                  legalValues: AnalysisOptionsFileKeys.trueOrFalseProposal,
                 )
                 .atSourceSpan(v.span),
           );
@@ -1158,7 +1180,7 @@ class _StrongModeOptionValueValidator extends OptionsValidator {
                     .withArguments(
                       optionName: key!,
                       invalidValue: v.value.toString(),
-                      legalValues: AnalysisOptionsFile.trueOrFalseProposal,
+                      legalValues: AnalysisOptionsFileKeys.trueOrFalseProposal,
                     )
                     .atSourceSpan(v.span),
               );
@@ -1195,7 +1217,7 @@ class _TopLevelOptionValidator extends OptionsValidator {
     if (node is! YamlMap) {
       reporter.report(
         diag.invalidSectionFormat
-            .withArguments(sectionName: AnalysisOptionsFile.cannotIgnore)
+            .withArguments(sectionName: AnalysisOptionsFileKeys.cannotIgnore)
             .atSourceSpan(node.span),
       );
       return;

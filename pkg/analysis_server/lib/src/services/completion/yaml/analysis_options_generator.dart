@@ -21,32 +21,34 @@ class AnalysisOptionsGenerator extends YamlCompletionGenerator {
   //  For example, the lint rules can either be a list or a map, but we only
   //  suggest list items.
   static MapProducer analysisOptionsProducer = MapProducer({
-    AnalysisOptionsFile.analyzer: MapProducer({
-      AnalysisOptionsFile.enableExperiment: ListProducer(_ExperimentProducer()),
-      AnalysisOptionsFile.errors: _ErrorProducer(),
-      AnalysisOptionsFile.exclude: EmptyProducer(),
-      AnalysisOptionsFile.language: MapProducer({
-        AnalysisOptionsFile.strictCasts: BooleanProducer(),
-        AnalysisOptionsFile.strictInference: BooleanProducer(),
-        AnalysisOptionsFile.strictRawTypes: BooleanProducer(),
+    AnalysisOptionsFileKeys.analyzer: MapProducer({
+      AnalysisOptionsFileKeys.enableExperiment: ListProducer(
+        _ExperimentProducer(),
+      ),
+      AnalysisOptionsFileKeys.errors: _ErrorProducer(),
+      AnalysisOptionsFileKeys.exclude: EmptyProducer(),
+      AnalysisOptionsFileKeys.language: MapProducer({
+        AnalysisOptionsFileKeys.strictCasts: BooleanProducer(),
+        AnalysisOptionsFileKeys.strictInference: BooleanProducer(),
+        AnalysisOptionsFileKeys.strictRawTypes: BooleanProducer(),
       }),
-      AnalysisOptionsFile.optionalChecks: MapProducer({
-        AnalysisOptionsFile.chromeOsManifestChecks: EmptyProducer(),
+      AnalysisOptionsFileKeys.optionalChecks: MapProducer({
+        AnalysisOptionsFileKeys.chromeOsManifestChecks: EmptyProducer(),
       }),
-      AnalysisOptionsFile.plugins: EmptyProducer(),
-      AnalysisOptionsFile.propagateLinterExceptions: EmptyProducer(),
+      AnalysisOptionsFileKeys.plugins: EmptyProducer(),
+      AnalysisOptionsFileKeys.propagateLinterExceptions: EmptyProducer(),
     }),
-    AnalysisOptionsFile.codeStyle: MapProducer({
-      AnalysisOptionsFile.format: BooleanProducer(),
+    AnalysisOptionsFileKeys.codeStyle: MapProducer({
+      AnalysisOptionsFileKeys.format: BooleanProducer(),
     }),
-    AnalysisOptionsFile.formatter: MapProducer({
-      AnalysisOptionsFile.pageWidth: EmptyProducer(),
-      AnalysisOptionsFile.trailingCommas: EnumProducer(
+    AnalysisOptionsFileKeys.formatter: MapProducer({
+      AnalysisOptionsFileKeys.pageWidth: EmptyProducer(),
+      AnalysisOptionsFileKeys.trailingCommas: EnumProducer(
         TrailingCommas.values.map((item) => item.name).toList(),
       ),
     }),
     // TODO(brianwilkerson): Create a producer to produce `package:` URIs.
-    AnalysisOptionsFile.include: EmptyProducer(),
+    AnalysisOptionsFileKeys.include: EmptyProducer(),
     // TODO(brianwilkerson): Create constants for 'linter' and 'rules'.
     'linter': MapProducer({'rules': ListProducer(_LintRuleProducer())}),
   });

@@ -122,7 +122,7 @@ class AnalysisOptionsProvider {
       return YamlMap();
     }
 
-    var includeValue = options.valueAt(AnalysisOptionsFile.include);
+    var includeValue = options.valueAt(AnalysisOptionsFileKeys.include);
     var includes = switch (includeValue) {
       YamlScalar(:String value) => [value],
       YamlList() =>
