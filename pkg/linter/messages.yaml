@@ -804,7 +804,7 @@ LinterLintCode:
       bool g(bool a, bool b) => !a && b; // replaces: a ? false : b
       ```
 
-      If the else expression is a literal, replace it with one of the following:
+      If the else expression is a boolean literal, replace it with one of the following:
 
       ```dart
       bool f(bool a, bool b) => !a || b; // replaces: a ? b : true
