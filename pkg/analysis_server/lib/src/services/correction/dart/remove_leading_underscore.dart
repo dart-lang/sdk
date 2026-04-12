@@ -72,6 +72,15 @@ class RemoveLeadingUnderscore extends ResolvedCorrectionProducer {
         );
         if (root != null) {
           references = findLocalElementReferences(root, element);
+        } else {
+          var declaration = node
+              .thisOrAncestorOfType<PrimaryConstructorDeclaration>();
+          if (declaration != null) {
+            var body = declaration.body;
+            if (body != null) {
+              references = findLocalElementReferences(body, element);
+            }
+          }
         }
       }
     } else if (element is LocalElement) {
