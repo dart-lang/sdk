@@ -31,19 +31,7 @@ import "dart:_internal"
 import 'dart:_error_utils';
 import "dart:_internal" as _internal;
 
-import 'dart:_js_helper'
-    show
-        JS,
-        JSSyntaxRegExp,
-        quoteStringForRegExp,
-        jsStringFromDartString,
-        stringify,
-        JavaScriptStack,
-        JSExternWrapperExt;
-
 import 'dart:_list';
-
-import 'dart:_string' show JSStringImpl, JSStringImplExt;
 
 import "dart:collection"
     show
@@ -64,25 +52,17 @@ import 'dart:math' show Random;
 import "dart:typed_data";
 
 import 'dart:_object_helper';
-import 'dart:_string_helper';
 
 import 'dart:_wasm';
 
-import 'internal_patch.dart';
-
 part "closure.dart";
-part "double_patch.dart";
 part "errors_patch.dart";
 part "function_patch.dart";
 part "identical_patch.dart";
 part "named_parameters.dart";
 part "object_patch.dart";
 part "record_patch.dart";
-part "regexp_patch.dart";
-part "stack_trace_patch.dart";
-part "stopwatch_patch.dart";
 part "type.dart";
-part "uri_patch.dart";
 
 typedef _Smi = int; // For compatibility with VM patch files
 

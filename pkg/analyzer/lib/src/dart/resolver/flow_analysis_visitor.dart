@@ -408,13 +408,14 @@ class FlowAnalysisHelper {
             // switch statements, while the LabeledStatement is returned
             // for the other known targets. This could be possibly changed
             // so that the inner statement is always returned.
-            if (statement is Block ||
-                statement is BreakStatement ||
-                statement is IfStatement ||
-                statement is TryStatement) {
+            if (statement is ForStatement ||
+                statement is SwitchStatement ||
+                statement is WhileStatement ||
+                statement is DoStatement) {
+              return statement;
+            } else {
               return node;
             }
-            return statement;
           }
         }
         if (node is SwitchStatementImpl) {

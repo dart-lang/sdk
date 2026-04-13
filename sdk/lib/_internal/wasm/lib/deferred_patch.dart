@@ -1,8 +1,18 @@
-// Copyright (c) 2022, the Dart project authors.  Please see the AUTHORS file
+// Copyright (c) 2026, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-part of "internal_patch.dart";
+import 'dart:async';
+import 'dart:js_interop'
+    show
+        JSPromise,
+        JSPromiseToFuture,
+        JSString,
+        ListToJSArray,
+        StringToJSString;
+import 'dart:_js_helper' show dartifyRaw, JSValue, JSAnyToExternRef;
+import 'dart:_string' show JSStringImpl;
+import 'dart:_wasm';
 
 /// Contains active futures for any entities (either module names or IDs)
 /// currently being loaded.
