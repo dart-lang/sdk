@@ -104,7 +104,7 @@ class TypeParameterTypeDeserializationCluster;
         &last##_);                                                             \
   }
 
-#define VISIT_TO_PAYLOAD_END(elem_type)                                        \
+#define VISIT_TO_PAYLOAD_END(elem_type, last_field)                            \
   static_assert(is_uncompressed_ptr<elem_type>::value ||                       \
                     is_compressed_ptr<elem_type>::value,                       \
                 "Payload elements must be object pointers");                   \
@@ -113,6 +113,8 @@ class TypeParameterTypeDeserializationCluster;
   CHECK_CONTAIN_COMPRESSED(elem_type);                                         \
   base_ptr_type<elem_type>::type* to(intptr_t length) {                        \
     const uword payload_start = reinterpret_cast<uword>(this) + sizeof(*this); \
+    /* Ensure there is no padding between the last field and payload. */       \
+    ASSERT(reinterpret_cast<uword>(&last_field##_ + 1) == payload_start);      \
     ASSERT(Utils::IsAligned(payload_start, sizeof(elem_type)));                \
     const uword payload_last =                                                 \
         payload_start + sizeof(elem_type) * (length - 1);                      \
@@ -1054,7 +1056,7 @@ inline intptr_t ObjectPtr::GetClassId() const {
  protected:                                                                    \
   Compressed##type name##_;
 
-#define VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)               \
+#define VARIABLE_POINTER_FIELDS(type, accessor_name, array_name, last_field)   \
  public:                                                                       \
   type accessor_name(intptr_t index) const {                                   \
     return LoadPointer<type>(&array_name()[index]);                            \
@@ -1085,9 +1087,10 @@ inline intptr_t ObjectPtr::GetClassId() const {
   type const* array_name() const {                                             \
     OPEN_ARRAY_START(type, type);                                              \
   }                                                                            \
-  VISIT_TO_PAYLOAD_END(type)
+  VISIT_TO_PAYLOAD_END(type, last_field)
 
-#define COMPRESSED_VARIABLE_POINTER_FIELDS(type, accessor_name, array_name)    \
+#define COMPRESSED_VARIABLE_POINTER_FIELDS(type, accessor_name, array_name,    \
+                                           last_field)                         \
  public:                                                                       \
   type accessor_name(intptr_t index) const {                                   \
     return LoadCompressedPointer<type, Compressed##type>(                      \
@@ -1124,7 +1127,7 @@ inline intptr_t ObjectPtr::GetClassId() const {
   Compressed##type const* array_name() const {                                 \
     OPEN_ARRAY_START(Compressed##type, Compressed##type);                      \
   }                                                                            \
-  VISIT_TO_PAYLOAD_END(Compressed##type)
+  VISIT_TO_PAYLOAD_END(Compressed##type, last_field)
 
 #define SMI_FIELD(type, name)                                                  \
  public:                                                                       \
@@ -1983,7 +1986,7 @@ class UntaggedWeakArray : public UntaggedObject {
   COMPRESSED_SMI_FIELD(SmiPtr, length)
   VISIT_FROM(length)
   // Variable length data follows here.
-  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data, length)
 
   template <typename Table, bool kAllCanonicalObjectsAreIncludedIntoSet>
   friend class CanonicalSetDeserializationCluster;
@@ -2544,7 +2547,7 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
   uword num_entries_;
 
   VISIT_FROM_PAYLOAD_START(CompressedStringPtr)
-  COMPRESSED_VARIABLE_POINTER_FIELDS(StringPtr, name, names)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(StringPtr, name, names, num_entries)
 
   CompressedStringPtr* nameAddrAt(intptr_t i) { return &(names()[i]); }
 
@@ -2600,7 +2603,7 @@ class UntaggedContext : public UntaggedObject {
   COMPRESSED_POINTER_FIELD(ContextPtr, parent)
   VISIT_FROM(parent)
   // Variable length data follows here.
-  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data, parent)
 
   friend class Object;
   friend class Interpreter;
@@ -2921,7 +2924,10 @@ class UntaggedTypeArguments : public UntaggedInstance {
   COMPRESSED_SMI_FIELD(SmiPtr, hash)
   COMPRESSED_SMI_FIELD(SmiPtr, nullability)
   // Variable length data follows here.
-  COMPRESSED_VARIABLE_POINTER_FIELDS(AbstractTypePtr, element, types)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(AbstractTypePtr,
+                                     element,
+                                     types,
+                                     nullability)
 
   friend class Object;
   friend class Interpreter;
@@ -3193,13 +3199,14 @@ class UntaggedClosure : public UntaggedInstance {
   COMPRESSED_SMI_FIELD(SmiPtr, hash)
   COMPRESSED_POINTER_FIELD(FunctionPtr, function)
 
+ public:
   // Variable length data follows here.
   // It contains (in order):
   //  - delayed type arguments (if function is generic);
   //  - instantiator type arguments (if enclosing class is generic);
   //  - parent function type arguments (if enclosing function has type args);
   //  - captured values and contexts.
-  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data, function)
 
   CompressedObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_elements) {
     return to(num_elements);
@@ -3477,7 +3484,7 @@ class UntaggedArray : public UntaggedInstance {
   VISIT_FROM(type_arguments)
   COMPRESSED_SMI_FIELD(SmiPtr, length)
   // Variable length data follows here.
-  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, element, data, length)
 
   friend class MapSerializationCluster;
   friend class MapDeserializationCluster;
@@ -3629,7 +3636,7 @@ class UntaggedRecord : public UntaggedInstance {
   COMPRESSED_SMI_FIELD(SmiPtr, shape)
   VISIT_FROM(shape)
   // Variable length data follows here.
-  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data)
+  COMPRESSED_VARIABLE_POINTER_FIELDS(ObjectPtr, field, data, shape)
 
   friend void UpdateLengthField(intptr_t, ObjectPtr,
                                 ObjectPtr);  // shape_
