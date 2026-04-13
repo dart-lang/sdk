@@ -397,6 +397,33 @@ void main() {
           },
           skip: !Platform.isWindows,
         );
+
+        group(
+          'posix paths',
+          () {
+            // Test dummy paths that traverse back up to the root.
+            final roots = [
+              Uri.parse('file:///dummy_workspace/foo'),
+            ];
+            final files = roots
+                .map((uri) => uri.replace(path: '${uri.path}/file.txt'))
+                .toList();
+
+            for (final root in roots) {
+              for (final file in files) {
+                test('can read $file in $root', () async {
+                  await client.setIDEWorkspaceRoots(dtdSecret, [root]);
+                  expect(
+                    () => client.readFileAsString(file),
+                    // Expect file does not exist (NOT a permission error).
+                    throwsAnRpcError(RpcErrorCodes.kFileDoesNotExist),
+                  );
+                });
+              }
+            }
+          },
+          skip: Platform.isWindows,
+        );
       });
 
       group(FileSystemServiceConstants.writeFileAsString, () {

@@ -100,26 +100,43 @@ class FileSystemService extends InternalService {
     return path.normalize(rootPath);
   }
 
+  /// Safely resolves symbolic links for [requestedPath] by traversing up the
+  /// tree until an existing entity is found, resolving its links, and then
+  /// appending the relative path components that do not yet exist on disk.
+  /// This ensures that non-existent dummy paths (common in tests) do not lose
+  /// their skipped suffixes when their nearest existing ancestor is resolved,
+  /// which would otherwise cause incorrectly resolved roots during validations.
   Future<String> _resolveNearestExistingPath(String requestedPath) async {
     var currentPath = requestedPath;
     while (true) {
       final type = await FileSystemEntity.type(currentPath, followLinks: true);
       if (type != FileSystemEntityType.notFound) {
+        String resolvedPath;
         if (type == FileSystemEntityType.file) {
-          return File(currentPath).resolveSymbolicLinks();
+          resolvedPath = await File(currentPath).resolveSymbolicLinks();
+        } else if (type == FileSystemEntityType.directory) {
+          resolvedPath = await Directory(currentPath).resolveSymbolicLinks();
+        } else if (type == FileSystemEntityType.link) {
+          resolvedPath = await Link(currentPath).resolveSymbolicLinks();
+        } else {
+          throw StateError('Unexpected file system entity type: $type');
         }
-        if (type == FileSystemEntityType.directory) {
-          return Directory(currentPath).resolveSymbolicLinks();
+
+        if (currentPath == requestedPath) {
+          return resolvedPath;
         }
-        if (type == FileSystemEntityType.link) {
-          return Link(currentPath).resolveSymbolicLinks();
-        }
-        throw StateError('Unexpected file system entity type: $type');
+        // Re-append the relative skipped components to the resolved base path.
+        // This preserves the paths used for mock dummy structures in tests.
+        final relative = path.relative(requestedPath, from: currentPath);
+        return path.join(resolvedPath, relative);
       }
 
       final parentPath = path.dirname(currentPath);
       if (path.equals(parentPath, currentPath)) {
-        return path.normalize(currentPath);
+        // Reached the file system root without finding an existing parent
+        // entity. Append the fully skipped path components to the root path.
+        final relative = path.relative(requestedPath, from: currentPath);
+        return path.join(path.normalize(currentPath), relative);
       }
       currentPath = parentPath;
     }
