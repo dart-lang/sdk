@@ -144,6 +144,7 @@ base class VMOffsets {
   int get LinkedHashBase_index_offset => throw 'Unknown';
   int get LinkedHashBase_type_arguments_offset => throw 'Unknown';
   int get LinkedHashBase_used_data_offset => throw 'Unknown';
+  int get LinkedHashBase_NextFieldOffset => throw 'Unknown';
   int get LocalHandle_ptr_offset => throw 'Unknown';
   int get MarkingStackBlock_pointers_offset => throw 'Unknown';
   int get MarkingStackBlock_top_offset => throw 'Unknown';
@@ -855,6 +856,8 @@ final class Arm64VMOffsets extends VMOffsets {
   int get LinkedHashBase_type_arguments_offset => 0x8;
   @override
   int get LinkedHashBase_used_data_offset => 0x20;
+  @override
+  int get LinkedHashBase_NextFieldOffset => 0x38;
   @override
   int get LocalHandle_ptr_offset => 0x0;
   @override
@@ -1812,6 +1815,8 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get LinkedHashBase_type_arguments_offset => 0x8;
   @override
   int get LinkedHashBase_used_data_offset => 0x20;
+  @override
+  int get LinkedHashBase_NextFieldOffset => 0x38;
   @override
   int get LocalHandle_ptr_offset => 0x0;
   @override
@@ -2868,6 +2873,7 @@ enum ClassId {
   StringCid,
   OneByteStringCid,
   TwoByteStringCid,
+  LinkedHashBaseCid,
   FfiNativeFunctionCid,
   FfiInt8Cid,
   FfiInt16Cid,

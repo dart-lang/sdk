@@ -109,64 +109,8 @@ void _rehashObjects(List objects) {
   }
 }
 
-// Common interface for [_HashFieldBase] and [_HashVMBase].
-abstract class _HashAbstractBase {
-  abstract Uint32List _index;
-
-  abstract int _hashMask;
-
-  abstract List _data;
-
-  abstract int _usedData;
-
-  abstract int _deletedKeys;
-}
-
-abstract class _HashAbstractImmutableBase extends _HashAbstractBase {
-  Uint32List? get _indexNullable;
-}
-
-abstract class _HashFieldBase implements _HashAbstractImmutableBase {
-  // Each occupied entry in _index is a fixed-size integer that encodes a pair:
-  //   [ hash pattern for key | index of entry in _data ]
-  // The hash pattern is based on hashCode, but is guaranteed to be non-zero.
-  // The length of _index is always a power of two, and there is always at
-  // least one unoccupied entry.
-  // NOTE: When maps are deserialized, their _index and _hashMask is regenerated
-  // eagerly by _regenerateIndex.
-  Uint32List? _indexNullable = _uninitializedIndex;
-
-  @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
-  @pragma("vm:prefer-inline")
-  @pragma("wasm:prefer-inline")
-  Uint32List get _index => _indexNullable!;
-
-  @pragma("vm:prefer-inline")
-  @pragma("wasm:prefer-inline")
-  void set _index(Uint32List value) => _indexNullable = value;
-
-  // Cached in-place mask for the hash pattern component.
-  int _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
-
-  // Fixed-length list of keys (set) or key/value at even/odd indices (map).
-  //
-  // Can be either a mutable or immutable list.
-  List _data = _uninitializedData;
-
-  // Length of _data that is used (i.e., keys + values for a map).
-  int _usedData = 0;
-
-  // Number of deleted keys.
-  int _deletedKeys = 0;
-
-  // Note: All fields are initialized in a single constructor so that the VM
-  // recognizes they cannot hold null values. This makes a big (20%) performance
-  // difference on some operations.
-  _HashFieldBase();
-}
-
-// Base class for VM-internal classes; keep in sync with _HashFieldBase.
-abstract class _HashVMBase implements _HashAbstractBase {
+// Corresponds to `UntaggedLinkedHashBase` VM class.
+abstract class _LinkedHashBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:typed_data#_Uint32List")
   @pragma("vm:prefer-inline")
@@ -206,11 +150,18 @@ abstract class _HashVMBase implements _HashAbstractBase {
   @pragma("vm:recognized", "other")
   @pragma("vm:prefer-inline")
   external void set _deletedKeys(int value);
+
+  _LinkedHashBase() {
+    _index = _uninitializedIndex;
+    _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
+    _data = _uninitializedData;
+    _usedData = 0;
+    _deletedKeys = 0;
+  }
 }
 
-// Base class for immutable VM-internal classes.
-abstract class _HashVMImmutableBase extends _HashVMBase
-    implements _HashAbstractImmutableBase {
+// Base class for immutable sets and maps.
+abstract class _LinkedHashImmutableBase extends _LinkedHashBase {
   // The data is an immutable list rather than a mutable list.
   @pragma("vm:recognized", "other")
   @pragma("vm:exact-result-type", "dart:core#_ImmutableList")
@@ -229,10 +180,13 @@ abstract class _HashVMImmutableBase extends _HashVMBase
   external void set _index(Uint32List value);
 }
 
-// This mixin can be applied to _HashFieldBase or _HashVMBase (for
-// normal and VM-internalized classes, respectively), which provide the
-// actual fields/accessors that this mixin assumes.
-mixin _HashBase on _HashAbstractBase {
+// This mixin can be applied to _LinkedHashBase or _LinkedHashImmutableBase.
+//
+// Note that _LinkedHashImmutableBase overrides certain accessors on
+// _LinkedHashBase to provide behaviors specific to constant maps and sets.
+// We use mixins to copy implementation methods that depend on these accessors
+// and avoid polymorphism in the code.
+mixin _HashBase on _LinkedHashBase {
   // The number of bits used for each component is determined by table size.
   // If initialized, the length of _index is (at least) twice the number of
   // entries in _data, and both are doubled when _data is full. Thus, _index
@@ -378,7 +332,7 @@ external List get _uninitializedData;
 // literals also create instances of this class.
 @pragma("vm:entry-point")
 @pragma('dyn-module:language-impl:callable')
-base class _Map<K, V> extends _HashVMBase
+base class _Map<K, V> extends _LinkedHashBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -386,13 +340,7 @@ base class _Map<K, V> extends _HashVMBase
         _LinkedHashMapMixin<K, V>
     implements LinkedHashMap<K, V> {
   @pragma('dyn-module:language-impl:callable')
-  _Map() {
-    _index = _uninitializedIndex;
-    _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
-    _data = _uninitializedData;
-    _usedData = 0;
-    _deletedKeys = 0;
-  }
+  _Map();
 
   void addAll(Map<K, V> other) {
     if (other case final _Map otherBase) {
@@ -409,7 +357,7 @@ base class _Map<K, V> extends _HashVMBase
 // this class for maps constructed from Dart constant maps.
 @pragma("vm:deeply-immutable")
 @pragma("vm:entry-point")
-final class _ConstMap<K, V> extends _HashVMImmutableBase
+final class _ConstMap<K, V> extends _LinkedHashImmutableBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -430,7 +378,7 @@ external _ConstMap<K, V> createConstMapFromMapOfDeeplyImmutables<K, V>(
 );
 
 mixin _ImmutableLinkedHashMapMixin<K, V>
-    on _LinkedHashMapMixin<K, V>, _HashAbstractImmutableBase {
+    on _LinkedHashMapMixin<K, V>, _LinkedHashImmutableBase {
   bool containsKey(Object? key) {
     if (_indexNullable == null) {
       _createIndex();
@@ -781,7 +729,7 @@ mixin _LinkedHashMapMixin<K, V> on _HashBase, _EqualsAndHashCode {
   Iterable<MapEntry<K, V>> get entries => _CompactEntriesIterable<K, V>(this);
 }
 
-base class CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
+base class CompactLinkedIdentityHashMap<K, V> extends _LinkedHashBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -798,7 +746,7 @@ base class CompactLinkedIdentityHashMap<K, V> extends _HashFieldBase
   }
 }
 
-base class CompactLinkedCustomHashMap<K, V> extends _HashFieldBase
+base class CompactLinkedCustomHashMap<K, V> extends _LinkedHashBase
     with
         MapMixin<K, V>,
         _HashBase,
@@ -941,7 +889,7 @@ class _CompactEntriesIterator<K, V> implements Iterator<MapEntry<K, V>> {
 // Does not check for concurrent modification since the table
 // is known to be immutable.
 class _CompactIterableImmutable<E> extends Iterable<E> {
-  // _HashBase with _HashVMImmutableBase.
+  // _HashBase with _LinkedHashImmutableBase.
   final _HashBase _table;
   // dart:core#_ImmutableList (sdk/lib/_internal/vm/lib/array.dart).
   final List _data;
@@ -966,7 +914,7 @@ class _CompactIterableImmutable<E> extends Iterable<E> {
 }
 
 class _CompactIteratorImmutable<E> implements Iterator<E> {
-  // _HashBase with _HashVMImmutableBase.
+  // _HashBase with _LinkedHashImmutableBase.
   final _HashBase _table;
   // dart:core#_ImmutableList (sdk/lib/_internal/vm/lib/array.dart).
   final List _data;
@@ -1172,7 +1120,7 @@ mixin _LinkedHashSetMixin<E> on _HashBase, _EqualsAndHashCode {
 // class.
 @pragma("vm:entry-point")
 @pragma('dyn-module:language-impl:callable')
-base class _Set<E> extends _HashVMBase
+base class _Set<E> extends _LinkedHashBase
     with
         SetMixin<E>,
         _HashBase,
@@ -1180,13 +1128,7 @@ base class _Set<E> extends _HashVMBase
         _LinkedHashSetMixin<E>
     implements LinkedHashSet<E> {
   @pragma('dyn-module:language-impl:callable')
-  _Set() {
-    _index = _uninitializedIndex;
-    _hashMask = _HashBase._UNINITIALIZED_HASH_MASK;
-    _data = _uninitializedData;
-    _usedData = 0;
-    _deletedKeys = 0;
-  }
+  _Set();
 
   void addAll(Iterable<E> other) {
     if (other case final _Set otherBase) {
@@ -1205,7 +1147,7 @@ base class _Set<E> extends _HashVMBase
 }
 
 @pragma("vm:entry-point")
-base class _ConstSet<E> extends _HashVMImmutableBase
+base class _ConstSet<E> extends _LinkedHashImmutableBase
     with
         SetMixin<E>,
         _HashBase,
@@ -1227,7 +1169,7 @@ base class _ConstSet<E> extends _HashVMImmutableBase
 }
 
 mixin _ImmutableLinkedHashSetMixin<E>
-    on Set<E>, _LinkedHashSetMixin<E>, _HashAbstractImmutableBase {
+    on Set<E>, _LinkedHashSetMixin<E>, _LinkedHashImmutableBase {
   E? lookup(Object? key) {
     if (_indexNullable == null) {
       _createIndex();
@@ -1288,7 +1230,7 @@ mixin _ImmutableLinkedHashSetMixin<E>
       _CompactIteratorImmutable<E>(this, _data, _usedData, -1, 1);
 }
 
-base class CompactLinkedIdentityHashSet<E> extends _HashFieldBase
+base class CompactLinkedIdentityHashSet<E> extends _LinkedHashBase
     with
         SetMixin<E>,
         _HashBase,
@@ -1311,7 +1253,7 @@ base class CompactLinkedIdentityHashSet<E> extends _HashFieldBase
   Set<R> cast<R>() => Set.castFrom<E, R>(this, newSet: _newEmpty);
 }
 
-base class CompactLinkedCustomHashSet<E> extends _HashFieldBase
+base class CompactLinkedCustomHashSet<E> extends _LinkedHashBase
     with
         SetMixin<E>,
         _HashBase,

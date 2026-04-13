@@ -12318,6 +12318,7 @@ class LinkedHashBase : public Instance {
   static intptr_t InstanceSize() {
     return RoundedAllocationSize(sizeof(UntaggedLinkedHashBase));
   }
+  static intptr_t NextFieldOffset() { return sizeof(UntaggedLinkedHashBase); }
 
   static intptr_t type_arguments_offset() {
     return OFFSET_OF(UntaggedLinkedHashBase, type_arguments_);
