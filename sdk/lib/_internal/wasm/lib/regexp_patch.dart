@@ -2,8 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_js_helper' show JSSyntaxRegExp, quoteStringForRegExp;
-import 'dart:_internal' show patch;
+part of "core_patch.dart";
 
 @patch
 class RegExp {

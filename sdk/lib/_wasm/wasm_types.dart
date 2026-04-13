@@ -4,6 +4,8 @@
 
 library dart._wasm;
 
+import 'dart:js_interop';
+
 part 'memory.dart';
 
 // A collection a special Dart types that are mapped directly to Wasm types
@@ -784,6 +786,15 @@ extension DoubleWasmInstructions on double {
   @pragma("wasm:prefer-inline")
   double sqrt() => this.toWasmF64().sqrt().toDouble();
 }
+
+extension WasmExternRefToJSAny on WasmExternRef {
+  external JSAny get toJS;
+}
+
+// Note: We would make this an extension method on JSAny, but external methods
+// on JS interop types are assumed to be JS interop functions, not methods that
+// are patched in patch files. So instead we just use a plain function here.
+external WasmExternRef? externRefForJSAny(JSAny object);
 
 // Tests whether the given object's class is a subclass of T.
 //
