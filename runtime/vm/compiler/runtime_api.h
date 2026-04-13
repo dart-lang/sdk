@@ -671,6 +671,7 @@ class LinkedHashBase : public AllStatic {
   static word deleted_keys_offset();
   static word type_arguments_offset();
   static word InstanceSize();
+  static word NextFieldOffset();
 };
 
 class ImmutableLinkedHashBase : public LinkedHashBase {

@@ -647,6 +647,11 @@ void Object::InitVtables() {
   }
 
   {
+    LinkedHashBase fake_handle;
+    builtin_vtables_[kLinkedHashBaseCid] = fake_handle.vtable();
+  }
+
+  {
     Instance fake_handle;
     builtin_vtables_[kByteBufferCid] = fake_handle.vtable();
     builtin_vtables_[kNullCid] = fake_handle.vtable();
@@ -2143,6 +2148,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     ASSERT(!lib.IsNull());
     ASSERT(lib.ptr() == Library::CompactHashLibrary());
+
+    cls = Class::New<LinkedHashBase, RTN::LinkedHashBase>(
+        kLinkedHashBaseCid, isolate_group, /*register_class=*/true,
+        /*is_abstract=*/true);
+    cls.set_type_arguments_field_offset(
+        LinkedHashBase::type_arguments_offset(),
+        RTN::LinkedHashBase::type_arguments_offset());
+    cls.set_is_prefinalized();
+    isolate_group->class_table()->Register(cls);
+    RegisterPrivateClass(cls, Symbols::_LinkedHashBase(), lib);
+    pending_classes.Add(cls);
+
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
     cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
@@ -2623,6 +2640,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(
         isolate_group);
     object_store->set_growable_object_array_class(cls);
+
+    cls = Class::New<LinkedHashBase, RTN::LinkedHashBase>(
+        kLinkedHashBaseCid, isolate_group, /*register_class=*/true,
+        /*is_abstract=*/true);
 
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);

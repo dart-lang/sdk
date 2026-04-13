@@ -2103,6 +2103,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     // Before choosing the final types, we perform coercion and feed the
     // resulting types back into the type inference via constraint generation.
+    // See https://github.com/dart-lang/sdk/issues/33298 and
+    // https://github.com/dart-lang/sdk/issues/56666 for why this is necessary.
     for (_ArgumentInfo paramInfo in argumentsInfo) {
       ExpressionInferenceResult argumentResult = new ExpressionInferenceResult(
         paramInfo.actualType,

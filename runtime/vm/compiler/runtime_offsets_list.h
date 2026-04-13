@@ -212,6 +212,7 @@
   FIELD(LinkedHashBase, index_offset)                                          \
   FIELD(LinkedHashBase, type_arguments_offset)                                 \
   FIELD(LinkedHashBase, used_data_offset)                                      \
+  FIELD(LinkedHashBase, NextFieldOffset)                                       \
   FIELD(LocalHandle, ptr_offset)                                               \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \

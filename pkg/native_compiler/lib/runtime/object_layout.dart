@@ -132,7 +132,7 @@ class ObjectLayout {
   };
 
   late final Map<String, int> _dartCompactHashInstanceSize = {
-    '_HashVMBase': vmOffsets.LinkedHashBase_InstanceSize,
+    '_LinkedHashBase': vmOffsets.LinkedHashBase_InstanceSize,
   };
 
   late final ast.Library _typedDataLibrary = GlobalContext
