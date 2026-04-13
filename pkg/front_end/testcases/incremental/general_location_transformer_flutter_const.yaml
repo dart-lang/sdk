@@ -16,38 +16,39 @@ worlds:
         Baz newBaz = new Baz();
         Boz newBoz = new Boz(createNew: true);
         Boz constBoz = new Boz(createNew: false);
-      foo.dart: import 'package:flutter/src/widgets/framework.dart';
+      foo.dart: |
+        import 'package:flutter/src/widgets/framework.dart';
 
         class Foo extends Widget {
-        factory Foo() => const Foo._();
+          factory Foo() => const Foo._();
 
-        const Foo._();
+          const Foo._();
         }
 
         class Bar extends Widget {
-        const factory Bar() = Bar._;
+          const factory Bar() = Bar._;
 
-        const Bar._();
+          const Bar._();
         }
 
         class Baz extends Widget {
-        factory Baz() => const Baz._();
+          factory Baz() => const Baz._();
 
-        const factory Baz._() = Baz.__;
+          const factory Baz._() = Baz.__;
 
-        const Baz.__();
+          const Baz.__();
         }
 
         class Boz extends Widget {
-        factory Boz({required bool createNew}) {
-        if (createNew) {
-        return new Boz._();
-        } else {
-        return const Boz._();
-        }
-        }
+          factory Boz({required bool createNew}) {
+            if (createNew) {
+              return new Boz._();
+            } else {
+              return const Boz._();
+            }
+          }
 
-        const Boz._();
+          const Boz._();
         }
       flutter/lib/src/widgets/framework.dart: |
         abstract class Bar {

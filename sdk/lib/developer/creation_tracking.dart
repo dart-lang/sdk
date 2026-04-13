@@ -41,7 +41,7 @@ part of dart.developer;
 /// to have both optional positional parameters and named parameters simultaneously,
 /// this transformation **will silently skip** any constructor that declares optional
 /// positional parameters. Calling [CreationLocation.of] on an object whose
-/// constructor was skipped will return null.
+/// constructor was skipped, will return `null`.
 class CreationLocation {
   /// Returns the creation location of [object].
   ///
@@ -73,7 +73,7 @@ class CreationLocation {
   /// Optional name of the parameter or function at this location.
   final String? name;
 
-  /// Returns a JSON representation of this location.
+  /// JSON representation of this location.
   Map<String, Object?> toJsonMap() {
     return <String, Object?>{
       'file': file,

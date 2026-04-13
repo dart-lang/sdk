@@ -252,8 +252,7 @@ class DevCompilerTarget extends Target {
       changedStructureNotifier: changedStructureNotifier,
     );
     if (flags.trackCreationLocations) {
-      _widgetTracker ??= WidgetCreatorTracker();
-      _widgetTracker!.transform(
+      (_widgetTracker ??= WidgetCreatorTracker()).transform(
         libraries ?? component.libraries,
         component.libraries,
         changedStructureNotifier,
@@ -271,8 +270,7 @@ class DevCompilerTarget extends Target {
     ChangedStructureNotifier? changedStructureNotifier,
   }) {
     if (flags.trackCreationLocations) {
-      _widgetTracker ??= WidgetCreatorTracker();
-      _widgetTracker!.transform(
+      (_widgetTracker ??= WidgetCreatorTracker()).transform(
         libraries,
         component.libraries,
         changedStructureNotifier,
