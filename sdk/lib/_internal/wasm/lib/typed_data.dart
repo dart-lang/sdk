@@ -2625,19 +2625,20 @@ abstract class WasmI8ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! WasmI8ArrayBase) return false;
+    final typedFrom = from as WasmI8ArrayBase;
     final count = _setRangeFastPathCount(
       start,
       end,
       length,
-      from.length,
+      typedFrom.length,
       skipCount,
       skipCountName: "skipCount",
     );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
-      from._data,
-      from._offsetInElements + skipCount,
+      typedFrom._data,
+      typedFrom._offsetInElements + skipCount,
       count,
     );
     return true;
@@ -2669,19 +2670,20 @@ abstract class WasmI16ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! WasmI16ArrayBase) return false;
+    final typedFrom = from as WasmI16ArrayBase;
     final count = _setRangeFastPathCount(
       start,
       end,
       length,
-      from.length,
+      typedFrom.length,
       skipCount,
       skipCountName: "skipCount",
     );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
-      from._data,
-      from._offsetInElements + skipCount,
+      typedFrom._data,
+      typedFrom._offsetInElements + skipCount,
       count,
     );
     return true;
@@ -2713,19 +2715,20 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! _WasmI32ArrayBase) return false;
+    final typedFrom = from as _WasmI32ArrayBase;
     final count = _setRangeFastPathCount(
       start,
       end,
       length,
-      from.length,
+      typedFrom.length,
       skipCount,
       skipCountName: "skipCount",
     );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
-      from._data,
-      from._offsetInElements + skipCount,
+      typedFrom._data,
+      typedFrom._offsetInElements + skipCount,
       count,
     );
     return true;
@@ -2757,19 +2760,20 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! _WasmI64ArrayBase) return false;
+    final typedFrom = from as _WasmI64ArrayBase;
     final count = _setRangeFastPathCount(
       start,
       end,
       length,
-      from.length,
+      typedFrom.length,
       skipCount,
       skipCountName: "skipCount",
     );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
-      from._data,
-      from._offsetInElements + skipCount,
+      typedFrom._data,
+      typedFrom._offsetInElements + skipCount,
       count,
     );
     return true;
@@ -2801,18 +2805,19 @@ abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! _WasmF32ArrayBase) return false;
+    final typedFrom = from as _WasmF32ArrayBase;
     final count = _setRangeFastPathCount(
       start,
       end,
       length,
-      from.length,
+      typedFrom.length,
       skipCount,
     );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
-      from._data,
-      from._offsetInElements + skipCount,
+      typedFrom._data,
+      typedFrom._offsetInElements + skipCount,
       count,
     );
     return true;
@@ -2844,18 +2849,19 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! _WasmF64ArrayBase) return false;
+    final typedFrom = from as _WasmF64ArrayBase;
     final count = _setRangeFastPathCount(
       start,
       end,
       length,
-      from.length,
+      typedFrom.length,
       skipCount,
     );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
-      from._data,
-      from._offsetInElements + skipCount,
+      typedFrom._data,
+      typedFrom._offsetInElements + skipCount,
       count,
     );
     return true;
