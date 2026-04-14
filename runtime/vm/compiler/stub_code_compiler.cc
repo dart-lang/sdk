@@ -3345,7 +3345,8 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
           ZERO, (n >= 5) ? &load_function_type_arguments : &initialized);
       __ ExtractBitField(
           instance_type_args_reg, TypeTestABI::kScratchReg,
-          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::shift(),
+          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::shift() +
+              kSmiTagShift,
           UntaggedClosure::InstantiatorTypeArgumentsIndexBits::bitsize());
       __ LoadIndexedCompressed(
           instance_type_args_reg, TypeTestABI::kInstanceReg,
@@ -3360,7 +3361,8 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
             (n >= 6) ? &load_delayed_type_arguments : &initialized);
         __ ExtractBitField(
             parent_fun_type_args_reg, TypeTestABI::kScratchReg,
-            UntaggedClosure::FunctionTypeArgumentsIndexBits::shift(),
+            UntaggedClosure::FunctionTypeArgumentsIndexBits::shift() +
+                kSmiTagShift,
             UntaggedClosure::FunctionTypeArgumentsIndexBits::bitsize());
         __ LoadIndexedCompressed(
             parent_fun_type_args_reg, TypeTestABI::kInstanceReg,
