@@ -4884,7 +4884,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   @trackedDirectlyOpaque
-  Map<Name, ExecutableElement> get inheritedConcreteMembers {
+  Map<Name, InternalExecutableElement> get inheritedConcreteMembers {
     globalResultRequirements?.recordOpaqueApiUse(
       kindId: RequirementFailureKindId.opaqueInheritedConcreteMembers,
       target: this,
@@ -4895,7 +4895,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   @trackedDirectlyOpaque
-  Map<Name, ExecutableElement> get inheritedMembers {
+  Map<Name, InternalExecutableElement> get inheritedMembers {
     globalResultRequirements?.recordOpaqueApiUse(
       kindId: RequirementFailureKindId.opaqueInheritedMembers,
       target: this,
@@ -4906,7 +4906,7 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   @trackedDirectlyOpaque
-  Map<Name, ExecutableElement> get interfaceMembers {
+  Map<Name, InternalExecutableElement> get interfaceMembers {
     globalResultRequirements?.recordOpaqueApiUse(
       kindId: RequirementFailureKindId.opaqueInterfaceMembers,
       target: this,

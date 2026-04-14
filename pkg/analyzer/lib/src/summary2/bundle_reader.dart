@@ -1529,10 +1529,7 @@ class ResolutionReader {
         );
 
         if (elementImpl is ExecutableElementImpl) {
-          return SubstitutedExecutableElementImpl.from(
-            elementImpl,
-            substitution,
-          );
+          return elementImpl.substitute(substitution);
         } else {
           elementImpl as FieldElementImpl;
           return SubstitutedFieldElementImpl.from(elementImpl, substitution);

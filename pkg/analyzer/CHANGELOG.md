@@ -1,6 +1,6 @@
 ## 12.2.0-dev
 
-* Internal changes only
+* Added `InterfaceType.inheritedConcreteMembers` and `InterfaceType.interfaceMembers`.
 
 ## 12.1.0
 
