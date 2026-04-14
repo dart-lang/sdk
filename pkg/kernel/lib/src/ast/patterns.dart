@@ -884,9 +884,7 @@ class WildcardPattern extends Pattern {
 }
 
 class AssignedVariablePattern extends Pattern {
-  VariableDeclaration get variable => expressionVariable;
-
-  final VariableDeclaration expressionVariable;
+  final VariableDeclaration variable;
 
   /// The type of the expression against which this pattern is matched.
   ///
@@ -930,7 +928,7 @@ class AssignedVariablePattern extends Pattern {
   /// not.
   bool hasObservableEffect = true;
 
-  AssignedVariablePattern(this.expressionVariable);
+  AssignedVariablePattern(this.variable);
 
   @override
   R accept<R>(PatternVisitor<R> visitor) =>

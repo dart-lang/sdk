@@ -4376,7 +4376,7 @@ class EquivalenceStrategy {
     if (!checkFunctionNode_scope(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkFunctionNode_contexts(visitor, node, other)) {
+    if (!checkFunctionNode_capturedContexts(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkFunctionNode_emittedValueType(visitor, node, other)) {
@@ -4950,11 +4950,7 @@ class EquivalenceStrategy {
     if (other is! AssignedVariablePattern) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkAssignedVariablePattern_expressionVariable(
-      visitor,
-      node,
-      other,
-    )) {
+    if (!checkAssignedVariablePattern_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkAssignedVariablePattern_matchedValueType(visitor, node, other)) {
@@ -5685,7 +5681,7 @@ class EquivalenceStrategy {
     if (other is! ForStatement) return false;
     visitor.pushNodeState(node, other);
     bool result = true;
-    if (!checkForStatement_variableInitializations(visitor, node, other)) {
+    if (!checkForStatement_variables(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkForStatement_condition(visitor, node, other)) {
@@ -5720,7 +5716,7 @@ class EquivalenceStrategy {
     if (!checkForInStatement_bodyOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkForInStatement_expressionVariable(visitor, node, other)) {
+    if (!checkForInStatement_variable(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkForInStatement_iterable(visitor, node, other)) {
@@ -5957,7 +5953,7 @@ class EquivalenceStrategy {
     if (!checkVariableInitialization_initializer(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
-    if (!checkVariableInitialization_contexts(visitor, node, other)) {
+    if (!checkVariableInitialization_capturedContexts(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
     if (!checkVariableInitialization_flags(visitor, node, other)) {
@@ -10860,16 +10856,16 @@ class EquivalenceStrategy {
     return visitor.checkNodes(node.scope, other.scope, 'scope');
   }
 
-  bool checkFunctionNode_contexts(
+  bool checkFunctionNode_capturedContexts(
     EquivalenceVisitor visitor,
     FunctionNode node,
     FunctionNode other,
   ) {
     return visitor.checkLists(
-      node.contexts,
-      other.contexts,
+      node.capturedContexts,
+      other.capturedContexts,
       visitor.checkNodes,
-      'contexts',
+      'capturedContexts',
     );
   }
 
@@ -11811,16 +11807,12 @@ class EquivalenceStrategy {
     return checkPattern_fileOffset(visitor, node, other);
   }
 
-  bool checkAssignedVariablePattern_expressionVariable(
+  bool checkAssignedVariablePattern_variable(
     EquivalenceVisitor visitor,
     AssignedVariablePattern node,
     AssignedVariablePattern other,
   ) {
-    return visitor.checkNodes(
-      node.expressionVariable,
-      other.expressionVariable,
-      'expressionVariable',
-    );
+    return visitor.checkNodes(node.variable, other.variable, 'variable');
   }
 
   bool checkAssignedVariablePattern_matchedValueType(
@@ -12926,16 +12918,16 @@ class EquivalenceStrategy {
     return checkStatement_fileOffset(visitor, node, other);
   }
 
-  bool checkForStatement_variableInitializations(
+  bool checkForStatement_variables(
     EquivalenceVisitor visitor,
     ForStatement node,
     ForStatement other,
   ) {
     return visitor.checkLists(
-      node.variableInitializations,
-      other.variableInitializations,
+      node.variables,
+      other.variables,
       visitor.checkNodes,
-      'variableInitializations',
+      'variables',
     );
   }
 
@@ -12992,16 +12984,12 @@ class EquivalenceStrategy {
     return visitor.checkValues(node.bodyOffset, other.bodyOffset, 'bodyOffset');
   }
 
-  bool checkForInStatement_expressionVariable(
+  bool checkForInStatement_variable(
     EquivalenceVisitor visitor,
     ForInStatement node,
     ForInStatement other,
   ) {
-    return visitor.checkNodes(
-      node.expressionVariable,
-      other.expressionVariable,
-      'expressionVariable',
-    );
+    return visitor.checkNodes(node.variable, other.variable, 'variable');
   }
 
   bool checkForInStatement_iterable(
@@ -13322,16 +13310,16 @@ class EquivalenceStrategy {
     );
   }
 
-  bool checkVariableInitialization_contexts(
+  bool checkVariableInitialization_capturedContexts(
     EquivalenceVisitor visitor,
     VariableInitialization node,
     VariableInitialization other,
   ) {
     return visitor.checkLists(
-      node.contexts,
-      other.contexts,
+      node.capturedContexts,
+      other.capturedContexts,
       visitor.checkNodes,
-      'contexts',
+      'capturedContexts',
     );
   }
 

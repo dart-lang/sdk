@@ -4435,7 +4435,7 @@ class BytecodeGenerator extends RecursiveVisitor {
   void visitForStatement(ForStatement node) {
     _enterScope(node);
     try {
-      _generateNodeList(node.variableInitializations);
+      _generateNodeList(node.variables);
 
       if (asm.isUnreachable) {
         // Bail out before binding a label which allows backward jumps,
