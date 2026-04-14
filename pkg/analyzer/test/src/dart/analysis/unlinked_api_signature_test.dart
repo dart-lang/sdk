@@ -32,24 +32,7 @@ class C {}
     );
   }
 
-  test_class_constructor_block_to_empty() {
-    _assertSameSignature(
-      r'''
-class C {
-  C() {
-    var v = 1;
-  }
-}
-''',
-      r'''
-class C {
-  C();
-}
-''',
-    );
-  }
-
-  test_class_constructor_body() {
+  test_class_constructor_block_to_block_differentStatement() {
     _assertSameSignature(
       r'''
 class C {
@@ -68,7 +51,58 @@ class C {
     );
   }
 
+  test_class_constructor_block_to_block_identical() {
+    _assertSameSignature(
+      r'''
+class C {
+  C() {
+    var v = 1;
+  }
+}
+''',
+      r'''
+class C {
+  C() {
+    var v = 1;
+  }
+}
+''',
+    );
+  }
+
+  test_class_constructor_block_to_empty() {
+    _assertNotSameSignature(
+      r'''
+class C {
+  C() {
+    var v = 1;
+  }
+}
+''',
+      r'''
+class C {
+  C();
+}
+''',
+    );
+  }
+
   test_class_constructor_empty_to_block() {
+    _assertNotSameSignature(
+      r'''
+class C {
+  C();
+}
+''',
+      r'''
+class C {
+  C() {}
+}
+''',
+    );
+  }
+
+  test_class_constructor_empty_to_empty() {
     _assertSameSignature(
       r'''
 class C {
@@ -77,9 +111,7 @@ class C {
 ''',
       r'''
 class C {
-  C() {
-    var v = 1;
-  }
+  C();
 }
 ''',
     );
@@ -318,6 +350,89 @@ class A {
       r'''
 class A {
   factory A() =;
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_block_to_block_differentStatement() {
+    _assertSameSignature(
+      r'''
+class A {
+  factory A() {
+    var v = 1;
+  }
+}
+''',
+      r'''
+class A {
+  factory A() {
+    var v = 2;
+  }
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_block_to_block_identical() {
+    _assertSameSignature(
+      r'''
+class A {
+  factory A() {
+    var v = 1;
+  }
+}
+''',
+      r'''
+class A {
+  factory A() {
+    var v = 1;
+  }
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_block_to_empty() {
+    _assertNotSameSignature(
+      r'''
+class A {
+  factory A() {}
+}
+''',
+      r'''
+class A {
+  factory A();
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_empty_to_block() {
+    _assertNotSameSignature(
+      r'''
+class A {
+  factory A();
+}
+''',
+      r'''
+class A {
+  factory A() {}
+}
+''',
+    );
+  }
+
+  test_class_factoryConstructor_empty_to_empty() {
+    _assertSameSignature(
+      r'''
+class A {
+  factory A();
+}
+''',
+      r'''
+class A {
+  factory A();
 }
 ''',
     );
@@ -1923,6 +2038,32 @@ mixin M {
   void foo() {
     super.bar2 = 2;
   }
+}
+''',
+    );
+  }
+
+  test_topLevelFunction_body_block_to_empty() {
+    _assertNotSameSignature(
+      r'''
+int foo() {
+  return 0;
+}
+''',
+      r'''
+int foo();
+''',
+    );
+  }
+
+  test_topLevelFunction_body_empty_to_block() {
+    _assertNotSameSignature(
+      r'''
+int foo();
+''',
+      r'''
+int foo() {
+  return 0;
 }
 ''',
     );

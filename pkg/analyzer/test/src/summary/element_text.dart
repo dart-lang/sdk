@@ -430,6 +430,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(f.isOriginImplicitDefault, 'isOriginImplicitDefault ');
       _sink.writeIf(f.isOriginMixinApplication, 'isOriginMixinApplication ');
 
+      _sink.writeIf(f.isCompleteDeclaration, 'isCompleteDeclaration ');
       _sink.writeIf(f.isPrimary, 'isPrimary ');
       expect(f.isAbstract, isFalse);
       _writeFragmentName(f);
@@ -1001,6 +1002,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
       _sink.writeIf(f.isOriginVariable, 'isOriginVariable ');
 
+      _sink.writeIf(f.isCompleteDeclaration, 'isCompleteDeclaration ');
       _writeFragmentName(f);
       // _writeBodyModifiers(e);
     });
@@ -1422,6 +1424,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
       _sink.writeIf(f.isOriginInterface, 'isOriginInterface ');
 
+      _sink.writeIf(f.isCompleteDeclaration, 'isCompleteDeclaration ');
       _writeFragmentName(f);
       _writeFragmentBodyModifiers(f);
     });
@@ -1622,6 +1625,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(f.isOriginInterface, 'isOriginInterface ');
       _sink.writeIf(f.isOriginVariable, 'isOriginVariable ');
 
+      _sink.writeIf(f.isCompleteDeclaration, 'isCompleteDeclaration ');
       _writeFragmentName(f);
       // _writeBodyModifiers(f);
     });
@@ -1716,6 +1720,7 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(f.isOriginDeclaration, 'isOriginDeclaration ');
       _sink.writeIf(f.isOriginLoadLibrary, 'isOriginLoadLibrary ');
 
+      _sink.writeIf(f.isCompleteDeclaration, 'isCompleteDeclaration ');
       _writeFragmentName(f);
       // _writeBodyModifiers(e);
     });

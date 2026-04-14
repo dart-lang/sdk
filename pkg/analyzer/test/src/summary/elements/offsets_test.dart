@@ -399,14 +399,14 @@ library
               codeLength: 4
               typeName: C
               typeNameOffset: 12
-            #F3 isOriginDeclaration raw (nameOffset:22) (firstTokenOffset:20) (offset:22)
+            #F3 isOriginDeclaration isCompleteDeclaration raw (nameOffset:22) (firstTokenOffset:20) (offset:22)
               element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 20
               codeLength: 10
               typeName: C
               typeNameOffset: 20
               periodOffset: 21
-            #F4 isOriginDeclaration hasDocComment (nameOffset:70) (firstTokenOffset:34) (offset:70)
+            #F4 isOriginDeclaration isCompleteDeclaration hasDocComment (nameOffset:70) (firstTokenOffset:34) (offset:70)
               element: <testLibrary>::@class::C::@constructor::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 34
@@ -414,7 +414,7 @@ library
               typeName: C
               typeNameOffset: 68
               periodOffset: 69
-            #F5 isOriginDeclaration hasAnnotation (nameOffset:106) (firstTokenOffset:92) (offset:106)
+            #F5 isOriginDeclaration isCompleteDeclaration hasAnnotation (nameOffset:106) (firstTokenOffset:92) (offset:106)
               element: <testLibrary>::@class::C::@constructor::hasAnnotation
               metadata
                 Annotation
@@ -432,7 +432,7 @@ library
               typeName: C
               typeNameOffset: 104
               periodOffset: 105
-            #F6 isOriginDeclaration annotationThenComment (nameOffset:176) (firstTokenOffset:128) (offset:176)
+            #F6 isOriginDeclaration isCompleteDeclaration annotationThenComment (nameOffset:176) (firstTokenOffset:128) (offset:176)
               element: <testLibrary>::@class::C::@constructor::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -451,7 +451,7 @@ library
               typeName: C
               typeNameOffset: 174
               periodOffset: 175
-            #F7 isOriginDeclaration commentThenAnnotation (nameOffset:254) (firstTokenOffset:206) (offset:254)
+            #F7 isOriginDeclaration isCompleteDeclaration commentThenAnnotation (nameOffset:254) (firstTokenOffset:206) (offset:254)
               element: <testLibrary>::@class::C::@constructor::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -470,7 +470,7 @@ library
               typeName: C
               typeNameOffset: 252
               periodOffset: 253
-            #F8 isOriginDeclaration commentAroundAnnotation (nameOffset:332) (firstTokenOffset:301) (offset:332)
+            #F8 isOriginDeclaration isCompleteDeclaration commentAroundAnnotation (nameOffset:332) (firstTokenOffset:301) (offset:332)
               element: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -607,14 +607,14 @@ library
         #F1 class C (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@class::C
           constructors
-            #F2 factory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
+            #F2 factory isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::C::@constructor::new
               codeOffset: 12
               codeLength: 23
               factoryKeywordOffset: 12
               typeName: C
               typeNameOffset: 20
-            #F3 factory isOriginDeclaration raw (nameOffset:49) (firstTokenOffset:39) (offset:49)
+            #F3 factory isOriginDeclaration isCompleteDeclaration raw (nameOffset:49) (firstTokenOffset:39) (offset:49)
               element: <testLibrary>::@class::C::@constructor::raw
               codeOffset: 39
               codeLength: 27
@@ -622,7 +622,7 @@ library
               typeName: C
               typeNameOffset: 47
               periodOffset: 48
-            #F4 factory isOriginDeclaration hasDocComment (nameOffset:114) (firstTokenOffset:70) (offset:114)
+            #F4 factory isOriginDeclaration isCompleteDeclaration hasDocComment (nameOffset:114) (firstTokenOffset:70) (offset:114)
               element: <testLibrary>::@class::C::@constructor::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 70
@@ -631,7 +631,7 @@ library
               typeName: C
               typeNameOffset: 112
               periodOffset: 113
-            #F5 factory isOriginDeclaration hasAnnotation (nameOffset:167) (firstTokenOffset:145) (offset:167)
+            #F5 factory isOriginDeclaration isCompleteDeclaration hasAnnotation (nameOffset:167) (firstTokenOffset:145) (offset:167)
               element: <testLibrary>::@class::C::@constructor::hasAnnotation
               metadata
                 Annotation
@@ -650,7 +650,7 @@ library
               typeName: C
               typeNameOffset: 165
               periodOffset: 166
-            #F6 factory isOriginDeclaration annotationThenComment (nameOffset:254) (firstTokenOffset:198) (offset:254)
+            #F6 factory isOriginDeclaration isCompleteDeclaration annotationThenComment (nameOffset:254) (firstTokenOffset:198) (offset:254)
               element: <testLibrary>::@class::C::@constructor::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -670,7 +670,7 @@ library
               typeName: C
               typeNameOffset: 252
               periodOffset: 253
-            #F7 factory isOriginDeclaration commentThenAnnotation (nameOffset:349) (firstTokenOffset:293) (offset:349)
+            #F7 factory isOriginDeclaration isCompleteDeclaration commentThenAnnotation (nameOffset:349) (firstTokenOffset:293) (offset:349)
               element: <testLibrary>::@class::C::@constructor::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -690,7 +690,7 @@ library
               typeName: C
               typeNameOffset: 347
               periodOffset: 348
-            #F8 factory isOriginDeclaration commentAroundAnnotation (nameOffset:444) (firstTokenOffset:405) (offset:444)
+            #F8 factory isOriginDeclaration isCompleteDeclaration commentAroundAnnotation (nameOffset:444) (firstTokenOffset:405) (offset:444)
               element: <testLibrary>::@class::C::@constructor::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -924,38 +924,38 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F8 isOriginVariable withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F8 isOriginVariable isCompleteDeclaration withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@getter::withInit
-            #F9 isOriginVariable withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F9 isOriginVariable isCompleteDeclaration withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@getter::withoutInit
-            #F10 isOriginVariable multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F10 isOriginVariable isCompleteDeclaration multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@getter::multiWithInit
-            #F11 isOriginVariable multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
+            #F11 isOriginVariable isCompleteDeclaration multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
               element: <testLibrary>::@class::C::@getter::multiWithoutInit
-            #F12 isOriginVariable multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
+            #F12 isOriginVariable isCompleteDeclaration multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
               element: <testLibrary>::@class::C::@getter::multiWithInit2
           setters
-            #F13 isOriginVariable withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F13 isOriginVariable isCompleteDeclaration withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::C::@setter::withInit
               formalParameters
                 #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@class::C::@setter::withInit::@formalParameter::value
-            #F15 isOriginVariable withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F15 isOriginVariable isCompleteDeclaration withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@class::C::@setter::withoutInit
               formalParameters
                 #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
                   element: <testLibrary>::@class::C::@setter::withoutInit::@formalParameter::value
-            #F17 isOriginVariable multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F17 isOriginVariable isCompleteDeclaration multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: <testLibrary>::@class::C::@setter::multiWithInit
               formalParameters
                 #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: <testLibrary>::@class::C::@setter::multiWithInit::@formalParameter::value
-            #F19 isOriginVariable multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
+            #F19 isOriginVariable isCompleteDeclaration multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
               element: <testLibrary>::@class::C::@setter::multiWithoutInit
               formalParameters
                 #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:76)
                   element: <testLibrary>::@class::C::@setter::multiWithoutInit::@formalParameter::value
-            #F21 isOriginVariable multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
+            #F21 isOriginVariable isCompleteDeclaration multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
               element: <testLibrary>::@class::C::@setter::multiWithInit2
               formalParameters
                 #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:94)
@@ -1232,73 +1232,73 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F13 isOriginVariable hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F13 isOriginVariable isCompleteDeclaration hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::C::@getter::hasDocComment
-            #F14 isOriginVariable hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F14 isOriginVariable isCompleteDeclaration hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::C::@getter::hasDocComment2
-            #F15 isOriginVariable hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
+            #F15 isOriginVariable isCompleteDeclaration hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
               element: <testLibrary>::@class::C::@getter::hasAnnotation
-            #F16 isOriginVariable hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
+            #F16 isOriginVariable isCompleteDeclaration hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
               element: <testLibrary>::@class::C::@getter::hasAnnotation2
-            #F17 isOriginVariable annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
+            #F17 isOriginVariable isCompleteDeclaration annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
               element: <testLibrary>::@class::C::@getter::annotationThenComment
-            #F18 isOriginVariable annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
+            #F18 isOriginVariable isCompleteDeclaration annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
               element: <testLibrary>::@class::C::@getter::annotationThenComment2
-            #F19 isOriginVariable commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
+            #F19 isOriginVariable isCompleteDeclaration commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
               element: <testLibrary>::@class::C::@getter::commentThenAnnotation
-            #F20 isOriginVariable commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
+            #F20 isOriginVariable isCompleteDeclaration commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
               element: <testLibrary>::@class::C::@getter::commentThenAnnotation2
-            #F21 isOriginVariable commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
+            #F21 isOriginVariable isCompleteDeclaration commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
               element: <testLibrary>::@class::C::@getter::commentAroundAnnotation
-            #F22 isOriginVariable commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
+            #F22 isOriginVariable isCompleteDeclaration commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
               element: <testLibrary>::@class::C::@getter::commentAroundAnnotation2
           setters
-            #F23 isOriginVariable hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+            #F23 isOriginVariable isCompleteDeclaration hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@class::C::@setter::hasDocComment
               formalParameters
                 #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
                   element: <testLibrary>::@class::C::@setter::hasDocComment::@formalParameter::value
-            #F25 isOriginVariable hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F25 isOriginVariable isCompleteDeclaration hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@class::C::@setter::hasDocComment2
               formalParameters
                 #F26 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
                   element: <testLibrary>::@class::C::@setter::hasDocComment2::@formalParameter::value
-            #F27 isOriginVariable hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
+            #F27 isOriginVariable isCompleteDeclaration hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
               element: <testLibrary>::@class::C::@setter::hasAnnotation
               formalParameters
                 #F28 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:100)
                   element: <testLibrary>::@class::C::@setter::hasAnnotation::@formalParameter::value
-            #F29 isOriginVariable hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
+            #F29 isOriginVariable isCompleteDeclaration hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
               element: <testLibrary>::@class::C::@setter::hasAnnotation2
               formalParameters
                 #F30 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:115)
                   element: <testLibrary>::@class::C::@setter::hasAnnotation2::@formalParameter::value
-            #F31 isOriginVariable annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
+            #F31 isOriginVariable isCompleteDeclaration annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
               element: <testLibrary>::@class::C::@setter::annotationThenComment
               formalParameters
                 #F32 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:184)
                   element: <testLibrary>::@class::C::@setter::annotationThenComment::@formalParameter::value
-            #F33 isOriginVariable annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
+            #F33 isOriginVariable isCompleteDeclaration annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
               element: <testLibrary>::@class::C::@setter::annotationThenComment2
               formalParameters
                 #F34 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:207)
                   element: <testLibrary>::@class::C::@setter::annotationThenComment2::@formalParameter::value
-            #F35 isOriginVariable commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
+            #F35 isOriginVariable isCompleteDeclaration commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
               element: <testLibrary>::@class::C::@setter::commentThenAnnotation
               formalParameters
                 #F36 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:284)
                   element: <testLibrary>::@class::C::@setter::commentThenAnnotation::@formalParameter::value
-            #F37 isOriginVariable commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
+            #F37 isOriginVariable isCompleteDeclaration commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
               element: <testLibrary>::@class::C::@setter::commentThenAnnotation2
               formalParameters
                 #F38 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:307)
                   element: <testLibrary>::@class::C::@setter::commentThenAnnotation2::@formalParameter::value
-            #F39 isOriginVariable commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
+            #F39 isOriginVariable isCompleteDeclaration commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
               element: <testLibrary>::@class::C::@setter::commentAroundAnnotation
               formalParameters
                 #F40 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:384)
                   element: <testLibrary>::@class::C::@setter::commentAroundAnnotation::@formalParameter::value
-            #F41 isOriginVariable commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
+            #F41 isOriginVariable isCompleteDeclaration commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
               element: <testLibrary>::@class::C::@setter::commentAroundAnnotation2
               formalParameters
                 #F42 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:409)
@@ -1647,12 +1647,12 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration raw (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration isCompleteDeclaration raw (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::raw
-        #F2 isOriginDeclaration hasDocComment (nameOffset:50) (firstTokenOffset:15) (offset:50)
+        #F2 isOriginDeclaration isCompleteDeclaration hasDocComment (nameOffset:50) (firstTokenOffset:15) (offset:50)
           element: <testLibrary>::@function::hasDocComment
           documentationComment: /// Comment 1.\n/// Comment 2.
-        #F3 isOriginDeclaration hasAnnotation (nameOffset:85) (firstTokenOffset:70) (offset:85)
+        #F3 isOriginDeclaration isCompleteDeclaration hasAnnotation (nameOffset:85) (firstTokenOffset:70) (offset:85)
           element: <testLibrary>::@function::hasAnnotation
           metadata
             Annotation
@@ -1665,7 +1665,7 @@ library
                 leftParenthesis: ( @77
                 rightParenthesis: ) @78
               element: dart:core::@class::Object::@constructor::new
-        #F4 isOriginDeclaration annotationThenComment (nameOffset:150) (firstTokenOffset:105) (offset:150)
+        #F4 isOriginDeclaration isCompleteDeclaration annotationThenComment (nameOffset:150) (firstTokenOffset:105) (offset:150)
           element: <testLibrary>::@function::annotationThenComment
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -1679,7 +1679,7 @@ library
                 leftParenthesis: ( @112
                 rightParenthesis: ) @113
               element: dart:core::@class::Object::@constructor::new
-        #F5 isOriginDeclaration commentThenAnnotation (nameOffset:223) (firstTokenOffset:178) (offset:223)
+        #F5 isOriginDeclaration isCompleteDeclaration commentThenAnnotation (nameOffset:223) (firstTokenOffset:178) (offset:223)
           element: <testLibrary>::@function::commentThenAnnotation
           documentationComment: /// Comment 1.\n/// Comment 2.
           metadata
@@ -1693,7 +1693,7 @@ library
                 leftParenthesis: ( @215
                 rightParenthesis: ) @216
               element: dart:core::@class::Object::@constructor::new
-        #F6 isOriginDeclaration commentAroundAnnotation (nameOffset:296) (firstTokenOffset:266) (offset:296)
+        #F6 isOriginDeclaration isCompleteDeclaration commentAroundAnnotation (nameOffset:296) (firstTokenOffset:266) (offset:296)
           element: <testLibrary>::@function::commentAroundAnnotation
           documentationComment: /// Comment 2.
           metadata
@@ -1826,16 +1826,16 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isOriginDeclaration raw (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration isCompleteDeclaration raw (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::C::@method::raw
               codeOffset: 12
               codeLength: 13
-            #F4 isOriginDeclaration hasDocComment (nameOffset:68) (firstTokenOffset:29) (offset:68)
+            #F4 isOriginDeclaration isCompleteDeclaration hasDocComment (nameOffset:68) (firstTokenOffset:29) (offset:68)
               element: <testLibrary>::@class::C::@method::hasDocComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               codeOffset: 29
               codeLength: 57
-            #F5 isOriginDeclaration hasAnnotation (nameOffset:107) (firstTokenOffset:90) (offset:107)
+            #F5 isOriginDeclaration isCompleteDeclaration hasAnnotation (nameOffset:107) (firstTokenOffset:90) (offset:107)
               element: <testLibrary>::@class::C::@method::hasAnnotation
               metadata
                 Annotation
@@ -1850,7 +1850,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 90
               codeLength: 35
-            #F6 isOriginDeclaration annotationThenComment (nameOffset:180) (firstTokenOffset:129) (offset:180)
+            #F6 isOriginDeclaration isCompleteDeclaration annotationThenComment (nameOffset:180) (firstTokenOffset:129) (offset:180)
               element: <testLibrary>::@class::C::@method::annotationThenComment
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -1866,7 +1866,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 129
               codeLength: 77
-            #F7 isOriginDeclaration commentThenAnnotation (nameOffset:261) (firstTokenOffset:210) (offset:261)
+            #F7 isOriginDeclaration isCompleteDeclaration commentThenAnnotation (nameOffset:261) (firstTokenOffset:210) (offset:261)
               element: <testLibrary>::@class::C::@method::commentThenAnnotation
               documentationComment: /// Comment 1.\n/// Comment 2.
               metadata
@@ -1882,7 +1882,7 @@ library
                   element: dart:core::@class::Object::@constructor::new
               codeOffset: 210
               codeLength: 77
-            #F8 isOriginDeclaration commentAroundAnnotation (nameOffset:342) (firstTokenOffset:308) (offset:342)
+            #F8 isOriginDeclaration isCompleteDeclaration commentAroundAnnotation (nameOffset:342) (firstTokenOffset:308) (offset:342)
               element: <testLibrary>::@class::C::@method::commentAroundAnnotation
               documentationComment: /// Comment 2.
               metadata
@@ -1994,7 +1994,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration main (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 isOriginDeclaration isCompleteDeclaration main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
           formalParameters
             #F2 optionalNamed a (nameOffset:10) (firstTokenOffset:6) (offset:10)
@@ -2047,7 +2047,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration main (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F1 isOriginDeclaration isCompleteDeclaration main (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::main
           formalParameters
             #F2 requiredPositional a (nameOffset:19) (firstTokenOffset:5) (offset:19)
@@ -2832,7 +2832,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
       functions
-        #F4 isOriginDeclaration f (nameOffset:19) (firstTokenOffset:14) (offset:19)
+        #F4 isOriginDeclaration isCompleteDeclaration f (nameOffset:19) (firstTokenOffset:14) (offset:19)
           element: <testLibrary>::@function::f
           typeParameters
             #F5 U (nameOffset:21) (firstTokenOffset:21) (offset:21)
@@ -2961,10 +2961,10 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@getter::foo
           setters
-            #F5 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -3026,7 +3026,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F4 isOriginDeclaration isCompleteDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
   classes
     class A
@@ -3071,7 +3071,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@class::A::@method::foo
               typeParameters
                 #F4 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
@@ -3125,7 +3125,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            #F4 isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
+            #F4 isOriginDeclaration isCompleteDeclaration foo (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@class::A::@setter::foo
               formalParameters
                 #F5 requiredPositional x (nameOffset:24) (firstTokenOffset:20) (offset:24)
@@ -3230,7 +3230,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration isCompleteDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredPositional f (nameOffset:12) (firstTokenOffset:7) (offset:12)
@@ -3271,7 +3271,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration isCompleteDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           formalParameters
             #F2 requiredNamed f (nameOffset:22) (firstTokenOffset:8) (offset:22)
@@ -3312,7 +3312,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       functions
-        #F1 isOriginDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
+        #F1 isOriginDeclaration isCompleteDeclaration f (nameOffset:5) (firstTokenOffset:0) (offset:5)
           element: <testLibrary>::@function::f
           typeParameters
             #F2 T (nameOffset:7) (firstTokenOffset:7) (offset:7)
@@ -3424,7 +3424,7 @@ library
         #F1 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@topLevelVariable::foo
       getters
-        #F2 isOriginDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
+        #F2 isOriginDeclaration isCompleteDeclaration foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::foo
   topLevelVariables
     isOriginGetterSetter foo
