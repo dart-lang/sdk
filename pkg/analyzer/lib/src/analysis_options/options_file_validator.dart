@@ -606,7 +606,7 @@ class _ErrorFilterOptionValidator extends OptionsValidator {
   /// Legal values.
   static final List<String> legalValues = [
     ...AnalysisOptionsFileKeys.ignoreSynonyms,
-    ...AnalysisOptionsFileKeys.includeSynonyms,
+    ...AnalysisOptionsFileKeys.trueOrFalse,
     ...AnalysisOptionsFileKeys.severities,
   ];
 
@@ -1068,7 +1068,11 @@ class _PluginsOptionsValidator extends OptionsValidator {
                 .atSourceSpan(plugins.span),
           );
         }
-        plugins.nodes.forEach((pluginName, pluginValue) {
+        plugins.nodes.forEach((pluginNameNode, pluginValue) {
+          if (pluginNameNode is! YamlScalar) {
+            return;
+          }
+          var pluginName = pluginNameNode.value;
           if (pluginName is! String) {
             return;
           }
@@ -1086,7 +1090,7 @@ class _PluginsOptionsValidator extends OptionsValidator {
                       sectionName:
                           '${AnalysisOptionsFileKeys.plugins}/$pluginName',
                     )
-                    .atSourceSpan(plugins.span),
+                    .atSourceSpan(pluginValue.span),
               );
           }
         });
@@ -1107,6 +1111,51 @@ class _PluginsOptionsValidator extends OptionsValidator {
     }
   }
 
+  void _validateDiagnostics(
+    DiagnosticReporter reporter,
+    String pluginName,
+    YamlNode diagnosticsValue,
+  ) {
+    var sectionName = [
+      AnalysisOptionsFileKeys.plugins,
+      pluginName,
+      AnalysisOptionsFileKeys.diagnostics,
+    ].join('/');
+    if (diagnosticsValue is! YamlMap) {
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: sectionName)
+            .atSourceSpan(diagnosticsValue.span),
+      );
+      return;
+    }
+
+    diagnosticsValue.nodes.forEach((codeNameNode, severityNode) {
+      // The keys are diagnostic codes.
+      if (severityNode is! YamlScalar) {
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: sectionName)
+              .atSourceSpan(severityNode.span),
+        );
+        return;
+      }
+
+      var severity = severityNode.value?.toString().toLowerCase();
+      if (!_ErrorFilterOptionValidator.legalValues.contains(severity)) {
+        reporter.report(
+          diag.unsupportedOptionWithLegalValues
+              .withArguments(
+                sectionName: sectionName,
+                optionKey: severityNode.value.toString(),
+                legalValues: _ErrorFilterOptionValidator.legalValueString,
+              )
+              .atSourceSpan(severityNode.span),
+        );
+      }
+    });
+  }
+
   void _validatePluginMap(
     DiagnosticReporter reporter,
     String pluginName,
@@ -1114,7 +1163,11 @@ class _PluginsOptionsValidator extends OptionsValidator {
   ) {
     pluginValue.nodes.forEach((pluginMapKeyNode, pluginMapValueNode) {
       if (pluginMapKeyNode case YamlScalar(value: String pluginMapKey)) {
-        if (!AnalysisOptionsFileKeys.pluginsOptions.contains(pluginMapKey)) {
+        if (pluginMapKey == AnalysisOptionsFileKeys.diagnostics) {
+          _validateDiagnostics(reporter, pluginName, pluginMapValueNode);
+        } else if (!AnalysisOptionsFileKeys.pluginsOptions.contains(
+          pluginMapKey,
+        )) {
           _builder.reportError(
             reporter,
             '${AnalysisOptionsFileKeys.plugins}/$pluginName',
