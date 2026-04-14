@@ -41,6 +41,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   int requiredParameterCount;
   List<VariableDeclaration> positionalParameters;
   List<VariableDeclaration> namedParameters;
+  VariableDeclaration? thisVariable;
   DartType returnType; // Not null.
   Statement? _body;
 
@@ -110,6 +111,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
     this.asyncMarker = AsyncMarker.Sync,
     AsyncMarker? dartAsyncMarker,
     this.emittedValueType,
+    this.thisVariable,
   }) : this.positionalParameters =
            positionalParameters ?? <VariableDeclaration>[],
        this.requiredParameterCount =

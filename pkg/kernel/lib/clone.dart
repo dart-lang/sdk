@@ -886,6 +886,7 @@ class CloneVisitorNotMembers
         .map(clone)
         .toList();
     List<VariableDeclaration> named = node.namedParameters.map(clone).toList();
+    VariableDeclaration? thisVariable = cloneOptional(node.thisVariable);
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
         : null;
@@ -894,6 +895,7 @@ class CloneVisitorNotMembers
       typeParameters: typeParameters,
       positionalParameters: positional,
       namedParameters: named,
+      thisVariable: thisVariable,
       requiredParameterCount: node.requiredParameterCount,
       returnType: visitType(node.returnType),
       asyncMarker: node.asyncMarker,

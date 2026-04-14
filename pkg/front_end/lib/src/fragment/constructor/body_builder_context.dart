@@ -152,6 +152,9 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
       scopeProviderInfo
           // Coverage-ignore(suite): Not run.
           ?.scope,
+      scopeProviderInfo
+          // Coverage-ignore(suite): Not run.
+          ?.thisVariable,
     );
   }
 

@@ -79,6 +79,7 @@ class MethodFragmentBodyBuilderContext extends BodyBuilderContext {
       scope: scopeProviderInfo?.scope,
       asyncMarker: asyncMarker,
       emittedValueType: emittedValueType,
+      thisVariable: scopeProviderInfo?.thisVariable,
     );
   }
 

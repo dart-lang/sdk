@@ -35,6 +35,7 @@ class ScopeProviderInfo {
   final ScopeProviderInfoKind kind;
 
   Scope? scope;
+  VariableDeclaration? thisVariable;
 
   ScopeProviderInfo({required this.kind});
 }
@@ -260,6 +261,9 @@ class LoopDepthAllocationStrategy
     required CaptureKind captureKind,
   }) {
     CollectorScopeProviderInfo currentScope = _currentScopeProviderInfo!;
+    if (variable is ThisVariable) {
+      currentScope.thisVariable = variable;
+    }
 
     // Delegation happens when the current variable is not uncaptured (that is,
     // it's either captured or assert-captured), and there's a collector to

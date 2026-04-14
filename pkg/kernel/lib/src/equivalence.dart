@@ -4367,6 +4367,9 @@ class EquivalenceStrategy {
     if (!checkFunctionNode_namedParameters(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkFunctionNode_thisVariable(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkFunctionNode_returnType(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -10829,6 +10832,18 @@ class EquivalenceStrategy {
       other.namedParameters,
       visitor.checkNodes,
       'namedParameters',
+    );
+  }
+
+  bool checkFunctionNode_thisVariable(
+    EquivalenceVisitor visitor,
+    FunctionNode node,
+    FunctionNode other,
+  ) {
+    return visitor.checkNodes(
+      node.thisVariable,
+      other.thisVariable,
+      'thisVariable',
     );
   }
 
