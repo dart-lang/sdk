@@ -80,8 +80,8 @@ abstract class _NotInstantiatedExtension<R> {
 
 class _NotInstantiatedExtensionWithMember
     extends _NotInstantiatedExtension<InstantiatedExtensionWithMember> {
-  final ExecutableElement? getter;
-  final ExecutableElement? setter;
+  final InternalExecutableElement? getter;
+  final InternalExecutableElement? setter;
 
   _NotInstantiatedExtensionWithMember(
     super.extension, {
@@ -120,17 +120,12 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<InstantiatedExtensionWithoutMember> applicableTo({
     required LibraryElement targetLibrary,
-    required TypeImpl targetType,
-    required bool strictCasts,
+    required DartType targetType,
   }) {
     targetLibrary as LibraryElementImpl;
-    return map(
-      (e) => _NotInstantiatedExtensionWithoutMember(
-        // TODO(paulberry): eliminate this cast by changing the extension to
-        // apply only to `Iterable<ExtensionElementImpl>`.
-        e as ExtensionElementImpl,
-      ),
-    ).applicableTo(targetLibrary: targetLibrary, targetType: targetType);
+    return cast<ExtensionElementImpl>()
+        .map((e) => _NotInstantiatedExtensionWithoutMember(e))
+        .applicableTo(targetLibrary: targetLibrary, targetType: targetType);
   }
 
   /// Returns the sublist of [ExtensionElement]s that have an instance member
@@ -139,7 +134,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
     Name baseName,
   ) {
     var result = <_NotInstantiatedExtensionWithMember>[];
-    for (var extension in this) {
+    for (var extension in cast<ExtensionElementImpl>()) {
       if (!baseName.isAccessibleFor(extension.library.uri)) {
         continue;
       }
@@ -150,9 +145,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         if (getter != null || setter != null) {
           result.add(
             _NotInstantiatedExtensionWithMember(
-              // TODO(paulberry): eliminate this cast by changing the extension
-              // to apply only to `Iterable<ExtensionElementImpl>`.
-              extension as ExtensionElementImpl,
+              extension,
               getter: getter,
               setter: setter,
             ),
@@ -163,9 +156,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         if (field != null && !field.isStatic) {
           result.add(
             _NotInstantiatedExtensionWithMember(
-              // TODO(paulberry): eliminate this cast by changing the
-              // extension to apply only to `Iterable<ExtensionElementImpl>`.
-              extension as ExtensionElementImpl,
+              extension,
               getter: field.getter,
               setter: field.setter,
             ),
@@ -175,12 +166,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
         var method = extension.getMethod(baseName.name);
         if (method != null && !method.isStatic) {
           result.add(
-            _NotInstantiatedExtensionWithMember(
-              // TODO(paulberry): eliminate this cast by changing the
-              // extension to apply only to `Iterable<ExtensionElementImpl>`.
-              extension as ExtensionElementImpl,
-              getter: method,
-            ),
+            _NotInstantiatedExtensionWithMember(extension, getter: method),
           );
         }
       }
@@ -192,7 +178,7 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
   /// with name [name].
   List<_ExtensionWithMemberWithName> havingStaticMemberWithName(Name name) {
     var result = <_ExtensionWithMemberWithName>[];
-    for (var extension in this) {
+    for (var extension in cast<ExtensionElementImpl>()) {
       if (!name.isAccessibleFor(extension.library.uri)) {
         continue;
       }
@@ -200,36 +186,21 @@ extension ExtensionsExtensions on Iterable<ExtensionElement> {
       var getter = extension.getGetter(name.name);
       if (getter != null && getter.isStatic) {
         result.add(
-          _ExtensionWithMemberWithName(
-            // TODO(paulberry): eliminate this cast by changing the
-            // extension to apply only to `Iterable<ExtensionElementImpl>`.
-            extension: extension as ExtensionElementImpl,
-            member: getter as GetterElementImpl,
-          ),
+          _ExtensionWithMemberWithName(extension: extension, member: getter),
         );
       }
 
       var setter = extension.getSetter(name.name);
       if (setter != null && setter.isStatic) {
         result.add(
-          _ExtensionWithMemberWithName(
-            // TODO(paulberry): eliminate this cast by changing the
-            // extension to apply only to `Iterable<ExtensionElementImpl>`.
-            extension: extension as ExtensionElementImpl,
-            member: setter as SetterElementImpl,
-          ),
+          _ExtensionWithMemberWithName(extension: extension, member: setter),
         );
       }
 
       var method = extension.getMethod(name.name);
       if (method != null && method.isStatic) {
         result.add(
-          _ExtensionWithMemberWithName(
-            // TODO(paulberry): eliminate this cast by changing the
-            // extension to apply only to `Iterable<ExtensionElementImpl>`.
-            extension: extension as ExtensionElementImpl,
-            member: method as MethodElementImpl,
-          ),
+          _ExtensionWithMemberWithName(extension: extension, member: method),
         );
       }
     }
@@ -242,13 +213,15 @@ extension NotInstantiatedExtensionsExtensions<R>
   /// Extensions that can be applied, within [targetLibrary], to [targetType].
   List<R> applicableTo({
     required LibraryElement targetLibrary,
-    required TypeImpl targetType,
+    required DartType targetType,
   }) {
+    targetLibrary as LibraryElementImpl;
+    targetType as TypeImpl;
+
     if (identical(targetType, NeverTypeImpl.instance)) {
       return <R>[];
     }
 
-    targetLibrary as LibraryElementImpl;
     var typeSystem = targetLibrary.typeSystem;
     var genericMetadataIsEnabled = targetLibrary.featureSet.isEnabled(
       Feature.generic_metadata,

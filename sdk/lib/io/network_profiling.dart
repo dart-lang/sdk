@@ -17,10 +17,10 @@ int _nextSocketId = 0;
 /// dart:io service extension spec from an element of dart:developer's
 /// `_developerProfilingData`.
 Map<String, Object?> _createHttpProfileRequestFromProfileMap(
-  Map<String, Object> requestProfile, {
+  Map<String, Object?> requestProfile, {
   required bool ref,
 }) {
-  final responseData = requestProfile['responseData'] as Map<String, Object>;
+  final responseData = requestProfile['responseData'] as Map<String, Object?>?;
 
   return {
     'type': '${ref ? '@' : ''}HttpProfileRequest',
@@ -31,12 +31,12 @@ Map<String, Object?> _createHttpProfileRequestFromProfileMap(
     'events': requestProfile['events']!,
     'startTime': requestProfile['requestStartTimestamp']!,
     if (requestProfile['requestEndTimestamp'] != null)
-      'endTime': requestProfile['requestEndTimestamp'],
+      'endTime': requestProfile['requestEndTimestamp']!,
     'request': requestProfile['requestData']!,
-    'response': responseData,
+    if (responseData != null) 'response': responseData,
     if (!ref && requestProfile['requestEndTimestamp'] != null)
       'requestBody': requestProfile['requestBodyBytes']!,
-    if (!ref && responseData['endTime'] != null)
+    if (!ref && responseData?['endTime'] != null)
       'responseBody': requestProfile['responseBodyBytes']!,
   };
 }
@@ -104,10 +104,8 @@ abstract class _NetworkProfiling {
                         (p['_lastUpdateTime'] as int) >= updatedSince,
                   )
                   .map(
-                    (p) => _createHttpProfileRequestFromProfileMap(
-                      p.cast<String, Object>(),
-                      ref: true,
-                    ),
+                    (p) =>
+                        _createHttpProfileRequestFromProfileMap(p, ref: true),
                   ),
             ],
           });

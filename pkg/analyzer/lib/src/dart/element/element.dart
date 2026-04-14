@@ -34,6 +34,7 @@ import 'package:analyzer/src/dart/element/class_hierarchy.dart';
 import 'package:analyzer/src/dart/element/display_string_builder.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
+import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
 import 'package:analyzer/src/dart/element/since_sdk_version.dart';
@@ -874,6 +875,18 @@ class ConstructorElementImpl extends ExecutableElementImpl
     FormalParameterFragmentImpl._linkFragments(
       fragments,
       getFragments: (f) => f.formalParameters,
+    );
+  }
+
+  @override
+  @trackedIndirectly
+  InternalConstructorElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedConstructorElementImpl(
+      baseElement: this,
+      substitution: substitution,
     );
   }
 
@@ -2283,6 +2296,12 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeExecutableElement(this, name!);
+  }
+
+  @override
+  @trackedIndirectly
+  InternalExecutableElement substitute(MapSubstitution substitution) {
+    throw StateError('substitute not supported for $runtimeType');
   }
 }
 
@@ -4124,6 +4143,24 @@ class GetterElementImpl extends PropertyAccessorElementImpl
       return current;
     });
   }
+
+  @override
+  @trackedIndirectly
+  InternalGetterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    if (enclosingElement is! InstanceElement) {
+      throw StateError('Cannot substitute a non-member: $this');
+    }
+    if (!hasEnclosingTypeParameterReference) {
+      return this;
+    }
+    return SubstitutedGetterElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
+  }
 }
 
 class GetterFragmentImpl extends PropertyAccessorFragmentImpl
@@ -5297,6 +5334,9 @@ mixin InternalConstructorElement on InternalExecutableElement
 
   @override
   InternalConstructorElement? get superConstructor;
+
+  @override
+  InternalConstructorElement substitute(MapSubstitution substitution);
 }
 
 mixin InternalExecutableElement implements ExecutableElement {
@@ -5323,6 +5363,9 @@ mixin InternalExecutableElement implements ExecutableElement {
 
   @override
   List<TypeParameterElementImpl> get typeParameters;
+
+  /// Returns this executable element with the given [substitution] applied.
+  InternalExecutableElement substitute(MapSubstitution substitution);
 }
 
 mixin InternalFieldElement on InternalPropertyInducingElement
@@ -5378,6 +5421,9 @@ mixin InternalGetterElement on InternalPropertyAccessorElement
 
   @override
   List<GetterFragmentImpl> get fragments;
+
+  @override
+  InternalGetterElement substitute(MapSubstitution substitution);
 }
 
 mixin InternalMethodElement on InternalExecutableElement
@@ -5390,6 +5436,9 @@ mixin InternalMethodElement on InternalExecutableElement
 
   @override
   List<MethodFragmentImpl> get fragments;
+
+  @override
+  InternalMethodElement substitute(MapSubstitution substitution);
 }
 
 mixin InternalPropertyAccessorElement on InternalExecutableElement
@@ -5441,6 +5490,9 @@ mixin InternalSetterElement on InternalPropertyAccessorElement
 
   @override
   List<SetterFragmentImpl> get fragments;
+
+  @override
+  InternalSetterElement substitute(MapSubstitution substitution);
 }
 
 mixin InternalSuperFormalParameterElement on InternalFormalParameterElement
@@ -7927,6 +7979,21 @@ class MethodElementImpl extends ExecutableElementImpl
       getFragments: (f) => f.formalParameters,
     );
   }
+
+  @override
+  @trackedIndirectly
+  InternalMethodElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    if (!hasEnclosingTypeParameterReference) {
+      return this;
+    }
+    return SubstitutedMethodElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
+  }
 }
 
 @GenerateFragmentImpl(modifiers: _MethodFragmentImplModifiers.values)
@@ -9321,6 +9388,24 @@ class SetterElementImpl extends PropertyAccessorElementImpl
       previous.addFragment(current);
       return current;
     });
+  }
+
+  @override
+  @trackedIndirectly
+  InternalSetterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    if (enclosingElement is! InstanceElement) {
+      throw StateError('Cannot substitute a non-member: $this');
+    }
+    if (!hasEnclosingTypeParameterReference) {
+      return this;
+    }
+    return SubstitutedSetterElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
   }
 }
 

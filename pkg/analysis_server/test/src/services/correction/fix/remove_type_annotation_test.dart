@@ -983,6 +983,17 @@ class D extends C {
 ''');
   }
 
+  Future<void> test_primaryConstructor() async {
+    await resolveTestCode('''
+class A(int x);
+class B(String super.x) extends A;
+''');
+    await assertHasFix('''
+class A(int x);
+class B(super.x) extends A;
+''');
+  }
+
   Future<void> test_requiredPositional() async {
     await resolveTestCode('''
 class C {
@@ -1082,6 +1093,19 @@ class C {
 class C {
   int Function() f;
   C(this.f());
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor() async {
+    await resolveTestCode('''
+class C(int this.f) {
+  int f;
+}
+''');
+    await assertHasFix('''
+class C(this.f) {
+  int f;
 }
 ''');
   }

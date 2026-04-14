@@ -103,6 +103,17 @@ class SubstitutedConstructorElementImpl extends SubstitutedExecutableElementImpl
     builder.writeConstructorElement(this);
   }
 
+  @override
+  InternalConstructorElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedConstructorElementImpl(
+      baseElement: baseElement,
+      substitution: this.substitution.andThen(substitution),
+    );
+  }
+
   InternalConstructorElement? _redirect(InternalConstructorElement? element) {
     switch (element) {
       case null:
@@ -346,50 +357,12 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
     }
   }
 
+  // TODO(scheglov): replace with `substitute`
   static InternalExecutableElement from(
     ExecutableElement element,
     MapSubstitution substitution,
   ) {
-    if (identical(substitution, Substitution.empty)) {
-      return element as InternalExecutableElement;
-    }
-
-    ExecutableElementImpl baseElement;
-    var combined = substitution;
-    if (element is SubstitutedExecutableElementImpl) {
-      baseElement = element.baseElement;
-
-      var map = <TypeParameterElement, DartType>{
-        for (var MapEntry(:key, :value) in element.substitution.map.entries)
-          key: substitution.substituteType(value),
-      };
-      combined = Substitution.fromMap(map);
-    } else {
-      baseElement = element as ExecutableElementImpl;
-      if (!baseElement.hasEnclosingTypeParameterReference) {
-        return baseElement;
-      }
-    }
-
-    switch (baseElement) {
-      case ConstructorElementImpl():
-        return SubstitutedConstructorElementImpl(
-          baseElement: baseElement,
-          substitution: combined,
-        );
-      case MethodElementImpl():
-        return SubstitutedMethodElementImpl(
-          baseElement: baseElement,
-          substitution: combined,
-        );
-      case PropertyAccessorElementImpl():
-        return SubstitutedPropertyAccessorElementImpl(
-          baseElement: baseElement,
-          substitution: combined,
-        );
-      default:
-        throw UnimplementedError('(${baseElement.runtimeType}) $element');
-    }
+    return (element as InternalExecutableElement).substitute(substitution);
   }
 }
 
@@ -430,13 +403,7 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   @override
   InternalGetterElement? get getter {
     var baseGetter = baseElement.getter;
-    if (baseGetter == null) {
-      return null;
-    }
-    return SubstitutedGetterElementImpl.forSubstitution(
-      baseGetter,
-      substitution,
-    );
+    return baseGetter?.substitute(substitution);
   }
 
   @override
@@ -483,13 +450,7 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   @override
   InternalSetterElement? get setter {
     var baseSetter = baseElement.setter;
-    if (baseSetter == null) {
-      return null;
-    }
-    return SubstitutedSetterElementImpl.forSubstitution(
-      baseSetter,
-      substitution,
-    );
+    return baseSetter?.substitute(substitution);
   }
 
   @override
@@ -754,11 +715,10 @@ class SubstitutedFormalParameterElementImpl
 class SubstitutedGetterElementImpl
     extends SubstitutedPropertyAccessorElementImpl
     with InternalGetterElement {
-  SubstitutedGetterElementImpl._({
-    required super.baseElement,
+  SubstitutedGetterElementImpl({
+    required GetterElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters,
-  }) : super._();
+  }) : super._(typeParameters: const []);
 
   @override
   GetterElementImpl get baseElement => super.baseElement as GetterElementImpl;
@@ -766,13 +726,7 @@ class SubstitutedGetterElementImpl
   @override
   InternalSetterElement? get correspondingSetter {
     var baseSetter = baseElement.variable.setter;
-    if (baseSetter == null) {
-      return null;
-    }
-    return SubstitutedSetterElementImpl.forSubstitution(
-      baseSetter,
-      substitution,
-    );
+    return baseSetter?.substitute(substitution);
   }
 
   @override
@@ -797,13 +751,15 @@ class SubstitutedGetterElementImpl
     return visitor.visitGetterElement(this);
   }
 
-  static InternalGetterElement forSubstitution(
-    InternalGetterElement element,
-    MapSubstitution substitution,
-  ) {
-    // TODO(scheglov): avoid type cast
-    return SubstitutedExecutableElementImpl.from(element, substitution)
-        as InternalGetterElement;
+  @override
+  InternalGetterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedGetterElementImpl(
+      baseElement: baseElement,
+      substitution: this.substitution.andThen(substitution),
+    );
   }
 
   static InternalGetterElement forTargetType(
@@ -811,7 +767,7 @@ class SubstitutedGetterElementImpl
     InterfaceType targetType,
   ) {
     var substitution = Substitution.fromInterfaceType(targetType);
-    return forSubstitution(element, substitution);
+    return element.substitute(substitution);
   }
 }
 
@@ -871,14 +827,23 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
     return visitor.visitMethodElement(this);
   }
 
+  @override
+  InternalMethodElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedMethodElementImpl(
+      baseElement: baseElement,
+      substitution: this.substitution.andThen(substitution),
+    );
+  }
+
   static InternalMethodElement forTargetType(
     InternalMethodElement element,
     InterfaceType targetType,
   ) {
     var substitution = Substitution.fromInterfaceType(targetType);
-    // TODO(scheglov): avoid type cast
-    return SubstitutedExecutableElementImpl.from(element, substitution)
-        as InternalMethodElement;
+    return element.substitute(substitution);
   }
 }
 
@@ -887,29 +852,6 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
 abstract class SubstitutedPropertyAccessorElementImpl
     extends SubstitutedExecutableElementImpl
     with InternalPropertyAccessorElement {
-  factory SubstitutedPropertyAccessorElementImpl({
-    required PropertyAccessorElementImpl baseElement,
-    required MapSubstitution substitution,
-  }) {
-    var freshTypeParameters = _SubstitutedTypeParameters(
-      baseElement.typeParameters,
-      substitution,
-    );
-    if (baseElement is GetterElementImpl) {
-      return SubstitutedGetterElementImpl._(
-        baseElement: baseElement,
-        substitution: freshTypeParameters.substitution,
-        typeParameters: freshTypeParameters.elements,
-      );
-    } else {
-      return SubstitutedSetterElementImpl._(
-        baseElement: baseElement,
-        substitution: freshTypeParameters.substitution,
-        typeParameters: freshTypeParameters.elements,
-      );
-    }
-  }
-
   SubstitutedPropertyAccessorElementImpl._({
     required PropertyAccessorElementImpl super.baseElement,
     required super.substitution,
@@ -964,11 +906,10 @@ abstract class SubstitutedPropertyAccessorElementImpl
 class SubstitutedSetterElementImpl
     extends SubstitutedPropertyAccessorElementImpl
     with InternalSetterElement {
-  SubstitutedSetterElementImpl._({
-    required super.baseElement,
+  SubstitutedSetterElementImpl({
+    required SetterElementImpl super.baseElement,
     required super.substitution,
-    required super.typeParameters,
-  }) : super._();
+  }) : super._(typeParameters: const []);
 
   @override
   SetterElementImpl get baseElement => super.baseElement as SetterElementImpl;
@@ -976,13 +917,7 @@ class SubstitutedSetterElementImpl
   @override
   InternalGetterElement? get correspondingGetter {
     var baseGetter = baseElement.variable.getter;
-    if (baseGetter == null) {
-      return null;
-    }
-    return SubstitutedGetterElementImpl.forSubstitution(
-      baseGetter,
-      substitution,
-    );
+    return baseGetter?.substitute(substitution);
   }
 
   @override
@@ -1007,13 +942,15 @@ class SubstitutedSetterElementImpl
     return visitor.visitSetterElement(this);
   }
 
-  static InternalSetterElement forSubstitution(
-    InternalSetterElement element,
-    MapSubstitution substitution,
-  ) {
-    // TODO(scheglov): avoid type cast
-    return SubstitutedExecutableElementImpl.from(element, substitution)
-        as InternalSetterElement;
+  @override
+  InternalSetterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedSetterElementImpl(
+      baseElement: baseElement,
+      substitution: this.substitution.andThen(substitution),
+    );
   }
 
   static InternalSetterElement forTargetType(
@@ -1021,7 +958,7 @@ class SubstitutedSetterElementImpl
     InterfaceType targetType,
   ) {
     var substitution = Substitution.fromInterfaceType(targetType);
-    return forSubstitution(element, substitution);
+    return element.substitute(substitution);
   }
 }
 

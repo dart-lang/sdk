@@ -54,14 +54,23 @@ typedef Fn1<T> = void Function<T>(T);
     );
   }
 
-  @FailingTest(reason: '')
   test_functionTypedParameter_shadowingFunction() async {
-    // TODO(srawlins): Report lint here.
     await assertDiagnostics(
       r'''
 void fn2<T>(void Function<T>()) {}
 ''',
       [lint(26, 1)],
+    );
+  }
+
+  test_genericFunctionType_shadowingFunction() async {
+    await assertDiagnostics(
+      r'''
+void f<T>() {
+  void Function<T>(T) g;
+}
+''',
+      [lint(30, 1)],
     );
   }
 

@@ -549,12 +549,9 @@ class DeclarationHelper {
         .applicableTo(
           targetLibrary: libraryElement,
           // Ignore nullability, consistent with non-extension members.
-          targetType:
-              (type.isDartCoreNull
-                      ? type
-                      : library.typeSystem.promoteToNonNull(type))
-                  as TypeImpl,
-          strictCasts: false,
+          targetType: type.isDartCoreNull
+              ? type
+              : library.typeSystem.promoteToNonNull(type),
         );
     var importData = ImportData(
       libraryUri: library.uri,
@@ -835,12 +832,9 @@ class DeclarationHelper {
     var applicableExtensions = accessibleExtensions.applicableTo(
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
-      targetType:
-          (type.isDartCoreNull
-                  ? type
-                  : libraryElement.typeSystem.promoteToNonNull(type))
-              as TypeImpl,
-      strictCasts: false,
+      targetType: type.isDartCoreNull
+          ? type
+          : libraryElement.typeSystem.promoteToNonNull(type),
     );
     for (var instantiatedExtension in applicableExtensions) {
       var extension = instantiatedExtension.extension;

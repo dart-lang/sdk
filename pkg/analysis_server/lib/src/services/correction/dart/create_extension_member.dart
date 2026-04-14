@@ -730,8 +730,7 @@ abstract class _CreateExtensionMember extends ResolvedCorrectionProducer {
     }
     var instantiated = [extension].applicableTo(
       targetLibrary: libraryElement2,
-      targetType: extension.thisType as TypeImpl,
-      strictCasts: true,
+      targetType: extension.thisType,
     );
     if (instantiated.isNotEmpty) {
       return (unit.path, existingExtension);
