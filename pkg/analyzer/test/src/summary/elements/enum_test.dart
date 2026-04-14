@@ -103,13 +103,13 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isOriginVariable aaa (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration aaa (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::aaa
-            #F8 isOriginVariable bbb (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F8 isOriginVariable isCompleteDeclaration bbb (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::bbb
-            #F9 isOriginVariable ccc (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F9 isOriginVariable isCompleteDeclaration ccc (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@getter::ccc
-            #F10 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -204,7 +204,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F4 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -261,7 +261,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F4 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F4 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -349,9 +349,9 @@ library
                 #F5 requiredPositional _ (nameOffset:41) (firstTokenOffset:34) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::_
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -482,11 +482,11 @@ library
                 #F7 requiredPositional a (nameOffset:47) (firstTokenOffset:45) (offset:47)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F8 isOriginVariable int (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 isOriginVariable isCompleteDeclaration int (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::int
-            #F9 isOriginVariable string (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 isOriginVariable isCompleteDeclaration string (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::string
-            #F10 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -525,6 +525,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F7
@@ -597,9 +598,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable _name (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration _name (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::_name
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -711,9 +712,9 @@ library
                 #F6 requiredPositional a (nameOffset:41) (firstTokenOffset:39) (offset:41)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -744,6 +745,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F6
@@ -810,9 +812,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable _ (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration _ (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::_
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -899,7 +901,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 factory isOriginDeclaration named (nameOffset:26) (firstTokenOffset:16) (offset:26)
+            #F4 factory isOriginDeclaration isCompleteDeclaration named (nameOffset:26) (firstTokenOffset:16) (offset:26)
               element: <testLibrary>::@enum::E::@constructor::named
               factoryKeywordOffset: 16
               typeName: E
@@ -909,9 +911,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1001,15 +1003,15 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 factory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:24)
+            #F4 factory isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::E::@constructor::new
               factoryKeywordOffset: 16
               typeName: E
               typeNameOffset: 24
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1095,7 +1097,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 factory isOriginDeclaration named (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F4 factory isOriginDeclaration isCompleteDeclaration named (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::E::@constructor::named
               factoryKeywordOffset: 16
               typeName: null
@@ -1103,9 +1105,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1206,14 +1208,14 @@ library
               typeName: E
               typeNameOffset: 30
               periodOffset: 31
-            #F5 factory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:43) (offset:43)
+            #F5 factory isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:43) (offset:43)
               element: <testLibrary>::@enum::E::@constructor::new
               factoryKeywordOffset: 43
               typeName: null
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1306,7 +1308,7 @@ library
             #F4 isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:33)
+            #F5 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:33)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 33
@@ -1317,11 +1319,11 @@ library
                     #F7 requiredPositional a (nameOffset:53) (firstTokenOffset:46) (offset:53)
                       element: a@53
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F10 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1434,7 +1436,7 @@ library
             #F5 isOriginDeclaration x (nameOffset:44) (firstTokenOffset:44) (offset:44)
               element: <testLibrary>::@enum::E::@field::x::@def::1
           constructors
-            #F6 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:49) (offset:55)
+            #F6 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:49) (offset:55)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 55
@@ -1442,13 +1444,13 @@ library
                 #F7 requiredPositional final this.x (nameOffset:62) (firstTokenOffset:57) (offset:62)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x::@def::0
-            #F11 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F11 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::x::@def::1
   enums
     enum E
@@ -1560,7 +1562,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:22)
+            #F4 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:22)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 22
@@ -1568,9 +1570,9 @@ library
                 #F5 requiredPositional final this.x (nameOffset:29) (firstTokenOffset:24) (offset:29)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -1665,7 +1667,7 @@ library
             #F4 isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
+            #F5 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
@@ -1685,11 +1687,11 @@ library
                       staticInvokeType: num Function(num)
                       staticType: int
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1797,7 +1799,7 @@ library
             #F4 isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
+            #F5 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:31) (offset:37)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 37
@@ -1805,11 +1807,11 @@ library
                 #F6 requiredPositional final this.x (nameOffset:48) (firstTokenOffset:39) (offset:48)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -1914,7 +1916,7 @@ library
             #F4 isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
+            #F5 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 27
@@ -1922,11 +1924,11 @@ library
                 #F6 requiredPositional final this.x (nameOffset:38) (firstTokenOffset:29) (offset:38)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -2031,7 +2033,7 @@ library
             #F4 isOriginDeclaration x (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
+            #F5 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:27) (offset:27)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 27
@@ -2039,11 +2041,11 @@ library
                 #F6 requiredPositional final this.x (nameOffset:34) (firstTokenOffset:29) (offset:34)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F9 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -2163,9 +2165,9 @@ library
                 #F5 requiredPositional a (nameOffset:44) (firstTokenOffset:40) (offset:44)
                   element: <testLibrary>::@enum::E::@constructor::named::@formalParameter::a
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2268,9 +2270,9 @@ library
                 #F5 requiredPositional a (nameOffset:32) (firstTokenOffset:28) (offset:32)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2369,7 +2371,7 @@ library
             #F5 isOriginDeclaration x (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F6 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:40)
+            #F6 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:34) (offset:40)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 40
@@ -2377,11 +2379,11 @@ library
                 #F7 requiredPositional a (nameOffset:45) (firstTokenOffset:42) (offset:45)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::a
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F10 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -2417,6 +2419,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F7
@@ -2520,9 +2523,9 @@ library
               newKeywordOffset: 24
               typeName: null
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2619,9 +2622,9 @@ library
               newKeywordOffset: 30
               typeName: null
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2713,9 +2716,9 @@ library
               newKeywordOffset: 16
               typeName: null
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2807,9 +2810,9 @@ library
               newKeywordOffset: 22
               typeName: null
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -2900,9 +2903,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:65)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -3000,11 +3003,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F8 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::foo
   enums
     enum E
@@ -3136,11 +3139,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:15) (offset:23)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:23) (firstTokenOffset:15) (offset:23)
               element: <testLibrary>::@enum::E::@getter::foo
   enums
     enum E
@@ -3248,9 +3251,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class I
@@ -3355,9 +3358,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@getter::values
       extensionTypes
         #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
@@ -3366,7 +3369,7 @@ library
             #F9 isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F10 isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     class A
@@ -3497,9 +3500,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F9 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::v
-            #F10 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F10 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class I
@@ -3512,6 +3515,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -3543,6 +3547,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -3620,9 +3625,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F9 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@enum::E::@getter::v
-            #F10 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F10 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class X
@@ -3861,12 +3866,12 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F8 isOriginDeclaration foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:23) (firstTokenOffset:19) (offset:23)
               element: <testLibrary>::@enum::E::@method::foo
               typeParameters
                 #F9 U (nameOffset:27) (firstTokenOffset:27) (offset:27)
@@ -3905,6 +3910,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -3984,12 +3990,12 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F7 isOriginDeclaration toString (nameOffset:23) (firstTokenOffset:16) (offset:23)
+            #F7 isOriginDeclaration isCompleteDeclaration toString (nameOffset:23) (firstTokenOffset:16) (offset:23)
               element: <testLibrary>::@enum::E::@method::toString
   enums
     enum E
@@ -4082,9 +4088,9 @@ library
               element: <testLibrary>::@enum::0::@constructor::new
               typeName: null
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@enum::0::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
               element: <testLibrary>::@enum::0::@getter::values
   enums
     enum <null-name>
@@ -4175,9 +4181,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::values
       mixins
         #F7 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -4283,9 +4289,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@enum::E::@getter::values
       extensionTypes
         #F8 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
@@ -4294,7 +4300,7 @@ library
             #F9 isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F10 isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@extensionType::B::@getter::it
   classes
     class A
@@ -4411,9 +4417,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::E::@getter::values
       mixins
         #F7 mixin M1 (nameOffset:6) (firstTokenOffset:0) (offset:6)
@@ -4537,12 +4543,12 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
           setters
-            #F8 isOriginDeclaration foo (nameOffset:19) (firstTokenOffset:15) (offset:19)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:19) (firstTokenOffset:15) (offset:19)
               element: <testLibrary>::@enum::E::@setter::foo
               formalParameters
                 #F9 requiredPositional _ (nameOffset:27) (firstTokenOffset:23) (offset:27)
@@ -4655,9 +4661,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -4688,6 +4694,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -4757,9 +4764,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4794,6 +4801,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -4838,7 +4846,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4862,6 +4870,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -4905,7 +4914,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4935,6 +4944,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -4974,7 +4984,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     notSimplyBounded enum E
@@ -4998,6 +5008,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5037,7 +5048,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5060,6 +5071,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5099,7 +5111,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5122,6 +5134,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5161,7 +5174,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F5 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5184,6 +5197,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5227,7 +5241,7 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5254,6 +5268,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5335,11 +5350,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F6 isOriginVariable isCompleteDeclaration a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+            #F7 isOriginVariable isCompleteDeclaration b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: <testLibrary>::@enum::E::@getter::b
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5489,11 +5504,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F6 isOriginVariable isCompleteDeclaration a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: <testLibrary>::@enum::E::@getter::a
-            #F7 isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+            #F7 isOriginVariable isCompleteDeclaration b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@enum::E::@getter::b
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F9 hasInitializer isOriginDeclaration annotation (nameOffset:91) (firstTokenOffset:91) (offset:91)
@@ -5655,11 +5670,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F7 isOriginVariable isCompleteDeclaration <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E::@getter::1
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5776,11 +5791,11 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
+            #F6 isOriginVariable isCompleteDeclaration v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:9)
               element: <testLibrary>::@enum::E::@getter::v1
-            #F7 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F7 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v2
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -5879,9 +5894,9 @@ library
               element: <testLibrary>::@enum::E1::@constructor::new
               typeName: E1
           getters
-            #F5 isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F5 isOriginVariable isCompleteDeclaration v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::E1::@getter::v1
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E1::@getter::values
         #F7 enum E2 (nameOffset:20) (firstTokenOffset:15) (offset:20)
           element: <testLibrary>::@enum::E2
@@ -5917,9 +5932,9 @@ library
               element: <testLibrary>::@enum::E2::@constructor::new
               typeName: E2
           getters
-            #F11 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F11 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E2::@getter::v2
-            #F12 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F12 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E2::@getter::values
   enums
     enum E1
@@ -6039,7 +6054,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F5 isOriginDeclaration foo (nameOffset:52) (firstTokenOffset:52) (offset:52)
+            #F5 isOriginDeclaration isCompleteDeclaration foo (nameOffset:52) (firstTokenOffset:52) (offset:52)
               element: <testLibrary>::@class::A::@method::foo
         #F6 class B (nameOffset:70) (firstTokenOffset:64) (offset:70)
           element: <testLibrary>::@class::B
@@ -6048,7 +6063,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
           methods
-            #F8 isOriginDeclaration foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:92) (firstTokenOffset:92) (offset:92)
               element: <testLibrary>::@class::B::@method::foo
         #F9 class C (nameOffset:110) (firstTokenOffset:104) (offset:110)
           element: <testLibrary>::@class::C
@@ -6057,7 +6072,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F11 isOriginDeclaration foo (nameOffset:141) (firstTokenOffset:141) (offset:141)
+            #F11 isOriginDeclaration isCompleteDeclaration foo (nameOffset:141) (firstTokenOffset:141) (offset:141)
               element: <testLibrary>::@class::C::@method::foo
         #F12 class D (nameOffset:159) (firstTokenOffset:153) (offset:159)
           element: <testLibrary>::@class::D
@@ -6136,13 +6151,13 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F20 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F20 isOriginVariable isCompleteDeclaration a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::E::@getter::a
-            #F21 isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F21 isOriginVariable isCompleteDeclaration b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::b
-            #F22 isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F22 isOriginVariable isCompleteDeclaration c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::c
-            #F23 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F23 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class M
@@ -6328,9 +6343,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -6432,7 +6447,7 @@ library
             #F2 isOriginDeclaration value (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@class::A::@field::value
           constructors
-            #F3 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:35) (offset:41)
+            #F3 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:35) (offset:41)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
               typeNameOffset: 41
@@ -6440,7 +6455,7 @@ library
                 #F4 requiredPositional final this.value (nameOffset:48) (firstTokenOffset:43) (offset:48)
                   element: <testLibrary>::@class::A::@constructor::new::@formalParameter::value
           getters
-            #F5 isOriginVariable value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isOriginVariable isCompleteDeclaration value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@class::A::@getter::value
       enums
         #F6 enum E (nameOffset:64) (firstTokenOffset:59) (offset:64)
@@ -6543,13 +6558,13 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F12 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+            #F12 isOriginVariable isCompleteDeclaration a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
               element: <testLibrary>::@enum::E::@getter::a
-            #F13 isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:83)
+            #F13 isOriginVariable isCompleteDeclaration b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:83)
               element: <testLibrary>::@enum::E::@getter::b
-            #F14 isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
+            #F14 isOriginVariable isCompleteDeclaration c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:96)
               element: <testLibrary>::@enum::E::@getter::c
-            #F15 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F15 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class A
@@ -6729,9 +6744,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -6841,9 +6856,9 @@ library
               typeName: E
               typeNameOffset: 41
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -6969,12 +6984,12 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
           methods
-            #F7 isOriginDeclaration foo (nameOffset:40) (firstTokenOffset:30) (offset:40)
+            #F7 isOriginDeclaration isCompleteDeclaration foo (nameOffset:40) (firstTokenOffset:30) (offset:40)
               element: <testLibrary>::@enum::E::@method::foo
               metadata
                 Annotation
@@ -7135,14 +7150,14 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@enum::E::@getter::foo
           methods
-            #F10 isOriginDeclaration bar (nameOffset:81) (firstTokenOffset:69) (offset:81)
+            #F10 isOriginDeclaration isCompleteDeclaration bar (nameOffset:81) (firstTokenOffset:69) (offset:81)
               element: <testLibrary>::@enum::E::@method::bar
               metadata
                 Annotation
@@ -7207,6 +7222,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -7316,9 +7332,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F8 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -7367,6 +7383,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -7440,9 +7457,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F7 hasInitializer isOriginDeclaration a (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -7564,7 +7581,7 @@ library
             #F4 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -7572,11 +7589,11 @@ library
                 #F6 optionalNamed final this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -7682,7 +7699,7 @@ library
             #F4 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -7690,11 +7707,11 @@ library
                 #F6 optionalPositional final this.foo (nameOffset:19) (firstTokenOffset:8) (offset:19)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -7807,7 +7824,7 @@ library
             #F4 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -7815,11 +7832,11 @@ library
                 #F6 requiredNamed final this.foo (nameOffset:27) (firstTokenOffset:8) (offset:27)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -7928,7 +7945,7 @@ library
             #F4 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -7945,11 +7962,11 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -8080,7 +8097,7 @@ library
             #F4 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -8097,11 +8114,11 @@ library
                         staticType: null
                       element: dart:core::@getter::deprecated
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -8225,7 +8242,7 @@ library
             #F4 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -8233,14 +8250,14 @@ library
                 #F6 requiredPositional final this.foo (nameOffset:15) (firstTokenOffset:7) (offset:15)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
           setters
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@setter::foo
               formalParameters
                 #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
@@ -8337,7 +8354,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F4 isOriginDeclaration isCompleteDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@class::A::@getter::foo
       enums
         #F5 enum B (nameOffset:37) (firstTokenOffset:32) (offset:37)
@@ -8376,7 +8393,7 @@ library
             #F8 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::B::@field::foo
           constructors
-            #F9 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F9 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
               typeNameOffset: 37
@@ -8384,11 +8401,11 @@ library
                 #F10 requiredPositional final this.foo (nameOffset:45) (firstTokenOffset:39) (offset:45)
                   element: <testLibrary>::@enum::B::@constructor::new::@formalParameter::foo
           getters
-            #F11 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+            #F11 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
               element: <testLibrary>::@enum::B::@getter::v
-            #F12 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F12 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::B::@getter::values
-            #F13 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F13 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::B::@getter::foo
   classes
     class A
@@ -8521,7 +8538,7 @@ library
             #F5 isOriginDeclaringFormalParameter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
-            #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F6 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -8529,11 +8546,11 @@ library
                 #F7 requiredPositional final this.foo (nameOffset:18) (firstTokenOffset:10) (offset:18)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -8571,6 +8588,7 @@ library
         const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final declaring this.foo
               firstFragment: #F7
@@ -8642,7 +8660,7 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F4 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -8650,9 +8668,9 @@ library
                 #F5 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -8744,7 +8762,7 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F4 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -8752,9 +8770,9 @@ library
                 #F5 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -8851,7 +8869,7 @@ library
             #F4 isOriginDeclaration foo (nameOffset:39) (firstTokenOffset:39) (offset:39)
               element: <testLibrary>::@enum::A::@field::foo
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -8859,11 +8877,11 @@ library
                 #F6 requiredPositional final this.foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -8967,15 +8985,15 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F4 const isOriginDeclaration isPrimary named (nameOffset:13) (firstTokenOffset:5) (offset:13)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary named (nameOffset:13) (firstTokenOffset:5) (offset:13)
               element: <testLibrary>::@enum::A::@constructor::named
               typeName: A
               typeNameOffset: 11
               periodOffset: 12
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -9064,15 +9082,15 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F4 const isOriginDeclaration isPrimary named (nameOffset:7) (firstTokenOffset:5) (offset:7)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary named (nameOffset:7) (firstTokenOffset:5) (offset:7)
               element: <testLibrary>::@enum::A::@constructor::named
               typeName: A
               typeNameOffset: 5
               periodOffset: 6
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -9179,7 +9197,7 @@ library
                   literal: 1 @78
                   staticType: int
           constructors
-            #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:20) (offset:20)
+            #F6 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:20) (offset:20)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 20
@@ -9200,11 +9218,11 @@ library
                       element: <testLibrary>::@enum::E::@getter::foo
                       staticType: int
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
               element: <testLibrary>::@enum::E::@getter::foo
       topLevelVariables
         #F11 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -9261,6 +9279,7 @@ library
         const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 optionalPositional hasDefaultValue x
               firstFragment: #F7
@@ -9368,7 +9387,7 @@ library
                   rightBracket: ] @0
                   staticType: List<A<num, num>>
           constructors
-            #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F6 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
@@ -9378,9 +9397,9 @@ library
                 #F8 requiredPositional u (nameOffset:42) (firstTokenOffset:40) (offset:42)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::u
           getters
-            #F9 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F9 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@enum::A::@getter::v
-            #F10 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     notSimplyBounded enum A
@@ -9415,6 +9434,7 @@ library
         const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional t
               firstFragment: #F7
@@ -9478,14 +9498,14 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F4 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:11)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:11)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 11
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -9569,14 +9589,14 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F4 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 5
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   enums
     enum A
@@ -9663,15 +9683,15 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 18
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -9769,17 +9789,17 @@ library
             #F4 isOriginDeclaration x (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::E::@field::x
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 33
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F8 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@enum::E::@getter::x
   enums
     enum E
@@ -9892,7 +9912,7 @@ library
             #F4 isOriginDeclaration y (nameOffset:28) (firstTokenOffset:28) (offset:28)
               element: <testLibrary>::@enum::E::@field::y
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
                 Annotation
@@ -9912,11 +9932,11 @@ library
               typeNameOffset: 5
               thisKeywordOffset: 52
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F8 isOriginVariable y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F8 isOriginVariable isCompleteDeclaration y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@enum::E::@getter::y
   enums
     enum E
@@ -10042,7 +10062,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               metadata
                 Annotation
@@ -10059,9 +10079,9 @@ library
                 #F5 requiredPositional x (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -10165,16 +10185,16 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const isOriginDeclaration isPrimary named (nameOffset:7) (firstTokenOffset:5) (offset:7)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary named (nameOffset:7) (firstTokenOffset:5) (offset:7)
               element: <testLibrary>::@enum::E::@constructor::named
               typeName: E
               typeNameOffset: 5
               periodOffset: 6
               thisKeywordOffset: 32
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -10273,9 +10293,9 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -10362,15 +10382,15 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
               thisKeywordOffset: 18
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -10469,7 +10489,7 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           constructors
-            #F4 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F4 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
@@ -10478,9 +10498,9 @@ library
                 #F5 requiredPositional x (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::x
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@enum::E::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -10600,9 +10620,9 @@ library
               typeNameOffset: 40
               periodOffset: 41
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -10695,9 +10715,9 @@ library
               typeName: E
               typeNameOffset: 32
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@enum::E::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@getter::values
   enums
     enum E
@@ -10797,18 +10817,18 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F9 isOriginDeclaration bar (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F9 isOriginDeclaration isCompleteDeclaration bar (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: <testLibrary>::@enum::A::@method::bar
   enums
     enum A
@@ -10958,9 +10978,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::A::@getter::values
     #F1 package:test/a1.dart
       element: <testLibrary>
@@ -11123,10 +11143,10 @@ library
               element: <testLibrary>::@enum::A::@def::0::@constructor::new
               typeName: A
           getters
-            #F4 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F4 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@def::0::@getter::values
           methods
-            #F5 isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
+            #F5 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
               element: <testLibrary>::@enum::A::@def::0::@method::foo1
         #F6 enum A (nameOffset:43) (firstTokenOffset:38) (offset:43)
           element: <testLibrary>::@enum::A::@def::1
@@ -11163,18 +11183,18 @@ library
               element: <testLibrary>::@enum::A::@def::1::@constructor::new
               typeName: A
           getters
-            #F11 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+            #F11 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@enum::A::@def::1::@getter::v
-            #F12 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F12 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::A::@def::1::@getter::values
           methods
-            #F13 isOriginDeclaration foo2 (nameOffset:59) (firstTokenOffset:54) (offset:59)
+            #F13 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:59) (firstTokenOffset:54) (offset:59)
               element: <testLibrary>::@enum::A::@def::1::@method::foo2
         #F7 enum A (nameOffset:85) (firstTokenOffset:72) (offset:85)
           element: <testLibrary>::@enum::A::@def::1
           previousFragment: #F6
           methods
-            #F14 isOriginDeclaration foo3 (nameOffset:97) (firstTokenOffset:92) (offset:97)
+            #F14 isOriginDeclaration isCompleteDeclaration foo3 (nameOffset:97) (firstTokenOffset:92) (offset:97)
               element: <testLibrary>::@enum::A::@def::1::@method::foo3
   enums
     enum A
@@ -11289,16 +11309,16 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F5 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+            #F5 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F6 isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
+            #F6 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
               element: <testLibrary>::@enum::A::@method::foo1
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F7 isOriginDeclaration foo2 (nameOffset:63) (firstTokenOffset:58) (offset:63)
+            #F7 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:63) (firstTokenOffset:58) (offset:63)
               element: <testLibrary>::@enum::A::@method::foo2
   enums
     enum A
@@ -11394,9 +11414,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@enum::A
@@ -11417,7 +11437,7 @@ library
                     rightParenthesis: ) @0
                   staticType: A
           getters
-            #F9 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F9 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@enum::A::@getter::v2
   enums
     enum A
@@ -11538,9 +11558,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@enum::A
@@ -11562,7 +11582,7 @@ library
                     rightParenthesis: ) @0
                   staticType: A
           getters
-            #F10 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F10 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@enum::A::@getter::v2
         #F8 enum A (nameOffset:55) (firstTokenOffset:42) (offset:55)
           element: <testLibrary>::@enum::A
@@ -11583,7 +11603,7 @@ library
                     rightParenthesis: ) @0
                   staticType: A
           getters
-            #F12 isOriginVariable v3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+            #F12 isOriginVariable isCompleteDeclaration v3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@enum::A::@getter::v3
   enums
     enum A
@@ -11714,9 +11734,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@enum::A
@@ -11753,7 +11773,7 @@ library
                   staticType: A
               previousFragment: #F8
           getters
-            #F10 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F10 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@enum::A::@getter::v2
   enums
     enum A
@@ -11903,13 +11923,13 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F9 isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F9 isOriginVariable isCompleteDeclaration v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F10 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+            #F10 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@enum::A::@getter::v2
-            #F11 isOriginVariable v3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F11 isOriginVariable isCompleteDeclaration v3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v3
-            #F12 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F12 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:38) (firstTokenOffset:25) (offset:38)
           element: <testLibrary>::@enum::A
@@ -12086,11 +12106,11 @@ library
                 #F8 requiredPositional value (nameOffset:39) (firstTokenOffset:35) (offset:39)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::value
           getters
-            #F9 isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F9 isOriginVariable isCompleteDeclaration v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v1
-            #F10 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F10 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@enum::A::@getter::v2
-            #F11 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F11 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:63) (firstTokenOffset:50) (offset:63)
           element: <testLibrary>::@enum::A
@@ -12248,11 +12268,11 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v2
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:33) (firstTokenOffset:20) (offset:33)
           element: <testLibrary>::@enum::A
@@ -12377,9 +12397,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:38) (firstTokenOffset:25) (offset:38)
           element: <testLibrary>::@enum::A
@@ -12502,9 +12522,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A<dynamic>>
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:45) (firstTokenOffset:32) (offset:45)
           element: <testLibrary>::@enum::A
@@ -12551,6 +12571,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F10
@@ -12626,9 +12647,9 @@ library
               typeName: A
               typeNameOffset: 22
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:43) (firstTokenOffset:30) (offset:43)
           element: <testLibrary>::@enum::A
@@ -12734,9 +12755,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@enum::A
@@ -12844,9 +12865,9 @@ library
               typeNameOffset: 22
               periodOffset: 23
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:49) (firstTokenOffset:36) (offset:49)
           element: <testLibrary>::@enum::A
@@ -12958,17 +12979,17 @@ library
             #F5 isOriginDeclaration f (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@enum::A::@field::f
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F8 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F8 isOriginVariable isCompleteDeclaration f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@getter::f
         #F2 enum A (nameOffset:48) (firstTokenOffset:35) (offset:48)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           constructors
-            #F9 const isOriginDeclaration named (nameOffset:63) (firstTokenOffset:55) (offset:63)
+            #F9 const isOriginDeclaration isCompleteDeclaration named (nameOffset:63) (firstTokenOffset:55) (offset:63)
               element: <testLibrary>::@enum::A::@constructor::named
               typeName: A
               typeNameOffset: 61
@@ -13085,17 +13106,17 @@ library
             #F5 isOriginDeclaration f (nameOffset:26) (firstTokenOffset:26) (offset:26)
               element: <testLibrary>::@enum::A::@field::f
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F8 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F8 isOriginVariable isCompleteDeclaration f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::f
         #F2 enum A (nameOffset:45) (firstTokenOffset:32) (offset:45)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           constructors
-            #F9 const isOriginDeclaration named (nameOffset:60) (firstTokenOffset:52) (offset:60)
+            #F9 const isOriginDeclaration isCompleteDeclaration named (nameOffset:60) (firstTokenOffset:52) (offset:60)
               element: <testLibrary>::@enum::A::@constructor::named
               typeName: A
               typeNameOffset: 58
@@ -13223,11 +13244,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
@@ -13360,11 +13381,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
@@ -13510,11 +13531,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F11
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
@@ -13522,7 +13543,7 @@ library
           previousFragment: #F1
           nextFragment: #F12
           getters
-            #F11 augment isOriginDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
+            #F11 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F10
         #F12 enum A (nameOffset:100) (firstTokenOffset:87) (offset:100)
@@ -13656,18 +13677,18 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           nextFragment: #F11
           setters
-            #F12 augment isOriginDeclaration foo (nameOffset:70) (firstTokenOffset:58) (offset:70)
+            #F12 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:70) (firstTokenOffset:58) (offset:70)
               element: <testLibrary>::@enum::A::@setter::foo
               formalParameters
                 #F13 requiredPositional _ (nameOffset:78) (firstTokenOffset:74) (offset:78)
@@ -13810,11 +13831,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
@@ -13947,11 +13968,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:83) (firstTokenOffset:70) (offset:83)
           element: <testLibrary>::@enum::A
@@ -14079,11 +14100,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F10 isOriginDeclaration isCompleteDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:50) (firstTokenOffset:37) (offset:50)
           element: <testLibrary>::@enum::A
@@ -14211,11 +14232,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isOriginVariable isCompleteDeclaration foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo1
         #F2 enum A (nameOffset:52) (firstTokenOffset:39) (offset:52)
           element: <testLibrary>::@enum::A
@@ -14228,7 +14249,7 @@ library
                   literal: 0 @76
                   staticType: int
           getters
-            #F11 isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+            #F11 isOriginVariable isCompleteDeclaration foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
               element: <testLibrary>::@enum::A::@getter::foo2
   enums
     enum A
@@ -14368,11 +14389,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F9 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F9 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F10 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F11 isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F11 isOriginVariable isCompleteDeclaration foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@enum::A::@getter::foo1
         #F2 enum A (nameOffset:56) (firstTokenOffset:43) (offset:56)
           element: <testLibrary>::@enum::A
@@ -14385,7 +14406,7 @@ library
             #F12 isOriginDeclaration foo2 (nameOffset:74) (firstTokenOffset:74) (offset:74)
               element: <testLibrary>::@enum::A::@field::foo2
           getters
-            #F13 isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+            #F13 isOriginVariable isCompleteDeclaration foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
               element: <testLibrary>::@enum::A::@getter::foo2
   enums
     enum A
@@ -14428,6 +14449,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -14510,7 +14532,7 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:19) (offset:25)
+            #F5 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:19) (offset:25)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 25
@@ -14518,9 +14540,9 @@ library
                 #F6 requiredPositional final this.foo (nameOffset:32) (firstTokenOffset:27) (offset:32)
                   element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:54) (firstTokenOffset:41) (offset:54)
           element: <testLibrary>::@enum::A
@@ -14529,7 +14551,7 @@ library
             #F9 isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:71) (offset:71)
               element: <testLibrary>::@enum::A::@field::foo
           getters
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -14638,14 +14660,14 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
-            #F5 const isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:22)
+            #F5 const isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:16) (offset:22)
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
               typeNameOffset: 22
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:53) (firstTokenOffset:40) (offset:53)
           element: <testLibrary>::@enum::A
@@ -14654,7 +14676,7 @@ library
             #F8 isOriginDeclaration foo (nameOffset:70) (firstTokenOffset:70) (offset:70)
               element: <testLibrary>::@enum::A::@field::foo
           getters
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:70)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -14774,11 +14796,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginDeclaration foo1 (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F9 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo1
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
@@ -14787,7 +14809,7 @@ library
             #F10 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@enum::A::@field::foo2
           getters
-            #F11 isOriginDeclaration foo2 (nameOffset:66) (firstTokenOffset:58) (offset:66)
+            #F11 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:66) (firstTokenOffset:58) (offset:66)
               element: <testLibrary>::@enum::A::@getter::foo2
   enums
     enum A
@@ -14921,9 +14943,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F9 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F9 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F10 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
             #F11 isOriginDeclaration foo1 (nameOffset:32) (firstTokenOffset:26) (offset:32)
               element: <testLibrary>::@enum::A::@getter::foo1
@@ -14981,6 +15003,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -15069,18 +15092,18 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F10
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           getters
-            #F10 augment isOriginDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
+            #F10 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F9
   enums
@@ -15202,11 +15225,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F10
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
@@ -15214,7 +15237,7 @@ library
           previousFragment: #F1
           nextFragment: #F11
           getters
-            #F10 augment isOriginDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
+            #F10 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:74) (firstTokenOffset:58) (offset:74)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F9
               nextFragment: #F12
@@ -15222,7 +15245,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           getters
-            #F12 augment isOriginDeclaration foo (nameOffset:123) (firstTokenOffset:107) (offset:123)
+            #F12 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:123) (firstTokenOffset:107) (offset:123)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F10
   enums
@@ -15339,20 +15362,20 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F10 isOriginDeclaration foo1 (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F10 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo1
               nextFragment: #F11
-            #F12 isOriginDeclaration foo2 (nameOffset:45) (firstTokenOffset:37) (offset:45)
+            #F12 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:45) (firstTokenOffset:37) (offset:45)
               element: <testLibrary>::@enum::A::@getter::foo2
         #F2 enum A (nameOffset:72) (firstTokenOffset:59) (offset:72)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           getters
-            #F11 augment isOriginDeclaration foo1 (nameOffset:95) (firstTokenOffset:79) (offset:95)
+            #F11 augment isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:95) (firstTokenOffset:79) (offset:95)
               element: <testLibrary>::@enum::A::@getter::foo1
               previousFragment: #F10
   enums
@@ -15474,22 +15497,22 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F9 isOriginDeclaration isCompleteDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F10
         #F2 enum A (nameOffset:50) (firstTokenOffset:37) (offset:50)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           getters
-            #F10 augment isOriginDeclaration foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
+            #F10 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F9
               nextFragment: #F11
-            #F11 augment isOriginDeclaration foo (nameOffset:101) (firstTokenOffset:85) (offset:101)
+            #F11 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:101) (firstTokenOffset:85) (offset:101)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F10
   enums
@@ -15604,11 +15627,11 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
+            #F9 isOriginDeclaration isCompleteDeclaration foo (nameOffset:24) (firstTokenOffset:16) (offset:24)
               element: <testLibrary>::@enum::A::@getter::foo
               nextFragment: #F10
         #F2 enum A (nameOffset:50) (firstTokenOffset:37) (offset:50)
@@ -15616,7 +15639,7 @@ library
           previousFragment: #F1
           nextFragment: #F11
           getters
-            #F10 augment isOriginDeclaration foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
+            #F10 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:73) (firstTokenOffset:57) (offset:73)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F9
               nextFragment: #F12
@@ -15624,7 +15647,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           getters
-            #F12 augment isOriginDeclaration foo (nameOffset:122) (firstTokenOffset:106) (offset:122)
+            #F12 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:122) (firstTokenOffset:106) (offset:122)
               element: <testLibrary>::@enum::A::@getter::foo
               previousFragment: #F10
   enums
@@ -15730,9 +15753,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@enum::A
@@ -15741,7 +15764,7 @@ library
             #F7 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@field::foo
           getters
-            #F8 augment isOriginDeclaration foo (nameOffset:52) (firstTokenOffset:36) (offset:52)
+            #F8 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:52) (firstTokenOffset:36) (offset:52)
               element: <testLibrary>::@enum::A::@getter::foo
   enums
     enum A
@@ -15856,9 +15879,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F10 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F10 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
-            #F11 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F11 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F6 enum A (nameOffset:55) (firstTokenOffset:42) (offset:55)
           element: <testLibrary>::@enum::A
@@ -15998,9 +16021,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F12 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F12 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
-            #F13 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F13 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F8 enum A (nameOffset:55) (firstTokenOffset:42) (offset:55)
           element: <testLibrary>::@enum::A
@@ -16160,9 +16183,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F13 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F13 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@enum::A::@getter::v
-            #F14 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F14 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F7 enum A (nameOffset:65) (firstTokenOffset:52) (offset:65)
           element: <testLibrary>::@enum::A
@@ -16189,6 +16212,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
   enums
     enum A
       reference: <testLibrary>::@enum::A
@@ -16221,6 +16245,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F12
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -16312,9 +16337,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F13 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+            #F13 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@enum::A::@getter::v
-            #F14 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F14 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F7 enum A (nameOffset:58) (firstTokenOffset:45) (offset:58)
           element: <testLibrary>::@enum::A
@@ -16341,6 +16366,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
   enums
     enum A
       reference: <testLibrary>::@enum::A
@@ -16373,6 +16399,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F12
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -16443,18 +16470,18 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F9 isOriginDeclaration bar (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F9 isOriginDeclaration isCompleteDeclaration bar (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: <testLibrary>::@enum::A::@method::bar
   enums
     enum A
@@ -16559,15 +16586,15 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F8 isOriginDeclaration foo (nameOffset:41) (firstTokenOffset:36) (offset:41)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:41) (firstTokenOffset:36) (offset:41)
               element: <testLibrary>::@enum::A::@method::foo
               formalParameters
                 #F9 optionalPositional x (nameOffset:50) (firstTokenOffset:46) (offset:50)
@@ -16685,21 +16712,21 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 isOriginDeclaration foo1 (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo1
               nextFragment: #F9
-            #F10 isOriginDeclaration foo2 (nameOffset:38) (firstTokenOffset:33) (offset:38)
+            #F10 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:38) (firstTokenOffset:33) (offset:38)
               element: <testLibrary>::@enum::A::@method::foo2
         #F2 enum A (nameOffset:64) (firstTokenOffset:51) (offset:64)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F9 augment isOriginDeclaration foo1 (nameOffset:84) (firstTokenOffset:71) (offset:84)
+            #F9 augment isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:84) (firstTokenOffset:71) (offset:84)
               element: <testLibrary>::@enum::A::@method::foo1
               previousFragment: #F8
   enums
@@ -16808,23 +16835,23 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
               nextFragment: #F9
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           methods
-            #F9 augment isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F9 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F8
               nextFragment: #F10
-            #F10 augment isOriginDeclaration foo (nameOffset:90) (firstTokenOffset:77) (offset:90)
+            #F10 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:90) (firstTokenOffset:77) (offset:90)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F9
   enums
@@ -16931,12 +16958,12 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
               nextFragment: #F9
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
@@ -16944,7 +16971,7 @@ library
           previousFragment: #F1
           nextFragment: #F10
           methods
-            #F9 augment isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F9 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F8
               nextFragment: #F11
@@ -16952,7 +16979,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           methods
-            #F11 augment isOriginDeclaration foo (nameOffset:110) (firstTokenOffset:97) (offset:110)
+            #F11 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:110) (firstTokenOffset:97) (offset:110)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F9
   enums
@@ -17060,12 +17087,12 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F8 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:21) (firstTokenOffset:16) (offset:21)
               element: <testLibrary>::@enum::A::@method::foo
               nextFragment: #F9
         #F2 enum A (nameOffset:46) (firstTokenOffset:33) (offset:46)
@@ -17073,7 +17100,7 @@ library
           previousFragment: #F1
           nextFragment: #F10
           methods
-            #F9 augment isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F9 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F8
               nextFragment: #F11
@@ -17081,7 +17108,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F2
           methods
-            #F11 augment isOriginDeclaration foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
+            #F11 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F9
   enums
@@ -17199,12 +17226,12 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F10 isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
+            #F10 isOriginDeclaration isCompleteDeclaration foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@enum::A::@method::foo
         #F2 enum A (nameOffset:62) (firstTokenOffset:49) (offset:62)
           element: <testLibrary>::@enum::A
@@ -17214,7 +17241,7 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F11 isOriginDeclaration bar (nameOffset:74) (firstTokenOffset:72) (offset:74)
+            #F11 isOriginDeclaration isCompleteDeclaration bar (nameOffset:74) (firstTokenOffset:72) (offset:74)
               element: <testLibrary>::@enum::A::@method::bar
   enums
     enum A
@@ -17245,6 +17272,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -17340,12 +17368,12 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           methods
-            #F10 isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
+            #F10 isOriginDeclaration isCompleteDeclaration foo (nameOffset:28) (firstTokenOffset:26) (offset:28)
               element: <testLibrary>::@enum::A::@method::foo
               nextFragment: #F11
         #F2 enum A (nameOffset:62) (firstTokenOffset:49) (offset:62)
@@ -17356,7 +17384,7 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F11 augment isOriginDeclaration foo (nameOffset:82) (firstTokenOffset:72) (offset:82)
+            #F11 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:82) (firstTokenOffset:72) (offset:82)
               element: <testLibrary>::@enum::A::@method::foo
               previousFragment: #F10
   enums
@@ -17388,6 +17416,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -17463,9 +17492,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:49) (firstTokenOffset:36) (offset:49)
           element: <testLibrary>::@enum::A
@@ -17601,9 +17630,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:66) (firstTokenOffset:53) (offset:66)
           element: <testLibrary>::@enum::A
@@ -17670,6 +17699,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -17767,12 +17797,12 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           setters
-            #F9 isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:16) (offset:20)
+            #F9 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:20) (firstTokenOffset:16) (offset:20)
               element: <testLibrary>::@enum::A::@setter::foo1
               formalParameters
                 #F10 requiredPositional _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
@@ -17784,7 +17814,7 @@ library
             #F11 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@enum::A::@field::foo2
           setters
-            #F12 isOriginDeclaration foo2 (nameOffset:62) (firstTokenOffset:58) (offset:62)
+            #F12 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:62) (firstTokenOffset:58) (offset:62)
               element: <testLibrary>::@enum::A::@setter::foo2
               formalParameters
                 #F13 requiredPositional _ (nameOffset:71) (firstTokenOffset:67) (offset:71)
@@ -17920,17 +17950,17 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
-            #F9 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F9 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::A::@getter::foo
         #F2 enum A (nameOffset:51) (firstTokenOffset:38) (offset:51)
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           setters
-            #F10 augment isOriginDeclaration foo (nameOffset:70) (firstTokenOffset:58) (offset:70)
+            #F10 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:70) (firstTokenOffset:58) (offset:70)
               element: <testLibrary>::@enum::A::@setter::foo
               formalParameters
                 #F11 requiredPositional _ (nameOffset:78) (firstTokenOffset:74) (offset:78)
@@ -18054,9 +18084,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@enum::A
@@ -18065,7 +18095,7 @@ library
             #F8 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::A::@field::foo
           setters
-            #F9 augment isOriginDeclaration foo (nameOffset:48) (firstTokenOffset:36) (offset:48)
+            #F9 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:48) (firstTokenOffset:36) (offset:48)
               element: <testLibrary>::@enum::A::@setter::foo
               formalParameters
                 #F10 requiredPositional _ (nameOffset:56) (firstTokenOffset:52) (offset:56)
@@ -18186,18 +18216,18 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
           setters
-            #F10 isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:16) (offset:20)
+            #F10 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:20) (firstTokenOffset:16) (offset:20)
               element: <testLibrary>::@enum::A::@setter::foo1
               formalParameters
                 #F11 requiredPositional _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@enum::A::@setter::foo1::@formalParameter::_
               nextFragment: #F12
-            #F13 isOriginDeclaration foo2 (nameOffset:41) (firstTokenOffset:37) (offset:41)
+            #F13 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:41) (firstTokenOffset:37) (offset:41)
               element: <testLibrary>::@enum::A::@setter::foo2
               formalParameters
                 #F14 requiredPositional _ (nameOffset:50) (firstTokenOffset:46) (offset:50)
@@ -18206,7 +18236,7 @@ library
           element: <testLibrary>::@enum::A
           previousFragment: #F1
           setters
-            #F12 augment isOriginDeclaration foo1 (nameOffset:91) (firstTokenOffset:79) (offset:91)
+            #F12 augment isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:91) (firstTokenOffset:79) (offset:91)
               element: <testLibrary>::@enum::A::@setter::foo1
               formalParameters
                 #F15 requiredPositional _ (nameOffset:100) (firstTokenOffset:96) (offset:100)
@@ -18338,9 +18368,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::A::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
   classes
     class A
@@ -18433,9 +18463,9 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F5 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F5 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::A::@def::0::@getter::v
-            #F6 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F6 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@def::0::@getter::values
         #F7 enum A (nameOffset:44) (firstTokenOffset:31) (offset:44)
           element: <testLibrary>::@enum::A::@def::1
@@ -18448,7 +18478,7 @@ library
                   rightBracket: ] @0
                   staticType: List<A>
           getters
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@enum::A::@def::1::@getter::values
   classes
     class A
@@ -18576,9 +18606,9 @@ library
               periodOffset: 31
               nextFragment: #F6
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:57) (firstTokenOffset:44) (offset:57)
           element: <testLibrary>::@enum::A
@@ -18704,9 +18734,9 @@ library
               periodOffset: 31
               nextFragment: #F6
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:57) (firstTokenOffset:44) (offset:57)
           element: <testLibrary>::@enum::A
@@ -18815,9 +18845,9 @@ library
               typeNameOffset: 22
               nextFragment: #F6
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::A::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F2 enum A (nameOffset:43) (firstTokenOffset:30) (offset:43)
           element: <testLibrary>::@enum::A
@@ -18932,15 +18962,15 @@ library
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@enum::B::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
               element: <testLibrary>::@enum::B::@getter::values
         #F2 enum B (nameOffset:59) (firstTokenOffset:46) (offset:59)
           element: <testLibrary>::@enum::B
           previousFragment: #F1
           methods
-            #F8 isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:66) (firstTokenOffset:66) (offset:66)
               element: <testLibrary>::@enum::B::@method::foo
               formalParameters
                 #F9 requiredPositional a (nameOffset:70) (firstTokenOffset:70) (offset:70)
@@ -19060,12 +19090,12 @@ library
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::B::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@getter::values
           methods
-            #F8 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@enum::B::@method::foo
               formalParameters
                 #F9 requiredPositional a (nameOffset:38) (firstTokenOffset:38) (offset:38)
@@ -19188,12 +19218,12 @@ library
               element: <testLibrary>::@enum::B::@constructor::new
               typeName: B
           getters
-            #F6 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+            #F6 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@enum::B::@getter::v
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
               element: <testLibrary>::@enum::B::@getter::values
           methods
-            #F8 isOriginDeclaration foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
+            #F8 isOriginDeclaration isCompleteDeclaration foo (nameOffset:34) (firstTokenOffset:34) (offset:34)
               element: <testLibrary>::@enum::B::@method::foo
               formalParameters
                 #F9 requiredPositional a (nameOffset:38) (firstTokenOffset:38) (offset:38)
@@ -19308,7 +19338,7 @@ library
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                   staticType: int
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
@@ -19316,11 +19346,11 @@ library
                 #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F9 isOriginVariable isCompleteDeclaration bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     enum E
@@ -19437,7 +19467,7 @@ library
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
                   staticType: int
           constructors
-            #F6 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F6 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
@@ -19445,13 +19475,13 @@ library
                 #F7 requiredPositional final this.foo (nameOffset:17) (firstTokenOffset:7) (offset:17)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
           getters
-            #F8 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F8 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::v
-            #F9 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F9 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F10 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F10 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::foo
-            #F11 isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+            #F11 isOriginVariable isCompleteDeclaration bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     enum E
@@ -19578,7 +19608,7 @@ library
                   element: <null>
                   staticType: InvalidType
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
@@ -19586,11 +19616,11 @@ library
                 #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+            #F9 isOriginVariable isCompleteDeclaration bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     enum E
@@ -19724,7 +19754,7 @@ library
                     staticType: int
                   staticType: int
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
@@ -19732,11 +19762,11 @@ library
                 #F6 requiredPositional foo (nameOffset:12) (firstTokenOffset:7) (offset:12)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+            #F9 isOriginVariable isCompleteDeclaration bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     enum E
@@ -19846,7 +19876,7 @@ library
             #F4 hasInitializer isOriginDeclaration bar (nameOffset:41) (firstTokenOffset:41) (offset:41)
               element: <testLibrary>::@enum::E::@field::bar
           constructors
-            #F5 const isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
+            #F5 const isOriginDeclaration isCompleteDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:5) (offset:5)
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
               typeNameOffset: 5
@@ -19854,11 +19884,11 @@ library
                 #F6 requiredPositional foo (nameOffset:11) (firstTokenOffset:7) (offset:11)
                   element: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
           getters
-            #F7 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F7 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@enum::E::@getter::v
-            #F8 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F8 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
-            #F9 isOriginVariable bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F9 isOriginVariable isCompleteDeclaration bar (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@enum::E::@getter::bar
   enums
     enum E
@@ -19981,9 +20011,9 @@ library
               element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
-            #F10 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+            #F10 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@enum::A::@getter::v
-            #F11 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F11 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::A::@getter::values
         #F4 enum A (nameOffset:53) (firstTokenOffset:40) (offset:53)
           element: <testLibrary>::@enum::A
@@ -20030,6 +20060,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v

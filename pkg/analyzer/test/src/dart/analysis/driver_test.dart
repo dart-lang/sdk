@@ -59044,22 +59044,22 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
+              flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
+              flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59086,22 +59086,22 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
+              flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
+              flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59135,22 +59135,22 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
+              flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
+              flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59177,22 +59177,22 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
+              flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
+              flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59226,21 +59226,21 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
+              flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
+              flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
         interface: #M6
@@ -59266,20 +59266,20 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
+              flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
+              flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -81610,25 +81610,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81669,25 +81669,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81735,25 +81735,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
@@ -81794,25 +81794,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81860,25 +81860,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
@@ -81919,25 +81919,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core

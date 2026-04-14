@@ -173,6 +173,14 @@ mixin _ExecutableFragmentImplMixin {
     setModifier(Modifier.ASYNCHRONOUS, value);
   }
 
+  bool get isCompleteDeclaration {
+    return hasModifier(Modifier.COMPLETE_DECLARATION);
+  }
+
+  set isCompleteDeclaration(bool value) {
+    setModifier(Modifier.COMPLETE_DECLARATION, value);
+  }
+
   /// Executable elements are external if they are explicitly marked as such
   /// using the 'external' keyword.
   bool get isExternal {

@@ -2795,7 +2795,8 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
       __ ExtractBitField(
           STCInternal::kInstanceInstantiatorTypeArgumentsReg,
           STCInternal::kScratchReg,
-          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::shift(),
+          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::shift() +
+              kSmiTagShift,
           UntaggedClosure::InstantiatorTypeArgumentsIndexBits::bitsize());
       __ Load(
           STCInternal::kInstanceInstantiatorTypeArgumentsReg,
@@ -2812,7 +2813,8 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
             &no_function_type_arguments);
         __ ExtractBitField(
             STCInternal::kScratchReg, STCInternal::kScratchReg,
-            UntaggedClosure::FunctionTypeArgumentsIndexBits::shift(),
+            UntaggedClosure::FunctionTypeArgumentsIndexBits::shift() +
+                kSmiTagShift,
             UntaggedClosure::FunctionTypeArgumentsIndexBits::bitsize());
         __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
                               STCInternal::kScratchReg, TIMES_WORD_SIZE,

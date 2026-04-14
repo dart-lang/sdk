@@ -725,6 +725,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   @trackedIncludedInId
+  bool get hasEnclosingTypeParameterReference {
+    return enclosingElement.typeParameters.isNotEmpty;
+  }
+
+  @override
+  @trackedIncludedInId
   bool get isConst => _firstFragment.isConst;
 
   @override
@@ -8263,6 +8269,9 @@ enum Modifier {
   /// Indicates that the modifier 'const' was applied to the element.
   CONST,
 
+  /// Indicates that the declaration is complete for purposes of augmentation.
+  COMPLETE_DECLARATION,
+
   /// Indicates that the modifier 'covariant' was applied to the element.
   EXPLICITLY_COVARIANT,
 
@@ -10690,6 +10699,7 @@ enum _ExecutableFragmentImplModifiers {
   /// using the 'external' keyword.
   isExternal,
   isGenerator,
+  isCompleteDeclaration,
   isStatic,
 }
 
