@@ -440,7 +440,9 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           verify: c.options.verify,
         );
         componentWithDill = buildResult.component;
-      } else if (componentWithDill != null) {
+      }
+      // Coverage-ignore(suite): Not run.
+      else if (componentWithDill != null) {
         context.options.target.performOutlineTransformations(
           componentWithDill,
           libraries: currentKernelTarget.loader.libraries,
