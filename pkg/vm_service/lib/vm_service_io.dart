@@ -8,11 +8,18 @@ import 'dart:io';
 import 'vm_service.dart';
 
 /// Connect to the given uri and return a new [VmService] instance.
-Future<VmService> vmServiceConnectUri(String wsUri, {Log? log}) async {
+Future<VmService> vmServiceConnectUri(
+  String wsUri, {
+  Log? log,
+  // pingInterval has a default to act as a keep-alive to prevent proxies like
+  // Norton antivirus from dropping connections with no traffic for a period.
+  Duration? pingInterval = const Duration(seconds: 15),
+}) async {
   return vmServiceConnectUriWithFactory<VmService>(
     wsUri,
     vmServiceFactory: VmService.defaultFactory,
     log: log,
+    pingInterval: pingInterval,
   );
 }
 
@@ -22,8 +29,12 @@ Future<T> vmServiceConnectUriWithFactory<T extends VmService>(
   String wsUri, {
   required VmServiceFactory<T> vmServiceFactory,
   Log? log,
+  // pingInterval has a default to act as a keep-alive to prevent proxies like
+  // Norton antivirus from dropping connections with no traffic for a period.
+  Duration? pingInterval = const Duration(seconds: 15),
 }) async {
-  final WebSocket socket = await WebSocket.connect(wsUri);
+  final WebSocket socket = await WebSocket.connect(wsUri)
+    ..pingInterval = pingInterval;
   final StreamController<dynamic> controller = StreamController();
   final Completer streamClosedCompleter = Completer();
 
