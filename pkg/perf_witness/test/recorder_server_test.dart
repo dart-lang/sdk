@@ -9,6 +9,7 @@ import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 import 'package:perf_witness/recorder.dart';
+import 'package:perf_witness/server.dart';
 import 'package:perf_witness/src/common.dart';
 import 'package:perf_witness/src/json_rpc.dart';
 import 'package:test/test.dart';
@@ -834,6 +835,32 @@ void main() {
       conn.disconnect();
       await busyLoopProcess.process.askToExit();
       expect(await busyLoopProcess.process.exitCode, 0);
+    });
+
+    test('stale control socket', () async {
+      final socketPath = p.join(tempDir.path, 'stale');
+      expect(
+        io.FileSystemEntity.typeSync(socketPath),
+        io.FileSystemEntityType.notFound,
+      );
+      await io.Process.run(io.Platform.resolvedExecutable, [
+        p.join(testsDir, 'common', 'create_stale_socket.dart'),
+        socketPath,
+      ]);
+      expect(
+        io.FileSystemEntity.typeSync(socketPath),
+        io.FileSystemEntityType.unixDomainSock,
+      );
+      expectLater(
+        UnixDomainSocket.connect(socketPath),
+        throwsA(isA<io.SocketException>()),
+      );
+
+      await PerfWitnessServer.start(socketPath: socketPath);
+      final clientSocket = await UnixDomainSocket.connect(socketPath);
+      clientSocket.drain().ignore();
+      await clientSocket.close();
+      await PerfWitnessServer.shutdown();
     });
   });
 
