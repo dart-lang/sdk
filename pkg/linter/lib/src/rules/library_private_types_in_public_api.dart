@@ -60,7 +60,6 @@ class Validator extends SimpleAstVisitor<void> {
     if (isPrivateName(node.name.lexeme)) {
       return;
     }
-    node.superclass.accept(this);
     node.typeParameters?.accept(this);
   }
 
