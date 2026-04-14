@@ -2781,6 +2781,17 @@ void StubCodeCompiler::GenerateFfiAsyncCallbackSendStub() {
   __ Ret();
 }
 
+void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
+  ASSERT(pc_descriptors_list_ != nullptr);
+  const intptr_t pc_offset = assembler->InsertAlignedRelocation(reloc);
+  pc_descriptors_list_->AddDescriptor(
+      UntaggedPcDescriptors::kBSSRelocation, pc_offset,
+      /*deopt_id=*/DeoptId::kNone,
+      /*token_pos=*/TokenPosition::kNoSource,
+      /*try_index=*/-1,
+      /*yield_index=*/UntaggedPcDescriptors::kInvalidYieldIndex);
+}
+
 #if !defined(TARGET_ARCH_IA32)
 static void GenerateSubtypeTestCacheLoopBody(Assembler* assembler,
                                              int n,

@@ -434,6 +434,28 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
   __ Breakpoint();  // See ffi_trampolines_arm64.S
 }
 
+void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
+                                            Register dst,
+                                            Register tmp) {
+  compiler::Label skip_reloc;
+  __ b(&skip_reloc);
+  InsertBSSRelocation(relocation);
+  __ Bind(&skip_reloc);
+
+  __ adr(tmp, compiler::Immediate(-compiler::target::kWordSize));
+
+  // tmp holds the address of the relocation.
+  __ ldr(dst, compiler::Address(tmp));
+
+  // dst holds the relocation itself: tmp - bss_start.
+  // tmp = tmp + (bss_start - tmp) = bss_start
+  __ add(tmp, tmp, compiler::Operand(dst));
+
+  // tmp holds the start of the BSS section.
+  // Load the "get-thread" routine: *bss_start.
+  __ ldr(dst, compiler::Address(tmp));
+}
+
 void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
     uword function_index,
     Register dst) {
@@ -499,8 +521,23 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mov(R0, R9);
     __ mov(R1, SP);
 
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_GetFfiCallbackMetadata, R4,
+                           R9);
+    } else {
+      Label call;
+      __ ldr(R4, Address::PC(2 * Instr::kInstrSize));
+      __ b(&call);
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_GetFfiCallbackMetadata));
+      __ Bind(&call);
+    }
+#else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, R4);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
+
     __ mov(CSP, SP);
     __ blr(R4);  // DLRT_GetFfiCallbackMetadata
     __ mov(SP, CSP);

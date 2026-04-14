@@ -29,26 +29,28 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
 
   ASSERT_LESS_OR_EQUAL(VirtualMemory::PageSize(), kPageSize);
 
-  uword code_start, code_end, code_size;
 #if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+  uword code_start, code_end, page_start;
   if (FLAG_use_simulator) {
     code_start = reinterpret_cast<uword>(SimulatorFfiCallbackTrampoline);
     code_end = reinterpret_cast<uword>(SimulatorFfiCallbackTrampolineEnd);
-    code_size = code_end - code_start;
+    page_start = code_start & ~(VirtualMemory::PageSize() - 1);
   } else {
     const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
     code_start = trampoline_code.EntryPoint();
     code_end = code_start + trampoline_code.Size();
-    code_size = trampoline_code.Size();
+    page_start = code_start & ~(VirtualMemory::PageSize() - 1);
+    ASSERT_LESS_OR_EQUAL((code_start - page_start) + trampoline_code.Size(),
+                         RXMappingSize());
   }
 #else
   const Code& trampoline_code = StubCode::FfiCallbackTrampoline();
-  code_start = trampoline_code.EntryPoint();
-  code_end = code_start + trampoline_code.Size();
-  code_size = trampoline_code.Size();
-#endif
+  const uword code_start = trampoline_code.EntryPoint();
+  const uword code_end = code_start + trampoline_code.Size();
   const uword page_start = code_start & ~(VirtualMemory::PageSize() - 1);
-  ASSERT_LESS_OR_EQUAL((code_start - page_start) + code_size, RXMappingSize());
+  ASSERT_LESS_OR_EQUAL((code_start - page_start) + trampoline_code.Size(),
+                       RXMappingSize());
+#endif
 
   // Stub page uses a tight (unaligned) bound for the end of the code area.
   // Otherwise we can read past the end of the code area when doing DuplicateRX.
@@ -56,6 +58,32 @@ void FfiCallbackMetadata::EnsureStubPageLocked() {
                                            code_end - page_start);
 
   offset_of_first_trampoline_in_page_ = code_start - page_start;
+
+#if defined(DART_TARGET_OS_FUCHSIA)
+  // On Fuchsia we can't currently duplicate pages, so use the first page of
+  // trampolines. Store the stub page's metadata in a separately allocated RW
+  // page.
+  // TODO(https://dartbug.com/52579): Remove.
+  original_metadata_page_ = VirtualMemory::AllocateAligned(
+      MappingSize(), MappingAlignment(), /*is_executable=*/false,
+      /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
+  MetadataEntry* metadata_entry = reinterpret_cast<MetadataEntry*>(
+      original_metadata_page_->start() + MetadataOffset());
+  for (intptr_t i = 0; i < NumCallbackTrampolinesPerPage(); ++i) {
+    AddToFreeListLocked(&metadata_entry[i]);
+  }
+#elif defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+  if (FLAG_use_simulator) {
+    original_metadata_page_ = VirtualMemory::AllocateAligned(
+        MappingSize(), MappingAlignment(), /*is_executable=*/false,
+        /*is_compressed=*/false, "FfiCallbackMetadata::TrampolinePage");
+    MetadataEntry* metadata_entry = reinterpret_cast<MetadataEntry*>(
+        original_metadata_page_->start() + MetadataOffset());
+    for (intptr_t i = 0; i < NumCallbackTrampolinesPerPage(); ++i) {
+      AddToFreeListLocked(&metadata_entry[i]);
+    }
+  }
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
 }
 
 FfiCallbackMetadata::~FfiCallbackMetadata() {
@@ -64,6 +92,12 @@ FfiCallbackMetadata::~FfiCallbackMetadata() {
   for (intptr_t i = 0; i < trampoline_pages_.length(); ++i) {
     delete trampoline_pages_[i];
   }
+
+#if defined(DART_TARGET_OS_FUCHSIA) ||                                         \
+    (defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64))
+  // TODO(https://dartbug.com/52579): Remove.
+  delete original_metadata_page_;
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
 }
 
 void FfiCallbackMetadata::Init() {
@@ -97,6 +131,18 @@ void FfiCallbackMetadata::FillRuntimeFunction(VirtualMemory* page,
 }
 
 VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
+#if defined(DART_TARGET_OS_FUCHSIA)
+  // TODO(https://dartbug.com/52579): Remove.
+  UNREACHABLE();
+  return nullptr;
+#else
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+  if (FLAG_use_simulator) {
+    UNREACHABLE();
+    return nullptr;
+  }
+#endif
+
 #if defined(DART_HOST_OS_MACOS) && defined(DART_PRECOMPILED_RUNTIME)
   const bool should_remap_stub_page = true;
 #else
@@ -110,9 +156,6 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
   // codesigning violation if hardened runtime is enabled or we will simply
   // not be able to execute trampoline code.
   const bool is_executable = !should_remap_stub_page;
-#elif defined(DART_HOST_OS_FUCHSIA)
-  // The initial allocation needs to be marked executable.
-  const bool is_executable = true;
 #else
   // On other operating systems we can simply flip RW->RX as necessary.
   const bool is_executable = false;
@@ -167,13 +210,8 @@ VirtualMemory* FfiCallbackMetadata::AllocateTrampolinePage() {
 #endif
 
   return new_page;
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
 }
-
-#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-struct CallbackContext;
-extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
-                                        uword trampoline);
-#endif
 
 void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   ASSERT(lock_.IsOwnedByCurrentThread());
@@ -192,10 +230,6 @@ void FfiCallbackMetadata::EnsureFreeListNotEmptyLocked() {
   // Fill in the runtime functions.
   FillRuntimeFunction(new_page, kGetFfiCallbackMetadata,
                       reinterpret_cast<void*>(DLRT_GetFfiCallbackMetadata));
-#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-  FillRuntimeFunction(new_page, kDoRedirectedFfiCallback,
-                      reinterpret_cast<void*>(DoRedirectedFfiCallback));
-#endif
 
   // Add all the trampolines to the free list.
   const intptr_t trampolines_per_page = NumCallbackTrampolinesPerPage();
@@ -399,12 +433,60 @@ FfiCallbackMetadata::Trampoline FfiCallbackMetadata::TrampolineOfMetadataEntry(
   MetadataEntry* metadata_entries =
       reinterpret_cast<MetadataEntry*>(start + MetadataOffset());
   const uword index = metadata_entry - metadata_entries;
+#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+  if (FLAG_use_simulator) {
+    return reinterpret_cast<uword>(SimulatorFfiCallbackTrampoline) +
+           index * kNativeCallbackTrampolineSize;
+  } else {
+    return start + offset_of_first_trampoline_in_page_ +
+           index * kNativeCallbackTrampolineSize;
+  }
+#elif defined(DART_TARGET_OS_FUCHSIA)
+  return StubCode::FfiCallbackTrampoline().EntryPoint() +
+         index * kNativeCallbackTrampolineSize;
+#else
   return start + offset_of_first_trampoline_in_page_ +
          index * kNativeCallbackTrampolineSize;
+#endif
 }
 
 FfiCallbackMetadata::MetadataEntry*
 FfiCallbackMetadata::MetadataEntryOfTrampoline(Trampoline trampoline) const {
+#if defined(DART_TARGET_OS_FUCHSIA)
+  // On Fuchsia the metadata page is separate to the trampoline page.
+  // TODO(https://dartbug.com/52579): Remove.
+  const uword page_start =
+      Utils::RoundDown(trampoline - offset_of_first_trampoline_in_page_,
+                       VirtualMemory::PageSize());
+  const uword index =
+      (trampoline - offset_of_first_trampoline_in_page_ - page_start) /
+      kNativeCallbackTrampolineSize;
+  ASSERT(index < NumCallbackTrampolinesPerPage());
+  MetadataEntry* metadata_etnry_table = reinterpret_cast<MetadataEntry*>(
+      original_metadata_page_->start() + MetadataOffset());
+  return metadata_etnry_table + index;
+#elif defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
+  if (FLAG_use_simulator) {
+    const uword page_start =
+        Utils::RoundDown(trampoline - offset_of_first_trampoline_in_page_,
+                         VirtualMemory::PageSize());
+    const uword index =
+        (trampoline - offset_of_first_trampoline_in_page_ - page_start) /
+        kNativeCallbackTrampolineSize;
+    ASSERT(index < NumCallbackTrampolinesPerPage());
+    MetadataEntry* metadata_etnry_table = reinterpret_cast<MetadataEntry*>(
+        original_metadata_page_->start() + MetadataOffset());
+    return metadata_etnry_table + index;
+  } else {
+    const uword start = MappingStart(trampoline);
+    MetadataEntry* metadata_entries =
+        reinterpret_cast<MetadataEntry*>(start + MetadataOffset());
+    const uword index =
+        (trampoline - start - offset_of_first_trampoline_in_page_) /
+        kNativeCallbackTrampolineSize;
+    return &metadata_entries[index];
+  }
+#else
   const uword start = MappingStart(trampoline);
   MetadataEntry* metadata_entries =
       reinterpret_cast<MetadataEntry*>(start + MetadataOffset());
@@ -412,6 +494,7 @@ FfiCallbackMetadata::MetadataEntryOfTrampoline(Trampoline trampoline) const {
       (trampoline - start - offset_of_first_trampoline_in_page_) /
       kNativeCallbackTrampolineSize;
   return &metadata_entries[index];
+#endif
 }
 
 FfiCallbackMetadata::Metadata

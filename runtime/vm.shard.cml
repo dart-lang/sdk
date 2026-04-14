@@ -31,7 +31,6 @@
         "fuchsia.deprecatedtimezone.Timezone",
         "fuchsia.inspect.InspectSink",
         "fuchsia.intl.PropertyProvider",
-        "fuchsia.kernel.VmexResource",
         "fuchsia.logger.LogSink",
         "fuchsia.net.name.Lookup",
         "fuchsia.posix.socket.Provider",

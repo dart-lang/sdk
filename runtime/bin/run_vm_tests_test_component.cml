@@ -4,7 +4,7 @@
 
 {
   include: [
-    "//runtime/vm.shard.cml",
+    "//runtime/vm-jit.shard.cml",
   ],
   program: {
     binary: "exe.stripped/run_vm_tests",
