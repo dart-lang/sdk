@@ -512,6 +512,8 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
             .getChild(constructorFragment.name),
         firstFragment: constructorFragment,
       );
+      constructorElement.hasEnclosingTypeParameterReference =
+          typeParameters.isNotEmpty;
       constructorElement.superConstructor = superConstructor;
       // TODO(scheglov): make it explicit
       // constructorElement.enclosingElement = this;
@@ -721,12 +723,6 @@ class ConstructorElementImpl extends ExecutableElementImpl
       method: 'fragments',
     );
     return _fragments;
-  }
-
-  @override
-  @trackedIncludedInId
-  bool get hasEnclosingTypeParameterReference {
-    return enclosingElement.typeParameters.isNotEmpty;
   }
 
   @override
