@@ -37,6 +37,12 @@ class C {
     );
   }
 
+  test_primaryConstructor_parameter() async {
+    await assertNoErrorsInCode('''
+class C(final int x);
+''');
+  }
+
   test_super() async {
     await assertErrorsInCode(
       '''

@@ -9,19 +9,6 @@ import '../rule_test_support.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(CancelSubscriptionsTest);
-
-    // TODO(srawlins): Test more things:
-    // * null-aware cancel (`?.cancel()`) and cascade cancel (`..cancel()`)
-    // * StreamSubscription as a parameter
-    // * StreamSubscription as a top-level variable
-    // * public fields
-    // * cancel tear-off (`.cancel;`)
-    // * StreamSubscription subtypes
-    // * multiple declarations in a field declaration list and a variable
-    //   declaration list
-    // * StreamSubscription being passed into a function
-    // * subscription canceled in a part
-    // * subscription declared in a part
   });
 }
 
@@ -56,17 +43,16 @@ extension type E(StreamSubscription _s) implements StreamSubscription {}
 
   test_extensionType_representation_notCanceled() async {
     await assertNoDiagnostics(r'''
-import 'dart:async';
-extension type E(StreamSubscription _s) {}
-''');
+  import 'dart:async';
+  extension type E(StreamSubscription _s) {}
+  ''');
   }
 
-  test_localVariable_canceled() async {
+  test_localVariable_canceled_cascade() async {
     await assertNoDiagnostics(r'''
 import 'dart:async';
 void f(Stream stream) {
-  StreamSubscription s = stream.listen((_) {});
-  s.cancel();
+  var s = stream.listen((_) {})..cancel();
 }
 ''');
   }
@@ -81,6 +67,29 @@ void f(Stream stream) {
 ''');
   }
 
+  test_localVariable_canceled_nullAware() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+StreamSubscription? f(StreamSubscription? s) {
+  StreamSubscription? s2 = s;
+  s2?.cancel();
+  return s2;
+}
+''');
+  }
+
+  test_localVariable_canceled_tearOff() async {
+    // This may not be the desired behavior, counting a tear-off as a valid call
+    // to `cancel`. But it is the current behavior.
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(Stream stream) {
+  StreamSubscription s = stream.listen((_) {});
+  s.cancel;
+}
+''');
+  }
+
   test_localVariable_notCanceled() async {
     await assertDiagnostics(
       r'''
@@ -91,6 +100,13 @@ void f(Stream stream) {
 ''',
       [lint(66, 25)],
     );
+  }
+
+  test_parameter_notCanceled() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+void f(StreamSubscription s) {}
+''');
   }
 
   test_privateField_canceled() async {
@@ -247,5 +263,30 @@ class A(var StreamSubscription _subscription) {
 ''',
       [lint(78, 36)],
     );
+  }
+
+  test_publicField_notCanceled() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:async';
+class A {
+  late StreamSubscription subscription;
+  void f(Stream stream) {
+    subscription = stream.listen((_) {});
+  }
+}
+''',
+      [lint(57, 12)],
+    );
+  }
+
+  test_topLevelVariable_notCanceled() async {
+    await assertNoDiagnostics(r'''
+import 'dart:async';
+late StreamSubscription subscription;
+void f(Stream stream) {
+  subscription = stream.listen((_) {});
+}
+''');
   }
 }
