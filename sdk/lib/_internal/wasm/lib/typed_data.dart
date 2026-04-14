@@ -1996,12 +1996,6 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
       final destDartElementSizeInBytes = destTypedData.elementSizeInBytes;
       final fromDartElementSizeInBytes = fromTypedData.elementSizeInBytes;
 
-      final fromBufferByteOffset =
-          fromTypedData.offsetInBytes +
-          (skipCount * fromDartElementSizeInBytes);
-      final destBufferByteOffset =
-          destTypedData.offsetInBytes + (start * destDartElementSizeInBytes);
-
       // Use `array.copy` when:
       //
       // 1. Dart array element types are the same.
@@ -2015,77 +2009,13 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
       // receiver is an int array and if the buffer is a F32/F64 buffer that
       // means casting needs to happen when reading.
       if (destDartElementSizeInBytes == fromDartElementSizeInBytes) {
-        if (destDartElementSizeInBytes == 1 &&
-            destTypedData is WasmI8ArrayBase &&
-            fromTypedData is WasmI8ArrayBase) {
-          if (destTypedData is! U8ClampedList &&
-              destTypedData is! _SlowU8ClampedList) {
-            final WasmI8ArrayBase destI8 = unsafeCast<WasmI8ArrayBase>(
-              destTypedData,
-            );
-            final WasmI8ArrayBase fromI8 = unsafeCast<WasmI8ArrayBase>(
-              fromTypedData,
-            );
-            destI8.data.copy(
-              destI8.offsetInElements + start,
-              fromI8.data,
-              fromI8.offsetInElements + skipCount,
-              count,
-            );
-            return;
-          }
-        } else if (destDartElementSizeInBytes == 2 &&
-            destTypedData is WasmI16ArrayBase &&
-            fromTypedData is WasmI16ArrayBase) {
-          final WasmI16ArrayBase destI16 = unsafeCast<WasmI16ArrayBase>(
-            destTypedData,
-          );
-          final WasmI16ArrayBase fromI16 = unsafeCast<WasmI16ArrayBase>(
-            fromTypedData,
-          );
-          destI16.data.copy(
-            destI16.offsetInElements + start,
-            fromI16.data,
-            fromI16.offsetInElements + skipCount,
-            count,
-          );
-          return;
-        } else if (destDartElementSizeInBytes == 4 &&
-            destTypedData is _WasmI32ArrayBase &&
-            fromTypedData is _WasmI32ArrayBase) {
-          final _WasmI32ArrayBase destI32 = unsafeCast<_WasmI32ArrayBase>(
-            destTypedData,
-          );
-          final _WasmI32ArrayBase fromI32 = unsafeCast<_WasmI32ArrayBase>(
-            fromTypedData,
-          );
-          destI32.data.copy(
-            destI32.offsetInElements + start,
-            fromI32.data,
-            fromI32.offsetInElements + skipCount,
-            count,
-          );
-          return;
-        } else if (destDartElementSizeInBytes == 8 &&
-            destTypedData is _WasmI64ArrayBase &&
-            fromTypedData is _WasmI64ArrayBase) {
-          final _WasmI64ArrayBase destI64 = unsafeCast<_WasmI64ArrayBase>(
-            destTypedData,
-          );
-          final _WasmI64ArrayBase fromI64 = unsafeCast<_WasmI64ArrayBase>(
-            fromTypedData,
-          );
-          destI64.data.copy(
-            destI64.offsetInElements + start,
-            fromI64.data,
-            fromI64.offsetInElements + skipCount,
-            count,
-          );
-          return;
-        }
-
         final ByteBuffer destBuffer = destTypedData.buffer;
         final ByteBuffer fromBuffer = fromTypedData.buffer;
+        final fromBufferByteOffset =
+            fromTypedData.offsetInBytes +
+            (skipCount * fromDartElementSizeInBytes);
+        final destBufferByteOffset =
+            destTypedData.offsetInBytes + (start * destDartElementSizeInBytes);
 
         if (destDartElementSizeInBytes == 1 &&
             destBuffer is _I8ByteBuffer &&
@@ -2512,47 +2442,13 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
 
       // See comments in `_TypedIntListMixin.setRange`.
       if (destDartElementSizeInBytes == fromDartElementSizeInBytes) {
+        final ByteBuffer destBuffer = destTypedData.buffer;
+        final ByteBuffer fromBuffer = fromTypedData.buffer;
         final fromBufferByteOffset =
             fromTypedData.offsetInBytes +
             (skipCount * fromDartElementSizeInBytes);
         final destBufferByteOffset =
             destTypedData.offsetInBytes + (start * destDartElementSizeInBytes);
-        if (destDartElementSizeInBytes == 4 &&
-            destTypedData is _WasmF32ArrayBase &&
-            fromTypedData is _WasmF32ArrayBase) {
-          final _WasmF32ArrayBase destF32 = unsafeCast<_WasmF32ArrayBase>(
-            destTypedData,
-          );
-          final _WasmF32ArrayBase fromF32 = unsafeCast<_WasmF32ArrayBase>(
-            fromTypedData,
-          );
-          destF32.data.copy(
-            destF32.offsetInElements + start,
-            fromF32.data,
-            fromF32.offsetInElements + skipCount,
-            count,
-          );
-          return;
-        } else if (destDartElementSizeInBytes == 8 &&
-            destTypedData is _WasmF64ArrayBase &&
-            fromTypedData is _WasmF64ArrayBase) {
-          final _WasmF64ArrayBase destF64 = unsafeCast<_WasmF64ArrayBase>(
-            destTypedData,
-          );
-          final _WasmF64ArrayBase fromF64 = unsafeCast<_WasmF64ArrayBase>(
-            fromTypedData,
-          );
-          destF64.data.copy(
-            destF64.offsetInElements + start,
-            fromF64.data,
-            fromF64.offsetInElements + skipCount,
-            count,
-          );
-          return;
-        }
-
-        final ByteBuffer destBuffer = destTypedData.buffer;
-        final ByteBuffer fromBuffer = fromTypedData.buffer;
 
         if (destDartElementSizeInBytes == 4 &&
             destBuffer is _F32ByteBuffer &&
@@ -2654,6 +2550,29 @@ abstract class WasmI8ArrayBase extends WasmTypedDataBase {
 
   @pragma('wasm:prefer-inline')
   _I8ByteBuffer get buffer => _I8ByteBuffer(_data);
+
+  bool _trySetRangeFastPath(
+    int start,
+    int end,
+    Iterable<int> from,
+    int skipCount,
+  ) {
+    if (from is! WasmI8ArrayBase) return false;
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+    if (count == 0) return true;
+    _data.copy(
+      _offsetInElements + start,
+      from._data,
+      from._offsetInElements + skipCount,
+      count,
+    );
+    return true;
+  }
 }
 
 abstract class WasmI16ArrayBase extends WasmTypedDataBase {
@@ -2673,6 +2592,29 @@ abstract class WasmI16ArrayBase extends WasmTypedDataBase {
 
   @pragma('wasm:prefer-inline')
   _I16ByteBuffer get buffer => _I16ByteBuffer(_data);
+
+  bool _trySetRangeFastPath(
+    int start,
+    int end,
+    Iterable<int> from,
+    int skipCount,
+  ) {
+    if (from is! WasmI16ArrayBase) return false;
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+    if (count == 0) return true;
+    _data.copy(
+      _offsetInElements + start,
+      from._data,
+      from._offsetInElements + skipCount,
+      count,
+    );
+    return true;
+  }
 }
 
 abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
@@ -2692,6 +2634,29 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
 
   @pragma('wasm:prefer-inline')
   _I32ByteBuffer get buffer => _I32ByteBuffer(_data);
+
+  bool _trySetRangeFastPath(
+    int start,
+    int end,
+    Iterable<int> from,
+    int skipCount,
+  ) {
+    if (from is! _WasmI32ArrayBase) return false;
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+    if (count == 0) return true;
+    _data.copy(
+      _offsetInElements + start,
+      from._data,
+      from._offsetInElements + skipCount,
+      count,
+    );
+    return true;
+  }
 }
 
 abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
@@ -2711,6 +2676,29 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
 
   @pragma('wasm:prefer-inline')
   _I64ByteBuffer get buffer => _I64ByteBuffer(_data);
+
+  bool _trySetRangeFastPath(
+    int start,
+    int end,
+    Iterable<int> from,
+    int skipCount,
+  ) {
+    if (from is! _WasmI64ArrayBase) return false;
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+    if (count == 0) return true;
+    _data.copy(
+      _offsetInElements + start,
+      from._data,
+      from._offsetInElements + skipCount,
+      count,
+    );
+    return true;
+  }
 }
 
 abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
@@ -2730,6 +2718,29 @@ abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
 
   @pragma('wasm:prefer-inline')
   _F32ByteBuffer get buffer => _F32ByteBuffer(_data);
+
+  bool _trySetRangeFastPath(
+    int start,
+    int end,
+    Iterable<double> from,
+    int skipCount,
+  ) {
+    if (from is! _WasmF32ArrayBase) return false;
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount);
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+    if (count == 0) return true;
+    _data.copy(
+      _offsetInElements + start,
+      from._data,
+      from._offsetInElements + skipCount,
+      count,
+    );
+    return true;
+  }
 }
 
 abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
@@ -2749,6 +2760,29 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
 
   @pragma('wasm:prefer-inline')
   _F64ByteBuffer get buffer => _F64ByteBuffer(_data);
+
+  bool _trySetRangeFastPath(
+    int start,
+    int end,
+    Iterable<double> from,
+    int skipCount,
+  ) {
+    if (from is! _WasmF64ArrayBase) return false;
+    RangeErrorUtils.checkValidRange(start, end, length);
+    RangeErrorUtils.checkNotNegative(skipCount);
+    final count = end - start;
+    if ((from.length - skipCount) < count) {
+      throw IterableElementError.tooFew();
+    }
+    if (count == 0) return true;
+    _data.copy(
+      _offsetInElements + start,
+      from._data,
+      from._offsetInElements + skipCount,
+      count,
+    );
+    return true;
+  }
 }
 
 extension WasmI8ArrayBaseExt on WasmI8ArrayBase {
@@ -2826,6 +2860,15 @@ class I8List extends WasmI8ArrayBase
   I8List _createList(int length) => I8List(length);
 
   @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
+
+  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -2865,6 +2908,15 @@ class U8List extends WasmI8ArrayBase
 
   @override
   U8List _createList(int length) => U8List(length);
+
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2960,6 +3012,15 @@ class I16List extends WasmI16ArrayBase
   I16List _createList(int length) => I16List(length);
 
   @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
+
+  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -2999,6 +3060,15 @@ class U16List extends WasmI16ArrayBase
 
   @override
   U16List _createList(int length) => U16List(length);
+
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
 
   @override
   @pragma("wasm:prefer-inline")
@@ -3052,6 +3122,15 @@ class I32List extends _WasmI32ArrayBase
   I32List _createList(int length) => I32List(length);
 
   @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
+
+  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3091,6 +3170,15 @@ class U32List extends _WasmI32ArrayBase
 
   @override
   U32List _createList(int length) => U32List(length);
+
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
 
   @override
   @pragma("wasm:prefer-inline")
@@ -3134,6 +3222,15 @@ class I64List extends _WasmI64ArrayBase
   I64List _createList(int length) => I64List(length);
 
   @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
+
+  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3173,6 +3270,15 @@ class U64List extends _WasmI64ArrayBase
 
   @override
   U64List _createList(int length) => U64List(length);
+
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
 
   @override
   @pragma("wasm:prefer-inline")
@@ -3216,6 +3322,20 @@ class F32List extends _WasmF32ArrayBase
   F32List _createList(int length) => F32List(length);
 
   @override
+  void setRange(
+    int start,
+    int end,
+    Iterable<double> from, [
+    int skipCount = 0,
+  ]) {
+    if (this is! _UnmodifiableDoubleListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
+
+  @override
   @pragma("wasm:prefer-inline")
   double operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3255,6 +3375,20 @@ class F64List extends _WasmF64ArrayBase
 
   @override
   F64List _createList(int length) => F64List(length);
+
+  @override
+  void setRange(
+    int start,
+    int end,
+    Iterable<double> from, [
+    int skipCount = 0,
+  ]) {
+    if (this is! _UnmodifiableDoubleListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
 
   @override
   @pragma("wasm:prefer-inline")
