@@ -1769,7 +1769,7 @@ package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart:
     writeParameterMatchingArgument (method: void Function(Expression, int, Set<String>, {bool isOptional, List<TypeParameterElement>? typeParametersInScope}))
     writeParametersMatchingArguments (method: void Function(ArgumentList, {List<TypeParameterElement>? typeParametersInScope}))
     writeReference (method: void Function(Element@2))
-    writeSetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function()? bodyWriter, bool isStatic, String? nameGroupName, String? parameterName, DartType? parameterType, String? parameterTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
+    writeSetterDeclaration (method: void Function(String, {bool alwaysWriteType, void Function()? bodyWriter, bool isStatic, String? nameGroupName, String parameterName, DartType? parameterType, String? parameterTypeGroupName, List<TypeParameterElement>? typeParametersInScope}))
     writeType (method: bool Function(DartType?, {bool addSupertypeProposals, String? groupName, bool required, bool shouldWriteDynamic, List<TypeParameterElement>? typeParametersInScope}))
     writeTypeParameter (method: void Function(TypeParameterElement, {List<TypeParameterElement>? typeParametersInScope}))
     writeTypeParameters (method: void Function(List<TypeParameterElement>, {List<TypeParameterElement>? typeParametersInScope}))

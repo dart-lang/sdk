@@ -2119,7 +2119,7 @@ extension E on String {
 ''');
     await assertHasFix('''
 extension E on String {
-  set test(int test) {}
+  set test(int value) {}
 
   void f(String s) {
     test = 0;
@@ -2142,7 +2142,7 @@ void f() {
 }
 
 extension on String {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
@@ -2161,7 +2161,7 @@ void f(List<int> a) {
 }
 
 extension on List<int> {
-  set test(int test) {}
+  set test(int value) {}
 }
 
 extension E<T> on Iterable<T> {}
@@ -2182,7 +2182,7 @@ void f(List<int> a) {
 }
 
 extension on List<int> {
-  set test(int test) {}
+  set test(int value) {}
 }
 
 extension E<K, V> on Map<K, V> {}
@@ -2206,7 +2206,7 @@ void f() {
 }
 
 extension E on String {
-  set test(int test) {}
+  set test(int value) {}
 
   // ignore:unused_element
   void foo() {}
@@ -2228,7 +2228,7 @@ void f() {
 }
 
 extension on String {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
@@ -2247,7 +2247,7 @@ void f() {
 }
 
 extension on String {
-  set test(int test) {}
+  set test(int value) {}
 }
 
 extension on int {}
@@ -2270,7 +2270,7 @@ class C {
 }
 
 extension on C {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
@@ -2283,7 +2283,7 @@ extension E on String {
 ''');
     await assertHasFix('''
 extension E on String {
-  set s(int s) {}
+  set s(int value) {}
 
   int m(int x) => s = x;
 }
@@ -2298,7 +2298,7 @@ extension E on String {
 ''');
     await assertHasFix('''
 extension E on String {
-  static set s(int s) {}
+  static set s(int value) {}
 
   static int m(int x) => s = x;
 }
@@ -2324,7 +2324,7 @@ void foo(Object a) {
 part of 'test.dart';
 
 extension E on Object {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: partPath);
   }
@@ -2341,7 +2341,7 @@ void f(Object? o) {
 }
 
 extension on Object? {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
@@ -2358,7 +2358,7 @@ void f(int? p) {
 }
 
 extension on int? {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
@@ -2374,7 +2374,7 @@ void f(String s) {
 ''');
     await assertHasFix('''
 extension E on String {
-  set test(String test) {}
+  set test(String value) {}
 }
 
 void f(String s) {
@@ -2404,7 +2404,7 @@ void f(String a) {
 }
 
 extension on String {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
@@ -2421,7 +2421,7 @@ void f(String a) {
 }
 
 extension on String {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
@@ -2445,7 +2445,7 @@ void foo(Object a) {
 part 'test.dart';
 
 extension E on Object {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: mainPath);
   }
@@ -2473,7 +2473,7 @@ void foo(Object a) {
 part of 'main.dart';
 
 extension E on Object {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: part1Path);
   }
@@ -2489,7 +2489,7 @@ void f(String s) {
 ''');
     await assertHasFix('''
 extension E on String {
-  static set test(int test) {}
+  static set test(int value) {}
 }
 
 void f(String s) {
@@ -2510,7 +2510,7 @@ void f(List<int> a) {
 }
 
 extension on List<int> {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
@@ -2527,7 +2527,7 @@ void f<T>(T a) {
 }
 
 extension <T> on T {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''');
   }
