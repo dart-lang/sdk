@@ -6700,6 +6700,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 optionalPositional final hasDefaultValue declaring this.it
               firstFragment: #F6
@@ -6804,6 +6805,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional final declaring this.it
               firstFragment: #F6
@@ -7916,6 +7918,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional final declaring this.it
               firstFragment: #F6
@@ -8329,6 +8332,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final declaring this.it
               firstFragment: #F8
@@ -8337,6 +8341,7 @@ library
         isExtensionTypeMember isOriginDeclaration named
           reference: <testLibrary>::@extensionType::A::@constructor::named
           firstFragment: #F12
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional a
               firstFragment: #F13
@@ -9623,6 +9628,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final declaring this.it
               firstFragment: #F9
@@ -10661,6 +10667,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional final declaring this.it
               firstFragment: #F8
@@ -10720,6 +10727,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F20
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E4 requiredPositional final declaring this.it
               firstFragment: #F21
@@ -10854,6 +10862,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional final declaring this.it
               firstFragment: #F8
@@ -10913,6 +10922,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::I2::@constructor::new
           firstFragment: #F20
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E4 requiredPositional final declaring this.it
               firstFragment: #F21
@@ -11356,6 +11366,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final declaring this.it
               firstFragment: #F8
@@ -11473,6 +11484,7 @@ library
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final declaring this.it
               firstFragment: #F8

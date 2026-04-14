@@ -61,6 +61,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
       methods
         abstract isOriginDeclaration X
           reference: <testLibrary>::@class::A::@method::X
@@ -273,6 +274,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -717,6 +719,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F5
@@ -804,6 +807,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -814,6 +818,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 optionalPositional hasDefaultValue b
               firstFragment: #F7
@@ -899,6 +904,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -911,6 +917,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F7
@@ -923,6 +930,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E3 optionalPositional hasDefaultValue a
               firstFragment: #F10
@@ -992,6 +1000,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   functions
     isOriginDeclaration foo
       reference: <testLibrary>::@function::foo
@@ -1077,6 +1086,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -1176,6 +1186,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F5
@@ -1186,6 +1197,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@method::foo
@@ -1272,6 +1284,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -1282,6 +1295,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@method::foo

@@ -881,6 +881,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -958,6 +959,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class alias B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -971,6 +973,7 @@ library
         const isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -1071,6 +1074,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A1::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class A2
       reference: <testLibrary>::@class::A2
       firstFragment: #F4
@@ -1081,6 +1085,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A2::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
     class alias B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
@@ -1095,6 +1100,7 @@ library
         const isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -1179,6 +1185,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -1251,6 +1258,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -1328,6 +1336,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class alias A
       reference: <testLibrary>::@class::A
       firstFragment: #F4
@@ -1426,6 +1435,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::S::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class X
       reference: <testLibrary>::@class::X
       firstFragment: #F4
@@ -1528,6 +1538,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::S::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class X
       reference: <testLibrary>::@class::X
       firstFragment: #F4
@@ -4477,6 +4488,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
   mixins
     mixin A
       reference: <testLibrary>::@mixin::A

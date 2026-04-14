@@ -330,6 +330,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         static isOriginDeclaration m
           reference: <testLibrary>::@class::C::@method::m
@@ -963,6 +964,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
@@ -1065,6 +1067,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     hasNonFinalField class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -1191,6 +1194,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
@@ -1397,6 +1401,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     notSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -1411,6 +1416,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     isOriginDeclaration b
       reference: <testLibrary>::@topLevelVariable::b
@@ -1566,6 +1572,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       getters
         isOriginVariable values
           reference: <testLibrary>::@class::A::@getter::values
@@ -1583,6 +1590,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -1631,6 +1639,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     isOriginDeclaration c
       reference: <testLibrary>::@topLevelVariable::c
@@ -2121,6 +2130,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration g
           reference: <testLibrary>::@class::C::@method::g
@@ -2188,6 +2198,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration g
           reference: <testLibrary>::@class::C::@method::g
@@ -2444,6 +2455,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
       getters
         isOriginVariable v
           reference: <testLibrary>::@class::C::@getter::v

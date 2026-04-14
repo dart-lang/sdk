@@ -455,6 +455,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final hasImplicitType this.t
               firstFragment: #F5
@@ -463,6 +464,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional final hasImplicitType this.t
               firstFragment: #F7
@@ -1294,6 +1296,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::P::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class P1
       reference: <testLibrary>::@class::P1
       firstFragment: #F4
@@ -1305,6 +1308,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::P1::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::P::@constructor::new
             substitution: {T: T}
@@ -1319,6 +1323,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::P2::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::P::@constructor::new
             substitution: {T: T}
@@ -2207,6 +2212,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional k
               firstFragment: #F5
@@ -2463,6 +2469,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration V
       reference: <testLibrary>::@topLevelVariable::V
@@ -2558,6 +2565,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final hasImplicitType this.t
               firstFragment: #F5
@@ -2660,6 +2668,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration V
       reference: <testLibrary>::@topLevelVariable::V
@@ -3438,6 +3447,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration V
       reference: <testLibrary>::@topLevelVariable::V
@@ -7047,6 +7057,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -7530,6 +7541,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       getters
         isOriginVariable f
           reference: <testLibrary>::@class::C::@getter::f

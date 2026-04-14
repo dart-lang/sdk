@@ -2848,6 +2848,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   functions
     isOriginDeclaration f
       reference: <testLibrary>::@function::f
@@ -3188,6 +3189,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 

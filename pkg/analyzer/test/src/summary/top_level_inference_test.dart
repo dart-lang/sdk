@@ -8967,6 +8967,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::A::@getter::x
@@ -9049,6 +9050,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F21
+          hasEnclosingTypeParameterReference: true
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::B::@getter::x
@@ -9595,6 +9597,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
       getters
         abstract isOriginDeclaration x
           reference: <testLibrary>::@class::A::@getter::x
@@ -9646,6 +9649,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F15
+          hasEnclosingTypeParameterReference: true
       getters
         isOriginVariable x
           reference: <testLibrary>::@class::B::@getter::x
@@ -10090,6 +10094,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       getters
         abstract isOriginDeclaration x
           reference: <testLibrary>::@class::A::@getter::x
@@ -10114,6 +10119,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
       getters
         abstract isOriginDeclaration x
           reference: <testLibrary>::@class::B::@getter::x
@@ -11666,6 +11672,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
       getters
         isOriginDeclaration x
           reference: <testLibrary>::@class::A::@getter::x
@@ -12559,6 +12566,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
@@ -12579,6 +12587,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
@@ -12691,6 +12700,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
@@ -12711,6 +12721,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m
@@ -13235,6 +13246,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
@@ -13256,6 +13268,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: T}
@@ -13678,6 +13691,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
@@ -14039,6 +14053,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
@@ -14060,6 +14075,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: int, V: T}
@@ -14144,6 +14160,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         abstract isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
@@ -14323,6 +14340,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         abstract isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
@@ -14346,6 +14364,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F10
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {K: T2, V: T1}
@@ -14596,6 +14615,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::A::@method::m
@@ -14616,6 +14636,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration m
           reference: <testLibrary>::@class::B::@method::m

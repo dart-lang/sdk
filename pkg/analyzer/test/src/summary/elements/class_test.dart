@@ -222,6 +222,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -1933,6 +1934,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -2616,6 +2618,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -4502,6 +4505,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E3 requiredPositional final hasImplicitType super.a
               firstFragment: #F10
@@ -4795,12 +4799,14 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::D::@constructor::named
             substitution: {T: U, U: T}
         isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
     class D
       reference: <testLibrary>::@class::D
       firstFragment: #F6
@@ -4814,6 +4820,7 @@ library
         isOriginDeclaration named
           reference: <testLibrary>::@class::D::@constructor::named
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::C::@constructor::_
             substitution: {T: U, U: T}
@@ -4878,6 +4885,7 @@ library
         isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F5
@@ -4890,6 +4898,7 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::named
             substitution: {T: T2, U: U2}
@@ -4966,12 +4975,14 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::C::@constructor::named
             substitution: {T: U, U: T}
         isOriginDeclaration _
           reference: <testLibrary>::@class::B::@constructor::_
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F6
@@ -4984,6 +4995,7 @@ library
         isOriginDeclaration named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
   typeAliases
     A
       reference: <testLibrary>::@typeAlias::A
@@ -5102,12 +5114,14 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: package:test/foo.dart::@class::D::@constructor::named
             substitution: {T: U, U: T}
         isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -5222,12 +5236,14 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: package:test/foo.dart::@class::D::@constructor::named
             substitution: {T: U, U: T}
         isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -5266,6 +5282,7 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -5318,6 +5335,7 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -5442,12 +5460,14 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::D::@constructor::new
             substitution: {T: U, U: T}
         isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
     class D
       reference: <testLibrary>::@class::D
       firstFragment: #F6
@@ -5461,6 +5481,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::C::@constructor::_
             substitution: {T: U, U: T}
@@ -5524,6 +5545,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F5
@@ -5536,6 +5558,7 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T2, U: U2}
@@ -5583,9 +5606,11 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
         factory isOriginDeclaration redirected
           reference: <testLibrary>::@class::A::@constructor::redirected
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T}
@@ -5659,6 +5684,7 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::C::@constructor::new
             substitution: {T: U, U: T}
@@ -5680,6 +5706,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
   typeAliases
     A
       reference: <testLibrary>::@typeAlias::A
@@ -5798,12 +5825,14 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: package:test/foo.dart::@class::D::@constructor::new
             substitution: {T: U, U: T}
         isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -5970,12 +5999,14 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: package:test/foo.dart::@class::D::@constructor::new
             substitution: {T: U, U: T}
         isOriginDeclaration _
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -6069,6 +6100,7 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -6235,9 +6267,11 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
         const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @46
@@ -6383,9 +6417,11 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
         const isOriginDeclaration named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             RedirectingConstructorInvocation
               thisKeyword: this @46
@@ -6480,6 +6516,7 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: V}
@@ -6526,6 +6563,7 @@ library
         factory isOriginDeclaration new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
+          hasEnclosingTypeParameterReference: true
           redirectedConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {U: V}
@@ -6665,6 +6703,7 @@ library
         isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F4
@@ -8456,6 +8495,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -10921,6 +10961,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       getters
         static isOriginVariable foo
           reference: <testLibrary>::@class::A::@getter::foo
@@ -14066,6 +14107,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
       methods
         static isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
@@ -14217,6 +14259,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
@@ -14633,6 +14676,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F8
@@ -14643,6 +14687,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F10
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -14816,6 +14861,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   mixins
     mixin M1
       reference: <testLibrary>::@mixin::M1
@@ -14924,6 +14970,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     notSimplyBounded A
       reference: <testLibrary>::@typeAlias::A
@@ -14970,6 +15017,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     notSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
@@ -15012,6 +15060,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15057,6 +15106,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F4
@@ -15068,6 +15118,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15197,6 +15248,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F4
@@ -15208,6 +15260,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15253,6 +15306,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class D
       reference: <testLibrary>::@class::D
       firstFragment: #F4
@@ -15263,6 +15317,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15310,6 +15365,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     notSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F4
@@ -15321,6 +15377,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15356,6 +15413,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15391,6 +15449,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15426,6 +15485,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15471,6 +15531,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     notSimplyBounded F
       reference: <testLibrary>::@typeAlias::F
@@ -15515,6 +15576,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15590,6 +15652,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class D
       reference: <testLibrary>::@class::D
       firstFragment: #F4
@@ -15600,6 +15663,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -15636,6 +15700,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -18617,6 +18682,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -18692,6 +18758,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -18737,6 +18804,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -18799,6 +18867,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -18846,6 +18915,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
     class D
       reference: <testLibrary>::@class::D
       firstFragment: #F5
@@ -18886,6 +18956,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -18930,6 +19001,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -18965,6 +19037,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19000,6 +19073,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19046,6 +19120,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -19100,6 +19175,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -19154,6 +19230,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -19208,6 +19285,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     F
       reference: <testLibrary>::@typeAlias::F
@@ -19251,6 +19329,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19286,6 +19365,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19321,6 +19401,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19356,6 +19437,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19402,6 +19484,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     A
       reference: <testLibrary>::@typeAlias::A
@@ -19456,6 +19539,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   typeAliases
     A
       reference: <testLibrary>::@typeAlias::A
@@ -19501,6 +19585,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19538,6 +19623,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19576,6 +19662,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19608,6 +19695,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19640,6 +19728,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19672,6 +19761,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -19712,6 +19802,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -20742,6 +20833,7 @@ library
         isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional x
               firstFragment: #F4
@@ -20763,6 +20855,7 @@ library
         isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E4 requiredPositional x
               firstFragment: #F9
@@ -21143,6 +21236,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F8
@@ -21153,6 +21247,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F10
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -21403,6 +21498,7 @@ library
         isOriginMixinApplication new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -21478,6 +21574,7 @@ library
         isOriginMixinApplication new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -22034,6 +22131,7 @@ library
         isOriginDeclaration ctor
           reference: <testLibrary>::@class::Base::@constructor::ctor
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional t
               firstFragment: #F4
@@ -22154,6 +22252,7 @@ library
         isOriginDeclaration ctor
           reference: <testLibrary>::@class::Base::@constructor::ctor
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional t
               firstFragment: #F4
@@ -22181,6 +22280,7 @@ library
         isOriginMixinApplication ctor
           reference: <testLibrary>::@class::MixinApp::@constructor::ctor
           firstFragment: #F10
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E4 requiredPositional t
               firstFragment: #F11
@@ -24129,6 +24229,7 @@ library
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final declaring this.foo
               firstFragment: #F5
@@ -24676,6 +24777,7 @@ library
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 optionalPositional hasDefaultValue x
               firstFragment: #F5
@@ -24758,6 +24860,7 @@ library
         isOriginDeclaration isPrimary new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional t
               firstFragment: #F5
@@ -25763,6 +25866,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration f
           reference: <testLibrary>::@class::C::@method::f
@@ -26712,6 +26816,7 @@ library
         isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F6
@@ -28190,6 +28295,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
       getters
         isOriginVariable foo1
           reference: <testLibrary>::@class::A::@getter::foo1
@@ -28704,6 +28810,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
       getters
         abstract isOriginDeclaration foo1
           reference: <testLibrary>::@class::A::@getter::foo1
@@ -29299,6 +29406,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
     class I1
       reference: <testLibrary>::@class::I1
       firstFragment: #F6
@@ -29316,6 +29424,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F10
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -29382,6 +29491,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
     class I1
       reference: <testLibrary>::@class::I1
       firstFragment: #F6
@@ -29399,6 +29509,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F10
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -30062,6 +30173,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
@@ -30131,6 +30243,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
       methods
         isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@method::foo
@@ -30280,6 +30393,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class A
       reference: <testLibrary>::@class::A
       firstFragment: #F4
@@ -30295,6 +30409,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::B::@constructor::new
             substitution: {S: T}
@@ -35945,6 +36060,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
 ''');
   }
 
@@ -36175,6 +36291,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
@@ -36186,6 +36303,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           superConstructor: ConstructorMember
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: T}

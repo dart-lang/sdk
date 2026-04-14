@@ -725,6 +725,12 @@ class ConstructorElementImpl extends ExecutableElementImpl
 
   @override
   @trackedIncludedInId
+  bool get hasEnclosingTypeParameterReference {
+    return enclosingElement.typeParameters.isNotEmpty;
+  }
+
+  @override
+  @trackedIncludedInId
   bool get isConst => _firstFragment.isConst;
 
   @override

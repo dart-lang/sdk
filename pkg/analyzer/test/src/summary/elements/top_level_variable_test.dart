@@ -2645,6 +2645,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a

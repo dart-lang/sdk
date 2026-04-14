@@ -406,6 +406,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       getters
         static isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
@@ -711,6 +712,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional _
               firstFragment: #F4
@@ -769,6 +771,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -823,6 +826,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -1020,6 +1024,7 @@ library
         const isOriginMixinApplication named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -1148,6 +1153,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional _
               firstFragment: #F4
@@ -1205,6 +1211,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -1395,6 +1402,7 @@ library
         const isOriginMixinApplication new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -3625,6 +3633,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -4157,6 +4166,7 @@ library
         isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -6384,6 +6394,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6476,6 +6487,7 @@ library
         isOriginMixinApplication new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0

@@ -525,6 +525,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F7
@@ -744,6 +745,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F6
@@ -2417,6 +2419,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F7
@@ -3512,6 +3515,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   enums
     enum E
       reference: <testLibrary>::@enum::E
@@ -3543,6 +3547,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -3905,6 +3910,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -4688,6 +4694,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -4794,6 +4801,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -4862,6 +4870,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -4935,6 +4944,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -4998,6 +5008,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5060,6 +5071,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5122,6 +5134,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5184,6 +5197,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -5254,6 +5268,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable values
@@ -7207,6 +7222,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -7367,6 +7383,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -8571,6 +8588,7 @@ library
         const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional final declaring this.foo
               firstFragment: #F7
@@ -9261,6 +9279,7 @@ library
         const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::E::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 optionalPositional hasDefaultValue x
               firstFragment: #F7
@@ -9415,6 +9434,7 @@ library
         const isOriginDeclaration isPrimary new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F6
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional t
               firstFragment: #F7
@@ -12551,6 +12571,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@enum::A::@constructor::named
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional a
               firstFragment: #F10
@@ -14428,6 +14449,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -14981,6 +15003,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F8
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -16189,6 +16212,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
   enums
     enum A
       reference: <testLibrary>::@enum::A
@@ -16221,6 +16245,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F12
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -16341,6 +16366,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
   enums
     enum A
       reference: <testLibrary>::@enum::A
@@ -16373,6 +16399,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F12
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -17245,6 +17272,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -17388,6 +17416,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -17670,6 +17699,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F7
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v
@@ -20030,6 +20060,7 @@ library
         const isOriginImplicitDefault new
           reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F9
+          hasEnclosingTypeParameterReference: true
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         static isOriginVariable v

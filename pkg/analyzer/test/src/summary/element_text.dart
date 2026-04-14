@@ -372,6 +372,9 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      if (e.hasEnclosingTypeParameterReference) {
+        _sink.writelnWithIndent('hasEnclosingTypeParameterReference: true');
+      }
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
