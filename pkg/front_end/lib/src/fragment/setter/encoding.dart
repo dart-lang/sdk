@@ -198,6 +198,7 @@ sealed class SetterEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   });
 }
 
@@ -480,6 +481,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -489,6 +491,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
       );
     }
     function.scope = scope;
+    function.thisVariable = thisVariable;
   }
 }
 
@@ -849,6 +852,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -858,5 +862,6 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
       );
     }
     function.scope = scope;
+    function.thisVariable = thisVariable;
   }
 }

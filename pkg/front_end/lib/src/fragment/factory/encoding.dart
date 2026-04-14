@@ -532,6 +532,7 @@ class FactoryEncoding implements InferredTypeListener {
       scope: null,
       asyncMarker: AsyncMarker.Sync,
       emittedValueType: null,
+      thisVariable: null,
     );
     _procedure.function.redirectingFactoryTarget =
         new RedirectingFactoryTarget.error(message);
@@ -826,6 +827,7 @@ class FactoryEncoding implements InferredTypeListener {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     assert(
       asyncMarker == AsyncMarker.Sync,
@@ -843,6 +845,7 @@ class FactoryEncoding implements InferredTypeListener {
       );
     }
     _procedure.function.scope = scope;
+    _procedure.function.thisVariable = thisVariable;
   }
 
   void becomeNative(SourceLoader loader) {

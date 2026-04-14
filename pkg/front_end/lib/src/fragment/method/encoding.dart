@@ -98,6 +98,7 @@ sealed class MethodEncoding implements InferredTypeListener {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   });
 }
 
@@ -393,6 +394,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -402,6 +404,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
       );
     }
     function.scope = scope;
+    function.thisVariable = thisVariable;
   }
 }
 
@@ -796,6 +799,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -805,6 +809,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       );
     }
     function.scope = scope;
+    function.thisVariable = thisVariable;
   }
 
   /// Creates a top level function that creates a tear off of an extension

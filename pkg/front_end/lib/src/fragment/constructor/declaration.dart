@@ -761,8 +761,16 @@ mixin _ConstructorEncodingMixin
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  void registerFunctionBody(Statement? body, Scope? scope) {
-    _encoding.registerFunctionBody(body: body, scope: scope);
+  void registerFunctionBody(
+    Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  ) {
+    _encoding.registerFunctionBody(
+      body: body,
+      scope: scope,
+      thisVariable: thisVariable,
+    );
   }
 
   @override
@@ -1461,7 +1469,11 @@ abstract class ConstructorFragmentDeclaration {
     SourceConstructorBuilder constructorBuilder,
   );
 
-  void registerFunctionBody(Statement? body, Scope? scope);
+  void registerFunctionBody(
+    Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  );
 
   void registerNoBodyConstructor();
 
