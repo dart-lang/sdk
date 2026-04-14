@@ -38,6 +38,21 @@ main() {
   verifyDoubleArray(Float64List(size)..setRange(start, end, jsF64, offset));
 
   verifyIntViewToView(
+    Int8List.new,
+    (buffer, byteOffset, length) => Int8List.view(buffer, byteOffset, length),
+    1,
+  );
+  verifyIntViewToView(
+    Int16List.new,
+    (buffer, byteOffset, length) => Int16List.view(buffer, byteOffset, length),
+    2,
+  );
+  verifyIntViewToView(
+    Int32List.new,
+    (buffer, byteOffset, length) => Int32List.view(buffer, byteOffset, length),
+    4,
+  );
+  verifyIntViewToView(
     Uint8List.new,
     (buffer, byteOffset, length) => Uint8List.view(buffer, byteOffset, length),
     1,
@@ -69,6 +84,11 @@ main() {
         Float64List.view(buffer, byteOffset, length),
     8,
   );
+
+  verifyUnmodifiableIntSetRange();
+  verifyUnmodifiableDoubleSetRange();
+  verifyOverlappingIntSelfCopy();
+  verifyOverlappingDoubleSelfCopy();
 }
 
 void initIntArray(List<int> list) {
@@ -138,4 +158,62 @@ void verifyDoubleViewToView(
   initDoubleArray(srcView);
   destView.setRange(start, end, srcView, offset);
   verifyDoubleArray(destView);
+}
+
+void verifyUnmodifiableIntSetRange() {
+  final src = Int16List(size + offset + 1);
+  initIntArray(src);
+  final dest = Int16List(size).asUnmodifiableView();
+
+  bool didThrow = false;
+  try {
+    dest.setRange(start, end, src, offset);
+  } on UnsupportedError {
+    didThrow = true;
+  }
+  Expect.isTrue(didThrow);
+}
+
+void verifyUnmodifiableDoubleSetRange() {
+  final src = Float32List(size + offset + 1);
+  initDoubleArray(src);
+  final dest = Float32List(size).asUnmodifiableView();
+
+  bool didThrow = false;
+  try {
+    dest.setRange(start, end, src, offset);
+  } on UnsupportedError {
+    didThrow = true;
+  }
+  Expect.isTrue(didThrow);
+}
+
+void verifyOverlappingIntSelfCopy() {
+  final values = Int16List(size + offset + 1);
+  initIntArray(values);
+  final expected = values.toList(growable: false);
+  for (int i = 0; i < end - start; ++i) {
+    expected[start + i] = values[offset + i];
+  }
+
+  values.setRange(start, end, values, offset);
+
+  for (int i = 0; i < values.length; ++i) {
+    Expect.equals(expected[i], values[i]);
+  }
+}
+
+void verifyOverlappingDoubleSelfCopy() {
+  final values = Float32List(size + offset + 1);
+  initDoubleArray(values);
+  final expected = values.toList(growable: false);
+  for (int i = 0; i < end - start; ++i) {
+    expected[start + i] = values[offset + i];
+  }
+
+  values.setRange(start, end, values, offset);
+
+  for (int i = 0; i < values.length; ++i) {
+    Expect.equals(expected[i], values[i]);
+  }
 }

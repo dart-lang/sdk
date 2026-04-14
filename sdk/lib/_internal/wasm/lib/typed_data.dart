@@ -2529,6 +2529,73 @@ mixin _UnmodifiableDoubleListMixin {
   }
 }
 
+@pragma('wasm:prefer-inline')
+int _setRangeFastPathCount(
+  int start,
+  int end,
+  int length,
+  int fromLength,
+  int skipCount, {
+  String? skipCountName,
+}) {
+  RangeErrorUtils.checkValidRange(start, end, length);
+  if (skipCountName == null) {
+    RangeErrorUtils.checkNotNegative(skipCount);
+  } else {
+    RangeErrorUtils.checkNotNegative(skipCount, skipCountName);
+  }
+  final count = end - start;
+  if ((fromLength - skipCount) < count) {
+    throw IterableElementError.tooFew();
+  }
+  return count;
+}
+
+mixin _SpecializedWasmIntSetRangeMixin<SpawnedType extends TypedDataList<int>>
+    on _TypedIntListMixin<SpawnedType> {
+  bool _trySetRangeFastPath(
+    int start,
+    int end,
+    Iterable<int> from,
+    int skipCount,
+  );
+
+  @override
+  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
+    if (this is! _UnmodifiableIntListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
+}
+
+mixin _SpecializedWasmDoubleSetRangeMixin<
+  SpawnedType extends TypedDataList<double>
+>
+    on _TypedDoubleListMixin<SpawnedType> {
+  bool _trySetRangeFastPath(
+    int start,
+    int end,
+    Iterable<double> from,
+    int skipCount,
+  );
+
+  @override
+  void setRange(
+    int start,
+    int end,
+    Iterable<double> from, [
+    int skipCount = 0,
+  ]) {
+    if (this is! _UnmodifiableDoubleListMixin &&
+        _trySetRangeFastPath(start, end, from, skipCount)) {
+      return;
+    }
+    super.setRange(start, end, from, skipCount);
+  }
+}
+
 //
 // Fast lists
 //
@@ -2558,12 +2625,14 @@ abstract class WasmI8ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! WasmI8ArrayBase) return false;
-    RangeErrorUtils.checkValidRange(start, end, length);
-    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+    final count = _setRangeFastPathCount(
+      start,
+      end,
+      length,
+      from.length,
+      skipCount,
+      skipCountName: "skipCount",
+    );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
@@ -2600,12 +2669,14 @@ abstract class WasmI16ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! WasmI16ArrayBase) return false;
-    RangeErrorUtils.checkValidRange(start, end, length);
-    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+    final count = _setRangeFastPathCount(
+      start,
+      end,
+      length,
+      from.length,
+      skipCount,
+      skipCountName: "skipCount",
+    );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
@@ -2642,12 +2713,14 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! _WasmI32ArrayBase) return false;
-    RangeErrorUtils.checkValidRange(start, end, length);
-    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+    final count = _setRangeFastPathCount(
+      start,
+      end,
+      length,
+      from.length,
+      skipCount,
+      skipCountName: "skipCount",
+    );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
@@ -2684,12 +2757,14 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! _WasmI64ArrayBase) return false;
-    RangeErrorUtils.checkValidRange(start, end, length);
-    RangeErrorUtils.checkNotNegative(skipCount, "skipCount");
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+    final count = _setRangeFastPathCount(
+      start,
+      end,
+      length,
+      from.length,
+      skipCount,
+      skipCountName: "skipCount",
+    );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
@@ -2726,12 +2801,13 @@ abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! _WasmF32ArrayBase) return false;
-    RangeErrorUtils.checkValidRange(start, end, length);
-    RangeErrorUtils.checkNotNegative(skipCount);
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+    final count = _setRangeFastPathCount(
+      start,
+      end,
+      length,
+      from.length,
+      skipCount,
+    );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
@@ -2768,12 +2844,13 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
     int skipCount,
   ) {
     if (from is! _WasmF64ArrayBase) return false;
-    RangeErrorUtils.checkValidRange(start, end, length);
-    RangeErrorUtils.checkNotNegative(skipCount);
-    final count = end - start;
-    if ((from.length - skipCount) < count) {
-      throw IterableElementError.tooFew();
-    }
+    final count = _setRangeFastPathCount(
+      start,
+      end,
+      length,
+      from.length,
+      skipCount,
+    );
     if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
@@ -2837,6 +2914,7 @@ class I8List extends WasmI8ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<I8List>,
+        _SpecializedWasmIntSetRangeMixin<I8List>,
         _TypedListCommonOperationsMixin
     implements Int8List {
   I8List(int length) : super(length);
@@ -2860,15 +2938,6 @@ class I8List extends WasmI8ArrayBase
   I8List _createList(int length) => I8List(length);
 
   @override
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
-
-  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -2887,6 +2956,7 @@ class U8List extends WasmI8ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<U8List>,
+        _SpecializedWasmIntSetRangeMixin<U8List>,
         _TypedListCommonOperationsMixin
     implements Uint8List {
   U8List(int length) : super(length);
@@ -2908,15 +2978,6 @@ class U8List extends WasmI8ArrayBase
 
   @override
   U8List _createList(int length) => U8List(length);
-
-  @override
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
 
   @override
   @pragma("wasm:prefer-inline")
@@ -2989,6 +3050,7 @@ class I16List extends WasmI16ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<I16List>,
+        _SpecializedWasmIntSetRangeMixin<I16List>,
         _TypedListCommonOperationsMixin
     implements Int16List {
   I16List(int length) : super(length);
@@ -3012,15 +3074,6 @@ class I16List extends WasmI16ArrayBase
   I16List _createList(int length) => I16List(length);
 
   @override
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
-
-  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3039,6 +3092,7 @@ class U16List extends WasmI16ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<U16List>,
+        _SpecializedWasmIntSetRangeMixin<U16List>,
         _TypedListCommonOperationsMixin
     implements Uint16List {
   U16List(int length) : super(length);
@@ -3060,15 +3114,6 @@ class U16List extends WasmI16ArrayBase
 
   @override
   U16List _createList(int length) => U16List(length);
-
-  @override
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
 
   @override
   @pragma("wasm:prefer-inline")
@@ -3099,6 +3144,7 @@ class I32List extends _WasmI32ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<I32List>,
+        _SpecializedWasmIntSetRangeMixin<I32List>,
         _TypedListCommonOperationsMixin
     implements Int32List {
   I32List(int length) : super(length);
@@ -3122,15 +3168,6 @@ class I32List extends _WasmI32ArrayBase
   I32List _createList(int length) => I32List(length);
 
   @override
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
-
-  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3149,6 +3186,7 @@ class U32List extends _WasmI32ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<U32List>,
+        _SpecializedWasmIntSetRangeMixin<U32List>,
         _TypedListCommonOperationsMixin
     implements Uint32List {
   U32List(int length) : super(length);
@@ -3172,15 +3210,6 @@ class U32List extends _WasmI32ArrayBase
   U32List _createList(int length) => U32List(length);
 
   @override
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
-
-  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3199,6 +3228,7 @@ class I64List extends _WasmI64ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<I64List>,
+        _SpecializedWasmIntSetRangeMixin<I64List>,
         _TypedListCommonOperationsMixin
     implements Int64List {
   I64List(int length) : super(length);
@@ -3222,15 +3252,6 @@ class I64List extends _WasmI64ArrayBase
   I64List _createList(int length) => I64List(length);
 
   @override
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
-
-  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3249,6 +3270,7 @@ class U64List extends _WasmI64ArrayBase
     with
         _IntListMixin,
         _TypedIntListMixin<U64List>,
+        _SpecializedWasmIntSetRangeMixin<U64List>,
         _TypedListCommonOperationsMixin
     implements Uint64List {
   U64List(int length) : super(length);
@@ -3272,15 +3294,6 @@ class U64List extends _WasmI64ArrayBase
   U64List _createList(int length) => U64List(length);
 
   @override
-  void setRange(int start, int end, Iterable<int> from, [int skipCount = 0]) {
-    if (this is! _UnmodifiableIntListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
-
-  @override
   @pragma("wasm:prefer-inline")
   int operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3299,6 +3312,7 @@ class F32List extends _WasmF32ArrayBase
     with
         _DoubleListMixin,
         _TypedDoubleListMixin<Float32List>,
+        _SpecializedWasmDoubleSetRangeMixin<Float32List>,
         _TypedListCommonOperationsMixin
     implements Float32List {
   F32List(int length) : super(length);
@@ -3322,20 +3336,6 @@ class F32List extends _WasmF32ArrayBase
   F32List _createList(int length) => F32List(length);
 
   @override
-  void setRange(
-    int start,
-    int end,
-    Iterable<double> from, [
-    int skipCount = 0,
-  ]) {
-    if (this is! _UnmodifiableDoubleListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
-
-  @override
   @pragma("wasm:prefer-inline")
   double operator [](int index) {
     IndexErrorUtils.checkIndexBCE(index, length);
@@ -3354,6 +3354,7 @@ class F64List extends _WasmF64ArrayBase
     with
         _DoubleListMixin,
         _TypedDoubleListMixin<Float64List>,
+        _SpecializedWasmDoubleSetRangeMixin<Float64List>,
         _TypedListCommonOperationsMixin
     implements Float64List {
   F64List(int length) : super(length);
@@ -3375,20 +3376,6 @@ class F64List extends _WasmF64ArrayBase
 
   @override
   F64List _createList(int length) => F64List(length);
-
-  @override
-  void setRange(
-    int start,
-    int end,
-    Iterable<double> from, [
-    int skipCount = 0,
-  ]) {
-    if (this is! _UnmodifiableDoubleListMixin &&
-        _trySetRangeFastPath(start, end, from, skipCount)) {
-      return;
-    }
-    super.setRange(start, end, from, skipCount);
-  }
 
   @override
   @pragma("wasm:prefer-inline")
