@@ -1,3 +1,12 @@
+## 3.11.5
+
+This is a patch release that:
+
+- Fixes an issue with the Dart MCP server and latest AntiGravity. (issue
+  [dart-lang/ai#439])
+
+[dart-lang/ai#439]: https://github.com/dart-lang/ai/issues/439
+
 ## 3.11.4
 
 **Released on:** 2026-03-24
