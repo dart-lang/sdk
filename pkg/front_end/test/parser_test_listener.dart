@@ -2706,8 +2706,8 @@ class ParserTestListener implements Listener {
   @override
   void beginFields(
     DeclarationKind declarationKind,
-    Token? abstractToken,
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -2715,8 +2715,8 @@ class ParserTestListener implements Listener {
     Token? varFinalOrConst,
     Token lastConsumed,
   ) {
-    seen(abstractToken);
     seen(augmentToken);
+    seen(abstractToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -2726,8 +2726,8 @@ class ParserTestListener implements Listener {
     doPrint(
       'beginFields('
       '$declarationKind, '
-      '$abstractToken, '
       '$augmentToken, '
+      '$abstractToken, '
       '$externalToken, '
       '$staticToken, '
       '$covariantToken, '
@@ -2741,6 +2741,7 @@ class ParserTestListener implements Listener {
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -2752,6 +2753,7 @@ class ParserTestListener implements Listener {
   ) {
     indent--;
     seen(augmentToken);
+    seen(abstractToken);
     seen(externalToken);
     seen(staticToken);
     seen(covariantToken);
@@ -2762,6 +2764,7 @@ class ParserTestListener implements Listener {
     doPrint(
       'endTopLevelFields('
       '$augmentToken, '
+      '$abstractToken, '
       '$externalToken, '
       '$staticToken, '
       '$covariantToken, '

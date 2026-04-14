@@ -201,11 +201,13 @@ extension Extension on self::A {
   static field extensionStaticField = self::Extension|extensionStaticField;
   static field finalExtensionStaticField = self::Extension|finalExtensionStaticField;
 }
-static field core::int topLevelField;
-static final field core::int finalTopLevelField;
-static const field core::int constField = 0;
 static field core::int Extension|extensionStaticField;
 static final field core::int Extension|finalExtensionStaticField;
+static abstract get topLevelField() → core::int;
+static abstract set topLevelField(synthesized core::int #externalFieldValue) → void;
+static abstract get finalTopLevelField() → core::int;
+static abstract const get constField() → core::int;
+static abstract set constField(synthesized core::int #externalFieldValue) → void;
 static abstract extension-member get Extension|extensionInstanceField() → core::int;
 static abstract extension-member set Extension|extensionInstanceField(synthesized core::int #externalFieldValue) → void;
 static abstract extension-member get Extension|finalExtensionInstanceField() → core::int;

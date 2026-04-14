@@ -4026,6 +4026,7 @@ class Parser {
 
     Token? skippedNonLateLate;
 
+    Token? abstractToken;
     Token? externalToken;
     Token? augmentToken;
     Token? lateToken;
@@ -4075,6 +4076,7 @@ class Parser {
             token = context.parseTopLevelMemberModifiers(token);
             next = token.next!;
 
+            abstractToken = context.abstractToken;
             augmentToken = context.augmentToken;
             externalToken = context.externalToken;
             lateToken = context.lateToken;
@@ -4105,7 +4107,7 @@ class Parser {
         rewriter.dropRange(syntheticName, afterOuterPattern.next!);
         return parseFields(
           beforeStart,
-          /* abstractToken = */ null,
+          abstractToken,
           augmentToken,
           externalToken,
           /* staticToken = */ null,
@@ -4235,6 +4237,9 @@ class Parser {
       } else if (lateToken != null) {
         reportRecoverableErrorWithToken(lateToken, diag.extraneousModifier);
       }
+      if (abstractToken != null) {
+        reportRecoverableErrorWithToken(abstractToken, diag.extraneousModifier);
+      }
       return parseTopLevelMethod(
         beforeStart,
         augmentToken,
@@ -4250,9 +4255,12 @@ class Parser {
     if (getOrSet != null) {
       reportRecoverableErrorWithToken(getOrSet, diag.extraneousModifier);
     }
+    if (!_isAugmentationsFeatureEnabled && abstractToken != null) {
+      reportRecoverableErrorWithToken(abstractToken, diag.extraneousModifier);
+    }
     return parseFields(
       beforeStart,
-      /* abstractToken = */ null,
+      abstractToken,
       augmentToken,
       externalToken,
       /* staticToken = */ null,
@@ -4286,8 +4294,8 @@ class Parser {
   ) {
     listener.beginFields(
       kind,
-      abstractToken,
       augmentToken,
+      abstractToken,
       externalToken,
       staticToken,
       covariantToken,
@@ -4380,7 +4388,6 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.TopLevel:
-        assert(abstractToken == null);
         break;
       case DeclarationKind.Class:
       case DeclarationKind.Mixin:
@@ -4409,6 +4416,7 @@ class Parser {
     if (kind == DeclarationKind.TopLevel) {
       listener.endTopLevelFields(
         augmentToken,
+        abstractToken,
         externalToken,
         staticToken,
         covariantToken,

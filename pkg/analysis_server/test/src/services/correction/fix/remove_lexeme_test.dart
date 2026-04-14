@@ -297,9 +297,11 @@ set m(v) {}
 
   Future<void> test_abstractTopLevelVariable() async {
     await resolveTestCode(r'''
+// @dart = 3.5
 abstract Object? o;
 ''');
     await assertHasFix('''
+// @dart = 3.5
 Object? o;
 ''');
   }
