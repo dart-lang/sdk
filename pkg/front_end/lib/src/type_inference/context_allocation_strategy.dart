@@ -156,7 +156,7 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
     Set<VariableContext> contexts = {
       for (VariableBase variable in variables) variable.context,
     };
-    (node.contexts ??= []).addAll(contexts);
+    (node.capturedContexts ??= []).addAll(contexts);
   }
 
   ThisVariable get thisVariable {

@@ -311,7 +311,7 @@ PatternForElement createPatternForElement(
 
 ForMapEntry createForMapEntry(
   int fileOffset,
-  List<VariableInitializationBase> variables,
+  List<VariableDeclaration> variables,
   Expression? condition,
   List<Expression> updates,
   MapLiteralEntry body,
@@ -324,7 +324,7 @@ PatternForMapEntry createPatternForMapEntry(
   int fileOffset, {
   required PatternVariableDeclaration patternVariableDeclaration,
   required List<VariableDeclaration> intermediateVariables,
-  required List<VariableInitializationBase> variableInitializations,
+  required List<VariableDeclaration> variableInitializations,
   required Expression? condition,
   required List<Expression> updates,
   required MapLiteralEntry body,
@@ -504,7 +504,7 @@ Statement createEmptyStatement(int fileOffset) {
 /// Return a representation of a for statement.
 Statement createForStatement(
   int fileOffset,
-  List<VariableInitializationBase>? variables,
+  List<VariableDeclaration>? variables,
   Expression? condition,
   List<Expression> updaters,
   Statement body,

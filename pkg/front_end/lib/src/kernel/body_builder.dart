@@ -3707,7 +3707,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  List<VariableInitializationBase>? _buildForLoopVariableDeclarations(
+  List<VariableDeclaration>? _buildForLoopVariableDeclarations(
     variableOrExpression,
   ) {
     // TODO(ahe): This can be simplified now that we have the events
@@ -3719,37 +3719,36 @@ class BodyBuilderImpl extends StackListenerImpl
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
       variableOrExpression.isLate = false;
-      return <VariableInitializationBase>[variableOrExpression];
+      return <VariableDeclaration>[variableOrExpression as VariableDeclaration];
     } else if (variableOrExpression is Expression) {
-      VariableInitializationBase variable =
-          new VariableDeclarationImpl.forEffect(variableOrExpression);
-      return <VariableInitializationBase>[variable];
+      VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
+        variableOrExpression,
+      );
+      return <VariableDeclaration>[variable];
     } else if (variableOrExpression is ExpressionStatement) {
       // Coverage-ignore-block(suite): Not run.
-      VariableInitializationBase variable =
-          new VariableDeclarationImpl.forEffect(
-            variableOrExpression.expression,
-          );
-      return <VariableInitializationBase>[variable];
+      VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
+        variableOrExpression.expression,
+      );
+      return <VariableDeclaration>[variable];
     } else if (intern.isVariablesDeclaration(variableOrExpression)) {
       return intern.variablesDeclarationExtractDeclarations(
         variableOrExpression,
       );
     } else if (variableOrExpression is List<Object>) {
       // Coverage-ignore-block(suite): Not run.
-      List<VariableInitializationBase> variables =
-          <VariableInitializationBase>[];
+      List<VariableDeclaration> variables = <VariableDeclaration>[];
       for (Object v in variableOrExpression) {
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
     } else if (variableOrExpression is PatternVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
-      return <VariableInitializationBase>[];
+      return <VariableDeclaration>[];
     } else if (variableOrExpression is ParserRecovery) {
-      return <VariableInitializationBase>[];
+      return <VariableDeclaration>[];
     } else if (variableOrExpression == null) {
-      return <VariableInitializationBase>[];
+      return <VariableDeclaration>[];
     }
     return null;
   }
@@ -3949,7 +3948,7 @@ class BodyBuilderImpl extends StackListenerImpl
         .popNode();
 
     Object? variableOrExpression = pop();
-    List<VariableInitializationBase>? variables;
+    List<VariableDeclaration>? variables;
     List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
       variables = pop() as List<VariableDeclaration>; // Internal variables.
@@ -4068,7 +4067,7 @@ class BodyBuilderImpl extends StackListenerImpl
         .deferNode();
 
     Object? variableOrExpression = pop();
-    List<VariableInitializationBase>? variables;
+    List<VariableDeclaration>? variables;
     List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
       variables = pop() as List<VariableDeclaration>;
@@ -8162,23 +8161,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement? body,
   ) {
     ForInElements elements = new ForInElements();
-    if (lvalue is VariableDeclaration) {
-      // Late for-in variables are not supported. An error has already been
-      // reported by the parser.
-      lvalue.isLate = false;
-      elements.explicitVariableDeclaration = lvalue;
-      if (lvalue.isConst) {
-        elements.expressionProblem = buildProblem(
-          message: diag.forInLoopWithConstVariable,
-          fileUri: uri,
-          fileOffset: lvalue.fileOffset,
-          length: lvalue.name!.length,
-        );
-        // As a recovery step, remove the const flag, to not confuse the
-        // constant evaluator further in the pipeline.
-        lvalue.isConst = false;
-      }
-    } else if (lvalue is VariableInitializationBase) {
+    if (lvalue is VariableInitialization) {
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
       lvalue.isLate = false;
@@ -8196,7 +8179,6 @@ class BodyBuilderImpl extends StackListenerImpl
         lvalue.isConst = false;
       }
     } else if (lvalue is VariableDeclaration) {
-      // Coverage-ignore-block(suite): Not run.
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
       lvalue.isLate = false;

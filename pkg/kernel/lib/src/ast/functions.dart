@@ -48,7 +48,7 @@ class FunctionNode extends TreeNode implements ScopeProvider, ContextConsumer {
   Scope? scope;
 
   @override
-  List<VariableContext>? contexts;
+  List<VariableContext>? capturedContexts;
 
   /// The emitted value of non-sync functions
   ///
