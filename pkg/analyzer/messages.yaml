@@ -2575,8 +2575,8 @@ CompileTimeErrorCode:
 
       #### Example
 
-      The following code produces this diagnostic because the class `A`, which
-      defines a generative constructor, is being used as a mixin:
+      The following code produces the diagnostic because class `A`
+      defines a generative constructor and is used as a mixin:
 
       ```dart
       //@dart=2.19
