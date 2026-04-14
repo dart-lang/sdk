@@ -1338,6 +1338,9 @@ class ElementAnnotationImpl
   /// The name of `_js_annotations` library, used to define JS annotations.
   static const String _jsLibName = '_js_annotations';
 
+  /// The URI of `dart:js_interop` library.
+  static const String _jsInteropLibUri = 'dart:js_interop';
+
   /// The name of `meta` library, used to define analysis annotations.
   static const String _metaLibName = 'meta';
 
@@ -1534,7 +1537,8 @@ class ElementAnnotationImpl
 
   @override
   bool get isJS =>
-      _isConstructor(libraryName: _jsLibName, className: _jsClassName);
+      _isConstructor(libraryName: _jsLibName, className: _jsClassName) ||
+      _isConstructor(libraryUri: _jsInteropLibUri, className: _jsClassName);
 
   @override
   bool get isLiteral => _isPackageMetaGetter(_literalVariableName);
@@ -1657,13 +1661,19 @@ class ElementAnnotationImpl
   String toString() => '@$element';
 
   bool _isConstructor({
-    required String libraryName,
+    String? libraryName,
+    String? libraryUri,
     required String className,
   }) {
+    assert(
+      (libraryName != null) != (libraryUri != null),
+      'Exactly one of libraryName/libraryUri should be provided',
+    );
     var element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
-        element.library.name == libraryName;
+        (libraryName == null || element.library.name == libraryName) &&
+        (libraryUri == null || element.library.uri.toString() == libraryUri);
   }
 
   bool _isDartCoreGetter(String name) {
