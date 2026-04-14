@@ -3478,7 +3478,11 @@ DEFINE_RUNTIME_ENTRY(InterpretedInstanceCallMissHandler, 3) {
   Function& target_function = Function::Handle(zone);
   if (receiver_class.EnsureIsFinalized(thread) == Error::null()) {
     const Class& cls = Class::Handle(zone, receiver.clazz());
-    const bool allow_add = !FLAG_precompiled_mode;
+    // Unlike compiled AOT, lazily create dynamic invocation forwarders if
+    // not created during the precompiler (e.g., the only dynamic calls are
+    // in interpreted code). This can be done for both compiled and
+    // interpreted code, as the resulting forwarder will be interpreted.
+    const bool allow_add = true;
     target_function = Resolver::ResolveDynamicForReceiverClass(
         cls, target_name, arguments_descriptor, allow_add);
   }

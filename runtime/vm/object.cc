@@ -4439,17 +4439,22 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 #endif
   forwarder.ClearICDataArray();
   forwarder.ClearCode();
+#if !defined(DART_PRECOMPILED_RUNTIME)
   forwarder.set_usage_counter(0);
   forwarder.set_deoptimization_counter(0);
   forwarder.set_optimized_instruction_count(0);
   forwarder.set_inlining_depth(0);
   forwarder.set_optimized_call_site_count(0);
+#endif
 
   forwarder.InheritKernelOffsetFrom(*this);
   forwarder.SetForwardingTarget(*this);
 
 #if defined(DART_DYNAMIC_MODULES)
 #if defined(DART_PRECOMPILED_RUNTIME)
+  // Allow the creation of a lazily created interpreted dynamic invocation
+  // forwarders for compiled code that does not already have one created,
+  // for example, when the only dynamic callers are in interpreted code.
   const bool attach_bytecode = true;
 #else
   const bool attach_bytecode = is_declared_in_bytecode();
@@ -8479,23 +8484,27 @@ bool Function::HasCode(FunctionPtr function) {
 }
 
 void Function::ClearCode() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_unoptimized_code(Code::null());
-  SetInstructions(StubCode::LazyCompile());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  ClearCodeSafe();
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 void Function::ClearCodeSafe() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
+  // This may get called when lazily creating dynamic invocation forwarders
+  // in the precompiled runtime, which can be done with dynamic modules.
+  // While the original function from which the forwarder is cloned may have
+  // been compiled, the forwarder is instead interpreted once complete.
+#if !defined(DART_PRECOMPILED_RUNTIME)
   untag()->set_unoptimized_code(Code::null());
-
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   SetInstructionsSafe(StubCode::LazyCompile());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 void Function::EnsureHasCompiledUnoptimizedCode() const {
