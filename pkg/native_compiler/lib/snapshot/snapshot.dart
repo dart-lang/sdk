@@ -389,7 +389,7 @@ class SnapshotSerializer {
     .interfaceTypes => InterfaceTypeSerializationCluster(),
     .functionTypes => FunctionTypeSerializationCluster(),
     .recordTypes => throw 'Unimplemented cluster $clusterId',
-    .typeParameterTypes => throw 'Unimplemented cluster $clusterId',
+    .typeParameterTypes => TypeParameterTypeSerializationCluster(),
     .codes => CodeSerializationCluster(),
     .icDatas => ICDataSerializationCluster(),
     .subtypeTestCaches => SubtypeTestCacheSerializationCluster(),
@@ -1145,6 +1145,15 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
   void trace(SnapshotSerializer serializer, Object object) {
     final type = object as ast.FunctionType;
     _objects.add(type);
+    if (type.typeParameters.isNotEmpty) {
+      // Establish StructuralParameter -> owner links.
+      final typeParamCluster =
+          serializer.getPredefinedCluster(PredefinedClusters.typeParameterTypes)
+              as TypeParameterTypeSerializationCluster;
+      for (final tp in type.typeParameters) {
+        typeParamCluster._structuralParameterOwner[tp] = type;
+      }
+    }
     final typeParameters = type.typeParameters.isNotEmpty
         ? TypeParameters(type.typeParameters)
         : null;
@@ -1196,6 +1205,100 @@ final class FunctionTypeSerializationCluster extends SerializationCluster {
       serializer.writeUint(
         1 /* implicit closure parameter */ + type.requiredParameterCount,
       );
+    }
+  }
+}
+
+final class TypeParameterTypeSerializationCluster extends SerializationCluster {
+  final List<ast.DartType> _objects = [];
+
+  // Filled by FunctionTypeSerializationCluster when tracing corresponding
+  // function types, as there is no link in the AST.
+  final Map<ast.StructuralParameter, ast.FunctionType>
+  _structuralParameterOwner = {};
+
+  Object _getTypeParameterOwner(
+    SnapshotSerializer serializer,
+    ast.GenericDeclaration declaration,
+  ) {
+    switch (declaration) {
+      case ast.Class():
+        return declaration;
+      case ast.Procedure():
+        return serializer.functionRegistry.getFunction(
+          declaration,
+          isGetter: declaration.isGetter,
+          isSetter: declaration.isSetter,
+        );
+      case ast.LocalFunction():
+        return serializer.functionRegistry.getFunction(
+          getEnclosingMember(declaration),
+          localFunction: declaration,
+        );
+      default:
+        throw 'Unexpected type parameter declaration ${declaration.runtimeType} $declaration';
+    }
+  }
+
+  @override
+  void trace(SnapshotSerializer serializer, Object object) {
+    final type = object as ast.DartType;
+    _objects.add(type);
+    switch (type) {
+      case ast.TypeParameterType():
+        serializer.push(
+          _getTypeParameterOwner(serializer, type.parameter.declaration!),
+        );
+        break;
+      case ast.StructuralParameterType():
+        serializer.push(_structuralParameterOwner[type.parameter]!);
+        break;
+      default:
+        throw 'Unexpected type parameter ${type.runtimeType} $type';
+    }
+  }
+
+  @override
+  void writePreLoad(SnapshotSerializer serializer) {
+    serializer.writeUint(PredefinedClusters.typeParameterTypes.index);
+  }
+
+  @override
+  void writeAlloc(SnapshotSerializer serializer) {
+    serializer.writeUint(_objects.length);
+    for (final type in _objects) {
+      serializer.assignRef(type);
+    }
+  }
+
+  @override
+  void writeFill(SnapshotSerializer serializer) {
+    for (var i = 0; i < _objects.length; i++) {
+      final type = _objects[i];
+      serializer.writeUint(
+        type.declaredNullability == ast.Nullability.nullable ? 1 : 0,
+      );
+      Object owner;
+      int index;
+      switch (type) {
+        case ast.TypeParameterType():
+          owner = _getTypeParameterOwner(
+            serializer,
+            type.parameter.declaration!,
+          );
+          index = computeIndexOfTypeParameter(type.parameter);
+          break;
+        case ast.StructuralParameterType():
+          final functionType = _structuralParameterOwner[type.parameter]!;
+          owner = functionType;
+          index = functionType.typeParameters.indexOf(type.parameter);
+          break;
+        default:
+          throw 'Unexpected type parameter ${type.runtimeType} $type';
+      }
+      assert(index >= 0);
+      serializer.writeRefId(owner);
+      serializer.writeUint(index);
     }
   }
 }

@@ -5,12 +5,15 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
-    show ExperimentalFeatures, DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/class_member_parser.dart'
     show ClassMemberParser;
 import 'package:_fe_analyzer_shared/src/parser/declaration_kind.dart'
     show DeclarationKind;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
+    show
+        ExperimentalFeatures,
+        ExperimentalFeaturesExtension,
+        DefaultExperimentalFeatures;
 import 'package:_fe_analyzer_shared/src/parser/identifier_context.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart';
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
@@ -769,13 +772,16 @@ void outputUnknownChunk(
 void main(List<String> args) {
   File f = new File(args[0]);
   Uint8List data = f.readAsBytesSync();
-  ScannerConfiguration scannerConfiguration = new ScannerConfiguration();
+  ExperimentalFeatures experimentalFeatures =
+      const DefaultExperimentalFeatures();
+  ScannerConfiguration scannerConfiguration = experimentalFeatures
+      .buildScannerConfiguration();
   String outline = textualOutline(
     data,
     scannerConfiguration,
     throwOnUnexpected: true,
     performModelling: true,
-    experimentalFeatures: const DefaultExperimentalFeatures(),
+    experimentalFeatures: experimentalFeatures,
   )!;
   if (args.length > 1 && args[1] == "--overwrite") {
     f.writeAsStringSync(outline);

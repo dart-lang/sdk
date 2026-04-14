@@ -7,22 +7,22 @@ class A extends core::Object {
     ;
 }
 class B1 extends core::Object {
-  constructor •(dynamic foo) → self::B1
+  constructor •(super-initializing-formal dynamic foo) → self::B1
     ;
 }
 class B2 extends core::Object {
-  constructor •({dynamic foo = null}) → self::B2
+  constructor •({super-initializing-formal dynamic foo = null}) → self::B2
     ;
 }
 class B3 extends core::Object {
-  constructor •(dynamic foo, {dynamic bar = null}) → self::B3
+  constructor •(super-initializing-formal dynamic foo, {super-initializing-formal dynamic bar = null}) → self::B3
     ;
 }
 class B4 extends core::Object {
-  constructor •(dynamic foo, dynamic bar) → self::B4
+  constructor •(super-initializing-formal dynamic foo, super-initializing-formal dynamic bar) → self::B4
     ;
 }
 class B5 extends core::Object {
-  constructor •({dynamic foo = null, dynamic bar = null}) → self::B5
+  constructor •({super-initializing-formal dynamic foo = null, super-initializing-formal dynamic bar = null}) → self::B5
     ;
 }

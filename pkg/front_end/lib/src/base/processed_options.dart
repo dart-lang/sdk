@@ -14,8 +14,7 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
         TargetLibrariesSpecification;
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-import 'package:kernel/kernel.dart'
-    show CanonicalName, Component, Location, Version;
+import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
 import 'package:package_config/package_config.dart';
@@ -133,6 +132,9 @@ class ProcessedOptions {
 
   Uri? get dynamicInterfaceSpecificationUri =>
       _raw.dynamicInterfaceSpecificationUri;
+
+  bool get allowDynamicCallsInDynamicModules =>
+      _raw.allowDynamicCallsInDynamicModules;
 
   String? _dynamicInterfaceSpecificationContents;
   bool _triedLoadingDynamicInterfaceSpecification = false;
@@ -502,29 +504,6 @@ class ProcessedOptions {
 
   /// Returns the global state of the experimental features.
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
-
-  // Coverage-ignore(suite): Not run.
-  /// Returns the minimum language version needed for a library with the given
-  /// [importUri] to opt into the experiment with the given [flag].
-  ///
-  /// Note that the experiment might not be enabled at all for the library, as
-  /// computed by [isExperimentEnabledInLibrary].
-  Version getExperimentEnabledVersionInLibrary(
-    flags.ExperimentalFlag flag,
-    Uri importUri,
-  ) {
-    return _raw.getExperimentEnabledVersionInLibrary(flag, importUri);
-  }
-
-  /// Return `true` if the experiment with the given [flag] is enabled for the
-  /// library with the given [importUri] and language [version].
-  bool isExperimentEnabledInLibraryByVersion(
-    flags.ExperimentalFlag flag,
-    Uri importUri,
-    Version version,
-  ) {
-    return _raw.isExperimentEnabledInLibraryByVersion(flag, importUri, version);
-  }
 
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".

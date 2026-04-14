@@ -1009,6 +1009,63 @@ class InterfaceTypeDeserializationCluster : public DeserializationCluster {
   }
 };
 
+class TypeParameterTypeDeserializationCluster : public DeserializationCluster {
+ public:
+  TypeParameterTypeDeserializationCluster()
+      : DeserializationCluster(
+            "TypeParameterType",
+            Object::ShouldHaveDeeplyImmutabilityBitSet(kTypeParameterCid)) {}
+  ~TypeParameterTypeDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, TypeParameter::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      TypeParameterPtr tp = static_cast<TypeParameterPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(tp, kTypeParameterCid,
+                                     TypeParameter::InstanceSize(),
+                                     is_deeply_immutable());
+      tp->untag()->type_test_stub_entry_point_.store(0,
+                                                     std::memory_order_relaxed);
+      const intptr_t is_nullable = d.ReadUnsigned();
+      ObjectPtr owner = d.ReadRef();
+      intptr_t flags = UntaggedAbstractType::NullabilityBit::update(
+          is_nullable, UntaggedAbstractType::TypeStateBits::encode(
+                           UntaggedAbstractType::kAllocated));
+      if (owner->IsClass()) {
+        owner = Smi::New(static_cast<ClassPtr>(owner)->untag()->id());
+      } else {
+        if (owner->IsFunction()) {
+          owner = Function::RawCast(owner)->untag()->signature();
+        }
+        flags =
+            UntaggedTypeParameter::IsFunctionTypeParameter::update(true, flags);
+      }
+      tp->untag()->set_flags(flags);
+      tp->untag()->type_test_stub_ = static_cast<CodePtr>(d.null());
+      tp->untag()->hash_ = Smi::New(0);
+      tp->untag()->owner_ = owner;
+      tp->untag()->base_ = 0;
+      tp->untag()->index_ = d.ReadUnsigned();
+    }
+  }
+
+  void PostLoad(Deserializer* d, const Array& refs) override {
+    TypeParameter& type = TypeParameter::Handle(d->zone());
+    Code& stub = Code::Handle(d->zone());
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      type ^= refs.At(id);
+      stub = TypeTestingStubGenerator::DefaultCodeForType(type);
+      type.InitializeTypeTestingStubNonAtomic(stub);
+      type.SetIsFinalized();
+    }
+  }
+};
+
 class CodeDeserializationCluster : public DeserializationCluster {
  public:
   explicit CodeDeserializationCluster(Zone* zone)
@@ -1366,9 +1423,7 @@ DeserializationCluster* Deserializer::ReadCluster() {
       UNIMPLEMENTED();
       return nullptr;
     case ModuleSnapshot::kTypeParameterTypes:
-      // return new (Z) TypeParameterTypeDeserializationCluster();
-      UNIMPLEMENTED();
-      return nullptr;
+      return new (Z) TypeParameterTypeDeserializationCluster();
     case ModuleSnapshot::kTypeArguments:
       return new (Z) TypeArgumentsDeserializationCluster();
     case ModuleSnapshot::kCodes:

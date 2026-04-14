@@ -53,6 +53,21 @@ class C {
 ''');
   }
 
+  Future<void> test_optionalNamed_implicitType_primaryConstructor() async {
+    await resolveTestCode('''
+class C({this.^f = 0}) {
+  int f;
+}
+''');
+    await assertHasAssist('''
+class C({int f = 0}) {
+  int f;
+
+  this : f = f;
+}
+''');
+  }
+
   Future<void> test_optionalNamed_private() async {
     await resolveTestCode('''
 class C {
@@ -100,6 +115,21 @@ class C {
   int f;
 
   C([int f = 0]) : f = f;
+}
+''');
+  }
+
+  Future<void> test_optionalPositional_implicitType_primaryConstructor() async {
+    await resolveTestCode('''
+class C([this.^f = 0]) {
+  int f;
+}
+''');
+    await assertHasAssist('''
+class C([int f = 0]) {
+  int f;
+
+  this : f = f;
 }
 ''');
   }
@@ -243,6 +273,21 @@ class C {
 ''');
   }
 
+  Future<void> test_requiredNamed_implicitType_primaryConstructor() async {
+    await resolveTestCode('''
+class C({required this.^f}) {
+  int f;
+}
+''');
+    await assertHasAssist('''
+class C({required int f}) {
+  int f;
+
+  this : f = f;
+}
+''');
+  }
+
   Future<void> test_requiredNamed_private() async {
     await resolveTestCode('''
 class C {
@@ -277,6 +322,21 @@ class C {
 ''');
   }
 
+  Future<void> test_requiredPositional_explicitType_primaryConstructor() async {
+    await resolveTestCode('''
+class C(int this.^f) {
+  num f;
+}
+''');
+    await assertHasAssist('''
+class C(int f) {
+  num f;
+
+  this : f = f;
+}
+''');
+  }
+
   Future<void> test_requiredPositional_implicitType() async {
     await resolveTestCode('''
 class C {
@@ -290,6 +350,21 @@ class C {
   int f;
 
   C(int f) : f = f;
+}
+''');
+  }
+
+  Future<void> test_requiredPositional_implicitType_primaryConstructor() async {
+    await resolveTestCode('''
+class C(this.^f) {
+  int f;
+}
+''');
+    await assertHasAssist('''
+class C(int f) {
+  int f;
+
+  this : f = f;
 }
 ''');
   }

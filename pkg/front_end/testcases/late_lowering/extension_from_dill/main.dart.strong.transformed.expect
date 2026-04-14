@@ -62,7 +62,7 @@ static extension-member set E|nullableField(core::int? nullableField#param) → 
   mai::_#E|nullableField#isSet = true;
   mai::_#E|nullableField = nullableField#param;
 }
-static extension-type-member method ET|constructor#(core::int i) → mai::ET% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET|constructor#(initializing-formal core::int i) → mai::ET% /* erasure=core::int, declared=! */ {
   lowered final mai::ET% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

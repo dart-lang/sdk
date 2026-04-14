@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field self::Class::T% field;
-  const constructor •(self::Class::T% field) → self::Class<self::Class::T%>
+  const constructor •(initializing-formal self::Class::T% field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
     ;
   static synthetic method _#new#tearOff<T extends core::Object? = dynamic>(self::Class::_#new#tearOff::T% field) → self::Class<self::Class::_#new#tearOff::T%>

@@ -549,6 +549,12 @@ class _Visitor extends SimpleAstVisitor<void> {
     }).toList();
 
     for (var member in unusedMembers) {
+      var enclosingDeclaration = member.parent
+          ?.thisOrAncestorOfType<Declaration>();
+      if (enclosingDeclaration != null &&
+          unusedDeclarations.contains(enclosingDeclaration)) {
+        continue;
+      }
       var nodeToAnnotate = getNodeToAnnotate(member);
       rule.reportAtOffset(
         nodeToAnnotate.offset,

@@ -160,6 +160,35 @@ class C extends Object with A, Function, B {}
     assertElementTypes(findElement2.class_('C').mixins, ['A', 'B']);
   }
 
+  test_field_static_typeParameter() async {
+    await assertErrorsInCode(
+      r'''
+class A<T> {
+  static T? foo;
+}
+''',
+      [error(diag.typeParameterReferencedByStatic, 22, 1)],
+    );
+
+    var node = findNode.singleFieldDeclaration;
+    assertResolvedNodeText(node, r'''
+FieldDeclaration
+  staticKeyword: static
+  fields: VariableDeclarationList
+    type: NamedType
+      name: T
+      question: ?
+      element: #E0 T
+      type: InvalidType
+    variables
+      VariableDeclaration
+        name: foo
+        declaredFragment: <testLibraryFragment> foo@25
+  semicolon: ;
+  declaredFragment: <null>
+''');
+  }
+
   test_issue32815() async {
     await assertErrorsInCode(
       r'''
@@ -179,6 +208,39 @@ main() {
         error(diag.unusedLocalVariable, 150, 1),
       ],
     );
+  }
+
+  test_method_static_typeParameter() async {
+    await assertErrorsInCode(
+      r'''
+class A<T> {
+  static T? foo() {}
+}
+''',
+      [error(diag.typeParameterReferencedByStatic, 22, 1)],
+    );
+
+    var node = findNode.singleMethodDeclaration;
+    assertResolvedNodeText(node, r'''
+MethodDeclaration
+  modifierKeyword: static
+  returnType: NamedType
+    name: T
+    question: ?
+    element: #E0 T
+    type: InvalidType
+  name: foo
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: BlockFunctionBody
+    block: Block
+      leftBracket: {
+      rightBracket: }
+  declaredFragment: <testLibraryFragment> foo@25
+    element: <testLibrary>::@class::A::@method::foo
+      type: InvalidType Function()
+''');
   }
 
   test_nameWithTypeParameters_hasTypeParameters() async {

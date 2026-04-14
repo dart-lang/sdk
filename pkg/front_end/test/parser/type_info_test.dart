@@ -34,11 +34,7 @@ void main() {
 }
 
 ScannerResult scanString(String source, {bool includeComments = false}) =>
-    scanner.scanString(
-      source,
-      configuration: const ScannerConfiguration(enableTripleShift: true),
-      includeComments: includeComments,
-    );
+    scanner.scanString(source, includeComments: includeComments);
 
 @reflectiveTest
 class NoTypeInfoTest {

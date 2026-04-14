@@ -27,25 +27,25 @@ extension type CustomJSArray(js_::JSArray<js_::JSAny? /* erasure=core::Object? *
   constructor • = self::CustomJSArray|constructor#;
   constructor tearoff • = self::CustomJSArray|constructor#_#new#tearOff;
 }
-static extension-type-member method CustomJSAny|constructor#(wildcard js_::JSAny /* erasure=core::Object */ _#wc0#formal) → self::CustomJSAny /* erasure=core::Object */ {
+static extension-type-member method CustomJSAny|constructor#(wildcard initializing-formal js_::JSAny /* erasure=core::Object */ _#wc0#formal) → self::CustomJSAny /* erasure=core::Object */ {
   lowered final self::CustomJSAny /* erasure=core::Object */ #this = _#wc0#formal;
   return #this;
 }
 static extension-type-member synthetic method CustomJSAny|constructor#_#new#tearOff(js_::JSAny /* erasure=core::Object */ _#wc0#formal) → self::CustomJSAny /* erasure=core::Object */
   return self::CustomJSAny|constructor#(_#wc0#formal);
-static extension-type-member method CustomJSObject|constructor#(wildcard js_::JSObject /* erasure=_interceptors::JSObject */ _#wc1#formal) → self::CustomJSObject /* erasure=_interceptors::JSObject */ {
+static extension-type-member method CustomJSObject|constructor#(wildcard initializing-formal js_::JSObject /* erasure=_interceptors::JSObject */ _#wc1#formal) → self::CustomJSObject /* erasure=_interceptors::JSObject */ {
   lowered final self::CustomJSObject /* erasure=_interceptors::JSObject */ #this = _#wc1#formal;
   return #this;
 }
 static extension-type-member synthetic method CustomJSObject|constructor#_#new#tearOff(js_::JSObject /* erasure=_interceptors::JSObject */ _#wc1#formal) → self::CustomJSObject /* erasure=_interceptors::JSObject */
   return self::CustomJSObject|constructor#(_#wc1#formal);
-static extension-type-member method CustomTypedArray|constructor#(wildcard js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _#wc2#formal) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ {
+static extension-type-member method CustomTypedArray|constructor#(wildcard initializing-formal js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _#wc2#formal) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ {
   lowered final self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ #this = _#wc2#formal;
   return #this;
 }
 static extension-type-member synthetic method CustomTypedArray|constructor#_#new#tearOff(js_::JSTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */ _#wc2#formal) → self::CustomTypedArray /* erasure=dart.typed_data.implementation::NativeTypedData */
   return self::CustomTypedArray|constructor#(_#wc2#formal);
-static extension-type-member method CustomJSArray|constructor#(wildcard js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ _#wc3#formal) → self::CustomJSArray /* erasure=_interceptors::JSArray<core::Object?> */ {
+static extension-type-member method CustomJSArray|constructor#(wildcard initializing-formal js_::JSArray<js_::JSAny? /* erasure=core::Object? */> /* erasure=_interceptors::JSArray<core::Object?> */ _#wc3#formal) → self::CustomJSArray /* erasure=_interceptors::JSArray<core::Object?> */ {
   lowered final self::CustomJSArray /* erasure=_interceptors::JSArray<core::Object?> */ #this = _#wc3#formal;
   return #this;
 }

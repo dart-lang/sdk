@@ -906,12 +906,6 @@ abstract class AnalysisServer {
     );
   }
 
-  /// Notify the declarations tracker that the file with the given [path] was
-  /// changed - added, updated, or removed.  Schedule processing of the file.
-  void notifyDeclarationsTracker(String path) {
-    analysisDriverScheduler.notify();
-  }
-
   /// Notify the flutter widget properties support that the file with the
   /// given [path] was changed - added, updated, or removed.
   void notifyFlutterWidgetDescriptions(String path) {}
@@ -1250,7 +1244,6 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
     analysisServer.pluginManager.broadcastWatchEvent(event);
   }

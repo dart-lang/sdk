@@ -43,7 +43,7 @@ static extension-member get E|field() → core::int;
 static extension-member set E|field(core::int field#param) → void;
 static extension-member get E|nullableField() → core::int?;
 static extension-member set E|nullableField(core::int? nullableField#param) → void;
-static extension-type-member method ET|constructor#(core::int i) → self2::ET% /* erasure=core::int, declared=! */
+static extension-type-member method ET|constructor#(initializing-formal core::int i) → self2::ET% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET|constructor#_#new#tearOff(core::int i) → self2::ET% /* erasure=core::int, declared=! */
   return self2::ET|constructor#(i);

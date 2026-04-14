@@ -1034,4 +1034,108 @@ void main() async {
       }
     });
   });
+
+  group("Resident Frontend Server: 'record-uses' property tests: ", () {
+    test('record-uses is rejected in JIT mode', () async {
+      final String jsonResponse = await ResidentFrontendServer.handleRequest(
+        ResidentFrontendServer.createCompileJSON(
+          executable: 'a.dart',
+          outputDill: 'a.dart.dill',
+          recordUses: 'out.json',
+        ),
+      );
+      expect(
+        jsonDecode(jsonResponse)['errorMessage'],
+        equals(
+          "The 'record-uses' property is only supported for AOT compilation.",
+        ),
+      );
+    });
+
+    test('record-uses in AOT mode', () async {
+      final Directory d = Directory.systemTemp.createTempSync();
+      try {
+        final File metaFile = new File(
+          path.join(d.path, 'meta', 'lib', 'meta.dart'),
+        );
+        metaFile.createSync(recursive: true);
+        metaFile.writeAsStringSync('''
+library meta;
+class RecordUse {
+  const RecordUse();
+}
+''');
+
+        final File fooFile = new File(
+          path.join(d.path, 'foo', 'lib', 'foo.dart'),
+        );
+        fooFile.createSync(recursive: true);
+        fooFile.writeAsStringSync('''
+import 'package:meta/meta.dart';
+class Foo {
+  @RecordUse()
+  static void bar() {
+    print(42);
+  }
+}
+''');
+
+        final File mainFile = new File(path.join(d.path, 'a.dart'));
+        mainFile.writeAsStringSync('''
+import 'package:foo/foo.dart';
+void main() {
+  Foo.bar();
+}
+''');
+
+        final File packageConfigFile = new File(
+          path.join(d.path, '.dart_tool', 'package_config.json'),
+        );
+        packageConfigFile.createSync(recursive: true);
+        packageConfigFile.writeAsStringSync(
+          jsonEncode({
+            "configVersion": 2,
+            "packages": [
+              {
+                "name": "meta",
+                "rootUri": "../meta",
+                "packageUri": "lib/",
+                "languageVersion": "3.0",
+              },
+              {
+                "name": "foo",
+                "rootUri": "../foo",
+                "packageUri": "lib/",
+                "languageVersion": "3.0",
+              },
+            ],
+          }),
+        );
+
+        final File recordedUsesFile = new File(
+          path.join(d.path, 'recorded_uses.json'),
+        );
+        final File outputDill = new File(path.join(d.path, 'app.dill'));
+
+        final String jsonResponse = await ResidentFrontendServer.handleRequest(
+          ResidentFrontendServer.createCompileJSON(
+            executable: mainFile.path,
+            outputDill: outputDill.path,
+            packages: packageConfigFile.path,
+            aot: true,
+            tfa: true,
+            recordUses: recordedUsesFile.path,
+            enableExperiment: ['record-use'],
+          ),
+        );
+        final Map<String, dynamic> response = jsonDecode(jsonResponse);
+        expect(response['success'], true);
+        expect(recordedUsesFile.existsSync(), true);
+        expect(recordedUsesFile.readAsStringSync(), contains('bar'));
+      } finally {
+        d.deleteSync(recursive: true);
+        ResidentFrontendServer.compilers.clear();
+      }
+    });
+  });
 }

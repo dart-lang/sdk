@@ -12,11 +12,11 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::String foo;
-  constructor •(core::String foo) → self::A
+  constructor •(initializing-formal core::String foo) → self::A
     ;
 }
 class B extends self::A {
-  constructor •(core::String foo) → self::B
+  constructor •(super-initializing-formal core::String foo) → self::B
     ;
 }
 static method main() → dynamic

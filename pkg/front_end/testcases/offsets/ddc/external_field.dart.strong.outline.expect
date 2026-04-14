@@ -12,7 +12,7 @@ import "dart:core" as core;
   constructor _ = self::Foo|constructor#_;
   constructor tearoff _ = self::Foo|constructor#_#_#tearOff;
 }
-[263]static extension-type-member method [264] [264] Foo|constructor#_([274] wildcard js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */
+[263]static extension-type-member method [264] [264] Foo|constructor#_([274] wildcard initializing-formal js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */
 [-1]  ;
 [263]static extension-type-member synthetic method [263] [263] Foo|constructor#_#_#tearOff([274] js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */
 [263]  return [263] [263] self::Foo|constructor#_ [263]([263] _#wc0#formal);

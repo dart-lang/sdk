@@ -185,6 +185,53 @@ EnumConstantDeclaration
 ''');
   }
 
+  test_constructor_newHead_unnamed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  new ();
+}
+''');
+
+    var node = findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E Function()
+''');
+  }
+
+  test_constructor_newHead_unnamed_const() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  const new ();
+}
+''');
+
+    var node = findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E Function()
+''');
+  }
+
   test_constructor_notGeneric_named() async {
     await assertNoErrorsInCode(r'''
 enum E {

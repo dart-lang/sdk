@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import '../experiments/flags.dart';
+import '../scanner/abstract_scanner.dart' show ScannerConfiguration;
 
 /// Interface for determining which features are enabled during parsing.
 abstract class ExperimentalFeatures {
@@ -19,4 +20,13 @@ class DefaultExperimentalFeatures implements ExperimentalFeatures {
 
   @override
   bool isExperimentEnabled(ExperimentalFlag flag) => flag.isEnabledByDefault;
+}
+
+extension ExperimentalFeaturesExtension on ExperimentalFeatures {
+  ScannerConfiguration buildScannerConfiguration() {
+    return new ScannerConfiguration(
+      enableTripleShift: isExperimentEnabled(ExperimentalFlag.tripleShift),
+      enableAugmentations: isExperimentEnabled(ExperimentalFlag.augmentations),
+    );
+  }
 }

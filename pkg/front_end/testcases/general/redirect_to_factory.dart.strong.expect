@@ -63,7 +63,7 @@ extension type ET2(core::int i) {
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#named(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#named(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -73,7 +73,7 @@ static extension-type-member method ET1|constructor#(core::int i) → self::ET1%
   return throw "";
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(i);
-static extension-type-member method ET2|constructor#other(core::int i) → self::ET2% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET2|constructor#other(initializing-formal core::int i) → self::ET2% /* erasure=core::int, declared=! */ {
   lowered final self::ET2% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

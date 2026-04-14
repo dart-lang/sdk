@@ -4,11 +4,11 @@
 
 import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
-import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
@@ -17,7 +17,16 @@ import '../diagnostic.dart' as diag;
 
 const _desc = r'Unnecessary `null` checks.';
 
-DartType? getExpectedType(PostfixExpression node) {
+/// Returns the "expected" type for [node], or `null` if an expected type
+/// cannot be determined.
+///
+/// If [node] is the right side of an assignment, then `null` is returned,
+/// unless [allowPromotable] is true, to avoid reporting code that
+/// promotes a type.
+DartType? getExpectedType(
+  PostfixExpression node, {
+  bool allowPromotable = false,
+}) {
   var realNode = node.thisOrAncestorMatching(
     (e) => e.parent is! ParenthesizedExpression,
   );
@@ -68,6 +77,18 @@ DartType? getExpectedType(PostfixExpression node) {
           node.operand is! Identifier ||
           (parent.leftHandSide as Identifier).name !=
               (node.operand as Identifier).name)) {
+    var leftHandSide = parent.leftHandSide;
+    if (!allowPromotable && leftHandSide is Identifier) {
+      // Do not return a type when the left side of an assignment is promotable.
+      var element = leftHandSide.element;
+      if (element is LocalVariableElement ||
+          element is FormalParameterElement) {
+        return null;
+      }
+      if (element is FieldElement && element.isPromotable) {
+        return null;
+      }
+    }
     return parent.writeType;
   }
   // in variable declaration
@@ -141,11 +162,7 @@ DartType? getExpectedType(PostfixExpression node) {
 
 class UnnecessaryNullChecks extends AnalysisRule {
   UnnecessaryNullChecks()
-    : super(
-        name: LintNames.unnecessary_null_checks,
-        description: _desc,
-        state: const RuleState.experimental(),
-      );
+    : super(name: LintNames.unnecessary_null_checks, description: _desc);
 
   @override
   DiagnosticCode get diagnosticCode => diag.unnecessaryNullChecks;

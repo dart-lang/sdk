@@ -25,19 +25,16 @@ Future<void> f(int? p, int? i, Future<int?> future) async {
   i = await future!;
 }
 ''',
-      [error(diag.unnecessaryNonNullAssertion, 78, 1), lint(78, 1)],
+      [error(diag.unnecessaryNonNullAssertion, 78, 1)],
     );
   }
 
   test_assignment_nullable() async {
-    await assertDiagnostics(
-      r'''
+    await assertNoDiagnostics(r'''
 void f(int? v, int? i) {
   v = i!;
 }
-''',
-      [lint(32, 1)],
-    );
+''');
   }
 
   test_assignment_nullable_self() async {

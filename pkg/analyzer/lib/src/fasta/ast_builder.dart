@@ -3736,18 +3736,6 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleAugmentSuperExpression(
-    Token augmentKeyword,
-    Token superKeyword,
-    IdentifierContext context,
-  ) {
-    assert(optional('augment', augmentKeyword));
-    assert(optional('super', superKeyword));
-    debugEvent("AugmentSuperExpression");
-    throw UnimplementedError('AstBuilder.handleAugmentSuperExpression');
-  }
-
-  @override
   void handleBreakStatement(
     bool hasTarget,
     Token breakKeyword,

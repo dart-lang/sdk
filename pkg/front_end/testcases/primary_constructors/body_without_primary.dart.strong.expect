@@ -145,7 +145,7 @@ extension type ET1(core::int i) {
   constructor • = self::ET1|constructor#;
   constructor tearoff • = self::ET1|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
   assert(i.{core::num::>}(0){(core::num) → core::bool});
   return #this;

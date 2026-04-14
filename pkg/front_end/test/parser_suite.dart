@@ -11,6 +11,7 @@ import 'package:_fe_analyzer_shared/src/experiments/errors.dart'
 import 'package:_fe_analyzer_shared/src/experiments/flags.dart'
     as shared
     show ExperimentalFlag;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show Parser, lengthOfSpan;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart'
@@ -90,23 +91,6 @@ Future<Context> createContext(Chain suite, Map<String, String> environment) {
     ),
   );
 }
-
-ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-  enableTripleShift: true,
-  forAugmentationLibrary: false,
-);
-
-ScannerConfiguration scannerConfigurationNonTripleShift =
-    new ScannerConfiguration(
-      enableTripleShift: false,
-      forAugmentationLibrary: false,
-    );
-
-ScannerConfiguration scannerConfigurationAugmentation =
-    new ScannerConfiguration(
-      enableTripleShift: true,
-      forAugmentationLibrary: true,
-    );
 
 class Context extends ChainContext with MatchContext {
   @override
@@ -560,7 +544,7 @@ Token scanUri(
   Uint8List rawBytes = f.readAsBytesSync();
   return scanRawBytes(
     rawBytes,
-    experimentalFeatures.scannerConfiguration,
+    experimentalFeatures.buildScannerConfiguration(),
     lineStarts,
     languageVersionChanged: languageVersionChanged,
   );

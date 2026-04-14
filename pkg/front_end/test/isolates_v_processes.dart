@@ -65,7 +65,7 @@ Future<void> useDirect(int shards, int shard) async {
   await Future.wait(futures);
 }
 
-Future<void> useIsolates(final int j) async {
+Future<void> useIsolates(int j) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   print("Using $j isolates...");
   List<Future> futures = [];
@@ -88,7 +88,7 @@ Future<void> useIsolates(final int j) async {
   await Future.wait(futures);
 }
 
-Future<void> useProcesses(final int j) async {
+Future<void> useProcesses(int j) async {
   Stopwatch stopwatch = new Stopwatch()..start();
   print("Using $j processes...");
   String script = Platform.script.toFilePath();

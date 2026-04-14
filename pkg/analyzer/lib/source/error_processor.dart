@@ -41,7 +41,7 @@ class ErrorConfig {
 
         code = code.toUpperCase();
         var action = v.value.toString().toLowerCase();
-        if (AnalysisOptionsFile.ignoreSynonyms.contains(action)) {
+        if (AnalysisOptionsFileKeys.ignoreSynonyms.contains(action)) {
           processors.add(ErrorProcessor.ignore(code));
         } else {
           var severity = severityMap[action];

@@ -701,6 +701,7 @@ final class _DispatchableInvocation extends _Invocation {
 
     assert(targets.isEmpty);
 
+    bool unknownTargets = false;
     if (receiver is ConcreteType) {
       _collectTargetsForConcreteType(receiver, targets, typeFlowAnalysis);
     } else if (receiver is SetType) {
@@ -709,6 +710,12 @@ final class _DispatchableInvocation extends _Invocation {
       }
     } else if (receiver is AnyInstanceType) {
       _collectTargetsForSelector(targets, typeFlowAnalysis);
+      // Any class from a dynamic module may have unknown target for the
+      // dynamic call with AnyInstanceType receiver.
+      unknownTargets = typeFlowAnalysis
+          .hierarchyCache
+          ._objectTFClass
+          .hasDynamicallyExtendableSubtypes;
     } else {
       assert(receiver is EmptyType);
     }
@@ -725,7 +732,7 @@ final class _DispatchableInvocation extends _Invocation {
       );
     }
 
-    return true;
+    return !unknownTargets;
   }
 
   void _collectTargetsForNull(

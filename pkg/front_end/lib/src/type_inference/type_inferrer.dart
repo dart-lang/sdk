@@ -16,7 +16,7 @@ import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../util/helpers.dart';
-import 'closure_context.dart';
+import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
@@ -247,7 +247,7 @@ class TypeInferrerImpl implements TypeInferrer {
       fileUri: fileUri,
       expressionEvaluationHelper: expressionEvaluationHelper,
     );
-    ClosureContext closureContext = new ClosureContext(
+    BodyInferenceContext bodyContext = new BodyInferenceContext(
       visitor,
       asyncMarker,
       returnType,
@@ -260,10 +260,7 @@ class TypeInferrerImpl implements TypeInferrer {
         internalThisVariable: internalThisVariable,
       );
     }
-    StatementInferenceResult result = visitor.inferStatement(
-      body,
-      closureContext,
-    );
+    StatementInferenceResult result = visitor.inferStatement(body, bodyContext);
     if (scopeProviderInfo != null) {
       visitor.endFunctionBodyInference(scopeProviderInfo);
     }
@@ -275,14 +272,14 @@ class TypeInferrerImpl implements TypeInferrer {
         );
       }
     }
-    result = closureContext.handleImplicitReturn(
+    result = bodyContext.handleImplicitReturn(
       visitor,
       body,
       result,
       fileOffset,
     );
     visitor.checkCleanState();
-    DartType? emittedValueType = closureContext.emittedValueType;
+    DartType? emittedValueType = bodyContext.emittedValueType;
     assert(asyncMarker == AsyncMarker.Sync || emittedValueType != null);
     flowAnalysis.finish();
     return new InferredFunctionBody(

@@ -15,6 +15,7 @@ import '../../../generated/type_system_base.dart';
 
 main() {
   defineReflectiveSuite(() {
+    defineReflectiveTests(MapSubstitutionTest);
     defineReflectiveTests(SubstituteEmptyTest);
     defineReflectiveTests(SubstituteFromInterfaceTypeTest);
     defineReflectiveTests(SubstituteFromPairsTest);
@@ -40,6 +41,37 @@ DartType substitute(
     return type;
   }
   return Substitution.fromMap(substitution).substituteType(type);
+}
+
+@reflectiveTest
+class MapSubstitutionTest extends _Base {
+  test_andThen_empty_andThenNotEmpty() {
+    var T = typeParameter('T');
+    var after = Substitution.fromMap({T: intNone});
+
+    var combined = Substitution.empty.andThen(after);
+    expect(combined, same(Substitution.empty));
+  }
+
+  test_andThen_notEmpty_andThenEmpty() {
+    var T = typeParameter('T');
+    var inner = Substitution.fromMap({T: intNone});
+
+    var combined = inner.andThen(Substitution.empty);
+    expect(combined, same(inner));
+  }
+
+  test_andThen_notEmpty_andThenNotEmpty() {
+    var T = typeParameter('T');
+    var G = typeParameter('G');
+
+    var inner = Substitution.fromMap({T: listNone(typeParameterTypeNone(G))});
+    var after = Substitution.fromMap({G: stringNone});
+
+    var combined = inner.andThen(after);
+    var result = combined.substituteType(typeParameterTypeNone(T));
+    assertType(result, 'List<String>');
+  }
 }
 
 @reflectiveTest

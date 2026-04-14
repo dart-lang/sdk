@@ -157,7 +157,7 @@ class WrappedBinaryBuilder extends BinaryBuilder {
   List<int> statementTypes = List<int>.filled(255, 0);
   List<int> typeTypes = List<int>.filled(255, 0);
 
-  WrappedBinaryBuilder(var _bytes)
+  WrappedBinaryBuilder(_bytes)
     : super(
         _bytes,
         disableLazyReading: true,

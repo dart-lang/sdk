@@ -393,6 +393,7 @@ bool Thread::HasActiveState() {
 }
 
 void Thread::EnterIsolate(Isolate* isolate) {
+  Roots::SetCurrent(isolate->group()->roots());
   const bool is_resumable = isolate->mutator_thread() != nullptr;
 
   // To let VM's thread pool (if we run on it) know that this thread is
@@ -518,11 +519,13 @@ void Thread::ExitIsolate(bool isolate_shutdown) {
   if (!(is_nested_exit && thread->OwnsSafepoint())) {
     group->DecreaseMutatorCount(is_nested_exit);
   }
+  Roots::ClearCurrent();
 }
 
 void Thread::EnterIsolateGroupAsHelper(IsolateGroup* isolate_group,
                                        TaskKind kind,
                                        bool bypass_safepoint) {
+  Roots::SetCurrent(isolate_group->roots());
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr, kind,
                                    bypass_safepoint);
   RELEASE_ASSERT(thread != nullptr);
@@ -543,10 +546,12 @@ void Thread::ExitIsolateGroupAsHelper(bool bypass_safepoint) {
   thread->ResetMutatorState();
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
+  Roots::ClearCurrent();
 }
 
 void Thread::EnterIsolateGroupAsMutator(IsolateGroup* isolate_group,
                                         bool bypass_safepoint) {
+  Roots::SetCurrent(isolate_group->roots());
   isolate_group->IncreaseMutatorCount(/*thread=*/nullptr,
                                       /*is_nested_reenter=*/true,
                                       /*was_stolen=*/false);
@@ -601,10 +606,12 @@ void Thread::ExitIsolateGroupAsMutator(bool bypass_safepoint) {
   FreeActiveThread(thread, /*isolate=*/nullptr, bypass_safepoint);
   group->DecrementIsolateGroupMutatorCount();
   group->DecreaseMutatorCount(/*is_nested_exit=*/true);
+  Roots::ClearCurrent();
 }
 
 void Thread::EnterIsolateGroupAsNonMutator(IsolateGroup* isolate_group,
                                            TaskKind kind) {
+  Roots::SetCurrent(isolate_group->roots());
   Thread* thread = AddActiveThread(isolate_group, /*isolate=*/nullptr, kind,
                                    /*bypass_safepoint=*/true);
   RELEASE_ASSERT(thread != nullptr);
@@ -620,6 +627,7 @@ void Thread::ExitIsolateGroupAsNonMutator() {
 
   SuspendThreadInternal(thread, VMTag::kInvalidTagId);
   FreeActiveThread(thread, /*isolate=*/nullptr, /*bypass_safepoint=*/true);
+  Roots::ClearCurrent();
 }
 
 void Thread::ResumeDartMutatorThreadInternal(Thread* thread) {

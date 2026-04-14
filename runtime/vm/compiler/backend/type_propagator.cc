@@ -1881,6 +1881,7 @@ CompileType LoadIndexedInstr::ComputeType() const {
                                            CompileType::kCannotBeNull,
                                            CompileType::kCannotBeSentinel);
 
+    case kClosureCid:
     case kRecordCid:
       return CompileType::Dynamic();
 

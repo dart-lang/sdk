@@ -85,6 +85,7 @@ LanguageFeatures/Augmentations/metadata_A01_t08.dart: SkipByDesign # dart:mirror
 LanguageFeatures/Augmentations/metadata_A01_t09.dart: SkipByDesign # dart:mirrors is not supported
 LanguageFeatures/Augmentations/metadata_A01_t10.dart: SkipByDesign # dart:mirrors is not supported
 LanguageFeatures/Augmentations/metadata_A01_t11.dart: SkipByDesign # dart:mirrors is not supported
+LanguageFeatures/Constructor-tear-offs/unnamed_constructor_A06_t01: SkipByDesign # dart:mirrors is not supported
 LanguageFeatures/Enhanced-Enum/grammar_A07_t01: SkipByDesign # Non-JS-interop external members are not supported
 LanguageFeatures/Extension-methods/syntax_member_declarations_t04: SkipByDesign # External variables are not supported
 LanguageFeatures/Extension-types/static_analysis_extension_types_A28_t01: SkipByDesign # Non-JS-interop external members are not supported

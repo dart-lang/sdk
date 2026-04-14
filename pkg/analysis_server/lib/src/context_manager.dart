@@ -19,6 +19,7 @@ import 'package:analyzer/file_system/overlay_file_system.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
+import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/dart/analysis/analysis_context_collection.dart';
 import 'package:analyzer/src/dart/analysis/byte_store.dart';
@@ -391,8 +392,9 @@ class ContextManagerImpl implements ContextManager {
   void _analyzeAnalysisOptionsYaml(
     AnalysisDriver driver,
     WorkspacePackageImpl? package,
-    String path,
-  ) {
+    String path, {
+    required AnalysisOptionsCache analysisOptionsCache,
+  }) {
     var convertedErrors = const <protocol.AnalysisError>[];
     try {
       var file = resourceProvider.getFile(path);
@@ -409,6 +411,7 @@ class ContextManagerImpl implements ContextManager {
             driver.currentSession.analysisContext.contextRoot.root.path,
         sdkVersionConstraint: sdkVersionConstraint,
         resourceProvider: resourceProvider,
+        analysisOptionsCache: analysisOptionsCache,
       ).walkIncludes(content: content);
       var converter = AnalyzerConverter();
       convertedErrors = converter.convertAnalysisErrors(
@@ -631,11 +634,21 @@ class ContextManagerImpl implements ContextManager {
 
           _watchBlazeFilesIfNeeded(rootFolder, driver);
 
+          // Use a single cache for analysis options found in this context. (All
+          // of the AnalysisOptionsProviders instantiated in
+          // `_analyzeAnalysisOptionsYaml` share the same SourceFactory.)
+          AnalysisOptionsCache analysisOptionsCache = {};
+
           for (var file in analysisContext.contextRoot.analyzedFiles()) {
             if (file_paths.isAnalysisOptionsYaml(pathContext, file)) {
               var package = analysisContext.contextRoot.workspace
                   .findPackageFor(file);
-              _analyzeAnalysisOptionsYaml(driver, package, file);
+              _analyzeAnalysisOptionsYaml(
+                driver,
+                package,
+                file,
+                analysisOptionsCache: analysisOptionsCache,
+              );
             } else if (file_paths.isAndroidManifestXml(pathContext, file)) {
               _analyzeAndroidManifestXml(driver, file);
             } else if (file_paths.isDart(pathContext, file)) {

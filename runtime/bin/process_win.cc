@@ -159,7 +159,9 @@ class ProcessInfoList {
     HANDLE exit_pipe;
     bool success = LookupProcess(pid, &handle, &wait_handle, &exit_pipe);
     if (!success) {
-      FATAL("Failed to lookup process in list of active processes");
+      // Failed to lookup process in list of active processes. This might happen
+      // if a child exits after dart:io shutdown.
+      return;
     }
     // Unregister the event in a non-blocking way.
     BOOL ok = UnregisterWait(wait_handle);
@@ -1333,15 +1335,14 @@ void Process::ClearSignalHandlerByFd(intptr_t fd, Dart_Port port) {
 }
 
 void ProcessInfoList::Init() {
-  active_processes_ = nullptr;
-  ASSERT(ProcessInfoList::mutex_ == nullptr);
-  ProcessInfoList::mutex_ = new Mutex();
+  if (mutex_ == nullptr) {
+    mutex_ = new Mutex();
+  }
 }
 
 void ProcessInfoList::Cleanup() {
-  ASSERT(ProcessInfoList::mutex_ != nullptr);
-  delete ProcessInfoList::mutex_;
-  ProcessInfoList::mutex_ = nullptr;
+  // Do not delete mutex_. A child process might exit during/after dart:io
+  // shutdown.
 }
 
 void Process::Init() {

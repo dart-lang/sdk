@@ -170,7 +170,8 @@ class BundleWriter {
 
   void _writeClassFragment(ClassFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
 
         _writeForLazyRead(() {
@@ -206,7 +207,8 @@ class BundleWriter {
   void _writeConstructorFragment(ConstructorFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _sink.writeOptionalStringReference(fragment.typeName);
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
         _resolutionSink.writeList(
@@ -288,7 +290,8 @@ class BundleWriter {
 
   void _writeEnumFragment(EnumFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
 
         _writeForLazyRead(() {
@@ -348,7 +351,8 @@ class BundleWriter {
 
   void _writeExtensionFragment(ExtensionFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
 
         _writeForLazyRead(() {
@@ -394,7 +398,8 @@ class BundleWriter {
 
   void _writeExtensionTypeFragment(ExtensionTypeFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
 
         _writeForLazyRead(() {
@@ -498,7 +503,8 @@ class BundleWriter {
 
   void _writeGetterFragment(GetterFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
       });
@@ -564,7 +570,8 @@ class BundleWriter {
 
   void _writeMethodFragment(MethodFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
       });
@@ -603,7 +610,8 @@ class BundleWriter {
     _writeTemplateFragment(fragment, () {
       _sink.writeStringList(fragment.superInvokedNames);
 
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
 
         _writeForLazyRead(() {
@@ -654,7 +662,8 @@ class BundleWriter {
 
     _resolutionSink._writeMetadata(fragment.metadata);
 
-    _writeTypeParameters(fragment.typeParameters, () {
+    _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+      _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
       _sink.writeList(fragment.formalParameters, _writeParameterElement);
       _resolutionSink.writeBool(fragment.element.inheritsCovariant);
       _resolutionSink.writeType(fragment.element.type);
@@ -707,7 +716,8 @@ class BundleWriter {
 
   void _writeSetterFragment(SetterFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
       });
@@ -743,7 +753,8 @@ class BundleWriter {
 
   void _writeTopLevelFunctionFragment(TopLevelFunctionFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _sink.writeList(fragment.formalParameters, _writeParameterElement);
         _resolutionSink._writeMetadata(fragment.metadata);
       });
@@ -787,36 +798,19 @@ class BundleWriter {
 
   void _writeTypeAliasFragment(TypeAliasFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _writeTypeParameters(fragment.typeParameters, () {
+      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
         _resolutionSink._writeMetadata(fragment.metadata);
       });
     });
   }
 
-  void _writeTypeParameterElement(TypeParameterFragmentImpl fragment) {
+  void _writeTypeParameterFragment(TypeParameterFragmentImpl fragment) {
     _writeFragmentName(fragment);
     _sink.writeByte(_encodeVariance(fragment.element).index);
     _resolutionSink._writeMetadata(fragment.metadata);
     _resolutionSink.writeType(fragment.element.bound);
     _resolutionSink.writeType(fragment.element.defaultType);
-  }
-
-  /// Add [typeParameterFragments] to the indexing scope, so make them available
-  /// when writing types that might reference them, and write the elements.
-  void _writeTypeParameters(
-    List<TypeParameterFragmentImpl> typeParameterFragments,
-    void Function() f,
-  ) {
-    // TODO(scheglov): review
-    var typeParameters = List.generate(
-      typeParameterFragments.length,
-      (index) => typeParameterFragments[index].element,
-      growable: false,
-    );
-    _resolutionSink.localElements.withElements(typeParameters, () {
-      _sink.writeList(typeParameterFragments, _writeTypeParameterElement);
-      f();
-    });
   }
 
   void _writeUnitElement(LibraryFragmentImpl libraryFragment) {

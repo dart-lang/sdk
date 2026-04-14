@@ -34,210 +34,6 @@ class RemoveLexemeAvoidFinalParameters extends FixProcessorLintTest {
   @override
   String get lintCode => 'avoid_final_parameters';
 
-  Future<void> test_constructor_fieldFormal_noType() async {
-    await resolveTestCode('''
-class C {
-  final int f;
-  C(final this.f);
-}
-''');
-    await assertHasFix('''
-class C {
-  final int f;
-  C(this.f);
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_fieldFormal_noType_named() async {
-    await resolveTestCode('''
-class C {
-  final int f;
-  C({required final this.f});
-}
-''');
-    await assertHasFix('''
-class C {
-  final int f;
-  C({required this.f});
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_fieldFormal_noType_optional() async {
-    await resolveTestCode('''
-class C {
-  final int? f;
-  C([final this.f]);
-}
-''');
-    await assertHasFix('''
-class C {
-  final int? f;
-  C([this.f]);
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_fieldFormal_withType() async {
-    await resolveTestCode('''
-class C {
-  final int f;
-  C(final int this.f);
-}
-''');
-    await assertHasFix('''
-class C {
-  final int f;
-  C(int this.f);
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_fieldFormal_withType_named() async {
-    await resolveTestCode('''
-class C {
-  final int f;
-  C({required final int this.f});
-}
-''');
-    await assertHasFix('''
-class C {
-  final int f;
-  C({required int this.f});
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_fieldFormal_withType_optional() async {
-    await resolveTestCode('''
-class C {
-  final int? f;
-  C([final int? this.f]);
-}
-''');
-    await assertHasFix('''
-class C {
-  final int? f;
-  C([int? this.f]);
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_superFormal_noType() async {
-    await resolveTestCode('''
-class A {
-  A(a);
-}
-class B extends A {
-  B(final super.a);
-}
-''');
-    await assertHasFix('''
-class A {
-  A(a);
-}
-class B extends A {
-  B(super.a);
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_superFormal_noType_named() async {
-    await resolveTestCode('''
-class A {
-  A({required a});
-}
-class B extends A {
-  B({required final super.a});
-}
-''');
-    await assertHasFix('''
-class A {
-  A({required a});
-}
-class B extends A {
-  B({required super.a});
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_superFormal_noType_optional() async {
-    await resolveTestCode('''
-class A {
-  A([a = 0]);
-}
-class B extends A {
-  B([final super.a = 0]);
-}
-''');
-    await assertHasFix('''
-class A {
-  A([a = 0]);
-}
-class B extends A {
-  B([super.a = 0]);
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_superFormal_withType() async {
-    await resolveTestCode('''
-class A {
-  A(int a);
-}
-class B extends A {
-  B(final int super.a);
-}
-''');
-    await assertHasFix('''
-class A {
-  A(int a);
-}
-class B extends A {
-  B(int super.a);
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_superFormal_withType_named() async {
-    await resolveTestCode('''
-class A {
-  A({required int a});
-}
-class B extends A {
-  B({required final int super.a});
-}
-''');
-    await assertHasFix('''
-class A {
-  A({required int a});
-}
-class B extends A {
-  B({required int super.a});
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
-  Future<void> test_constructor_superFormal_withType_optional() async {
-    await resolveTestCode('''
-class A {
-  A([int a = 0]);
-}
-class B extends A {
-  B([final int super.a = 0]);
-}
-''');
-    await assertHasFix('''
-class A {
-  A([int a = 0]);
-}
-class B extends A {
-  B([int super.a = 0]);
-}
-''', filter: lintNameFilter('avoid_final_parameters'));
-  }
-
   Future<void> test_function_noType() async {
     await resolveTestCode('''
 void f(final p) {}
@@ -533,6 +329,210 @@ const void m() {}
     await assertHasFix('''
 void m() {}
 ''');
+  }
+
+  Future<void> test_constructor_fieldFormal_noType() async {
+    await resolveTestCode('''
+class C {
+  final int f;
+  C(final this.f);
+}
+''');
+    await assertHasFix('''
+class C {
+  final int f;
+  C(this.f);
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_fieldFormal_noType_named() async {
+    await resolveTestCode('''
+class C {
+  final int f;
+  C({required final this.f});
+}
+''');
+    await assertHasFix('''
+class C {
+  final int f;
+  C({required this.f});
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_fieldFormal_noType_optional() async {
+    await resolveTestCode('''
+class C {
+  final int? f;
+  C([final this.f]);
+}
+''');
+    await assertHasFix('''
+class C {
+  final int? f;
+  C([this.f]);
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_fieldFormal_withType() async {
+    await resolveTestCode('''
+class C {
+  final int f;
+  C(final int this.f);
+}
+''');
+    await assertHasFix('''
+class C {
+  final int f;
+  C(int this.f);
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_fieldFormal_withType_named() async {
+    await resolveTestCode('''
+class C {
+  final int f;
+  C({required final int this.f});
+}
+''');
+    await assertHasFix('''
+class C {
+  final int f;
+  C({required int this.f});
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_fieldFormal_withType_optional() async {
+    await resolveTestCode('''
+class C {
+  final int? f;
+  C([final int? this.f]);
+}
+''');
+    await assertHasFix('''
+class C {
+  final int? f;
+  C([int? this.f]);
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_superFormal_noType() async {
+    await resolveTestCode('''
+class A {
+  A(a);
+}
+class B extends A {
+  B(final super.a);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(a);
+}
+class B extends A {
+  B(super.a);
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_superFormal_noType_named() async {
+    await resolveTestCode('''
+class A {
+  A({required a});
+}
+class B extends A {
+  B({required final super.a});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({required a});
+}
+class B extends A {
+  B({required super.a});
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_superFormal_noType_optional() async {
+    await resolveTestCode('''
+class A {
+  A([a = 0]);
+}
+class B extends A {
+  B([final super.a = 0]);
+}
+''');
+    await assertHasFix('''
+class A {
+  A([a = 0]);
+}
+class B extends A {
+  B([super.a = 0]);
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_superFormal_withType() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(final int super.a);
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a);
+}
+class B extends A {
+  B(int super.a);
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_superFormal_withType_named() async {
+    await resolveTestCode('''
+class A {
+  A({required int a});
+}
+class B extends A {
+  B({required final int super.a});
+}
+''');
+    await assertHasFix('''
+class A {
+  A({required int a});
+}
+class B extends A {
+  B({required int super.a});
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
+  }
+
+  Future<void> test_constructor_superFormal_withType_optional() async {
+    await resolveTestCode('''
+class A {
+  A([int a = 0]);
+}
+class B extends A {
+  B([final int super.a = 0]);
+}
+''');
+    await assertHasFix('''
+class A {
+  A([int a = 0]);
+}
+class B extends A {
+  B([int super.a = 0]);
+}
+''', filter: (d) => d.diagnosticCode.lowerCaseName == 'extraneous_modifier');
   }
 
   Future<void> test_covariantInExtension() async {

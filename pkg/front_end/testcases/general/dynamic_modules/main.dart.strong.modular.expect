@@ -324,12 +324,12 @@ class Impl2 extends self::_Impl2&Object&Mixin implements mai::Interface {
     ;
 }
 class C6Ext extends mai::C6 {
-  constructor •({core::Object param = #C2}) → self::C6Ext
+  constructor •({super-initializing-formal core::Object param = #C2}) → self::C6Ext
     : super mai::C6::•(param: param)
     ;
 }
 class C7Ext extends mai::C7 {
-  constructor •({core::Object param = #C4}) → self::C7Ext
+  constructor •({super-initializing-formal core::Object param = #C4}) → self::C7Ext
     : super mai::C7::•(param: param)
     ;
 }

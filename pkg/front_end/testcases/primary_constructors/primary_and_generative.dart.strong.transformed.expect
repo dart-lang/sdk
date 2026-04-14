@@ -206,19 +206,19 @@ extension type ET4(core::int i) {
   constructor • = self::ET4|constructor#;
   constructor tearoff • = self::ET4|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(i);
-static extension-type-member method ET1|constructor#other(core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#other(initializing-formal core::int i) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ET1|constructor#_#other#tearOff(core::int i) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#other(i);
-static extension-type-member method E2T|constructor#(core::int i) → self::E2T% /* erasure=core::int, declared=! */ {
+static extension-type-member method E2T|constructor#(initializing-formal core::int i) → self::E2T% /* erasure=core::int, declared=! */ {
   lowered final self::E2T% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -231,19 +231,19 @@ static extension-type-member method E2T|constructor#other(core::int i) → self:
 }
 static extension-type-member synthetic method E2T|constructor#_#other#tearOff(core::int i) → self::E2T% /* erasure=core::int, declared=! */
   return self::E2T|constructor#other(i);
-static extension-type-member method ET3|constructor#primary(core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET3|constructor#primary(initializing-formal core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
   lowered final self::ET3% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ET3|constructor#_#primary#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#primary(i);
-static extension-type-member method ET3|constructor#(core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET3|constructor#(initializing-formal core::int i) → self::ET3% /* erasure=core::int, declared=! */ {
   lowered final self::ET3% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ET3|constructor#_#new#tearOff(core::int i) → self::ET3% /* erasure=core::int, declared=! */
   return self::ET3|constructor#(i);
-static extension-type-member method ET4|constructor#primary(core::int i) → self::ET4% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET4|constructor#primary(initializing-formal core::int i) → self::ET4% /* erasure=core::int, declared=! */ {
   lowered final self::ET4% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

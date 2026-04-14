@@ -7,7 +7,6 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -63,7 +62,7 @@ import '../source/check_helper.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
-import 'closure_context.dart';
+import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
 import 'for_in.dart';
 import 'inference_results.dart';
@@ -95,11 +94,11 @@ abstract class InferenceVisitor {
 
   /// Performs type inference on the given [statement].
   ///
-  /// If [closureContext] is not null, the [statement] is inferred using
-  /// [closureContext] as the current context.
+  /// If [bodyContext] is not null, the [statement] is inferred using
+  /// [bodyContext] as the current context.
   StatementInferenceResult inferStatement(
     Statement statement, [
-    ClosureContext? closureContext,
+    BodyInferenceContext? bodyContext,
   ]);
 
   /// Performs type inference on the given [initializer].
@@ -142,7 +141,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
-  ClosureContext? _closureContext;
+  BodyInferenceContext? _bodyContext;
 
   /// If a switch statement is being visited and the type being switched on is a
   /// (possibly nullable) enumerated type, the set of enum values for which no
@@ -275,10 +274,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ClosureContext get closureContext => _closureContext!;
-
   @override
-  SharedBodyInferenceContext get bodyContext => closureContext;
+  BodyInferenceContext get bodyContext => _bodyContext!;
 
   @override
   ExpressionTypeAnalysisResult finishNullShorting(
@@ -360,11 +357,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult inferStatement(
     Statement statement, [
-    ClosureContext? closureContext,
+    BodyInferenceContext? bodyContext,
   ]) {
-    ClosureContext? oldClosureContext = _closureContext;
-    if (closureContext != null) {
-      _closureContext = closureContext;
+    BodyInferenceContext? oldBodyContext = _bodyContext;
+    if (bodyContext != null) {
+      _bodyContext = bodyContext;
     }
     registerIfUnreachableForTesting(statement);
 
@@ -376,7 +373,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       result = statement.accept(this);
     }
-    _closureContext = oldClosureContext;
+    _bodyContext = oldBodyContext;
     return result;
   }
 
@@ -8643,94 +8640,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAugmentSuperInvocation(
-    AugmentSuperInvocation node,
-    DartType typeContext,
-  ) {
-    Member member = node.target;
-    if (member.isInstanceMember) {
-      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
-        thisType!,
-        member,
-        hasNonObjectMemberAccess: true,
-      );
-      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
-      DartType receiverType = thisType!;
-      return inferMethodInvocation(
-        this,
-        node.fileOffset,
-        receiver,
-        receiverType,
-        member.name,
-        node.typeArguments,
-        node.arguments,
-        typeContext,
-        isExpressionInvocation: false,
-        isImplicitCall: false,
-        target: target,
-      );
-    } else if (member is Procedure) {
-      FunctionType calleeType = member.function.computeFunctionType(
-        Nullability.nonNullable,
-      );
-      InvocationInferenceResult result = inferInvocation(
-        this,
-        typeContext,
-        node.fileOffset,
-        new InvocationTargetFunctionType(calleeType),
-        node.typeArguments,
-        node.arguments,
-        staticTarget: node.target,
-      );
-      StaticInvocation invocation = new StaticInvocation(
-        member,
-        createArgumentsFromInternalNode(
-          result.typeArguments,
-          result.positional,
-          result.named,
-          node.arguments,
-        ),
-      );
-      String targetName = member.name.text;
-      if (member.enclosingClass != null) {
-        targetName = '${member.enclosingClass!.name}.$targetName';
-      }
-      problemReporting.checkBoundsInStaticInvocation(
-        problemReportingHelper: problemReportingHelper,
-        libraryFeatures: libraryFeatures,
-        targetName: targetName,
-        typeEnvironment: typeSchemaEnvironment,
-        fileUri: fileUri,
-        fileOffset: node.fileOffset,
-        hasInferredTypeArguments: node.typeArguments == null,
-        typeParameters: invocation.target.typeParameters,
-        explicitOrInferredTypeArguments: invocation.arguments.types,
-      );
-      return new ExpressionInferenceResult(
-        result.inferredType,
-        result.applyResult(invocation),
-      );
-    } else {
-      // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
-      DartType receiverType = member.getterType;
-      Expression receiver = new StaticGet(member)..fileOffset = node.fileOffset;
-      return inferMethodInvocation(
-        this,
-        node.fileOffset,
-        receiver,
-        receiverType,
-        callName,
-        node.typeArguments,
-        node.arguments,
-        typeContext,
-        isExpressionInvocation: true,
-        isImplicitCall: true,
-      );
-    }
-  }
-
   ExpressionInferenceResult visitExpressionInvocation(
     ExpressionInvocation node,
     DartType typeContext,
@@ -12363,73 +12272,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(replacementType, replacement);
   }
 
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAugmentSuperSet(
-    AugmentSuperSet node,
-    DartType typeContext,
-  ) {
-    Member member = node.target;
-    if (member.isInstanceMember) {
-      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
-      DartType receiverType = thisType!;
-
-      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
-        thisType!,
-        member,
-        hasNonObjectMemberAccess: true,
-      );
-      DartType writeContext = target.getSetterType(this);
-      ExpressionInferenceResult rhsResult = inferExpression(
-        node.value,
-        writeContext,
-        isVoidAllowed: true,
-      );
-      rhsResult = ensureAssignableResult(
-        writeContext,
-        rhsResult,
-        fileOffset: node.fileOffset,
-        isVoidAllowed: writeContext is VoidType,
-      );
-      Expression rhs = rhsResult.expression;
-      DartType rhsType = rhsResult.inferredType;
-
-      ExpressionInferenceResult replacementResult = _computePropertySet(
-        node.fileOffset,
-        receiver,
-        receiverType,
-        member.name,
-        target,
-        rhs,
-        valueType: rhsType,
-        forEffect: node.forEffect,
-      );
-      Expression replacement = replacementResult.expression;
-      DartType replacementType = replacementResult.inferredType;
-
-      return new ExpressionInferenceResult(replacementType, replacement);
-    } else {
-      // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
-      DartType writeContext = member.setterType;
-      ExpressionInferenceResult rhsResult = inferExpression(
-        node.value,
-        writeContext,
-        isVoidAllowed: true,
-      );
-      rhsResult = ensureAssignableResult(
-        writeContext,
-        rhsResult,
-        fileOffset: node.fileOffset,
-        isVoidAllowed: writeContext is VoidType,
-      );
-      Expression rhs = rhsResult.expression;
-      StaticSet result = new StaticSet(member, rhs)
-        ..fileOffset = node.fileOffset;
-      DartType rhsType = rhsResult.inferredType;
-      return new ExpressionInferenceResult(rhsType, result);
-    }
-  }
-
   ExpressionInferenceResult visitPropertyGet(
     PropertyGet node,
     DartType typeContext,
@@ -12568,56 +12410,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.fileOffset,
         noLength,
       );
-    }
-  }
-
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAugmentSuperGet(
-    AugmentSuperGet node,
-    DartType typeContext,
-  ) {
-    Member member = node.target;
-    if (member.isInstanceMember) {
-      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
-        thisType!,
-        member,
-        hasNonObjectMemberAccess: true,
-      );
-      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
-      DartType receiverType = thisType!;
-
-      PropertyGetInferenceResult propertyGetInferenceResult =
-          _computePropertyGet(
-            node.fileOffset,
-            receiver,
-            receiverType,
-            member.name,
-            typeContext,
-            isThisReceiver: true,
-            readTarget: target,
-            propertyGetNode: node,
-          );
-      ExpressionInferenceResult readResult =
-          propertyGetInferenceResult.expressionInferenceResult;
-      return new ExpressionInferenceResult(
-        readResult.inferredType,
-        readResult.expression,
-      );
-    } else {
-      // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
-      DartType type = member.getterType;
-
-      if (member is Procedure && member.kind == ProcedureKind.Method) {
-        Expression tearOff = new StaticTearOff(node.target as Procedure)
-          ..fileOffset = node.fileOffset;
-        return instantiateTearOff(type, typeContext, tearOff);
-      } else {
-        return new ExpressionInferenceResult(
-          type,
-          new StaticGet(member)..fileOffset = node.fileOffset,
-        );
-      }
     }
   }
 
@@ -12788,7 +12580,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitReturnStatement(
     covariant ReturnStatementImpl node,
   ) {
-    DartType typeContext = closureContext.returnContext;
+    DartType typeContext = bodyContext.returnContext;
     DartType inferredType;
     if (node.expression != null) {
       ExpressionInferenceResult expressionResult = inferExpression(
@@ -12801,7 +12593,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       inferredType = const NullType();
     }
-    closureContext.handleReturn(node, inferredType, node.isArrow);
+    bodyContext.handleReturn(node, inferredType, node.isArrow);
     flowAnalysis.handleReturn();
     return const StatementInferenceResult();
   }
@@ -13927,7 +13719,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       analysisResult.operandType.unwrapTypeView(),
       popRewrite() as Expression,
     );
-    closureContext.handleYield(node, expressionResult);
+    bodyContext.handleYield(node, expressionResult);
     return const StatementInferenceResult();
   }
 

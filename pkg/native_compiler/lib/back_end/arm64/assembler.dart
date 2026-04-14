@@ -1201,6 +1201,34 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     }
   }
 
+  void lsl(
+    Register rd,
+    Register rn,
+    int shift, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert((0 <= shift) && (shift < sz.bitWidth));
+    if (shift == 0) {
+      mov(rd, rn, sz);
+    } else {
+      ubfm(rd, rn, sz.bitWidth - shift, sz.bitWidth - shift - 1, sz);
+    }
+  }
+
+  void lsr(
+    Register rd,
+    Register rn,
+    int shift, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    assert((0 <= shift) && (shift < sz.bitWidth));
+    if (shift == 0) {
+      mov(rd, rn, sz);
+    } else {
+      ubfm(rd, rn, shift, sz.bitWidth - 1, sz);
+    }
+  }
+
   void _emitBitfieldMove(
     int opcode,
     Register rd,
@@ -1219,6 +1247,51 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
           (immS << 10) |
           (immR << 16) |
           (sz.is64 ? (B31 | B22) : 0),
+    );
+  }
+
+  void asrv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitVariableShift(B11, rd, rn, rm, sz);
+  }
+
+  void lslv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitVariableShift(0, rd, rn, rm, sz);
+  }
+
+  void lsrv(
+    Register rd,
+    Register rn,
+    Register rm, [
+    OperandSize sz = OperandSize.s64,
+  ]) {
+    _emitVariableShift(B10, rd, rn, rm, sz);
+  }
+
+  void _emitVariableShift(
+    int opcode,
+    Register rd,
+    Register rn,
+    Register rm,
+    OperandSize sz,
+  ) {
+    assert(sz.is32or64);
+    emit(
+      (B13 | B22 | B23 | B25 | B27 | B28) |
+          opcode |
+          rd.encodingRd() |
+          rn.encodingRn() |
+          rm.encodingRm() |
+          (sz.is64 ? B31 : 0),
     );
   }
 

@@ -1932,7 +1932,7 @@ class MachOHeader : public MachOContents {
   uint32_t flags() const {
     if (type_ == SnapshotType::Snapshot) {
       return mach_o::MH_NOUNDEFS | mach_o::MH_DYLDLINK |
-             mach_o::MH_NO_REEXPORTED_DYLIBS;
+             mach_o::MH_NO_REEXPORTED_DYLIBS | mach_o::MH_TWOLEVEL;
     }
     ASSERT(type_ == SnapshotType::DebugInfo || type_ == SnapshotType::Object);
     return 0;

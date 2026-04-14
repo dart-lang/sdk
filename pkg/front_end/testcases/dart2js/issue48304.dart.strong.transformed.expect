@@ -25,7 +25,7 @@ abstract class A extends core::Object {
 class Wrapper extends core::Object {
   final field self::B b;
   final field self::B call;
-  constructor •(self::B b, self::B call) → self::Wrapper
+  constructor •(initializing-formal self::B b, initializing-formal self::B call) → self::Wrapper
     : self::Wrapper::b = b, self::Wrapper::call = call, super core::Object::•()
     ;
   static synthetic method _#new#tearOff(self::B b, self::B call) → self::Wrapper

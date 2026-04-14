@@ -21,11 +21,6 @@ import 'experimental_flags.dart'
         ExperimentalFlag,
         GlobalFeatures,
         parseExperimentalFlag;
-import 'experimental_flags.dart'
-    as flags
-    show
-        getExperimentEnabledVersionInLibrary,
-        isExperimentEnabledInLibraryByVersion;
 import 'file_system.dart' show FileSystem;
 import 'standard_file_system.dart' show StandardFileSystem;
 
@@ -95,6 +90,9 @@ class CompilerOptions {
   /// to conform to the dynamic module interface and other dynamic module
   /// restrictions.
   Uri? dynamicInterfaceSpecificationUri;
+
+  /// Whether to allow dynamic calls in dynamic modules.
+  bool allowDynamicCallsInDynamicModules = false;
 
   /// The declared variables for use by configurable imports and constant
   /// evaluation.
@@ -256,46 +254,6 @@ class CompilerOptions {
     experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
     allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
   );
-
-  // Coverage-ignore(suite): Not run.
-  /// Returns the minimum language version needed for a library with the given
-  /// [importUri] to opt into the experiment with the given [flag].
-  ///
-  /// Note that the experiment might not be enabled at all for the library, as
-  /// computed by [isExperimentEnabledInLibrary].
-  Version getExperimentEnabledVersionInLibrary(
-    ExperimentalFlag flag,
-    Uri importUri,
-  ) {
-    return flags.getExperimentEnabledVersionInLibrary(
-      flag,
-      importUri,
-      explicitExperimentalFlags,
-      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-      allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
-      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
-      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
-    );
-  }
-
-  /// Return `true` if the experiment with the given [flag] is enabled for the
-  /// library with the given [importUri] and language [version].
-  bool isExperimentEnabledInLibraryByVersion(
-    ExperimentalFlag flag,
-    Uri importUri,
-    Version version,
-  ) {
-    return flags.isExperimentEnabledInLibraryByVersion(
-      flag,
-      importUri,
-      version,
-      explicitExperimentalFlags: explicitExperimentalFlags,
-      defaultExperimentFlagsForTesting: defaultExperimentFlagsForTesting,
-      allowedExperimentalFlags: allowedExperimentalFlagsForTesting,
-      experimentEnabledVersionForTesting: experimentEnabledVersionForTesting,
-      experimentReleasedVersionForTesting: experimentReleasedVersionForTesting,
-    );
-  }
 
   bool equivalent(
     CompilerOptions other, {

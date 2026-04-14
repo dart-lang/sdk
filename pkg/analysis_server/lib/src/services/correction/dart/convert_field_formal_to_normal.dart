@@ -31,13 +31,27 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
     if (field == null) {
       return;
     }
+    NodeList<ConstructorInitializer>? initializers;
+    FormalParameterList parameters;
     var constructor = parameter
         .thisOrAncestorOfType<FormalParameterList>()
         ?.parent;
-    if (constructor is! ConstructorDeclaration) {
+    if (constructor == null) {
       return;
     }
-    var initializers = constructor.initializers;
+    var container = constructor.thisOrAncestorOfType<CompilationUnitMember>();
+    if (constructor is ConstructorDeclaration) {
+      parameters = constructor.parameters;
+      initializers = constructor.initializers;
+    } else if (constructor is PrimaryConstructorDeclaration) {
+      parameters = constructor.formalParameters;
+      initializers = constructor.body?.initializers;
+      if (initializers == null && container == null) {
+        return;
+      }
+    } else {
+      return;
+    }
     await builder.addDartFileEdit(file, (builder) {
       var thisRange = range.startEnd(parameter.thisKeyword, parameter.period);
 
@@ -66,8 +80,14 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
 
       int offset;
       String prefix;
+      if (initializers == null) {
+        builder.insertConstructor(container!, (builder) {
+          builder.write('this : $fieldName = $parameterName;');
+        });
+        return;
+      }
       if (initializers.isEmpty) {
-        offset = constructor.parameters.end;
+        offset = parameters.end;
         prefix = ' :';
       } else {
         offset = initializers.last.end;

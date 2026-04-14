@@ -109,7 +109,7 @@ class RunKernelTask : public ThreadPool::Task {
     // isolate_ was set as side effect of create callback.
     ASSERT(isolate->is_kernel_isolate());
 
-    isolate->message_handler()->Run(isolate->group()->thread_pool(), nullptr,
+    isolate->message_handler()->Run(isolate->group()->thread_pool(),
                                     ShutdownIsolate,
                                     reinterpret_cast<uword>(isolate));
   }

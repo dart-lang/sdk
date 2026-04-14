@@ -815,7 +815,7 @@ Future<Null> basicTest(
 
 Future<Map<String, Uint8List>> createModules(
   Map<String, Map<String, String>> module,
-  final List<int> sdkSummaryData,
+  List<int> sdkSummaryData,
   Target target,
   Target originalTarget,
   String sdkSummary, {
@@ -2767,7 +2767,7 @@ String nodeToString(TreeNode node) {
 
 String componentToStringSdkFiltered(
   Component component, {
-  required final Set<String>? printErrors,
+  required Set<String>? printErrors,
 }) {
   Component c = new Component();
   List<Uri> dartUris = <Uri>[];

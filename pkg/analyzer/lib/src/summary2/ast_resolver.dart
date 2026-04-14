@@ -71,9 +71,8 @@ class AstResolver {
   }) : _featureSet = _libraryFragment.library.featureSet;
 
   void resolveAnnotation(AnnotationImpl node) {
-    ElementBindingVisitor(
-      _libraryFragment,
-      null,
+    ElementBindingVisitor.forPartialResolution(
+      fragment: _libraryFragment,
     ).bindSubtree(_libraryFragment, node);
     node.accept(_resolutionVisitor);
     _prepareEnclosingDeclarations();
@@ -115,9 +114,8 @@ class AstResolver {
     List<FormalParameterElementImpl>? inScopePrimaryConstructorParameters,
   }) {
     ExpressionImpl node = getNode();
-    ElementBindingVisitor(
-      _libraryFragment,
-      null,
+    ElementBindingVisitor.forPartialResolution(
+      fragment: _libraryFragment,
     ).bindSubtree(_libraryFragment, node);
     node.accept(_resolutionVisitor);
     // Node may have been rewritten so get it again.
@@ -143,7 +141,9 @@ class AstResolver {
       body.initializers.accept(visitor);
     }
 
-    var bindingVisitor = ElementBindingVisitor(_libraryFragment, null);
+    var bindingVisitor = ElementBindingVisitor.forPartialResolution(
+      fragment: _libraryFragment,
+    );
     for (var initializer in body.initializers) {
       bindingVisitor.bindSubtree(node.declaredFragment!, initializer);
     }

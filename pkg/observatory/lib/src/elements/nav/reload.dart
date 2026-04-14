@@ -91,7 +91,7 @@ class NavReloadElement extends CustomElement implements Renderable {
     } else {
       final List<HTMLElement> content = _isolates.reloadSourcesServices
           .map(
-            (final s) =>
+            (s) =>
                 (new HTMLLIElement()..appendChild(
                       new HTMLButtonElement()
                         ..textContent = s.alias

@@ -8,7 +8,7 @@ class Element extends core::Object {
 }
 class Class<E extends self::Element?> extends core::Object {
   covariant-by-class field self::Class::E? element;
-  constructor •(self::Class::E? element) → self::Class<self::Class::E%>
+  constructor •(initializing-formal self::Class::E? element) → self::Class<self::Class::E%>
     ;
   method setElement(covariant-by-class self::Class::E? element) → void
     ;

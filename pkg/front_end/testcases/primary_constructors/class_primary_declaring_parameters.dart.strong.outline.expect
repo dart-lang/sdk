@@ -10,14 +10,14 @@ class C2 extends core::Object {
   field core::int a;
   field core::int? b;
   field core::int c;
-  constructor •(core::int a, [core::int? b = null, core::int c = 42]) → self::C2
+  constructor •(initializing-formal core::int a, [initializing-formal core::int? b = null, initializing-formal core::int c = 42]) → self::C2
     ;
 }
 class C3 extends core::Object {
   final field core::int a;
   final field core::int? b;
   final field core::int c;
-  constructor •(final core::int a, [final core::int? b = null, final core::int c = 42]) → self::C3
+  constructor •(final initializing-formal core::int a, [final initializing-formal core::int? b = null, final initializing-formal core::int c = 42]) → self::C3
     ;
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
@@ -27,13 +27,13 @@ class C4 extends core::Object /*hasConstConstructor*/  {
 }
 class C5 extends core::Object /*hasConstConstructor*/  {
   field core::int a;
-  const constructor •(core::int a) → self::C5
+  const constructor •(initializing-formal core::int a) → self::C5
     : self::C5::a = a, super core::Object::•()
     ;
 }
 class C6 extends core::Object /*hasConstConstructor*/  {
   final field core::int b;
-  const constructor •(final core::int b) → self::C6
+  const constructor •(final initializing-formal core::int b) → self::C6
     : self::C6::b = b, super core::Object::•()
     ;
 }
@@ -45,21 +45,21 @@ class C8 extends core::Object {
   field core::int? a;
   field core::int b;
   field core::int c;
-  constructor •({core::int? a = null, required core::int b, core::int c = 42}) → self::C8
+  constructor •({initializing-formal core::int? a = null, required initializing-formal core::int b, initializing-formal core::int c = 42}) → self::C8
     ;
 }
 class C9 extends core::Object {
   final field core::int? a;
   final field core::int b;
   final field core::int c;
-  constructor •({final core::int? a = null, required final core::int b, final core::int c = 42}) → self::C9
+  constructor •({final initializing-formal core::int? a = null, required final initializing-formal core::int b, final initializing-formal core::int c = 42}) → self::C9
     ;
 }
 class C10 extends core::Object /*hasConstConstructor*/  {
   final field core::int a;
   final field core::int? b;
   final field core::int c;
-  const constructor •(final core::int a, [final core::int? b = null, final core::int c = 42]) → self::C10
+  const constructor •(final initializing-formal core::int a, [final initializing-formal core::int? b = null, final initializing-formal core::int c = 42]) → self::C10
     : self::C10::a = a, self::C10::b = b, self::C10::c = c, super core::Object::•()
     ;
 }
@@ -67,7 +67,7 @@ class C11 extends core::Object /*hasConstConstructor*/  {
   final field core::int? a;
   final field core::int b;
   final field core::int c;
-  const constructor •({final core::int? a = null, required final core::int b, final core::int c = 42}) → self::C11
+  const constructor •({final initializing-formal core::int? a = null, required final initializing-formal core::int b, final initializing-formal core::int c = 42}) → self::C11
     : self::C11::a = a, self::C11::b = b, self::C11::c = c, super core::Object::•()
     ;
 }

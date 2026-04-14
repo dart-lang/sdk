@@ -23,7 +23,7 @@ class Class2 extends core::Object {
   field FutureOr<dynamic>instanceField1;
   field FutureOr<core::int?>instanceField2;
   field FutureOr<FutureOr<dynamic>>instanceField3;
-  constructor constructor1(FutureOr<dynamic>instanceField1, FutureOr<core::int?>instanceField2, FutureOr<FutureOr<dynamic>>instanceField3) → self::Class2
+  constructor constructor1(initializing-formal FutureOr<dynamic>instanceField1, initializing-formal FutureOr<core::int?>instanceField2, initializing-formal FutureOr<FutureOr<dynamic>>instanceField3) → self::Class2
     : self::Class2::instanceField1 = instanceField1, self::Class2::instanceField2 = instanceField2, self::Class2::instanceField3 = instanceField3, super core::Object::•()
     ;
   constructor constructor2() → self::Class2

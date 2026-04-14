@@ -77,7 +77,7 @@ static final field dynamic Extension|v5;
 static final field core::int Extension|v6;
 static final field dynamic ExtensionType|v7;
 static final field core::int ExtensionType|v8;
-static extension-type-member method ExtensionType|constructor#(self::Class c) → self::ExtensionType% /* erasure=self::Class, declared=! */
+static extension-type-member method ExtensionType|constructor#(initializing-formal self::Class c) → self::ExtensionType% /* erasure=self::Class, declared=! */
   ;
 static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(self::Class c) → self::ExtensionType% /* erasure=self::Class, declared=! */
   return self::ExtensionType|constructor#(c);

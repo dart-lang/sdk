@@ -459,32 +459,6 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
-                                            Register dst,
-                                            Register tmp) {
-  compiler::Label skip_reloc;
-  __ jmp(&skip_reloc);
-  InsertBSSRelocation(relocation);
-  const intptr_t reloc_end = __ CodeSize();
-  __ Bind(&skip_reloc);
-
-  const intptr_t kLeaqLength = 7;
-  __ leaq(dst, compiler::Address::AddressRIPRelative(
-                   -kLeaqLength - compiler::target::kWordSize));
-  ASSERT((__ CodeSize() - reloc_end) == kLeaqLength);
-
-  // dst holds the address of the relocation.
-  __ movq(tmp, compiler::Address(dst, 0));
-
-  // tmp holds the relocation itself: dst - bss_start.
-  // dst = dst + (bss_start - dst) = bss_start
-  __ addq(dst, tmp);
-
-  // dst holds the start of the BSS section.
-  // Load the routine.
-  __ movq(dst, compiler::Address(dst, 0));
-}
-
 void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
     uword function_index,
     Register dst) {
@@ -553,20 +527,8 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ movq(CallingConventions::kArg1Reg, RAX);
     __ movq(CallingConventions::kArg2Reg, RSP);
 
-#if defined(DART_TARGET_OS_FUCHSIA)
-    // TODO(https://dartbug.com/52579): Remove.
-    if (FLAG_precompiled_mode) {
-      GenerateLoadBSSEntry(BSS::Relocation::DLRT_GetFfiCallbackMetadata, RAX,
-                           TMP);
-    } else {
-      __ movq(RAX, Immediate(
-                       reinterpret_cast<int64_t>(DLRT_GetFfiCallbackMetadata)));
-    }
-#else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, RAX);
-#endif  // defined(DART_TARGET_OS_FUCHSIA)
-
     __ CallCFunction(RAX, /*restore_rsp=*/true);
     __ movq(THR, RAX);
 

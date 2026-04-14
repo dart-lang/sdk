@@ -84,9 +84,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       strictCasts: strictCasts,
     );
 
+    var scopeContext = ScopeContext(
+      libraryFragment: libraryFragment,
+      nameScope: nameScope,
+      docImportLibraries: docImportLibraries,
+    );
+
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
       libraryFragment,
+      scopeContext,
       diagnosticReporter,
       strictInference: strictInference,
       strictCasts: strictCasts,
@@ -107,8 +114,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       AstRewriter(diagnosticReporter),
       namedTypeResolver,
       recordTypeResolver,
-      nameScope,
-      docImportLibraries,
+      scopeContext,
       typeSystemOperations,
       dataForTesting,
     );
@@ -122,15 +128,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._astRewriter,
     this._namedTypeResolver,
     this._recordTypeResolver,
-    Scope nameScope,
-    List<LibraryElement> docImportLibraries,
+    this._scopeContext,
     this.typeSystemOperations,
     this.dataForTesting,
-  ) : _scopeContext = ScopeContext(
-        libraryFragment: _libraryFragment,
-        nameScope: nameScope,
-        docImportLibraries: docImportLibraries,
-      );
+  );
 
   Scope get nameScope => _scopeContext.nameScope;
 
@@ -456,6 +457,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
+    _scopeContext.visitFieldDeclaration(node, visitor: this);
+  }
+
+  @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _scopeContext.visitFieldFormalParameter(node, visitor: this);
   }
@@ -731,7 +737,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   void visitNamedType(covariant NamedTypeImpl node) {
     node.typeArguments?.accept(this);
 
-    _namedTypeResolver.nameScope = nameScope;
     _namedTypeResolver.resolve(node, dataForTesting: dataForTesting);
 
     if (_namedTypeResolver.rewriteResult != null) {

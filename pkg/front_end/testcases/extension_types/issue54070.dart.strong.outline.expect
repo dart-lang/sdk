@@ -18,9 +18,9 @@ class AssertIdentical extends core::Object /*hasConstConstructor*/  {
 }
 class C<T extends core::Object? = dynamic> extends core::Object {
   final field self::C::T% value;
-  constructor •(self::C::T% value) → self::C<self::C::T%>
+  constructor •(initializing-formal self::C::T% value) → self::C<self::C::T%>
     ;
-  constructor named(self::C::T% value) → self::C<self::C::T%>
+  constructor named(initializing-formal self::C::T% value) → self::C<self::C::T%>
     ;
   constructor redirect(self::C::T% value) → self::C<self::C::T%>
     ;
@@ -46,11 +46,11 @@ static method main() → void
   ;
 static method checkClass() → void
   ;
-static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(self::E|constructor#::T% value) → self::E<self::E|constructor#::T%>% /* erasure=self::E|constructor#::T%, declared=! */
+static extension-type-member method E|constructor#<T extends core::Object? = dynamic>(initializing-formal self::E|constructor#::T% value) → self::E<self::E|constructor#::T%>% /* erasure=self::E|constructor#::T%, declared=! */
   ;
 static extension-type-member synthetic method E|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#new#tearOff::T% value) → self::E<self::E|constructor#_#new#tearOff::T%>% /* erasure=self::E|constructor#_#new#tearOff::T%, declared=! */
   return self::E|constructor#<self::E|constructor#_#new#tearOff::T%>(value);
-static extension-type-member method E|constructor#named<T extends core::Object? = dynamic>(self::E|constructor#named::T% value) → self::E<self::E|constructor#named::T%>% /* erasure=self::E|constructor#named::T%, declared=! */
+static extension-type-member method E|constructor#named<T extends core::Object? = dynamic>(initializing-formal self::E|constructor#named::T% value) → self::E<self::E|constructor#named::T%>% /* erasure=self::E|constructor#named::T%, declared=! */
   ;
 static extension-type-member synthetic method E|constructor#_#named#tearOff<T extends core::Object? = dynamic>(self::E|constructor#_#named#tearOff::T% value) → self::E<self::E|constructor#_#named#tearOff::T%>% /* erasure=self::E|constructor#_#named#tearOff::T%, declared=! */
   return self::E|constructor#named<self::E|constructor#_#named#tearOff::T%>(value);

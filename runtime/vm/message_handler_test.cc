@@ -37,7 +37,6 @@ class TestMessageHandler : public MessageHandler {
         port_buffer_size_(0),
         notify_count_(0),
         message_count_(0),
-        start_called_(false),
         end_called_(false),
         results_(nullptr),
         monitor_() {}
@@ -68,11 +67,6 @@ class TestMessageHandler : public MessageHandler {
     return status;
   }
 
-  MessageStatus Start() {
-    start_called_ = true;
-    return kOK;
-  }
-
   void End() {
     MonitorLocker ml(&monitor_);
     end_called_ = true;
@@ -83,7 +77,6 @@ class TestMessageHandler : public MessageHandler {
   Dart_Port* port_buffer() const { return port_buffer_; }
   int notify_count() const { return notify_count_; }
   int message_count() const { return message_count_; }
-  bool start_called() const { return start_called_; }
   bool end_called() const { return end_called_; }
 
   void set_results(MessageStatus* results) { results_ = results; }
@@ -112,17 +105,12 @@ class TestMessageHandler : public MessageHandler {
   int port_buffer_size_;
   int notify_count_;
   int message_count_;
-  bool start_called_;
   bool end_called_;
   MessageStatus* results_;
   Monitor monitor_;
 
   DISALLOW_COPY_AND_ASSIGN(TestMessageHandler);
 };
-
-MessageHandler::MessageStatus TestStartFunction(uword data) {
-  return (reinterpret_cast<TestMessageHandler*>(data))->Start();
-}
 
 void TestEndFunction(uword data) {
   return (reinterpret_cast<TestMessageHandler*>(data))->End();
@@ -349,8 +337,7 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
   ThreadPool pool;
   MessageHandlerTestPeer handler_peer(&handler);
 
-  handler.Run(&pool, TestStartFunction, TestEndFunction,
-              reinterpret_cast<uword>(&handler));
+  handler.Run(&pool, TestEndFunction, reinterpret_cast<uword>(&handler));
 
   EXPECT(!PortMap::HasPorts(&handler));
   Dart_Port port = PortMap::CreatePort(&handler);
@@ -365,7 +352,6 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
       ml.Wait();
     }
     EXPECT_EQ(1, handler.message_count());
-    EXPECT(handler.start_called());
     EXPECT(!handler.end_called());
     Dart_Port* handler_ports = handler.port_buffer();
     EXPECT_EQ(port, handler_ports[0]);
@@ -391,7 +377,6 @@ VM_UNIT_TEST_CASE(MessageHandler_Run) {
     }
     Dart_Port* handler_ports = handler.port_buffer();
     EXPECT_EQ(11, handler.message_count());
-    EXPECT(handler.start_called());
     EXPECT(!handler.end_called());
     EXPECT_EQ(port, handler_ports[0]);
     for (int i = 1; i < 11; i++) {

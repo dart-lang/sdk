@@ -9,7 +9,7 @@ class C0 extends core::Object {
   field core::int e;
   field core::int f;
   field core::int g;
-  constructor •(core::int a, core::int b, core::int c) → self::C0
+  constructor •(core::int a, initializing-formal core::int b, initializing-formal core::int c) → self::C0
     ;
 }
 class C1 extends core::Object {
@@ -19,6 +19,6 @@ class C1 extends core::Object {
   field core::int e;
   field core::int f;
   field core::int g;
-  constructor •(final core::int a, core::int b, final core::int c) → self::C1
+  constructor •(final core::int a, initializing-formal core::int b, final initializing-formal core::int c) → self::C1
     ;
 }

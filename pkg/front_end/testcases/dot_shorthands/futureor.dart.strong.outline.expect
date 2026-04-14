@@ -17,7 +17,7 @@ class Color extends core::_Enum /*isEnum*/  {
 }
 class E extends core::Object {
   final field core::int x;
-  constructor •(core::int x) → self::E
+  constructor •(initializing-formal core::int x) → self::E
     ;
   static method y(core::int x) → self::E
     ;

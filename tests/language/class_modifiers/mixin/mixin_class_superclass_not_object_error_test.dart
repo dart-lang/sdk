@@ -33,4 +33,4 @@ mixin class TypeAliasWithTwo = Object with AlsoNotObject, NotObject;
 //          ^
 // [cfe] The class 'TypeAliasWithTwo' can't be used as a mixin because it extends a class other than 'Object'.
 //                                    ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_MODIFIER_MIXIN_APPLICATION_CLASS_WITH_MULTIPLE_MIXINS

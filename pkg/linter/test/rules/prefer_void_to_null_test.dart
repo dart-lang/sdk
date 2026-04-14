@@ -9,8 +9,6 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // TODO(mfairhurst): test void with a prefix, except that causes bugs.
-    // TODO(mfairhurst): test defining a class named Null (requires a 2nd file).
     defineReflectiveTests(PreferVoidToNullTest);
   });
 }
@@ -201,37 +199,6 @@ class D extends C {
 ''');
   }
 
-  test_instanceMethod_returnType_overrideChangingType() async {
-    await assertDiagnostics(
-      r'''
-import 'dart:async';
-abstract class C {
-  FutureOr<void>? m();
-}
-
-class D implements C {
-  @override
-  Null m() {}
-}
-''',
-      [lint(103, 4)],
-    );
-  }
-
-  test_instanceMethod_returnType_overrideChangingType_generic() async {
-    // https://github.com/dart-lang/linter/issues/2792
-    await assertNoDiagnostics(r'''
-abstract class C<T> {
-  Future<T>? m();
-}
-
-class D<T> implements C<T> {
-  @override
-  Null m() {}
-}
-''');
-  }
-
   test_listLiteralTypeArg_null_empty() async {
     await assertNoDiagnostics(r'''
 void f() {
@@ -330,6 +297,18 @@ class C {
     );
   }
 
+  test_methodReturnType_customNullClass() async {
+    newFile('$testPackageLibPath/a.dart', r'''
+class Null {}
+''');
+    await assertNoDiagnostics(r'''
+import 'a.dart' as a;
+class C {
+  a.Null? x;
+}
+''');
+  }
+
   test_methodReturnType_null() async {
     await assertDiagnostics(
       r'''
@@ -351,6 +330,45 @@ class C {
 ''',
       [lint(45, 4)],
     );
+  }
+
+  test_methodReturnType_overrideChangingType() async {
+    await assertDiagnostics(
+      r'''
+import 'dart:async';
+abstract class C {
+  FutureOr<void>? m();
+}
+
+class D implements C {
+  @override
+  Null m() {}
+}
+''',
+      [lint(103, 4)],
+    );
+  }
+
+  test_methodReturnType_overrideChangingType_generic() async {
+    // https://github.com/dart-lang/linter/issues/2792
+    await assertNoDiagnostics(r'''
+abstract class C<T> {
+  Future<T>? m();
+}
+
+class D<T> implements C<T> {
+  @override
+  Null m() {}
+}
+''');
+  }
+
+  test_methodReturnType_void() async {
+    await assertNoDiagnostics(r'''
+class C {
+  void m() {}
+}
+''');
   }
 
   test_topLevelFunction_parameterType_null() async {

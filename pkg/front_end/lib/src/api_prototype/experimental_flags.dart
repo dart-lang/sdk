@@ -305,6 +305,7 @@ class ExperimentalFeaturesFromVersion implements parser.ExperimentalFeatures {
 
   @override
   bool isExperimentEnabled(shared.ExperimentalFlag flag) {
-    return _version >= fromSharedExperimentalFlag(flag).enabledVersion;
+    return _version >=
+        fromSharedExperimentalFlag(flag).experimentEnabledVersion;
   }
 }

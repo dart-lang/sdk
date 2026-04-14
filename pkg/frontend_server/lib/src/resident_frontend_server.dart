@@ -347,6 +347,7 @@ class ResidentFrontendServer {
   static const String _scriptUriString = 'scriptUri';
   static const String _isStaticString = 'isStatic';
   static const String _shutdownString = 'shutdown';
+  static const String _recordUsesString = 'record-uses';
   static const int _compilerLimit = 3;
 
   static final String shutdownCommand = jsonEncode(<String, Object>{
@@ -367,9 +368,9 @@ class ResidentFrontendServer {
   /// entrypoint. This function also writes [compileOptions.arguments] to
   /// [cachedCompilerOptions] as a JSON list.
   static ResidentCompiler _getResidentCompilerForEntrypoint({
-    required final String canonicalizedLibraryPath,
-    required final ArgResults compileOptions,
-    required final File cachedCompilerOptions,
+    required String canonicalizedLibraryPath,
+    required ArgResults compileOptions,
+    required File cachedCompilerOptions,
   }) {
     cachedCompilerOptions.createSync();
     cachedCompilerOptions.writeAsStringSync(
@@ -447,6 +448,13 @@ class ResidentFrontendServer {
       return _encodeErrorMessage(
         "'$_compileString' requests must include an '$_executableString' "
         "property and an '$_outputString' property.",
+      );
+    }
+
+    if (request[_recordUsesString] != null && !(request['aot'] ?? false)) {
+      return _encodeErrorMessage(
+        "The '$_recordUsesString' property is only supported for "
+        "AOT compilation.",
       );
     }
 
@@ -697,6 +705,8 @@ class ResidentFrontendServer {
         for (String experiment in request['enable-experiment']) experiment,
       if (request['native-assets'] != null)
         '--native-assets=${request['native-assets']}',
+      if (request[_recordUsesString] != null)
+        '--recorded-uses=${request[_recordUsesString]}',
     ]);
 
     for (final String option in overrides.options) {
@@ -747,6 +757,7 @@ class ResidentFrontendServer {
     List<String>? enableExperiment,
     bool verbose = false,
     String? nativeAssetsYaml,
+    String? recordUses,
   }) {
     return jsonEncode(<String, Object>{
       "command": "compile",
@@ -767,6 +778,7 @@ class ResidentFrontendServer {
       if (verbosity != null) "verbosity": verbosity,
       "verbose": verbose,
       if (nativeAssetsYaml != null) "native-assets": nativeAssetsYaml,
+      if (recordUses != null) _recordUsesString: recordUses,
     });
   }
 }

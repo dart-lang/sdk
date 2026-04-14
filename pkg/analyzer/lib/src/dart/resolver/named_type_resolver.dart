@@ -16,6 +16,7 @@ import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/error/lint_codes.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/dart/resolver/scope_context.dart';
 import 'package:analyzer/src/dart/type_instantiation_target.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/diagnostic/diagnostic_factory.dart';
@@ -24,10 +25,9 @@ import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/scope_helpers.dart';
 
 /// Helper for resolving types.
-///
-/// The client must set [nameScope] before calling [resolve].
 class NamedTypeResolver with ScopeHelpers {
   final LibraryFragmentImpl _libraryFragment;
+  final ScopeContext _scopeContext;
   final TypeSystemImpl typeSystem;
   final TypeSystemOperations typeSystemOperations;
   final bool strictCasts;
@@ -35,8 +35,6 @@ class NamedTypeResolver with ScopeHelpers {
 
   @override
   final DiagnosticReporter diagnosticReporter;
-
-  late Scope nameScope;
 
   /// If not `null`, the element of the [ClassDeclaration], or the
   /// [ClassTypeAlias] being resolved.
@@ -62,6 +60,7 @@ class NamedTypeResolver with ScopeHelpers {
   NamedTypeResolver(
     LibraryElementImpl libraryElement,
     this._libraryFragment,
+    this._scopeContext,
     this.diagnosticReporter, {
     required this.strictInference,
     required this.strictCasts,
@@ -76,8 +75,6 @@ class NamedTypeResolver with ScopeHelpers {
 
   /// Resolve the given [NamedType] - set its element and static type. Only the
   /// given [node] is resolved, all its children must be already resolved.
-  ///
-  /// The client must set [nameScope] before calling [resolve].
   void resolve(
     NamedTypeImpl node, {
     required TypeConstraintGenerationDataForTesting? dataForTesting,
@@ -89,7 +86,7 @@ class NamedTypeResolver with ScopeHelpers {
     if (importPrefix != null) {
       var prefixToken = importPrefix.name;
       var prefixName = prefixToken.lexeme;
-      var prefixElement = nameScope.lookup(prefixName).getter;
+      var prefixElement = _scopeContext.nameScope.lookup(prefixName).getter;
 
       // Might be shadowed by an instance member.
       // Look again to report `prefixShadowedByLocalDeclaration`.
@@ -135,7 +132,7 @@ class NamedTypeResolver with ScopeHelpers {
         return;
       }
 
-      var element = _lookupGetter(nameScope, node.name);
+      var element = _lookupGetter(_scopeContext.nameScope, node.name);
       _resolveToElement(node, element, dataForTesting: dataForTesting);
     }
   }
@@ -275,7 +272,7 @@ class NamedTypeResolver with ScopeHelpers {
           0,
           target: TypeInstantiationTargetTypeParameterElement(element),
         );
-        return element.instantiate(nullabilitySuffix: nullability);
+        return InvalidTypeImpl.instance;
       } else {
         _ErrorHelper(
           diagnosticReporter,
@@ -319,7 +316,10 @@ class NamedTypeResolver with ScopeHelpers {
     } else if (element is NeverElementImpl) {
       return _instantiateElementNever(nullability);
     } else if (element is TypeParameterElementImpl) {
-      return element.instantiate(nullabilitySuffix: nullability);
+      return _scopeContext.instantiateTypeParameter(
+        element: element,
+        nullability: nullability,
+      );
     } else {
       _ErrorHelper(
         diagnosticReporter,

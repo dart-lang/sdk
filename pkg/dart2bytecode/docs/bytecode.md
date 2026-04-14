@@ -47,7 +47,7 @@ which reside in different sections such as libraries, classes, members, code, et
 ```
 type BytecodeFile {
   UInt32 magic = 0x44424333; // 'DBC3'
-  UInt32 formatVersion = 1;
+  UInt32 formatVersion = 2;
 
   // Descriptors of the sections below.
   // Each section has a fixed index in the descriptors array.
@@ -816,6 +816,14 @@ type ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
   PackedObject enclosingLibrary;
   PackedObject targetLibrary;
 }
+
+// Occupies 2 entries in the constant pool
+type ConstantAllocateClosure extends ConstantPoolEntry {
+  Byte tag = 18;
+  UInt closureIndex;
+  UInt numElements;
+  UInt flags = (hasDelayedTypeArguments, hasInstantiatorTypeArguments, hasFunctionTypeArguments);
+}
 ```
 
 ### Exceptions table
@@ -1423,7 +1431,15 @@ SP[0] = SP[-1] <op> SP[0] ? true : false
 
 #### AllocateClosure D
 
-Allocate closure object for closure function ConstantPool[D].
+Allocate closure object described by ConstantAllocateClosure in ConstantPool[D].
+
+#### LoadClosureElement D
+
+Load element [D] from closure SP[0] and push it onto the stack.
+
+#### StoreClosureElement D
+
+Store object SP[0] into the element [D] of closure SP[-1].
 
 #### Nop
 

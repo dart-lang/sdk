@@ -22,7 +22,6 @@ import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_library_builder.dart';
-import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../type_inference/context_allocation_strategy.dart';
@@ -379,13 +378,6 @@ abstract class BodyBuilderContext {
     required Initializer initializer,
   }) {
     throw new UnsupportedError('${runtimeType}.inferInitializer');
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Returns the target for using the `augmented` expression in an augmenting
-  /// member.
-  AugmentSuperTarget? get augmentSuperTarget {
-    return null;
   }
 
   /// Registers [body] as the result of the body building.
@@ -833,11 +825,6 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
          declarationBuilder,
          isDeclarationInstanceMember: isDeclarationInstanceMember,
        );
-
-  @override
-  AugmentSuperTarget? get augmentSuperTarget {
-    return null;
-  }
 
   @override
   int get memberNameOffset => _procedure.fileOffset;

@@ -10615,6 +10615,24 @@ mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the mixin class
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+mixinClassDeclarationWithClause = DiagnosticWithArguments(
+  name: 'mixin_class_declaration_with_clause',
+  problemMessage:
+      "The class '{0}' can't be declared a mixin because it has a 'with' clause.",
+  correctionMessage:
+      "Try removing the 'with' clause or removing the 'mixin' modifier from "
+      "the class.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'mixin_class_declaration_with_clause',
+  withArguments: _withArgumentsMixinClassDeclarationWithClause,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
 /// String className: the name of the mixin class
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String className})
@@ -10679,6 +10697,23 @@ const DiagnosticWithoutArguments mixinInstantiate =
       uniqueName: 'mixin_instantiate',
       expectedTypes: [],
     );
+
+/// Parameters:
+/// String name: the name of the mixin class
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+mixinModifierMixinApplicationClassWithMultipleMixins = DiagnosticWithArguments(
+  name: 'mixin_modifier_mixin_application_class_with_multiple_mixins',
+  problemMessage:
+      "The mixin application class '{0}' can only have a single mixin.",
+  correctionMessage: "Try removing all but one mixin.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'mixin_modifier_mixin_application_class_with_multiple_mixins',
+  withArguments:
+      _withArgumentsMixinModifierMixinApplicationClassWithMultipleMixins,
+  expectedTypes: [ExpectedType.string],
+);
 
 /// Parameters:
 /// Type disallowedType: the name of the disallowed type
@@ -20144,6 +20179,12 @@ LocatableDiagnostic _withArgumentsMixinClassDeclarationExtendsNotObject({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsMixinClassDeclarationWithClause({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.mixinClassDeclarationWithClause, [name]);
+}
+
 LocatableDiagnostic
 _withArgumentsMixinClassDeclaresNonTrivialGenerativeConstructor({
   required String className,
@@ -20158,6 +20199,16 @@ LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({
   required String name,
 }) {
   return LocatableDiagnosticImpl(diag.mixinInheritsFromNotObject, [name]);
+}
+
+LocatableDiagnostic
+_withArgumentsMixinModifierMixinApplicationClassWithMultipleMixins({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.mixinModifierMixinApplicationClassWithMultipleMixins,
+    [name],
+  );
 }
 
 LocatableDiagnostic _withArgumentsMixinOfDisallowedClass({

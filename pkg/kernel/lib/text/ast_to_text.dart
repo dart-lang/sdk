@@ -2787,6 +2787,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeModifier(node.isSynthesized && node.name != null, 'synthesized');
       writeModifier(node.isHoisted, 'hoisted');
       writeModifier(node.isWildcard, 'wildcard');
+      writeModifier(node.isInitializingFormal, 'initializing-formal');
+      writeModifier(
+        node.isSuperInitializingFormal,
+        'super-initializing-formal',
+      );
       writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
       bool hasImplicitInitializer =
           node.initializer is NullLiteral ||

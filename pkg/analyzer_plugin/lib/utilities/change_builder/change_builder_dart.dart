@@ -223,7 +223,7 @@ abstract class DartEditBuilder implements EditBuilder {
     void Function() bodyWriter,
     bool isStatic = false,
     String nameGroupName,
-    DartType returnType,
+    DartType? returnType,
     String returnTypeGroupName,
     bool alwaysWriteType = false,
     List<TypeParameterElement>? typeParametersInScope,
@@ -373,6 +373,7 @@ abstract class DartEditBuilder implements EditBuilder {
     void Function()? bodyWriter,
     bool isStatic = false,
     String? nameGroupName,
+    String? parameterName,
     DartType? parameterType,
     String? parameterTypeGroupName,
     bool alwaysWriteType = false,
@@ -632,6 +633,7 @@ abstract class DartFileEditBuilder implements FileEditBuilder {
     CompilationUnitMember compilationUnitMember,
     void Function(DartEditBuilder builder) buildEdit, {
     bool Function(ClassMember existingMember)? lastMemberFilter,
+    bool indent = true,
   });
 
   /// Inserts the code for a method.

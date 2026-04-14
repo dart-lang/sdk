@@ -174,8 +174,8 @@ void _print(String message) {
 }
 
 void _prompt() => stdout.write(
-      'Enter a new message to print and recompile, or type `quit` to exit:',
-    );
+  'Enter a new message to print and recompile, or type `quit` to exit:',
+);
 
 final app = 'example/app/main.dart';
 final dartSdkJs = p.join('.dart_tool', 'out', 'dart_sdk.js');

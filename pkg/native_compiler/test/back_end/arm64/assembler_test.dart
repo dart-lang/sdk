@@ -800,6 +800,124 @@ void main() {
       });
     });
 
+    test('lsl', () {
+      asm.lsl(R0, R1, 0);
+      asm.lsl(R0, R1, 0, .s32);
+      asm.lsl(R1, R2, 1);
+      asm.lsl(R1, R2, 1, .s32);
+      asm.lsl(R4, R2, 31, .s32);
+      asm.lsl(R4, R2, 63);
+      expectDisassembly(
+        'mov r0, r1\n'
+        'movw r0, r1\n'
+        'lsl r1, r2, #1\n'
+        'lslw r1, r2, #1\n'
+        'lslw r4, r2, #31\n'
+        'lsl r4, r2, #63\n',
+      );
+      expectThrows(() {
+        asm.lsl(R4, R2, -1);
+      });
+      expectThrows(() {
+        asm.lsl(R4, R2, 64);
+      });
+      expectThrows(() {
+        asm.lsl(R4, R2, 32, .s32);
+      });
+      expectThrows(() {
+        asm.lsl(SP, R2, 1);
+      });
+      expectThrows(() {
+        asm.lsl(R4, SP, 1);
+      });
+    });
+
+    test('lsr', () {
+      asm.lsr(R0, R1, 0);
+      asm.lsr(R0, R1, 0, .s32);
+      asm.lsr(R1, R2, 1);
+      asm.lsr(R1, R2, 1, .s32);
+      asm.lsr(R4, R2, 31, .s32);
+      asm.lsr(R4, R2, 63);
+      expectDisassembly(
+        'mov r0, r1\n'
+        'movw r0, r1\n'
+        'lsr r1, r2, #1\n'
+        'lsrw r1, r2, #1\n'
+        'lsrw r4, r2, #31\n'
+        'lsr r4, r2, #63\n',
+      );
+      expectThrows(() {
+        asm.lsr(R4, R2, -1);
+      });
+      expectThrows(() {
+        asm.lsr(R4, R2, 64);
+      });
+      expectThrows(() {
+        asm.lsr(R4, R2, 32, .s32);
+      });
+      expectThrows(() {
+        asm.lsr(SP, R2, 1);
+      });
+      expectThrows(() {
+        asm.lsr(R4, SP, 1);
+      });
+    });
+
+    test('asrv', () {
+      asm.asrv(R0, R1, R2);
+      asm.asrv(R3, R4, R5, .s32);
+      expectDisassembly(
+        'asr r0, r1, r2\n'
+        'asrw r3, r4, r5\n',
+      );
+      expectThrows(() {
+        asm.asrv(SP, R1, R2);
+      });
+      expectThrows(() {
+        asm.asrv(R0, SP, R2);
+      });
+      expectThrows(() {
+        asm.asrv(R0, R1, SP);
+      });
+    });
+
+    test('lslv', () {
+      asm.lslv(R0, R1, R2);
+      asm.lslv(R3, R4, R5, .s32);
+      expectDisassembly(
+        'lsl r0, r1, r2\n'
+        'lslw r3, r4, r5\n',
+      );
+      expectThrows(() {
+        asm.lslv(SP, R1, R2);
+      });
+      expectThrows(() {
+        asm.lslv(R0, SP, R2);
+      });
+      expectThrows(() {
+        asm.lslv(R0, R1, SP);
+      });
+    });
+
+    test('lsrv', () {
+      asm.lsrv(R0, R1, R2);
+      asm.lsrv(R3, R4, R5, .s32);
+      expectDisassembly(
+        'lsr r0, r1, r2\n'
+        'lsrw r3, r4, r5\n',
+      );
+      expectThrows(() {
+        asm.lsrv(SP, R1, R2);
+      });
+      expectThrows(() {
+        asm.lsrv(R0, SP, R2);
+      });
+      expectThrows(() {
+        asm.lsrv(R0, R1, SP);
+      });
+    });
+
     test('and', () {
       asm.and(R0, R1, R2);
       asm.and(R0, R0, Immediate(-512));

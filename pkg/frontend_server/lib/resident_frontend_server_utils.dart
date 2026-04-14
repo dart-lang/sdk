@@ -57,7 +57,7 @@ typedef CachedDillAndCompilerOptionsPaths = ({
 /// Returns the absolute paths to the cached kernel file and the cached compiler
 /// options file associated with [canonicalizedLibraryPath].
 CachedDillAndCompilerOptionsPaths computeCachedDillAndCompilerOptionsPaths(
-  final String canonicalizedLibraryPath,
+  String canonicalizedLibraryPath,
 ) {
   final String dirname = path.dirname(canonicalizedLibraryPath);
   final String basename = path.basename(canonicalizedLibraryPath);

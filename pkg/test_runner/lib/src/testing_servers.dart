@@ -243,7 +243,7 @@ class TestingServers {
 
   void _handleUploadRequest(HttpRequest request) async {
     try {
-      var builder = await request.fold(BytesBuilder(), (dynamic b, var d) {
+      var builder = await request.fold(BytesBuilder(), (dynamic b, d) {
         b.add(d);
         return b;
       });
@@ -368,8 +368,7 @@ class TestingServers {
         // of policies via js-interop, and is tested by
         // tests/lib/js/static_interop_test/import/import_trustedscripturl_test
         "require-trusted-types-for: 'script'",
-        "trusted-types dart.deferred-loading scriptUrl"
-        ,
+        "trusted-types dart.deferred-loading scriptUrl",
       ].join('; ');
       for (var header in [
         "Content-Security-Policy",

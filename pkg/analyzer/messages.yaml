@@ -2210,7 +2210,8 @@ CompileTimeErrorCode:
       as a type because it's a built-in identifier:
 
       ```dart
-      [!import!]<int> x;
+      %ignore=undefined_class
+      [!import!]<int> x = [];
       ```
 
       #### Common fixes
@@ -2218,7 +2219,7 @@ CompileTimeErrorCode:
       Replace the built-in identifier with the name of a valid type:
 
       ```dart
-      List<int> x;
+      List<int> x = [];
       ```
   builtInIdentifierAsExtensionName:
     type: compileTimeError
@@ -2662,6 +2663,7 @@ CompileTimeErrorCode:
       isn't marked as being `const`:
 
       ```dart
+      %language=3.10
       enum E {
         e;
 
@@ -11582,6 +11584,94 @@ CompileTimeErrorCode:
 
       Depending on the members of the subclass this might require adding an `on`
       clause to the mixin.
+  mixinClassDeclarationWithClause:
+    type: compileTimeError
+    parameters:
+      String name: the name of the mixin class
+    problemMessage: "The class '#name' can't be declared a mixin because it has a 'with' clause."
+    correctionMessage: Try removing the 'with' clause or removing the 'mixin' modifier from the class.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a class with the `mixin`
+      modifier has a `with` clause. A mixin class declaration cannot have a
+      `with` clause because that implies it extends a class other than `Object`.
+
+      #### Example
+
+      The following code produces this diagnostic because the `mixin class` `B`
+      has a `with` clause:
+
+      ```dart
+      mixin M {}
+
+      mixin class B [!with M!] {}
+      ```
+
+      #### Common fixes
+
+      If you want to use the class as a mixin, remove the `with` clause:
+
+      ```dart
+      mixin M {}
+
+      mixin class B {}
+      ```
+
+      If you need the class to have a `with` clause, then remove the `mixin`
+      modifier:
+
+      ```dart
+      mixin M {}
+
+      class B with M {}
+      ```
+  mixinModifierMixinApplicationClassWithMultipleMixins:
+    type: compileTimeError
+    parameters:
+      String name: the name of the mixin class
+    problemMessage: "The mixin application class '#name' can only have a single mixin."
+    correctionMessage: Try removing all but one mixin.
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a mixin application class
+      with the `mixin` modifier has more than one mixin. A mixin class
+      application can only have a single mixin.
+
+      #### Example
+
+      The following code produces this diagnostic because the `mixin class C`
+      has multiple mixins:
+
+      ```dart
+      mixin M1 {}
+      mixin M2 {}
+
+      mixin class C = Object [!with M1, M2!];
+      ```
+
+      #### Common fixes
+
+      If you need to use multiple mixins, remove the `mixin` modifier from the
+      mixin application class:
+
+      ```dart
+      mixin M1 {}
+      mixin M2 {}
+
+      class C = Object with M1, M2;
+      ```
+
+      If you need the class to be a `mixin class`, then only use a single mixin:
+
+      ```dart
+      mixin M1 {}
+
+      mixin class C = Object with M1;
+      ```
   mixinClassDeclaresConstructor:
     type: compileTimeError
     parameters:

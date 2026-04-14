@@ -7,6 +7,8 @@ import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/object.dart';
 import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
@@ -352,28 +354,9 @@ class RemoveUnusedLocalVariable extends ResolvedCorrectionProducer {
   /// In the case of an [AssignmentExpression], [element] is used to determine
   /// whether [node] has side effects _other than_ assigning to [element].
   bool _hasSideEffect(Expression node, LocalVariableElement element) {
-    node = node.unParenthesized;
-    if (node is MethodInvocation ||
-        node is FunctionExpressionInvocation ||
-        node is AwaitExpression) {
-      return true;
-    }
-    if (node is AssignmentExpression) {
-      var lhs = node.leftHandSide.unParenthesized;
-      if (lhs is Identifier) {
-        if (lhs.element != element) return true;
-      } else {
-        return true;
-      }
-      return _hasSideEffect(node.rightHandSide, element);
-    }
-    if (node is AsExpression) {
-      return _hasSideEffect(node.expression, element);
-    }
-    if (node is PostfixExpression || node is PrefixExpression) {
-      return true;
-    }
-    return false;
+    var visitor = _SideEffectVisitor(element);
+    node.accept(visitor);
+    return visitor.hasSideEffect;
   }
 
   LocalVariableElement? _localVariableElement() {
@@ -486,5 +469,70 @@ class _ReplaceSourceRangeCommand extends _Command {
   @override
   void execute(DartFileEditBuilder builder) {
     builder.addSimpleReplacement(sourceRange, replacement);
+  }
+}
+
+class _SideEffectVisitor extends RecursiveAstVisitor<void> {
+  final LocalVariableElement element;
+  bool hasSideEffect = false;
+
+  _SideEffectVisitor(this.element);
+
+  @override
+  void visitAssignmentExpression(AssignmentExpression node) {
+    if (hasSideEffect) return;
+    var lhs = node.leftHandSide.unParenthesized;
+    if (lhs is Identifier && lhs.element == element) {
+      node.rightHandSide.accept(this);
+    } else {
+      hasSideEffect = true;
+    }
+  }
+
+  @override
+  void visitAwaitExpression(AwaitExpression node) {
+    hasSideEffect = true;
+  }
+
+  @override
+  void visitFunctionExpressionInvocation(FunctionExpressionInvocation node) {
+    hasSideEffect = true;
+  }
+
+  @override
+  void visitMethodInvocation(MethodInvocation node) {
+    hasSideEffect = true;
+  }
+
+  @override
+  void visitPostfixExpression(PostfixExpression node) {
+    if (hasSideEffect) return;
+    if (node.operator.type == TokenType.PLUS_PLUS ||
+        node.operator.type == TokenType.MINUS_MINUS) {
+      var operand = node.operand.unParenthesized;
+      if (operand is Identifier && operand.element == element) {
+        // Not a side effect.
+      } else {
+        hasSideEffect = true;
+      }
+    } else {
+      super.visitPostfixExpression(node);
+    }
+  }
+
+  @override
+  void visitPrefixExpression(PrefixExpression node) {
+    if (hasSideEffect) return;
+    if (node.operator.type == TokenType.PLUS_PLUS ||
+        node.operator.type == TokenType.MINUS_MINUS) {
+      var operand = node.operand.unParenthesized;
+      if (operand is Identifier && operand.element == element) {
+        // Not a side effect.
+      } else {
+        hasSideEffect = true;
+      }
+    } else {
+      super.visitPrefixExpression(node);
+    }
   }
 }

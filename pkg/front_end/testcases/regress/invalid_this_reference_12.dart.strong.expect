@@ -36,7 +36,7 @@ static extension-member method _extension#0|get#foo(lowered final dynamic #this)
   return ([core::int bar = invalid-expression "pkg/front_end/testcases/regress/invalid_this_reference_12.dart:6:18: Error: Not a constant expression.
   foo([int bar = foo.baz]) {
                  ^^^"]) → dynamic => self::_extension#0|foo(#this, bar);
-static extension-type-member method foo|constructor#(dynamic whatnot) → self::foo% /* erasure=dynamic, declared=! */ {
+static extension-type-member method foo|constructor#(initializing-formal dynamic whatnot) → self::foo% /* erasure=dynamic, declared=! */ {
   lowered final self::foo% /* erasure=dynamic, declared=! */ #this = whatnot;
   return #this;
 }

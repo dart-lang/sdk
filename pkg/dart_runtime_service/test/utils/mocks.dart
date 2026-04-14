@@ -14,6 +14,8 @@ import 'package:test/fake.dart';
 /// a backend implementation.
 base class FakeDartRuntimeServiceBackend extends Fake
     implements DartRuntimeServiceBackend {
+  FakeDartRuntimeServiceBackend({required this.frontend});
+
   @override
   Future<void> initialize() async {}
 
@@ -33,6 +35,9 @@ base class FakeDartRuntimeServiceBackend extends Fake
   }) async {}
 
   @override
+  Future<void> onServerShutdown() async {}
+
+  @override
   UnmodifiableListView<ServiceRpcHandler> get rpcs =>
       UnmodifiableListView(const []);
 
@@ -41,13 +46,21 @@ base class FakeDartRuntimeServiceBackend extends Fake
       UnmodifiableListView(const []);
 
   @override
-  DartRuntimeService get frontend => throw UnimplementedError();
+  final DartRuntimeService frontend;
 
   @override
   IsolateManager get isolateManager => throw UnimplementedError();
 
   @override
   ExpressionEvaluator? get expressionEvaluator => null;
+
+  @override
+  ClientManager<DartRuntimeServiceBackend> clientManagerBuilder() {
+    return ClientManager(
+      backend: this,
+      eventStreamMethods: frontend.eventStreams,
+    );
+  }
 
   @override
   void onStreamCancel({required String streamId}) {}

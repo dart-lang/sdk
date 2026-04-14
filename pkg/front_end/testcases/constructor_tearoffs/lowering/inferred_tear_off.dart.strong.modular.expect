@@ -6,10 +6,10 @@ typedef F<unrelated T extends core::Object? = dynamic> = self::A;
 typedef G<unrelated T extends core::num> = self::B<dynamic>;
 class A extends core::Object {
   field core::int field1 = 0;
-  constructor •(core::int field1) → self::A
+  constructor •(initializing-formal core::int field1) → self::A
     : self::A::field1 = field1, super core::Object::•()
     ;
-  constructor named(core::int field1) → self::A
+  constructor named(initializing-formal core::int field1) → self::A
     : self::A::field1 = field1, super core::Object::•()
     ;
   static synthetic method _#new#tearOff(core::int field1) → self::A
@@ -20,10 +20,10 @@ class A extends core::Object {
 class B<T extends core::Object? = dynamic> extends core::Object implements self::A {
   field core::int field1;
   covariant-by-class field self::B::T% field2;
-  constructor •(core::int field1, self::B::T% field2) → self::B<self::B::T%>
+  constructor •(initializing-formal core::int field1, initializing-formal self::B::T% field2) → self::B<self::B::T%>
     : self::B::field1 = field1, self::B::field2 = field2, super core::Object::•()
     ;
-  constructor named(core::int field1, self::B::T% field2) → self::B<self::B::T%>
+  constructor named(initializing-formal core::int field1, initializing-formal self::B::T% field2) → self::B<self::B::T%>
     : self::B::field1 = field1, self::B::field2 = field2, super core::Object::•()
     ;
   static synthetic method _#new#tearOff<T extends core::Object? = dynamic>(core::int field1, self::B::_#new#tearOff::T% field2) → self::B<self::B::_#new#tearOff::T%>

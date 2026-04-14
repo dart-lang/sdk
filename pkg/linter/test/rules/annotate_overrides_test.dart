@@ -18,7 +18,6 @@ class AnnotateOverridesTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.annotate_overrides;
 
-  @SkippedTest() // TODO(scheglov): implement augmentation
   test_augmentationClass_implementsInterface() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 part 'b.dart';
@@ -27,8 +26,8 @@ abstract interface class HasLength {
   int get length;
 }
 
-class C {
-  int get length => 42;
+abstract class C {
+  int get length;
 }
 ''');
 
@@ -115,7 +114,7 @@ class B(var int x) extends A {}
     );
   }
 
-  test_class_fieldWithAnnotation() async {
+  test_class_field_withAnnotation() async {
     await assertNoDiagnostics(r'''
 class A {
   int get x => 4;
@@ -128,12 +127,7 @@ class B extends A {
 ''');
   }
 
-  // TODO(srawlins): Test subclassing via `implements`, via mixing-in, and via
-  // superconstraints.
-  // Test that extension methods don't need an annotation.
-  // Test setters and operators.
-
-  test_class_fieldWithoutAnnotation() async {
+  test_class_field_withoutAnnotation() async {
     await assertDiagnostics(
       r'''
 class A {
@@ -191,6 +185,21 @@ class B extends A {
     );
   }
 
+  test_class_implementsClass_withoutAnnotation() async {
+    await assertDiagnostics(
+      r'''
+abstract class C {
+  void m();
+}
+
+class D implements C {
+  void m() {}
+}
+''',
+      [lint(64, 1)],
+    );
+  }
+
   test_class_methodWithAnnotation() async {
     await assertNoDiagnostics(r'''
 class A {
@@ -216,6 +225,21 @@ class B extends A {
 }
 ''',
       [lint(54, 1)],
+    );
+  }
+
+  test_class_withMixin_withoutAnnotation() async {
+    await assertDiagnostics(
+      r'''
+mixin M {
+  void m() {}
+}
+
+class C with M {
+  void m() {}
+}
+''',
+      [lint(51, 1)],
     );
   }
 
@@ -302,6 +326,14 @@ enum A {
     );
   }
 
+  test_extension_method_withoutAnnotation() async {
+    await assertNoDiagnostics(r'''
+extension E on Object {
+  void extensionMethod() {}
+}
+''');
+  }
+
   test_extensionTypes_field() async {
     await assertDiagnostics(
       r'''
@@ -354,5 +386,51 @@ extension type E(A a) implements A {
   set i(int i) {}
 }
 ''');
+  }
+
+  test_mixin_superConstraint_withoutAnnotation() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  void m() {}
+}
+
+mixin M on A {
+  void m() {}
+}
+''',
+      [lint(49, 1)],
+    );
+  }
+
+  test_operator_withoutAnnotation() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  @override
+  bool operator ==(Object other) => false;
+}
+
+class B extends A {
+  bool operator ==(Object other) => true;
+}
+''',
+      [lint(104, 2)],
+    );
+  }
+
+  test_setter_withoutAnnotation() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  set x(int value) {}
+}
+
+class B extends A {
+  set x(int value) {}
+}
+''',
+      [lint(61, 1)],
+    );
   }
 }

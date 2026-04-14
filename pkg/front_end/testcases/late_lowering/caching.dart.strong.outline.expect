@@ -5,7 +5,7 @@ import "dart:core" as core;
 class Class extends core::Object {
   field core::int field;
   final field core::int finalField;
-  constructor •(core::int field, core::int finalField) → self::Class
+  constructor •(initializing-formal core::int field, initializing-formal core::int finalField) → self::Class
     ;
   get getter() → core::int
     ;

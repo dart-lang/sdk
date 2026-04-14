@@ -14,7 +14,7 @@ final class SomeClass extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
 
   [@vm.unboxing-info.metadata=[!regcc]]
-  const constructor positional([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 11)] core::int i = #C2]) → self::SomeClass
+  const constructor positional([[@vm.inferred-arg-type.metadata=dart.core::_Smi (value: 11)] initializing-formal core::int i = #C2]) → self::SomeClass
     : self::SomeClass::i = i, super core::Object::•()
     ;
 }

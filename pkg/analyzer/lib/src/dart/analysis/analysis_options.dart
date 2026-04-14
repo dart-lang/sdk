@@ -17,7 +17,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/utilities_general.dart' show toBool;
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -95,9 +94,9 @@ final class AnalysisOptionsBuilder {
   void _applyCodeStyleOptions(YamlNode? codeStyle) {
     var useFormatter = false;
     if (codeStyle is YamlMap) {
-      var formatNode = codeStyle.valueAt(AnalysisOptionsFile.format);
-      if (formatNode != null) {
-        var formatValue = toBool(formatNode);
+      var formatNode = codeStyle.valueAt(AnalysisOptionsFileKeys.format);
+      if (formatNode is YamlScalar) {
+        var formatValue = formatNode.toBool();
         if (formatValue is bool) {
           useFormatter = formatValue;
         }
@@ -119,14 +118,14 @@ final class AnalysisOptionsBuilder {
     int? pageWidth;
     TrailingCommas? trailingCommas;
     if (formatter is YamlMap) {
-      var pageWidthNode = formatter.valueAt(AnalysisOptionsFile.pageWidth);
+      var pageWidthNode = formatter.valueAt(AnalysisOptionsFileKeys.pageWidth);
       var pageWidthValue = pageWidthNode?.value;
       if (pageWidthValue is int && pageWidthValue > 0) {
         pageWidth = pageWidthValue;
       }
 
       var trailingCommasNode = formatter.valueAt(
-        AnalysisOptionsFile.trailingCommas,
+        AnalysisOptionsFileKeys.trailingCommas,
       );
       var trailingCommasValue = trailingCommasNode?.value;
       trailingCommas = TrailingCommas.values.firstWhereOrNull(
@@ -155,11 +154,11 @@ final class AnalysisOptionsBuilder {
       }
 
       switch (feature) {
-        case AnalysisOptionsFile.strictCasts:
+        case AnalysisOptionsFileKeys.strictCasts:
           strictCasts = boolValue;
-        case AnalysisOptionsFile.strictInference:
+        case AnalysisOptionsFileKeys.strictInference:
           strictInference = boolValue;
-        case AnalysisOptionsFile.strictRawTypes:
+        case AnalysisOptionsFileKeys.strictRawTypes:
           strictRawTypes = boolValue;
       }
     });
@@ -197,9 +196,9 @@ final class AnalysisOptionsBuilder {
           if (key is YamlScalar && value is YamlScalar) {
             if (value.boolValue case var boolValue?) {
               switch ('${key.value}') {
-                case AnalysisOptionsFile.chromeOsManifestChecks:
+                case AnalysisOptionsFileKeys.chromeOsManifestChecks:
                   chromeOsManifestChecks = boolValue;
-                case AnalysisOptionsFile.propagateLinterExceptions:
+                case AnalysisOptionsFileKeys.propagateLinterExceptions:
                   propagateLinterExceptions = boolValue;
               }
             }
@@ -207,9 +206,9 @@ final class AnalysisOptionsBuilder {
         }
       case YamlScalar():
         switch ('${config.value}') {
-          case AnalysisOptionsFile.chromeOsManifestChecks:
+          case AnalysisOptionsFileKeys.chromeOsManifestChecks:
             chromeOsManifestChecks = true;
-          case AnalysisOptionsFile.propagateLinterExceptions:
+          case AnalysisOptionsFileKeys.propagateLinterExceptions:
             propagateLinterExceptions = true;
         }
     }
@@ -257,7 +256,7 @@ final class AnalysisOptionsBuilder {
         return;
       }
 
-      var diagnostics = pluginNode.valueAt(AnalysisOptionsFile.diagnostics);
+      var diagnostics = pluginNode.valueAt(AnalysisOptionsFileKeys.diagnostics);
       var diagnosticConfigurations = diagnostics == null
           ? const <String, RuleConfig>{}
           : parseDiagnosticsSection(diagnostics);
@@ -322,8 +321,8 @@ final class AnalysisOptionsBuilder {
     // warning should be reported by `OptionsFileValidator`.
     // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
 
-    var versionSource = pluginNode.valueAt(AnalysisOptionsFile.version);
-    var hostedUrlSource = pluginNode.valueAt(AnalysisOptionsFile.hosted);
+    var versionSource = pluginNode.valueAt(AnalysisOptionsFileKeys.version);
+    var hostedUrlSource = pluginNode.valueAt(AnalysisOptionsFileKeys.hosted);
 
     if ((versionSource, hostedUrlSource) case (
       YamlScalar(value: String version),
@@ -334,7 +333,7 @@ final class AnalysisOptionsBuilder {
       return VersionedPluginSource(constraint: version);
     }
 
-    var pathSource = pluginNode.valueAt(AnalysisOptionsFile.path);
+    var pathSource = pluginNode.valueAt(AnalysisOptionsFileKeys.path);
     if (pathSource case YamlScalar(value: String pathValue)) {
       var file = this.file;
       assert(
@@ -457,15 +456,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }) {
     var builder = AnalysisOptionsBuilder()..file = file;
 
-    var analyzer = optionsMap.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = optionsMap.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
       // Process filters.
-      var filters = analyzer.valueAt(AnalysisOptionsFile.errors);
+      var filters = analyzer.valueAt(AnalysisOptionsFileKeys.errors);
       builder.errorProcessors = ErrorConfig(filters).processors;
 
       // Process enabled experiments.
       var experimentNames = analyzer.valueAt(
-        AnalysisOptionsFile.enableExperiment,
+        AnalysisOptionsFileKeys.enableExperiment,
       );
       if (experimentNames is YamlList) {
         var enabledExperiments = <String>[];
@@ -485,31 +484,33 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Process optional checks options.
-      var optionalChecks = analyzer.valueAt(AnalysisOptionsFile.optionalChecks);
+      var optionalChecks = analyzer.valueAt(
+        AnalysisOptionsFileKeys.optionalChecks,
+      );
       builder._applyOptionalChecks(optionalChecks);
 
       // Process language options.
-      var language = analyzer.valueAt(AnalysisOptionsFile.language);
+      var language = analyzer.valueAt(AnalysisOptionsFileKeys.language);
       builder._applyLanguageOptions(language);
 
       // Process excludes.
-      var excludes = analyzer.valueAt(AnalysisOptionsFile.exclude);
+      var excludes = analyzer.valueAt(AnalysisOptionsFileKeys.exclude);
       builder._applyExcludes(excludes);
 
-      var cannotIgnore = analyzer.valueAt(AnalysisOptionsFile.cannotIgnore);
+      var cannotIgnore = analyzer.valueAt(AnalysisOptionsFileKeys.cannotIgnore);
       builder._applyUnignorables(cannotIgnore);
 
       // Process legacy plugins.
-      var legacyPlugins = analyzer.valueAt(AnalysisOptionsFile.plugins);
+      var legacyPlugins = analyzer.valueAt(AnalysisOptionsFileKeys.plugins);
       builder._applyLegacyPlugins(legacyPlugins);
     }
 
     // Process the 'formatter' option.
-    var formatter = optionsMap.valueAt(AnalysisOptionsFile.formatter);
+    var formatter = optionsMap.valueAt(AnalysisOptionsFileKeys.formatter);
     builder._applyFormatterOptions(formatter);
 
     // Process the 'plugins' option.
-    var plugins = optionsMap.valueAt(AnalysisOptionsFile.plugins);
+    var plugins = optionsMap.valueAt(AnalysisOptionsFileKeys.plugins);
     builder._applyPluginsOptions(plugins, resourceProvider);
 
     var ruleConfigs = parseLinterSection(optionsMap);
@@ -522,7 +523,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
 
     // Process the 'code-style' option.
-    var codeStyle = optionsMap.valueAt(AnalysisOptionsFile.codeStyle);
+    var codeStyle = optionsMap.valueAt(AnalysisOptionsFileKeys.codeStyle);
     builder._applyCodeStyleOptions(codeStyle);
 
     return builder.build();

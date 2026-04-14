@@ -2262,15 +2262,6 @@ class ForwardingListener implements Listener {
   }
 
   @override
-  void handleAugmentSuperExpression(
-    Token augmentToken,
-    Token superToken,
-    IdentifierContext context,
-  ) {
-    listener?.handleAugmentSuperExpression(augmentToken, superToken, context);
-  }
-
-  @override
   void handleSwitchCaseNoWhenClause(Token token) {
     listener?.handleSwitchCaseNoWhenClause(token);
   }

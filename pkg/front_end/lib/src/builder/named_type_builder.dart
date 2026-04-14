@@ -1010,7 +1010,7 @@ abstract class NamedTypeBuilderImpl extends NamedTypeBuilder {
     Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
     Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
     TypeParameterFactory typeParameterFactory, {
-    final Variance variance = Variance.covariant,
+    Variance variance = Variance.covariant,
   }) {
     TypeDeclarationBuilder declaration = this.declaration;
     List<TypeBuilder>? arguments = this.typeArguments;

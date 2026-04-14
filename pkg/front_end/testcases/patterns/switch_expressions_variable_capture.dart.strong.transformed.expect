@@ -19,7 +19,7 @@ import "dart:math" as math;
 
 class Circle extends core::Object {
   final field core::double radius;
-  constructor •(core::double radius) → self::Circle
+  constructor •(initializing-formal core::double radius) → self::Circle
     : self::Circle::radius = radius, super core::Object::•()
     ;
 }

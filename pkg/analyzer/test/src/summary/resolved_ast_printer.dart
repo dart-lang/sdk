@@ -320,7 +320,7 @@ class ResolvedAstPrinter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitCompilationUnit(CompilationUnit node) {
+  void visitCompilationUnit(covariant CompilationUnitImpl node) {
     _sink.writeln('CompilationUnit');
     _sink.withIndent(() {
       _writeNamedChildEntities(node);

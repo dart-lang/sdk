@@ -12,7 +12,7 @@ class Class<T extends core::Object? = dynamic> extends core::Object {
   final field self::Class::T? field;
   covariant-by-class field self::Class::T? _#Class#lateGenericInstanceField = null;
   field core::bool _#Class#lateGenericInstanceField#isSet = false;
-  constructor •(self::Class::T? field) → self::Class<self::Class::T%>
+  constructor •(initializing-formal self::Class::T? field) → self::Class<self::Class::T%>
     : self::Class::field = field, super core::Object::•()
     ;
   static method lateStaticField1Init() → core::int?

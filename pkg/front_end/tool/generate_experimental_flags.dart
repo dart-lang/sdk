@@ -287,7 +287,6 @@ class ExperimentalFlag {
   /// Libraries can still opt out of the feature by using a language version
   /// below the [experimentEnabledVersion].
   final bool isExpired;
-  final Version enabledVersion;
 
   /// The minimum version that enables the feature by default.
   ///
@@ -307,7 +306,6 @@ class ExperimentalFlag {
       {required this.name,
       required this.isEnabledByDefault,
       required this.isExpired,
-      required this.enabledVersion,
       required this.experimentEnabledVersion,
       required this.experimentReleasedVersion});
 ''');
@@ -356,7 +354,6 @@ class ExperimentalFlag {
       name: '$key',
       isEnabledByDefault: $shipped,
       isExpired: ${expired == true},
-      enabledVersion: $enabledInVersion,
       experimentEnabledVersion: $enabledInVersion,
       experimentReleasedVersion: $releasedInVersion);
 ''');

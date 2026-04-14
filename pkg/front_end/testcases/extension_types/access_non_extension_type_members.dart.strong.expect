@@ -30,13 +30,13 @@ extension type F(self::B it) implements self::E /* erasure=self::B */ {
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(self::B it) → self::E /* erasure=self::B */ {
+static extension-type-member method E|constructor#(initializing-formal self::B it) → self::E /* erasure=self::B */ {
   lowered final self::E /* erasure=self::B */ #this = it;
   return #this;
 }
 static extension-type-member synthetic method E|constructor#_#new#tearOff(self::B it) → self::E /* erasure=self::B */
   return self::E|constructor#(it);
-static extension-type-member method F|constructor#(self::B it) → self::F /* erasure=self::B */ {
+static extension-type-member method F|constructor#(initializing-formal self::B it) → self::F /* erasure=self::B */ {
   lowered final self::F /* erasure=self::B */ #this = it;
   return #this;
 }

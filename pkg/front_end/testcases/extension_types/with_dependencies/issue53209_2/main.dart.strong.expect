@@ -49,7 +49,7 @@ extension type E(core::String foo) implements #lib1::A {
   static redirecting-factory redirectingFactoryWithMismatchingParameters = self2::E|constructor#redirectingFactoryWithMismatchingParameters;
   static redirecting-factory tearoff redirectingFactoryWithMismatchingParameters = self2::E|constructor#_#redirectingFactoryWithMismatchingParameters#tearOff;
 }
-static extension-type-member method E|constructor#(core::String foo) → self2::E /* erasure=core::String */ {
+static extension-type-member method E|constructor#(initializing-formal core::String foo) → self2::E /* erasure=core::String */ {
   lowered final self2::E /* erasure=core::String */ #this = foo;
   return #this;
 }

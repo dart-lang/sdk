@@ -42,7 +42,7 @@ class ConvertIntoAsyncBody extends ResolvedCorrectionProducer {
     }
 
     var parent = body.parent;
-    if (parent is ConstructorDeclaration) {
+    if (parent is ConstructorDeclaration || parent is PrimaryConstructorBody) {
       return;
     }
     if (parent is FunctionExpression && parent.parent is! FunctionDeclaration) {

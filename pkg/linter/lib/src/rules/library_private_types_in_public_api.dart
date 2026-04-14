@@ -109,7 +109,7 @@ class Validator extends SimpleAstVisitor<void> {
       if (formalParameter is SimpleFormalParameter) {
         var name = formalParameter.name;
         if (name != null && !Identifier.isPrivateName(name.lexeme)) {
-          formalParameter.type!.accept(this);
+          formalParameter.type?.accept(this);
         }
       }
     }

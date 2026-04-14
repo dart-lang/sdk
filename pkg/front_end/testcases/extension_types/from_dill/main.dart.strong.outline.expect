@@ -44,7 +44,7 @@ extension type ExtensionType(core::int it) {
   static redirecting-factory tearoff redirectingFactory = self2::ExtensionType|constructor#_#redirectingFactory#tearOff;
 }
 static field core::int ExtensionType|staticField;
-static extension-type-member method ExtensionType|constructor#(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
+static extension-type-member method ExtensionType|constructor#(initializing-formal core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ExtensionType|constructor#_#new#tearOff(core::int it) → self2::ExtensionType% /* erasure=core::int, declared=! */
   return self2::ExtensionType|constructor#(it);

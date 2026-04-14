@@ -149,11 +149,10 @@ void expectEquals(YamlNode? actual, YamlNode? expected) {
   }
 }
 
-Object valueOf(Object object) =>
-    object is YamlNode ? object.valueOrThrow : object;
+Object? valueOf(Object object) => object is YamlNode ? object.value : object;
 
 YamlNode? _getValue(Map<Object, YamlNode?> map, Object key) {
-  Object keyValue = valueOf(key);
+  var keyValue = valueOf(key);
   for (var existingKey in map.keys) {
     if (valueOf(existingKey) == keyValue) {
       return map[existingKey];

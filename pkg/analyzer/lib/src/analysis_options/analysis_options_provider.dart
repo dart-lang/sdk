@@ -21,7 +21,7 @@ import 'package:yaml/yaml.dart';
 /// [SourceFactory]), or if it is an absolute 'file:' URI, or if it is a
 /// relative 'file:' URI and we have a "containing" URI which it is
 /// relative to (via [UriCache.resolveRelative]).
-typedef OptionsCache = Map<({Uri? containingUri, Uri uri}), YamlMap>;
+typedef AnalysisOptionsCache = Map<({Uri? containingUri, Uri uri}), YamlMap>;
 
 /// Provide the options found in the analysis options file.
 class AnalysisOptionsProvider {
@@ -38,16 +38,19 @@ class AnalysisOptionsProvider {
   /// Returns an empty options map if the file does not exist or cannot be
   /// parsed.
   ///
-  /// The [optionsCache] is used to avoid resolving URIs and reading options
-  /// files from disk. A cache should only be passed which is used during an
-  /// atomic task (like locating contexts) and which has [YamlMap] contents
-  /// derived from this [_sourceFactory].
-  YamlMap getOptionsFromFile(File file, {OptionsCache? optionsCache}) {
+  /// The [analysisOptionsCache] is used to avoid resolving URIs and reading
+  /// options files from disk. A cache should only be passed which is used
+  /// during an atomic task (like locating contexts) and which has [YamlMap]
+  /// contents derived from this [_sourceFactory].
+  YamlMap getOptionsFromFile(
+    File file, {
+    AnalysisOptionsCache? analysisOptionsCache,
+  }) {
     return _getOptionsFromSource(
       FileSource(file),
       file.provider.pathContext,
       handled: {},
-      optionsCache: optionsCache ?? {},
+      analysisOptionsCache: analysisOptionsCache ?? {},
     );
   }
 
@@ -61,7 +64,7 @@ class AnalysisOptionsProvider {
       source,
       pathContext,
       handled: {},
-      optionsCache: {},
+      analysisOptionsCache: {},
     );
   }
 
@@ -104,9 +107,10 @@ class AnalysisOptionsProvider {
     Source source,
     path.Context pathContext, {
     required Set<Source> handled,
-    required OptionsCache optionsCache,
+    required AnalysisOptionsCache analysisOptionsCache,
   }) {
-    if (optionsCache[(containingUri: null, uri: source.uri)] case var cached?) {
+    if (analysisOptionsCache[(containingUri: null, uri: source.uri)]
+        case var cached?) {
       return cached;
     }
     YamlMap options;
@@ -118,7 +122,7 @@ class AnalysisOptionsProvider {
       return YamlMap();
     }
 
-    var includeValue = options.valueAt(AnalysisOptionsFile.include);
+    var includeValue = options.valueAt(AnalysisOptionsFileKeys.include);
     var includes = switch (includeValue) {
       YamlScalar(:String value) => [value],
       YamlList() =>
@@ -133,7 +137,7 @@ class AnalysisOptionsProvider {
     var includeOptions = includes.fold(YamlMap(), (currentOptions, uriString) {
       var uri = uriCache.parse(uriString);
       YamlMap includedOptions;
-      if (optionsCache[(containingUri: source.uri, uri: uri)]
+      if (analysisOptionsCache[(containingUri: source.uri, uri: uri)]
           case var cached?) {
         includedOptions = cached;
       } else {
@@ -146,7 +150,7 @@ class AnalysisOptionsProvider {
           includeSource,
           pathContext,
           handled: handled,
-          optionsCache: optionsCache,
+          analysisOptionsCache: analysisOptionsCache,
         );
 
         includedOptions = _rewriteRelativePaths(
@@ -154,12 +158,13 @@ class AnalysisOptionsProvider {
           pathContext.dirname(includeSource.fullName),
           pathContext,
         );
-        optionsCache[(containingUri: source.uri, uri: uri)] = includedOptions;
+        analysisOptionsCache[(containingUri: source.uri, uri: uri)] =
+            includedOptions;
       }
       return merge(currentOptions, includedOptions);
     });
     options = merge(includeOptions, options);
-    optionsCache[(containingUri: null, uri: source.uri)] = options;
+    analysisOptionsCache[(containingUri: null, uri: source.uri)] = options;
     return options;
   }
 

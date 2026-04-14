@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class Class1 extends core::Object {
   field core::int field;
-  constructor •(core::int field) → self::Class1
+  constructor •(initializing-formal core::int field) → self::Class1
     ;
   method method(dynamic o) → dynamic
     ;

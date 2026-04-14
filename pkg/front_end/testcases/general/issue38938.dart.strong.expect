@@ -14,7 +14,7 @@ import "dart:core" as core;
 
 class A extends core::Object {
   field core::int? v;
-  constructor •(core::int? v) → self::A
+  constructor •(initializing-formal core::int? v) → self::A
     : invalid-initializer "pkg/front_end/testcases/general/issue38938.dart:8:10: Error: Can't use 'v' because it is declared more than once.
   A(this.v);
          ^"

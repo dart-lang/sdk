@@ -8,8 +8,6 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Add tests with non-block-bodies for the for loop. Add
-    // tests with multiple statements in the body.
     defineReflectiveTests(PreferForeachTest);
   });
 }
@@ -18,6 +16,17 @@ void main() {
 class PreferForeachTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.prefer_foreach;
+
+  test_blockBody_multipleStatements() async {
+    await assertNoDiagnostics(r'''
+void f(List<int> list, void Function(int) fn) {
+  for (final a in list) {
+    fn(a);
+    fn(a);
+  }
+}
+''');
+  }
 
   test_blockBody_singleStatement_functionCall() async {
     await assertDiagnostics(
@@ -132,6 +141,17 @@ class C {
 }
 ''',
       [lint(27, 39)],
+    );
+  }
+
+  test_nonBlockBody_singleStatement() async {
+    await assertDiagnostics(
+      r'''
+void f(List<int> list, void Function(int) fn) {
+  for (final a in list) fn(a);
+}
+''',
+      [lint(50, 28)],
     );
   }
 }

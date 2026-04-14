@@ -26,7 +26,7 @@ class E2 extends core::_Enum /*isEnum*/  {
   field core::int i;
   enum-element static const field self::E2 x = const self::E2::•(0, "x", 0);
   static const field core::List<self::E2> values = const <self::E2>[self::E2::x];
-  const constructor •(core::int #index, core::String #name, core::int i) → self::E2
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int i) → self::E2
     : self::E2::i = i, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -36,7 +36,7 @@ class E3 extends core::_Enum /*isEnum*/  {
   final field core::int i;
   enum-element static const field self::E3 x = const self::E3::•(0, "x", 0);
   static const field core::List<self::E3> values = const <self::E3>[self::E3::x];
-  const constructor •(core::int #index, core::String #name, final core::int i) → self::E3
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int i) → self::E3
     : self::E3::i = i, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -50,7 +50,7 @@ class E4 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E4 y = const self::E4::•(1, "y", a: 0, b: 1);
   enum-element static const field self::E4 z = const self::E4::•(2, "z", b: 1, c: 2);
   static const field core::List<self::E4> values = const <self::E4>[self::E4::x, self::E4::y, self::E4::z];
-  const constructor •(core::int #index, core::String #name, {final core::int? a = null, required final core::int b, final core::int c = 42}) → self::E4
+  const constructor •(core::int #index, core::String #name, {final initializing-formal core::int? a = null, required final initializing-formal core::int b, final initializing-formal core::int c = 42}) → self::E4
     : self::E4::a = a, self::E4::b = b, self::E4::c = c, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -64,7 +64,7 @@ class E5 extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E5 y = const self::E5::•(1, "y", 0, 1);
   enum-element static const field self::E5 z = const self::E5::•(2, "z", 0, 1, 2);
   static const field core::List<self::E5> values = const <self::E5>[self::E5::x, self::E5::y, self::E5::z];
-  const constructor •(core::int #index, core::String #name, final core::int a, [final core::int? b = null, final core::int c = 42]) → self::E5
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int a, [final initializing-formal core::int? b = null, final initializing-formal core::int c = 42]) → self::E5
     : self::E5::a = a, self::E5::b = b, self::E5::c = c, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String

@@ -146,7 +146,7 @@ static field (core::int, core::Object?) g3 = invalid-expression "pkg/front_end/t
  - 'Object' is from 'dart:core'.
 (int, Object?) g3 = g; // Error
                     ^" in self::g as{TypeError} (core::int, core::Object?);
-static extension-type-member method E|constructor#(self::C c) → self::E /* erasure=self::C */ {
+static extension-type-member method E|constructor#(initializing-formal self::C c) → self::E /* erasure=self::C */ {
   lowered final self::E /* erasure=self::C */ #this = c;
   return #this;
 }

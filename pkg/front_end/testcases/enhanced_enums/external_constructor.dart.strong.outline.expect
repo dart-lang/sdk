@@ -14,7 +14,7 @@ class E extends core::_Enum /*isEnum*/  {
   enum-element static const field self::E a = const self::E::•(0, "a", 1);
   final field core::int x;
   static const field core::List<self::E> values = const <self::E>[self::E::a];
-  external const constructor •(core::int #index, core::String #name, core::int x) → self::E;
+  external const constructor •(core::int #index, core::String #name, initializing-formal core::int x) → self::E;
   method core::_enumToString() → core::String
     return "E.${this.{core::_Enum::_name}{core::String}}";
 }

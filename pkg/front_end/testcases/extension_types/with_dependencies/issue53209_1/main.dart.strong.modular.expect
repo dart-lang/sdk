@@ -18,7 +18,7 @@ extension type E1(core::String foo) {
   static redirecting-factory redirectingFactoryToSubtype = self::E1|constructor#redirectingFactoryToSubtype;
   static redirecting-factory tearoff redirectingFactoryToSubtype = self::E1|constructor#_#redirectingFactoryToSubtype#tearOff;
 }
-static extension-type-member method E1|constructor#(core::String foo) → self::E1% /* erasure=core::String, declared=! */ {
+static extension-type-member method E1|constructor#(initializing-formal core::String foo) → self::E1% /* erasure=core::String, declared=! */ {
   lowered final self::E1% /* erasure=core::String, declared=! */ #this = foo;
   return #this;
 }

@@ -1,7 +1,7 @@
-method({int a = 42, required int b, required final int c}) {}
+method({int a = 42, required int b, required int c}) {}
 
 class Class {
-  method( {int a = 42, required int b, required final int c, required covariant final int d}) {}
+  method({int a = 42, required int b, required covariant int c}) {}
 }
 
 typedef Typedef1 = Function({int a, required int b});

@@ -44,7 +44,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest
 analyzer:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.enableExperiment}:');
+    assertSuggestion('${AnalysisOptionsFileKeys.enableExperiment}:');
   }
 
   void test_analyzer_enableExperiment() {
@@ -148,7 +148,7 @@ analyzer:
 code-style:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.format}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.format}: ');
   }
 
   void test_codeStyle_format() {
@@ -162,10 +162,10 @@ code-style:
 
   void test_empty() {
     getCompletions('^');
-    assertSuggestion('${AnalysisOptionsFile.analyzer}: ');
-    assertSuggestion('${AnalysisOptionsFile.codeStyle}: ');
-    assertSuggestion('${AnalysisOptionsFile.formatter}: ');
-    assertSuggestion('${AnalysisOptionsFile.include}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.analyzer}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.codeStyle}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.formatter}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
     // TODO(brianwilkerson): Replace this with a constant.
     assertSuggestion('linter: ');
   }
@@ -175,8 +175,8 @@ code-style:
 formatter:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.pageWidth}: ');
-    assertSuggestion('${AnalysisOptionsFile.trailingCommas}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.pageWidth}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.trailingCommas}: ');
   }
 
   void test_formatter_trailingCommas() {
@@ -305,7 +305,7 @@ analyzer:
     - '*.g.dart'
 ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.include}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
   }
 
   @failingTest

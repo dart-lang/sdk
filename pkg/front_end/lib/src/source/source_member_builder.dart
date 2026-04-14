@@ -164,18 +164,3 @@ enum BuiltMemberKind {
 class MemberDataForTesting {
   final InferenceDataForTesting inferenceData = new InferenceDataForTesting();
 }
-
-// Coverage-ignore(suite): Not run.
-class AugmentSuperTarget {
-  final SourceMemberBuilder declaration;
-  final Member? readTarget;
-  final Member? invokeTarget;
-  final Member? writeTarget;
-
-  AugmentSuperTarget({
-    required this.declaration,
-    required this.readTarget,
-    required this.invokeTarget,
-    required this.writeTarget,
-  });
-}

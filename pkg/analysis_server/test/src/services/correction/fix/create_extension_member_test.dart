@@ -240,6 +240,23 @@ extension on int {}
 ''');
   }
 
+  Future<void> test_inClass() async {
+    await resolveTestCode('''
+class C {
+  int get foo => test;
+}
+''');
+    await assertHasFix('''
+class C {
+  int get foo => test;
+}
+
+extension on C {
+  int get test => null;
+}
+''');
+  }
+
   Future<void> test_inExtensionGetter() async {
     await resolveTestCode('''
 void f(int i) => i.foo;
@@ -515,6 +532,23 @@ extension E on int {
   (int,) get test => (a,);
 
   int get a => null;
+}
+''');
+  }
+
+  Future<void> test_recursiveType() async {
+    await resolveTestCode('''
+class C<T extends C<T>> {
+  T get foo => test;
+}
+''');
+    await assertHasFix('''
+class C<T extends C<T>> {
+  T get foo => test;
+}
+
+extension <T extends C<T>> on C<T> {
+  T get test => null;
 }
 ''');
   }
@@ -1401,6 +1435,51 @@ extension E on int {
 ''');
   }
 
+  Future<void> test_record_returnType_missingNamedField() async {
+    await resolveTestCode('''
+extension E on int {
+  ({int b}) get test => (a: testMethod());
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  ({int b}) get test => (a: testMethod());
+
+  testMethod() {}
+}
+''', filter: (d) => d.diagnosticCode == diag.undefinedMethod);
+  }
+
+  Future<void> test_record_returnType_missingPositionalField() async {
+    await resolveTestCode('''
+extension E on int {
+  (int,) get test => (0, testMethod());
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  (int,) get test => (0, testMethod());
+
+  testMethod() {}
+}
+''', filter: (d) => d.diagnosticCode == diag.undefinedMethod);
+  }
+
+  Future<void> test_record_returnType_positionalField_afterNamedField() async {
+    await resolveTestCode('''
+extension E on int {
+  (int, {int a}) get test => (a: 0, testMethod());
+}
+''');
+    await assertHasFix('''
+extension E on int {
+  (int, {int a}) get test => (a: 0, testMethod());
+
+  int testMethod() {}
+}
+''');
+  }
+
   Future<void> test_static() async {
     await resolveTestCode('''
 extension E on String {}
@@ -2172,6 +2251,27 @@ extension on String {
 }
 
 extension on int {}
+''');
+  }
+
+  Future<void> test_inClass() async {
+    await resolveTestCode('''
+class C {
+  void m() {
+    test = 0;
+  }
+}
+''');
+    await assertHasFix('''
+class C {
+  void m() {
+    test = 0;
+  }
+}
+
+extension on C {
+  set test(int test) {}
+}
 ''');
   }
 

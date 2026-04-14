@@ -15,5 +15,5 @@ class Foo extends core::Object {
   constructor •() → self::Foo
     : self::Foo::x = 0, super core::Object::•()
     ;
-  external constructor n24(core::int x) → self::Foo;
+  external constructor n24(initializing-formal core::int x) → self::Foo;
 }

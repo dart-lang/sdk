@@ -11,6 +11,8 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -18,6 +20,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
   final RefactoringStatus result;
@@ -123,11 +126,17 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
 /// A [Refactoring] for renaming [LocalElement]s (excluding
 /// [FormalParameterElement]s).
 class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+
+  final CorrectionUtils utils;
+
   RenameLocalRefactoringImpl(
     super.workspace,
     super.sessionHelper,
+    this.resolvedUnit,
     LocalElement super.element,
-  ) : super();
+  ) : utils = CorrectionUtils(resolvedUnit),
+      super();
 
   @override
   LocalElement get element => super.element as LocalElement;
@@ -138,6 +147,47 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
       return 'Rename Local Function';
     }
     return 'Rename Local Variable';
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var processor = RenameProcessor2(
+      workspace,
+      sessionHelper,
+      builder,
+      newName,
+    );
+
+    var element = this.element;
+    if (element is PatternVariableElement) {
+      var rootVariable =
+          (element.firstFragment as PatternVariableFragmentImpl).rootVariable;
+      var declaredFragments = rootVariable is JoinPatternVariableFragmentImpl
+          ? rootVariable.transitiveVariables
+                .whereType<BindPatternVariableFragmentImpl>()
+                .toList()
+          : [element.firstFragment];
+      for (var declaredFragment in declaredFragments) {
+        await processor.addDeclarationEdit(declaredFragment.element);
+        if (declaredFragment is BindPatternVariableFragmentImpl) {
+          // If a variable is used to resolve a named field with an implicit
+          // name, we need to make the field name explicit.
+          var fieldName = declaredFragment.node.fieldNameWithImplicitName;
+          if (fieldName != null) {
+            await processor.replace(
+              referenceElement: element,
+              offset: fieldName.colon.offset,
+              length: 0,
+              code: element.name!,
+            );
+          }
+        }
+      }
+    } else {
+      await processor.addDeclarationEdit(element);
+    }
+
+    var references = await searchEngine.searchReferences(element);
+    await processor.addReferenceEdits(references);
   }
 
   @override
@@ -168,40 +218,20 @@ class RenameLocalRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
 
-    var element = this.element;
-    if (element is PatternVariableElement) {
-      var rootVariable =
-          (element.firstFragment as PatternVariableFragmentImpl).rootVariable;
-      var declaredFragments = rootVariable is JoinPatternVariableFragmentImpl
-          ? rootVariable.transitiveVariables
-                .whereType<BindPatternVariableFragmentImpl>()
-                .toList()
-          : [element.firstFragment];
-      for (var declaredFragment in declaredFragments) {
-        processor.addDeclarationEdit(declaredFragment.element);
-        if (declaredFragment is BindPatternVariableFragmentImpl) {
-          // If a variable is used to resolve a named field with an implicit
-          // name, we need to make the field name explicit.
-          var fieldName = declaredFragment.node.fieldNameWithImplicitName;
-          if (fieldName != null) {
-            processor.replace(
-              referenceElement: element,
-              offset: fieldName.colon.offset,
-              length: 0,
-              code: element.name!,
-            );
-          }
-        }
-      }
-    } else {
-      processor.addDeclarationEdit(element);
-    }
-
-    var references = await searchEngine.searchReferences(element);
-    processor.addReferenceEdits(references);
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
   }
 }
 

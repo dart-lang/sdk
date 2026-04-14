@@ -1315,12 +1315,14 @@ class _FindLibraryDeclarations {
   void _addClasses(List<InterfaceElement> elements) {
     for (var i = 0; i < elements.length; i++) {
       var element = elements[i];
-      _addDeclaration(element, element.name!);
-      _addGetters(element.getters);
-      _addConstructors(element.constructors);
-      _addFields(element.fields);
-      _addMethods(element.methods);
-      _addSetters(element.setters);
+      if (element.name case var name?) {
+        _addDeclaration(element, name);
+        _addGetters(element.getters);
+        _addConstructors(element.constructors);
+        _addFields(element.fields);
+        _addMethods(element.methods);
+        _addSetters(element.setters);
+      }
     }
   }
 

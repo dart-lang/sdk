@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class C extends core::Object /*hasConstConstructor*/  {
   final field core::int? field;
-  const constructor _(core::int? field) → self::C
+  const constructor _(initializing-formal core::int? field) → self::C
     : self::C::field = field, super core::Object::•()
     ;
   const constructor vn() → self::C
@@ -47,7 +47,7 @@ static method main() → void {
       #t4.{core::List::add}{Invariant}(new self::C::v1()){(self::C) → void};
   } =>#t4;
 }
-static extension-type-member const method E|constructor#_(wildcard core::int? _#wc0#formal) → self::E% /* erasure=core::int?, declared=! */ {
+static extension-type-member const method E|constructor#_(wildcard initializing-formal core::int? _#wc0#formal) → self::E% /* erasure=core::int?, declared=! */ {
   lowered final self::E% /* erasure=core::int?, declared=! */ #this = _#wc0#formal;
   return #this;
 }

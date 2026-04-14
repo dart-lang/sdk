@@ -679,9 +679,6 @@ static void BuildInstantiateTypeParameterStub(Assembler* assembler,
                              InstantiateTypeABI::kResultTypeReg);
   }
 
-  __ LoadClassId(InstantiateTypeABI::kScratchReg,
-                 InstantiateTypeABI::kResultTypeReg);
-
   switch (nullability) {
     case Nullability::kNonNullable:
       __ Ret();
@@ -1237,19 +1234,21 @@ VM_TYPE_TESTING_STUB_CODE_LIST(GENERATE_BREAKPOINT_STUB)
 // Called for inline allocation of closure.
 // Input (preserved):
 //   AllocateClosureABI::kFunctionReg: closure function.
+//   AllocateClosureABI::kLengthAndFlagsReg: encoded length_and_flags.
 //   AllocateClosureABI::kContextReg: closure context.
-//   AllocateClosureABI::kInstantiatorTypeArgs: instantiator type arguments.
 // Output:
 //   AllocateClosureABI::kResultReg: new allocated Closure object.
 // Clobbered:
 //   AllocateClosureABI::kScratchReg
-void StubCodeCompiler::GenerateAllocateClosureStub(
-    bool has_instantiator_type_args,
-    bool is_generic) {
-  const intptr_t instance_size =
-      target::RoundedAllocationSize(target::Closure::InstanceSize());
+void StubCodeCompiler::GenerateAllocateClosureStub(intptr_t num_elements) {
+  const intptr_t instance_size = target::RoundedAllocationSize(
+      target::Closure::InstanceSize(num_elements));
+  const Register result_reg = AllocateClosureABI::kResultReg;
+  const Register scratch_reg = AllocateClosureABI::kScratchReg;
+
   __ EnsureHasClassIdInDEBUG(kFunctionCid, AllocateClosureABI::kFunctionReg,
-                             AllocateClosureABI::kScratchReg);
+                             scratch_reg);
+
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
     Label slow_case;
     __ Comment("Inline allocation of uninitialized closure");
@@ -1260,63 +1259,59 @@ void StubCodeCompiler::GenerateAllocateClosureStub(
     const auto distance = Assembler::kNearJump;
 #endif
     __ TryAllocateObject(kClosureCid, instance_size, &slow_case, distance,
-                         AllocateClosureABI::kResultReg,
-                         AllocateClosureABI::kScratchReg);
+                         result_reg, scratch_reg);
 
     __ Comment("Inline initialization of allocated closure");
     // Put null in the scratch register for initializing most boxed fields.
     // We initialize the fields in offset order below.
     // Since the TryAllocateObject above did not go to the slow path, we're
     // guaranteed an object in new space here, and thus no barriers are needed.
-    __ LoadObject(AllocateClosureABI::kScratchReg, NullObject());
-    if (has_instantiator_type_args) {
-      __ StoreToSlotNoBarrier(AllocateClosureABI::kInstantiatorTypeArgsReg,
-                              AllocateClosureABI::kResultReg,
-                              Slot::Closure_instantiator_type_arguments());
-    } else {
-      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                              AllocateClosureABI::kResultReg,
-                              Slot::Closure_instantiator_type_arguments());
-    }
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                            AllocateClosureABI::kResultReg,
-                            Slot::Closure_function_type_arguments());
-    if (!is_generic) {
-      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                              AllocateClosureABI::kResultReg,
-                              Slot::Closure_delayed_type_arguments());
-    }
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kFunctionReg,
-                            AllocateClosureABI::kResultReg,
+    __ LoadObject(scratch_reg, NullObject());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kFunctionReg, result_reg,
                             Slot::Closure_function());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kContextReg,
-                            AllocateClosureABI::kResultReg,
-                            Slot::Closure_context());
-    __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                            AllocateClosureABI::kResultReg,
-                            Slot::Closure_hash());
-    if (is_generic) {
-      __ LoadObject(AllocateClosureABI::kScratchReg, EmptyTypeArguments());
-      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                              AllocateClosureABI::kResultReg,
-                              Slot::Closure_delayed_type_arguments());
+    __ StoreToSlotNoBarrier(AllocateClosureABI::kLengthAndFlagsReg, result_reg,
+                            Slot::Closure_length_and_flags());
+    for (intptr_t i = 0; i < num_elements - 1; ++i) {
+      __ StoreCompressedIntoObjectNoBarrier(
+          result_reg,
+          FieldAddress(result_reg, target::Closure::element_offset(i)),
+          scratch_reg);
     }
+    __ StoreCompressedIntoObjectNoBarrier(
+        result_reg,
+        FieldAddress(result_reg,
+                     target::Closure::element_offset(num_elements - 1)),
+        AllocateClosureABI::kContextReg);
+    if (num_elements >= 2) {
+      Label initialized;
+      __ BranchIfBit(
+          AllocateClosureABI::kLengthAndFlagsReg,
+          UntaggedClosure::kHasDelayedTypeArgumentsBit + kSmiTagShift, ZERO,
+          &initialized);
+      __ LoadObject(scratch_reg, EmptyTypeArguments());
+      __ StoreCompressedIntoObjectNoBarrier(
+          result_reg,
+          FieldAddress(result_reg,
+                       target::Closure::element_offset(
+                           UntaggedClosure::kDelayedTypeArgumentsIndex)),
+          scratch_reg);
+      __ Bind(&initialized);
+    }
+    __ LoadImmediate(scratch_reg, target::ToRawSmi(0));
+    __ StoreToSlotNoBarrier(scratch_reg, result_reg, Slot::Closure_hash());
 #if defined(DART_PRECOMPILER) && !defined(TARGET_ARCH_IA32)
     if (FLAG_precompiled_mode) {
       // Set the closure entry point in precompiled mode, either to the function
       // entry point in bare instructions mode or to 0 otherwise (to catch
-      // misuse). This overwrites the scratch register, but there are no more
-      // boxed fields.
-      __ LoadFromSlot(AllocateClosureABI::kScratchReg,
-                      AllocateClosureABI::kFunctionReg,
+      // misuse).
+      __ LoadFromSlot(scratch_reg, AllocateClosureABI::kFunctionReg,
                       Slot::Function_entry_point());
-      __ StoreToSlotNoBarrier(AllocateClosureABI::kScratchReg,
-                              AllocateClosureABI::kResultReg,
+      __ StoreToSlotNoBarrier(scratch_reg, result_reg,
                               Slot::Closure_entry_point());
     }
 #endif
 
-    // AllocateClosureABI::kResultReg: new object.
+    // result_reg: new object.
     __ Ret();
 
     __ Bind(&slow_case);
@@ -1325,26 +1320,12 @@ void StubCodeCompiler::GenerateAllocateClosureStub(
   __ Comment("Closure allocation via runtime");
   __ EnterStubFrame();
   __ PushObject(NullObject());  // Space on the stack for the return value.
-  __ PushRegistersInOrder(
-      {AllocateClosureABI::kFunctionReg, AllocateClosureABI::kContextReg});
-  if (has_instantiator_type_args) {
-    __ PushRegister(AllocateClosureABI::kInstantiatorTypeArgsReg);
-  } else {
-    __ PushObject(NullObject());
-  }
-  if (is_generic) {
-    __ PushObject(EmptyTypeArguments());
-  } else {
-    __ PushObject(NullObject());
-  }
-  __ CallRuntime(kAllocateClosureRuntimeEntry, 4);
-  if (has_instantiator_type_args) {
-    __ Drop(1);
-    __ PopRegister(AllocateClosureABI::kInstantiatorTypeArgsReg);
-  } else {
-    __ Drop(2);
-  }
+  __ PushRegistersInOrder({AllocateClosureABI::kFunctionReg,
+                           AllocateClosureABI::kLengthAndFlagsReg,
+                           AllocateClosureABI::kContextReg});
+  __ CallRuntime(kAllocateClosureRuntimeEntry, 3);
   __ PopRegister(AllocateClosureABI::kContextReg);
+  __ PopRegister(AllocateClosureABI::kLengthAndFlagsReg);
   __ PopRegister(AllocateClosureABI::kFunctionReg);
   __ PopRegister(AllocateClosureABI::kResultReg);
   ASSERT(target::WillAllocateNewOrRememberedObject(instance_size));
@@ -1353,26 +1334,26 @@ void StubCodeCompiler::GenerateAllocateClosureStub(
 
   // AllocateClosureABI::kResultReg: new object
   __ Ret();
+
+  if (FLAG_use_slow_path || !FLAG_inline_alloc) {
+    // Make sure AllocateClosureN stubs have different code as
+    // precompiler chokes on distinct stub Code objects with the same
+    // (de-duplicated) instructions.
+    __ LoadImmediate(scratch_reg, num_elements);
+  }
 }
 
-void StubCodeCompiler::GenerateAllocateClosureStub() {
-  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/false,
-                              /*is_generic=*/false);
+void StubCodeCompiler::GenerateAllocateClosure1Stub() {
+  GenerateAllocateClosureStub(1);
 }
-
-void StubCodeCompiler::GenerateAllocateClosureGenericStub() {
-  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/false,
-                              /*is_generic=*/true);
+void StubCodeCompiler::GenerateAllocateClosure2Stub() {
+  GenerateAllocateClosureStub(2);
 }
-
-void StubCodeCompiler::GenerateAllocateClosureTAStub() {
-  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/true,
-                              /*is_generic=*/false);
+void StubCodeCompiler::GenerateAllocateClosure3Stub() {
+  GenerateAllocateClosureStub(3);
 }
-
-void StubCodeCompiler::GenerateAllocateClosureTAGenericStub() {
-  GenerateAllocateClosureStub(/*has_instantiator_type_args=*/true,
-                              /*is_generic=*/true);
+void StubCodeCompiler::GenerateAllocateClosure4Stub() {
+  GenerateAllocateClosureStub(4);
 }
 
 // Generates allocation stub for _GrowableList class.
@@ -2800,17 +2781,6 @@ void StubCodeCompiler::GenerateFfiAsyncCallbackSendStub() {
   __ Ret();
 }
 
-void StubCodeCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
-  ASSERT(pc_descriptors_list_ != nullptr);
-  const intptr_t pc_offset = assembler->InsertAlignedRelocation(reloc);
-  pc_descriptors_list_->AddDescriptor(
-      UntaggedPcDescriptors::kBSSRelocation, pc_offset,
-      /*deopt_id=*/DeoptId::kNone,
-      /*token_pos=*/TokenPosition::kNoSource,
-      /*try_index=*/-1,
-      /*yield_index=*/UntaggedPcDescriptors::kInvalidYieldIndex);
-}
-
 #if !defined(TARGET_ARCH_IA32)
 static void GenerateSubtypeTestCacheLoopBody(Assembler* assembler,
                                              int n,
@@ -3362,22 +3332,55 @@ void StubCodeCompiler::GenerateSubtypeTestCacheSearch(
                       FieldAddress(instance_cid_or_sig_reg,
                                    target::Function::signature_offset()));
     if (n >= 2) {
-      __ LoadCompressed(
-          instance_type_args_reg,
+      __ LoadCompressedSmi(
+          TypeTestABI::kScratchReg,
           FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::instantiator_type_arguments_offset()));
-    }
-    if (n >= 5) {
-      __ LoadCompressed(
-          parent_fun_type_args_reg,
-          FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::function_type_arguments_offset()));
-    }
-    if (n >= 6) {
-      __ LoadCompressed(
-          delayed_type_args_reg,
-          FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::delayed_type_arguments_offset()));
+                       target::Closure::length_and_flags_offset()));
+
+      Label load_function_type_arguments, load_delayed_type_arguments;
+      __ MoveRegister(instance_type_args_reg, null_reg);
+      __ BranchIfBit(
+          TypeTestABI::kScratchReg,
+          UntaggedClosure::kHasInstantiatorTypeArgumentsBit + kSmiTagShift,
+          ZERO, (n >= 5) ? &load_function_type_arguments : &initialized);
+      __ ExtractBitField(
+          instance_type_args_reg, TypeTestABI::kScratchReg,
+          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::shift(),
+          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::bitsize());
+      __ LoadIndexedCompressed(
+          instance_type_args_reg, TypeTestABI::kInstanceReg,
+          target::Closure::element_offset(0), instance_type_args_reg);
+      if (n >= 5) {
+        __ Bind(&load_function_type_arguments);
+
+        __ MoveRegister(parent_fun_type_args_reg, null_reg);
+        __ BranchIfBit(
+            TypeTestABI::kScratchReg,
+            UntaggedClosure::kHasFunctionTypeArgumentsBit + kSmiTagShift, ZERO,
+            (n >= 6) ? &load_delayed_type_arguments : &initialized);
+        __ ExtractBitField(
+            parent_fun_type_args_reg, TypeTestABI::kScratchReg,
+            UntaggedClosure::FunctionTypeArgumentsIndexBits::shift(),
+            UntaggedClosure::FunctionTypeArgumentsIndexBits::bitsize());
+        __ LoadIndexedCompressed(
+            parent_fun_type_args_reg, TypeTestABI::kInstanceReg,
+            target::Closure::element_offset(0), parent_fun_type_args_reg);
+      }
+
+      if (n >= 6) {
+        __ Bind(&load_delayed_type_arguments);
+
+        __ MoveRegister(delayed_type_args_reg, null_reg);
+        __ BranchIfBit(
+            TypeTestABI::kScratchReg,
+            UntaggedClosure::kHasDelayedTypeArgumentsBit + kSmiTagShift, ZERO,
+            &initialized);
+        __ LoadCompressed(
+            delayed_type_args_reg,
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::element_offset(
+                             UntaggedClosure::kDelayedTypeArgumentsIndex)));
+      }
     }
 
     __ Jump(&initialized, Assembler::kNearJump);

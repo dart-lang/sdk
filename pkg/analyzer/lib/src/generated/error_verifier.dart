@@ -513,6 +513,11 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declarationFragment = augmented.firstFragment;
       _enclosingClass = declarationFragment.asElement2;
 
+      _checkAugmentationWithoutDeclaration(
+        node.augmentKeyword,
+        declaredFragment,
+      );
+
       List<ClassMember> members = node.body.members;
       if (!declarationFragment.element.isDartCoreFunction) {
         _checkForBuiltInIdentifierAsName(
@@ -644,6 +649,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitConstructorDeclaration(covariant ConstructorDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
+
+    _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
+
     _withEnclosingExecutable(
       element,
       () {
@@ -782,6 +790,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitEnumDeclaration(covariant EnumDeclarationImpl node) {
     try {
       var declaredFragment = node.declaredFragment!;
+
+      _checkAugmentationWithoutDeclaration(
+        node.augmentKeyword,
+        declaredFragment,
+      );
+
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
 
@@ -864,6 +878,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitExtensionDeclaration(covariant ExtensionDeclarationImpl node) {
     var declaredFragment = node.declaredFragment!;
+
+    _checkAugmentationWithoutDeclaration(node.augmentKeyword, declaredFragment);
+
     var declaredElement = declaredFragment.element;
 
     _enclosingExtension = declaredFragment.asElement2;
@@ -896,6 +913,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   ) {
     try {
       var declaredFragment = node.declaredFragment!;
+
+      _checkAugmentationWithoutDeclaration(
+        node.augmentKeyword,
+        declaredFragment,
+      );
+
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
 
@@ -964,6 +987,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   @override
   void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
+    if (node.augmentKeyword case var augmentKeyword?) {
+      for (var variable in node.fields.variables) {
+        var declaredFragment = variable.declaredFragment!;
+        _checkAugmentationWithoutDeclaration(augmentKeyword, declaredFragment);
+      }
+    }
+
     if (!node.isStatic) {
       if (node.fields.isConst) {
         diagnosticReporter.report(
@@ -1074,6 +1104,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitFunctionDeclaration(covariant FunctionDeclarationImpl node) {
     var fragment = node.declaredFragment!;
     var element = fragment.element;
+
+    _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
+
     if (element.enclosingElement is! LibraryElement) {
       _hiddenElements!.declare(element);
     }
@@ -1323,8 +1356,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   @override
   void visitMethodDeclaration(covariant MethodDeclarationImpl node) {
     var fragment = node.declaredFragment!;
+    var element = fragment.element;
+
+    _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
+
     _withEnclosingExecutable(
-      fragment.element,
+      element,
       () {
         var returnType = node.returnType;
         if (node.isSetter) {
@@ -1409,6 +1446,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     // TODO(scheglov): Verify for all mixin errors.
     try {
       var declaredFragment = node.declaredFragment!;
+
+      _checkAugmentationWithoutDeclaration(
+        node.augmentKeyword,
+        declaredFragment,
+      );
+
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
 
@@ -1856,6 +1899,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
     var variableList = node.variables;
 
+    if (node.augmentKeyword case var augmentKeyword?) {
+      for (var variable in variableList.variables) {
+        var declaredFragment = variable.declaredFragment!;
+        _checkAugmentationWithoutDeclaration(augmentKeyword, declaredFragment);
+      }
+    }
+
     if (variableList.isConst) {
       for (var variable in variableList.variables) {
         if (variable.initializer == null) {
@@ -1978,6 +2028,19 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     super.visitVariableDeclarationStatement(node);
 
     _isInLateLocalVariable.removeLast();
+  }
+
+  void _checkAugmentationWithoutDeclaration(
+    Token? augmentKeyword,
+    Fragment fragment,
+  ) {
+    if (augmentKeyword != null) {
+      if (fragment.previousFragment == null) {
+        diagnosticReporter.report(
+          diag.augmentationWithoutDeclaration.at(augmentKeyword),
+        );
+      }
+    }
   }
 
   /// Checks the class for problems with the superclass, mixins, or implemented
@@ -4773,13 +4836,20 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
               .withArguments(name: className)
               .at(superclass),
         );
-      } else if (withClause != null &&
-          !(element.isMixinApplication && withClause.mixinTypes.length < 2)) {
-        diagnosticReporter.report(
-          diag.mixinClassDeclarationExtendsNotObject
-              .withArguments(name: className)
-              .at(withClause),
-        );
+      } else if (withClause != null) {
+        if (!element.isMixinApplication) {
+          diagnosticReporter.report(
+            diag.mixinClassDeclarationWithClause
+                .withArguments(name: className)
+                .at(withClause),
+          );
+        } else if (withClause.mixinTypes.length >= 2) {
+          diagnosticReporter.report(
+            diag.mixinModifierMixinApplicationClassWithMultipleMixins
+                .withArguments(name: className)
+                .at(withClause),
+          );
+        }
       }
     }
   }
@@ -5193,9 +5263,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   void _checkForNonConstGenerativeEnumConstructor(ConstructorDeclaration node) {
-    if (_enclosingClass is EnumElement &&
-        node.constKeyword == null &&
-        node.factoryKeyword == null) {
+    var element = node.declaredFragment!.element;
+    if (element.enclosingElement is EnumElement &&
+        element.isGenerative &&
+        !element.isConst) {
       diagnosticReporter.report(
         diag.nonConstGenerativeEnumConstructor.atSourceRange(node.errorRange),
       );

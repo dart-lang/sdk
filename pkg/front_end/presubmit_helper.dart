@@ -428,7 +428,7 @@ Future<void> _run(String script, List<String> scriptArguments) async {
 // but we only want to actually run it once. To that end we - from the changed
 // files figure out which would call this script, and only if the caller is
 // the top one (just alphabetically sorted) we actually run.
-bool _shouldRun(final List<String> changedFiles, final String callerPath) {
+bool _shouldRun(List<String> changedFiles, String callerPath) {
   Uri pkgDir = _repoDir.resolve("pkg/");
   Uri callerUri = Uri.base.resolveUri(Uri.file(callerPath));
   int? endPathIndex = _getPathSegmentIndexIfSubEntry(pkgDir, callerUri);

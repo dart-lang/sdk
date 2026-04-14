@@ -46,11 +46,11 @@ extension type ET2(core::int x) {
 }
 static const field core::int ET1|m = 42;
 static const field core::String ET2|int = "not a type";
-static extension-type-member method ET1|constructor#([core::int x = self::ET1|m]) → self::ET1% /* erasure=core::int, declared=! */
+static extension-type-member method ET1|constructor#([initializing-formal core::int x = self::ET1|m]) → self::ET1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff([has-declared-initializer core::int x]) → self::ET1% /* erasure=core::int, declared=! */
   return self::ET1|constructor#(x);
-static extension-type-member method ET2|constructor#(core::int x) → self::ET2% /* erasure=core::int, declared=! */
+static extension-type-member method ET2|constructor#(initializing-formal core::int x) → self::ET2% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method ET2|constructor#_#new#tearOff(core::int x) → self::ET2% /* erasure=core::int, declared=! */
   return self::ET2|constructor#(x);
