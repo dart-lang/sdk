@@ -3017,11 +3017,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
 }
 
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
-    implements FieldFormalParameterElement {
+    with InternalFieldFormalParameterElement {
   @override
   FieldElementImpl? field;
 
   FieldFormalParameterElementImpl(super.firstFragment);
+
+  @override
+  FieldFormalParameterElementImpl get baseElement => this;
 
   @override
   FieldFormalParameterFragmentImpl get firstFragment => _firstFragment;
@@ -3047,6 +3050,17 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   @override
   FieldFormalParameterFragmentImpl get _firstFragment =>
       super._firstFragment as FieldFormalParameterFragmentImpl;
+
+  @override
+  InternalFieldFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedFieldFormalParameterElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
+  }
 }
 
 @GenerateFragmentImpl(modifiers: _FieldFormalParameterFragmentModifiers.values)
@@ -3338,6 +3352,17 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameterElement(this);
+  }
+
+  @override
+  InternalFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedFormalParameterElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -5382,6 +5407,18 @@ mixin InternalFieldElement on InternalPropertyInducingElement
   List<FieldFragmentImpl> get fragments;
 }
 
+mixin InternalFieldFormalParameterElement on InternalFormalParameterElement
+    implements FieldFormalParameterElement {
+  @override
+  FieldFormalParameterElementImpl get baseElement;
+
+  @override
+  FieldFormalParameterFragmentImpl get firstFragment;
+
+  @override
+  List<FieldFormalParameterFragmentImpl> get fragments;
+}
+
 mixin InternalFormalParameterElement on InternalVariableElement
     implements FormalParameterElement, SharedNamedFunctionParameter {
   @override
@@ -5411,6 +5448,9 @@ mixin InternalFormalParameterElement on InternalVariableElement
       buffer.write(defaultValueCode);
     }
   }
+
+  /// Returns this formal parameter with the given [substitution] applied.
+  InternalFormalParameterElement substitute(MapSubstitution substitution);
 }
 
 mixin InternalGetterElement on InternalPropertyAccessorElement
@@ -9593,6 +9633,17 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
         .whereType<SuperFormalParameterElementImpl>()
         .toList()
         .indexOf(this);
+  }
+
+  @override
+  InternalSuperFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedSuperFormalParameterElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
   }
 }
 
