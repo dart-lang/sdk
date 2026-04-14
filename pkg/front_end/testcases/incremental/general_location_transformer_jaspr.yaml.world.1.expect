@@ -5,7 +5,7 @@ library from "org-dartlang-test:///main.dart" as main {
   abstract class Component extends dart.core::Object implements dart.developer::_HasCreationLocation /*hasConstConstructor*/  {
     final field dart.core::String? key;
     final field dart.developer::CreationLocation? dart.developer::_location;
-    const constructor •({dart.core::String? key = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::Component
+    const constructor •({initializing-formal dart.core::String? key = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::Component
       : main::Component::key = key, super dart.core::Object::•(), main::Component::_location = $creationLocationd_0dea112b090073317d4
       ;
     static const factory text(dart.core::String text, {dart.core::String? key = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::Component /* redirection-target: main::Text::_ */
@@ -15,7 +15,7 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   class Text extends main::Component /*hasConstConstructor*/  {
     final field dart.core::String text;
-    const constructor _(dart.core::String text, {dart.core::String? key = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::Text
+    const constructor _(initializing-formal dart.core::String text, {super-initializing-formal dart.core::String? key = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::Text
       : main::Text::text = text, super main::Component::•(key: key, $creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static synthetic method _#_#tearOff(dart.core::String text, {dart.core::String? key = #C2}) → main::Text
@@ -24,7 +24,7 @@ library from "org-dartlang-test:///main.dart" as main {
   class MyComponent extends main::Component /*hasConstConstructor*/  {
     final field dart.core::List<main::Component> children;
     final field dart.core::String? id;
-    const constructor •(dart.core::List<main::Component> children, {dart.core::String? id = #C2, dart.core::String? key = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::MyComponent
+    const constructor •(initializing-formal dart.core::List<main::Component> children, {initializing-formal dart.core::String? id = #C2, super-initializing-formal dart.core::String? key = #C2, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → main::MyComponent
       : main::MyComponent::children = children, main::MyComponent::id = id, super main::Component::•(key: key, $creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static synthetic method _#new#tearOff(dart.core::List<main::Component> children, {dart.core::String? id = #C2, dart.core::String? key = #C2}) → main::MyComponent

@@ -64,7 +64,7 @@ library from "org-dartlang-test:///foo.dart" as foo {
         return new foo::Boz::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
       }
       else {
-        return #C34;
+        return #C33;
       }
     }
     static synthetic method _#new#tearOff({required dart.core::bool createNew}) → foo::Boz
@@ -78,61 +78,63 @@ library from "org-dartlang-test:///main.dart" as main {
   import "org-dartlang-test:///foo.dart";
 
   static field foo::Foo newFoo = foo::Foo::•($creationLocationd_0dea112b090073317d4: #C40);
-  static field foo::Bar newBar = new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C41);
-  static field foo::Bar constBar = #C44;
-  static field foo::Baz newBaz = foo::Baz::•($creationLocationd_0dea112b090073317d4: #C45);
-  static field foo::Boz newBoz = foo::Boz::•(createNew: true, $creationLocationd_0dea112b090073317d4: #C46);
-  static field foo::Boz constBoz = foo::Boz::•(createNew: false, $creationLocationd_0dea112b090073317d4: #C48);
+  static field foo::Bar newBar = new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C42);
+  static field foo::Bar constBar = #C45;
+  static field foo::Baz newBaz = foo::Baz::•($creationLocationd_0dea112b090073317d4: #C47);
+  static field foo::Boz newBoz = foo::Boz::•(createNew: true, $creationLocationd_0dea112b090073317d4: #C48);
+  static field foo::Boz constBoz = foo::Boz::•(createNew: false, $creationLocationd_0dea112b090073317d4: #C50);
 }
 constants  {
   #C1 = "track-creation-locations"
   #C2 = null
   #C3 = dart.core::pragma {name:#C1, options:#C2}
   #C4 = "org-dartlang-test:///foo.dart"
-  #C5 = 2.0
-  #C6 = 51.0
+  #C5 = 4.0
+  #C6 = 26.0
   #C7 = "Foo"
   #C8 = dart.developer::CreationLocation {file:#C4, line:#C5, column:#C6, name:#C7}
   #C9 = foo::Foo {_location:#C8}
-  #C10 = 36.0
+  #C10 = 11.0
   #C11 = dart.developer::CreationLocation {file:#C4, line:#C5, column:#C10, name:#C7}
-  #C12 = 3.0
-  #C13 = 7.0
+  #C12 = 6.0
+  #C13 = 9.0
   #C14 = dart.developer::CreationLocation {file:#C4, line:#C12, column:#C13, name:#C7}
-  #C15 = 4.0
-  #C16 = 42.0
+  #C15 = 10.0
+  #C16 = 17.0
   #C17 = "Bar"
   #C18 = dart.developer::CreationLocation {file:#C4, line:#C15, column:#C16, name:#C17}
-  #C19 = 5.0
+  #C19 = 12.0
   #C20 = dart.developer::CreationLocation {file:#C4, line:#C19, column:#C13, name:#C17}
-  #C21 = 6.0
+  #C21 = 16.0
   #C22 = "Baz"
   #C23 = dart.developer::CreationLocation {file:#C4, line:#C21, column:#C6, name:#C22}
   #C24 = foo::Baz {_location:#C23}
   #C25 = dart.developer::CreationLocation {file:#C4, line:#C21, column:#C10, name:#C22}
-  #C26 = 15.0
-  #C27 = dart.developer::CreationLocation {file:#C4, line:#C13, column:#C26, name:#C22}
-  #C28 = 8.0
+  #C26 = 18.0
+  #C27 = dart.developer::CreationLocation {file:#C4, line:#C26, column:#C16, name:#C22}
+  #C28 = 20.0
   #C29 = dart.developer::CreationLocation {file:#C4, line:#C28, column:#C13, name:#C22}
-  #C30 = 9.0
-  #C31 = 128.0
-  #C32 = "Boz"
-  #C33 = dart.developer::CreationLocation {file:#C4, line:#C30, column:#C31, name:#C32}
-  #C34 = foo::Boz {_location:#C33}
-  #C35 = dart.developer::CreationLocation {file:#C4, line:#C30, column:#C10, name:#C32}
-  #C36 = 10.0
-  #C37 = dart.developer::CreationLocation {file:#C4, line:#C36, column:#C13, name:#C32}
+  #C30 = 28.0
+  #C31 = "Boz"
+  #C32 = dart.developer::CreationLocation {file:#C4, line:#C30, column:#C28, name:#C31}
+  #C33 = foo::Boz {_location:#C32}
+  #C34 = 24.0
+  #C35 = dart.developer::CreationLocation {file:#C4, line:#C34, column:#C10, name:#C31}
+  #C36 = 32.0
+  #C37 = dart.developer::CreationLocation {file:#C4, line:#C36, column:#C13, name:#C31}
   #C38 = "org-dartlang-test:///main.dart"
-  #C39 = 18.0
-  #C40 = dart.developer::CreationLocation {file:#C38, line:#C5, column:#C39, name:#C7}
-  #C41 = dart.developer::CreationLocation {file:#C38, line:#C12, column:#C39, name:#C17}
-  #C42 = 22.0
-  #C43 = dart.developer::CreationLocation {file:#C38, line:#C15, column:#C42, name:#C17}
-  #C44 = foo::Bar {_location:#C43}
-  #C45 = dart.developer::CreationLocation {file:#C38, line:#C19, column:#C39, name:#C22}
-  #C46 = dart.developer::CreationLocation {file:#C38, line:#C21, column:#C39, name:#C32}
-  #C47 = 20.0
-  #C48 = dart.developer::CreationLocation {file:#C38, line:#C13, column:#C47, name:#C32}
+  #C39 = 2.0
+  #C40 = dart.developer::CreationLocation {file:#C38, line:#C39, column:#C26, name:#C7}
+  #C41 = 3.0
+  #C42 = dart.developer::CreationLocation {file:#C38, line:#C41, column:#C26, name:#C17}
+  #C43 = 22.0
+  #C44 = dart.developer::CreationLocation {file:#C38, line:#C5, column:#C43, name:#C17}
+  #C45 = foo::Bar {_location:#C44}
+  #C46 = 5.0
+  #C47 = dart.developer::CreationLocation {file:#C38, line:#C46, column:#C26, name:#C22}
+  #C48 = dart.developer::CreationLocation {file:#C38, line:#C12, column:#C26, name:#C31}
+  #C49 = 7.0
+  #C50 = dart.developer::CreationLocation {file:#C38, line:#C49, column:#C28, name:#C31}
 }
 
 
@@ -140,18 +142,18 @@ Constructor coverage from constants:
 org-dartlang-test:///main.dart:
 - CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
-- Bar._ (from org-dartlang-test:///foo.dart:5:7)
+- Bar._ (from org-dartlang-test:///foo.dart:12:9)
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:6:9)
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
 
 org-dartlang-test:///foo.dart:
 - CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
-- Foo._ (from org-dartlang-test:///foo.dart:3:7)
+- Foo._ (from org-dartlang-test:///foo.dart:6:9)
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:6:9)
 - Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
-- Baz.__ (from org-dartlang-test:///foo.dart:8:7)
-- Boz._ (from org-dartlang-test:///foo.dart:10:7)
+- Baz.__ (from org-dartlang-test:///foo.dart:20:9)
+- Boz._ (from org-dartlang-test:///foo.dart:32:9)
 
 org-dartlang-test:///flutter/lib/src/widgets/framework.dart:
 - pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)

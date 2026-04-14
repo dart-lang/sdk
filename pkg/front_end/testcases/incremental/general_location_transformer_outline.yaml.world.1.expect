@@ -5,7 +5,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   class MyWidget extends wid::Widget /*hasConstConstructor*/  {
     final field wid::Widget? child;
-    const constructor •({wid::Widget? child = null, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = null}) → main::MyWidget
+    const constructor •({initializing-formal wid::Widget? child = null, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = null}) → main::MyWidget
       : main::MyWidget::child = child, super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static synthetic method _#new#tearOff({wid::Widget? child}) → main::MyWidget
