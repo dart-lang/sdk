@@ -2315,6 +2315,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   FunctionTypeImpl? _type;
 
   ExecutableElementImpl() {
+    // Conservative until finalized during linking.
     hasEnclosingTypeParameterReference = true;
   }
 
@@ -3064,6 +3065,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
   }) : _firstFragment = firstFragment {
     reference.element = this;
     _firstFragment.element = this;
+    // Conservative until finalized during linking.
     hasEnclosingTypeParameterReference = true;
   }
 
