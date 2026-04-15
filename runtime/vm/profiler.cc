@@ -1384,10 +1384,10 @@ void Profiler::SampleThread(Thread* thread,
 #if defined(DART_DYNAMIC_MODULES)
     if (thread->vm_tag() == VMTag::kDartInterpretedTagId) {
       sp = 0;
-      pc = reinterpret_cast<uword*>(thread->interpreter()->get_pc());
-      fp = reinterpret_cast<uword*>(thread->interpreter()->get_fp());
+      pc = thread->interpreter()->get_pc();
+      fp = thread->interpreter()->get_fp();
       lr = 0;
-      RELEASE_ASSERT(thread->interpreter->HasFrame(fp));
+      RELEASE_ASSERT(thread->interpreter()->HasFrame(fp));
     }
 #endif
 
