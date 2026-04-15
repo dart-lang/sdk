@@ -1992,83 +1992,6 @@ mixin _TypedIntListMixin<SpawnedType extends TypedDataList<int>>
       // `this` is `TypedData`.
       final TypedData destTypedData = this;
       final TypedData fromTypedData = unsafeCast<TypedData>(from);
-
-      final destDartElementSizeInBytes = destTypedData.elementSizeInBytes;
-      final fromDartElementSizeInBytes = fromTypedData.elementSizeInBytes;
-
-      // Use `array.copy` when:
-      //
-      // 1. Dart array element types are the same.
-      // 2. Wasm array element sizes are the same.
-      // 3. Source and destination offsets are multiples of element size.
-      //
-      // (1) is to make sure no sign extension, clamping, or truncation needs
-      // to happen when copying. (2) and (3) are requirements for `array.copy`.
-      //
-      // We don't check for `_F32ByteBuffer` and `_F64ByteBuffer` here as the
-      // receiver is an int array and if the buffer is a F32/F64 buffer that
-      // means casting needs to happen when reading.
-      if (destDartElementSizeInBytes == fromDartElementSizeInBytes) {
-        final ByteBuffer destBuffer = destTypedData.buffer;
-        final ByteBuffer fromBuffer = fromTypedData.buffer;
-        final fromBufferByteOffset =
-            fromTypedData.offsetInBytes +
-            (skipCount * fromDartElementSizeInBytes);
-        final destBufferByteOffset =
-            destTypedData.offsetInBytes + (start * destDartElementSizeInBytes);
-
-        if (destDartElementSizeInBytes == 1 &&
-            destBuffer is _I8ByteBuffer &&
-            fromBuffer is _I8ByteBuffer) {
-          if (destTypedData is! U8ClampedList &&
-              destTypedData is! _SlowU8ClampedList) {
-            destBuffer._data.copy(
-              destBufferByteOffset,
-              fromBuffer._data,
-              fromBufferByteOffset,
-              count,
-            );
-            return;
-          }
-        } else if (destDartElementSizeInBytes == 2 &&
-            destBuffer is _I16ByteBuffer &&
-            fromBuffer is _I16ByteBuffer) {
-          if (fromBufferByteOffset & 1 == 0 && destBufferByteOffset & 1 == 0) {
-            destBuffer._data.copy(
-              destBufferByteOffset ~/ 2,
-              fromBuffer._data,
-              fromBufferByteOffset ~/ 2,
-              count,
-            );
-            return;
-          }
-        } else if (destDartElementSizeInBytes == 4 &&
-            destBuffer is _I32ByteBuffer &&
-            fromBuffer is _I32ByteBuffer) {
-          if (fromBufferByteOffset & 3 == 0 && destBufferByteOffset & 3 == 0) {
-            destBuffer._data.copy(
-              destBufferByteOffset ~/ 4,
-              fromBuffer._data,
-              fromBufferByteOffset ~/ 4,
-              count,
-            );
-            return;
-          }
-        } else if (destDartElementSizeInBytes == 8 &&
-            destBuffer is _I64ByteBuffer &&
-            fromBuffer is _I64ByteBuffer) {
-          if (fromBufferByteOffset & 7 == 0 && destBufferByteOffset & 7 == 0) {
-            destBuffer._data.copy(
-              destBufferByteOffset ~/ 8,
-              fromBuffer._data,
-              fromBufferByteOffset ~/ 8,
-              count,
-            );
-            return;
-          }
-        }
-      }
-
       final ByteBuffer destBuffer = destTypedData.buffer;
       final ByteBuffer fromBuffer = fromTypedData.buffer;
 
@@ -2436,47 +2359,6 @@ mixin _TypedDoubleListMixin<SpawnedType extends TypedDataList<double>>
       // `this` is `TypedData`.
       final TypedData destTypedData = this;
       final TypedData fromTypedData = unsafeCast<TypedData>(from);
-
-      final destDartElementSizeInBytes = destTypedData.elementSizeInBytes;
-      final fromDartElementSizeInBytes = fromTypedData.elementSizeInBytes;
-
-      // See comments in `_TypedIntListMixin.setRange`.
-      if (destDartElementSizeInBytes == fromDartElementSizeInBytes) {
-        final ByteBuffer destBuffer = destTypedData.buffer;
-        final ByteBuffer fromBuffer = fromTypedData.buffer;
-        final fromBufferByteOffset =
-            fromTypedData.offsetInBytes +
-            (skipCount * fromDartElementSizeInBytes);
-        final destBufferByteOffset =
-            destTypedData.offsetInBytes + (start * destDartElementSizeInBytes);
-
-        if (destDartElementSizeInBytes == 4 &&
-            destBuffer is _F32ByteBuffer &&
-            fromBuffer is _F32ByteBuffer) {
-          if (fromBufferByteOffset & 3 == 0 && destBufferByteOffset & 3 == 0) {
-            destBuffer._data.copy(
-              destBufferByteOffset ~/ 4,
-              fromBuffer._data,
-              fromBufferByteOffset ~/ 4,
-              count,
-            );
-            return;
-          }
-        } else if (destDartElementSizeInBytes == 8 &&
-            destBuffer is _F64ByteBuffer &&
-            fromBuffer is _F64ByteBuffer) {
-          if (fromBufferByteOffset & 7 == 0 && destBufferByteOffset & 7 == 0) {
-            destBuffer._data.copy(
-              destBufferByteOffset ~/ 8,
-              fromBuffer._data,
-              fromBufferByteOffset ~/ 8,
-              count,
-            );
-            return;
-          }
-        }
-      }
-
       final ByteBuffer destBuffer = destTypedData.buffer;
       final ByteBuffer fromBuffer = fromTypedData.buffer;
 
@@ -2634,7 +2516,6 @@ abstract class WasmI8ArrayBase extends WasmTypedDataBase {
       skipCount,
       skipCountName: "skipCount",
     );
-    if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
       typedFrom._data,
@@ -2679,7 +2560,6 @@ abstract class WasmI16ArrayBase extends WasmTypedDataBase {
       skipCount,
       skipCountName: "skipCount",
     );
-    if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
       typedFrom._data,
@@ -2724,7 +2604,6 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
       skipCount,
       skipCountName: "skipCount",
     );
-    if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
       typedFrom._data,
@@ -2769,7 +2648,6 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
       skipCount,
       skipCountName: "skipCount",
     );
-    if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
       typedFrom._data,
@@ -2813,7 +2691,6 @@ abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
       typedFrom.length,
       skipCount,
     );
-    if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
       typedFrom._data,
@@ -2857,7 +2734,6 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
       typedFrom.length,
       skipCount,
     );
-    if (count == 0) return true;
     _data.copy(
       _offsetInElements + start,
       typedFrom._data,
