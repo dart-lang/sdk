@@ -167,3 +167,56 @@ class C14 {} // Not exposed
 class C15 implements C14 {}
 
 class C16 implements C14 {}
+
+// Dynamically callable class
+class C17 {
+  void dcMethod1() {}
+  void dcMethod2(String x, int y) {}
+  int get dcGetter1 => 1;
+  void set dcSetter1(int value) {}
+}
+
+// Dynamically callable members
+class C18 {
+  final int dcField1 = 1;
+  int dcField2 = 1;
+
+  void dcMethod3() {}
+  void dcMethod4(String x, int y) {}
+  int get dcGetter2 => 1;
+  void set dcSetter2(int value) {}
+}
+
+class C19 {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class C20 {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class C21 extends C20 {}
+
+class C22 {}
+
+class C23 extends C22 {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class C24 {}
+
+class C25 implements C24 {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class C26 {
+  int _privateMethod1() => 1;
+}
+
+mixin M3 on C26 {
+  int method6() => (this as dynamic)._privateMethod1();
+}

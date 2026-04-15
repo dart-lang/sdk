@@ -129,6 +129,7 @@ r
 re
 refutable
 resource
+risks
 sdksummary
 separators
 size

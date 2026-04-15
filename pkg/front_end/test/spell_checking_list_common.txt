@@ -940,6 +940,7 @@ discard
 discarded
 discarding
 discards
+discouraged
 discover
 discovered
 discovery
@@ -1003,6 +1004,7 @@ duration
 during
 dust
 dynamic
+dynamically
 each
 eagerly
 earlier
@@ -1197,8 +1199,10 @@ exporter
 exporters
 exporting
 exports
+expose
 exposed
 exposes
+exposing
 expressed
 expression
 expressions
@@ -1845,6 +1849,7 @@ listen
 listener
 listener's
 listeners
+listing
 lists
 literal
 literal's
