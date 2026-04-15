@@ -723,14 +723,6 @@ class SubstitutedGetterElementImpl
       substitution: this.substitution.andThen(substitution),
     );
   }
-
-  static InternalGetterElement forTargetType(
-    InternalGetterElement element,
-    InterfaceType targetType,
-  ) {
-    var substitution = Substitution.fromInterfaceType(targetType);
-    return element.substitute(substitution);
-  }
 }
 
 /// A method element defined in a parameterized type where the values of the
@@ -798,14 +790,6 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
       baseElement: baseElement,
       substitution: this.substitution.andThen(substitution),
     );
-  }
-
-  static InternalMethodElement forTargetType(
-    InternalMethodElement element,
-    InterfaceType targetType,
-  ) {
-    var substitution = Substitution.fromInterfaceType(targetType);
-    return element.substitute(substitution);
   }
 }
 
@@ -913,14 +897,6 @@ class SubstitutedSetterElementImpl
       baseElement: baseElement,
       substitution: this.substitution.andThen(substitution),
     );
-  }
-
-  static InternalSetterElement forTargetType(
-    InternalSetterElement element,
-    InterfaceType targetType,
-  ) {
-    var substitution = Substitution.fromInterfaceType(targetType);
-    return element.substitute(substitution);
   }
 }
 
