@@ -55,7 +55,7 @@ vars = {
   # choose which SHA to place here is to choose a release from
   # https://dart.dev/get-dart/archive, and then look up the version SHA from
   # the tag. Prefer using the stable channel when possible.
-  "sdk_tag": "git_revision:9ac06cdd18015c83a25921e26912c96e3fbe22c2",
+  "sdk_tag": "git_revision:963eac24852a989a1244586fea61b173e98677dd",
 
   # co19 is a cipd package automatically generated for each co19 commit.
   # Use tests/co19/update.sh to update this hash.
