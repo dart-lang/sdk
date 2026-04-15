@@ -61,6 +61,10 @@
 #include "vm/perfetto_utils.h"
 #endif  // defined(SUPPORT_PERFETTO)
 
+#if defined(DART_HOST_OS_WINDOWS)
+#include <psapi.h>
+#endif  // defined(DART_HOST_OS_WINDOWS)
+
 namespace dart {
 
 #define Z (T->zone())
@@ -4943,6 +4947,64 @@ static void AddVMMappings(JSONArray* rss_children) {
 }
 #endif
 
+#if defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_WINDOWS_UWP)
+class VMMappingTrait {
+ public:
+  struct Pair {
+    char* path;
+    size_t size;
+  };
+  using Key = char*;
+  using Value = size_t;
+
+  static Key KeyOf(const Pair& kv) { return kv.path; }
+  static Value ValueOf(const Pair& kv) { return kv.size; }
+  static uword Hash(Key key) { return Utils::StringHash(key, strlen(key)); }
+  static bool IsKeyEqual(const Pair& kv, Key key) {
+    return strcmp(kv.path, key) == 0;
+  }
+};
+
+static void AddVMMappings(JSONArray* rss_children) {
+  MallocDirectChainedHashMap<VMMappingTrait> mappings;
+
+  MEMORY_BASIC_INFORMATION mbi;
+  uint8_t* address = nullptr;
+  while (VirtualQuery(address, &mbi, sizeof(mbi)) == sizeof(mbi)) {
+    if ((mbi.State == MEM_COMMIT) &&
+        (mbi.Type == MEM_IMAGE || mbi.Type == MEM_MAPPED)) {
+      char path_buffer[MAX_PATH];
+      if (GetMappedFileNameA(GetCurrentProcess(), address, path_buffer,
+                             MAX_PATH) != 0) {
+        auto lookup_result = mappings.Lookup(path_buffer);
+        if (lookup_result != nullptr) {
+          lookup_result->size += mbi.RegionSize;
+        } else {
+          char* path = strdup(path_buffer);
+          mappings.Insert({path, mbi.RegionSize});
+        }
+      }
+    }
+    if (address == nullptr) {
+      address = reinterpret_cast<uint8_t*>(mbi.RegionSize);
+    } else {
+      address += mbi.RegionSize;
+    }
+  }
+
+  auto it = mappings.GetIterator();
+  for (auto* pair = it.Next(); pair != nullptr; pair = it.Next()) {
+    JSONObject mapping(rss_children);
+    mapping.AddProperty("name", pair->path);
+    mapping.AddProperty("description",
+                        "Mapped file / shared library / executable");
+    mapping.AddProperty64("size", pair->size);
+    JSONArray(&mapping, "children");
+    free(pair->path);
+  }
+}
+#endif
+
 static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   JSONObject response(js);
   response.AddProperty("type", "ProcessMemoryUsage");
@@ -5052,6 +5114,8 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   }
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  AddVMMappings(&rss_children);
+#elif defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_WINDOWS_UWP)
   AddVMMappings(&rss_children);
 #endif
   // TODO(46166): Implement for other operating systems.
