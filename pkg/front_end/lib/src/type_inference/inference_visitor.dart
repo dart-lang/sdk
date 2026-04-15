@@ -16007,9 +16007,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // TODO(johnniwinther): Share this through the type analyzer.
     Pattern? replacement;
-    VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;
-    bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable);
-    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
+    InternalVariable variable = node.variable as InternalVariable;
+    bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable.astVariable);
+    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
+      variable.astVariable,
+    );
     if ((variable.isLate && variable.isFinal) ||
         variable.isLateFinalWithoutInitializer) {
       if (isDefinitelyAssigned) {

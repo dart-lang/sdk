@@ -7,8 +7,7 @@ import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
   List<Info> _list
-)
-    implements LocalStack<Info> {
+) implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
     ScopeProviderInfoKind scopeProviderInfoKind,
   ) {

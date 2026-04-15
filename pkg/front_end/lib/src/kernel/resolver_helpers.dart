@@ -211,11 +211,17 @@ class _InitializerBuilder {
        this._needsImplicitSuperInitializer = bodyBuilderContext
            .needsImplicitSuperInitializer(coreTypes);
 
-  void _inferInitializer(Initializer initializer) {
+  void _inferInitializer(
+    Initializer initializer, {
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
+  }) {
     InitializerInferenceResult result = _bodyBuilderContext.inferInitializer(
       typeInferrer: _typeInferrer,
       fileUri: _fileUri,
       initializer: initializer,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
     );
     if (!_bodyBuilderContext.isExternalConstructor) {
       _addInferredInitializer(result);
@@ -230,6 +236,8 @@ class _InitializerBuilder {
     required AsyncMarker asyncMarker,
     required int? asyncModifierFileOffset,
     required bool forPrimaryConstructor,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
   }) {
     if (initializers.isNotEmpty) {
       if (_bodyBuilderContext.isMixinClass) {
@@ -259,9 +267,17 @@ class _InitializerBuilder {
             switch (initializer) {
               case ExtensionTypeRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
-                _inferInitializer(initializer);
+                _inferInitializer(
+                  initializer,
+                  parameters: parameters,
+                  internalThisVariable: internalThisVariable,
+                );
               case ExtensionTypeRepresentationFieldInitializer():
-                _inferInitializer(initializer);
+                _inferInitializer(
+                  initializer,
+                  parameters: parameters,
+                  internalThisVariable: internalThisVariable,
+                );
               case InternalRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
                 if (_bodyBuilderContext.isEnumClass) {
@@ -279,7 +295,11 @@ class _InitializerBuilder {
                     new PositionalArgument(enumSyntheticArguments[1]),
                   ], positionalCount: 2);
                 }
-                _inferInitializer(initializer);
+                _inferInitializer(
+                  initializer,
+                  parameters: parameters,
+                  internalThisVariable: internalThisVariable,
+                );
               case InternalSuperInitializer():
                 _needsImplicitSuperInitializer = false;
                 if (_bodyBuilderContext.isEnumClass) {
@@ -330,16 +350,28 @@ class _InitializerBuilder {
                     );
                   }
                 }
-                _inferInitializer(initializer);
+                _inferInitializer(
+                  initializer,
+                  parameters: parameters,
+                  internalThisVariable: internalThisVariable,
+                );
             }
           }
         case InvalidInitializer():
           _needsImplicitSuperInitializer = false;
-          _inferInitializer(initializer);
+          _inferInitializer(
+            initializer,
+            parameters: parameters,
+            internalThisVariable: internalThisVariable,
+          );
         case FieldInitializer():
         case LocalInitializer():
         case AssertInitializer():
-          _inferInitializer(initializer);
+          _inferInitializer(
+            initializer,
+            parameters: parameters,
+            internalThisVariable: internalThisVariable,
+          );
         // Coverage-ignore(suite): Not run.
         case SuperInitializer():
         case RedirectingInitializer():
@@ -361,6 +393,8 @@ class _InitializerBuilder {
             length: noLength,
           ),
         ),
+        parameters: parameters,
+        internalThisVariable: internalThisVariable,
       );
       _needsImplicitSuperInitializer = false;
     }
@@ -743,7 +777,9 @@ class _InitializerBuilder {
         )..fileOffset = _bodyBuilderContext.memberNameOffset;
       }
     }
-    _inferInitializer(initializer);
+    // The [parameters] and [internalThisVariable] won't be used in the implicit
+    // super initializer.
+    _inferInitializer(initializer, parameters: [], internalThisVariable: null);
   }
 }
 

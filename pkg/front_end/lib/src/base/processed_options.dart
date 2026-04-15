@@ -175,7 +175,6 @@ class ProcessedOptions {
 
   bool get throwOnErrorsForDebugging => _raw.throwOnErrorsForDebugging;
 
-  // Coverage-ignore(suite): Not run.
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
 
   // Coverage-ignore(suite): Not run.

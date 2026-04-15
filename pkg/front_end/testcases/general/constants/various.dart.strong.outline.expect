@@ -144,8 +144,9 @@ class ClassWithTypeArguments<E extends core::Object? = dynamic, F extends core::
     : super core::Object::•()
     ;
 }
-class ClassWithNonEmptyConstConstructor extends core::Object {
-  constructor •() → self::ClassWithNonEmptyConstConstructor
+class ClassWithNonEmptyConstConstructor extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::ClassWithNonEmptyConstConstructor
+    : super core::Object::•()
     ;
 }
 class ConstClassWithFinalFields1 extends core::Object /*hasConstConstructor*/  {

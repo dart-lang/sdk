@@ -103,11 +103,15 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
   }) {
     return typeInferrer.inferInitializer(
       fileUri: fileUri,
       constructorBuilder: _builder,
       initializer: initializer,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
     );
   }
 

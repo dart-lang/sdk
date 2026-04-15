@@ -2698,7 +2698,6 @@ class OutlineBuilder extends StackListenerImpl {
         bodyKind != MethodBody.Abstract &&
         !libraryFeatures.constFunctions.isEnabled) {
       addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
-      modifiers -= Modifiers.Const;
     }
     if (returnType != null) {
       addProblem(

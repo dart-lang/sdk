@@ -589,7 +589,6 @@ class MatchingExpressionVisitor
           );
           break;
         case ObjectAccessKind.Never:
-          // Coverage-ignore(suite): Not run.
           expression = new DelayedDynamicGet(
             typedMatchedExpression,
             field.fieldName,
