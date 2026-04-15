@@ -16,7 +16,6 @@ import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/name_union.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
@@ -1532,7 +1531,7 @@ class ResolutionReader {
           return elementImpl.substitute(substitution);
         } else {
           elementImpl as FieldElementImpl;
-          return SubstitutedFieldElementImpl.from(elementImpl, substitution);
+          return elementImpl.substitute(substitution);
         }
       case ElementTag.elementImpl:
         var referenceIndex = _reader.readUint30();

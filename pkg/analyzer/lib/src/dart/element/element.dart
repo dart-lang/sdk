@@ -3024,6 +3024,21 @@ class FieldElementImpl extends PropertyInducingElementImpl
       return current;
     });
   }
+
+  @override
+  @trackedIndirectly
+  InternalFieldElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    if (!hasEnclosingTypeParameterReference) {
+      return this;
+    }
+    return SubstitutedFieldElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
+  }
 }
 
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
@@ -5415,6 +5430,9 @@ mixin InternalFieldElement on InternalPropertyInducingElement
 
   @override
   List<FieldFragmentImpl> get fragments;
+
+  /// Returns this field with the given [substitution] applied.
+  InternalFieldElement substitute(MapSubstitution substitution);
 }
 
 mixin InternalFieldFormalParameterElement on InternalFormalParameterElement

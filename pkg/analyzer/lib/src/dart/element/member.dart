@@ -437,20 +437,18 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   }
 
   @override
-  void visitChildren<T>(ElementVisitor2<T> visitor) {}
-
-  static InternalFieldElement from(
-    FieldElementImpl element,
-    MapSubstitution substitution,
-  ) {
+  InternalFieldElement substitute(MapSubstitution substitution) {
     if (substitution.map.isEmpty) {
-      return element;
+      return this;
     }
     return SubstitutedFieldElementImpl(
-      baseElement: element,
-      substitution: substitution,
+      baseElement: baseElement,
+      substitution: this.substitution.andThen(substitution),
     );
   }
+
+  @override
+  void visitChildren<T>(ElementVisitor2<T> visitor) {}
 }
 
 /// A parameter element defined in a parameterized type where the values of the
@@ -485,12 +483,7 @@ class SubstitutedFieldFormalParameterElementImpl
 
   @override
   FieldElement? get field {
-    var field = baseElement.field;
-    if (field == null) {
-      return null;
-    }
-
-    return SubstitutedFieldElementImpl.from(field, substitution);
+    return baseElement.field?.substitute(substitution);
   }
 
   @override
