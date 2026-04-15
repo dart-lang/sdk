@@ -1700,6 +1700,7 @@ package:analyzer/dart/ast/ast.dart:
     expression (getter: Expression)
     throwKeyword (getter: Token)
   TopLevelVariableDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
+    abstractKeyword (getter: Token?)
     augmentKeyword (getter: Token?)
     externalKeyword (getter: Token?)
     semicolon (getter: Token)

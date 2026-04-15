@@ -157,6 +157,16 @@ library;
 //   abstract static final int finalStaticField;
 //                             ^^^^^^^^^^^^^^^^
 //
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:7:39: Error: Abstract fields cannot have initializers.
+// Try removing the initializer or the 'abstract' keyword.
+// abstract final int finalTopLevelField = 0;
+//                                       ^
+//
+// pkg/front_end/testcases/nnbd/abstract_field_errors.dart:9:31: Error: Abstract fields cannot have initializers.
+// Try removing the initializer or the 'abstract' keyword.
+// abstract const int constField = 0;
+//                               ^
+//
 // pkg/front_end/testcases/nnbd/abstract_field_errors.dart:12:37: Error: Abstract fields cannot have initializers.
 // Try removing the initializer or the 'abstract' keyword.
 //   abstract int fieldWithInitializer = 0;
@@ -233,16 +243,14 @@ extension Extension on self::A {
   static field extensionStaticField = self::Extension|extensionStaticField;
   static field finalExtensionStaticField = self::Extension|finalExtensionStaticField;
 }
-static field core::int topLevelField;
-static final field core::int finalTopLevelField = 0;
-static const field core::int constField = #C1;
 static field core::int Extension|extensionStaticField = 0;
 static final field core::int Extension|finalExtensionStaticField = 0;
+static abstract get topLevelField() → core::int;
+static abstract set topLevelField(synthesized core::int #externalFieldValue) → void;
+static abstract get finalTopLevelField() → core::int;
+static abstract const get constField() → core::int;
+static abstract set constField(synthesized core::int #externalFieldValue) → void;
 static abstract extension-member get Extension|extensionInstanceField() → core::int;
 static abstract extension-member set Extension|extensionInstanceField(synthesized core::int #externalFieldValue) → void;
 static abstract extension-member get Extension|finalExtensionInstanceField() → core::int;
 static method main() → dynamic {}
-
-constants  {
-  #C1 = 0
-}

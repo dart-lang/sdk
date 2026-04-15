@@ -677,8 +677,45 @@ missingExplicitConst:
     }
 
 dynamicCallsAreNotAllowedInDynamicModule:
+  parameters:
+    String name: The selector name.
+  problemMessage: "Dynamic call to selector '#name' is not allowed in a dynamic module."
+  correctionMessage: "Try listing '#name' as 'dynamically-callable' in the dynamic interface specification."
+
+dynamicCallsAreDiscouragedInDynamicModules:
   parameters: none
-  problemMessage: "Dynamic calls are not allowed in a dynamic module."
+  problemMessage: "Dynamic calls are discouraged in dynamic modules as they may fail at runtime if their target is not properly exposed as 'dynamically-callable'."
+  correctionMessage: "Consider avoiding dynamic calls. You can remove '--allow-dynamic-calls-in-dynamic-modules' to see where dynamic calls are used."
+  severity: WARNING
+
+dynamicCallsAreDisallowedByDefault:
+  parameters: none
+  problemMessage: "Dynamic calls are not allowed in dynamic modules by default as they increase risks of runtime errors in applications."
+  correctionMessage: "You can bypass this error by using '--allow-dynamic-calls-in-dynamic-modules'."
+
+dynamicallyCallableWithNoSuchMethod:
+  parameters:
+    String name: The class name.
+  problemMessage: "Cannot expose class '#name' because it declares or inherits a 'noSuchMethod' declaration."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration or not exposing the class."
+
+dynamicallyCallableWithNoSuchMethodHostSubtype:
+  parameters:
+    String name: The class name.
+  problemMessage: "Cannot expose class '#name' because it has a subtype with a 'noSuchMethod' declaration."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration from the subtype or not exposing the class."
+
+classWithNoSuchMethodSubtypeCause:
+  parameters:
+    String name: The class name.
+  problemMessage: "Subtype '#name' implements 'noSuchMethod' here."
+
+dynamicallyCallableWithNoSuchMethodDynamicSubtype:
+  parameters:
+    String name: The class name.
+    String subtype: The subclass class name.
+  problemMessage: "Cannot define 'noSuchMethod' on '#subtype' because it is a subtype of '#name', which was exposed as dynamically-callable."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration or no longer expose '#name' as dynamically-callable."
 
 constructorShouldBeListedAsCallableInDynamicInterface:
   parameters:

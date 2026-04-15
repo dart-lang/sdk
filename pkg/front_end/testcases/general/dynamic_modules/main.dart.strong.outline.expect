@@ -2,10 +2,12 @@ library;
 import self as self;
 import "main_lib1.dart" as mai;
 import "dart:core" as core;
+import "main_lib5.dart" as mai2;
 
 import "org-dartlang-testcase:///main_lib1.dart";
 import "org-dartlang-testcase:///main_lib2.dart";
 import "org-dartlang-testcase:///main_lib4.dart";
+import "org-dartlang-testcase:///main_lib5.dart";
 
 class D3 extends mai::C3 {
   synthetic constructor •() → self::D3
@@ -65,6 +67,17 @@ class C7Ext extends mai::C7 {
   constructor •({super-initializing-formal core::Object param = const mai::_ConstForC7::•(mai::_privateMethodForC7)}) → self::C7Ext
     ;
 }
+class Lib5WithNSM extends mai2::Lib5C1 {
+  synthetic constructor •() → self::Lib5WithNSM
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+class C26WithM3 extends self::_C26WithM3&C26&M3 {
+  synthetic constructor •() → self::C26WithM3
+    ;
+}
 abstract class _F1&Object&M1 = core::Object with mai::M1 /*isAnonymousMixin,hasConstConstructor*/  {
   const synthetic constructor •() → self::_F1&Object&M1
     : super core::Object::•()
@@ -82,10 +95,19 @@ abstract class _Impl2&Object&Mixin = core::Object with mai::Mixin /*isAnonymousM
   synthetic mixin-super-stub method foo() → void
     return super.{mai::Mixin::foo}();
 }
+abstract class _C26WithM3&C26&M3 = mai::C26 with mai::M3 /*isAnonymousMixin*/  {
+  synthetic constructor •() → self::_C26WithM3&C26&M3
+    : super mai::C26::•()
+    ;
+  synthetic mixin-super-stub method method6() → core::int
+    return super.{mai::M3::method6}();
+}
 static field dynamic x;
 static method test() → void
   ;
 static method testCanBeUsedAsType(core::Object? o) → void
+  ;
+static method testDynamicallyCallable() → void
   ;
 static method main() → void
   ;
@@ -245,6 +267,82 @@ class C16 extends core::Object implements mai::C14 {
   synthetic constructor •() → mai::C16
     ;
 }
+class C17 extends core::Object {
+  synthetic constructor •() → mai::C17
+    ;
+  method dcMethod1() → void
+    ;
+  method dcMethod2(core::String x, core::int y) → void
+    ;
+  get dcGetter1() → core::int
+    ;
+  set dcSetter1(core::int value) → void
+    ;
+}
+class C18 extends core::Object {
+  final field core::int dcField1;
+  field core::int dcField2;
+  synthetic constructor •() → mai::C18
+    ;
+  method dcMethod3() → void
+    ;
+  method dcMethod4(core::String x, core::int y) → void
+    ;
+  get dcGetter2() → core::int
+    ;
+  set dcSetter2(core::int value) → void
+    ;
+}
+class C19 extends core::Object {
+  synthetic constructor •() → mai::C19
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+class C20 extends core::Object {
+  synthetic constructor •() → mai::C20
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+class C21 extends mai::C20 {
+  synthetic constructor •() → mai::C21
+    ;
+}
+class C22 extends core::Object {
+  synthetic constructor •() → mai::C22
+    ;
+}
+class C23 extends mai::C22 {
+  synthetic constructor •() → mai::C23
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+class C24 extends core::Object {
+  synthetic constructor •() → mai::C24
+    ;
+}
+class C25 extends core::Object implements mai::C24 {
+  synthetic constructor •() → mai::C25
+    ;
+  @core::override
+  method noSuchMethod(core::Invocation invocation) → dynamic
+    ;
+}
+class C26 extends core::Object {
+  synthetic constructor •() → mai::C26
+    ;
+  method _privateMethod1() → core::int
+    ;
+}
+abstract class M3 extends mai::C26 /*isMixinDeclaration*/  {
+  method method6() → core::int
+    ;
+}
 extension Ext1 on core::int {
   get isPositive = mai::Ext1|get#isPositive;
 }
@@ -388,40 +486,40 @@ static extension-type-member synthetic method ExtType13|constructor#_#new#tearOf
 
 library;
 import self as self2;
-import "main_lib3.dart" as mai2;
-additionalExports = (mai2::Lib3Class,
-  mai2::lib3Method,
-  mai2::lib3Field,
-  mai2::lib3Field,
-  mai2::Lib3ExtType,
-  mai2::Lib3Ext)
+import "main_lib3.dart" as mai3;
+additionalExports = (mai3::Lib3Class,
+  mai3::lib3Method,
+  mai3::lib3Field,
+  mai3::lib3Field,
+  mai3::Lib3ExtType,
+  mai3::Lib3Ext)
 
 export "org-dartlang-testcase:///main_lib3.dart";
 
 
 library;
-import self as mai2;
+import self as mai3;
 import "dart:core" as core;
 
 class Lib3Class extends core::Object {
-  synthetic constructor •() → mai2::Lib3Class
+  synthetic constructor •() → mai3::Lib3Class
     ;
 }
 extension Lib3Ext on core::int {
-  get lib3IsPositive = mai2::Lib3Ext|get#lib3IsPositive;
+  get lib3IsPositive = mai3::Lib3Ext|get#lib3IsPositive;
 }
 extension type Lib3ExtType(core::int raw) {
   abstract extension-type-member representation-field get raw() → core::int;
-  constructor • = mai2::Lib3ExtType|constructor#;
-  constructor tearoff • = mai2::Lib3ExtType|constructor#_#new#tearOff;
+  constructor • = mai3::Lib3ExtType|constructor#;
+  constructor tearoff • = mai3::Lib3ExtType|constructor#_#new#tearOff;
 }
 static field core::int? lib3Field;
 static method lib3Method() → void
   ;
-static extension-type-member method Lib3ExtType|constructor#(initializing-formal core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */
+static extension-type-member method Lib3ExtType|constructor#(initializing-formal core::int raw) → mai3::Lib3ExtType% /* erasure=core::int, declared=! */
   ;
-static extension-type-member synthetic method Lib3ExtType|constructor#_#new#tearOff(core::int raw) → mai2::Lib3ExtType% /* erasure=core::int, declared=! */
-  return mai2::Lib3ExtType|constructor#(raw);
+static extension-type-member synthetic method Lib3ExtType|constructor#_#new#tearOff(core::int raw) → mai3::Lib3ExtType% /* erasure=core::int, declared=! */
+  return mai3::Lib3ExtType|constructor#(raw);
 static extension-member method Lib3Ext|get#lib3IsPositive(lowered final core::int #this) → core::bool
   ;
 
@@ -443,12 +541,30 @@ static extension-type-member method Lib4ExtType|constructor#(initializing-formal
 static extension-type-member synthetic method Lib4ExtType|constructor#_#new#tearOff(core::int raw) → self3::Lib4ExtType% /* erasure=core::int, declared=! */
   return self3::Lib4ExtType|constructor#(raw);
 
+library;
+import self as mai2;
+import "dart:core" as core;
+
+class Lib5C1 extends core::Object {
+  field core::int? dcField5;
+  synthetic constructor •() → mai2::Lib5C1
+    ;
+  method dcMethod5() → void
+    ;
+}
+static field core::int? g1;
+
 
 Extra constant evaluation status:
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:58:16 -> InstanceConstant(const _ConstForC6{_ConstForC6._f: _privateMethodForC6})
-Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:64:16 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:59:16 -> InstanceConstant(const _ConstForC6{_ConstForC6._f: _privateMethodForC6})
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:65:16 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
+Evaluated: StaticGet @ org-dartlang-testcase:///main.dart:280:4 -> InstanceConstant(const _Override{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:78:28 -> InstanceConstant(const _ConstForC6{_ConstForC6._f: _privateMethodForC6})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:89:28 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib1.dart:191:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib1.dart:196:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib1.dart:205:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///main_lib1.dart:212:4 -> InstanceConstant(const _Override{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:67:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod1})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:68:16 -> InstanceConstant(const _C5{_C5.func: _privateMethod2})
-Extra constant evaluation: evaluated: 41, effectively constant: 6
+Extra constant evaluation: evaluated: 48, effectively constant: 11

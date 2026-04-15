@@ -5,6 +5,7 @@
 import 'main_lib1.dart';
 import 'main_lib2.dart';
 import 'main_lib4.dart';
+import 'main_lib5.dart';
 
 dynamic x;
 
@@ -65,7 +66,7 @@ class C7Ext extends C7 {
 }
 
 void test() {
-  // Dynamic uses are not allowed.
+  // Dynamic uses are not allowed except for dynamically-callable members.
   x.foo().bar.baz = 42;
   if (x case < 3) {
     print('<3');
@@ -247,4 +248,38 @@ void testCanBeUsedAsType(Object? o) {
   final inferredList = [C15(), C16()];
 }
 
+void testDynamicallyCallable() {
+  // Allowed, C17 exposed as a whole.
+  x.dcMethod1();
+  x.dcMethod2('a', 2);
+  x.dcGetter1;
+  x.dcSetter1 = 42;
+  // Allowed, C18 members exposed individually.
+  x.dcMethod3();
+  x.dcMethod4('a', 2);
+  x.dcGetter2;
+  x.dcSetter2 = 42;
+  x.dcField1;
+  x.dcField2;
+  x.dcField2 = 42;
+  // Not allowed - getter was not exposed because field is final.
+  x.dcField1 = 42;
+  // Allowed - exposed via library
+  x.dcField5;
+  x.dcField5 = 42;
+  x.dcMethod5();
+
+  C26WithM3().method6();
+}
+
 void main() {}
+
+// Child class that attempts to override noSuchMethod on a dynamically-callable
+// class.
+class Lib5WithNSM extends Lib5C1 {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+// Mixin transformation that copies a dynamic call to a private member.
+class C26WithM3 extends C26 with M3 {}

@@ -335,10 +335,7 @@ class FunctionTypeImpl extends TypeImpl
         ? const <InternalFormalParameterElement>[]
         : List.generate(
             length,
-            (index) => SubstitutedFormalParameterElementImpl.from(
-              parameters[index],
-              substitution,
-            ),
+            (index) => parameters[index].substitute(substitution),
           );
     return FunctionTypeImpl(
       returnType: substitution.substituteType(returnType),

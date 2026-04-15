@@ -53,7 +53,8 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     buf.writeln('<div class="tabnav">');
     buf.writeln('<nav class="tabnav-tabs">');
-    for (var f in driverMap.keys) {
+    var driverFolders = driverMap.keys;
+    for (var f in driverFolders) {
       var selectedClass = f == folder ? 'selected' : '';
       var href = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
       buf.writeln(
@@ -72,11 +73,19 @@ class ContextsPage extends DiagnosticPageWithNav {
 
     // Display analysis options entries inside this context root.
     var separator = folder.provider.pathContext.separator;
-    var foldersInContextRoot = driver.analysisOptionsMap.folders.where(
-      (e) =>
-          contextPath == e.path ||
-          contextPath.startsWith('${e.path}$separator'),
-    );
+    var innerContextFolders = driverFolders
+        .where((e) => e.path.startsWith('$contextPath$separator'))
+        .toList();
+    var foldersInContextRoot = driver.analysisOptionsMap.folders.where((e) {
+      if (contextPath == e.path) return true;
+      // Exclude analysis options in inner folders.
+      if (innerContextFolders.any(
+        (f) => e.path == f.path || e.path.startsWith('${f.path}$separator'),
+      )) {
+        return false;
+      }
+      return e.path.startsWith('$contextPath$separator');
+    });
     ul(foldersInContextRoot, (folder) {
       buf.write(escape(folder.path));
       buf.write('$separator<wbr>');

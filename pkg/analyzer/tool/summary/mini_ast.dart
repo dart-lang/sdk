@@ -434,6 +434,7 @@ class MiniAstBuilder extends StackListener {
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -546,7 +547,11 @@ class MiniAstBuilder extends StackListener {
   }
 
   @override
-  void handleFunctionBodySkipped(Token beginToken, Token endToken, bool isExpressionBody) {
+  void handleFunctionBodySkipped(
+    Token beginToken,
+    Token endToken,
+    bool isExpressionBody,
+  ) {
     if (isExpressionBody) pop();
     push(NullValues.FunctionBody);
   }

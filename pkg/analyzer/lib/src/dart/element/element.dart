@@ -1338,6 +1338,9 @@ class ElementAnnotationImpl
   /// The name of `_js_annotations` library, used to define JS annotations.
   static const String _jsLibName = '_js_annotations';
 
+  /// The URI of `dart:js_interop` library.
+  static const String _jsInteropLibUri = 'dart:js_interop';
+
   /// The name of `meta` library, used to define analysis annotations.
   static const String _metaLibName = 'meta';
 
@@ -1534,7 +1537,8 @@ class ElementAnnotationImpl
 
   @override
   bool get isJS =>
-      _isConstructor(libraryName: _jsLibName, className: _jsClassName);
+      _isConstructor(libraryName: _jsLibName, className: _jsClassName) ||
+      _isConstructor(libraryUri: _jsInteropLibUri, className: _jsClassName);
 
   @override
   bool get isLiteral => _isPackageMetaGetter(_literalVariableName);
@@ -1657,13 +1661,19 @@ class ElementAnnotationImpl
   String toString() => '@$element';
 
   bool _isConstructor({
-    required String libraryName,
+    String? libraryName,
+    String? libraryUri,
     required String className,
   }) {
+    assert(
+      (libraryName != null) != (libraryUri != null),
+      'Exactly one of libraryName/libraryUri should be provided',
+    );
     var element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
-        element.library.name == libraryName;
+        (libraryName == null || element.library.name == libraryName) &&
+        (libraryUri == null || element.library.uri.toString() == libraryUri);
   }
 
   bool _isDartCoreGetter(String name) {
@@ -3017,11 +3027,14 @@ class FieldElementImpl extends PropertyInducingElementImpl
 }
 
 class FieldFormalParameterElementImpl extends FormalParameterElementImpl
-    implements FieldFormalParameterElement {
+    with InternalFieldFormalParameterElement {
   @override
   FieldElementImpl? field;
 
   FieldFormalParameterElementImpl(super.firstFragment);
+
+  @override
+  FieldFormalParameterElementImpl get baseElement => this;
 
   @override
   FieldFormalParameterFragmentImpl get firstFragment => _firstFragment;
@@ -3047,6 +3060,17 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
   @override
   FieldFormalParameterFragmentImpl get _firstFragment =>
       super._firstFragment as FieldFormalParameterFragmentImpl;
+
+  @override
+  InternalFieldFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedFieldFormalParameterElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
+  }
 }
 
 @GenerateFragmentImpl(modifiers: _FieldFormalParameterFragmentModifiers.values)
@@ -3338,6 +3362,17 @@ class FormalParameterElementImpl extends PromotableElementImpl
   @override
   void appendTo(ElementDisplayStringBuilder builder) {
     builder.writeFormalParameterElement(this);
+  }
+
+  @override
+  InternalFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedFormalParameterElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
   }
 
   @override
@@ -5382,6 +5417,18 @@ mixin InternalFieldElement on InternalPropertyInducingElement
   List<FieldFragmentImpl> get fragments;
 }
 
+mixin InternalFieldFormalParameterElement on InternalFormalParameterElement
+    implements FieldFormalParameterElement {
+  @override
+  FieldFormalParameterElementImpl get baseElement;
+
+  @override
+  FieldFormalParameterFragmentImpl get firstFragment;
+
+  @override
+  List<FieldFormalParameterFragmentImpl> get fragments;
+}
+
 mixin InternalFormalParameterElement on InternalVariableElement
     implements FormalParameterElement, SharedNamedFunctionParameter {
   @override
@@ -5411,6 +5458,9 @@ mixin InternalFormalParameterElement on InternalVariableElement
       buffer.write(defaultValueCode);
     }
   }
+
+  /// Returns this formal parameter with the given [substitution] applied.
+  InternalFormalParameterElement substitute(MapSubstitution substitution);
 }
 
 mixin InternalGetterElement on InternalPropertyAccessorElement
@@ -9593,6 +9643,17 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
         .whereType<SuperFormalParameterElementImpl>()
         .toList()
         .indexOf(this);
+  }
+
+  @override
+  InternalSuperFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedSuperFormalParameterElementImpl(
+      baseElement: this,
+      substitution: substitution,
+    );
   }
 }
 

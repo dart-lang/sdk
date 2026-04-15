@@ -1029,6 +1029,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,

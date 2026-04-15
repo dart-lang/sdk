@@ -1,6 +1,9 @@
 import 'main_lib1.dart';
 import 'main_lib2.dart';
 import 'main_lib4.dart';
+import 'main_lib5.dart';
+
+class C26WithM3 extends C26 with M3 {}
 
 class C6Ext extends C6 {
   C6Ext({super.param});
@@ -38,6 +41,11 @@ class Impl1 extends Base implements Interface {}
 
 class Impl2 with Mixin implements Interface {}
 
+class Lib5WithNSM extends Lib5C1 {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
 dynamic x;
 
 void main() {}
@@ -45,3 +53,5 @@ void main() {}
 void test() {}
 
 void testCanBeUsedAsType(Object? o) {}
+
+void testDynamicallyCallable() {}
