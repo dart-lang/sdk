@@ -821,10 +821,8 @@ class _SyncStarContext extends BodyInferenceContext {
         )
         .expression;
     node.expression = expression..parent = node;
-    DartType type = expressionResult.inferredType;
-    if (!identical(expressionResult.expression, expression)) {
-      type = inferrer.computeGreatestClosure(expectedType);
-    }
+    DartType type =
+        expressionResult.postCoercionType ?? expressionResult.inferredType;
     if (_needToInferReturnType) {
       DartType elementType = type;
       if (node.isYieldStar) {
@@ -984,10 +982,8 @@ class _AsyncStarContext extends BodyInferenceContext {
         )
         .expression;
     node.expression = expression..parent = node;
-    DartType type = expressionResult.inferredType;
-    if (!identical(expressionResult.expression, expression)) {
-      type = inferrer.computeGreatestClosure(expectedType);
-    }
+    DartType type =
+        expressionResult.postCoercionType ?? expressionResult.inferredType;
     if (_needToInferReturnType) {
       DartType elementType = type;
       if (node.isYieldStar) {
