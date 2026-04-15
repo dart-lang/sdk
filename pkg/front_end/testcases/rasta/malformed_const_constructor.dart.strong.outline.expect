@@ -23,9 +23,10 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class A extends core::Object {
-  field core::String x;
-  constructor •() → self::A
+class A extends core::Object /*hasConstConstructor*/  {
+  field core::String x = "foo";
+  const constructor •() → self::A
+    : self::A::x = "foo", super core::Object::•()
     ;
 }
 static method main() → dynamic
