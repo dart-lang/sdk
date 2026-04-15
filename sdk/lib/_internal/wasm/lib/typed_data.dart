@@ -2506,23 +2506,24 @@ abstract class WasmI8ArrayBase extends WasmTypedDataBase {
     Iterable<int> from,
     int skipCount,
   ) {
-    if (from is! WasmI8ArrayBase) return false;
-    final typedFrom = from as WasmI8ArrayBase;
-    final count = _setRangeFastPathCount(
-      start,
-      end,
-      length,
-      typedFrom.length,
-      skipCount,
-      skipCountName: "skipCount",
-    );
-    _data.copy(
-      _offsetInElements + start,
-      typedFrom._data,
-      typedFrom._offsetInElements + skipCount,
-      count,
-    );
-    return true;
+    if (from case final WasmI8ArrayBase typedFrom) {
+      final count = _setRangeFastPathCount(
+        start,
+        end,
+        length,
+        typedFrom.length,
+        skipCount,
+        skipCountName: "skipCount",
+      );
+      _data.copy(
+        _offsetInElements + start,
+        typedFrom._data,
+        typedFrom._offsetInElements + skipCount,
+        count,
+      );
+      return true;
+    }
+    return false;
   }
 }
 
@@ -2550,23 +2551,24 @@ abstract class WasmI16ArrayBase extends WasmTypedDataBase {
     Iterable<int> from,
     int skipCount,
   ) {
-    if (from is! WasmI16ArrayBase) return false;
-    final typedFrom = from as WasmI16ArrayBase;
-    final count = _setRangeFastPathCount(
-      start,
-      end,
-      length,
-      typedFrom.length,
-      skipCount,
-      skipCountName: "skipCount",
-    );
-    _data.copy(
-      _offsetInElements + start,
-      typedFrom._data,
-      typedFrom._offsetInElements + skipCount,
-      count,
-    );
-    return true;
+    if (from case final WasmI16ArrayBase typedFrom) {
+      final count = _setRangeFastPathCount(
+        start,
+        end,
+        length,
+        typedFrom.length,
+        skipCount,
+        skipCountName: "skipCount",
+      );
+      _data.copy(
+        _offsetInElements + start,
+        typedFrom._data,
+        typedFrom._offsetInElements + skipCount,
+        count,
+      );
+      return true;
+    }
+    return false;
   }
 }
 
@@ -2594,23 +2596,24 @@ abstract class _WasmI32ArrayBase extends WasmTypedDataBase {
     Iterable<int> from,
     int skipCount,
   ) {
-    if (from is! _WasmI32ArrayBase) return false;
-    final typedFrom = from as _WasmI32ArrayBase;
-    final count = _setRangeFastPathCount(
-      start,
-      end,
-      length,
-      typedFrom.length,
-      skipCount,
-      skipCountName: "skipCount",
-    );
-    _data.copy(
-      _offsetInElements + start,
-      typedFrom._data,
-      typedFrom._offsetInElements + skipCount,
-      count,
-    );
-    return true;
+    if (from case final _WasmI32ArrayBase typedFrom) {
+      final count = _setRangeFastPathCount(
+        start,
+        end,
+        length,
+        typedFrom.length,
+        skipCount,
+        skipCountName: "skipCount",
+      );
+      _data.copy(
+        _offsetInElements + start,
+        typedFrom._data,
+        typedFrom._offsetInElements + skipCount,
+        count,
+      );
+      return true;
+    }
+    return false;
   }
 }
 
@@ -2638,23 +2641,24 @@ abstract class _WasmI64ArrayBase extends WasmTypedDataBase {
     Iterable<int> from,
     int skipCount,
   ) {
-    if (from is! _WasmI64ArrayBase) return false;
-    final typedFrom = from as _WasmI64ArrayBase;
-    final count = _setRangeFastPathCount(
-      start,
-      end,
-      length,
-      typedFrom.length,
-      skipCount,
-      skipCountName: "skipCount",
-    );
-    _data.copy(
-      _offsetInElements + start,
-      typedFrom._data,
-      typedFrom._offsetInElements + skipCount,
-      count,
-    );
-    return true;
+    if (from case final _WasmI64ArrayBase typedFrom) {
+      final count = _setRangeFastPathCount(
+        start,
+        end,
+        length,
+        typedFrom.length,
+        skipCount,
+        skipCountName: "skipCount",
+      );
+      _data.copy(
+        _offsetInElements + start,
+        typedFrom._data,
+        typedFrom._offsetInElements + skipCount,
+        count,
+      );
+      return true;
+    }
+    return false;
   }
 }
 
@@ -2682,22 +2686,23 @@ abstract class _WasmF32ArrayBase extends WasmTypedDataBase {
     Iterable<double> from,
     int skipCount,
   ) {
-    if (from is! _WasmF32ArrayBase) return false;
-    final typedFrom = from as _WasmF32ArrayBase;
-    final count = _setRangeFastPathCount(
-      start,
-      end,
-      length,
-      typedFrom.length,
-      skipCount,
-    );
-    _data.copy(
-      _offsetInElements + start,
-      typedFrom._data,
-      typedFrom._offsetInElements + skipCount,
-      count,
-    );
-    return true;
+    if (from case final _WasmF32ArrayBase typedFrom) {
+      final count = _setRangeFastPathCount(
+        start,
+        end,
+        length,
+        typedFrom.length,
+        skipCount,
+      );
+      _data.copy(
+        _offsetInElements + start,
+        typedFrom._data,
+        typedFrom._offsetInElements + skipCount,
+        count,
+      );
+      return true;
+    }
+    return false;
   }
 }
 
@@ -2725,22 +2730,23 @@ abstract class _WasmF64ArrayBase extends WasmTypedDataBase {
     Iterable<double> from,
     int skipCount,
   ) {
-    if (from is! _WasmF64ArrayBase) return false;
-    final typedFrom = from as _WasmF64ArrayBase;
-    final count = _setRangeFastPathCount(
-      start,
-      end,
-      length,
-      typedFrom.length,
-      skipCount,
-    );
-    _data.copy(
-      _offsetInElements + start,
-      typedFrom._data,
-      typedFrom._offsetInElements + skipCount,
-      count,
-    );
-    return true;
+    if (from case final _WasmF64ArrayBase typedFrom) {
+      final count = _setRangeFastPathCount(
+        start,
+        end,
+        length,
+        typedFrom.length,
+        skipCount,
+      );
+      _data.copy(
+        _offsetInElements + start,
+        typedFrom._data,
+        typedFrom._offsetInElements + skipCount,
+        count,
+      );
+      return true;
+    }
+    return false;
   }
 }
 
