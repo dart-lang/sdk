@@ -15508,9 +15508,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.dynamic:
           field.accessKind = ObjectAccessKind.Dynamic;
           break;
-        // Coverage-ignore(suite): Not run.
         case ObjectAccessTargetKind.never:
-          field.accessKind = ObjectAccessKind.Dynamic;
+          field.accessKind = ObjectAccessKind.Never;
           break;
       }
       if (fieldTarget.isInstanceMember || fieldTarget.isObjectMember) {
