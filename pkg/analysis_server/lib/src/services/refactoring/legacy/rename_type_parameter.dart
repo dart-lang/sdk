@@ -6,14 +6,23 @@ import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+
+  final CorrectionUtils utils;
+
   RenameTypeParameterRefactoringImpl(
     super.workspace,
     super.sessionHelper,
+    this.resolvedUnit,
     TypeParameterElement super.element2,
-  ) : super();
+  ) : utils = CorrectionUtils(resolvedUnit),
+      super();
 
   @override
   TypeParameterElement get element => super.element as TypeParameterElement;
@@ -21,6 +30,19 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     return 'Rename Type Parameter';
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var processor = RenameProcessor2(
+      workspace,
+      sessionHelper,
+      builder,
+      newName,
+    );
+    await processor.addDeclarationEdit(element);
+
+    var references = await searchEngine.searchReferences(element);
+    await processor.addReferenceEdits(references);
   }
 
   @override
@@ -49,11 +71,19 @@ class RenameTypeParameterRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    processor.addDeclarationEdit(element);
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
 
-    var references = await searchEngine.searchReferences(element);
-    processor.addReferenceEdits(references);
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
   }
 }
