@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/extension_member_resolver.dart';
@@ -32,19 +31,11 @@ class InstantiatedExtensionWithMember {
   ExtensionElement get extension => candidate.extension;
 
   InternalExecutableElement? get getter {
-    var getter = candidate.getter;
-    if (getter == null) {
-      return null;
-    }
-    return SubstitutedExecutableElementImpl.from(getter, substitution);
+    return candidate.getter?.substitute(substitution);
   }
 
   InternalExecutableElement? get setter {
-    var setter = candidate.setter;
-    if (setter == null) {
-      return null;
-    }
-    return SubstitutedExecutableElementImpl.from(setter, substitution);
+    return candidate.setter?.substitute(substitution);
   }
 }
 

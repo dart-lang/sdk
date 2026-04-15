@@ -918,7 +918,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
     void Function()? bodyWriter,
     bool isStatic = false,
     String? nameGroupName,
-    String? parameterName,
+    String parameterName = 'value',
     DartType? parameterType,
     String? parameterTypeGroupName,
     bool alwaysWriteType = false,
@@ -948,9 +948,7 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
         write(' ');
       }
     }
-    // TODO(brianwilkerson): The name of the setter is unlikely to be a good
-    // name for the parameter. We need to find a better name to produce here.
-    write(parameterName ?? name);
+    write(parameterName);
     write(') ');
     if (bodyWriter == null) {
       write('{}');

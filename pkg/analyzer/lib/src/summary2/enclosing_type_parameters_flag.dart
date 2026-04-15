@@ -30,6 +30,8 @@ class EnclosingTypeParameterReferenceFlag {
             }
 
             var executables = [
+              if (instanceElement is InterfaceElementImpl)
+                ...instanceElement.constructors,
               ...instanceElement.getters,
               ...instanceElement.setters,
               ...instanceElement.methods,

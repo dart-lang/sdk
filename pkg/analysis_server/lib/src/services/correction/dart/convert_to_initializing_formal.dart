@@ -37,8 +37,36 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructor == null) return;
+    FormalParameterList? parameterList;
+    NodeList<ConstructorInitializer>? initializers;
+    Comment? documentationComment;
+    FunctionBody? body;
+
+    var anchorNode = _findAnchorNode();
+    if (anchorNode case ConstructorDeclaration constructor) {
+      parameterList = constructor.parameters;
+      initializers = constructor.initializers;
+      documentationComment = constructor.documentationComment;
+      body = constructor.body;
+    } else if (anchorNode
+        case PrimaryConstructorDeclaration primaryConstructor) {
+      parameterList = primaryConstructor.formalParameters;
+      var primaryBody = primaryConstructor.body;
+      if (primaryBody != null) {
+        initializers = primaryBody.initializers;
+        documentationComment = primaryBody.documentationComment;
+        body = primaryBody.body;
+      }
+    } else if (anchorNode case PrimaryConstructorBody primaryBody) {
+      var declaration = primaryBody.declaration;
+      if (declaration == null) return;
+      parameterList = declaration.formalParameters;
+      initializers = primaryBody.initializers;
+      documentationComment = primaryBody.documentationComment;
+      body = primaryBody.body;
+    } else {
+      return;
+    }
 
     switch (node) {
       case AssignmentExpression assignment:
@@ -49,7 +77,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         var block = statement.parent;
         if (block is! Block) return;
 
-        if (_findParameter(constructor, assignment.rightHandSide) case (
+        if (_findParameter(parameterList, assignment.rightHandSide) case (
           var parameter,
           var parameterElement,
         )) {
@@ -58,7 +86,9 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
             case SetterElement(variable: VariableElement field):
               await _computeChange(
                 builder,
-                constructor,
+                parameterList,
+                initializers,
+                documentationComment,
                 parameter,
                 parameterElement,
                 field,
@@ -69,7 +99,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
       case ConstructorFieldInitializer initializer:
         // An explicit field initializer in a constructor initializer list.
-        if (_findParameter(constructor, initializer.expression) case (
+        if (_findParameter(parameterList, initializer.expression) case (
           var parameter,
           var parameterElement,
         )) {
@@ -78,7 +108,9 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
           await _computeChange(
             builder,
-            constructor,
+            parameterList,
+            initializers,
+            documentationComment,
             parameter,
             parameterElement,
             field,
@@ -90,7 +122,10 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         // A constructor parameter declaration.
         await _computeChangeFromParameter(
           builder,
-          constructor,
+          parameterList,
+          initializers,
+          documentationComment,
+          body,
           parameter,
           parameter.declaredFragment!.element,
         );
@@ -98,13 +133,16 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       case SimpleIdentifier parameterUse:
         // At an identifier expression that refers to a constructor parameter.
         if (parameterUse.element case FormalParameterElement parameterElement) {
-          if (_findParameter(constructor, parameterUse) case (
+          if (_findParameter(parameterList, parameterUse) case (
             var parameter,
             _,
           )) {
             await _computeChangeFromParameter(
               builder,
-              constructor,
+              parameterList,
+              initializers,
+              documentationComment,
+              body,
               parameter,
               parameterElement,
             );
@@ -123,7 +161,9 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   /// [assignment] but not both.
   Future<void> _computeChange(
     ChangeBuilder builder,
-    ConstructorDeclaration constructor,
+    FormalParameterList parameterList,
+    NodeList<ConstructorInitializer>? initializers,
+    Comment? documentationComment,
     NormalFormalParameter parameter,
     FormalParameterElement parameterElement,
     VariableElement field, {
@@ -188,11 +228,15 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
       // Remove the constructor initializer.
       if (initializer != null) {
-        var initializers = constructor.initializers;
-        if (initializers.length == 1) {
-          builder.addDeletion(
-            range.endEnd(constructor.parameters, initializer),
-          );
+        if (initializers!.length == 1) {
+          var initializerParent = initializer.parent;
+          if (initializerParent is PrimaryConstructorBody) {
+            builder.addDeletion(
+              range.endEnd(initializerParent.thisKeyword, initializer),
+            );
+          } else {
+            builder.addDeletion(range.endEnd(parameterList, initializer));
+          }
         } else {
           builder.addDeletion(range.nodeInList(initializers, initializer));
         }
@@ -204,22 +248,35 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         var statements = block.statements;
         var functionBody = block.parent;
         if (statements.length == 1 && functionBody is BlockFunctionBody) {
-          builder.addSimpleReplacement(
-            range.endEnd(
-              constructor.initializers.isNotEmpty
-                  ? constructor.initializers.last
-                  : constructor.parameters,
-              functionBody,
-            ),
-            ';',
-          );
+          var bodyParent = functionBody.parent;
+          if (bodyParent is PrimaryConstructorBody) {
+            builder.addSimpleReplacement(
+              range.endEnd(
+                initializers != null && initializers.isNotEmpty
+                    ? initializers.last
+                    : bodyParent.thisKeyword,
+                functionBody,
+              ),
+              ';',
+            );
+          } else {
+            builder.addSimpleReplacement(
+              range.endEnd(
+                initializers != null && initializers.isNotEmpty
+                    ? initializers.last
+                    : parameterList,
+                functionBody,
+              ),
+              ';',
+            );
+          }
         } else {
           builder.addDeletion(range.nodeInList(statements, assignment));
         }
       }
 
       if (updateCommentReferences) {
-        var references = constructor.documentationComment?.references;
+        var references = documentationComment?.references;
         if (references != null) {
           for (var reference in references) {
             if (reference.expression case SimpleIdentifier expression) {
@@ -240,30 +297,39 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
   /// and applies the conversion if one is found.
   Future<void> _computeChangeFromParameter(
     ChangeBuilder builder,
-    ConstructorDeclaration constructor,
+    FormalParameterList parameterList,
+    NodeList<ConstructorInitializer>? initializers,
+    Comment? documentationComment,
+    FunctionBody? body,
     NormalFormalParameter parameter,
     FormalParameterElement parameterElement,
   ) async {
     // If there happens to be both an initializer and an assignment, the
     // initializer will be first, so convert that and ignore the later mutating
     // assignment.
-    var initializer = _findInitializer(constructor, parameterElement);
+    var initializer = initializers != null
+        ? _findInitializer(initializers, parameterElement)
+        : null;
     if (initializer?.fieldName.element case VariableElement field) {
       await _computeChange(
         builder,
-        constructor,
+        parameterList,
+        initializers,
+        documentationComment,
         parameter,
         parameterElement,
         field,
         initializer: initializer,
       );
-    } else if (_findAssignment(constructor, parameterElement) case (
+    } else if (_findAssignment(body, parameterElement) case (
       var statement,
       var field,
     )) {
       await _computeChange(
         builder,
-        constructor,
+        parameterList,
+        initializers,
+        documentationComment,
         parameter,
         parameterElement,
         field,
@@ -272,19 +338,34 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     }
   }
 
-  /// Looks through the top-level statements in the [constructor] body for a
+  AstNode? _findAnchorNode() {
+    AstNode? currentNode = node;
+    while (currentNode != null) {
+      if (currentNode is ConstructorDeclaration) {
+        return currentNode;
+      } else if (currentNode is PrimaryConstructorDeclaration) {
+        return currentNode;
+      } else if (currentNode is PrimaryConstructorBody) {
+        return currentNode;
+      }
+      currentNode = currentNode.parent;
+    }
+    return null;
+  }
+
+  /// Looks through the top-level statements in the constructor [body] for a
   /// statement like:
   ///
   ///      this.x = y;
   ///
-  /// where `y` is refers to [parameter]. If found, returns the statement and
+  /// where `y` refers to the [parameter]. If found, returns the statement and
   /// the field it assigns to.
   (Statement, VariableElement)? _findAssignment(
-    ConstructorDeclaration constructor,
+    FunctionBody? body,
     FormalParameterElement parameter,
   ) {
-    if (constructor.body case BlockFunctionBody body) {
-      for (var statement in body.block.statements) {
+    if (body case BlockFunctionBody blockBody) {
+      for (var statement in blockBody.block.statements) {
         if (statement case ExpressionStatement(
           expression: AssignmentExpression(
             leftHandSide: PropertyAccess(target: ThisExpression()),
@@ -300,17 +381,16 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
         }
       }
     }
-
     return null;
   }
 
   /// Looks for a constructor initializer that initializes a field directly from
   /// [parameter].
   ConstructorFieldInitializer? _findInitializer(
-    ConstructorDeclaration constructor,
+    NodeList<ConstructorInitializer> initializers,
     FormalParameterElement parameter,
   ) {
-    for (var initializer in constructor.initializers) {
+    for (var initializer in initializers) {
       if (initializer case ConstructorFieldInitializer(
         expression: SimpleIdentifier identifier,
       ) when identifier.element == parameter) {
@@ -321,30 +401,30 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     return null;
   }
 
-  /// If [expression] is an identifier that refers to a formal parameter in
-  /// [constructor], then returns the corresponding parameter AST node.
+  /// If [expression] is an identifier that refers to a formal parameter in the
+  /// [parameterList], then returns the corresponding parameter AST node.
   (NormalFormalParameter, FormalParameterElement)? _findParameter(
-    ConstructorDeclaration constructor,
+    FormalParameterList parameterList,
     Expression expression,
   ) {
     if (expression case SimpleIdentifier(
       element: FormalParameterElement element,
     )) {
-      if (_findParameterForElement(constructor, element) case var parameter?) {
+      if (_findParameterForElement(parameterList, element)
+          case var parameter?) {
         return (parameter, element);
       }
     }
-
     return null;
   }
 
-  /// If [element] is an element for a formal parameter in [constructor], then
-  /// returns the corresponding parameter AST node.
+  /// If [element] is an element for a formal parameter in the [parameterList],
+  /// then returns the corresponding parameter AST node.
   NormalFormalParameter? _findParameterForElement(
-    ConstructorDeclaration constructor,
+    FormalParameterList parameterList,
     FormalParameterElement element,
   ) {
-    for (var parameter in constructor.parameters.parameters) {
+    for (var parameter in parameterList.parameters) {
       if (parameter.notDefault case var parameter
           when parameter.declaredFragment?.element == element) {
         return parameter;

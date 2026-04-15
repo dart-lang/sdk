@@ -280,7 +280,6 @@ class _SyncContext extends BodyInferenceContext {
           expressionType,
           statement.expression!,
           fileOffset: statement.expression!.fileOffset,
-          isVoidAllowed: true,
           errorTemplate: diag.invalidReturn,
         );
         statement.expression = expression..parent = statement;

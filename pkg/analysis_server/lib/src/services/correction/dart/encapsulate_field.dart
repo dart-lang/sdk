@@ -165,7 +165,6 @@ class EncapsulateField extends ResolvedCorrectionProducer {
             ..writeIndent()
             ..writeSetterDeclaration(
               name,
-              parameterName: 'value',
               parameterType: type?.type,
               bodyWriter: () {
                 builder

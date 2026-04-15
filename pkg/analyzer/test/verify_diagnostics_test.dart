@@ -33,152 +33,12 @@ class DocumentationValidator {
   /// ony include docs that cannot be verified because of missing support in the
   /// verifier.
   static const List<String> unverifiedDocs = [
-    //
-    // The following can't currently be verified because the examples aren't
-    // Dart code.
-    //
-    'included_file_parse_error',
-    'parse_error',
+    // The following diagnostics can't be verified because the examples aren't
+    // Dart code. The verifier needs to add the ability to verify YAML snippets
+    // and to use a YAML snippet as the example. If we can do this based on the
+    // class of the diagnostic, then there will be less chance of a false
+    // positive.
     'analysis_option_deprecated',
-    'deprecated_lint',
-    'duplicate_rule',
-    'included_file_warning',
-    'include_file_not_found',
-    'incompatible_lint',
-    'invalid_option',
-    'invalid_section_format',
-    'plugins_in_inner_options',
-    'recursive_include_file',
-    'removed_lint',
-    'undefined_lint',
-    'unrecognized_error_code',
-    'unsupported_option_with_legal_value',
-    'unsupported_value',
-
-    // Needs to be able to specify two expected diagnostics.
-    'ambiguous_import',
-    // TODO(kallentu): This is always reported with
-    // `argument_type_not_assignable` or is reported as
-    // `const_eval_throws_exception` in const constructor evaluation.
-    'const_constructor_param_type_mismatch',
-    // Produces two diagnostics when it should only produce one.
-    'const_deferred_class',
-    // The mock SDK doesn't define any internal libraries.
-    'export_internal_library',
-    // Also reports subtype_of_base_or_final_is_not_base_final_or_sealed
-    'extends_disallowed_class',
-    // The following codes produce two diagnostics because they illustrate a
-    // cycle.
-    'extension_type_implements_itself',
-    'extension_type_representation_depends_on_itself',
-    // Not reported with `getter-setter-error` feature enabled.
-    'getter_not_subtype_setter_types',
-    // Has code in the example section that needs to be skipped (because it's
-    // part of the explanatory text not part of the example), but there's
-    // currently no way to do that.
-    'invalid_implementation_override',
-    // Produces two diagnostics when it should only produce one. We could get
-    // rid of the invalid error by adding a declaration of a top-level variable
-    // (such as `JSBool b;`), but that would complicate the example.
-    'import_internal_library',
-    // Produces two diagnostics when it should only produce one.
-    'invalid_uri',
-    // No example, by design.
-    'missing_dart_library',
-    // Produces two diagnostics when it should only produce one.
-    'non_sync_factory',
-    // Need a way to make auxiliary files that (a) are not included in the
-    // generated docs or (b) can be made persistent for fixes.
-    'part_of_non_part',
-    // Produces multiple diagnostics when it should only produce one.
-    'prefix_collides_with_top_level_member',
-    // Produces two diagnostics for clarity.
-    'primary_constructor_body_without_declaration',
-    // Produces two diagnostic out of necessity.
-    'recursive_compile_time_constant',
-    // Produces two diagnostic out of necessity.
-    'recursive_constructor_redirect',
-    // Produces two diagnostic out of necessity.
-    'recursive_interface_inheritance',
-    // Produces two diagnostics out of necessity.
-    'referenced_before_declaration',
-    // Produces two diagnostic out of necessity.
-    'top_level_cycle',
-    // Produces two diagnostic out of necessity.
-    'type_alias_cannot_reference_itself',
-    // Produces two diagnostic out of necessity.
-    'type_parameter_supertype_of_its_bound',
-    // Produces the diagnostic unused_local_variable when it shouldn't.
-    'undefined_identifier_await',
-    // Produces multiple diagnostic because of poor recovery.
-    'yield_each_in_non_generator',
-
-    // This is not reported after 2.12, and the examples don't compile after 3.0.
-    'field_initializer_in_struct',
-    // This is not reported after 2.12, and the examples don't compile after 3.0.
-    'field_in_struct_with_initializer',
-
-    // This no longer works in 3.0.
-    'deprecated_colon_for_default_value',
-    // The code has been replaced but is not yet removed.
-    'deprecated_member_use',
-
-    // Need a way to specify the existance of files whose content is irrelevant.
-    'always_use_package_imports',
-    // Missing support for example files outside of `lib`.
-    'avoid_relative_lib_imports',
-    // The example isn't being recognized as a flutter app. We might need to
-    // build a pubspec.yaml when analyzing flutter code.
-    'avoid_web_libraries_in_flutter',
-    // Produces a body_might_complete_normally.
-    'control_flow_in_finally',
-    // Missing support for creating an indirect dependency on a package.
-    'depend_on_referenced_packages',
-    // Missing support for specifying the name of the test file.
-    'file_names',
-    // Produces an unused import diagnostic.
-    'implementation_imports',
-    // Doesn't produce a lint for the second example, even though the analyzer
-    // does when the example is pasted into a file.
-    'prefer_inlined_adds_single',
-    // No mock 'test' package, no good library annotations in 'meta'.
-    'library_annotations',
-    // Produces an unused import diagnostic.
-    'library_prefixes',
-    // Produces an unused element diagnostic.
-    'library_private_types_in_public_api',
-    // Missing support for YAML files.
-    'package_names',
-    // The lint does nothing.
-    'package_prefixed_library_names',
-    // Need a way to specify the existance of files whose content is irrelevant.
-    'prefer_relative_imports',
-    // The test file is in a basic workspace, so it can't have public API. I
-    // think we'd need to add a `pubspec.yaml` file to the example.
-    'public_member_api_docs',
-    // Missing support for YAML files.
-    'secure_pubspec_urls',
-    // The test framework doesn't yet support lints in non-dart files.
-    'sort_pub_dependencies',
-    // Doesn't produce a lint for the first example, even though the analyzer
-    // does when the example is pasted into a file.
-    'unnecessary_lambdas',
-    // Produces an unused_field warning.
-    'use_setters_to_change_properties',
-    // Extra warning.
-    'recursive_getters',
-
-    // Has `language=2.9`
-    'extension_declares_instance_field',
-
-    // Produces the newer private_named_non_field_parameter diagnostic instead
-    // as part of the "private named parameters" feature.
-    'private_optional_parameter',
-
-    //
-    // The following can't currently be verified because the examples aren't
-    // Dart code.
-    //
     'asset_does_not_exist',
     'asset_directory_does_not_exist',
     'asset_field_not_list',
@@ -188,39 +48,204 @@ class DocumentationValidator {
     'asset_path_not_string',
     'dependencies_field_not_map',
     'deprecated_field',
+    'deprecated_lint',
+    'duplicate_rule',
     'flutter_field_not_map',
+    'included_file_parse_error',
+    'included_file_warning',
+    'include_file_not_found',
+    'incompatible_lint',
     'invalid_dependency',
+    'invalid_option',
     'invalid_platforms_field',
+    'invalid_section_format',
     'missing_name',
     'missing_dependency',
     'name_not_string',
+    'package_names',
     'path_does_not_exist',
     'path_not_posix',
     'path_pubspec_does_not_exist',
+    'parse_error',
     'platform_value_disallowed',
+    'plugins_in_inner_options',
+    'recursive_include_file',
+    'removed_lint',
+    'removed_lint_use',
+    'secure_pubspec_urls',
+    'sort_pub_dependencies',
     'unknown_platform',
+    'undefined_lint',
     'unnecessary_dev_dependency',
+    'unrecognized_error_code',
+    'unsupported_option_with_legal_value',
+    'unsupported_value',
     'workspace_field_not_list',
     'workspace_value_not_string',
     'workspace_value_not_subdirectory',
 
-    // Produces two diagnostics out of necessity.
-    'dead_null_aware_expression',
-
-    // Reports final_class_extended_outside_of_library
-    'deprecated_extends_function',
-    // Doesn't apply to Dart files.
-    // TODO(brianwilkerson): Provide better support for non-Dart files.
-    'removed_lint_use',
-    // Produces more than one error range by design.
-    // TODO(srawlins): update verification to allow for multiple highlight ranges.
+    // The following diagnostics can't be verified because they necessarily
+    // produce more than one diagnostic. This is typically because of a conflict
+    // between two or more declarations, neither of which is obviously the
+    // better declaration to flag, and we have chosen to create a diagnostic for
+    // all of them.
+    'ambiguous_import',
+    'extension_type_implements_itself',
+    'extension_type_representation_depends_on_itself',
+    'recursive_compile_time_constant',
+    'recursive_constructor_redirect',
+    'recursive_interface_inheritance',
     'text_direction_code_point_in_comment',
-    // Produces more than one error range by design.
     'text_direction_code_point_in_literal',
-    // Produces two diagnostics out of necessity.
-    'unnecessary_null_comparison_never_null_false',
-    // Produced two diagnostics because `mustBeConst` is experimental.
-    'non_const_argument_for_const_parameter',
+    'top_level_cycle',
+    'type_alias_cannot_reference_itself',
+    'type_parameter_supertype_of_its_bound',
+
+    // const_constructor_param_type_mismatch (analyzer)
+    // - Expected an error with code const_constructor_param_type_mismatch,
+    //   found const_eval_throws_exception (example 0).
+    //
+    // Based on the TODO comment below, it appears that this diagnostic is never
+    // reported, and it should be marked as removed.
+    //
+    // TODO(kallentu): This is always reported with
+    // `argument_type_not_assignable` or is reported as
+    // `const_eval_throws_exception` in const constructor evaluation.
+    'const_constructor_param_type_mismatch',
+
+    // invalid_implementation_override (analyzer)
+    // - No error range in example
+    // - Expected no errors but found 1 (example 1):
+    //   undefined_class (7, 1) Undefined class 'B'.
+    //
+    // Has code in the example section that needs to be skipped (because it's
+    // part of the explanatory text not part of the example), but there's
+    // currently no way to do that. We could try to rewrite the text so that all
+    // of the code is in a single snippet, or we could introduce a way to skip
+    // some code blocks.
+    'invalid_implementation_override',
+
+    // invalid_uri (analyzer)
+    // - Expected an error with code invalid_uri, found uri_does_not_exist
+    //   (example 0).
+    //
+    // It's possible that this diagnostic is no longer reported.
+    'invalid_uri',
+
+    // yield_each_in_non_generator (analyzer)
+    // - No error range in example
+    // - Expected no errors but found 2 (example 0):
+    //   - undefined_identifier (29, 5) Undefined name 'yield'.
+    //   - body_might_complete_normally (18, 6) The body might complete
+    //     normally, causing 'null' to be returned, but the return type,
+    //     'Iterable<int>', is a potentially non-nullable type.
+    'yield_each_in_non_generator',
+
+    // deprecated_colon_for_default_value (analyzer)
+    // - Expected an error with code deprecated_colon_for_default_value, found
+    //   obsolete_colon_for_default_value (example 0).
+    //
+    // This no longer works in 3.0 and should be marked as removed.
+    'deprecated_colon_for_default_value',
+
+    // deprecated_member_use (analyzer)
+    // - Expected an error with code deprecated_member_use, found
+    //   undefined_class (example 0).
+    //
+    // The example needs to have a definition of `C` that is marked as
+    // deprecated.
+    'deprecated_member_use',
+
+    // avoid_relative_lib_imports (linter)
+    // - Expected one error but found 2 (example 0):
+    //   - uri_does_not_exist (7, 15) Target of URI doesn't exist: '../lib/a.dart'.
+    //   - avoid_relative_lib_imports (7, 15) Can't use a relative path to import a library in 'lib'.
+    // - Expected no errors but found 1 (fixes 0):
+    //   - unused_import (7, 8) Unused import: 'a.dart'.
+    //
+    // Missing support for example files outside of `lib`.
+    'avoid_relative_lib_imports',
+
+    // avoid_web_libraries_in_flutter (linter)
+    // - Expected one error but found none (example 0).
+    //
+    // The example isn't being recognized as a flutter app. We might need to
+    // build a pubspec.yaml when analyzing flutter code.
+    'avoid_web_libraries_in_flutter',
+
+    // depend_on_referenced_packages (linter)
+    // - Expected one error but found none (example 0).
+    //
+    // The example doesn't generate the documented diagnostic.
+    'depend_on_referenced_packages',
+
+    // file_names (linter)
+    // - No example.
+    //
+    // There's no interesting file content to use as an example. We could have
+    // some placeholder content to get rid of the failure, but the documentation
+    // wouldn't be improved.
+    'file_names',
+
+    // prefer_inlined_adds_single (linter)
+    // - Expected one error but found none (example 1).
+    //
+    // Doesn't produce a lint for the second example, even though the analyzer
+    // does when the example is pasted into a file.
+    'prefer_inlined_adds_single',
+
+    // library_annotations (linter)
+    // - Expected an error with code library_annotations, found
+    // undefined_annotation (example 0).
+    // - Expected no errors but found 1 (fixes 0):
+    //   - undefined_annotation (0, 18) Undefined name 'TestOn' used as an
+    //     annotation.
+    //
+    // No mock 'test' package, no good library annotations in 'meta'.
+    'library_annotations',
+
+    // package_prefixed_library_names (linter)
+    // - Expected one error but found none (example 0).
+    //
+    // The lint does nothing, so no diagnostic is produced. I needs to be marked
+    // as 'removed'.
+    'package_prefixed_library_names',
+
+    // prefer_relative_imports (linter)
+    // No error range in example
+    // - Expected no errors but found 1 (example 0):
+    //   - uri_does_not_exist (7, 29) Target of URI doesn't exist:
+    //     'package:my_package/bar.dart'.
+    // - Expected no errors but found 1 (fixes 0):
+    //   - uri_does_not_exist (7, 10) Target of URI doesn't exist: 'bar.dart'.
+    //
+    // Need a way to specify the existance of files whose content is irrelevant.
+    // Either that or the example needs to include a minial file to refer to.
+    'prefer_relative_imports',
+
+    // public_member_api_docs (linter)
+    // - Expected one error but found none (example 0).
+    //
+    // The test file is in a basic workspace, so it can't have public API. I
+    // think we'd need to add a `pubspec.yaml` file to the example.
+    'public_member_api_docs',
+
+    // recursive_getters (linter)
+    // - Expected an error at 39, found 48 (example 0).
+    //
+    // The lint fires when the example is pasted into an empty file.
+    'recursive_getters',
+
+    // Missing a mock of `Expando` in `dart:core`.
+    'extension_declares_instance_field',
+
+    // deprecated_extends_function (analyzer)
+    // - Expected an error with code deprecated_subtype_of_function, found
+    //  final_class_extended_outside_of_library (example 0).
+    //
+    // Probably needs a language override comment, but I don't know which
+    // version.
+    'deprecated_extends_function',
   ];
 
   /// The buffer to which validation errors are written.
@@ -443,6 +468,7 @@ class DocumentationValidator {
     test.setUp();
     await test.resolveTestFile();
     var diagnostics = test.result.diagnostics;
+    var filteredDiagnostics = <Diagnostic>[];
     var errorCount = 0;
     var unneededIgnores = snippet.ignores.toList();
     for (var diagnostic in diagnostics) {
@@ -451,6 +477,7 @@ class DocumentationValidator {
         unneededIgnores.remove(diagnosticName);
       } else {
         errorCount++;
+        filteredDiagnostics.add(diagnostic);
       }
     }
 
@@ -465,7 +492,7 @@ class DocumentationValidator {
       if (errorCount == 0) {
         _reportProblem('Expected one error but found none ($section $index).');
       } else if (errorCount == 1) {
-        var diagnostic = diagnostics[0];
+        var diagnostic = filteredDiagnostics[0];
         if (diagnostic.diagnosticCode.lowerCaseName != codeName) {
           _reportProblem(
             'Expected an error with code $codeName, '

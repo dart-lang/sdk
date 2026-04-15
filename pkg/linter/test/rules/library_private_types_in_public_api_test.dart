@@ -311,6 +311,21 @@ mixin _P {}
 ''');
   }
 
+  test_classTypeAlias_privateMixin() async {
+    await assertNoDiagnostics(r'''
+class C = Object with _P;
+mixin _P {}
+''');
+  }
+
+  test_classTypeAlias_privateSuperclass() async {
+    await assertNoDiagnostics(r'''
+class _P {}
+class C = _P with M;
+mixin M {}
+''');
+  }
+
   test_constructor_private_privateParameterType() async {
     await assertNoDiagnostics(r'''
 class C {

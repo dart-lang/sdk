@@ -478,6 +478,9 @@ class FlowGraphCompiler : public ValueObject {
   bool CanOSRFunction() const;
   bool is_optimizing() const { return is_optimizing_; }
 
+  void InsertBSSRelocation(BSS::Relocation reloc);
+  void LoadBSSEntry(BSS::Relocation relocation, Register dst, Register tmp);
+
   // The function was fully intrinsified, so the body is unreachable.
   //
   // We still need to compile the body in unoptimized mode because the

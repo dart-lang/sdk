@@ -693,6 +693,28 @@ class InterfaceTypeImpl extends TypeImpl implements InterfaceType {
   }
 
   @override
+  Map<Name, ExecutableElement> get inheritedConcreteMembers {
+    var substitution = Substitution.fromInterfaceType(this);
+    if (substitution.map.isEmpty) {
+      return element.inheritedConcreteMembers;
+    }
+    return element.inheritedConcreteMembers.mapValue((member) {
+      return member.substitute(substitution);
+    });
+  }
+
+  @override
+  Map<Name, ExecutableElement> get interfaceMembers {
+    var substitution = Substitution.fromInterfaceType(this);
+    if (substitution.map.isEmpty) {
+      return element.interfaceMembers;
+    }
+    return element.interfaceMembers.mapValue((member) {
+      return member.substitute(substitution);
+    });
+  }
+
+  @override
   List<InterfaceTypeImpl> get interfaces {
     return _instantiateSuperTypes(element.interfaces);
   }

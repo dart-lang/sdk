@@ -356,14 +356,6 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
       child.accept(visitor);
     }
   }
-
-  // TODO(scheglov): replace with `substitute`
-  static InternalExecutableElement from(
-    ExecutableElement element,
-    MapSubstitution substitution,
-  ) {
-    return (element as InternalExecutableElement).substitute(substitution);
-  }
 }
 
 /// A field element defined in a parameterized type where the values of the type

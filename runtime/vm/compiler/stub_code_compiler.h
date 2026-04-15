@@ -238,6 +238,11 @@ class StubCodeCompiler {
                           intptr_t return_function_offset_in_object_store,
                           intptr_t return_stub_offset_in_thread);
 
+  void GenerateLoadBSSEntry(BSS::Relocation relocation,
+                            Register dst,
+                            Register tmp);
+  void InsertBSSRelocation(BSS::Relocation reloc);
+
   void GenerateLoadFfiCallbackMetadataRuntimeFunction(uword function_index,
                                                       Register dst);
 

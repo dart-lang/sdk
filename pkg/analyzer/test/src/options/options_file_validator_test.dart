@@ -616,12 +616,60 @@ linter:
     );
   }
 
-  test_plugins_each_invalid_mapKey() {
+  test_plugins_diagnostics_invalid() {
+    validate(
+      '''
+plugins:
+  one:
+    diagnostics:
+      code: abc
+''',
+      [diag.unsupportedOptionWithLegalValues],
+    );
+  }
+
+  test_plugins_diagnostics_notAMap() {
+    validate(
+      '''
+plugins:
+  one:
+    diagnostics: 7
+''',
+      [diag.invalidSectionFormat],
+    );
+  }
+
+  test_plugins_diagnostics_supported_severity() {
     validate('''
 plugins:
   one:
-    ppath: foo/bar
+    diagnostics:
+      code1: ignore
+      code2: warning
+      code3: error
+      code4: info
 ''', []);
+  }
+
+  test_plugins_diagnostics_supported_trueOrFalse() {
+    validate('''
+plugins:
+  one:
+    diagnostics:
+      code1: true
+      code2: false
+''', []);
+  }
+
+  test_plugins_each_invalid_mapKey() {
+    validate(
+      '''
+plugins:
+  one:
+    ppath: foo/bar
+''',
+      [diag.unsupportedOptionWithLegalValues],
+    );
   }
 
   test_plugins_each_valid_mapKey() {
