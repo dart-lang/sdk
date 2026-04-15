@@ -73,6 +73,8 @@ abstract class TypeInferrer {
     required Uri fileUri,
     required SourceConstructorBuilder constructorBuilder,
     required Initializer initializer,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
   });
 
   /// Performs type inference on the given metadata [annotations].
@@ -356,6 +358,8 @@ class TypeInferrerImpl implements TypeInferrer {
     required Uri fileUri,
     required SourceConstructorBuilder constructorBuilder,
     required Initializer initializer,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
   }) {
     // Use polymorphic dispatch on [KernelInitializer] to perform whatever
     // kind of type inference is correct for this kind of initializer.
@@ -366,7 +370,17 @@ class TypeInferrerImpl implements TypeInferrer {
       fileUri: fileUri,
       constructorBuilder: constructorBuilder,
     );
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      scopeProviderInfo = visitor.beginFunctionBodyInference(
+        parameters,
+        internalThisVariable: internalThisVariable,
+      );
+    }
     InitializerInferenceResult result = visitor.inferInitializer(initializer);
+    if (scopeProviderInfo != null) {
+      visitor.endFunctionBodyInference(scopeProviderInfo);
+    }
     visitor.checkCleanState();
     return result;
   }
@@ -488,12 +502,16 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required Uri fileUri,
     required SourceConstructorBuilder constructorBuilder,
     required Initializer initializer,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferInitializer);
     InitializerInferenceResult result = impl.inferInitializer(
       fileUri: fileUri,
       constructorBuilder: constructorBuilder,
       initializer: initializer,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
     );
     benchmarker.endSubdivide();
     return result;

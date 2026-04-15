@@ -1,0 +1,4 @@
+class A {
+  A(int y) : x = (() => y)();
+  final int x;
+}
