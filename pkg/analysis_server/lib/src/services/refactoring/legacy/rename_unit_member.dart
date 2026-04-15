@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/protocol_server.dart'
-    show newLocation_fromElement, newLocation_fromMatch;
+    show newLocation_fromElement, newLocation_fromMatch, SourceChange;
 import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
@@ -11,11 +11,13 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/search/element_visitors.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart' show Identifier;
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// Checks if creating a top-level function with the given [name] in [library]
 /// will cause any conflicts.
@@ -46,6 +48,8 @@ Future<RefactoringStatus> validateRenameTopLevel(
 class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   final ResolvedUnitResult resolvedUnit;
 
+  final CorrectionUtils utils;
+
   /// If the element is a Flutter `StatefulWidget` declaration, this is the
   /// corresponding `State` declaration.
   ClassElement? _flutterWidgetState;
@@ -58,7 +62,8 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
     super.sessionHelper,
     this.resolvedUnit,
     super.element,
-  ) : super();
+  ) : utils = CorrectionUtils(resolvedUnit),
+      super();
 
   @override
   String get refactoringName {
@@ -78,6 +83,39 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
       return 'Rename Type Alias';
     }
     return 'Rename Class';
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var elements = switch (element) {
+      PropertyInducingElement element when element.isOriginGetterSetter => [
+        ?element.getter,
+        ?element.setter,
+      ],
+      _ => [element],
+    };
+
+    // Rename each element and references to it.
+    var processor = RenameProcessor2(
+      workspace,
+      sessionHelper,
+      builder,
+      newName,
+    );
+    for (var element in elements) {
+      await processor.renameElement(element);
+    }
+
+    // If a StatefulWidget is being renamed, rename also its State.
+    var flutterWidgetState = _flutterWidgetState;
+    if (flutterWidgetState != null) {
+      _updateFlutterWidgetStateName();
+      await RenameProcessor2(
+        workspace,
+        sessionHelper,
+        builder,
+        _flutterWidgetStateNewName!,
+      ).renameElement(flutterWidgetState);
+    }
   }
 
   @override
@@ -126,32 +164,20 @@ class RenameUnitMemberRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<void> fillChange() async {
-    var elements = switch (element) {
-      PropertyInducingElement element when element.isOriginGetterSetter => [
-        ?element.getter,
-        ?element.setter,
-      ],
-      _ => [element],
-    };
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
 
-    // Rename each element and references to it.
-    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    for (var element in elements) {
-      await processor.renameElement(element);
-    }
-
-    // If a StatefulWidget is being renamed, rename also its State.
-    var flutterWidgetState = _flutterWidgetState;
-    if (flutterWidgetState != null) {
-      _updateFlutterWidgetStateName();
-      await RenameProcessor(
-        workspace,
-        sessionHelper,
-        change,
-        _flutterWidgetStateNewName!,
-      ).renameElement(flutterWidgetState);
-    }
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
   }
 
   void _findFlutterStateClass() {

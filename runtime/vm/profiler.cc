@@ -1058,8 +1058,7 @@ class ProfilerDartStackWalker : public ProfilerStackWalker {
                                    is_interpreted_frame) ||
         StubCode::InInvocationStub(thread_, Stack(sp, 1), is_interpreted_frame);
 #else
-        StubCode::InInvocationStub(thread_, reinterpret_cast<uword>(lr),
-                                   is_interpreted_frame);
+        StubCode::InInvocationStub(thread_, lr, is_interpreted_frame);
 #endif
     if (is_entry_frame) {
       // During the prologue of a function, CallerPC will return the caller's
