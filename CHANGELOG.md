@@ -1,5 +1,7 @@
 ## 3.11.5
 
+**Released on:** 2026-04-15
+
 This is a patch release that:
 
 - Fixes an issue with the Dart MCP server and latest AntiGravity. (issue
