@@ -739,7 +739,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     debugEvent("endImport");
     assert(
       checkState(importKeyword, [
@@ -773,22 +773,10 @@ class OutlineBuilder extends StackListenerImpl {
       return;
     }
 
-    if (augmentToken != null) {
-      // Coverage-ignore-block(suite): Not run.
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        augmentToken.charOffset,
-        augmentToken.length,
-      )) {
-        augmentToken = null;
-      }
-    }
-    bool isAugmentationImport = augmentToken != null;
     _builderFactory.addImport(
       offsetMap: _offsetMap,
       importKeyword: importKeyword,
       metadata: metadata,
-      isAugmentationImport: isAugmentationImport,
       uri: uri,
       configurations: configurations,
       prefix: prefix?.name,
@@ -1105,7 +1093,6 @@ class OutlineBuilder extends StackListenerImpl {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1121,15 +1108,6 @@ class OutlineBuilder extends StackListenerImpl {
     pushDeclarationContext(DeclarationContext.Class);
     NominalParameters? typeParameters =
         peek(NullValues.NominalParameters) as NominalParameters?;
-    if (macroToken != null) {
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        macroToken.charOffset,
-        macroToken.length,
-      )) {
-        macroToken = null;
-      }
-    }
     if (sealedToken != null) {
       if (reportIfNotEnabled(
         libraryFeatures.sealedClass,
@@ -1182,7 +1160,6 @@ class OutlineBuilder extends StackListenerImpl {
     );
     Modifiers modifiers = Modifiers.from(
       abstractToken: abstractToken,
-      macroToken: macroToken,
       sealedToken: sealedToken,
       baseToken: baseToken,
       interfaceToken: interfaceToken,
@@ -1274,7 +1251,6 @@ class OutlineBuilder extends StackListenerImpl {
   void beginNamedMixinApplication(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1295,15 +1271,6 @@ class OutlineBuilder extends StackListenerImpl {
       name.charOffset,
       typeParameters?.fragments,
     );
-    if (macroToken != null) {
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        macroToken.charOffset,
-        macroToken.length,
-      )) {
-        macroToken = null;
-      }
-    }
     if (sealedToken != null) {
       if (reportIfNotEnabled(
         libraryFeatures.sealedClass,
@@ -1352,7 +1319,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(
       Modifiers.from(
         abstractToken: abstractToken,
-        macroToken: macroToken,
         sealedToken: sealedToken,
         baseToken: baseToken,
         interfaceToken: interfaceToken,

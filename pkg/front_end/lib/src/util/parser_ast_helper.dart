@@ -272,7 +272,6 @@ abstract class AbstractParserAstListener implements Listener {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -285,7 +284,6 @@ abstract class AbstractParserAstListener implements Listener {
       ParserAstType.BEGIN,
       begin: begin,
       abstractToken: abstractToken,
-      macroToken: macroToken,
       sealedToken: sealedToken,
       baseToken: baseToken,
       interfaceToken: interfaceToken,
@@ -1353,7 +1351,6 @@ abstract class AbstractParserAstListener implements Listener {
   void beginNamedMixinApplication(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1366,7 +1363,6 @@ abstract class AbstractParserAstListener implements Listener {
       ParserAstType.BEGIN,
       beginToken: beginToken,
       abstractToken: abstractToken,
-      macroToken: macroToken,
       sealedToken: sealedToken,
       baseToken: baseToken,
       interfaceToken: interfaceToken,
@@ -1521,11 +1517,10 @@ abstract class AbstractParserAstListener implements Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     ImportEnd data = new ImportEnd(
       ParserAstType.END,
       importKeyword: importKeyword,
-      augmentToken: augmentToken,
       semicolon: semicolon,
     );
     seen(data);
@@ -4417,7 +4412,6 @@ class ClassOrMixinOrNamedMixinApplicationPreludeBegin extends ParserAstNode {
 class ClassDeclarationBegin extends ParserAstNode {
   final Token begin;
   final Token? abstractToken;
-  final Token? macroToken;
   final Token? sealedToken;
   final Token? baseToken;
   final Token? interfaceToken;
@@ -4430,7 +4424,6 @@ class ClassDeclarationBegin extends ParserAstNode {
     ParserAstType type, {
     required this.begin,
     this.abstractToken,
-    this.macroToken,
     this.sealedToken,
     this.baseToken,
     this.interfaceToken,
@@ -4444,7 +4437,6 @@ class ClassDeclarationBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
     "begin": begin,
     "abstractToken": abstractToken,
-    "macroToken": macroToken,
     "sealedToken": sealedToken,
     "baseToken": baseToken,
     "interfaceToken": interfaceToken,
@@ -6207,7 +6199,6 @@ class MixinWithClauseHandle extends ParserAstNode {
 class NamedMixinApplicationBegin extends ParserAstNode {
   final Token beginToken;
   final Token? abstractToken;
-  final Token? macroToken;
   final Token? sealedToken;
   final Token? baseToken;
   final Token? interfaceToken;
@@ -6220,7 +6211,6 @@ class NamedMixinApplicationBegin extends ParserAstNode {
     ParserAstType type, {
     required this.beginToken,
     this.abstractToken,
-    this.macroToken,
     this.sealedToken,
     this.baseToken,
     this.interfaceToken,
@@ -6234,7 +6224,6 @@ class NamedMixinApplicationBegin extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
     "beginToken": beginToken,
     "abstractToken": abstractToken,
-    "macroToken": macroToken,
     "sealedToken": sealedToken,
     "baseToken": baseToken,
     "interfaceToken": interfaceToken,
@@ -6500,20 +6489,14 @@ class ImportPrefixHandle extends ParserAstNode {
 
 class ImportEnd extends ParserAstNode {
   final Token importKeyword;
-  final Token? augmentToken;
   final Token? semicolon;
 
-  ImportEnd(
-    ParserAstType type, {
-    required this.importKeyword,
-    this.augmentToken,
-    this.semicolon,
-  }) : super("Import", type);
+  ImportEnd(ParserAstType type, {required this.importKeyword, this.semicolon})
+    : super("Import", type);
 
   @override
   Map<String, Object?> get deprecatedArguments => {
     "importKeyword": importKeyword,
-    "augmentToken": augmentToken,
     "semicolon": semicolon,
   };
 

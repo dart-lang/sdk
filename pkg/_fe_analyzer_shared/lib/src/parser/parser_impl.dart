@@ -562,7 +562,6 @@ class Parser {
         /* beginToken = */ token.next!,
         /* modifierStart = */ token,
         /* keyword = */ next,
-        /* macroToken = */ null,
         /* sealedToken = */ null,
         /* baseToken = */ null,
         /* interfaceToken = */ null,
@@ -592,16 +591,10 @@ class Parser {
       }
     }
     next = token.next!;
-    Token? macroToken;
     Token? sealedToken;
     Token? baseToken;
     Token? interfaceToken;
-    if (next.isIdentifier &&
-        next.lexeme == 'macro' &&
-        next.next!.isA(Keyword.CLASS)) {
-      macroToken = next;
-      next = next.next!;
-    } else if (next.isIdentifier && next.isA(Keyword.SEALED)) {
+    if (next.isIdentifier && next.isA(Keyword.SEALED)) {
       sealedToken = next;
       if (next.next!.isA(Keyword.CLASS) ||
           next.next!.isA(Keyword.MIXIN) ||
@@ -635,7 +628,6 @@ class Parser {
         /* beginToken = */ beginToken,
         /* modifierStart = */ modifierStart,
         /* keyword = */ next,
-        /* macroToken = */ macroToken,
         /* sealedToken = */ sealedToken,
         /* baseToken = */ baseToken,
         /* interfaceToken = */ interfaceToken,
@@ -681,7 +673,6 @@ class Parser {
     Token beginToken,
     Token modifierStart,
     Token keyword,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -694,7 +685,6 @@ class Parser {
         beginToken,
         modifierStart,
         keyword,
-        macroToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -791,7 +781,6 @@ class Parser {
               beginToken,
               modifierStart,
               keyword.next!,
-              macroToken,
               sealedToken,
               baseToken,
               interfaceToken,
@@ -847,7 +836,6 @@ class Parser {
     Token beginToken,
     Token modifierStart,
     Token classKeyword,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -875,7 +863,6 @@ class Parser {
     return parseClassOrNamedMixinApplication(
       beginToken,
       context.abstractToken,
-      macroToken,
       sealedToken,
       baseToken,
       interfaceToken,
@@ -974,21 +961,17 @@ class Parser {
     listener.beginUncategorizedTopLevelDeclaration(importKeyword);
     listener.beginImport(importKeyword);
     Token start = importKeyword;
-    Token? augmentToken;
-    if (start.next!.isIdentifier && start.next!.lexeme == 'augment') {
-      start = augmentToken = start.next!;
-    }
     Token token = ensureLiteralString(start);
     Token uri = token;
     token = parseConditionalUriStar(token);
     token = parseImportPrefixOpt(token);
     token = parseCombinatorStar(token).next!;
     if (token.isA(TokenType.SEMICOLON)) {
-      listener.endImport(importKeyword, augmentToken, token);
+      listener.endImport(importKeyword, token);
       return token;
     } else {
       // Recovery
-      listener.endImport(importKeyword, augmentToken, /* semicolon = */ null);
+      listener.endImport(importKeyword, /* semicolon = */ null);
       return parseImportRecovery(uri);
     }
   }
@@ -2938,7 +2921,6 @@ class Parser {
   Token parseClassOrNamedMixinApplication(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -2995,7 +2977,6 @@ class Parser {
       listener.beginNamedMixinApplication(
         beginToken,
         abstractToken,
-        macroToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -3009,7 +2990,6 @@ class Parser {
       listener.beginClassDeclaration(
         beginToken,
         abstractToken,
-        macroToken,
         sealedToken,
         baseToken,
         interfaceToken,

@@ -602,7 +602,7 @@ class DietListener extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     debugEvent("Import");
     Object? name = pop(NullValues.Prefix);
 
@@ -612,11 +612,7 @@ class DietListener extends StackListenerImpl {
 
     // Native imports must be skipped because they aren't assigned corresponding
     // LibraryDependency nodes.
-    Token importUriToken =
-        augmentToken
-            // Coverage-ignore(suite): Not run.
-            ?.next ??
-        importKeyword.next!;
+    Token importUriToken = importKeyword.next!;
     String importUri = unescapeString(
       importUriToken.lexeme,
       importUriToken,
@@ -1080,7 +1076,6 @@ class DietListener extends StackListenerImpl {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
