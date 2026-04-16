@@ -151,7 +151,7 @@ main() {
 
 ## 3.11.0
 
-**Released on:** Unreleased
+**Released on:** 2026-02-11
 
 ### Language
 
