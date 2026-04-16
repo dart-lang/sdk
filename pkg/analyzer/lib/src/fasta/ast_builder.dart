@@ -114,9 +114,6 @@ class AstBuilder extends StackListener {
   /// Whether the 'enhanced_parts' feature is enabled.
   final bool enableEnhancedParts;
 
-  /// Whether the 'macros' feature is enabled.
-  final bool enableMacros;
-
   /// `true` if records are enabled
   final bool enableRecords;
 
@@ -171,7 +168,6 @@ class AstBuilder extends StackListener {
        enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
        enableEnhancedEnums = _featureSet.isEnabled(Feature.enhanced_enums),
        enableEnhancedParts = _featureSet.isEnabled(Feature.enhanced_parts),
-       enableMacros = _featureSet.isEnabled(Feature.macros),
        enableRecords = _featureSet.isEnabled(Feature.records),
        enableUnnamedLibraries = _featureSet.isEnabled(Feature.unnamedLibraries),
        enableInlineClass = _featureSet.isEnabled(Feature.inline_class),
@@ -231,7 +227,6 @@ class AstBuilder extends StackListener {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -242,16 +237,6 @@ class AstBuilder extends StackListener {
   ) {
     assert(_classLikeBuilder == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
-    if (!enableMacros) {
-      if (macroToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.macros,
-          startToken: macroToken,
-        );
-        // Pretend that 'macro' didn't occur while this feature is incomplete.
-        macroToken = null;
-      }
-    }
     if (!enableSealedClass) {
       if (sealedToken != null) {
         _reportFeatureNotEnabled(
@@ -298,7 +283,6 @@ class AstBuilder extends StackListener {
         mixinToken = null;
       }
     }
-    push(macroToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -514,7 +498,6 @@ class AstBuilder extends StackListener {
   void beginNamedMixinApplication(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -524,16 +507,6 @@ class AstBuilder extends StackListener {
     Token name,
   ) {
     push(_Modifiers()..abstractKeyword = abstractToken);
-    if (!enableMacros) {
-      if (macroToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.macros,
-          startToken: macroToken,
-        );
-        // Pretend that 'macro' didn't occur while this feature is incomplete.
-        macroToken = null;
-      }
-    }
     if (!enableSealedClass) {
       if (sealedToken != null) {
         _reportFeatureNotEnabled(
@@ -579,7 +552,6 @@ class AstBuilder extends StackListener {
         mixinToken = null;
       }
     }
-    push(macroToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -827,7 +799,6 @@ class AstBuilder extends StackListener {
       comment: null,
       metadata: null,
       abstractKeyword: null,
-      macroKeyword: null,
       sealedKeyword: null,
       baseKeyword: null,
       interfaceKeyword: null,
@@ -2189,7 +2160,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     assert(optional('import', importKeyword));
     assert(optionalOrNull(';', semicolon));
     debugEvent("Import");
@@ -2202,17 +2173,6 @@ class AstBuilder extends StackListener {
     var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, importKeyword);
-
-    if (!enableMacros) {
-      if (augmentToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.macros,
-          startToken: augmentToken,
-        );
-        // Pretend that 'augment' didn't occur while this feature is incomplete.
-        augmentToken = null;
-      }
-    }
 
     directives.add(
       ImportDirectiveImpl(
@@ -2620,7 +2580,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    pop(NullValues.Token) as Token?; // macroKeyword
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -3879,7 +3838,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -3892,7 +3850,6 @@ class AstBuilder extends StackListener {
       comment: comment,
       metadata: metadata,
       abstractKeyword: abstractKeyword,
-      macroKeyword: macroKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
@@ -6420,7 +6377,6 @@ class AstBuilder extends StackListener {
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token? abstractKeyword;
-  final Token? macroKeyword;
   final Token? sealedKeyword;
   final Token? baseKeyword;
   final Token? interfaceKeyword;
@@ -6445,7 +6401,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.rightBracket,
     required this.augmentKeyword,
     required this.abstractKeyword,
-    required this.macroKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,

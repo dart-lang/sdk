@@ -1509,20 +1509,18 @@ class ElementAnnotationImpl
   /// The name of the class used to JS annotate an element.
   static const String _jsClassName = 'JS';
 
-  /// The URI of `dart:core` library.
-  static final Uri _dartCoreUri = Uri.parse('dart:core');
-
-  /// The URI of `dart:_js_annotations` library.
-  static final Uri _jsAnnotationsLibUri = Uri.parse('dart:_js_annotations');
+  /// The name of `_js_annotations` library, used to define JS annotations.
+  static const String _jsLibName = '_js_annotations';
 
   /// The URI of `dart:js_interop` library.
-  static final Uri _jsInteropLibUri = Uri.parse('dart:js_interop');
+  static const String _jsInteropLibUri = 'dart:js_interop';
 
-  /// The URI of `meta` library.
-  static final Uri _metaLibUri = Uri.parse('package:meta/meta.dart');
+  /// The name of `meta` library, used to define analysis annotations.
+  static const String _metaLibName = 'meta';
 
-  /// The URI of `meta_meta` library.
-  static final Uri _metaMetaLibUri = Uri.parse('package:meta/meta_meta.dart');
+  /// The name of `meta_meta` library, used to define annotations for other
+  /// annotations.
+  static const String _metaMetaLibName = 'meta_meta';
 
   /// The name of the top-level variable used to mark a method as requiring
   /// subclasses to override this method.
@@ -1532,13 +1530,9 @@ class ElementAnnotationImpl
   /// overriders to call super.
   static const String _mustCallSuperVariableName = 'mustCallSuper';
 
-  /// The URI of `angular.meta` library.
-  static final Uri _angularMetaLibUri = Uri.parse(
-    'package:angular_meta/angular_meta.dart',
-  );
-
-  /// The URI of `package:js/js.dart` library.
-  static final Uri _jsPkgUri = Uri.parse('package:js/js.dart');
+  /// The name of `angular.meta` library, used to define angular analysis
+  /// annotations.
+  static const String _angularMetaLibName = 'angular.meta';
 
   /// The name of the top-level variable used to mark a member as being nonVirtual.
   static const String _nonVirtualVariableName = 'nonVirtual';
@@ -1717,12 +1711,8 @@ class ElementAnnotationImpl
 
   @override
   bool get isJS =>
-      _isConstructor(
-        libraryUri: _jsAnnotationsLibUri,
-        className: _jsClassName,
-      ) ||
-      _isConstructor(libraryUri: _jsInteropLibUri, className: _jsClassName) ||
-      _isConstructor(libraryUri: _jsPkgUri, className: _jsClassName);
+      _isConstructor(libraryName: _jsLibName, className: _jsClassName) ||
+      _isConstructor(libraryUri: _jsInteropLibUri, className: _jsClassName);
 
   @override
   bool get isLiteral => _isPackageMetaGetter(_literalVariableName);
@@ -1749,7 +1739,7 @@ class ElementAnnotationImpl
   /// Return `true` if this is an annotation of the form
   /// `@pragma("vm:entry-point")`.
   bool get isPragmaVmEntryPoint {
-    if (_isConstructor(libraryUri: _dartCoreUri, className: 'pragma')) {
+    if (_isConstructor(libraryName: 'dart.core', className: 'pragma')) {
       var value = computeConstantValue();
       var nameValue = value?.getField('name');
       return nameValue?.toStringValue() == 'vm:entry-point';
@@ -1771,19 +1761,27 @@ class ElementAnnotationImpl
 
   @override
   bool get isRequired =>
-      _isConstructor(libraryUri: _metaLibUri, className: _requiredClassName) ||
+      _isConstructor(
+        libraryName: _metaLibName,
+        className: _requiredClassName,
+      ) ||
       _isPackageMetaGetter(_requiredVariableName);
 
   @override
   bool get isSealed => _isPackageMetaGetter(_sealedVariableName);
 
   @override
-  bool get isTarget =>
-      _isConstructor(libraryUri: _metaMetaLibUri, className: _targetClassName);
+  bool get isTarget => _isConstructor(
+    libraryName: _metaMetaLibName,
+    className: _targetClassName,
+  );
 
   @override
   bool get isUseResult =>
-      _isConstructor(libraryUri: _metaLibUri, className: _useResultClassName) ||
+      _isConstructor(
+        libraryName: _metaLibName,
+        className: _useResultClassName,
+      ) ||
       _isPackageMetaGetter(_useResultVariableName);
 
   @override
@@ -1792,7 +1790,7 @@ class ElementAnnotationImpl
 
   @override
   bool get isVisibleForTemplate => _isTopGetter(
-    libraryUri: _angularMetaLibUri,
+    libraryName: _angularMetaLibName,
     name: _visibleForTemplateVariableName,
   );
 
@@ -1802,7 +1800,7 @@ class ElementAnnotationImpl
 
   @override
   bool get isVisibleOutsideTemplate => _isTopGetter(
-    libraryUri: _angularMetaLibUri,
+    libraryName: _angularMetaLibName,
     name: _visibleOutsideTemplateVariableName,
   );
 
@@ -1836,26 +1834,44 @@ class ElementAnnotationImpl
   @override
   String toString() => '@$element';
 
-  bool _isConstructor({required Uri libraryUri, required String className}) {
+  bool _isConstructor({
+    String? libraryName,
+    String? libraryUri,
+    required String className,
+  }) {
+    assert(
+      (libraryName != null) != (libraryUri != null),
+      'Exactly one of libraryName/libraryUri should be provided',
+    );
     var element = this.element;
     return element is ConstructorElement &&
         element.enclosingElement.name == className &&
-        element.library.uri == libraryUri;
+        (libraryName == null || element.library.name == libraryName) &&
+        (libraryUri == null || element.library.uri.toString() == libraryUri);
   }
 
   bool _isDartCoreGetter(String name) {
-    return _isTopGetter(libraryUri: _dartCoreUri, name: name);
+    return _isTopGetter(libraryName: 'dart.core', name: name);
   }
 
   bool _isPackageMetaGetter(String name) {
-    return _isTopGetter(libraryUri: _metaLibUri, name: name);
+    return _isTopGetter(libraryName: _metaLibName, name: name);
   }
 
-  bool _isTopGetter({required Uri libraryUri, required String name}) {
+  bool _isTopGetter({
+    String? libraryName,
+    Uri? libraryUri,
+    required String name,
+  }) {
+    assert(
+      (libraryName != null) != (libraryUri != null),
+      'Exactly one of libraryName/libraryUri should be provided',
+    );
     var element = this.element;
     return element is PropertyAccessorElement &&
         element.name == name &&
-        element.library.uri == libraryUri;
+        (libraryName == null || element.library.name == libraryName) &&
+        (libraryUri == null || element.library.uri == libraryUri);
   }
 }
 
@@ -6241,9 +6257,6 @@ class LabelFragmentImpl extends FragmentImpl implements LabelFragment {
 class LibraryElementImpl extends ElementImpl
     with DeferredResolutionReadingMixin
     implements LibraryElement {
-  static final Uri _dartCoreUri = Uri.parse('dart:core');
-  static final Uri _dartAsyncUri = Uri.parse('dart:async');
-
   final AnalysisContext _context;
 
   @override
@@ -6574,11 +6587,11 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   @trackedIndirectly
-  bool get isDartAsync => uri == _dartAsyncUri;
+  bool get isDartAsync => name == "dart.async";
 
   @override
   @trackedIndirectly
-  bool get isDartCore => uri == _dartCoreUri;
+  bool get isDartCore => name == "dart.core";
 
   @override
   @trackedIndirectly

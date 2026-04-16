@@ -198,7 +198,6 @@ abstract class FragmentFactory {
     OffsetMap? offsetMap,
     Token? importKeyword,
     required List<MetadataBuilder>? metadata,
-    required bool isAugmentationImport,
     required String uri,
     required List<Configuration>? configurations,
     required String? prefix,

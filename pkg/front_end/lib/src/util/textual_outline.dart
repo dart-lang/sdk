@@ -1108,7 +1108,7 @@ class TextualOutlineListener extends Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     if (semicolon != null) {
       importExportsStartToChunk[importKeyword] = new _ImportChunk(
         importKeyword,
