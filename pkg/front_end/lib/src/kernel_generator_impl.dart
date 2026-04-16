@@ -223,7 +223,6 @@ Future<InternalCompilerResult> _buildInternal(
     // summaries without building a full component (at this time, that's
     // the only need we have for these transformations).
     if (!buildComponent) {
-      options.target.performOutlineTransformations(trimmedSummaryComponent);
       options.target.performOutlineComponentOperations(trimmedSummaryComponent);
       options.ticker.logMs("Transformed outline");
     }
