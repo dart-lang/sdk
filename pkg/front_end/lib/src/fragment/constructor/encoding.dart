@@ -87,7 +87,11 @@ abstract class ConstructorEncoding {
     ConstructorFragmentDeclaration constructorDeclaration,
   );
 
-  void registerFunctionBody({required Statement? body, Scope? scope});
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  });
 
   void registerNoBodyConstructor();
 
@@ -131,11 +135,16 @@ class RegularConstructorEncoding implements ConstructorEncoding {
        _isEnumConstructor = isEnumConstructor;
 
   @override
-  void registerFunctionBody({required Statement? body, Scope? scope}) {
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
     _constructor.function.scope = scope;
+    _constructor.function.thisVariable = thisVariable;
   }
 
   @override
@@ -511,11 +520,16 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  void registerFunctionBody({required Statement? body, Scope? scope}) {
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
     _constructor.function.scope = scope;
+    _constructor.function.thisVariable = thisVariable;
   }
 
   @override

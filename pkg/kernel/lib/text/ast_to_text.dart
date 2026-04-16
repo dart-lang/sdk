@@ -771,7 +771,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void _writeContexts(ContextConsumer consumer) {
-    if (consumer.contexts case List<VariableContext> contexts
+    if (consumer.capturedContexts case List<VariableContext> contexts
         when contexts.isNotEmpty) {
       ensureSpace();
       writeWord('/*');
@@ -1270,6 +1270,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
           writeWord('variable-declaration');
         case CatchVariable():
           writeWord('catch-variable');
+        case VariableInitialization():
+          writeWord('variable-initialization');
       }
 
       // TODO(cstefantsova): Should [Variable]s have annotations?
@@ -2573,7 +2575,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       ensureSpace();
     }
     writeSymbol('(');
-    writeList(node.variableInitializations, writeVariableInitialization);
+    writeList(node.variables, writeVariableInitialization);
     writeComma(';');
     Expression? condition = node.condition;
     if (condition != null) {

@@ -47,10 +47,6 @@ library;
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:45:9: Error: Generative enum constructors must be marked as 'const'.
-//   const E0(this.v) {}
-//         ^
-//
 // pkg/front_end/testcases/primary_constructors/const_class.dart:50:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   this {}
@@ -66,8 +62,8 @@ library;
 //   this: v = v {}
 //               ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
+// pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
 //   e0(0);
 //   ^
 //
@@ -89,8 +85,8 @@ library;
 import self as self;
 import "dart:core" as core;
 
-class C0 extends core::Object {
-  constructor •() → self::C0
+class C0 extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C0
     : super core::Object::•() {}
 }
 class C1 extends core::Object /*hasConstConstructor*/  {
@@ -123,16 +119,10 @@ class C5 extends self::A /*hasConstConstructor*/  {
     : super self::A::•(x) {}
 }
 class E0 extends core::_Enum /*isEnum*/  {
-  enum-element static const field invalid-type e0 = invalid-expression "pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  e0(0);
-  ^";
+  enum-element static const field self::E0 e0 = invalid-expression "A const constructor can't have a body.";
   final field core::int v;
-  static const field core::List<self::E0> values = invalid-expression "pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  e0(0);
-  ^";
-  constructor •(core::int #index, core::String #name, initializing-formal core::int v) → self::E0
+  static const field core::List<self::E0> values = invalid-expression "A const constructor can't have a body.";
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int v) → self::E0
     : self::E0::v = v, super core::_Enum::•(#index, #name) {}
   method core::_enumToString() → core::String
     return "E0.${this.{core::_Enum::_name}{core::String}}";

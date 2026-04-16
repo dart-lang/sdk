@@ -28896,6 +28896,9 @@ final class ThrowExpressionImpl extends ExpressionImpl
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class TopLevelVariableDeclaration
     implements CompilationUnitMember {
+  /// The `abstract` keyword, or `null` if the keyword was absent.
+  Token? get abstractKeyword;
+
   /// The `augment` keyword, or `null` if the keyword was absent.
   Token? get augmentKeyword;
 
@@ -28912,6 +28915,7 @@ abstract final class TopLevelVariableDeclaration
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('augmentKeyword'),
+    GenerateNodeProperty('abstractKeyword'),
     GenerateNodeProperty('externalKeyword'),
     GenerateNodeProperty('variables'),
     GenerateNodeProperty('semicolon'),
@@ -28922,6 +28926,10 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @generated
   @override
   final Token? augmentKeyword;
+
+  @generated
+  @override
+  final Token? abstractKeyword;
 
   @generated
   @override
@@ -28939,6 +28947,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     required super.comment,
     required super.metadata,
     required this.augmentKeyword,
+    required this.abstractKeyword,
     required this.externalKeyword,
     required VariableDeclarationListImpl variables,
     required this.semicolon,
@@ -28961,6 +28970,9 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
     if (augmentKeyword case var augmentKeyword?) {
       return augmentKeyword;
     }
+    if (abstractKeyword case var abstractKeyword?) {
+      return abstractKeyword;
+    }
     if (externalKeyword case var externalKeyword?) {
       return externalKeyword;
     }
@@ -28980,6 +28992,7 @@ final class TopLevelVariableDeclarationImpl extends CompilationUnitMemberImpl
   @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('augmentKeyword', augmentKeyword)
+    ..addToken('abstractKeyword', abstractKeyword)
     ..addToken('externalKeyword', externalKeyword)
     ..addNode('variables', variables)
     ..addToken('semicolon', semicolon);

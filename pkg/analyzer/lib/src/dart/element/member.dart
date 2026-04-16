@@ -273,24 +273,7 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
   List<InternalFormalParameterElement> get formalParameters {
     var formalParameters = baseElement.formalParameters;
     return List.generate(formalParameters.length, (index) {
-      var element = formalParameters[index];
-      switch (element) {
-        case FieldFormalParameterElementImpl():
-          return SubstitutedFieldFormalParameterElementImpl(
-            baseElement: element,
-            substitution: substitution,
-          );
-        case SuperFormalParameterElementImpl():
-          return SubstitutedSuperFormalParameterElementImpl(
-            baseElement: element,
-            substitution: substitution,
-          );
-        default:
-          return SubstitutedFormalParameterElementImpl(
-            baseElement: element,
-            substitution: substitution,
-          );
-      }
+      return formalParameters[index].substitute(substitution);
     });
   }
 
@@ -355,14 +338,6 @@ abstract class SubstitutedExecutableElementImpl extends SubstitutedElementImpl
     for (var child in children) {
       child.accept(visitor);
     }
-  }
-
-  // TODO(scheglov): replace with `substitute`
-  static InternalExecutableElement from(
-    ExecutableElement element,
-    MapSubstitution substitution,
-  ) {
-    return (element as InternalExecutableElement).substitute(substitution);
   }
 }
 
@@ -462,27 +437,25 @@ class SubstitutedFieldElementImpl extends SubstitutedVariableElementImpl
   }
 
   @override
-  void visitChildren<T>(ElementVisitor2<T> visitor) {}
-
-  static InternalFieldElement from(
-    FieldElementImpl element,
-    MapSubstitution substitution,
-  ) {
+  InternalFieldElement substitute(MapSubstitution substitution) {
     if (substitution.map.isEmpty) {
-      return element;
+      return this;
     }
     return SubstitutedFieldElementImpl(
-      baseElement: element,
-      substitution: substitution,
+      baseElement: baseElement,
+      substitution: this.substitution.andThen(substitution),
     );
   }
+
+  @override
+  void visitChildren<T>(ElementVisitor2<T> visitor) {}
 }
 
 /// A parameter element defined in a parameterized type where the values of the
 /// type parameters are known.
 class SubstitutedFieldFormalParameterElementImpl
     extends SubstitutedFormalParameterElementImpl
-    implements FieldFormalParameterElement {
+    with InternalFieldFormalParameterElement {
   factory SubstitutedFieldFormalParameterElementImpl({
     required FieldFormalParameterElementImpl baseElement,
     required MapSubstitution substitution,
@@ -510,12 +483,7 @@ class SubstitutedFieldFormalParameterElementImpl
 
   @override
   FieldElement? get field {
-    var field = baseElement.field;
-    if (field == null) {
-      return null;
-    }
-
-    return SubstitutedFieldElementImpl.from(field, substitution);
+    return baseElement.field?.substitute(substitution);
   }
 
   @override
@@ -539,6 +507,17 @@ class SubstitutedFieldFormalParameterElementImpl
 
   @override
   String? get privateName => baseElement.privateName;
+
+  @override
+  InternalFieldFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedFieldFormalParameterElementImpl(
+      baseElement: baseElement,
+      substitution: this.substitution.andThen(substitution),
+    );
+  }
 }
 
 /// A parameter element defined in a parameterized type where the values of the
@@ -677,36 +656,19 @@ class SubstitutedFormalParameterElementImpl
   }
 
   @override
-  void visitChildren<T>(ElementVisitor2<T> visitor) {
-    baseElement.visitChildren(visitor);
-  }
-
-  static InternalFormalParameterElement from(
-    InternalFormalParameterElement element,
-    MapSubstitution substitution,
-  ) {
-    FormalParameterElementImpl baseElement;
-    var combined = substitution;
-    if (element is SubstitutedFormalParameterElementImpl) {
-      baseElement = element.baseElement;
-
-      var map = <TypeParameterElement, DartType>{
-        for (var MapEntry(:key, :value) in element.substitution.map.entries)
-          key: substitution.substituteType(value),
-      };
-      combined = Substitution.fromMap(map);
-    } else {
-      baseElement = element as FormalParameterElementImpl;
+  InternalFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
     }
-
-    if (combined.map.isEmpty) {
-      return element;
-    }
-
     return SubstitutedFormalParameterElementImpl(
       baseElement: baseElement,
-      substitution: combined,
+      substitution: this.substitution.andThen(substitution),
     );
+  }
+
+  @override
+  void visitChildren<T>(ElementVisitor2<T> visitor) {
+    baseElement.visitChildren(visitor);
   }
 }
 
@@ -760,14 +722,6 @@ class SubstitutedGetterElementImpl
       baseElement: baseElement,
       substitution: this.substitution.andThen(substitution),
     );
-  }
-
-  static InternalGetterElement forTargetType(
-    InternalGetterElement element,
-    InterfaceType targetType,
-  ) {
-    var substitution = Substitution.fromInterfaceType(targetType);
-    return element.substitute(substitution);
   }
 }
 
@@ -836,14 +790,6 @@ class SubstitutedMethodElementImpl extends SubstitutedExecutableElementImpl
       baseElement: baseElement,
       substitution: this.substitution.andThen(substitution),
     );
-  }
-
-  static InternalMethodElement forTargetType(
-    InternalMethodElement element,
-    InterfaceType targetType,
-  ) {
-    var substitution = Substitution.fromInterfaceType(targetType);
-    return element.substitute(substitution);
   }
 }
 
@@ -952,14 +898,6 @@ class SubstitutedSetterElementImpl
       substitution: this.substitution.andThen(substitution),
     );
   }
-
-  static InternalSetterElement forTargetType(
-    InternalSetterElement element,
-    InterfaceType targetType,
-  ) {
-    var substitution = Substitution.fromInterfaceType(targetType);
-    return element.substitute(substitution);
-  }
 }
 
 class SubstitutedSuperFormalParameterElementImpl
@@ -1010,9 +948,17 @@ class SubstitutedSuperFormalParameterElementImpl
       return null;
     }
 
-    return SubstitutedFormalParameterElementImpl.from(
-      superConstructorParameter,
-      substitution,
+    return superConstructorParameter.substitute(substitution);
+  }
+
+  @override
+  InternalSuperFormalParameterElement substitute(MapSubstitution substitution) {
+    if (substitution.map.isEmpty) {
+      return this;
+    }
+    return SubstitutedSuperFormalParameterElementImpl(
+      baseElement: baseElement,
+      substitution: this.substitution.andThen(substitution),
     );
   }
 }

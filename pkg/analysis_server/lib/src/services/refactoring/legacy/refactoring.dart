@@ -502,7 +502,12 @@ abstract class RenameRefactoring implements Refactoring {
       );
     }
     if (element is LibraryElement) {
-      return RenameLibraryRefactoringImpl(workspace, sessionHelper, element);
+      return RenameLibraryRefactoringImpl(
+        workspace,
+        sessionHelper,
+        resolvedUnit,
+        element,
+      );
     }
     if (enclosingElement?.thisOrAncestorOfType<InterfaceElement>()
         case var enclosingElement?) {
@@ -535,6 +540,7 @@ abstract class RenameRefactoring implements Refactoring {
       return RenameTypeParameterRefactoringImpl(
         workspace,
         sessionHelper,
+        resolvedUnit,
         element,
       );
     }

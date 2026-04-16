@@ -12,27 +12,25 @@ library;
 // const a = const Class();
 //                 ^^^^^
 //
-// pkg/front_end/testcases/general/constants/non_const_constructor.dart:14:17: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// const b = const Class.named();
-//                 ^^^^^
-//
 import self as self;
 import "dart:core" as core;
 
-class Class extends core::Object {
+class Class extends core::Object /*hasConstConstructor*/  {
   constructor •() → self::Class
     ;
-  constructor named() → self::Class
+  const constructor named() → self::Class
+    : super core::Object::•()
     ;
 }
 static const field invalid-type a = invalid-expression "pkg/front_end/testcases/general/constants/non_const_constructor.dart:13:17: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
 Try using a constructor or factory that is 'const'.
 const a = const Class();
                 ^^^^^";
-static const field invalid-type b = invalid-expression "pkg/front_end/testcases/general/constants/non_const_constructor.dart:14:17: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-const b = const Class.named();
-                ^^^^^";
+static const field self::Class b = const self::Class::named();
 static method main() → dynamic
   ;
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///non_const_constructor.dart:14:17 -> InstanceConstant(const Class{})
+Extra constant evaluation: evaluated: 1, effectively constant: 1

@@ -273,6 +273,16 @@ abstract class InterfaceType implements ParameterizedType {
   /// Return a list containing all of the getters declared in this type.
   List<GetterElement> get getters;
 
+  /// Returns a map of all concrete members inherited by this instantiated type.
+  ///
+  /// See [InterfaceElement.inheritedConcreteMembers] for more details.
+  Map<Name, ExecutableElement> get inheritedConcreteMembers;
+
+  /// Returns a map of all members in this instantiated type's interface.
+  ///
+  /// See [InterfaceElement.interfaceMembers] for more details.
+  Map<Name, ExecutableElement> get interfaceMembers;
+
   /// Return a list containing all of the interfaces that are implemented by
   /// this interface. Note that this is <b>not</b>, in general, equivalent to
   /// getting the interfaces from this type's element because the types returned

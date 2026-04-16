@@ -16,8 +16,12 @@ extendable:
     class: 'C6'
   - library: 'main_lib1.dart'
     class: 'C7'
+  - library: 'main_lib1.dart'
+    class: ['C26', 'M3']
   - library: 'dart:core'
     class: 'Object'
+  - library: 'main_lib5.dart'
+    class: 'Lib5C1'
 
 can-be-overridden:
   - library: 'main_lib1.dart'
@@ -26,6 +30,9 @@ can-be-overridden:
   - library: 'main_lib1.dart'
     class: 'C4'
     member: 'field2'
+  - library: 'dart:core'
+    class: 'Object'
+    member: 'noSuchMethod'
 
 callable:
   - library: 'dart:core'
@@ -88,6 +95,11 @@ callable:
   - library: 'main_lib2.dart'
   - library: 'main_lib1.dart'
     class: ['C15', 'C16']
+  - library: 'main_lib1.dart'
+    class: ['C26', 'M3']
+  - library: 'main_lib5.dart'
+    class: 'Lib5C1'
+    member: ''
 
 can-be-used-as-type:
   - library: 'main_lib1.dart'
@@ -99,3 +111,34 @@ can-be-used-as-type:
   - library: 'main_lib1.dart'
     extension_type: ['ExtType11', 'ExtType12']
   - library: 'main_lib4.dart'
+
+dynamically-callable:
+  - library: 'main_lib1.dart'
+    class: 'C17'
+  - library: 'main_lib1.dart'
+    class: 'C18'
+    member: 'dcMethod3'
+  - library: 'main_lib1.dart'
+    class: 'C18'
+    member: 'dcMethod4'
+  - library: 'main_lib1.dart'
+    class: 'C18'
+    member: 'get:dcGetter2'
+  - library: 'main_lib1.dart'
+    class: 'C18'
+    member: 'set:dcSetter2'
+  - library: 'main_lib1.dart'
+    class: 'C18'
+    member: 'dcField1'
+  - library: 'main_lib1.dart'
+    class: 'C18'
+    member: 'dcField2'
+  - library: 'main_lib1.dart'
+    class: 'C19'
+  - library: 'main_lib1.dart'
+    class: 'C21'
+  - library: 'main_lib1.dart'
+    class: 'C22'
+  - library: 'main_lib1.dart'
+    class: 'C24'
+  - library: 'main_lib5.dart'

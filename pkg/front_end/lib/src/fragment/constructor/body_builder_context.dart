@@ -103,11 +103,15 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
   }) {
     return typeInferrer.inferInitializer(
       fileUri: fileUri,
       constructorBuilder: _builder,
       initializer: initializer,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
     );
   }
 
@@ -152,6 +156,9 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
       scopeProviderInfo
           // Coverage-ignore(suite): Not run.
           ?.scope,
+      scopeProviderInfo
+          // Coverage-ignore(suite): Not run.
+          ?.thisVariable,
     );
   }
 

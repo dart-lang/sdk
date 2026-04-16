@@ -310,6 +310,7 @@ class RegularSetterDeclaration
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals == null ||
@@ -354,6 +355,7 @@ class RegularSetterDeclaration
       scope: scope,
       asyncMarker: asyncMarker,
       emittedValueType: emittedValueType,
+      thisVariable: thisVariable,
     );
   }
 
@@ -404,6 +406,7 @@ abstract class SetterFragmentDeclaration {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   });
 
   DartType get returnTypeContext;

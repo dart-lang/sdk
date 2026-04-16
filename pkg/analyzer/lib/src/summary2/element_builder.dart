@@ -382,8 +382,8 @@ class ElementBuilder {
     {
       var getterFragment = GetterFragmentImpl(name: fieldFragment.name)
         ..isOriginVariable = true
-        ..isSynthetic = true
         ..isAbstract = fieldFragment.isAbstract
+        ..isCompleteDeclaration = !fieldFragment.isAbstract
         ..isStatic = fieldFragment.isStatic;
       instanceFragment.addGetter(getterFragment);
 
@@ -400,8 +400,8 @@ class ElementBuilder {
     if (fieldFragment.hasSetter) {
       var setterFragment = SetterFragmentImpl(name: fieldFragment.name)
         ..isOriginVariable = true
-        ..isSynthetic = true
         ..isAbstract = fieldFragment.isAbstract
+        ..isCompleteDeclaration = !fieldFragment.isAbstract
         ..isStatic = fieldFragment.isStatic;
       instanceFragment.addSetter(setterFragment);
 
@@ -473,7 +473,6 @@ class ElementBuilder {
     if (lastFieldElement == null) {
       var fieldFragment = FieldFragmentImpl(name: getterFragment.name)
         ..isOriginGetterSetter = true
-        ..isSynthetic = true
         ..isStatic = getterFragment.isStatic;
       instanceFragment.addField(fieldFragment);
 
@@ -573,7 +572,6 @@ class ElementBuilder {
     if (lastFieldElement == null) {
       var fieldFragment = FieldFragmentImpl(name: setterFragment.name)
         ..isOriginGetterSetter = true
-        ..isSynthetic = true
         ..isStatic = setterFragment.isStatic;
       instanceFragment.addField(fieldFragment);
 
@@ -689,10 +687,9 @@ class ElementBuilder {
     }
 
     if (lastVariableElement == null) {
-      var variableFragment =
-          TopLevelVariableFragmentImpl(name: getterFragment.name)
-            ..isOriginGetterSetter = true
-            ..isSynthetic = true;
+      var variableFragment = TopLevelVariableFragmentImpl(
+        name: getterFragment.name,
+      )..isOriginGetterSetter = true;
       libraryFragment.addTopLevelVariable(variableFragment);
 
       lastVariableElement = TopLevelVariableElementImpl(
@@ -740,10 +737,9 @@ class ElementBuilder {
     }
 
     if (lastVariableElement == null) {
-      var variableFragment =
-          TopLevelVariableFragmentImpl(name: setterFragment.name)
-            ..isOriginGetterSetter = true
-            ..isSynthetic = true;
+      var variableFragment = TopLevelVariableFragmentImpl(
+        name: setterFragment.name,
+      )..isOriginGetterSetter = true;
       libraryFragment.addTopLevelVariable(variableFragment);
 
       lastVariableElement = TopLevelVariableElementImpl(
@@ -781,7 +777,6 @@ class ElementBuilder {
     {
       var getterFragment = GetterFragmentImpl(name: variableFragment.name)
         ..isOriginVariable = true
-        ..isSynthetic = true
         ..isStatic = true;
       libraryFragment.addGetter(getterFragment);
 
@@ -799,7 +794,6 @@ class ElementBuilder {
     if (variableFragment.hasSetter) {
       var setterFragment = SetterFragmentImpl(name: variableFragment.name)
         ..isOriginVariable = true
-        ..isSynthetic = true
         ..isStatic = true;
       libraryFragment.addSetter(setterFragment);
 
@@ -856,19 +850,19 @@ class ElementBuilder {
             nameOffset: null,
             parameterKind: previousParameter.parameterKind,
             privateName: previousParameter.privateName,
-          )..isSynthetic = true;
+          )..isOriginPreviousFragmentOfEnclosing = true;
         case SuperFormalParameterFragmentImpl():
           return SuperFormalParameterFragmentImpl(
             name: previousParameter.name,
             nameOffset: null,
             parameterKind: previousParameter.parameterKind,
-          )..isSynthetic = true;
+          )..isOriginPreviousFragmentOfEnclosing = true;
         default:
           return FormalParameterFragmentImpl(
             name: previousParameter.name,
             nameOffset: null,
             parameterKind: previousParameter.parameterKind,
-          )..isSynthetic = true;
+          )..isOriginPreviousFragmentOfEnclosing = true;
       }
     }
 
@@ -944,8 +938,8 @@ class ElementBuilder {
     if (lastFragments.length > fragments.length) {
       for (var i = fragments.length; i < lastFragments.length; i++) {
         add(
-          TypeParameterFragmentImpl(name: lastFragments[i].name)
-            ..isSynthetic = true,
+          TypeParameterFragmentImpl.synthetic(name: lastFragments[i].name)
+            ..isOriginPreviousFragmentOfEnclosing = true,
         );
       }
     }
@@ -1125,6 +1119,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isConst = node.constKeyword != null;
     fragment.isExternal = node.externalKeyword != null;
     fragment.isFactory = node.factoryKeyword != null;
+    fragment.isCompleteDeclaration = node.isCompleteDeclaration;
     fragment.metadata = _buildMetadata(node.metadata);
     fragment.typeName = node.typeName?.name;
 
@@ -1258,8 +1253,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var valuesField = FieldFragmentImpl(name: 'values')
         ..isConst = true
         ..isStatic = true
-        ..isOriginEnumValues = true
-        ..isSynthetic = true;
+        ..isOriginEnumValues = true;
       var initializer = ListLiteralImpl(
         constKeyword: null,
         typeArguments: null,
@@ -1541,6 +1535,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isAsynchronous = body.isAsynchronous;
     executableFragment.isExternal = node.externalKeyword != null;
     executableFragment.isGenerator = body.isGenerator;
+    executableFragment.isCompleteDeclaration =
+        executableFragment.isExternal || body is! EmptyFunctionBody;
     executableFragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = executableFragment;
@@ -1729,6 +1725,8 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     executableFragment.isExternal =
         node.externalKeyword != null || node.body is NativeFunctionBody;
     executableFragment.isGenerator = node.body.isGenerator;
+    executableFragment.isCompleteDeclaration =
+        executableFragment.isExternal || node.body is! EmptyFunctionBody;
     executableFragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = executableFragment;
@@ -1821,6 +1819,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isConst =
         node.constKeyword != null || parent is EnumDeclarationImpl;
     fragment.isPrimary = true;
+    fragment.isCompleteDeclaration = true;
     fragment.typeName = node.typeName.lexeme;
 
     node.declaredFragment = fragment;
@@ -1864,9 +1863,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
         fieldFragment.isFinal =
             formalParameter.isFinal || isExtensionTypeRepresentation;
         fieldFragment.isOriginDeclaringFormalParameter = true;
-        if (!isExtensionTypeRepresentation) {
-          fieldFragment.isSynthetic = true;
-        }
         fieldFragment.hasImplicitType = !formalParameter.isExplicitlyTyped;
         _linker.elementNodes[fieldFragment] = formalParameter;
         _addChildFragment(fieldFragment);
@@ -2151,6 +2147,28 @@ class _EnclosingContext {
 
   void addTypeParameter(TypeParameterFragmentImpl fragment) {
     typeParameters.add(fragment);
+  }
+}
+
+extension _ConstructorDeclarationImplExtension on ConstructorDeclarationImpl {
+  bool get isCompleteDeclaration {
+    if (externalKeyword != null) {
+      return true;
+    }
+
+    if (body is! EmptyFunctionBody) {
+      return true;
+    }
+
+    if (redirectedConstructor != null || initializers.isNotEmpty) {
+      return true;
+    }
+
+    return parameters.parameters.any((parameter) {
+      var notDefault = parameter.notDefault;
+      return notDefault is FieldFormalParameterImpl ||
+          notDefault is SuperFormalParameterImpl;
+    });
   }
 }
 

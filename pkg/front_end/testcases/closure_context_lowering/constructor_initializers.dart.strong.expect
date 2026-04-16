@@ -1,0 +1,10 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int x;
+  constructor •(positional-parameter y) → self::A
+    : self::A::x = (() /* #ctx1 */ → core::int => y)(){() → core::int}, super core::Object::•()
+    ;
+}

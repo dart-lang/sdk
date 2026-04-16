@@ -3388,6 +3388,20 @@ class InScopeCompletionPass extends SimpleAstVisitor<void> {
           keywordHelper.addKeyword(Keyword.VAR);
           constAdded = true;
         }
+
+        // Complete keywords that can follow `abstract` at the top level.
+        // `abstract ^` -> `base`, `class`, `final`, `interface`, `mixin`
+        // `abstract b^` -> `base`
+        if (grandparent is TopLevelVariableDeclaration) {
+          if (grandparent.abstractKeyword != null) {
+            keywordHelper.addKeyword(Keyword.BASE);
+            keywordHelper.addKeyword(Keyword.CLASS);
+            keywordHelper.addKeyword(Keyword.FINAL);
+            keywordHelper.addKeyword(Keyword.INTERFACE);
+            keywordHelper.addKeyword(Keyword.MIXIN);
+          }
+        }
+
         if (keyword == null || keyword.keyword != Keyword.VAR) {
           _forTypeAnnotation(node);
         }

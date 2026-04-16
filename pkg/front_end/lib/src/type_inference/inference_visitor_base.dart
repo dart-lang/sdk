@@ -5822,11 +5822,6 @@ class _DeferredArgumentInfo extends _ArgumentInfo {
     required super.formalType,
     required this.unparenthesizedExpression,
   });
-
-  // Coverage-ignore(suite): Not run.
-  /// The argument expression (possibly wrapped in an arbitrary number of
-  /// ParenthesizedExpressions).
-  Expression get argumentExpression => argument.expression;
 }
 
 /// Extension of the shared [FunctionLiteralDependencies] logic used by the

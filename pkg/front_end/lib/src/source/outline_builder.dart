@@ -2698,7 +2698,6 @@ class OutlineBuilder extends StackListenerImpl {
         bodyKind != MethodBody.Abstract &&
         !libraryFeatures.constFunctions.isEnabled) {
       addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
-      modifiers -= Modifiers.Const;
     }
     if (returnType != null) {
       addProblem(
@@ -3968,8 +3967,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginFields(
     DeclarationKind declarationKind,
-    Token? abstractToken,
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -4026,6 +4025,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -4063,6 +4063,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<FieldInfo>? fieldInfos = popFieldInfos(count);
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = Modifiers.from(
+      abstractToken: abstractToken,
+      augmentToken: augmentToken,
       externalToken: externalToken,
       staticToken: staticToken,
       covariantToken: covariantToken,

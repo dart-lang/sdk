@@ -1829,24 +1829,8 @@ struct CallbackContext {
   uword sp;
 };
 
-#if defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
-
 extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
                                         uword trampoline) {
-  // Assumptions in ffi_trampolines_arm64.S
-  COMPILE_ASSERT(sizeof(CallbackContext) == 144);
-  COMPILE_ASSERT(FfiCallbackMetadata::kDoRedirectedFfiCallback == 1);
-#if defined(DART_TARGET_OS_FUCHSIA)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 4 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 483);
-#elif defined(DART_TARGET_OS_MACOS)
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 16 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 2019);
-#else
-  COMPILE_ASSERT(FfiCallbackMetadata::kPageSize == 64 * KB);
-  COMPILE_ASSERT(FfiCallbackMetadata::NumCallbackTrampolinesPerPage() == 8163);
-#endif
-
   CallbackMetadata out;
   Thread* thread = DLRT_GetFfiCallbackMetadata(trampoline, &out);
   if (thread == nullptr) {
@@ -1859,8 +1843,6 @@ extern "C" void DoRedirectedFfiCallback(CallbackContext* ctxt,
   ASSERT(sim != nullptr);
   sim->DoRedirectedFfiCallback(thread, ctxt, &out);
 }
-
-#endif  // defined(SIMULATOR_FFI) && defined(HOST_ARCH_ARM64)
 
 // Compare FfiCallbackTrampolineStub.
 void Simulator::DoRedirectedFfiCallback(Thread* thread,
@@ -2070,8 +2052,13 @@ void Simulator::DecodeUnconditionalBranchReg(Instr* instr) {
         const Register rn = instr->RnField();
         const int64_t dest = get_register(rn, instr->RnMode());
         const int64_t ret = get_pc() + Instr::kInstrSize;
-        set_pc(dest);
+        // Set LR first so that the profiler does not get confused by
+        // observing the update to PC without the update to LR when we are
+        // calling out of the entry stub, i.e., failing to indentify the entry
+        // stub. On real hardware, the profiler's signal handler cannot
+        // observe a partially execute BLR.
         set_register(instr, LR, ret);
+        set_pc(dest);
         break;
       }
       case 2: {

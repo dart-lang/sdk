@@ -666,7 +666,6 @@ class LibraryBuilder {
             lineInfo: partUnitNode.lineInfo,
           );
           partUnitNode.declaredFragment = libraryFragment;
-          libraryFragment.isSynthetic = !partFile.exists;
           libraryFragment.isOriginNotExistingFile = !partFile.exists;
           libraryFragment.setCodeRange(0, partUnitNode.length);
 
@@ -803,7 +802,6 @@ class LibraryBuilder {
         lineInfo: libraryUnitNode.lineInfo,
       );
       libraryUnitNode.declaredFragment = libraryFragment;
-      libraryFragment.isSynthetic = !libraryFile.exists;
       libraryFragment.isOriginNotExistingFile = !libraryFile.exists;
       libraryFragment.setCodeRange(0, libraryUnitNode.length);
 

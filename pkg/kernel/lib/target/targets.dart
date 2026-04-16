@@ -334,9 +334,10 @@ abstract class Target {
   /// Perform target-specific transformations on the outlines stored in
   /// [Component] when generating summaries.
   ///
-  /// This transformation is used to add metadata on outlines and to filter
-  /// unnecessary information before generating program summaries. This
-  /// transformation is not applied when compiling full kernel programs to
+  /// This is used to transforming the libraries, but not for instance
+  /// filtering the output libraries or adding metadata. Do this in
+  /// [performOutlineComponentOperations] instead.
+  /// This transformation is not applied when compiling full kernel programs to
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
   void performOutlineTransformations(
@@ -344,6 +345,16 @@ abstract class Target {
     List<Library>? libraries,
     ChangedStructureNotifier? changedStructureNotifier,
   }) {}
+
+  /// Perform target-specific operations on the [Component] storing the outlines
+  /// when generating summaries.
+  ///
+  /// This is not for transforming the libraries, but can be used to add
+  /// metadata and filter libraries.
+  /// This is not applied when compiling full kernel programs to prevent
+  /// affecting the internal invariants of the compiler and accidentally
+  /// slowing down compilation.
+  void performOutlineComponentOperations(Component component) {}
 
   /// Perform target-specific transformations on the given libraries that must
   /// run before constant evaluation.
@@ -1035,6 +1046,11 @@ class TargetWrapper extends Target {
   }
 
   @override
+  void performOutlineComponentOperations(Component component) {
+    _target.performOutlineComponentOperations(component);
+  }
+
+  @override
   void performPreConstantEvaluationTransformations(
     Component component,
     CoreTypes coreTypes,
@@ -1112,16 +1128,8 @@ mixin SummaryMixin on Target {
   bool get excludeNonSources;
 
   @override
-  void performOutlineTransformations(
-    Component component, {
-    List<Library>? libraries,
-    ChangedStructureNotifier? changedStructureNotifier,
-  }) {
-    super.performOutlineTransformations(
-      component,
-      libraries: libraries,
-      changedStructureNotifier: changedStructureNotifier,
-    );
+  void performOutlineComponentOperations(Component component) {
+    super.performOutlineComponentOperations(component);
     if (!excludeNonSources) return;
 
     List<Library> componentLibraries = new List.of(component.libraries);

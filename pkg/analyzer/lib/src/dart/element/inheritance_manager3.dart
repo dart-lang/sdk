@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -156,7 +155,7 @@ class InheritanceManager3 {
 
   /// Returns signatures of all concrete members that the given [element]
   /// inherits from the superclasses and mixins.
-  Map<Name, ExecutableElement> getInheritedConcreteMap(
+  Map<Name, InternalExecutableElement> getInheritedConcreteMap(
     InterfaceElement element,
   ) {
     element as InterfaceElementImpl; // TODO(scheglov): remove cast
@@ -284,7 +283,7 @@ class InheritanceManager3 {
     }
 
     var substitution = Substitution.fromInterfaceType(type);
-    return SubstitutedExecutableElementImpl.from(rawElement, substitution);
+    return rawElement.substitute(substitution);
   }
 
   /// Return all members of mixins, superclasses, and interfaces that a member
@@ -322,10 +321,7 @@ class InheritanceManager3 {
     } else {
       for (var entry in map.entries) {
         var candidate = entry.value;
-        candidate = SubstitutedExecutableElementImpl.from(
-          candidate,
-          substitution,
-        );
+        candidate = candidate.substitute(substitution);
         var candidates = namedCandidates[entry.key] ??=
             <InternalExecutableElement>[];
         candidates.add(candidate);
@@ -370,11 +366,7 @@ class InheritanceManager3 {
         continue;
       }
 
-      executable = SubstitutedExecutableElementImpl.from(
-        executable,
-        substitution,
-      );
-
+      executable = executable.substitute(substitution);
       implemented[entry.key] = executable;
     }
   }
@@ -576,10 +568,7 @@ class InheritanceManager3 {
       } else {
         for (var entry in superTypeInterface.implemented.entries) {
           var executable = entry.value;
-          executable = SubstitutedExecutableElementImpl.from(
-            executable,
-            substitution,
-          );
+          executable = executable.substitute(substitution);
           implemented[entry.key] = executable;
         }
       }
@@ -616,10 +605,7 @@ class InheritanceManager3 {
       var mixinConflicts = <Conflict>[];
       for (var entry in mixinInterface.map.entries) {
         var name = entry.key;
-        var candidate = SubstitutedExecutableElementImpl.from(
-          entry.value,
-          substitution,
-        );
+        var candidate = entry.value.substitute(substitution);
 
         var currentList = namedCandidates[name];
         if (currentList == null) {
@@ -789,10 +775,7 @@ class InheritanceManager3 {
       var substitution = Substitution.fromInterfaceType(interface);
       for (var entry in getInterface(interface.element).map.entries) {
         var name = entry.key;
-        var executable = SubstitutedExecutableElementImpl.from(
-          entry.value,
-          substitution,
-        );
+        var executable = entry.value.substitute(substitution);
         if (executable.isExtensionTypeMember) {
           (extensionCandidates[name] ??= _ExtensionTypeCandidates(
             name,
@@ -1144,7 +1127,6 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.isSynthetic = true;
       resultFragment.formalParameters = List.generate(
         transformedParameters.length,
         (index) => transformedParameters![index].firstFragment,
@@ -1177,7 +1159,6 @@ class InheritanceManager3 {
 
       var resultFragment = SetterFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
-      resultFragment.isSynthetic = true;
       resultFragment.isOriginInterface = true;
       resultFragment.formalParameters = transformedParameters
           .map((e) => e.firstFragment)
@@ -1189,7 +1170,6 @@ class InheritanceManager3 {
       var resultField = FieldFragmentImpl(name: executable.name);
       resultField.enclosingFragment = class_.firstFragment;
       resultField.isOriginGetterSetter = true;
-      resultField.isSynthetic = true;
 
       var elementName = executable.name!;
       var fieldReference = class_.reference!
@@ -1254,7 +1234,6 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: fragmentName);
       resultFragment.enclosingFragment = targetClass.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.isSynthetic = true;
       resultFragment.typeParameters = resultType.typeParameters
           .map((e) => e.firstFragment)
           .toList();
@@ -1277,7 +1256,6 @@ class InheritanceManager3 {
       var fragmentName = firstElement.name!;
       var field = FieldFragmentImpl(name: fragmentName);
       field.isOriginGetterSetter = true;
-      field.isSynthetic = true;
 
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;

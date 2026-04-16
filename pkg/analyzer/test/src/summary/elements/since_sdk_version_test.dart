@@ -105,10 +105,10 @@ library
             #F2 hasInitializer isOriginDeclaration foo (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: dart:foo::@class::A::@field::foo
           getters
-            #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F3 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@getter::foo
           setters
-            #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F4 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
                 #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
@@ -170,7 +170,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           getters
-            #F3 isOriginDeclaration foo (nameOffset:61) (firstTokenOffset:53) (offset:61)
+            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:61) (firstTokenOffset:53) (offset:61)
               element: dart:foo::@class::A::@getter::foo
   classes
     class A
@@ -214,7 +214,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F2 isOriginDeclaration isCompleteDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -251,7 +251,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
+            #F2 isOriginDeclaration isCompleteDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -288,7 +288,7 @@ library
         #F1 class A (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@class::A
           methods
-            #F2 isOriginDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
+            #F2 isOriginDeclaration isCompleteDeclaration foo (nameOffset:75) (firstTokenOffset:53) (offset:75)
               element: dart:foo::@class::A::@method::foo
   classes
     class A
@@ -327,7 +327,7 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
               element: dart:foo::@class::A::@field::foo
           setters
-            #F3 isOriginDeclaration foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
+            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:57) (firstTokenOffset:53) (offset:57)
               element: dart:foo::@class::A::@setter::foo
               formalParameters
                 #F4 requiredPositional _ (nameOffset:65) (firstTokenOffset:61) (offset:65)
@@ -424,11 +424,11 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F5 isOriginVariable v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F5 isOriginVariable isCompleteDeclaration v1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: dart:foo::@enum::E::@getter::v1
-            #F6 isOriginVariable v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+            #F6 isOriginVariable isCompleteDeclaration v2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
               element: dart:foo::@enum::E::@getter::v2
-            #F7 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F7 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: dart:foo::@enum::E::@getter::values
   enums
     enum E
@@ -529,12 +529,12 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
           getters
-            #F4 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+            #F4 isOriginVariable isCompleteDeclaration v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: dart:foo::@enum::E::@getter::v
-            #F5 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F5 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: dart:foo::@enum::E::@getter::values
           methods
-            #F6 isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
+            #F6 isOriginDeclaration isCompleteDeclaration foo (nameOffset:62) (firstTokenOffset:57) (offset:62)
               element: dart:foo::@enum::E::@method::foo
   enums
     enum E
@@ -603,7 +603,7 @@ library
         #F1 extension E (nameOffset:51) (firstTokenOffset:26) (offset:51)
           element: dart:foo::@extension::E
           methods
-            #F2 isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
+            #F2 isOriginDeclaration isCompleteDeclaration foo (nameOffset:69) (firstTokenOffset:64) (offset:69)
               element: dart:foo::@extension::E::@method::foo
   extensions
     extension E
@@ -641,7 +641,7 @@ library
         #F1 mixin M (nameOffset:47) (firstTokenOffset:26) (offset:47)
           element: dart:foo::@mixin::M
           methods
-            #F2 isOriginDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
+            #F2 isOriginDeclaration isCompleteDeclaration foo (nameOffset:58) (firstTokenOffset:53) (offset:58)
               element: dart:foo::@mixin::M::@method::foo
   mixins
     mixin M
@@ -676,9 +676,9 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isOriginDeclaration foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
+        #F1 isOriginDeclaration isCompleteDeclaration foo (nameOffset:46) (firstTokenOffset:26) (offset:46)
           element: dart:foo::@function::foo
-        #F2 isOriginDeclaration bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
+        #F2 isOriginDeclaration isCompleteDeclaration bar (nameOffset:61) (firstTokenOffset:56) (offset:61)
           element: dart:foo::@function::bar
   functions
     isOriginDeclaration foo
@@ -708,7 +708,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isOriginDeclaration foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
+        #F1 isOriginDeclaration isCompleteDeclaration foo (nameOffset:54) (firstTokenOffset:26) (offset:54)
           element: dart:foo::@function::foo
   functions
     isOriginDeclaration foo
@@ -734,7 +734,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isOriginDeclaration foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
+        #F1 isOriginDeclaration isCompleteDeclaration foo (nameOffset:48) (firstTokenOffset:26) (offset:48)
           element: dart:foo::@function::foo
   functions
     isOriginDeclaration foo
@@ -760,7 +760,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
+        #F1 isOriginDeclaration isCompleteDeclaration foo (nameOffset:44) (firstTokenOffset:26) (offset:44)
           element: dart:foo::@function::foo
   functions
     isOriginDeclaration foo
@@ -788,7 +788,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isOriginDeclaration foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
+        #F1 isOriginDeclaration isCompleteDeclaration foo (nameOffset:56) (firstTokenOffset:51) (offset:56)
           element: dart:foo::@function::foo
   functions
     isOriginDeclaration foo
@@ -816,7 +816,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F1 isOriginDeclaration isCompleteDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
             #F2 requiredPositional p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)
@@ -856,7 +856,7 @@ library
     #F0 dart:foo
       element: dart:foo
       functions
-        #F1 isOriginDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
+        #F1 isOriginDeclaration isCompleteDeclaration f (nameOffset:31) (firstTokenOffset:26) (offset:31)
           element: dart:foo::@function::f
           formalParameters
             #F2 requiredPositional p1 (nameOffset:37) (firstTokenOffset:33) (offset:37)

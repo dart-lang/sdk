@@ -1452,8 +1452,8 @@ abstract class Listener implements UnescapeErrorListener {
   /// Note that this is ended with [endTopLevelFields] or [endFields].
   void beginFields(
     DeclarationKind declarationKind,
-    Token? abstractToken,
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -1472,6 +1472,7 @@ abstract class Listener implements UnescapeErrorListener {
   /// Started by [beginFields].
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,

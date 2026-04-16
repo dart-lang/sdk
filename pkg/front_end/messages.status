@@ -13,6 +13,7 @@ front_end/CantInferPackagesFromPackageUri/example: missingExample # We don't con
 front_end/ClassShouldBeListedAsCallableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ClassShouldBeListedAsCanBeUsedAsTypeInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ClassShouldBeListedAsExtendableInDynamicInterface/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/ClassWithNoSuchMethodSubtypeCause/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ConstEvalError/example: missingExample # Uncovered, at least outside of constant stress testing.
 front_end/ConstEvalGetterNotFound/example: missingExample # Not covered.
 front_end/ConstEvalInvalidPropertyGet/example: missingExample # Uncovered, at least outside of constant stress testing.
@@ -30,7 +31,12 @@ front_end/DillOutlineSummary/example: missingExample # Used for verbose output.
 front_end/DuplicatedDeclarationUse/part_wrapped_script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/DuplicatedDeclarationUse/script1: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
 front_end/DuplicatedDeclarationUse/script2: hasOnlyUnrelatedMessages # Seemingly this is not issued as an error, but ends up in the kernel AST.
+front_end/DynamicCallsAreDisallowedByDefault/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicCallsAreDiscouragedInDynamicModules/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/DynamicCallsAreNotAllowedInDynamicModule/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethod/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethodDynamicSubtype/example: missingExample # Can't do dynamic modules stuff in messages suite.
+front_end/DynamicallyCallableWithNoSuchMethodHostSubtype/example: missingExample # Can't do dynamic modules stuff in messages suite.
 front_end/ExceptionReadingFile/example: missingExample # Requires an exception (generally not a FileSystemException) to occur when reading a file.
 front_end/ExpectedBlockToSkip/example: missingExample # Seemingly only used when skipping a block in a special parser.
 front_end/ExpectedButGot2/example: missingExample # Only used in experimental code.

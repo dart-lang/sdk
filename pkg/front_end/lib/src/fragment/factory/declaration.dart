@@ -373,12 +373,14 @@ class FactoryDeclarationImpl
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     _encoding.registerFunctionBody(
       body: body,
       scope: scope,
       asyncMarker: asyncMarker,
       emittedValueType: emittedValueType,
+      thisVariable: thisVariable,
     );
   }
 
@@ -421,6 +423,7 @@ abstract class FactoryFragmentDeclaration {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   });
 
   DartType get returnTypeContext;

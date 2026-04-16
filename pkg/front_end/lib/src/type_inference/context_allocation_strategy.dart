@@ -7,8 +7,7 @@ import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
   List<Info> _list
-)
-    implements LocalStack<Info> {
+) implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
     ScopeProviderInfoKind scopeProviderInfoKind,
   ) {
@@ -35,6 +34,7 @@ class ScopeProviderInfo {
   final ScopeProviderInfoKind kind;
 
   Scope? scope;
+  VariableDeclaration? thisVariable;
 
   ScopeProviderInfo({required this.kind});
 }
@@ -156,7 +156,7 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
     Set<VariableContext> contexts = {
       for (VariableBase variable in variables) variable.context,
     };
-    (node.contexts ??= []).addAll(contexts);
+    (node.capturedContexts ??= []).addAll(contexts);
   }
 
   ThisVariable get thisVariable {
@@ -260,6 +260,9 @@ class LoopDepthAllocationStrategy
     required CaptureKind captureKind,
   }) {
     CollectorScopeProviderInfo currentScope = _currentScopeProviderInfo!;
+    if (variable is ThisVariable) {
+      currentScope.thisVariable = variable;
+    }
 
     // Delegation happens when the current variable is not uncaptured (that is,
     // it's either captured or assert-captured), and there's a collector to

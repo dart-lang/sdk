@@ -587,6 +587,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // about other libraries.
       result.metadata.addAll(componentWithDill.metadata);
 
+      if (outlineOnly) {
+        // Coverage-ignore-block(suite): Not run.
+        context.options.target.performOutlineComponentOperations(result);
+      }
+
       // We're now done. Allow any waiting compile to start.
       Completer<dynamic> currentlyCompilingLocal = _currentlyCompiling!;
       _currentlyCompiling = null;

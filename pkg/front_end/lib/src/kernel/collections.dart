@@ -275,7 +275,6 @@ class ForElement extends ControlFlowElement
   final List<VariableInitializationBase> variableInitializations;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<VariableDeclaration> get variables => variableInitializations.cast();
 
   @override
@@ -346,7 +345,7 @@ class ForElement extends ControlFlowElement
     }
     if (bodyEntry == null) return null;
     ForMapEntry result = new ForMapEntry(
-      variableInitializations,
+      variables,
       condition,
       updates,
       bodyEntry,
@@ -632,7 +631,6 @@ class PatternForElement extends ControlFlowElementImpl
   final List<VariableInitializationBase> variableInitializations;
 
   @override
-  // Coverage-ignore(suite): Not run.
   List<VariableDeclaration> get variables => variableInitializations.cast();
 
   @override
@@ -917,8 +915,6 @@ class IfMapEntry extends TreeNode
 }
 
 abstract interface class ForMapEntryBase implements TreeNode, MapLiteralEntry {
-  List<VariableInitializationBase> get variableInitializations;
-
   List<VariableDeclaration> get variables;
 
   abstract Expression? condition;
@@ -934,11 +930,7 @@ class ForMapEntry extends TreeNode
     implements ForMapEntryBase, ControlFlowMapEntry {
   // May be empty, but not null.
   @override
-  final List<VariableInitializationBase> variableInitializations;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableDeclaration> get variables => variableInitializations.cast();
+  final List<VariableDeclaration> variables;
 
   @override
   Expression? condition; // May be null.
@@ -949,13 +941,8 @@ class ForMapEntry extends TreeNode
   @override
   MapLiteralEntry body;
 
-  ForMapEntry(
-    this.variableInitializations,
-    this.condition,
-    this.updates,
-    this.body,
-  ) {
-    setParents(variableInitializations, this);
+  ForMapEntry(this.variables, this.condition, this.updates, this.body) {
+    setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
     body.parent = this;
@@ -964,7 +951,7 @@ class ForMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void visitChildren(Visitor v) {
-    visitList(variableInitializations, v);
+    visitList(variables, v);
     condition?.accept(v);
     visitList(updates, v);
     body.accept(v);
@@ -973,7 +960,7 @@ class ForMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void transformChildren(Transformer v) {
-    v.transformList(variableInitializations, this);
+    v.transformList(variables, this);
     if (condition != null) {
       condition = v.transform(condition!);
       condition?.parent = this;
@@ -986,7 +973,7 @@ class ForMapEntry extends TreeNode
   @override
   // Coverage-ignore(suite): Not run.
   void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformVariableInitializationList(variableInitializations, this);
+    v.transformVariableInitializationList(variables, this);
     if (condition != null) {
       condition = v.transformOrRemoveExpression(condition!);
       condition?.parent = this;
@@ -1005,12 +992,12 @@ class ForMapEntry extends TreeNode
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        variableInitializations[index],
+        variables[index],
         includeModifiersAndType: index == 0,
       );
     }
@@ -1032,11 +1019,7 @@ class PatternForMapEntry extends TreeNode
   List<VariableDeclaration> intermediateVariables;
 
   @override
-  final List<VariableInitializationBase> variableInitializations;
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  List<VariableDeclaration> get variables => variableInitializations.cast();
+  final List<VariableDeclaration> variables;
 
   @override
   Expression? condition;
@@ -1050,23 +1033,23 @@ class PatternForMapEntry extends TreeNode
   PatternForMapEntry({
     required this.patternVariableDeclaration,
     required this.intermediateVariables,
-    required List<VariableInitializationBase> variables,
+    required this.variables,
     required this.condition,
     required this.updates,
     required this.body,
-  }) : variableInitializations = variables;
+  });
 
   @override
   // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     patternVariableDeclaration.toTextInternal(printer);
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        variableInitializations[index],
+        variables[index],
         includeModifiersAndType: index == 0,
       );
     }
@@ -1360,7 +1343,7 @@ MapLiteralEntry convertToMapEntry(
         PatternForMapEntry result = new PatternForMapEntry(
           patternVariableDeclaration: element.patternVariableDeclaration,
           intermediateVariables: element.intermediateVariables,
-          variables: element.variableInitializations,
+          variables: element.variables,
           condition: element.condition,
           updates: element.updates,
           body: convertToMapEntry(
@@ -1376,7 +1359,7 @@ MapLiteralEntry convertToMapEntry(
 
       case ForElement():
         ForMapEntry result = new ForMapEntry(
-          element.variableInitializations,
+          element.variables,
           element.condition,
           element.updates,
           convertToMapEntry(

@@ -101,7 +101,7 @@ class BundleWriter {
     // Write non-resolution data for the library.
     _sink.writeStringReference(libraryElement.name);
     _writeFeatureSet(libraryElement.featureSet);
-    libraryElement.writeModifiers(_sink);
+    libraryElement.writeFlags(_sink);
     _writeLanguageVersion(libraryElement.languageVersion);
     _writeExportedReferences(libraryElement.exportedReferences);
     _sink.writeUint30List(libraryElement.nameUnion.mask);
@@ -140,7 +140,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
       _sink.writeBool(element.hasNonFinalField);
 
       // We read members lazily.
@@ -191,7 +191,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -264,7 +264,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
 
       _writeForLazyRead(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -329,7 +329,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
 
       _writeForLazyRead(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -369,7 +369,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
 
       // TODO(fshcheglov): Put these separate flags into modifiers
       _sink.writeBool(element.hasRepresentationSelfReference);
@@ -423,7 +423,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
       _writeElementResolution(() {
@@ -493,7 +493,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.writeType(element.returnType);
@@ -556,7 +556,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
       _writeElementResolution(() {
@@ -582,7 +582,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
       _sink.writeBool(element.hasNonFinalField);
 
       _writeForLazyRead(() {
@@ -658,7 +658,7 @@ class BundleWriter {
       _sink.writeOptionalStringReference(fragment.privateName);
     }
 
-    fragment.writeModifiers(_sink);
+    fragment.writeFlags(_sink);
 
     _resolutionSink._writeMetadata(fragment.metadata);
 
@@ -705,7 +705,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.writeType(element.returnType);
@@ -731,7 +731,7 @@ class BundleWriter {
     _writeFragmentId(fragment);
     _writeFragmentName(fragment);
     _writeResolutionOffset();
-    fragment.writeModifiers(_sink);
+    fragment.writeFlags(_sink);
     writeFragmentBody();
   }
 
@@ -741,7 +741,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -767,7 +767,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _writeElementResolution(() {
         _resolutionSink.writeType(element.type);
@@ -786,7 +786,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
-      element.writeModifiers(_sink);
+      element.writeFlags(_sink);
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
@@ -807,6 +807,7 @@ class BundleWriter {
 
   void _writeTypeParameterFragment(TypeParameterFragmentImpl fragment) {
     _writeFragmentName(fragment);
+    fragment.writeFlags(_sink);
     _sink.writeByte(_encodeVariance(fragment.element).index);
     _resolutionSink._writeMetadata(fragment.metadata);
     _resolutionSink.writeType(fragment.element.bound);
@@ -815,7 +816,7 @@ class BundleWriter {
 
   void _writeUnitElement(LibraryFragmentImpl libraryFragment) {
     _writeResolutionOffset();
-    libraryFragment.writeModifiers(_sink);
+    libraryFragment.writeFlags(_sink);
 
     _sink.writeList(libraryFragment.libraryImports, _writeLibraryImport);
     _sink.writeList(libraryFragment.libraryExports, _writeLibraryExport);

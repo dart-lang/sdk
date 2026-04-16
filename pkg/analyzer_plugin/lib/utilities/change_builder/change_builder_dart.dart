@@ -373,7 +373,7 @@ abstract class DartEditBuilder implements EditBuilder {
     void Function()? bodyWriter,
     bool isStatic = false,
     String? nameGroupName,
-    String? parameterName,
+    String parameterName = 'value',
     DartType? parameterType,
     String? parameterTypeGroupName,
     bool alwaysWriteType = false,

@@ -1700,6 +1700,7 @@ package:analyzer/dart/ast/ast.dart:
     expression (getter: Expression)
     throwKeyword (getter: Token)
   TopLevelVariableDeclaration (class extends Object implements CompilationUnitMember, abstract, final):
+    abstractKeyword (getter: Token?)
     augmentKeyword (getter: Token?)
     externalKeyword (getter: Token?)
     semicolon (getter: Token)
@@ -4239,6 +4240,8 @@ package:analyzer/dart/element/type.dart:
     constructors (getter: List<ConstructorElement>)
     element (getter: InterfaceElement)
     getters (getter: List<GetterElement>)
+    inheritedConcreteMembers (getter: Map<Name, ExecutableElement>)
+    interfaceMembers (getter: Map<Name, ExecutableElement>)
     interfaces (getter: List<InterfaceType>)
     methods (getter: List<MethodElement>)
     mixins (getter: List<InterfaceType>)

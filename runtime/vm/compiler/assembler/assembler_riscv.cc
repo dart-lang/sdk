@@ -5268,8 +5268,10 @@ void Assembler::LeaveDartFrame(intptr_t fp_sp_dist) {
     subi(PP, PP, kHeapObjectTag);
   }
   set_constant_pool_allowed(false);
-  lx(FP, Address(SP, fp_offset));
+  // Update RA first so the profiler can identify the frame as the entry frame
+  // after FP is updated but before the return instruction.
   lx(RA, Address(SP, ra_offset));
+  lx(FP, Address(SP, fp_offset));
   addi(SP, SP, -fp_sp_dist);
 }
 

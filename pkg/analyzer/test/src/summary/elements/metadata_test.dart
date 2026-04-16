@@ -237,10 +237,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F4 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F5 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F5 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
@@ -355,10 +355,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F5 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F5 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@class::C::@getter::foo
           methods
-            #F6 isOriginDeclaration bar (nameOffset:77) (firstTokenOffset:65) (offset:77)
+            #F6 isOriginDeclaration isCompleteDeclaration bar (nameOffset:77) (firstTokenOffset:65) (offset:77)
               element: <testLibrary>::@class::C::@method::bar
               metadata
                 Annotation
@@ -406,6 +406,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
+          hasEnclosingTypeParameterReference: true
       getters
         static isOriginVariable foo
           reference: <testLibrary>::@class::C::@getter::foo
@@ -711,6 +712,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional _
               firstFragment: #F4
@@ -769,6 +771,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -823,6 +826,7 @@ library
         const isOriginDeclaration named
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -1020,6 +1024,7 @@ library
         const isOriginMixinApplication named
           reference: <testLibrary>::@class::C::@constructor::named
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -1148,6 +1153,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional _
               firstFragment: #F4
@@ -1205,6 +1211,7 @@ library
         const isOriginDeclaration new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
     class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
@@ -1395,6 +1402,7 @@ library
         const isOriginMixinApplication new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -1489,7 +1497,7 @@ library
       libraryImports
         package:test/a.dart
       functions
-        #F1 isOriginDeclaration f (nameOffset:36) (firstTokenOffset:17) (offset:36)
+        #F1 isOriginDeclaration isCompleteDeclaration f (nameOffset:36) (firstTokenOffset:17) (offset:36)
           element: <testLibrary>::@function::f
           metadata
             Annotation
@@ -1770,10 +1778,10 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F4 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F5 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F5 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
@@ -1866,7 +1874,7 @@ library
             #F2 isOriginDeclaration x (nameOffset:32) (firstTokenOffset:32) (offset:32)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
+            #F3 isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:37) (offset:37)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 37
@@ -1882,10 +1890,10 @@ library
                         staticType: null
                       element: <testLibrary>::@getter::a
           getters
-            #F5 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F5 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+            #F6 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
@@ -1979,7 +1987,7 @@ library
             #F2 isOriginDeclaration x (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: <testLibrary>::@class::C::@field::x
           constructors
-            #F3 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:33) (offset:33)
+            #F3 isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:33) (offset:33)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
               typeNameOffset: 33
@@ -1999,10 +2007,10 @@ library
                       literal: null @48
                       staticType: Null
           getters
-            #F5 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F5 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::C::@getter::x
           setters
-            #F6 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+            #F6 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -2105,7 +2113,7 @@ library
         #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
       functions
-        #F3 isOriginDeclaration f (nameOffset:19) (firstTokenOffset:16) (offset:19)
+        #F3 isOriginDeclaration isCompleteDeclaration f (nameOffset:19) (firstTokenOffset:16) (offset:19)
           element: <testLibrary>::@function::f
           metadata
             Annotation
@@ -2166,7 +2174,7 @@ library
       getters
         #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-        #F4 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:16) (offset:23)
+        #F4 isOriginDeclaration isCompleteDeclaration f (nameOffset:23) (firstTokenOffset:16) (offset:23)
           element: <testLibrary>::@getter::f
           metadata
             Annotation
@@ -2233,7 +2241,7 @@ library
         #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
       setters
-        #F4 isOriginDeclaration f (nameOffset:23) (firstTokenOffset:16) (offset:23)
+        #F4 isOriginDeclaration isCompleteDeclaration f (nameOffset:23) (firstTokenOffset:16) (offset:23)
           element: <testLibrary>::@setter::f
           metadata
             Annotation
@@ -2366,7 +2374,7 @@ library
         #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
       functions
-        #F3 isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F3 isOriginDeclaration isCompleteDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::f
           formalParameters
             #F4 requiredPositional g (nameOffset:21) (firstTokenOffset:18) (offset:21)
@@ -2433,7 +2441,7 @@ library
         #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
       functions
-        #F3 isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F3 isOriginDeclaration isCompleteDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::f
           formalParameters
             #F4 optionalPositional g (nameOffset:22) (firstTokenOffset:19) (offset:22)
@@ -2806,7 +2814,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
       functions
-        #F3 isOriginDeclaration f (nameOffset:0) (firstTokenOffset:0) (offset:0)
+        #F3 isOriginDeclaration isCompleteDeclaration f (nameOffset:0) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@function::f
           formalParameters
             #F4 requiredPositional _ (nameOffset:2) (firstTokenOffset:2) (offset:2)
@@ -2975,7 +2983,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           getters
-            #F4 isOriginDeclaration m (nameOffset:33) (firstTokenOffset:26) (offset:33)
+            #F4 isOriginDeclaration isCompleteDeclaration m (nameOffset:33) (firstTokenOffset:26) (offset:33)
               element: <testLibrary>::@class::C::@getter::m
               metadata
                 Annotation
@@ -3065,7 +3073,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isOriginDeclaration m (nameOffset:54) (firstTokenOffset:44) (offset:54)
+            #F3 isOriginDeclaration isCompleteDeclaration m (nameOffset:54) (firstTokenOffset:44) (offset:54)
               element: <testLibrary>::@class::C::@method::m
               metadata
                 Annotation
@@ -3179,7 +3187,7 @@ library
         #F1 mixin M (nameOffset:38) (firstTokenOffset:32) (offset:38)
           element: <testLibrary>::@mixin::M
           methods
-            #F2 isOriginDeclaration m (nameOffset:54) (firstTokenOffset:44) (offset:54)
+            #F2 isOriginDeclaration isCompleteDeclaration m (nameOffset:54) (firstTokenOffset:44) (offset:54)
               element: <testLibrary>::@mixin::M::@method::m
               metadata
                 Annotation
@@ -3296,7 +3304,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           setters
-            #F4 isOriginDeclaration m (nameOffset:37) (firstTokenOffset:28) (offset:37)
+            #F4 isOriginDeclaration isCompleteDeclaration m (nameOffset:37) (firstTokenOffset:28) (offset:37)
               element: <testLibrary>::@class::C::@setter::m
               metadata
                 Annotation
@@ -3408,10 +3416,10 @@ library
                   literal: 1 @60
                   staticType: int
           getters
-            #F4 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F4 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@mixin::M::@getter::foo
           methods
-            #F5 isOriginDeclaration bar (nameOffset:77) (firstTokenOffset:65) (offset:77)
+            #F5 isOriginDeclaration isCompleteDeclaration bar (nameOffset:77) (firstTokenOffset:65) (offset:77)
               element: <testLibrary>::@mixin::M::@method::bar
               metadata
                 Annotation
@@ -3625,6 +3633,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration foo
       reference: <testLibrary>::@topLevelVariable::foo
@@ -3767,7 +3776,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isOriginDeclaration getter (nameOffset:43) (firstTokenOffset:28) (offset:43)
+            #F4 isOriginDeclaration isCompleteDeclaration getter (nameOffset:43) (firstTokenOffset:28) (offset:43)
               element: <testLibrary>::@class::A::@getter::getter
               metadata
                 Annotation
@@ -3856,7 +3865,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isOriginDeclaration method (nameOffset:40) (firstTokenOffset:28) (offset:40)
+            #F3 isOriginDeclaration isCompleteDeclaration method (nameOffset:40) (firstTokenOffset:28) (offset:40)
               element: <testLibrary>::@class::A::@method::method
               metadata
                 Annotation
@@ -3986,7 +3995,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           setters
-            #F4 isOriginDeclaration setter (nameOffset:39) (firstTokenOffset:28) (offset:39)
+            #F4 isOriginDeclaration isCompleteDeclaration setter (nameOffset:39) (firstTokenOffset:28) (offset:39)
               element: <testLibrary>::@class::A::@setter::setter
               metadata
                 Annotation
@@ -4157,6 +4166,7 @@ library
         isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F5
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -4293,13 +4303,13 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F7 isOriginVariable e1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
+            #F7 isOriginVariable isCompleteDeclaration e1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@enum::E::@getter::e1
-            #F8 isOriginVariable e2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F8 isOriginVariable isCompleteDeclaration e2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@enum::E::@getter::e2
-            #F9 isOriginVariable e3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
+            #F9 isOriginVariable isCompleteDeclaration e3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:54)
               element: <testLibrary>::@enum::E::@getter::e3
-            #F10 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F10 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@enum::E::@getter::values
       topLevelVariables
         #F11 hasInitializer isOriginDeclaration foo (nameOffset:6) (firstTokenOffset:6) (offset:6)
@@ -4545,19 +4555,19 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F6 isOriginVariable isStatic (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F6 isOriginVariable isCompleteDeclaration isStatic (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::A::@getter::isStatic
-            #F7 isOriginVariable isStaticConst (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+            #F7 isOriginVariable isCompleteDeclaration isStaticConst (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
               element: <testLibrary>::@class::A::@getter::isStaticConst
-            #F8 isOriginVariable isInstance (nameOffset:<null>) (firstTokenOffset:<null>) (offset:112)
+            #F8 isOriginVariable isCompleteDeclaration isInstance (nameOffset:<null>) (firstTokenOffset:<null>) (offset:112)
               element: <testLibrary>::@class::A::@getter::isInstance
           setters
-            #F9 isOriginVariable isStatic (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+            #F9 isOriginVariable isCompleteDeclaration isStatic (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::A::@setter::isStatic
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
                   element: <testLibrary>::@class::A::@setter::isStatic::@formalParameter::value
-            #F11 isOriginVariable isInstance (nameOffset:<null>) (firstTokenOffset:<null>) (offset:112)
+            #F11 isOriginVariable isCompleteDeclaration isInstance (nameOffset:<null>) (firstTokenOffset:<null>) (offset:112)
               element: <testLibrary>::@class::A::@setter::isInstance
               formalParameters
                 #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:112)
@@ -5090,7 +5100,7 @@ library
         #F2 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
       functions
-        #F3 isOriginDeclaration f (nameOffset:26) (firstTokenOffset:16) (offset:26)
+        #F3 isOriginDeclaration isCompleteDeclaration f (nameOffset:26) (firstTokenOffset:16) (offset:26)
           element: <testLibrary>::@function::f
           metadata
             Annotation
@@ -5208,7 +5218,7 @@ library
       getters
         #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
-        #F4 isOriginDeclaration getter (nameOffset:29) (firstTokenOffset:16) (offset:29)
+        #F4 isOriginDeclaration isCompleteDeclaration getter (nameOffset:29) (firstTokenOffset:16) (offset:29)
           element: <testLibrary>::@getter::getter
           metadata
             Annotation
@@ -5280,7 +5290,7 @@ library
         #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
       setters
-        #F4 isOriginDeclaration setter (nameOffset:25) (firstTokenOffset:16) (offset:25)
+        #F4 isOriginDeclaration isCompleteDeclaration setter (nameOffset:25) (firstTokenOffset:16) (offset:25)
           element: <testLibrary>::@setter::setter
           metadata
             Annotation
@@ -5848,7 +5858,7 @@ library
         #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
       functions
-        #F3 isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F3 isOriginDeclaration isCompleteDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::f
           formalParameters
             #F4 requiredPositional x (nameOffset:21) (firstTokenOffset:18) (offset:21)
@@ -5918,7 +5928,7 @@ library
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
           methods
-            #F3 isOriginDeclaration m (nameOffset:29) (firstTokenOffset:29) (offset:29)
+            #F3 isOriginDeclaration isCompleteDeclaration m (nameOffset:29) (firstTokenOffset:29) (offset:29)
               element: <testLibrary>::@class::C::@method::m
               formalParameters
                 #F4 requiredPositional x (nameOffset:34) (firstTokenOffset:31) (offset:34)
@@ -6009,7 +6019,7 @@ library
         #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
       setters
-        #F4 isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
+        #F4 isOriginDeclaration isCompleteDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
           element: <testLibrary>::@setter::foo
           formalParameters
             #F5 requiredPositional x (nameOffset:32) (firstTokenOffset:25) (offset:32)
@@ -6082,7 +6092,7 @@ library
         #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
       functions
-        #F3 isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F3 isOriginDeclaration isCompleteDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::f
           formalParameters
             #F4 optionalPositional x (nameOffset:22) (firstTokenOffset:19) (offset:22)
@@ -6169,7 +6179,7 @@ library
         #F4 class B (nameOffset:48) (firstTokenOffset:42) (offset:48)
           element: <testLibrary>::@class::B
           constructors
-            #F5 isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:64) (offset:64)
+            #F5 isOriginDeclaration isCompleteDeclaration new (nameOffset:<null>) (firstTokenOffset:64) (offset:64)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               typeNameOffset: 64
@@ -6384,6 +6394,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
   topLevelVariables
     const hasImplicitType hasInitializer isOriginDeclaration a
       reference: <testLibrary>::@topLevelVariable::a
@@ -6476,6 +6487,7 @@ library
         isOriginMixinApplication new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
+          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -6535,7 +6547,7 @@ library
         #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
       functions
-        #F3 isOriginDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
+        #F3 isOriginDeclaration isCompleteDeclaration f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@function::f
           typeParameters
             #F4 T (nameOffset:21) (firstTokenOffset:18) (offset:21)
@@ -6768,7 +6780,7 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           getters
-            #F4 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+            #F4 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::A::@getter::x
         #F5 class C (nameOffset:45) (firstTokenOffset:34) (offset:45)
           element: <testLibrary>::@class::C
@@ -6899,13 +6911,13 @@ library
               element: <testLibrary>::@enum::E::@constructor::new
               typeName: E
           getters
-            #F9 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
+            #F9 isOriginVariable isCompleteDeclaration a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::E::@getter::a
-            #F10 isOriginVariable b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
+            #F10 isOriginVariable isCompleteDeclaration b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@enum::E::@getter::b
-            #F11 isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+            #F11 isOriginVariable isCompleteDeclaration c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
               element: <testLibrary>::@enum::E::@getter::c
-            #F12 isOriginVariable values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
+            #F12 isOriginVariable isCompleteDeclaration values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   classes
     class C
@@ -7014,7 +7026,7 @@ library
                   literal: 0 @40
                   staticType: int
           getters
-            #F5 isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F5 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@extension::E::@getter::x
   classes
     class C
@@ -7080,7 +7092,7 @@ library
                   literal: 0 @50
                   staticType: int
           getters
-            #F3 isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+            #F3 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@extension::0::@getter::foo
   extensions
     extension <null-name>

@@ -320,6 +320,7 @@ compilations
 compiler's
 complement
 complementary
+complements
 completers
 completes
 complexity
@@ -1161,6 +1162,7 @@ mocking
 mockito
 modelled
 modelling
+modularly
 modulename
 momentarily
 monomorphic
@@ -1678,6 +1680,7 @@ selectively
 selectors
 semantically
 semver
+sensitive
 separation
 separators
 sequencing

@@ -6107,7 +6107,7 @@ class StatementConstantEvaluator
 
   @override
   ExecutionStatus visitForStatement(ForStatement node) {
-    for (VariableInitializationBase variable in node.variableInitializations) {
+    for (VariableInitializationBase variable in node.variables) {
       final ExecutionStatus status = variable.accept(this);
       if (status is! ProceedStatus) return status;
     }

@@ -1370,8 +1370,8 @@ class ForwardingListener implements Listener {
   @override
   void beginFields(
     DeclarationKind declarationKind,
-    Token? abstractToken,
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -1381,8 +1381,8 @@ class ForwardingListener implements Listener {
   ) {
     listener?.beginFields(
       declarationKind,
-      abstractToken,
       augmentToken,
+      abstractToken,
       externalToken,
       staticToken,
       covariantToken,
@@ -1395,6 +1395,7 @@ class ForwardingListener implements Listener {
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -1406,6 +1407,7 @@ class ForwardingListener implements Listener {
   ) {
     listener?.endTopLevelFields(
       augmentToken,
+      abstractToken,
       externalToken,
       staticToken,
       covariantToken,

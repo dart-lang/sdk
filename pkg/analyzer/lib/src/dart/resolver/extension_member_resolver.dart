@@ -10,7 +10,6 @@ import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/generic_inferrer.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
@@ -217,16 +216,9 @@ class ExtensionMemberResolver {
       node.typeArgumentTypes!,
     );
 
-    var getterMember = getter != null
-        ? SubstitutedExecutableElementImpl.from(getter, substitution)
-        : null;
-    var setterMember = setter != null
-        ? SubstitutedExecutableElementImpl.from(setter, substitution)
-        : null;
-
     return SingleExtensionResolutionResult(
-      getter2: getterMember,
-      setter2: setterMember,
+      getter2: getter?.substitute(substitution),
+      setter2: setter?.substitute(substitution),
     );
   }
 

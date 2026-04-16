@@ -1770,7 +1770,10 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {/* TODO */}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('set s(value) {/* TODO */}'),
+    );
   }
 
   Future<void> test_writeSetterDeclaration_isStatic() async {
@@ -1785,7 +1788,10 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('static set s(s) {}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('static set s(value) {}'),
+    );
   }
 
   Future<void> test_writeSetterDeclaration_nameGroupName() async {
@@ -1800,7 +1806,7 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {}'));
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(value) {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
@@ -1828,7 +1834,7 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(A s) {}'));
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(A value) {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));

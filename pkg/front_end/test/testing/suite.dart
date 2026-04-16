@@ -844,6 +844,8 @@ CompilationSetup createCompilationSetup(
       ..omitOsMessageForTesting = true
       ..packagesFileUri = packagesFileUri
       ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
+      ..allowDynamicCallsInDynamicModules =
+          dynamicInterfaceSpecificationUri != null
       ..target = createTarget(folderOptions, context)
       ..verify =
           // TODO(johnniwinther): Enable verification in outline and modular

@@ -833,6 +833,25 @@ Message _withArgumentsClassShouldBeListedAsExtendableInDynamicInterface({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+classWithNoSuchMethodSubtypeCause = const Template(
+  "ClassWithNoSuchMethodSubtypeCause",
+  withArguments: _withArgumentsClassWithNoSuchMethodSubtypeCause,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsClassWithNoSuchMethodSubtypeCause({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    classWithNoSuchMethodSubtypeCause,
+    problemMessage: """Subtype '${name_0}' implements 'noSuchMethod' here.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function({required String className, required String memberName})
 >
@@ -2684,10 +2703,117 @@ Message _withArgumentsDuplicatedRecordTypeFieldNameContext({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
-const MessageCode dynamicCallsAreNotAllowedInDynamicModule = const MessageCode(
-  "DynamicCallsAreNotAllowedInDynamicModule",
-  problemMessage: """Dynamic calls are not allowed in a dynamic module.""",
+const MessageCode dynamicCallsAreDisallowedByDefault = const MessageCode(
+  "DynamicCallsAreDisallowedByDefault",
+  problemMessage:
+      """Dynamic calls are not allowed in dynamic modules by default as they increase risks of runtime errors in applications.""",
+  correctionMessage:
+      """You can bypass this error by using '--allow-dynamic-calls-in-dynamic-modules'.""",
 );
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode
+dynamicCallsAreDiscouragedInDynamicModules = const MessageCode(
+  "DynamicCallsAreDiscouragedInDynamicModules",
+  severity: CfeSeverity.warning,
+  problemMessage:
+      """Dynamic calls are discouraged in dynamic modules as they may fail at runtime if their target is not properly exposed as 'dynamically-callable'.""",
+  correctionMessage:
+      """Consider avoiding dynamic calls. You can remove '--allow-dynamic-calls-in-dynamic-modules' to see where dynamic calls are used.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+dynamicCallsAreNotAllowedInDynamicModule = const Template(
+  "DynamicCallsAreNotAllowedInDynamicModule",
+  withArguments: _withArgumentsDynamicCallsAreNotAllowedInDynamicModule,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDynamicCallsAreNotAllowedInDynamicModule({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    dynamicCallsAreNotAllowedInDynamicModule,
+    problemMessage:
+        """Dynamic call to selector '${name_0}' is not allowed in a dynamic module.""",
+    correctionMessage:
+        """Try listing '${name_0}' as 'dynamically-callable' in the dynamic interface specification.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+dynamicallyCallableWithNoSuchMethod = const Template(
+  "DynamicallyCallableWithNoSuchMethod",
+  withArguments: _withArgumentsDynamicallyCallableWithNoSuchMethod,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDynamicallyCallableWithNoSuchMethod({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    dynamicallyCallableWithNoSuchMethod,
+    problemMessage:
+        """Cannot expose class '${name_0}' because it declares or inherits a 'noSuchMethod' declaration.""",
+    correctionMessage:
+        """Try removing the 'noSuchMethod' declaration or not exposing the class.""",
+    arguments: {'name': name},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({required String name, required String subtype})
+>
+dynamicallyCallableWithNoSuchMethodDynamicSubtype = const Template(
+  "DynamicallyCallableWithNoSuchMethodDynamicSubtype",
+  withArguments:
+      _withArgumentsDynamicallyCallableWithNoSuchMethodDynamicSubtype,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDynamicallyCallableWithNoSuchMethodDynamicSubtype({
+  required String name,
+  required String subtype,
+}) {
+  var subtype_0 = conversions.validateString(subtype);
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    dynamicallyCallableWithNoSuchMethodDynamicSubtype,
+    problemMessage:
+        """Cannot define 'noSuchMethod' on '${subtype_0}' because it is a subtype of '${name_0}', which was exposed as dynamically-callable.""",
+    correctionMessage:
+        """Try removing the 'noSuchMethod' declaration or no longer expose '${name_0}' as dynamically-callable.""",
+    arguments: {'name': name, 'subtype': subtype},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<Message Function({required String name})>
+dynamicallyCallableWithNoSuchMethodHostSubtype = const Template(
+  "DynamicallyCallableWithNoSuchMethodHostSubtype",
+  withArguments: _withArgumentsDynamicallyCallableWithNoSuchMethodHostSubtype,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsDynamicallyCallableWithNoSuchMethodHostSubtype({
+  required String name,
+}) {
+  var name_0 = conversions.validateString(name);
+  return new Message(
+    dynamicallyCallableWithNoSuchMethodHostSubtype,
+    problemMessage:
+        """Cannot expose class '${name_0}' because it has a subtype with a 'noSuchMethod' declaration.""",
+    correctionMessage:
+        """Try removing the 'noSuchMethod' declaration from the subtype or not exposing the class.""",
+    arguments: {'name': name},
+  );
+}
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode emptyMapPattern = const MessageCode(

@@ -7,6 +7,7 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/library_index.dart' show LibraryIndex;
+import 'package:kernel/names.dart' show noSuchMethodName;
 import 'package:yaml/yaml.dart';
 import '../source/source_loader.dart' show SourceLoader;
 import '../api_prototype/lowering_predicates.dart'
@@ -72,6 +73,7 @@ class DynamicInterfaceYamlFile {
         'can-be-overridden',
         'callable',
         'can-be-used-as-type',
+        'dynamically-callable',
       });
     }
   }
@@ -84,6 +86,7 @@ class DynamicInterfaceYamlFile {
   YamlList? get canBeOverridden => sections['can-be-overridden'];
   YamlList? get callable => sections['callable'];
   YamlList? get canBeUsedAsType => sections['can-be-used-as-type'];
+  YamlList? get dynamicallyCallable => sections['dynamically-callable'];
 
   // Coverage-ignore(suite): Not run.
   Set<String> get libraries => {
@@ -109,6 +112,7 @@ class DynamicInterfaceSpecification {
   final Set<TreeNode> canBeOverridden = {};
   final Set<TreeNode> callable = {};
   final Set<TreeNode> canBeUsedAsType = {};
+  final Set<TreeNode> dynamicallyCallable = {};
 
   factory DynamicInterfaceSpecification(
     String dynamicInterfaceSpecification,
@@ -169,6 +173,16 @@ class DynamicInterfaceSpecification {
       libraryIndex,
       allowStaticDeclarations: false,
       allowInstanceMembers: false,
+    );
+
+    _parseList(
+      yamlFile.dynamicallyCallable,
+      dynamicallyCallable,
+      baseUri,
+      component,
+      libraryIndex,
+      allowStaticDeclarations: false,
+      allowInstanceMembers: true,
     );
   }
 
@@ -450,6 +464,7 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   final SourceLoader loader;
   final bool allowDynamicCallsInDynamicModules;
   final Set<Constant> _visitedConstants = new Set<Constant>.identity();
+  late final _DynamicCallValidator _dynamicCallValidator;
 
   TreeNode? _enclosingTreeNode;
 
@@ -465,6 +480,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     _expandNodes(spec.extendable);
     _expandNodes(spec.canBeOverridden);
     _expandNodes(spec.canBeUsedAsType);
+    _expandNodes(spec.dynamicallyCallable);
+    _dynamicCallValidator = new _DynamicCallValidator(this)..run();
   }
 
   // Add nodes which do not have direct relation to its logical "parent" node.
@@ -562,6 +579,8 @@ class _DynamicModuleValidator extends RecursiveVisitor {
       );
       _verifyOverrides(setterImplementationMembers, setterInterfaceMembers);
     }
+
+    _verifyDynamicallyCallableClass(node);
     super.visitClass(node);
   }
 
@@ -645,7 +664,6 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void visitSuperMethodInvocation(SuperMethodInvocation node) {
     _verifyCallable(node.interfaceTarget, node);
     super.visitSuperMethodInvocation(node);
@@ -707,26 +725,26 @@ class _DynamicModuleValidator extends RecursiveVisitor {
 
   @override
   void visitDynamicGet(DynamicGet node) {
-    _dynamicCall(node);
+    _verifyDynamicallyCallable(new _Selector(.PropertyGet, node.name), node);
     super.visitDynamicGet(node);
   }
 
   @override
   void visitDynamicSet(DynamicSet node) {
-    _dynamicCall(node);
+    _verifyDynamicallyCallable(new _Selector(.PropertySet, node.name), node);
     super.visitDynamicSet(node);
   }
 
   @override
   void visitDynamicInvocation(DynamicInvocation node) {
-    _dynamicCall(node);
+    _verifyDynamicallyCallable(new _Selector(.Method, node.name), node);
     super.visitDynamicInvocation(node);
   }
 
   @override
   void visitRelationalPattern(RelationalPattern node) {
     if (node.accessKind == RelationalAccessKind.Dynamic) {
-      _dynamicCall(node);
+      _verifyDynamicallyCallable(new _Selector(.Method, node.name!), node);
     }
     super.visitRelationalPattern(node);
   }
@@ -734,7 +752,10 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   @override
   void visitNamedPattern(NamedPattern node) {
     if (node.accessKind == ObjectAccessKind.Dynamic) {
-      _dynamicCall(node);
+      _verifyDynamicallyCallable(
+        new _Selector(.PropertyGet, node.fieldName),
+        node,
+      );
     }
     super.visitNamedPattern(node);
   }
@@ -813,13 +834,38 @@ class _DynamicModuleValidator extends RecursiveVisitor {
   void visitTypedefTearOffConstantReference(TypedefTearOffConstant node) =>
       throw 'Unexpected node ${node.runtimeType} $node';
 
-  void _dynamicCall(TreeNode node) {
-    loader.addProblem(
-      diag.dynamicCallsAreNotAllowedInDynamicModule,
-      node.fileOffset,
-      noLength,
-      node.location!.file,
-    );
+  bool _warningEmitted = false;
+  void _verifyDynamicallyCallable(_Selector selector, TreeNode node) {
+    if (allowDynamicCallsInDynamicModules) {
+      if (!_warningEmitted) {
+        _warningEmitted = true;
+        loader.addProblem(
+          diag.dynamicCallsAreDiscouragedInDynamicModules,
+          TreeNode.noOffset,
+          noLength,
+          node.location!.file,
+        );
+      }
+
+      if (!_dynamicCallValidator.isAllowed(selector)) {
+        loader.addProblem(
+          diag.dynamicCallsAreNotAllowedInDynamicModule.withArguments(
+            name: selector.diagnosticName,
+          ),
+          node.fileOffset,
+          noLength,
+          node.location!.file,
+        );
+      }
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      loader.addProblem(
+        diag.dynamicCallsAreDisallowedByDefault,
+        node.fileOffset,
+        noLength,
+        node.location!.file,
+      );
+    }
   }
 
   void _verifyCanBeUsedAsType(TreeNode target, TreeNode node) {
@@ -924,6 +970,23 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     }
   }
 
+  // Verify that any subtype of dynamically-callable classes don't define or
+  // inherit a `noSuchMethod` override:
+  void _verifyDynamicallyCallableClass(Class node) {
+    if (!_dynamicCallValidator._hasUserNoSuchMethod(node)) return;
+    Class? result = _dynamicCallValidator.getDynamicallyCallableSupertype(node);
+    if (result == null) return;
+    loader.addProblem(
+      diag.dynamicallyCallableWithNoSuchMethodDynamicSubtype.withArguments(
+        name: result.name,
+        subtype: node.name,
+      ),
+      node.fileOffset,
+      noLength,
+      node.location!.file,
+    );
+  }
+
   // Unwrap synthetic stubs to get actual member.
   Member _unwrapStubs(Member member) {
     if (member is Procedure) {
@@ -1025,7 +1088,151 @@ class _DynamicModuleValidator extends RecursiveVisitor {
         ExtensionTypeDeclaration() =>
           node.name[0] != '_' && _isSpecified(node.enclosingLibrary, specified),
         Library() => false,
-        // Coverage-ignore(suite): Not run.
-        _ => throw 'Unexpected node ${node.runtimeType} $node',
+        _ => // Coverage-ignore(suite): Not run.
+        throw 'Unexpected node ${node.runtimeType} $node',
       };
+}
+
+/// Performs preparation work required before
+/// [_DynamicModulesValidator] visits the dynamic module.
+///
+/// Currently this includes:
+/// * Ensuring names of members exposed dynamically are registered. The
+///   registered names will be used while validating dynamic call nodes later.
+/// * Check for invalid exposed nodes because of classes implementing
+///   `noSuchMethod`. Both classes in the dynamic interface and their subtypes
+///   in the host app.
+class _DynamicCallValidator {
+  final _DynamicModuleValidator validator;
+  final Set<_Selector> _dynamicallyCallable = {};
+  final Set<Class> classesExposedDynamically = {};
+  DynamicInterfaceSpecification get spec => validator.spec;
+
+  _DynamicCallValidator(this.validator);
+
+  /// Whether [selectorName] should be allowed in a dynamic module.
+  bool isAllowed(_Selector selector) => _dynamicallyCallable.contains(selector);
+
+  /// Registers exposed selectors based on [spec] and validates classes in
+  /// [component] to ensure dynamically callable classes cannot directly or
+  /// indirectly override `noSuchMethod`.
+  void run() {
+    if (spec.dynamicallyCallable.isEmpty) return;
+
+    for (TreeNode node in spec.dynamicallyCallable) {
+      if (node is Member) {
+        checkExposedClass(node.enclosingClass!, node);
+        registerSelectorName(node);
+      } else if (node is Class) {
+        checkExposedClass(node, node);
+        registerClassMembers(node);
+      } else {
+        for (Class c in (node as Library).classes) {
+          checkExposedClass(c, c);
+          registerClassMembers(c);
+        }
+      }
+    }
+  }
+
+  /// Registers the implicit selector name of [node] in the the allow-list of
+  /// dynamically callable selectors.
+  void registerSelectorName(Member node) {
+    if (!node.isInstanceMember) return;
+    switch (node) {
+      case Field():
+        _dynamicallyCallable.add(new _Selector(.PropertyGet, node.name));
+        if (node.hasSetter) {
+          _dynamicallyCallable.add(new _Selector(.PropertySet, node.name));
+        }
+      case Procedure() when node.isGetter:
+        _dynamicallyCallable.add(new _Selector(.PropertyGet, node.name));
+      case Procedure() when node.isSetter:
+        _dynamicallyCallable.add(new _Selector(.PropertySet, node.name));
+      case _:
+        _dynamicallyCallable.add(new _Selector(.Method, node.name));
+        _dynamicallyCallable.add(new _Selector(.PropertyGet, node.name));
+    }
+  }
+
+  /// Registers the implicit selectors from all members defined in [cls].
+  void registerClassMembers(Class cls) {
+    for (Procedure p in cls.procedures) {
+      registerSelectorName(p);
+    }
+    for (Field f in cls.fields) {
+      registerSelectorName(f);
+    }
+  }
+
+  /// Checks that [cls] doesn't contain a `noSuchMethod` override.
+  ///
+  // TODO(sigmund): perform this check only when compiling the host app.
+  // TODO(sigmund): check subtypes of dynamically-callable classes defined in
+  // the host.
+  void checkExposedClass(Class cls, TreeNode node) {
+    if (!classesExposedDynamically.add(cls)) return;
+    bool result = _hasUserNoSuchMethod(cls);
+    if (result) {
+      validator.loader.addProblem(
+        diag.dynamicallyCallableWithNoSuchMethod.withArguments(name: cls.name),
+        // TODO(sigmund): consider reporting an offset in the
+        // dynamic_interface.yaml file instead.
+        node.fileOffset,
+        noLength,
+        node.location!.file,
+      );
+    }
+  }
+
+  /// Searches whether a supertype of [cls] is exposed as
+  /// `dynamically-callable`. If so, return the first such supertype, otherwise
+  /// return `null`.
+  Class? getDynamicallyCallableSupertype(Class? cls) {
+    if (cls == null) return null;
+    if (classesExposedDynamically.contains(cls)) return cls;
+    Class? result = getDynamicallyCallableSupertype(cls.superclass);
+    if (result != null) return result;
+    for (Supertype type in cls.implementedTypes) {
+      Class? found = getDynamicallyCallableSupertype(type.classNode);
+      if (found != null) return found;
+    }
+    return null;
+  }
+
+  /// Whether [cls] defines or inherits a user `noSuchMethod` definition.
+  bool _hasUserNoSuchMethod(Class cls) {
+    // Note: we don't use `hierarchy.getInterfaceMember(cls, noSuchMethodName)`
+    // because [hierarchy] only indexes code reachable from the dynamic
+    // module and excludes the rest of the host libraries.
+    if (cls == validator.hierarchy.coreTypes.objectClass) return false;
+    if (cls.procedures.any((p) => p.name == noSuchMethodName)) {
+      return true;
+    }
+    return _hasUserNoSuchMethod(cls.superclass!);
+  }
+}
+
+enum _SelectorKind { Method, PropertyGet, PropertySet }
+
+class _Selector {
+  final _SelectorKind kind;
+  final Name name;
+
+  _Selector(this.kind, this.name);
+
+  String get _prefix => switch (kind) {
+    .Method => '',
+    .PropertyGet => 'get:',
+    .PropertySet => 'set:',
+  };
+
+  String get diagnosticName => '$_prefix${name.text}';
+
+  @override
+  bool operator ==(other) =>
+      other is _Selector && kind == other.kind && name == other.name;
+
+  @override
+  int get hashCode => Object.hash(kind, name);
 }

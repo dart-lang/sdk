@@ -376,6 +376,8 @@ abstract class BodyBuilderContext {
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
   }) {
     throw new UnsupportedError('${runtimeType}.inferInitializer');
   }

@@ -130,8 +130,8 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
   'LocalFunctionInvocation': {'variable': FieldRule(isDeclaration: false)},
   'LocalVariable': {'variableInitialization': FieldRule(isDeclaration: false)},
   'BreakStatement': {'target': FieldRule(isDeclaration: false)},
-  'ForStatement': {'variableInitializations': FieldRule(isDeclaration: true)},
-  'ForInStatement': {'expressionVariable': FieldRule(isDeclaration: true)},
+  'ForStatement': {'variables': FieldRule(isDeclaration: true)},
+  'ForInStatement': {'variable': FieldRule(isDeclaration: true)},
   'SwitchStatement': {'cases': FieldRule(isDeclaration: true)},
   'ContinueSwitchStatement': {'target': FieldRule(isDeclaration: false)},
   'Catch': {
@@ -151,9 +151,7 @@ const Map<String?, Map<String, FieldRule?>> _fieldRuleMap = {
     'variableInitialization': FieldRule(isDeclaration: false),
   },
   'VariableStatement': {'_name': FieldRule(name: 'name')},
-  'AssignedVariablePattern': {
-    'expressionVariable': FieldRule(isDeclaration: false),
-  },
+  'AssignedVariablePattern': {'variable': FieldRule(isDeclaration: false)},
   'InvalidPattern': {'declaredVariables': FieldRule(isDeclaration: true)},
   'OrPattern': {'orPatternJointVariables': FieldRule(isDeclaration: false)},
   'VariablePattern': {'variable': FieldRule(isDeclaration: true)},

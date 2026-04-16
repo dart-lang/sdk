@@ -18,6 +18,9 @@ class UseKeyInWidgetConstructorsTest extends LintRuleTest {
   bool get addFlutterPackageDep => true;
 
   @override
+  bool get addMetaPackageDep => true;
+
+  @override
   String get lintRule => LintNames.use_key_in_widget_constructors;
 
   test_augmentedConstructor_noKey() async {
@@ -314,6 +317,37 @@ class OtherWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container();
+}
+''');
+  }
+
+  test_visibleForTestingClass() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+@visibleForTesting
+abstract class MyWidget extends StatefulWidget {}
+''');
+  }
+
+  test_visibleForTestingConstructor() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class MyWidget extends StatefulWidget {
+  @visibleForTesting
+  MyWidget();
+}
+''');
+  }
+
+  test_visibleForTestingConstructor_primary() async {
+    await assertNoDiagnostics(r'''
+import 'package:flutter/widgets.dart';
+
+abstract class MyWidget() extends StatefulWidget {
+  @visibleForTesting
+  this;
 }
 ''');
   }

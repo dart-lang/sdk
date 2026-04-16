@@ -137,8 +137,6 @@ class TypesBuilder {
         if (type is InterfaceTypeImpl && _isInterfaceTypeClass(type)) {
           element.supertype = type;
         }
-      } else if (element.isDartCoreObject) {
-        fragment.setModifier(Modifier.DART_CORE_OBJECT, true);
       }
     }
 

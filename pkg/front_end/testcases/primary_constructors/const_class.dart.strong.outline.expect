@@ -47,10 +47,6 @@ library;
 //   this {}
 //        ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:45:9: Error: Generative enum constructors must be marked as 'const'.
-//   const E0(this.v) {}
-//         ^
-//
 // pkg/front_end/testcases/primary_constructors/const_class.dart:50:8: Error: A const constructor can't have a body.
 // Try removing either the 'const' keyword or the body.
 //   this {}
@@ -66,16 +62,12 @@ library;
 //   this: v = v {}
 //               ^
 //
-// pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-//   e0(0);
-//   ^
-//
 import self as self;
 import "dart:core" as core;
 
-class C0 extends core::Object {
-  constructor •() → self::C0
+class C0 extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::C0
+    : super core::Object::•()
     ;
 }
 class C1 extends core::Object /*hasConstConstructor*/  {
@@ -113,13 +105,11 @@ class C5 extends self::A /*hasConstConstructor*/  {
     ;
 }
 class E0 extends core::_Enum /*isEnum*/  {
-  enum-element static const field invalid-type e0 = invalid-expression "pkg/front_end/testcases/primary_constructors/const_class.dart:42:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  e0(0);
-  ^";
+  enum-element static const field self::E0 e0 = const self::E0::•(0, "e0", 0);
   final field core::int v;
   static const field core::List<self::E0> values = const <self::E0>[self::E0::e0];
-  constructor •(core::int #index, core::String #name, initializing-formal core::int v) → self::E0
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int v) → self::E0
+    : self::E0::v = v, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
     return "E0.${this.{core::_Enum::_name}{core::String}}";
@@ -179,10 +169,12 @@ static extension-type-member synthetic method ET2|constructor#_#someName#tearOff
 
 
 Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:42:3 -> InstanceConstant(const E0{E0.v: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:41:6 -> ListConstant(const <E0>[const E0{E0.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:49:3 -> InstanceConstant(const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:48:6 -> ListConstant(const <E1>[const E1{E1.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:54:6 -> InstanceConstant(const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:53:12 -> ListConstant(const <E2>[const E2{E2.v: 0, _Enum.index: 0, _Enum._name: "e0"}])
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///const_class.dart:60:3 -> InstanceConstant(const E3{E3.v: null, _Enum.index: 0, _Enum._name: "e0"})
 Evaluated: ListLiteral @ org-dartlang-testcase:///const_class.dart:59:12 -> ListConstant(const <E3>[const E3{E3.v: null, _Enum.index: 0, _Enum._name: "e0"}])
-Extra constant evaluation: evaluated: 40, effectively constant: 6
+Extra constant evaluation: evaluated: 43, effectively constant: 8

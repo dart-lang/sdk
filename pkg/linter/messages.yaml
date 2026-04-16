@@ -361,6 +361,7 @@ LinterLintCode:
       diagnostic because a relative URI is used to import `a.dart`:
 
       ```dart
+      %ignore=uri_does_not_exist
       import [!'a.dart'!];
       ```
 
@@ -369,6 +370,7 @@ LinterLintCode:
       Use a package import:
 
       ```dart
+      %ignore=uri_does_not_exist
       import 'package:p/a.dart';
       ```
     deprecatedDetails: |-
@@ -3236,6 +3238,7 @@ LinterLintCode:
       produces this diagnostic because it imports `dart:html`:
 
       ```dart
+      %ignore=unused_import
       import [!'dart:html'!];
 
       import 'package:flutter/material.dart';
@@ -3248,6 +3251,7 @@ LinterLintCode:
       If the package isn't intended to be a web plugin, then remove the import:
 
       ```dart
+      %ignore=unused_import
       import 'package:flutter/material.dart';
 
       class C {}
@@ -4016,13 +4020,13 @@ LinterLintCode:
       statement inside a `finally` block:
 
       ```dart
-      int f() {
+      void f(void Function() g) {
         try {
-          return 1;
+          g();
         } catch (e) {
           print(e);
         } finally {
-          [!return 0;!]
+          [!return;!]
         }
       }
       ```
@@ -4033,9 +4037,9 @@ LinterLintCode:
       `finally` clause if the block is empty:
 
       ```dart
-      int f() {
+      void f(void Function() g) {
         try {
-          return 1;
+          g();
         } catch (e) {
           print(e);
         }
@@ -4046,13 +4050,13 @@ LinterLintCode:
       block:
 
       ```dart
-      int f() {
+      void f(void Function() g) {
         try {
-          return 1;
+          g();
         } catch (e) {
           print(e);
         }
-        return 0;
+        return;
       }
       ```
     deprecatedDetails: |-
@@ -4325,7 +4329,8 @@ LinterLintCode:
       on the package `a`:
 
       ```dart
-      import 'package:a/a.dart';
+      %ignore=uri_does_not_exist
+      import [!'package:a/a.dart'!];
       ```
 
       #### Common fixes
@@ -5457,6 +5462,7 @@ LinterLintCode:
       top-level `src` directory:
 
       ```dart
+      %ignore=uri_does_not_exist
       import [!'package:ffi/src/allocation.dart'!];
       ```
 
@@ -5466,6 +5472,7 @@ LinterLintCode:
       then import the public library that exports the public API:
 
       ```dart
+      %ignore=unused_import
       import 'package:ffi/ffi.dart';
       ```
 
@@ -6551,6 +6558,7 @@ LinterLintCode:
       `ffiSupport` isn't a lower_case_with_underscores identifier:
 
       ```dart
+      %ignore=unused_import
       import 'package:ffi/ffi.dart' as [!ffiSupport!];
       ```
 
@@ -6560,6 +6568,7 @@ LinterLintCode:
       convention:
 
       ```dart
+      %ignore=unused_import
       import 'package:ffi/ffi.dart' as ffi_support;
       ```
     deprecatedDetails: |-
@@ -6615,6 +6624,7 @@ LinterLintCode:
       it private:
 
       ```dart
+      %ignore=unused_element
       void _f(_C c) {}
 
       class _C {}
@@ -11519,6 +11529,7 @@ LinterLintCode:
       invokes itself:
 
       ```dart
+      %ignore=unused_field
       class C {
         int _count = 0;
 
@@ -13607,6 +13618,45 @@ LinterLintCode:
       stable: "3.0"
     categories: [brevity, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `break` statement appears
+      at the end of a non-empty switch case or default clause. In Dart 3.0
+      and later, switch cases don't fall through to the next case, so a
+      `break` at the end of a non-empty case body is redundant.
+
+      #### Example
+
+      The following code produces this diagnostic because the `break` is at
+      the end of a non-empty `case` body:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+            [!break;!]
+          case 2:
+            print('two');
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the `break` statement:
+
+      ```dart
+      void f(int x) {
+        switch (x) {
+          case 1:
+            print('one');
+          case 2:
+            print('two');
+        }
+      }
+      ```
     deprecatedDetails: |-
       Only use a `break` in a non-empty switch case statement if you need to break
       before the end of the case body.  Dart does not support fallthrough execution
@@ -16559,6 +16609,7 @@ LinterLintCode:
       used to set the value of the field `_f` and does no other work:
 
       ```dart
+      %ignore=unused_field
       class C {
         int _f = 0;
 
@@ -16571,6 +16622,7 @@ LinterLintCode:
       Convert the method to a setter:
 
       ```dart
+      %ignore=unused_field
       class C {
         int _f = 0;
 

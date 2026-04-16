@@ -607,9 +607,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForStatement(ForStatement node) {
-    List<VariableInitializationBase> variables = node.variableInitializations
-        .map(clone)
-        .toList();
+    List<VariableDeclaration> variables = node.variables.map(clone).toList();
     return new ForStatement(
       variables,
       cloneOptional(node.condition),
@@ -620,7 +618,7 @@ class CloneVisitorNotMembers
 
   @override
   TreeNode visitForInStatement(ForInStatement node) {
-    VariableDeclaration newVariable = clone(node.expressionVariable);
+    VariableDeclaration newVariable = clone(node.variable);
     return new ForInStatement(
       newVariable,
       clone(node.iterable),
@@ -888,6 +886,7 @@ class CloneVisitorNotMembers
         .map(clone)
         .toList();
     List<VariableDeclaration> named = node.namedParameters.map(clone).toList();
+    VariableDeclaration? thisVariable = cloneOptional(node.thisVariable);
     final DartType? futureValueType = node.emittedValueType != null
         ? visitType(node.emittedValueType!)
         : null;
@@ -896,6 +895,7 @@ class CloneVisitorNotMembers
       typeParameters: typeParameters,
       positionalParameters: positional,
       namedParameters: named,
+      thisVariable: thisVariable,
       requiredParameterCount: node.requiredParameterCount,
       returnType: visitType(node.returnType),
       asyncMarker: node.asyncMarker,

@@ -283,6 +283,29 @@ void StubCodeCompiler::GenerateFfiCallTrampolineStub() {
   __ Breakpoint();  // Not implemented.
 }
 
+void StubCodeCompiler::GenerateLoadBSSEntry(BSS::Relocation relocation,
+                                            Register dst,
+                                            Register tmp) {
+  compiler::Label skip_reloc;
+  __ j(&skip_reloc, compiler::Assembler::kNearJump);
+  InsertBSSRelocation(relocation);
+  __ Bind(&skip_reloc);
+
+  __ auipc(tmp, 0);
+  __ addi(tmp, tmp, -compiler::target::kWordSize);
+
+  // tmp holds the address of the relocation.
+  __ lx(dst, compiler::Address(tmp));
+
+  // dst holds the relocation itself: tmp - bss_start.
+  // tmp = tmp + (bss_start - tmp) = bss_start
+  __ add(tmp, tmp, dst);
+
+  // tmp holds the start of the BSS section.
+  // Load the "get-thread" routine: *bss_start.
+  __ lx(dst, compiler::Address(tmp));
+}
+
 void StubCodeCompiler::GenerateLoadFfiCallbackMetadataRuntimeFunction(
     uword function_index,
     Register dst) {
@@ -354,10 +377,36 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
     __ mv(A0, T1);
     __ mv(A1, SP);
 
+    // Since DLRT_GetFfiCallbackMetadata can theoretically be loaded anywhere,
+    // we use the same trick as before to ensure a predictable instruction
+    // sequence.
+#if defined(DART_TARGET_OS_FUCHSIA)
+    // TODO(https://dartbug.com/52579): Remove.
+    if (FLAG_precompiled_mode) {
+      GenerateLoadBSSEntry(BSS::Relocation::DLRT_GetFfiCallbackMetadata, T1,
+                           T2);
+    } else {
+      const intptr_t kPCRelativeLoadOffset = 12;
+      intptr_t start = __ CodeSize();
+      __ auipc(T1, 0);
+      __ lx(T1, Address(T1, kPCRelativeLoadOffset));
+      Label call;
+      __ j(&call);
+
+      ASSERT_EQUAL(__ CodeSize() - start, kPCRelativeLoadOffset);
+#if XLEN == 32
+      __ Emit32(reinterpret_cast<int32_t>(&DLRT_GetFfiCallbackMetadata));
+#else
+      __ Emit64(reinterpret_cast<int64_t>(&DLRT_GetFfiCallbackMetadata));
+#endif
+      __ Bind(&call);
+    }
+#else
     GenerateLoadFfiCallbackMetadataRuntimeFunction(
         FfiCallbackMetadata::kGetFfiCallbackMetadata, T1);
-    __ jalr(T1);
+#endif  // defined(DART_TARGET_OS_FUCHSIA)
 
+    __ jalr(T1);
     __ mv(THR, A0);
     __ lx(T2, Address(SP, 0 * target::kWordSize));  // entry_point
     __ lx(T3, Address(SP, 1 * target::kWordSize));  // is_tail
