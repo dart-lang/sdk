@@ -52,10 +52,14 @@ class PerfWitnessServer {
   /// concurrently in background and the returned [Future] will compelete
   /// immediately, unless there is a recorder process monitoring start
   /// of new processes.
-  static Future<void> start({String? tag, bool inBackground = false}) {
+  static Future<void> start({
+    String? tag,
+    bool inBackground = false,
+    String? socketPath,
+  }) {
     if (_instance == null) {
       try {
-        final started = _startImpl(tag: tag);
+        final started = _startImpl(tag: tag, socketPath: socketPath);
         if (inBackground && !_isRecorderProcessPossiblyActive) {
           started.ignore();
         } else {
@@ -76,31 +80,47 @@ class PerfWitnessServer {
     return false;
   }
 
-  static Future<void> _startImpl({required String? tag}) async {
-    assert(_instance != null);
+  static Future<void> _startImpl({
+    required String? tag,
+    required String? socketPath,
+  }) async {
+    assert(_instance == null);
 
-    if (controlSocketPath case final socketPath?) {
+    socketPath ??= controlSocketPath;
+    if (socketPath != null) {
       if (io.FileSystemEntity.typeSync(socketPath) == .unixDomainSock) {
-        // Another isolate is already serving the process. We assume that
-        // server will remain open as long as the process is running.
-        // However we want to make sure that setting global settings (e.g.
-        // whether async spans are enabled or not) will affect all isolates
-        // not just the one that created the server.
-        final client = jsonRpcPeerFromSocket(
-          await UnixDomainSocket.connect(socketPath),
-        );
-        final {'address': int addr, 'pid': int pid} =
-            await client.sendRequest(
-                  'process._isRecordingTimelineWithAsyncSpansAddr',
-                )
-                as Map<String, dynamic>;
-        client.close().ignore(); // Don't leave the client open.
-        // Just double check that we are the very same process.
-        if (pid != io.pid) {
-          return;
+        try {
+          // Another isolate is already serving the process. We assume that
+          // server will remain open as long as the process is running.
+          // However we want to make sure that setting global settings (e.g.
+          // whether async spans are enabled or not) will affect all isolates
+          // not just the one that created the server.
+          final client = jsonRpcPeerFromSocket(
+            await UnixDomainSocket.connect(socketPath),
+          );
+          try {
+            final {'address': int addr, 'pid': int pid} =
+                await client.sendRequest(
+                      'process._isRecordingTimelineWithAsyncSpansAddr',
+                    )
+                    as Map<String, dynamic>;
+            // Just double check that we are the very same process.
+            if (pid != io.pid) {
+              return;
+            }
+            _sharedIsRecordingTimelineWithAsyncSpans = .fromAddress(addr);
+            return;
+          } finally {
+            client.close().ignore(); // Don't leave the client open.
+          }
+        } catch (_) {
+          // Socket looks defunct, delete it and continue.
+          try {
+            io.File(socketPath).deleteSync();
+          } catch (_) {
+            return;
+          }
         }
-        _sharedIsRecordingTimelineWithAsyncSpans = .fromAddress(addr);
-        return;
       }
 
       _instance = PerfWitnessServer._(tag, socketPath, recorderSocketPath!);
