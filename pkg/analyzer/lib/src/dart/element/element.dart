@@ -536,7 +536,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
         formalParameterFragment.isConst = superFormalParameter.isConst;
         formalParameterFragment.isFinal = superFormalParameter.isFinal;
-        formalParameterFragment.isSynthetic = true;
+        formalParameterFragment.isOriginMixinApplicationClassConstructor = true;
         formalParameterFragments.add(formalParameterFragment);
 
         var formalParameterElement = FormalParameterElementImpl(
@@ -1406,9 +1406,7 @@ class DynamicFragmentImpl extends FragmentImpl {
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
   /// accessed through the method [instance].
-  DynamicFragmentImpl._() : super(firstTokenOffset: null) {
-    isSynthetic = true;
-  }
+  DynamicFragmentImpl._() : super(firstTokenOffset: null);
 
   @override
   List<Fragment> get children => const [];
@@ -3797,7 +3795,6 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
       nameOffset: null,
       parameterKind: parameterKind,
     );
-    fragment.isSynthetic = true;
     return fragment;
   }
 
@@ -3894,6 +3891,40 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   set isOriginDeclaration(bool value) {
     setFlag(
       _FragmentStorageFlag.formalParameterFragment_isOriginDeclaration,
+      value,
+    );
+  }
+
+  @generated
+  bool get isOriginMixinApplicationClassConstructor {
+    return hasFlag(
+      _FragmentStorageFlag
+          .formalParameterFragment_isOriginMixinApplicationClassConstructor,
+    );
+  }
+
+  @generated
+  set isOriginMixinApplicationClassConstructor(bool value) {
+    setFlag(
+      _FragmentStorageFlag
+          .formalParameterFragment_isOriginMixinApplicationClassConstructor,
+      value,
+    );
+  }
+
+  @generated
+  bool get isOriginPreviousFragmentOfEnclosing {
+    return hasFlag(
+      _FragmentStorageFlag
+          .formalParameterFragment_isOriginPreviousFragmentOfEnclosing,
+    );
+  }
+
+  @generated
+  set isOriginPreviousFragmentOfEnclosing(bool value) {
+    setFlag(
+      _FragmentStorageFlag
+          .formalParameterFragment_isOriginPreviousFragmentOfEnclosing,
       value,
     );
   }
@@ -4143,20 +4174,6 @@ abstract class FragmentImpl implements Fragment {
   /// Public elements are visible within any library that imports the library
   /// in which they are declared.
   bool get isPublic => !isPrivate;
-
-  /// A synthetic element is an element that is not represented in the source
-  /// code explicitly, but is implied by the source code, such as the default
-  /// constructor for a class that does not explicitly define any constructors.
-  @generated
-  @Deprecated('Use isOriginX instead')
-  bool get isSynthetic {
-    return hasFlag(_FragmentStorageFlag.fragment_isSynthetic);
-  }
-
-  @generated
-  set isSynthetic(bool value) {
-    setFlag(_FragmentStorageFlag.fragment_isSynthetic, value);
-  }
 
   @override
   LibraryFragmentImpl? get libraryFragment;
@@ -7741,7 +7758,6 @@ final class LoadLibraryFunctionProvider {
 
     var fragment = TopLevelFunctionFragmentImpl(name: name);
     fragment.isOriginLoadLibrary = true;
-    fragment.isSynthetic = true;
     fragment.isStatic = true;
     fragment.enclosingFragment = library.firstFragment;
 
@@ -8986,9 +9002,7 @@ class NeverFragmentImpl extends FragmentImpl {
   /// should <b>not</b> be created except as part of creating the type
   /// associated with this element. The single instance of this class should be
   /// accessed through the method [instance].
-  NeverFragmentImpl._() : super(firstTokenOffset: null) {
-    isSynthetic = true;
-  }
+  NeverFragmentImpl._() : super(firstTokenOffset: null);
 
   @override
   List<Fragment> get children => const [];
@@ -10885,6 +10899,7 @@ class TypeParameterElementImpl extends ElementImpl
   }
 }
 
+@GenerateElementFlags(flags: _TypeParameterElementFlags.values)
 class TypeParameterFragmentImpl extends FragmentImpl
     implements TypeParameterFragment {
   @override
@@ -10907,9 +10922,7 @@ class TypeParameterFragmentImpl extends FragmentImpl
   TypeParameterFragmentImpl({required this.name, super.firstTokenOffset});
 
   TypeParameterFragmentImpl.synthetic({required this.name})
-    : super(firstTokenOffset: null) {
-    isSynthetic = true;
-  }
+    : super(firstTokenOffset: null);
 
   @override
   List<Fragment> get children => const [];
@@ -10935,6 +10948,23 @@ class TypeParameterFragmentImpl extends FragmentImpl
 
   set element(TypeParameterElementImpl element) {
     _element = element;
+  }
+
+  @generated
+  bool get isOriginPreviousFragmentOfEnclosing {
+    return hasFlag(
+      _FragmentStorageFlag
+          .typeParameterFragment_isOriginPreviousFragmentOfEnclosing,
+    );
+  }
+
+  @generated
+  set isOriginPreviousFragmentOfEnclosing(bool value) {
+    setFlag(
+      _FragmentStorageFlag
+          .typeParameterFragment_isOriginPreviousFragmentOfEnclosing,
+      value,
+    );
   }
 
   @override
@@ -11398,7 +11428,9 @@ enum _FieldFormalParameterElementFlags {
 
 enum _FormalParameterElementFlags {
   isExplicitlyCovariant(fragment: true),
-  isOriginDeclaration(fragment: true);
+  isOriginPreviousFragmentOfEnclosing(fragment: true),
+  isOriginDeclaration(fragment: true),
+  isOriginMixinApplicationClassConstructor(fragment: true);
 
   final bool fragment;
   final _ElementFlagSource element;
@@ -11409,8 +11441,7 @@ enum _FormalParameterElementFlags {
 
 enum _FragmentFlags {
   isAugmentation(fragment: true),
-  isCompleteDeclaration(fragment: true),
-  isSynthetic(fragment: true);
+  isCompleteDeclaration(fragment: true);
 
   final bool fragment;
   final _ElementFlagSource element;
@@ -11450,10 +11481,11 @@ enum _FragmentStorageFlag {
   fieldFragment_isOriginExtensionTypeRecoveryRepresentation,
   fieldFragment_isPromotable,
   formalParameterFragment_isExplicitlyCovariant,
+  formalParameterFragment_isOriginPreviousFragmentOfEnclosing,
   formalParameterFragment_isOriginDeclaration,
+  formalParameterFragment_isOriginMixinApplicationClassConstructor,
   fragment_isAugmentation,
   fragment_isCompleteDeclaration,
-  fragment_isSynthetic,
   libraryFragment_isOriginNotExistingFile,
   methodFragment_isOriginDeclaration,
   methodFragment_isOriginInterface,
@@ -11466,6 +11498,7 @@ enum _FragmentStorageFlag {
   propertyInducingFragment_isOriginGetterSetter,
   topLevelFunctionFragment_isOriginDeclaration,
   topLevelFunctionFragment_isOriginLoadLibrary,
+  typeParameterFragment_isOriginPreviousFragmentOfEnclosing,
   variableFragment_hasImplicitType,
   variableFragment_isAbstract,
   variableFragment_isConst,
@@ -11634,6 +11667,16 @@ enum _TypeAliasElementFlags {
 
   const _TypeAliasElementFlags({this.element = _ElementFlagSource.none})
     : fragment = false;
+}
+
+enum _TypeParameterElementFlags {
+  isOriginPreviousFragmentOfEnclosing(fragment: true);
+
+  final bool fragment;
+  final _ElementFlagSource element;
+
+  const _TypeParameterElementFlags({this.fragment = false})
+    : element = _ElementFlagSource.none;
 }
 
 enum _VariableElementFlags {

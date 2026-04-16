@@ -20348,7 +20348,7 @@ library
               element: <testLibrary>::@class::C2::@constructor::new
               typeName: C2
               formalParameters
-                #F10 requiredPositional i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+                #F10 requiredPositional isOriginMixinApplicationClassConstructor i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
                   element: <testLibrary>::@class::C2::@constructor::new::@formalParameter::i
         #F11 class C1 (nameOffset:90) (firstTokenOffset:84) (offset:90)
           element: <testLibrary>::@class::C1
@@ -20357,7 +20357,7 @@ library
               element: <testLibrary>::@class::C1::@constructor::new
               typeName: C1
               formalParameters
-                #F13 requiredPositional i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:90)
+                #F13 requiredPositional isOriginMixinApplicationClassConstructor i (nameOffset:<null>) (firstTokenOffset:<null>) (offset:90)
                   element: <testLibrary>::@class::C1::@constructor::new::@formalParameter::i
   classes
     class A
@@ -20512,28 +20512,28 @@ library
               element: <testLibrary>::@class::C::@constructor::c1
               typeName: C
               formalParameters
-                #F14 requiredPositional a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+                #F14 requiredPositional isOriginMixinApplicationClassConstructor a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c1::@formalParameter::a
             #F15 isOriginMixinApplication c2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
               element: <testLibrary>::@class::C::@constructor::c2
               typeName: C
               formalParameters
-                #F16 requiredPositional a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+                #F16 requiredPositional isOriginMixinApplicationClassConstructor a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::a
-                #F17 optionalPositional b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+                #F17 optionalPositional isOriginMixinApplicationClassConstructor b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::b
-                #F18 optionalPositional c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+                #F18 optionalPositional isOriginMixinApplicationClassConstructor c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c2::@formalParameter::c
                   initializer: expression_0
             #F19 isOriginMixinApplication c3 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
               element: <testLibrary>::@class::C::@constructor::c3
               typeName: C
               formalParameters
-                #F20 requiredPositional a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+                #F20 requiredPositional isOriginMixinApplicationClassConstructor a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::a
-                #F21 optionalNamed b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+                #F21 optionalNamed isOriginMixinApplicationClassConstructor b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::b
-                #F22 optionalNamed c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+                #F22 optionalNamed isOriginMixinApplicationClassConstructor c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
                   element: <testLibrary>::@class::C::@constructor::c3::@formalParameter::c
                   initializer: expression_1
       mixins
@@ -20814,9 +20814,9 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               formalParameters
-                #F9 requiredPositional x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+                #F9 requiredPositional isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::x
-                #F10 requiredPositional y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+                #F10 requiredPositional isOriginMixinApplicationClassConstructor y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::y
       mixins
         #F11 mixin M (nameOffset:49) (firstTokenOffset:43) (offset:49)
@@ -21848,13 +21848,13 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::requiredArg
               typeName: MixinApp
               formalParameters
-                #F7 requiredPositional x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F7 requiredPositional isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@class::MixinApp::@constructor::requiredArg::@formalParameter::x
             #F8 isOriginMixinApplication positionalArg (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::MixinApp::@constructor::positionalArg
               typeName: MixinApp
               formalParameters
-                #F9 optionalPositional x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F9 optionalPositional isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@class::MixinApp::@constructor::positionalArg::@formalParameter::x
                   initializer: expression_0
                     BooleanLiteral
@@ -21864,7 +21864,7 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2
               typeName: MixinApp
               formalParameters
-                #F11 optionalPositional final x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F11 optionalPositional final isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@class::MixinApp::@constructor::positionalArg2::@formalParameter::x
                   initializer: expression_1
                     BooleanLiteral
@@ -21874,7 +21874,7 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::namedArg
               typeName: MixinApp
               formalParameters
-                #F13 optionalNamed x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F13 optionalNamed isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@class::MixinApp::@constructor::namedArg::@formalParameter::x
                   initializer: expression_2
                     IntegerLiteral
@@ -21884,7 +21884,7 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::namedArg2
               typeName: MixinApp
               formalParameters
-                #F15 optionalNamed final x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+                #F15 optionalNamed final isOriginMixinApplicationClassConstructor x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
                   element: <testLibrary>::@class::MixinApp::@constructor::namedArg2::@formalParameter::x
                   initializer: expression_3
                     BooleanLiteral
@@ -22116,9 +22116,9 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::ctor
               typeName: MixinApp
               formalParameters
-                #F10 requiredPositional t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                #F10 requiredPositional isOriginMixinApplicationClassConstructor t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
-                #F11 requiredPositional l (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                #F11 requiredPositional isOriginMixinApplicationClassConstructor l (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
   classes
     class Base
@@ -22237,9 +22237,9 @@ library
               element: <testLibrary>::@class::MixinApp::@constructor::ctor
               typeName: MixinApp
               formalParameters
-                #F11 requiredPositional t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                #F11 requiredPositional isOriginMixinApplicationClassConstructor t (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::t
-                #F12 requiredPositional l (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                #F12 requiredPositional isOriginMixinApplicationClassConstructor l (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
                   element: <testLibrary>::@class::MixinApp::@constructor::ctor::@formalParameter::l
   classes
     class Base
@@ -31252,7 +31252,7 @@ library
                 #F5 optionalPositional p1 (nameOffset:82) (firstTokenOffset:78) (offset:82)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
-                #F7 optionalPositional p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+                #F7 optionalPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
                   previousFragment: #F6
               previousFragment: #F3
@@ -31595,7 +31595,7 @@ library
                 #F5 requiredPositional n1 (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F4
-                #F7 requiredPositional n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+                #F7 requiredPositional isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
                   previousFragment: #F6
               previousFragment: #F3
@@ -31953,13 +31953,13 @@ library
                 #F5 requiredPositional p1 (nameOffset:115) (firstTokenOffset:111) (offset:115)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
-                #F7 requiredPositional p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+                #F7 requiredPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
                   previousFragment: #F6
                 #F9 requiredNamed n1 (nameOffset:133) (firstTokenOffset:120) (offset:133)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F8
-                #F11 requiredNamed n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+                #F11 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
                   previousFragment: #F10
               previousFragment: #F3
@@ -32317,7 +32317,7 @@ library
                 #F5 requiredNamed n1 (nameOffset:109) (firstTokenOffset:96) (offset:109)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F4
-                #F7 requiredNamed n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+                #F7 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
                   previousFragment: #F6
               previousFragment: #F3
@@ -32595,7 +32595,7 @@ library
                 #F5 requiredNamed n1 (nameOffset:109) (firstTokenOffset:96) (offset:109)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F4
-                #F7 requiredNamed n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+                #F7 requiredNamed isOriginPreviousFragmentOfEnclosing n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F6
               previousFragment: #F3
@@ -33710,7 +33710,7 @@ library
                 #F6 optionalPositional p1 (nameOffset:66) (firstTokenOffset:62) (offset:66)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
                   previousFragment: #F5
-                #F8 optionalPositional p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+                #F8 optionalPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
                   previousFragment: #F7
   classes
@@ -34033,7 +34033,7 @@ library
                 #F6 requiredPositional n1 (nameOffset:63) (firstTokenOffset:59) (offset:63)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F5
-                #F8 requiredPositional n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+                #F8 requiredPositional isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
                   previousFragment: #F7
   classes
@@ -34371,13 +34371,13 @@ library
                 #F6 requiredPositional p1 (nameOffset:99) (firstTokenOffset:95) (offset:99)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
                   previousFragment: #F5
-                #F8 requiredPositional p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+                #F8 requiredPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
                   previousFragment: #F7
                 #F10 requiredNamed n1 (nameOffset:117) (firstTokenOffset:104) (offset:117)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F9
-                #F12 requiredNamed n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+                #F12 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
                   previousFragment: #F11
   classes
@@ -34715,7 +34715,7 @@ library
                 #F6 requiredNamed n1 (nameOffset:93) (firstTokenOffset:80) (offset:93)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F5
-                #F8 requiredNamed n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+                #F8 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
                   previousFragment: #F7
   classes
@@ -34977,7 +34977,7 @@ library
                 #F6 requiredNamed n1 (nameOffset:93) (firstTokenOffset:80) (offset:93)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F5
-                #F8 requiredNamed n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+                #F8 requiredNamed isOriginPreviousFragmentOfEnclosing n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F7
   classes
@@ -35398,7 +35398,7 @@ library
                   element: #E0 T
                   previousFragment: #F5
                   nextFragment: #F11
-                #F8 U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+                #F8 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: #E1 U
                   previousFragment: #F7
                   nextFragment: #F12
@@ -36511,7 +36511,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F8
-            #F6 U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F6 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9

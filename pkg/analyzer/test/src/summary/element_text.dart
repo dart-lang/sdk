@@ -810,6 +810,14 @@ class _Element2Writer extends _AbstractElementWriter {
       _sink.writeIf(f.isConst, 'const ');
       _sink.writeIf(f.isExplicitlyCovariant, 'covariant ');
       _sink.writeIf(f.isFinal, 'final ');
+      _sink.writeIf(
+        f.isOriginPreviousFragmentOfEnclosing,
+        'isOriginPreviousFragmentOfEnclosing ',
+      );
+      _sink.writeIf(
+        f.isOriginMixinApplicationClassConstructor,
+        'isOriginMixinApplicationClassConstructor ',
+      );
 
       if (f is FieldFormalParameterFragmentImpl) {
         _sink.write('this.');
@@ -2003,6 +2011,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.writeIndentedLine(() {
       _writeObjectId(f);
       // _sink.write('${e.variance.name} ');
+      _sink.writeIf(
+        f.isOriginPreviousFragmentOfEnclosing,
+        'isOriginPreviousFragmentOfEnclosing ',
+      );
       _writeFragmentName(f);
     });
 

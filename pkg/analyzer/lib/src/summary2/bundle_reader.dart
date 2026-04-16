@@ -1340,9 +1340,10 @@ class LibraryReader {
   List<TypeParameterFragmentImpl> _readTypeParameters() {
     return _reader.readTypedList(() {
       var fragmentName = _readFragmentName();
+      var fragment = TypeParameterFragmentImpl(name: fragmentName);
+      fragment.readFlags(_reader);
       var varianceEncoding = _reader.readByte();
       var variance = _decodeVariance(varianceEncoding);
-      var fragment = TypeParameterFragmentImpl(name: fragmentName);
       fragment.element.variance = variance;
       return fragment;
     });

@@ -3171,7 +3171,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F8
-            #F6 U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F6 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9
