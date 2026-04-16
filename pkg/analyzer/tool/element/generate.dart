@@ -241,6 +241,32 @@ class _ElementGenerator {
         }
       }
 
+      var flagsForTesting = generateFlags.flags.where((flag) {
+        return isFragment
+            ? flag.fragment
+            : flag.elementSource != _ElementFlagSource.none;
+      }).toList();
+
+      if (flagsForTesting.isNotEmpty) {
+        buffer.writeln();
+        buffer.writeln('@generated');
+        if (className != 'ElementImpl' && className != 'FragmentImpl') {
+          buffer.writeln('@override');
+        }
+        buffer.writeln('@visibleForTesting');
+        buffer.writeln('@trackedInternal');
+        buffer.writeln('Map<String, bool> get flagsForTesting {');
+        buffer.writeln('  return {');
+        if (className != 'ElementImpl' && className != 'FragmentImpl') {
+          buffer.writeln('    ...super.flagsForTesting,');
+        }
+        for (var flag in flagsForTesting) {
+          buffer.writeln("    '${flag.name}': ${flag.name},");
+        }
+        buffer.writeln('  };');
+        buffer.writeln('}');
+      }
+
       if (buffer.isNotEmpty) {
         var body = declaration.body as BlockClassBodyImpl;
         var offset = body.rightBracket.offset;
