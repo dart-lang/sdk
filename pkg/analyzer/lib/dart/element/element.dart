@@ -2969,7 +2969,7 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 /// * Every explicit variable is represented by a non-synthetic
 ///   [PropertyInducingElement].
 /// * Every explicit variable induces a synthetic [GetterElement],
-///   possibly a synthetic [SetterElement.
+///   possibly a synthetic [SetterElement].
 /// * Every explicit getter by a non-synthetic [GetterElement].
 /// * Every explicit setter by a non-synthetic [SetterElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
