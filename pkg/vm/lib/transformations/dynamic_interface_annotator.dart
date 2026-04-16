@@ -16,6 +16,8 @@ import 'pragma.dart'
         kDynModuleCanBeUsedAsTypePragmaName,
         kDynModuleImplicitlyCallablePragmaName,
         kDynModuleImplicitlyExtendablePragmaName,
+        kDynModuleDynamicallyCallablePragmaName,
+        kDynModuleImplicitlyDynamicallyCallablePragmaName,
         kDynModuleCanBeOverriddenImplicitlyPragmaName;
 
 void annotateComponent(
@@ -129,6 +131,29 @@ void annotateComponent(
     annotateInstanceMembers: false,
     logger: logger,
   );
+  logger?.setActiveSection('dynamically-callable');
+  final dynamicallyCallableAnnotator = annotateNodes(
+    spec.dynamicallyCallable,
+    kDynModuleDynamicallyCallablePragmaName,
+    baseUri,
+    coreTypes,
+    annotateClasses: false,
+    annotateFinalClasses: false,
+    annotateExtensionTypes: false,
+    annotateStaticMembers: false,
+    annotateInstanceMembers: true,
+    logger: logger,
+  );
+
+  final dynamicallyCallableImplicitUsesAnnotator = _ImplicitUsesAnnotator(
+    pragmaConstant(
+      coreTypes,
+      kDynModuleImplicitlyDynamicallyCallablePragmaName,
+    ),
+    dynamicallyCallableAnnotator.annotatedClasses,
+    dynamicallyCallableAnnotator.annotatedMembers,
+  );
+  dynamicallyCallableImplicitUsesAnnotator.annotateDispatchTargets(component);
 }
 
 InstanceConstant pragmaConstant(CoreTypes coreTypes, String pragmaName) {
