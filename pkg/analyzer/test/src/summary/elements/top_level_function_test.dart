@@ -1719,7 +1719,7 @@ library
             #F4 optionalPositional p1 (nameOffset:52) (firstTokenOffset:48) (offset:52)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               previousFragment: #F3
-            #F6 optionalPositional p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+            #F6 optionalPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
               element: <testLibrary>::@function::foo::@formalParameter::p2
               previousFragment: #F5
   functions
@@ -1957,7 +1957,7 @@ library
             #F4 requiredPositional n1 (nameOffset:49) (firstTokenOffset:45) (offset:49)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               previousFragment: #F3
-            #F6 requiredPositional n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+            #F6 requiredPositional isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@function::foo::@formalParameter::n2
               previousFragment: #F5
   functions
@@ -2210,13 +2210,13 @@ library
             #F4 requiredPositional p1 (nameOffset:85) (firstTokenOffset:81) (offset:85)
               element: <testLibrary>::@function::foo::@formalParameter::p1
               previousFragment: #F3
-            #F6 requiredPositional p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
+            #F6 requiredPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
               element: <testLibrary>::@function::foo::@formalParameter::p2
               previousFragment: #F5
             #F8 requiredNamed n1 (nameOffset:103) (firstTokenOffset:90) (offset:103)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               previousFragment: #F7
-            #F10 requiredNamed n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
+            #F10 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:77)
               element: <testLibrary>::@function::foo::@formalParameter::n2
               previousFragment: #F9
   functions
@@ -2469,7 +2469,7 @@ library
             #F4 requiredNamed n1 (nameOffset:79) (firstTokenOffset:66) (offset:79)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               previousFragment: #F3
-            #F6 requiredNamed n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+            #F6 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@function::foo::@formalParameter::n2
               previousFragment: #F5
   functions
@@ -2663,7 +2663,7 @@ library
             #F4 requiredNamed n1 (nameOffset:79) (firstTokenOffset:66) (offset:79)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               previousFragment: #F3
-            #F6 requiredNamed n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+            #F6 requiredNamed isOriginPreviousFragmentOfEnclosing n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
               element: <testLibrary>::@function::foo::@formalParameter::n1
               previousFragment: #F5
   functions
@@ -2913,7 +2913,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F8
-            #F6 U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+            #F6 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9

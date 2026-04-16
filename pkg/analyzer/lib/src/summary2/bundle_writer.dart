@@ -807,6 +807,7 @@ class BundleWriter {
 
   void _writeTypeParameterFragment(TypeParameterFragmentImpl fragment) {
     _writeFragmentName(fragment);
+    fragment.writeFlags(_sink);
     _sink.writeByte(_encodeVariance(fragment.element).index);
     _resolutionSink._writeMetadata(fragment.metadata);
     _resolutionSink.writeType(fragment.element.bound);

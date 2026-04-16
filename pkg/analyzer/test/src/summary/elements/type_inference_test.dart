@@ -4175,7 +4175,7 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
               formalParameters
-                #F12 requiredPositional final value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+                #F12 requiredPositional final isOriginMixinApplicationClassConstructor value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
                   element: <testLibrary>::@class::B::@constructor::new::@formalParameter::value
         #F13 class C (nameOffset:78) (firstTokenOffset:72) (offset:78)
           element: <testLibrary>::@class::C

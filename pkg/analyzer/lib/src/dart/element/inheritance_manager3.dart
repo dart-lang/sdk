@@ -1127,7 +1127,6 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.isSynthetic = true;
       resultFragment.formalParameters = List.generate(
         transformedParameters.length,
         (index) => transformedParameters![index].firstFragment,
@@ -1160,7 +1159,6 @@ class InheritanceManager3 {
 
       var resultFragment = SetterFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
-      resultFragment.isSynthetic = true;
       resultFragment.isOriginInterface = true;
       resultFragment.formalParameters = transformedParameters
           .map((e) => e.firstFragment)
@@ -1172,7 +1170,6 @@ class InheritanceManager3 {
       var resultField = FieldFragmentImpl(name: executable.name);
       resultField.enclosingFragment = class_.firstFragment;
       resultField.isOriginGetterSetter = true;
-      resultField.isSynthetic = true;
 
       var elementName = executable.name!;
       var fieldReference = class_.reference!
@@ -1237,7 +1234,6 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: fragmentName);
       resultFragment.enclosingFragment = targetClass.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.isSynthetic = true;
       resultFragment.typeParameters = resultType.typeParameters
           .map((e) => e.firstFragment)
           .toList();
@@ -1260,7 +1256,6 @@ class InheritanceManager3 {
       var fragmentName = firstElement.name!;
       var field = FieldFragmentImpl(name: fragmentName);
       field.isOriginGetterSetter = true;
-      field.isSynthetic = true;
 
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;

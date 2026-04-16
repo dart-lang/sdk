@@ -12352,7 +12352,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F11
-            #F6 U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+            #F6 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F12
