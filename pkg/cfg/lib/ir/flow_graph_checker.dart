@@ -332,7 +332,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitTypeCast(TypeCast instr) {
-    assert(instr.testedType is! TopType);
+    assert(instr.testedType is! TopType || !instr.isChecked);
     assert(instr.testedType is! ExtendedType);
   }
 

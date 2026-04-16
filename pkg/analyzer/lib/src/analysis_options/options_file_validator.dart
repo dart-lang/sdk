@@ -1036,6 +1036,10 @@ class _PluginsOptionsValidator extends OptionsValidator {
     AnalysisOptionsFileKeys.pluginsOptions,
   );
 
+  final _ErrorBuilder _gitBuilder = _ErrorBuilder(
+    AnalysisOptionsFileKeys.gitOptions,
+  );
+
   final String _contextRoot;
 
   final String _filePath;
@@ -1156,6 +1160,52 @@ class _PluginsOptionsValidator extends OptionsValidator {
     });
   }
 
+  void _validateGit(
+    DiagnosticReporter reporter,
+    String pluginName,
+    YamlNode gitValue,
+  ) {
+    var sectionName = [
+      AnalysisOptionsFileKeys.plugins,
+      pluginName,
+      AnalysisOptionsFileKeys.git,
+    ].join('/');
+
+    if (gitValue is YamlScalar) {
+      if (gitValue.value is! String) {
+        reporter.report(
+          diag.invalidSectionFormat
+              .withArguments(sectionName: sectionName)
+              .atSourceSpan(gitValue.span),
+        );
+      }
+      return;
+    }
+
+    if (gitValue is! YamlMap) {
+      reporter.report(
+        diag.invalidSectionFormat
+            .withArguments(sectionName: sectionName)
+            .atSourceSpan(gitValue.span),
+      );
+      return;
+    }
+
+    gitValue.nodes.forEach((keyNode, valueNode) {
+      if (keyNode case YamlScalar(value: String key)) {
+        if (!AnalysisOptionsFileKeys.gitOptions.contains(key)) {
+          _gitBuilder.reportError(reporter, sectionName, keyNode);
+        } else if (valueNode is! YamlScalar || valueNode.value is! String) {
+          reporter.report(
+            diag.invalidSectionFormat
+                .withArguments(sectionName: '$sectionName/$key')
+                .atSourceSpan(valueNode.span),
+          );
+        }
+      }
+    });
+  }
+
   void _validatePluginMap(
     DiagnosticReporter reporter,
     String pluginName,
@@ -1165,6 +1215,8 @@ class _PluginsOptionsValidator extends OptionsValidator {
       if (pluginMapKeyNode case YamlScalar(value: String pluginMapKey)) {
         if (pluginMapKey == AnalysisOptionsFileKeys.diagnostics) {
           _validateDiagnostics(reporter, pluginName, pluginMapValueNode);
+        } else if (pluginMapKey == AnalysisOptionsFileKeys.git) {
+          _validateGit(reporter, pluginName, pluginMapValueNode);
         } else if (!AnalysisOptionsFileKeys.pluginsOptions.contains(
           pluginMapKey,
         )) {
@@ -1176,8 +1228,6 @@ class _PluginsOptionsValidator extends OptionsValidator {
         }
       }
       // TODO(srawlins): Validate 'path' is a YamlScalar.
-      // TODO(srawlins): Validate 'git' value is a YamlScalar. Change when
-      // supporting refs.
     });
   }
 }

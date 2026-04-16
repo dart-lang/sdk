@@ -47,7 +47,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
       // appropriate.
       return;
     }
-    var superInvocation = _superInvocation(constructor);
+    var superInvocation = constructor.superInvocation;
     if (superInvocation == null) {
       // If there isn't an explicit invocation of a super constructor then the
       // change isn't appropriate. Note that this also rules out factory
@@ -65,7 +65,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     // set to `null` if a positional argument is found that can't be converted
     // because either all of the positional parameters must be converted or none
     // of them can be converted.
-    var referencedParameters = _referencedParameters(constructor);
+    var referencedParameters = constructor.referencedParameters;
     var parameterMap = _parameterMap(constructor.parameters);
     List<_ParameterData>? positional = [];
     var named = <_ParameterData>[];
@@ -208,16 +208,11 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
         if (superInvocation.constructorName == null) {
           // Delete the whole invocation.
           var initializers = constructor.initializers;
-          SourceRange initializerRange;
-          if (initializers.length == 1) {
-            initializerRange = range.endEnd(
-              constructor.parameters,
-              superInvocation,
+          if (initializers != null) {
+            builder.addDeletion(
+              range.nodeInList(initializers, superInvocation),
             );
-          } else {
-            initializerRange = range.nodeInList(initializers, superInvocation);
           }
-          builder.addDeletion(initializerRange);
         } else {
           // Leave the invocation, but remove all of the arguments, including
           // any trailing comma.
@@ -280,7 +275,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     );
   }
 
-  /// Return the range of the default value associated with the [parameter], or
+  /// Returns the range of the default value associated with the [parameter], or
   /// `null` if the parameter doesn't have a default value or if the default
   /// value is not the same as the default value in the super constructor.
   SourceRange? _defaultValueRange(
@@ -301,7 +296,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     return null;
   }
 
-  /// Return data about the type annotation on the [parameter]. This is the
+  /// Returns data about the type annotation on the [parameter]. This is the
   /// information about the ranges of text that need to be removed in order to
   /// remove the type annotation.
   Token? _finalKeyword(FormalParameter parameter) {
@@ -316,28 +311,41 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     return null;
   }
 
-  /// Return the constructor to be converted, or `null` if the cursor is not on
+  /// Returns the constructor to be converted, or `null` if the cursor is not on
   /// the name of a constructor.
-  ConstructorDeclaration? _findConstructor() {
+  _ConstructorData? _findConstructor() {
     var node = this.node;
     if (node is ConstructorDeclaration) {
-      return node;
-    }
-    if (node is SimpleIdentifier) {
+      return _SecondaryConstructorData(node);
+    } else if (node is PrimaryConstructorDeclaration) {
+      return _PrimaryConstructorData(node, node.body);
+    } else if (node is PrimaryConstructorBody) {
+      var declaration = node.declaration;
+      if (declaration != null) {
+        return _PrimaryConstructorData(declaration, node);
+      }
+    } else if (node is PrimaryConstructorName) {
+      var declaration = node.parent;
+      if (declaration is PrimaryConstructorDeclaration) {
+        return _PrimaryConstructorData(declaration, declaration.body);
+      }
+    } else if (node is SimpleIdentifier) {
       var parent = node.parent;
       if (parent is ConstructorDeclaration) {
-        return parent;
+        return _SecondaryConstructorData(parent);
+      } else if (parent is PrimaryConstructorDeclaration) {
+        return _PrimaryConstructorData(parent, parent.body);
       } else if (parent is ConstructorName) {
         var grandparent = parent.parent;
         if (grandparent is ConstructorDeclaration) {
-          return grandparent;
+          return _SecondaryConstructorData(grandparent);
         }
       }
     }
     return null;
   }
 
-  /// Return `true` if the given list of [parameterData] is in order by the
+  /// Returns `true` if the given list of [parameterData] is in order by the
   /// index of the parameters. The list is known to be in order by the argument
   /// positions, so this test is used to ensure that the order won't be changed
   /// if the parameters are converted.
@@ -353,8 +361,8 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     return true;
   }
 
-  /// Return `true` if the parameter has no default value
-  /// and the parameter in the super constructor has a default one
+  /// Returns `true` if the parameter has no default value and the parameter in
+  /// the super constructor has a default one
   bool _nullInitializer(
     FormalParameter parameter,
     FormalParameterElement superParameter,
@@ -365,7 +373,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
         superParameter.hasDefaultValue;
   }
 
-  /// Return the parameter corresponding to the [expression], or `null` if the
+  /// Returns the parameter corresponding to the [expression], or `null` if the
   /// expression isn't a simple reference to one of the normal parameters in the
   /// constructor being converted.
   _Parameter? _parameterFor(
@@ -379,7 +387,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     return null;
   }
 
-  /// Return a map from parameter elements to the parameters that define those
+  /// Returns a map from parameter elements to the parameters that define those
   /// elements.
   Map<FormalParameterElement, _Parameter> _parameterMap(
     FormalParameterList parameterList,
@@ -404,33 +412,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     return map;
   }
 
-  /// Return a set containing the elements of all of the parameters that are
-  /// referenced in the body of the [constructor].
-  Set<FormalParameterElement> _referencedParameters(
-    ConstructorDeclaration constructor,
-  ) {
-    var collector = _ReferencedParameterCollector();
-    constructor.body.accept(collector);
-    return collector.foundParameters;
-  }
-
-  /// Return the invocation of the super constructor.
-  SuperConstructorInvocation? _superInvocation(
-    ConstructorDeclaration constructor,
-  ) {
-    var initializers = constructor.initializers;
-    // Search all of the initializers in case the code is invalid, but start
-    // from the end because the code will usually be correct.
-    for (var i = initializers.length - 1; i >= 0; i--) {
-      var initializer = initializers[i];
-      if (initializer is SuperConstructorInvocation) {
-        return initializer;
-      }
-    }
-    return null;
-  }
-
-  /// Return data about the type annotation on the [parameter]. This is the
+  /// Returns data about the type annotation on the [parameter]. This is the
   /// information about the ranges of text that need to be removed in order to
   /// remove the type annotation.
   _TypeData? _type(FormalParameter parameter) {
@@ -451,6 +433,47 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
             : null,
         parameterRange: range.node(parameter.parameters),
       );
+    }
+    return null;
+  }
+}
+
+/// Information about a constructor.
+abstract class _ConstructorData {
+  /// The (function) body of the constructor.
+  ///
+  /// Returns `null` if there is no body.
+  FunctionBody? get body;
+
+  /// The initializers of the constructor.
+  ///
+  /// Returns `null` if there are no initializers.
+  NodeList<ConstructorInitializer>? get initializers;
+
+  /// The parameters of the constructor.
+  FormalParameterList get parameters;
+
+  /// Returns a set containing the elements of all of the parameters that are
+  /// referenced in the body of the [constructor].
+  Set<FormalParameterElement> get referencedParameters {
+    var collector = _ReferencedParameterCollector();
+    body?.accept(collector);
+    return collector.foundParameters;
+  }
+
+  /// Returns the invocation of the super constructor.
+  SuperConstructorInvocation? get superInvocation {
+    var initializers = this.initializers;
+    if (initializers == null) {
+      return null;
+    }
+    // Search all of the initializers in case the code is invalid, but start
+    // from the end because the code will usually be correct.
+    for (var i = initializers.length - 1; i >= 0; i--) {
+      var initializer = initializers[i];
+      if (initializer is SuperConstructorInvocation) {
+        return initializer;
+      }
     }
     return null;
   }
@@ -511,6 +534,24 @@ class _ParameterData {
   });
 }
 
+/// Information about a primary constructor.
+class _PrimaryConstructorData extends _ConstructorData {
+  final PrimaryConstructorDeclaration declaration;
+
+  final PrimaryConstructorBody? _body;
+
+  _PrimaryConstructorData(this.declaration, this._body);
+
+  @override
+  FunctionBody? get body => _body?.body;
+
+  @override
+  NodeList<ConstructorInitializer>? get initializers => _body?.initializers;
+
+  @override
+  FormalParameterList get parameters => declaration.formalParameters;
+}
+
 class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
   final Set<FormalParameterElement> foundParameters = {};
 
@@ -521,6 +562,23 @@ class _ReferencedParameterCollector extends RecursiveAstVisitor<void> {
       foundParameters.add(element);
     }
   }
+}
+
+/// Information about a secondary constructor.
+class _SecondaryConstructorData extends _ConstructorData {
+  final ConstructorDeclaration declaration;
+
+  _SecondaryConstructorData(this.declaration);
+
+  @override
+  FunctionBody? get body => declaration.body;
+
+  @override
+  NodeList<ConstructorInitializer>? get initializers =>
+      declaration.initializers;
+
+  @override
+  FormalParameterList get parameters => declaration.parameters;
 }
 
 /// Information about the ranges of text that need to be removed in order to

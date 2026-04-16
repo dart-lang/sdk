@@ -196,7 +196,7 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitThrow(Throw instr) => InstructionConstraints(
     null,
-    [anyCpuRegister, if (instr.inputCount == 2) anyCpuRegister],
+    List<Constraint?>.filled(instr.inputCount, anyCpuRegister),
   );
 
   @override

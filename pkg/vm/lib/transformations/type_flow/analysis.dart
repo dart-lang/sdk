@@ -626,7 +626,10 @@ final class _DispatchableInvocation extends _Invocation {
 
           if (selector.callKind != CallKind.PropertyGet) {
             if (selector is DynamicSelector) {
-              typeFlowAnalysis._methodsAndSettersCalledDynamically.add(target);
+              typeFlowAnalysis.recordMemberCalledDynamically(
+                target,
+                isGetter: false,
+              );
             } else if (selector is VirtualSelector) {
               typeFlowAnalysis._calledViaThis.add(target);
             } else {
@@ -634,7 +637,10 @@ final class _DispatchableInvocation extends _Invocation {
             }
           } else {
             if (selector is DynamicSelector) {
-              typeFlowAnalysis._gettersCalledDynamically.add(target);
+              typeFlowAnalysis.recordMemberCalledDynamically(
+                target,
+                isGetter: true,
+              );
             }
           }
 
@@ -907,11 +913,10 @@ final class _DispatchableInvocation extends _Invocation {
     // the mismatch in the number or names of arguments,
     // it still participates in the dynamic lookup.
     // So mark it as called dynamically so its signature is preserved.
-    if (selector.callKind != CallKind.PropertyGet) {
-      typeFlowAnalysis._methodsAndSettersCalledDynamically.add(target);
-    } else {
-      typeFlowAnalysis._gettersCalledDynamically.add(target);
-    }
+    typeFlowAnalysis.recordMemberCalledDynamically(
+      target,
+      isGetter: selector.callKind == CallKind.PropertyGet,
+    );
   }
 
   _ReceiverTypeBuilder _getReceiverTypeBuilder(
@@ -2331,6 +2336,15 @@ class TypeFlowAnalysis
   @override
   void recordTearOff(Member target) {
     _tearOffTaken.add(target);
+  }
+
+  @override
+  void recordMemberCalledDynamically(Member target, {required bool isGetter}) {
+    if (isGetter) {
+      _gettersCalledDynamically.add(target);
+    } else {
+      _methodsAndSettersCalledDynamically.add(target);
+    }
   }
 
   @override

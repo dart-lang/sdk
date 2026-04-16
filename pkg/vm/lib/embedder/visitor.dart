@@ -10,16 +10,23 @@ import 'package:vm/transformations/pragma.dart';
 
 import 'collector.dart';
 
+bool _isDefault(ParsedEntryPointPragma pragma) =>
+    pragma.type == PragmaEntryPointType.Default ||
+    pragma.type == PragmaEntryPointType.DynamicallyCallable;
+
 bool _allowsCall(ParsedEntryPointPragma pragma) =>
     pragma.type == PragmaEntryPointType.Default ||
+    pragma.type == PragmaEntryPointType.DynamicallyCallable ||
     pragma.type == PragmaEntryPointType.CallOnly;
 
 bool _allowsGet(ParsedEntryPointPragma pragma) =>
     pragma.type == PragmaEntryPointType.Default ||
+    pragma.type == PragmaEntryPointType.DynamicallyCallable ||
     pragma.type == PragmaEntryPointType.GetterOnly;
 
 bool _allowsSet(ParsedEntryPointPragma pragma) =>
     pragma.type == PragmaEntryPointType.Default ||
+    pragma.type == PragmaEntryPointType.DynamicallyCallable ||
     pragma.type == PragmaEntryPointType.SetterOnly;
 
 EntryPointShimCollector visitLibrary(
@@ -69,13 +76,14 @@ class EntryPointShimVisitor extends RecursiveVisitor {
           (p) =>
               p.type != PragmaEntryPointType.Extendable &&
               p.type != PragmaEntryPointType.ImplicitlyExtendable &&
-              p.type != PragmaEntryPointType.CanBeOverridden,
+              p.type != PragmaEntryPointType.CanBeOverridden &&
+              p.type != PragmaEntryPointType.CanBeUsedAsType,
         );
     if (pragmas.isEmpty) return null;
     var pragma = pragmas.first;
-    if (pragma.type != PragmaEntryPointType.Default) {
+    if (!_isDefault(pragma)) {
       for (final p in pragmas.skip(1)) {
-        if (p.type == PragmaEntryPointType.Default) {
+        if (_isDefault(p)) {
           pragma = p;
           break;
         }

@@ -174,16 +174,12 @@ class GenericInferrer {
     TypeImpl argumentType,
     TypeImpl parameterType,
     String parameterName, {
-    InterfaceFragmentImpl? genericClass,
     required AstNodeImpl? nodeForTesting,
   }) {
     var origin = TypeConstraintFromArgument(
       argumentType: SharedTypeView(argumentType),
       parameterType: SharedTypeView(parameterType),
       parameterName: parameterName,
-      genericClassName: genericClass?.name,
-      isGenericClassInDartCore:
-          genericClass?.element.library.isDartCore ?? false,
     );
     inferenceLogWriter?.enterConstraintGeneration(
       ConstraintGenerationSource.argument,
@@ -203,7 +199,6 @@ class GenericInferrer {
   /// Applies all the argument constraints implied by [parameters] and
   /// [argumentTypes].
   void constrainArguments({
-    InterfaceFragmentImpl? genericClass,
     required List<FormalParameterElementImpl> parameters,
     required List<TypeImpl> argumentTypes,
     required AstNodeImpl? nodeForTesting,
@@ -215,7 +210,6 @@ class GenericInferrer {
         argumentTypes[i],
         parameters[i].type,
         parameters[i].name ?? '',
-        genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );
     }
@@ -224,7 +218,6 @@ class GenericInferrer {
   /// Applies all the argument constraints implied by [parameters] and
   /// [argumentTypes].
   void constrainArguments2({
-    InterfaceFragmentImpl? genericClass,
     required List<InternalFormalParameterElement> parameters,
     required List<TypeImpl> argumentTypes,
     required AstNodeImpl? nodeForTesting,
@@ -236,7 +229,6 @@ class GenericInferrer {
         argumentTypes[i],
         parameters[i].type,
         parameters[i].name ?? '',
-        genericClass: genericClass,
         nodeForTesting: nodeForTesting,
       );
     }

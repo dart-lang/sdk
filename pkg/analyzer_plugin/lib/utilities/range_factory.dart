@@ -170,6 +170,8 @@ class RangeFactory {
         if (previousToSeparator != null) {
           return endStart(previousToSeparator, owner.body);
         }
+      } else if (owner is PrimaryConstructorBody) {
+        return endStart(owner.thisKeyword, owner.body);
       }
       return node(item);
     }

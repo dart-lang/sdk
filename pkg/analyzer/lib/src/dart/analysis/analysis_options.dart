@@ -333,6 +333,23 @@ final class AnalysisOptionsBuilder {
       return VersionedPluginSource(constraint: version);
     }
 
+    var gitSource = pluginNode.valueAt(AnalysisOptionsFileKeys.git);
+    if (gitSource case YamlScalar(:String value)) {
+      return GitPluginSource(url: value);
+    } else if (gitSource is YamlMap) {
+      var urlSource = gitSource.valueAt(AnalysisOptionsFileKeys.url);
+      if (urlSource case YamlScalar(:String value)) {
+        return GitPluginSource(
+          url: value,
+          path: gitSource.valueAt(AnalysisOptionsFileKeys.path).stringValue,
+          ref: gitSource.valueAt(AnalysisOptionsFileKeys.ref).stringValue,
+          tagPattern: gitSource
+              .valueAt(AnalysisOptionsFileKeys.tagPattern)
+              .stringValue,
+        );
+      }
+    }
+
     var pathSource = pluginNode.valueAt(AnalysisOptionsFileKeys.path);
     if (pathSource case YamlScalar(value: String pathValue)) {
       var file = this.file;
@@ -621,6 +638,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             if (source._ref case var ref?) {
               buffer.addString(ref);
             }
+            if (source._tagPattern case var tagPattern?) {
+              buffer.addString(tagPattern);
+            }
           case PathPluginSource source:
             buffer.addString(source._path);
           case VersionedPluginSource source:
@@ -648,6 +668,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
                 }
                 if (source._ref case var ref?) {
                   buffer.addString(ref);
+                }
+                if (source._tagPattern case var tagPattern?) {
+                  buffer.addString(tagPattern);
                 }
               case PathPluginSource source:
                 buffer.addString(source._path);
@@ -717,10 +740,17 @@ final class GitPluginSource implements PluginSource {
 
   final String? _ref;
 
-  GitPluginSource({required String url, String? path, String? ref})
-    : _url = url,
-      _path = path,
-      _ref = ref;
+  final String? _tagPattern;
+
+  GitPluginSource({
+    required String url,
+    String? path,
+    String? ref,
+    String? tagPattern,
+  }) : _url = url,
+       _path = path,
+       _ref = ref,
+       _tagPattern = tagPattern;
 
   @override
   String toYaml({required String name}) {
@@ -733,6 +763,9 @@ final class GitPluginSource implements PluginSource {
     }
     if (_path != null) {
       buffer.writeln('      path: $_path');
+    }
+    if (_tagPattern != null) {
+      buffer.writeln('      tag_pattern: $_tagPattern');
     }
     return buffer.toString();
   }
