@@ -1221,9 +1221,10 @@ class Resolver {
     required int fileOffset,
   }) {
     if (!variable.isLocalFunction && !variable.isWildcard) {
-      assignedVariables.read(variable);
+      assignedVariables.read(variable.astVariable);
     }
-    return new VariableGet(variable.astVariable)..fileOffset = fileOffset;
+    return new VariableGet(variable.asExpressionVariable)
+      ..fileOffset = fileOffset;
   }
 
   void _declareFormals({

@@ -1442,7 +1442,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   bool get hasDeclaredInitializer => astVariable.hasDeclaredInitializer;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set hasDeclaredInitializer(bool value) {
     astVariable.hasDeclaredInitializer = value;
   }
