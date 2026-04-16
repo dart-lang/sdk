@@ -96,7 +96,7 @@ Future<ResolvedUnitResult> _getElementUnit() async {
   return unitResult as ResolvedUnitResult;
 }
 
-enum _ElementFlagSource { none, firstFragment, stored }
+enum _ElementFlagSource { none, firstFragment, stored, computed }
 
 class _ElementGenerator {
   final ResolvedUnitResult unitResult;
@@ -210,6 +210,7 @@ class _ElementGenerator {
         } else {
           switch (flag.elementSource) {
             case _ElementFlagSource.none:
+            case _ElementFlagSource.computed:
               break;
             case _ElementFlagSource.firstFragment:
               buffer.writeln();

@@ -3734,6 +3734,7 @@ class FirstFragmentLocation {
   });
 }
 
+@GenerateElementFlags(flags: _FormalParameterElementFlags.values)
 class FormalParameterElementImpl extends PromotableElementImpl
     with InternalFormalParameterElement {
   @override
@@ -3781,6 +3782,18 @@ class FormalParameterElementImpl extends PromotableElementImpl
 
   @override
   FormalParameterFragmentImpl get firstFragment => _firstFragment;
+
+  @generated
+  @override
+  @visibleForTesting
+  @trackedInternal
+  Map<String, bool> get flagsForTesting {
+    return {...super.flagsForTesting, 'hasDefaultValue': hasDefaultValue};
+  }
+
+  // firstFragment.typeParameters
+  //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
+  //     .toList();
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -3908,10 +3921,6 @@ class FormalParameterElementImpl extends PromotableElementImpl
       child.accept(visitor);
     }
   }
-
-  // firstFragment.typeParameters
-  //     .map((fragment) => (fragment as TypeParameterElementImpl).element)
-  //     .toList();
 }
 
 @GenerateElementFlags(flags: _FormalParameterElementFlags.values)
@@ -5456,6 +5465,7 @@ abstract class InstanceFragmentImpl extends FragmentImpl
 }
 
 @elementClass
+@GenerateElementFlags(flags: _InterfaceElementFlags.values)
 sealed class InterfaceElementImpl extends InstanceElementImpl
     implements InterfaceElement {
   /// The non-nullable instance of this element, without alias.
@@ -5524,6 +5534,14 @@ sealed class InterfaceElementImpl extends InstanceElementImpl
 
   @override
   InterfaceFragmentImpl get firstFragment;
+
+  @generated
+  @override
+  @visibleForTesting
+  @trackedInternal
+  Map<String, bool> get flagsForTesting {
+    return {...super.flagsForTesting, 'hasNonFinalField': hasNonFinalField};
+  }
 
   @override
   @trackedDirectlyOpaque
@@ -9813,6 +9831,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   Map<String, bool> get flagsForTesting {
     return {
       ...super.flagsForTesting,
+      'hasInitializer': hasInitializer,
       'isOriginDeclaration': isOriginDeclaration,
       'isOriginGetterSetter': isOriginGetterSetter,
       'shouldUseTypeForInitializerInference':
@@ -11756,7 +11775,7 @@ enum _ElementFlags {
     : fragment = false;
 }
 
-enum _ElementFlagSource { none, firstFragment, stored }
+enum _ElementFlagSource { none, firstFragment, stored, computed }
 
 @generated
 enum _ElementStorageFlag {
@@ -11831,6 +11850,7 @@ enum _FieldFormalParameterElementFlags {
 }
 
 enum _FormalParameterElementFlags {
+  hasDefaultValue(element: _ElementFlagSource.computed),
   isExplicitlyCovariant(fragment: true),
   isOriginDeclaration(fragment: true),
   isOriginMixinApplicationClassConstructor(fragment: true),
@@ -11839,8 +11859,10 @@ enum _FormalParameterElementFlags {
   final bool fragment;
   final _ElementFlagSource element;
 
-  const _FormalParameterElementFlags({this.fragment = false})
-    : element = _ElementFlagSource.none;
+  const _FormalParameterElementFlags({
+    this.fragment = false,
+    this.element = _ElementFlagSource.none,
+  });
 }
 
 enum _FragmentFlags {
@@ -11926,6 +11948,16 @@ enum _InstanceElementFlags {
     : fragment = false;
 }
 
+enum _InterfaceElementFlags {
+  hasNonFinalField(element: _ElementFlagSource.computed);
+
+  final bool fragment;
+  final _ElementFlagSource element;
+
+  const _InterfaceElementFlags({this.element = _ElementFlagSource.none})
+    : fragment = false;
+}
+
 enum _LibraryElementFlags {
   isOriginNotExistingFile(fragment: true),
   isSynthetic(element: _ElementFlagSource.stored);
@@ -11995,6 +12027,7 @@ enum _PropertyAccessorElementFlags {
 }
 
 enum _PropertyInducingElementFlags {
+  hasInitializer(element: _ElementFlagSource.computed),
   isOriginDeclaration(
     fragment: true,
     element: _ElementFlagSource.firstFragment,

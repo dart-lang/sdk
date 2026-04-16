@@ -174,22 +174,22 @@ library
         #F12 class B12 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::B12
   classes
-    class Z
+    isSimplyBounded class Z
       reference: <testLibrary>::@class::Z
       firstFragment: #F3
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F6
-    class A11
+    isSimplyBounded class A11
       reference: <testLibrary>::@class::A11
       firstFragment: #F7
-    class A12
+    isSimplyBounded class A12
       reference: <testLibrary>::@class::A12
       firstFragment: #F8
-    class B11
+    isSimplyBounded class B11
       reference: <testLibrary>::@class::B11
       firstFragment: #F11
-    class B12
+    isSimplyBounded class B12
       reference: <testLibrary>::@class::B12
       firstFragment: #F12
 ''');
@@ -254,14 +254,14 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
@@ -311,14 +311,14 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       constructors
@@ -579,22 +579,22 @@ library
         #F12 class B12 (nameOffset:24) (firstTokenOffset:18) (offset:24)
           element: <testLibrary>::@class::B12
   classes
-    class Z
+    isSimplyBounded class Z
       reference: <testLibrary>::@class::Z
       firstFragment: #F3
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F6
-    class A11
+    isSimplyBounded class A11
       reference: <testLibrary>::@class::A11
       firstFragment: #F7
-    class A12
+    isSimplyBounded class A12
       reference: <testLibrary>::@class::A12
       firstFragment: #F8
-    class B11
+    isSimplyBounded class B11
       reference: <testLibrary>::@class::B11
       firstFragment: #F11
-    class B12
+    isSimplyBounded class B12
       reference: <testLibrary>::@class::B12
       firstFragment: #F12
 ''');

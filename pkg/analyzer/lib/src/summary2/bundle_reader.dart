@@ -471,6 +471,7 @@ class LibraryReader {
       var element = EnumElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
       element.readFlags(_reader);
+      element.hasNonFinalField = _reader.readBool();
 
       _lazyRead((offset) {
         element.deferReadMembers(() {
