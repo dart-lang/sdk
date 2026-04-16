@@ -2241,7 +2241,9 @@ class FragmentFactoryImpl implements FragmentFactory {
       modifiers |= Modifiers.SuperInitializingFormal;
     }
     bool isWildcard =
-        libraryFeatures.wildcardVariables.isEnabled && name == '_';
+        kind.isPositional &&
+        libraryFeatures.wildcardVariables.isEnabled &&
+        name == '_';
     int? wildcardIndex;
     if (isWildcard) {
       wildcardIndex = wildcardVariableIndex++;
