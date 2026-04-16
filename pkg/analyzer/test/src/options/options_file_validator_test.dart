@@ -687,6 +687,52 @@ plugins:
 ''', []);
   }
 
+  test_plugins_git_invalid_key() {
+    validate(
+      '''
+plugins:
+  one:
+    git:
+      url: https://github.com/dart-lang/linter.git
+      invalid: main
+''',
+      [diag.unsupportedOptionWithLegalValues],
+    );
+  }
+
+  test_plugins_git_invalid_value() {
+    validate(
+      '''
+plugins:
+  one:
+    git:
+      url: https://github.com/dart-lang/linter.git
+      ref: 7
+''',
+      [diag.invalidSectionFormat],
+    );
+  }
+
+  test_plugins_git_map() {
+    validate('''
+plugins:
+  one:
+    git:
+      url: https://github.com/dart-lang/linter.git
+      ref: main
+      path: pkg/linter
+      tag_pattern: 'v*'
+''', []);
+  }
+
+  test_plugins_git_scalar() {
+    validate('''
+plugins:
+  one:
+    git: https://github.com/dart-lang/linter.git
+''', []);
+  }
+
   test_plugins_invalid_scalar() {
     validate(
       '''
