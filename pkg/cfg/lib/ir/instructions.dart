@@ -1061,21 +1061,45 @@ final class StoreStaticField extends StoreField {
   R accept<R>(InstructionVisitor<R> v) => v.visitStoreStaticField(this);
 }
 
-/// Throw given exception object. Also takes optional stack trace
+/// Kinds of exceptions thrown via [Throw].
+enum ThrowKind {
+  // Throw given exception object.
+  exception,
+  // Rethrow given exception object with a given stack trace.
+  rethrowException,
+
+  /// Throw LateError when local variable has not been initialized.
+  lateLocalNotInitialized,
+  // Throw LateError when local variable has already been initialized.
+  lateLocalAlreadyInitialized,
+  // Throw LateError when local variable has been assigned during initialization.
+  lateLocalAssignedDuringInitialization,
+}
+
+/// Throw exception, either using provided exception object or
+/// one of the standard errors. Also takes optional stack trace
 /// input to rethrow exception object without collecting a new stack trace.
 final class Throw extends Instruction
     with CanThrow, HasSideEffects
     implements ControlFlowInstruction {
+  final ThrowKind kind;
+
   Throw(
     super.graph,
     super.sourcePosition,
-    Definition exception,
-    Definition? stackTrace,
-  ) : super(inputCount: stackTrace != null ? 2 : 1) {
-    setInputAt(0, exception);
-    if (stackTrace != null) {
-      setInputAt(1, stackTrace);
-    }
+    this.kind, {
+    required super.inputCount,
+  }) {
+    assert(
+      inputCount ==
+          switch (kind) {
+            .exception => 1, // Exception object.
+            .rethrowException => 2, // Exception object and stack trace.
+            .lateLocalNotInitialized ||
+            .lateLocalAlreadyInitialized ||
+            .lateLocalAssignedDuringInitialization => 1, // Variable name.
+          },
+    );
   }
 
   @override

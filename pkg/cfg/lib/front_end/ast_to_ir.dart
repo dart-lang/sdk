@@ -34,7 +34,6 @@ enum TypeParametersStyle {
 ///  - parameter type checks;
 ///  - closures (including tear-offs and calls);
 ///  - captured variables;
-///  - late variables;
 ///  - stack overflow/interrupt checks;
 ///  - assert statements;
 ///  - async/async*/sync*/await/yield/yield*;
@@ -208,7 +207,9 @@ class AstToIr extends ast.RecursiveVisitor {
         if (!field.isStatic) {
           if (field.isLate) {
             if (!initializedFields.contains(field)) {
-              throw 'Unimplemented: initialization of late instance field';
+              builder.addLoadLocal(localVarIndexer.receiver);
+              builder.addSentinelConstant();
+              builder.addStoreInstanceField(CField(field));
             }
           } else {
             final fieldInitializer = field.initializer;
@@ -742,31 +743,30 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitVariableDeclaration(ast.VariableDeclaration node) {
-    if (node.isLate) {
-      throw 'Unsupported node ${node.runtimeType} for late variable';
-    }
     if (node.isConst) return;
     final local = localVarIndexer.variableForDeclaration(node);
-    final initializer = node.initializer;
-    if (initializer != null) {
-      _translateNode(initializer);
-      if (!builder.hasOpenBlock) {
-        builder.pop();
-        return;
+    if (node.isLate) {
+      builder.addSentinelConstant();
+      builder.addStoreLocal(local);
+    } else {
+      final initializer = node.initializer;
+      if (initializer != null) {
+        _translateNode(initializer);
+        if (!builder.hasOpenBlock) {
+          builder.pop();
+          return;
+        }
+        builder.addStoreLocal(local);
+      } else if (node.type.nullability == ast.Nullability.nullable) {
+        builder.addNullConstant();
+        builder.addStoreLocal(local);
       }
-      builder.addStoreLocal(local);
-    } else if (node.type.nullability == ast.Nullability.nullable) {
-      builder.addNullConstant();
-      builder.addStoreLocal(local);
     }
   }
 
   @override
   void visitVariableGet(ast.VariableGet node) {
     final variable = node.variable;
-    if (variable.isLate) {
-      throw 'Unsupported node ${node.runtimeType} for late variable';
-    }
     if (variable.isConst) {
       builder.addConstant(
         ConstantValue(
@@ -776,11 +776,61 @@ class AstToIr extends ast.RecursiveVisitor {
       return;
     }
     final local = localVarIndexer.variableForDeclaration(variable);
+    if (variable.isLate) {
+      // Check if the late variable is initialized.
+      final notInitBlock = builder.newTargetBlock();
+      final initBlock = builder.newTargetBlock();
+      final doneBlock = builder.newJoinBlock();
+
+      builder.addLoadLocal(local);
+      builder.addSentinelConstant();
+      builder.addComparison(.equal);
+      builder.addBranch(notInitBlock, initBlock);
+
+      builder.startBlock(notInitBlock);
+      final initializer = variable.initializer;
+      if (initializer != null) {
+        _translateNode(initializer);
+        if (variable.isFinal) {
+          // Check if the late final variable is already initialized.
+          final notInit2Block = builder.newTargetBlock();
+          final init2Block = builder.newTargetBlock();
+
+          builder.addLoadLocal(local);
+          builder.addSentinelConstant();
+          builder.addComparison(.equal);
+          builder.addBranch(notInit2Block, init2Block);
+
+          builder.startBlock(init2Block);
+          builder.addConstant(ConstantValue.fromString(variable.cosmeticName!));
+          builder.addThrow(.lateLocalAssignedDuringInitialization, 1);
+
+          builder.startBlock(notInit2Block);
+        }
+        builder.addStoreLocal(local);
+        builder.addGoto(doneBlock);
+      } else {
+        builder.addConstant(ConstantValue.fromString(variable.cosmeticName!));
+        builder.addThrow(.lateLocalNotInitialized, 1);
+      }
+
+      builder.startBlock(initBlock);
+      builder.addGoto(doneBlock);
+
+      builder.startBlock(doneBlock);
+    }
+
     builder.addLoadLocal(local);
-    final promotedType = node.promotedType;
+
+    ast.DartType? promotedType = node.promotedType;
+    if (promotedType == null && variable.isLate) {
+      // "Promote" value of LateValueType to the Dart type.
+      promotedType = variable.type;
+    }
     if (promotedType != null) {
       final promotedCType = _typeTranslator.translate(promotedType);
-      if (promotedCType is! TopType && promotedCType != local.type) {
+      if (variable.isLate ||
+          (promotedCType is! TopType && promotedCType != local.type)) {
         builder.addTypeCast(
           promotedCType,
           typeParameters: _typeParametersForType(promotedType),
@@ -793,12 +843,25 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitVariableSet(ast.VariableSet node) {
     final variable = node.variable;
-    if (variable.isLate) {
-      throw 'Unsupported node ${node.runtimeType} for late variable';
-    }
     _translateNode(node.value);
     if (_handleUnreachableExpression(1)) return;
     final local = localVarIndexer.variableForDeclaration(variable);
+    if (variable.isLate && variable.isFinal) {
+      // Check if the late final variable is already initialized.
+      final notInitBlock = builder.newTargetBlock();
+      final initBlock = builder.newTargetBlock();
+
+      builder.addLoadLocal(local);
+      builder.addSentinelConstant();
+      builder.addComparison(.equal);
+      builder.addBranch(notInitBlock, initBlock);
+
+      builder.startBlock(initBlock);
+      builder.addConstant(ConstantValue.fromString(variable.cosmeticName!));
+      builder.addThrow(.lateLocalAlreadyInitialized, 1);
+
+      builder.startBlock(notInitBlock);
+    }
     builder.addStoreLocal(local, leaveValueOnStack: true);
   }
 
@@ -1140,7 +1203,7 @@ class AstToIr extends ast.RecursiveVisitor {
     if (builder.hasOpenBlock) {
       builder.addLoadLocal(exceptionLocal);
       builder.addLoadLocal(stackTraceLocal);
-      builder.addRethrow();
+      builder.addThrow(.rethrowException, 2);
     }
 
     if (done != null) {
@@ -1187,7 +1250,7 @@ class AstToIr extends ast.RecursiveVisitor {
     if (builder.hasOpenBlock) {
       builder.addLoadLocal(exceptionLocal);
       builder.addLoadLocal(stackTraceLocal);
-      builder.addRethrow();
+      builder.addThrow(.rethrowException, 2);
     }
 
     for (var finallyBlock in collectedFinallyBlocks) {
@@ -1279,7 +1342,7 @@ class AstToIr extends ast.RecursiveVisitor {
   void visitThrow(ast.Throw node) {
     _translateNode(node.expression);
     if (_handleUnreachableExpression(1)) return;
-    builder.addThrow();
+    builder.addThrow(.exception, 1);
     // Maintain expression stack balance.
     builder.addNullConstant();
   }
@@ -1302,7 +1365,7 @@ class AstToIr extends ast.RecursiveVisitor {
     final stackTraceLocal = localVarIndexer.stackTraceVariable(tryCatch);
     builder.addLoadLocal(exceptionLocal);
     builder.addLoadLocal(stackTraceLocal);
-    builder.addRethrow();
+    builder.addThrow(.rethrowException, 2);
     // Maintain expression stack balance.
     builder.addNullConstant();
   }
@@ -1774,7 +1837,9 @@ class LocalVariableIndexer {
       _declaredVariables[declaration] ??= builder.declareLocalVariable(
         declaration.name ?? '#temp',
         declaration,
-        typeTranslator.translate(declaration.type),
+        declaration.isLate
+            ? const LateValueType()
+            : typeTranslator.translate(declaration.type),
       );
 
   LocalVariable exceptionVariable(ast.TreeNode tryBlock) {

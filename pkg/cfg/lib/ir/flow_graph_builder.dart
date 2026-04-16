@@ -194,6 +194,10 @@ class FlowGraphBuilder {
   Constant addBoolConstant(bool value) =>
       addConstant(ConstantValue.fromBool(value));
 
+  /// Append uninitialized sentinel [Constant].
+  Constant addSentinelConstant() =>
+      addConstant(ConstantValue(SentinelConstant()));
+
   /// Append [DirectCall] to the graph.
   DirectCall addDirectCall(
     CFunction target,
@@ -390,21 +394,16 @@ class FlowGraphBuilder {
     return instr;
   }
 
-  /// Append [Throw] taking an exception as input to the graph.
+  /// Append [Throw] to the graph.
   /// Ends current block.
-  void addThrow() {
-    final exception = pop();
-    final instr = Throw(graph, currentSourcePosition, exception, null);
-    appendInstruction(instr);
-    endBlock();
-  }
-
-  /// Append [Throw] taking an exception and stack trace as inputs to
-  /// the graph. Ends current block.
-  void addRethrow() {
-    final stackTrace = pop();
-    final exception = pop();
-    final instr = Throw(graph, currentSourcePosition, exception, stackTrace);
+  void addThrow(ThrowKind kind, int inputCount) {
+    final instr = Throw(
+      graph,
+      currentSourcePosition,
+      kind,
+      inputCount: inputCount,
+    );
+    popInputs(instr, 0, inputCount);
     appendInstruction(instr);
     endBlock();
   }

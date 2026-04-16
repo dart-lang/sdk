@@ -45,6 +45,7 @@ enum TypeKind {
   otherDartType,
   // Extended (non-Dart) types.
   nothing,
+  lateValue,
   typeParameters,
   typeArguments,
 }
@@ -325,6 +326,20 @@ final class NothingType extends ExtendedType {
 
   @override
   String toString() => '<nothing>';
+}
+
+/// Type of a late variable which can have an uninitialized state
+/// (represented with [SentinelConstant] value).
+///
+/// After checking, it can be casted to a regular Dart type.
+final class LateValueType extends ExtendedType {
+  const LateValueType();
+
+  @override
+  TypeKind get kind => TypeKind.lateValue;
+
+  @override
+  String toString() => '<late-value>';
 }
 
 /// Type of [TypeParameters] instruction.
