@@ -11389,8 +11389,8 @@ enum _ExecutableElementFlags {
   invokesSuperSelf(fragment: true, element: _ElementFlagSource.firstFragment),
   isAbstract(fragment: true),
   isAsynchronous(fragment: true),
-  isExternal(fragment: true, element: _ElementFlagSource.firstFragment),
   isExtensionTypeMember(element: _ElementFlagSource.stored),
+  isExternal(fragment: true, element: _ElementFlagSource.firstFragment),
   isGenerator(fragment: true),
   isStatic(fragment: true, element: _ElementFlagSource.firstFragment);
 
@@ -11405,8 +11405,8 @@ enum _ExecutableElementFlags {
 
 enum _FieldElementFlags {
   hasEnclosingTypeParameterReference(element: _ElementFlagSource.stored),
-  isExplicitlyCovariant(fragment: true),
   isEnumConstant(fragment: true, element: _ElementFlagSource.firstFragment),
+  isExplicitlyCovariant(fragment: true),
   isOriginDeclaringFormalParameter(
     fragment: true,
     element: _ElementFlagSource.firstFragment,
@@ -11441,9 +11441,9 @@ enum _FieldFormalParameterElementFlags {
 
 enum _FormalParameterElementFlags {
   isExplicitlyCovariant(fragment: true),
-  isOriginPreviousFragmentOfEnclosing(fragment: true),
   isOriginDeclaration(fragment: true),
-  isOriginMixinApplicationClassConstructor(fragment: true);
+  isOriginMixinApplicationClassConstructor(fragment: true),
+  isOriginPreviousFragmentOfEnclosing(fragment: true);
 
   final bool fragment;
   final _ElementFlagSource element;
@@ -11487,16 +11487,16 @@ enum _FragmentStorageFlag {
   executableFragment_isGenerator,
   executableFragment_isStatic,
   fieldFormalParameterFragment_isDeclaring,
-  fieldFragment_isExplicitlyCovariant,
   fieldFragment_isEnumConstant,
+  fieldFragment_isExplicitlyCovariant,
   fieldFragment_isOriginDeclaringFormalParameter,
   fieldFragment_isOriginEnumValues,
   fieldFragment_isOriginExtensionTypeRecoveryRepresentation,
   fieldFragment_isPromotable,
   formalParameterFragment_isExplicitlyCovariant,
-  formalParameterFragment_isOriginPreviousFragmentOfEnclosing,
   formalParameterFragment_isOriginDeclaration,
   formalParameterFragment_isOriginMixinApplicationClassConstructor,
+  formalParameterFragment_isOriginPreviousFragmentOfEnclosing,
   fragment_isAugmentation,
   fragment_isCompleteDeclaration,
   libraryFragment_isOriginNotExistingFile,

@@ -359,6 +359,16 @@ extension _ClassElementExtension on ClassElement {
         elementSource: _ElementFlagSource.values.byName(elementSourceName),
       );
     }).toList();
+
+    for (var i = 0; i < flags.length - 1; i++) {
+      if (flags[i].name.compareTo(flags[i + 1].name) > 0) {
+        throw StateError(
+          'Flags for $name are not sorted: '
+          '"${flags[i].name}" appears before "${flags[i + 1].name}".',
+        );
+      }
+    }
+
     return _GenerateElementFlags(this, flags);
   }
 }
