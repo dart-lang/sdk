@@ -652,7 +652,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           if (allocated.isPhysical) {
             return;
           }
-          int nextUsePosition = allocated.nextUse?.pos ?? allocated.end;
+          int nextUsePosition =
+              allocated.findRegisterUseAfter(start)?.pos ?? allocated.end;
           if (nextUsePosition < freeUntil) {
             freeUntil = nextUsePosition;
           }
@@ -746,17 +747,24 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       return false;
     }
     final spillPos = unallocated.start;
-    final nextUse = allocated.nextUse;
+    final nextUse = allocated.findRegisterUseAfter(spillPos);
     if (nextUse == null) {
       // No more uses which require registers.
       if (trace) {
         print('Split $allocated at $spillPos');
       }
-      spillLiveRange(allocated.splitAt(spillPos));
-      if (trace) {
-        print('Finish evicted $allocated at ${_registerLocations[reg]}');
+      if (spillPos == allocated.start) {
+        if (trace) {
+          print('Spill evicted $allocated');
+        }
+        spillLiveRange(allocated);
+      } else {
+        spillLiveRange(allocated.splitAt(spillPos));
+        if (trace) {
+          print('Finish evicted $allocated at ${_registerLocations[reg]}');
+        }
+        allocated.setLocation(_registerLocations[reg]!);
       }
-      allocated.setLocation(_registerLocations[reg]!);
     } else {
       final usePos = nextUse.pos;
       final restorePos = (spillPos < intersection)
@@ -766,6 +774,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
         if (trace) {
           print('Split $allocated at $restorePos');
         }
+        assert(restorePos > allocated.start);
         addToUnhandled(allocated.splitAt(restorePos));
         spillLiveRange(allocated);
       } else {
@@ -1119,6 +1128,19 @@ class LiveRange {
       ++currentUse;
     }
     return false;
+  }
+
+  UsePosition? findRegisterUseAfter(int pos) {
+    assert(!isPhysical);
+    for (int i = currentUse; i <= uses.length; ++i) {
+      final use = uses[uses.length - i];
+      if (use.pos >= pos &&
+          (use.constraint is AnyCpuRegister ||
+              use.constraint is AnyFpuRegister)) {
+        return use;
+      }
+    }
+    return null;
   }
 
   UsePosition? get nextUse =>
