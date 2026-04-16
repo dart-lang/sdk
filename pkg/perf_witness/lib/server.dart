@@ -20,7 +20,7 @@ class PerfWitnessServer {
   final String _recorderSocketPath;
   final ffi.Pointer<ffi.Bool> _isRecordingTimelineWithAsyncSpans;
 
-  bool _isRecordingTimeline = false;
+  json_rpc.Peer? _timelineRequestor;
 
   JsonRpcServer? _server;
   json_rpc.Peer? _recorderConnection;
@@ -141,7 +141,7 @@ class PerfWitnessServer {
     json_rpc.Peer requestor,
     Map<String, Object?>? params,
   ) async {
-    if (_isRecordingTimeline) {
+    if (_timelineRequestor != null) {
       throw StateError('Timeline is already being recorded');
     }
 
@@ -167,7 +167,14 @@ class PerfWitnessServer {
       enableProfiler: paramsObj.enableProfiler ?? false,
       samplingInterval: samplingInterval,
     );
-    _isRecordingTimeline = true;
+    _timelineRequestor = requestor;
+    requestor.done.whenComplete(() {
+      if (_timelineRequestor == requestor) {
+        developer.NativeRuntime.stopStreamingTimeline();
+        _isRecordingTimelineWithAsyncSpans.value = false;
+        _timelineRequestor = null;
+      }
+    }).ignore();
     _isRecordingTimelineWithAsyncSpans.value = enableAsyncSpans;
   }
 
@@ -175,12 +182,16 @@ class PerfWitnessServer {
     json_rpc.Peer requestor,
     Map<String, Object?>? params,
   ) async {
-    if (!_isRecordingTimeline) {
+    if (_timelineRequestor == null) {
       throw StateError('Timeline is not being recorded');
     }
 
+    if (_timelineRequestor != requestor) {
+      throw StateError('This peer did not start recording timeline');
+    }
+
+    _timelineRequestor = null;
     developer.NativeRuntime.stopStreamingTimeline();
-    _isRecordingTimeline = false;
     _isRecordingTimelineWithAsyncSpans.value = false;
   }
 
@@ -220,6 +231,9 @@ class PerfWitnessServer {
         await UnixDomainSocket.connect(recorderPath),
         _methods,
       );
+      _recorderConnection!.done.whenComplete(() {
+        _recorderConnection = null;
+      }).ignore();
       await _recorderConnection!.sendRequest(
         'process.announce',
         ProcessInfo.current(tag: tag).toJson(),
@@ -231,15 +245,15 @@ class PerfWitnessServer {
 
   Future<void> _shutdown() async {
     _recorderConnection?.close();
+    if (_timelineRequestor != null) {
+      developer.NativeRuntime.stopStreamingTimeline();
+      _timelineRequestor = null;
+    }
     await _server?.close();
     if (io.FileSystemEntity.typeSync(_controlSocketPath) != .notFound) {
       io.File(_controlSocketPath).deleteSync();
     }
     calloc.free(_isRecordingTimelineWithAsyncSpans);
-    if (_isRecordingTimeline) {
-      developer.NativeRuntime.stopStreamingTimeline();
-      _isRecordingTimeline = false;
-    }
   }
 }
 

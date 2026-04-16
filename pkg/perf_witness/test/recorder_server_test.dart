@@ -862,6 +862,71 @@ void main() {
       await clientSocket.close();
       await PerfWitnessServer.shutdown();
     });
+
+    test('recording stops when client disconnects', () async {
+      final busyLoopProcess = await BusyLoopProcess.start(
+        'busy-loop-tag',
+        tempDir,
+      );
+
+      // Request recording, but then disconnect. The server should handle this
+      // gracefully and stop recording.
+      {
+        final conn = await Connection.connectTo(
+          controlSocketPathForPid(
+            busyLoopProcess.process.pid,
+            controlSocketDirectory: p.join(tempDir.path, 'perf'),
+          )!,
+        );
+        await conn.startRecording(
+          tempDir.path,
+          config: PerfWitnessRecorderConfig(),
+        );
+        conn.disconnect();
+        await conn.socket?.done;
+      }
+
+      // Request recording again and check that this does not error.
+      {
+        final conn = await Connection.connectTo(
+          controlSocketPathForPid(
+            busyLoopProcess.process.pid,
+            controlSocketDirectory: p.join(tempDir.path, 'perf'),
+          )!,
+        );
+        await conn.startRecording(
+          tempDir.path,
+          config: PerfWitnessRecorderConfig(),
+        );
+        await conn.stopRecording();
+        conn.disconnect();
+        await conn.socket?.done;
+      }
+
+      await busyLoopProcess.process.askToExit();
+      expect(await busyLoopProcess.process.exitCode, 0);
+    });
+
+    test('server does not crash on abrupt client disconnect', () async {
+      final busyLoopProcess = await BusyLoopProcess.start(
+        'busy-loop-tag',
+        tempDir,
+      );
+      final conn = await Connection.connectTo(
+        controlSocketPathForPid(
+          busyLoopProcess.process.pid,
+          controlSocketDirectory: p.join(tempDir.path, 'perf'),
+        )!,
+      );
+      await conn.startRecording(
+        tempDir.path,
+        config: PerfWitnessRecorderConfig(),
+      );
+      conn.stopRecording().ignore();
+      conn.socket?.destroy();
+      await busyLoopProcess.process.askToExit();
+      expect(await busyLoopProcess.process.exitCode, 0);
+    });
   });
 
   group('AOT specific', () {
