@@ -33178,7 +33178,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33324,7 +33324,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33476,7 +33476,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33638,7 +33638,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33794,7 +33794,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -94105,15 +94105,15 @@ foo3() {}
     hashForRequirements: #H0
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M2
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
     exportMapId: #M3
@@ -94133,15 +94133,15 @@ void foo3() {}
     hashForRequirements: #H1
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo2: #M4
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo3: #M5
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M6
@@ -94169,19 +94169,19 @@ external void foo4();
     hashForRequirements: #H0
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M2
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo4: #M3
-        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M4
@@ -94203,19 +94203,19 @@ void foo4() {}
     hashForRequirements: #H1
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M5
-        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo4: #M6
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M7
