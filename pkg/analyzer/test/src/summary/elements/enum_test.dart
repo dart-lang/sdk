@@ -5502,7 +5502,7 @@ library
               literal: 0 @104
               staticType: int
       getters
-        #F10 isOriginVariable isStatic annotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+        #F10 isCompleteDeclaration isOriginVariable isStatic annotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
           element: <testLibrary>::@getter::annotation
   enums
     isSimplyBounded enum E
@@ -6339,7 +6339,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F8 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F8 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     isSimplyBounded enum E
@@ -6852,7 +6852,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F8 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F8 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     isSimplyBounded enum E
@@ -6991,7 +6991,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F9 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F9 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     isSimplyBounded enum E
@@ -7159,7 +7159,7 @@ library
               literal: 0 @12
               staticType: int
       getters
-        #F12 isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F12 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   enums
     isSimplyBounded enum E
@@ -7327,7 +7327,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F9 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F9 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     isSimplyBounded enum E
@@ -7451,7 +7451,7 @@ library
               literal: 42 @10
               staticType: int
       getters
-        #F8 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F8 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   enums
     isSimplyBounded enum E
@@ -9211,7 +9211,7 @@ library
               literal: 0 @12
               staticType: int
       getters
-        #F12 isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F12 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   enums
     isSimplyBounded enum E

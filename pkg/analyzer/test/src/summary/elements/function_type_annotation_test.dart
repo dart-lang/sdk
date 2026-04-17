@@ -30,10 +30,10 @@ library
         #F1 isOriginDeclaration isStatic f (nameOffset:16) (firstTokenOffset:16) (offset:16)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+        #F2 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@getter::f
       setters
-        #F3 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+        #F3 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
           element: <testLibrary>::@setter::f
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
@@ -78,10 +78,10 @@ library
         #F1 isOriginDeclaration isStatic f (nameOffset:17) (firstTokenOffset:17) (offset:17)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F2 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@getter::f
       setters
-        #F3 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+        #F3 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
           element: <testLibrary>::@setter::f
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
@@ -269,10 +269,10 @@ library
         #F1 isOriginDeclaration isStatic v (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@getter::v
       setters
-        #F3 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -430,10 +430,10 @@ library
                 baseElement: <testLibrary>::@class::A::@constructor::new
                 substitution: {T: int Function(String)}
       getters
-        #F5 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+        #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@getter::v
       setters
-        #F6 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
+        #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
           element: <testLibrary>::@setter::v
           formalParameters
             #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
@@ -596,7 +596,7 @@ library
                 rightParenthesis: ) @68
               staticType: A<String Function({int? a})>
       getters
-        #F5 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     isSimplyBounded class A
@@ -704,7 +704,7 @@ library
                 rightParenthesis: ) @68
               staticType: A<String Function([int?])>
       getters
-        #F5 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     isSimplyBounded class A
@@ -812,7 +812,7 @@ library
                 rightParenthesis: ) @76
               staticType: A<String Function({required int a})>
       getters
-        #F5 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     isSimplyBounded class A
@@ -917,7 +917,7 @@ library
                 rightParenthesis: ) @65
               staticType: A<String Function(int)>
       getters
-        #F5 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::v
   classes
     isSimplyBounded class A

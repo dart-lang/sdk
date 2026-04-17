@@ -6651,7 +6651,7 @@ library
               literal: 0 @12
               staticType: int
       getters
-        #F10 isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F10 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   extensionTypes
     isSimplyBounded extension type E

@@ -2145,38 +2145,38 @@ library
         #F5 hasInitializer isOriginDeclaration isStatic multiWithInit2 (nameOffset:86) (firstTokenOffset:86) (offset:86)
           element: <testLibrary>::@topLevelVariable::multiWithInit2
       getters
-        #F6 isOriginVariable isStatic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F6 isCompleteDeclaration isOriginVariable isStatic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::withInit
-        #F7 isOriginVariable isStatic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F7 isCompleteDeclaration isOriginVariable isStatic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::withoutInit
-        #F8 isOriginVariable isStatic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F8 isCompleteDeclaration isOriginVariable isStatic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::multiWithInit
-        #F9 isOriginVariable isStatic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+        #F9 isCompleteDeclaration isOriginVariable isStatic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
           element: <testLibrary>::@getter::multiWithoutInit
-        #F10 isOriginVariable isStatic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
+        #F10 isCompleteDeclaration isOriginVariable isStatic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
           element: <testLibrary>::@getter::multiWithInit2
       setters
-        #F11 isOriginVariable isStatic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F11 isCompleteDeclaration isOriginVariable isStatic withInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::withInit
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::withInit::@formalParameter::value
-        #F13 isOriginVariable isStatic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F13 isCompleteDeclaration isOriginVariable isStatic withoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::withoutInit
           formalParameters
             #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::withoutInit::@formalParameter::value
-        #F15 isOriginVariable isStatic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F15 isCompleteDeclaration isOriginVariable isStatic multiWithInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::multiWithInit
           formalParameters
             #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::multiWithInit::@formalParameter::value
-        #F17 isOriginVariable isStatic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
+        #F17 isCompleteDeclaration isOriginVariable isStatic multiWithoutInit (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
           element: <testLibrary>::@setter::multiWithoutInit
           formalParameters
             #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:68)
               element: <testLibrary>::@setter::multiWithoutInit::@formalParameter::value
-        #F19 isOriginVariable isStatic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
+        #F19 isCompleteDeclaration isOriginVariable isStatic multiWithInit2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
           element: <testLibrary>::@setter::multiWithInit2
           formalParameters
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
@@ -2436,73 +2436,73 @@ library
                 rightParenthesis: ) @319
               element: dart:core::@class::Object::@constructor::new
       getters
-        #F11 isOriginVariable isStatic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+        #F11 isCompleteDeclaration isOriginVariable isStatic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@getter::hasDocComment
-        #F12 isOriginVariable isStatic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F12 isCompleteDeclaration isOriginVariable isStatic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::hasDocComment2
-        #F13 isOriginVariable isStatic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
+        #F13 isCompleteDeclaration isOriginVariable isStatic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
           element: <testLibrary>::@getter::hasAnnotation
-        #F14 isOriginVariable isStatic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+        #F14 isCompleteDeclaration isOriginVariable isStatic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
           element: <testLibrary>::@getter::hasAnnotation2
-        #F15 isOriginVariable isStatic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
+        #F15 isCompleteDeclaration isOriginVariable isStatic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
           element: <testLibrary>::@getter::annotationThenComment
-        #F16 isOriginVariable isStatic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
+        #F16 isCompleteDeclaration isOriginVariable isStatic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
           element: <testLibrary>::@getter::annotationThenComment2
-        #F17 isOriginVariable isStatic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
+        #F17 isCompleteDeclaration isOriginVariable isStatic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
           element: <testLibrary>::@getter::commentThenAnnotation
-        #F18 isOriginVariable isStatic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
+        #F18 isCompleteDeclaration isOriginVariable isStatic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
           element: <testLibrary>::@getter::commentThenAnnotation2
-        #F19 isOriginVariable isStatic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
+        #F19 isCompleteDeclaration isOriginVariable isStatic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
           element: <testLibrary>::@getter::commentAroundAnnotation
-        #F20 isOriginVariable isStatic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
+        #F20 isCompleteDeclaration isOriginVariable isStatic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
           element: <testLibrary>::@getter::commentAroundAnnotation2
       setters
-        #F21 isOriginVariable isStatic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+        #F21 isCompleteDeclaration isOriginVariable isStatic hasDocComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@setter::hasDocComment
           formalParameters
             #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@setter::hasDocComment::@formalParameter::value
-        #F23 isOriginVariable isStatic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F23 isCompleteDeclaration isOriginVariable isStatic hasDocComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::hasDocComment2
           formalParameters
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
               element: <testLibrary>::@setter::hasDocComment2::@formalParameter::value
-        #F25 isOriginVariable isStatic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
+        #F25 isCompleteDeclaration isOriginVariable isStatic hasAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
           element: <testLibrary>::@setter::hasAnnotation
           formalParameters
             #F26 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:80)
               element: <testLibrary>::@setter::hasAnnotation::@formalParameter::value
-        #F27 isOriginVariable isStatic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
+        #F27 isCompleteDeclaration isOriginVariable isStatic hasAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
           element: <testLibrary>::@setter::hasAnnotation2
           formalParameters
             #F28 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:95)
               element: <testLibrary>::@setter::hasAnnotation2::@formalParameter::value
-        #F29 isOriginVariable isStatic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
+        #F29 isCompleteDeclaration isOriginVariable isStatic annotationThenComment (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
           element: <testLibrary>::@setter::annotationThenComment
           formalParameters
             #F30 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:156)
               element: <testLibrary>::@setter::annotationThenComment::@formalParameter::value
-        #F31 isOriginVariable isStatic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
+        #F31 isCompleteDeclaration isOriginVariable isStatic annotationThenComment2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
           element: <testLibrary>::@setter::annotationThenComment2
           formalParameters
             #F32 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:179)
               element: <testLibrary>::@setter::annotationThenComment2::@formalParameter::value
-        #F33 isOriginVariable isStatic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
+        #F33 isCompleteDeclaration isOriginVariable isStatic commentThenAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
           element: <testLibrary>::@setter::commentThenAnnotation
           formalParameters
             #F34 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:248)
               element: <testLibrary>::@setter::commentThenAnnotation::@formalParameter::value
-        #F35 isOriginVariable isStatic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
+        #F35 isCompleteDeclaration isOriginVariable isStatic commentThenAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
           element: <testLibrary>::@setter::commentThenAnnotation2
           formalParameters
             #F36 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:271)
               element: <testLibrary>::@setter::commentThenAnnotation2::@formalParameter::value
-        #F37 isOriginVariable isStatic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
+        #F37 isCompleteDeclaration isOriginVariable isStatic commentAroundAnnotation (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
           element: <testLibrary>::@setter::commentAroundAnnotation
           formalParameters
             #F38 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:340)
               element: <testLibrary>::@setter::commentAroundAnnotation::@formalParameter::value
-        #F39 isOriginVariable isStatic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
+        #F39 isCompleteDeclaration isOriginVariable isStatic commentAroundAnnotation2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
           element: <testLibrary>::@setter::commentAroundAnnotation2
           formalParameters
             #F40 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)

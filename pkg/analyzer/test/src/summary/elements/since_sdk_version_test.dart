@@ -923,7 +923,7 @@ library
         #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:47) (firstTokenOffset:47) (offset:47)
           element: dart:foo::@topLevelVariable::foo
       getters
-        #F2 isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+        #F2 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: dart:foo::@getter::foo
   topLevelVariables
     hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic foo
