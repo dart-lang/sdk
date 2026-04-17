@@ -336,6 +336,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Add type annotations everywhere in file',
   );
+  static const addTypeName = FixKind(
+    'dart.fix.add.typeName',
+    DartFixKindPriority.standard,
+    'Add implicit type name',
+  );
+  static const addTypeNameMulti = FixKind(
+    'dart.fix.add.typeName.multi',
+    DartFixKindPriority.inFile,
+    'Add implicit type name everywhere in file',
+  );
   static const changeArgumentName = FixKind(
     'dart.fix.change.argumentName',
     DartFixKindPriority.standard + 10,
