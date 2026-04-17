@@ -777,6 +777,9 @@ class ElementBuilder {
     {
       var getterFragment = GetterFragmentImpl(name: variableFragment.name)
         ..isOriginVariable = true
+        ..isAbstract = variableFragment.isAbstract
+        ..isCompleteDeclaration =
+            variableFragment.isExternal || !variableFragment.isAbstract
         ..isStatic = true;
       libraryFragment.addGetter(getterFragment);
 
@@ -794,6 +797,9 @@ class ElementBuilder {
     if (variableFragment.hasSetter) {
       var setterFragment = SetterFragmentImpl(name: variableFragment.name)
         ..isOriginVariable = true
+        ..isAbstract = variableFragment.isAbstract
+        ..isCompleteDeclaration =
+            variableFragment.isExternal || !variableFragment.isAbstract
         ..isStatic = true;
       libraryFragment.addSetter(setterFragment);
 
@@ -2020,6 +2026,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var fragment = TopLevelVariableFragmentImpl(name: name2);
 
       fragment.hasInitializer = variable.initializer != null;
+      fragment.isAbstract = node.abstractKeyword != null;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isConst = node.variables.isConst;
       fragment.isExternal = node.externalKeyword != null;

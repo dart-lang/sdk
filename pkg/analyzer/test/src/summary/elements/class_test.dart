@@ -470,7 +470,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -540,7 +540,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -610,7 +610,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -857,7 +857,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference f
+        isOriginDeclaration f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: dynamic Function()
@@ -947,13 +947,13 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x::@def::0
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::x::@def::0
           setter: <testLibrary>::@class::C::@setter::x::@def::0
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x::@def::1
           firstFragment: #F3
           type: String
@@ -1037,7 +1037,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference _x
+        isOriginDeclaration _x
           reference: <testLibrary>::@class::C::@field::_x
           firstFragment: #F2
           type: int?
@@ -1112,7 +1112,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference _123
+        isOriginDeclaration _123
           reference: <testLibrary>::@class::C::@field::_123
           firstFragment: #F2
           type: int?
@@ -1222,7 +1222,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: num
@@ -1292,7 +1292,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: num
@@ -1362,7 +1362,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: num
@@ -1642,7 +1642,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -1716,7 +1716,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -1789,7 +1789,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -1863,7 +1863,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -2225,7 +2225,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _f
+        isFinal isOriginDeclaration isPromotable _f
           reference: <testLibrary>::@class::A::@field::_f
           firstFragment: #F2
           type: int
@@ -2296,7 +2296,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: Object
@@ -7804,7 +7804,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isAbstract isOriginDeclaration shouldUseTypeForInitializerInference i
+        isAbstract isOriginDeclaration i
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
@@ -7863,7 +7863,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isConst isOriginDeclaration isStatic shouldUseTypeForInitializerInference i
+        hasInitializer isConst isOriginDeclaration isStatic i
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
@@ -7916,7 +7916,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isConst isLate isOriginDeclaration isStatic shouldUseTypeForInitializerInference i
+        hasInitializer isConst isLate isOriginDeclaration isStatic i
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
@@ -7972,7 +7972,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -8111,13 +8111,13 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo::@def::0
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::foo::@def::0
           setter: <testLibrary>::@class::C::@setter::foo
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo::@def::1
           firstFragment: #F3
           type: int
@@ -8194,13 +8194,13 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo::@def::0
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::foo
           setter: <testLibrary>::@class::C::@setter::foo::@def::0
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo::@def::1
           firstFragment: #F3
           type: int
@@ -8273,7 +8273,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isExternal isOriginDeclaration shouldUseTypeForInitializerInference i
+        isExternal isOriginDeclaration i
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
@@ -8338,7 +8338,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration x
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -8460,7 +8460,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration f
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F5
           type: A<int Function(double)>
@@ -8511,7 +8511,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration x
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -8571,7 +8571,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -8657,7 +8657,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration shouldUseTypeForInitializerInference v
+        hasImplicitType isOriginDeclaration v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -8693,7 +8693,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F8
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference v
+        isOriginGetterSetter v
           reference: <testLibrary>::@class::D::@field::v
           firstFragment: #F9
           type: int
@@ -8865,7 +8865,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference v
+        hasInitializer isOriginDeclaration v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: num
@@ -8926,7 +8926,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isOriginDeclaration v
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -9002,7 +9002,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration shouldUseTypeForInitializerInference v
+        hasImplicitType isOriginDeclaration v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -9033,7 +9033,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F7
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference v
+        isOriginGetterSetter v
           reference: <testLibrary>::@class::D::@field::v
           firstFragment: #F8
           type: int
@@ -9114,14 +9114,14 @@ library
               literal: 0 @10
               staticType: int
       getters
-        #F10 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F10 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
   classes
     isAbstract isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference f
+        isOriginGetterSetter f
           reference: <testLibrary>::@class::A::@field::f
           firstFragment: #F2
           type: List<int>
@@ -9141,7 +9141,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference f
+        hasImplicitType hasInitializer isFinal isOriginDeclaration f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F6
           type: List<int>
@@ -9161,7 +9161,7 @@ library
           returnType: List<int>
           variable: <testLibrary>::@class::B::@field::f
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F9
       type: int
@@ -9210,7 +9210,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int
@@ -9292,7 +9292,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: double
@@ -9312,7 +9312,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasImplicitType hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: double
@@ -9365,7 +9365,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter isPromotable shouldUseTypeForInitializerInference _foo
+        isOriginGetterSetter isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F2
           type: int?
@@ -9404,7 +9404,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9437,7 +9437,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9470,7 +9470,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9503,7 +9503,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9532,7 +9532,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9565,7 +9565,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9594,7 +9594,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9620,7 +9620,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9654,7 +9654,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9699,7 +9699,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9708,7 +9708,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F2
       fields
-        hasInitializer isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        hasInitializer isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::B::@field::_foo
           firstFragment: #F3
           type: int?
@@ -9720,7 +9720,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        hasInitializer isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@mixin::M::@field::_foo
           firstFragment: #F5
           type: int?
@@ -9758,7 +9758,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9767,7 +9767,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F2
       fields
-        hasInitializer isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        hasInitializer isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::B::@field::_foo
           firstFragment: #F3
           type: int?
@@ -9803,7 +9803,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9842,7 +9842,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9851,7 +9851,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F2
       fields
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        hasInitializer isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::B::@field::_foo
           firstFragment: #F3
           type: int?
@@ -9889,7 +9889,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9933,7 +9933,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -9967,7 +9967,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -10007,7 +10007,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -10019,7 +10019,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        hasInitializer isFinal isOriginDeclaration _foo
           reference: <testLibrary>::@mixin::M::@field::_foo
           firstFragment: #F3
           type: int?
@@ -10056,7 +10056,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -10080,7 +10080,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference _foo
+        isOriginDeclaration _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
@@ -10109,7 +10109,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference field
+        isOriginDeclaration field
           reference: <testLibrary>::@class::A::@field::field
           firstFragment: #F1
           type: int?
@@ -10137,12 +10137,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F0
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F1
           type: int?
           getter: <testLibrary>::@class::A::@getter::_foo
-        hasImplicitType hasInitializer isFinal isOriginDeclaration bar
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F2
           type: int
@@ -10195,13 +10195,13 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference a
+        isOriginDeclaration a
           reference: <testLibrary>::@class::C::@field::a
           firstFragment: #F2
           type: Object
           getter: <testLibrary>::@class::C::@getter::a
           setter: <testLibrary>::@class::C::@setter::a
-        isOriginDeclaration shouldUseTypeForInitializerInference <null-name>
+        isOriginDeclaration <null-name>
           reference: <testLibrary>::@class::C::@field::0
           firstFragment: #F3
           type: Object
@@ -10283,7 +10283,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        isLate isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isLate isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F3
           type: int
@@ -10347,7 +10347,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasEnclosingTypeParameterReference isLate isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasEnclosingTypeParameterReference isLate isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F3
           type: T
@@ -10405,7 +10405,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -10459,7 +10459,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration b
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer b
           reference: <testLibrary>::@class::C::@field::b
           firstFragment: #F2
           type: double
@@ -10519,14 +10519,14 @@ library
         #F6 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic a (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::a
       getters
-        #F7 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F7 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::a
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F2
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration b
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer b
           reference: <testLibrary>::@class::C::@field::b
           firstFragment: #F3
           type: double
@@ -10542,7 +10542,7 @@ library
           returnType: double
           variable: <testLibrary>::@class::C::@field::b
   topLevelVariables
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F6
       type: int
@@ -10585,7 +10585,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration x
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -10632,7 +10632,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -10682,7 +10682,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration isStatic shouldUseTypeForInitializerInference i
+        isOriginDeclaration isStatic i
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
@@ -10743,7 +10743,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic f
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int
@@ -10787,7 +10787,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -10837,7 +10837,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isLate isOriginDeclaration isStatic shouldUseTypeForInitializerInference i
+        isLate isOriginDeclaration isStatic i
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
@@ -10908,7 +10908,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: InvalidType
@@ -10974,7 +10974,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference a
+        hasInitializer isOriginDeclaration a
           reference: <testLibrary>::@class::C::@field::a
           firstFragment: #F2
           type: int
@@ -11040,7 +11040,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isOriginDeclaration foo
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
@@ -11116,7 +11116,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -11136,7 +11136,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasImplicitType hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -11192,7 +11192,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isOriginDeclaration a
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer a
           reference: <testLibrary>::@class::C::@field::a
           firstFragment: #F2
           type: Never
@@ -11253,7 +11253,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference x
+        hasInitializer isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -11314,7 +11314,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isOriginDeclaration x
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -11384,13 +11384,13 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference i
+        isOriginDeclaration i
           reference: <testLibrary>::@class::C::@field::i
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::i
           setter: <testLibrary>::@class::C::@setter::i
-        isOriginDeclaration shouldUseTypeForInitializerInference j
+        isOriginDeclaration j
           reference: <testLibrary>::@class::C::@field::j
           firstFragment: #F3
           type: int
@@ -11469,7 +11469,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isLate isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isLate isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
@@ -11534,7 +11534,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isFinal isLate isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isFinal isLate isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
@@ -11593,7 +11593,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isFinal isLate isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isLate isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
@@ -11673,7 +11673,7 @@ library
       firstFragment: #F4
       supertype: A
       fields
-        hasImplicitType hasInitializer isLate isOriginDeclaration f
+        hasImplicitType hasInitializer isLate isOriginDeclaration isTypeInferredFromInitializer f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F5
           type: int
@@ -11755,7 +11755,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -11775,7 +11775,7 @@ library
       firstFragment: #F5
       supertype: A
       fields
-        hasImplicitType hasInitializer isLate isOriginDeclaration f
+        hasImplicitType hasInitializer isLate isOriginDeclaration isTypeInferredFromInitializer f
           reference: <testLibrary>::@class::B::@field::f
           firstFragment: #F6
           type: int
@@ -11876,13 +11876,13 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference a
+        isOriginGetterSetter a
           reference: <testLibrary>::@class::A::@field::a
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::a
           setter: <testLibrary>::@class::A::@setter::a
-        isOriginGetterSetter shouldUseTypeForInitializerInference b
+        isOriginGetterSetter b
           reference: <testLibrary>::@class::A::@field::b
           firstFragment: #F3
           type: int
@@ -11961,13 +11961,13 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference a
+        isOriginGetterSetter a
           reference: <testLibrary>::@class::A::@field::a
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::a
           setter: <testLibrary>::@class::A::@setter::a
-        isOriginGetterSetter shouldUseTypeForInitializerInference b
+        isOriginGetterSetter b
           reference: <testLibrary>::@class::A::@field::b
           firstFragment: #F3
           type: int
@@ -12026,7 +12026,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -12070,7 +12070,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -12114,7 +12114,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -12164,7 +12164,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -12214,7 +12214,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -12264,7 +12264,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -12350,7 +12350,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -12401,7 +12401,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F3
           type: int
@@ -12448,7 +12448,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F3
           type: T
@@ -12488,7 +12488,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter isStatic shouldUseTypeForInitializerInference x
+        isOriginGetterSetter isStatic x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -12538,12 +12538,12 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::x
-        isOriginGetterSetter shouldUseTypeForInitializerInference y
+        isOriginGetterSetter y
           reference: <testLibrary>::@class::C::@field::y
           firstFragment: #F3
           type: dynamic
@@ -12603,7 +12603,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -12669,7 +12669,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -12834,7 +12834,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F5
           type: int
@@ -14520,7 +14520,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F3
           type: int
@@ -16751,10 +16751,10 @@ library
         #F3 isOriginDeclaration isStatic c (nameOffset:13) (firstTokenOffset:13) (offset:13)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@getter::c
       setters
-        #F5 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+        #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@setter::c
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -16768,7 +16768,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       type: C
@@ -16815,10 +16815,10 @@ library
         #F3 isOriginDeclaration isStatic c (nameOffset:14) (firstTokenOffset:14) (offset:14)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
           element: <testLibrary>::@getter::c
       setters
-        #F5 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
+        #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
           element: <testLibrary>::@setter::c
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:14)
@@ -16832,7 +16832,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       type: C?
@@ -17227,7 +17227,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -17280,7 +17280,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -17333,7 +17333,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -17384,7 +17384,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -17435,7 +17435,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -17540,7 +17540,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference t
+        isOriginDeclaration t
           reference: <testLibrary>::@class::A::@field::t
           firstFragment: #F2
           type: int
@@ -17571,7 +17571,7 @@ library
       firstFragment: #F7
       supertype: A
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference t
+        isOriginDeclaration t
           reference: <testLibrary>::@class::B::@field::t
           firstFragment: #F8
           type: double
@@ -17614,7 +17614,7 @@ library
       firstFragment: #F15
       supertype: C
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference t
+        isOriginGetterSetter t
           reference: <testLibrary>::@class::D::@field::t
           firstFragment: #F16
           type: dynamic
@@ -17685,7 +17685,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference f
+        isOriginGetterSetter f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int
@@ -17709,7 +17709,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F6
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference f
+        isOriginGetterSetter f
           reference: <testLibrary>::@class::D::@field::f
           firstFragment: #F7
           type: int
@@ -17764,7 +17764,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter isStatic shouldUseTypeForInitializerInference f
+        isOriginGetterSetter isStatic f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int
@@ -17815,7 +17815,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -17866,7 +17866,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -17917,7 +17917,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -17968,7 +17968,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -18025,7 +18025,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -18082,7 +18082,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -18182,7 +18182,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -18240,7 +18240,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F3
           type: int
@@ -18294,7 +18294,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F3
           type: T
@@ -18343,7 +18343,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter isStatic shouldUseTypeForInitializerInference x
+        isOriginGetterSetter isStatic x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
@@ -18406,12 +18406,12 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: int
           setter: <testLibrary>::@class::C::@setter::x
-        isOriginGetterSetter shouldUseTypeForInitializerInference y
+        isOriginGetterSetter y
           reference: <testLibrary>::@class::C::@field::y
           firstFragment: #F3
           type: dynamic
@@ -18534,7 +18534,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
@@ -20646,10 +20646,10 @@ library
                 rightParenthesis: ) @35
               staticType: B
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::x
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: B
@@ -22291,17 +22291,17 @@ library
       reference: <testLibrary>::@class::E
       firstFragment: #F5
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference a
+        isOriginGetterSetter a
           reference: <testLibrary>::@class::E::@field::a
           firstFragment: #F6
           type: int
           getter: <testLibrary>::@class::E::@getter::a
-        isOriginGetterSetter shouldUseTypeForInitializerInference b
+        isOriginGetterSetter b
           reference: <testLibrary>::@class::E::@field::b
           firstFragment: #F7
           type: int
           setter: <testLibrary>::@class::E::@setter::b
-        isOriginDeclaration shouldUseTypeForInitializerInference x
+        isOriginDeclaration x
           reference: <testLibrary>::@class::E::@field::x
           firstFragment: #F8
           type: int
@@ -22445,14 +22445,14 @@ library
                 rightParenthesis: ) @75
               staticType: C
       getters
-        #F7 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+        #F7 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
           element: <testLibrary>::@getter::x
   classes
     isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: Object
@@ -22473,7 +22473,7 @@ library
           returnType: Object
           variable: <testLibrary>::@class::C::@field::x
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F6
       type: C
@@ -22534,13 +22534,13 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::foo
           setter: <testLibrary>::@class::C::@setter::foo
-        isOriginGetterSetter shouldUseTypeForInitializerInference bar
+        isOriginGetterSetter bar
           reference: <testLibrary>::@class::C::@field::bar
           firstFragment: #F3
           type: dynamic
@@ -22611,7 +22611,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F2
           type: dynamic
@@ -22692,7 +22692,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -22748,7 +22748,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int Function()
@@ -22804,7 +22804,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaringFormalParameter isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F2
           type: int?
@@ -22861,7 +22861,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter isPromotable shouldUseTypeForInitializerInference _123
+        isFinal isOriginDeclaringFormalParameter isPromotable _123
           reference: <testLibrary>::@class::A::@field::_123
           firstFragment: #F2
           type: int?
@@ -22917,7 +22917,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -22973,7 +22973,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int Function()
@@ -23029,7 +23029,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -23085,7 +23085,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int Function()
@@ -23141,7 +23141,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaringFormalParameter isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F2
           type: int
@@ -23198,7 +23198,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -23314,7 +23314,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -23377,7 +23377,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: Object?
@@ -23451,7 +23451,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -23472,7 +23472,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -23547,7 +23547,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: num
@@ -23568,7 +23568,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: num
@@ -23641,7 +23641,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           documentationComment: /// first\n/// second
@@ -23721,7 +23721,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int Function()
@@ -23802,7 +23802,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           documentationComment: /// first\n/// second
@@ -23882,7 +23882,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -24020,7 +24020,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -24041,7 +24041,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::B::@field::foo
           firstFragment: #F6
           type: int
@@ -24103,7 +24103,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: T
@@ -24167,7 +24167,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference field
+        isOriginDeclaration field
           reference: <testLibrary>::@class::A::@field::field
           firstFragment: #F2
           type: A?
@@ -24234,7 +24234,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F2
           type: int?
@@ -24292,7 +24292,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _123
+        isFinal isOriginDeclaration isPromotable _123
           reference: <testLibrary>::@class::A::@field::_123
           firstFragment: #F2
           type: int?
@@ -24349,7 +24349,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@class::A::@field::_foo
           firstFragment: #F2
           type: int?
@@ -24540,7 +24540,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -24629,7 +24629,7 @@ library
               literal: 0 @12
               staticType: int
       getters
-        #F8 isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F8 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::foo
   classes
     isSimplyBounded class A
@@ -24647,7 +24647,7 @@ library
                 staticType: null
               element: <testLibrary>::@getter::foo
       fields
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -24681,7 +24681,7 @@ library
           returnType: int
           variable: <testLibrary>::@class::A::@field::foo
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F7
       type: int
@@ -24824,7 +24824,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
           type: int
@@ -25009,7 +25009,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
           type: int
@@ -25095,7 +25095,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaringFormalParameter x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
           type: int
@@ -25265,7 +25265,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaringFormalParameter x
           reference: <testLibrary>::@class::A::@field::x
           firstFragment: #F2
           type: int
@@ -25346,7 +25346,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isOriginDeclaration bar
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F2
           type: int
@@ -25423,13 +25423,13 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
           declaringFormalParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::foo
-        hasImplicitType hasInitializer isOriginDeclaration bar
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F3
           type: int
@@ -25508,7 +25508,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isLate isOriginDeclaration bar
+        hasImplicitType hasInitializer isLate isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F2
           type: InvalidType
@@ -25581,7 +25581,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isOriginDeclaration bar
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F2
           type: int
@@ -25654,7 +25654,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isOriginDeclaration isStatic bar
+        hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F2
           type: InvalidType
@@ -25720,17 +25720,17 @@ library
         #F6 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:43) (firstTokenOffset:43) (offset:43)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::c
-        #F8 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+        #F8 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
           element: <testLibrary>::@getter::v
       setters
-        #F9 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F9 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@setter::c
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F11 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+        #F11 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
           element: <testLibrary>::@setter::v
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
@@ -25752,13 +25752,13 @@ library
           firstFragment: #F4
           returnType: void
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F5
       type: C<int>
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    hasImplicitType hasInitializer isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F6
       type: void Function()
@@ -25843,7 +25843,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isConst isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isConst isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -25905,7 +25905,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isConst isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isConst isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -25970,7 +25970,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -26028,7 +26028,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -26403,7 +26403,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -26473,7 +26473,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -26584,7 +26584,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -26882,7 +26882,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference f
+        isFinal isOriginDeclaration f
           reference: <testLibrary>::@class::A::@field::f
           firstFragment: #F3
           type: int
@@ -26946,7 +26946,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference f
+        isFinal isOriginDeclaration f
           reference: <testLibrary>::@class::A::@field::f
           firstFragment: #F3
           type: int
@@ -27060,7 +27060,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -27139,7 +27139,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -27232,7 +27232,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -27324,7 +27324,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -27419,7 +27419,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -27508,7 +27508,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isConst isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isConst isOriginDeclaration isStatic foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -27579,7 +27579,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -27671,7 +27671,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -27738,7 +27738,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -27804,7 +27804,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F5
           type: int
@@ -27881,7 +27881,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -27959,7 +27959,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -28038,13 +28038,13 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo1
+        hasInitializer isOriginDeclaration foo1
           reference: <testLibrary>::@class::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::A::@getter::foo1
           setter: <testLibrary>::@class::A::@setter::foo1
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo2
+        hasInitializer isOriginDeclaration foo2
           reference: <testLibrary>::@class::A::@field::foo2
           firstFragment: #F8
           type: int
@@ -28155,13 +28155,13 @@ library
         #E0 T
           firstFragment: #F3
       fields
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference foo1
+        hasEnclosingTypeParameterReference isOriginDeclaration foo1
           reference: <testLibrary>::@class::A::@field::foo1
           firstFragment: #F5
           type: T
           getter: <testLibrary>::@class::A::@getter::foo1
           setter: <testLibrary>::@class::A::@setter::foo1
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference foo2
+        hasEnclosingTypeParameterReference isOriginDeclaration foo2
           reference: <testLibrary>::@class::A::@field::foo2
           firstFragment: #F10
           type: T
@@ -28247,7 +28247,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F5
           type: int
@@ -28310,7 +28310,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -28379,7 +28379,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -28439,7 +28439,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F5
           type: int
@@ -28507,7 +28507,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -28581,12 +28581,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@class::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::A::@getter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@class::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -28665,12 +28665,12 @@ library
         #E0 T
           firstFragment: #F3
       fields
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo1
           reference: <testLibrary>::@class::A::@field::foo1
           firstFragment: #F5
           type: T
           getter: <testLibrary>::@class::A::@getter::foo1
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo2
           reference: <testLibrary>::@class::A::@field::foo2
           firstFragment: #F8
           type: T
@@ -28743,7 +28743,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -28835,7 +28835,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -28913,12 +28913,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@class::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::A::@getter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@class::A::@field::foo2
           firstFragment: #F4
           type: int
@@ -28990,7 +28990,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -29042,7 +29042,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -29472,7 +29472,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -29548,7 +29548,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -29616,7 +29616,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -30340,7 +30340,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F4
           type: int
@@ -30407,7 +30407,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -30481,7 +30481,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F5
           type: int
@@ -30559,12 +30559,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@class::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@class::A::@setter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@class::A::@field::foo2
           firstFragment: #F7
           type: int
@@ -30648,7 +30648,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -30714,7 +30714,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -30790,12 +30790,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@class::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@class::A::@setter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@class::A::@field::foo2
           firstFragment: #F4
           type: int
@@ -32894,7 +32894,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -32968,7 +32968,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter isStatic foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -35983,7 +35983,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int
@@ -36070,7 +36070,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter isStatic foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F3
           type: int

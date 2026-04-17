@@ -33,10 +33,10 @@ library
         #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic f (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::f
   topLevelVariables
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic f
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: V Function<U, V>(U, V)
@@ -80,10 +80,10 @@ library
         #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic f (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F3 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F3 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::f
   topLevelVariables
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic f
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F2
       type: double Function(int)
@@ -133,7 +133,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration f
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F3
           type: InvalidType
@@ -222,7 +222,7 @@ library
                 rightParenthesis: ) @131
               staticType: C<int>
       getters
-        #F12 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
+        #F12 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:118)
           element: <testLibrary>::@getter::x
       functions
         #F13 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:96) (firstTokenOffset:87) (offset:96)
@@ -269,7 +269,7 @@ library
           firstFragment: #F10
       aliasedType: D<T, U> Function<U>()
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F11
       type: C<int>
@@ -355,7 +355,7 @@ library
                 rightParenthesis: ) @114
               staticType: C
       getters
-        #F9 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+        #F9 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
           element: <testLibrary>::@getter::x
       functions
         #F10 isCompleteDeclaration isOriginDeclaration isStatic f (nameOffset:79) (firstTokenOffset:74) (offset:79)
@@ -392,7 +392,7 @@ library
       firstFragment: #F7
       aliasedType: D<T> Function<T>()
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F8
       type: C
@@ -465,10 +465,10 @@ library
         #F9 hasImplicitType hasInitializer isOriginDeclaration isStatic s (nameOffset:74) (firstTokenOffset:74) (offset:74)
           element: <testLibrary>::@topLevelVariable::s
       getters
-        #F10 isOriginVariable isStatic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+        #F10 isCompleteDeclaration isOriginVariable isStatic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
           element: <testLibrary>::@getter::s
       setters
-        #F11 isOriginVariable isStatic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
+        #F11 isCompleteDeclaration isOriginVariable isStatic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
           element: <testLibrary>::@setter::s
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:74)
@@ -506,7 +506,7 @@ library
               firstFragment: #F8
               type: T
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic s
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer s
       reference: <testLibrary>::@topLevelVariable::s
       firstFragment: #F9
       type: S<B>
@@ -606,17 +606,17 @@ library
         #F18 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:128) (firstTokenOffset:128) (offset:128)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F19 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
+        #F19 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
           element: <testLibrary>::@getter::a
-        #F20 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
+        #F20 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
           element: <testLibrary>::@getter::x
       setters
-        #F21 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
+        #F21 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
           element: <testLibrary>::@setter::a
           formalParameters
             #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:111)
               element: <testLibrary>::@setter::a::@formalParameter::value
-        #F23 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
+        #F23 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
           element: <testLibrary>::@setter::x
           formalParameters
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:128)
@@ -626,7 +626,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference b
+        isOriginDeclaration b
           reference: <testLibrary>::@class::A::@field::b
           firstFragment: #F2
           type: B
@@ -656,7 +656,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference c
+        isOriginGetterSetter c
           reference: <testLibrary>::@class::B::@field::c
           firstFragment: #F8
           type: C
@@ -699,13 +699,13 @@ library
           firstFragment: #F16
           superConstructor: <testLibrary>::@class::C::@constructor::new
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F17
       type: A
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F18
       type: C
@@ -765,42 +765,42 @@ library
         #F3 hasImplicitType hasInitializer isOriginDeclaration isStatic z (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::z
       getters
-        #F4 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F4 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
-        #F5 isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+        #F5 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@getter::y
-        #F6 isOriginVariable isStatic z (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+        #F6 isCompleteDeclaration isOriginVariable isStatic z (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@getter::z
       setters
-        #F7 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F7 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
-        #F9 isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+        #F9 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@setter::y
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
               element: <testLibrary>::@setter::y::@formalParameter::value
-        #F11 isOriginVariable isStatic z (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+        #F11 isCompleteDeclaration isOriginVariable isStatic z (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@setter::z
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@setter::z::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: Iterable<String>
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
-    hasImplicitType hasInitializer isOriginDeclaration isStatic y
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F2
       type: List<int>
       getter: <testLibrary>::@getter::y
       setter: <testLibrary>::@setter::y
-    hasImplicitType hasInitializer isOriginDeclaration isStatic z
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer z
       reference: <testLibrary>::@topLevelVariable::z
       firstFragment: #F3
       type: List<String>
@@ -892,17 +892,17 @@ library
         #F8 hasImplicitType hasInitializer isOriginDeclaration isStatic y (nameOffset:40) (firstTokenOffset:40) (offset:40)
           element: <testLibrary>::@topLevelVariable::y
       getters
-        #F9 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F9 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@getter::x
-        #F10 isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+        #F10 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@getter::y
       setters
-        #F11 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F11 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::x
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::x::@formalParameter::value
-        #F13 isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+        #F13 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@setter::y
           formalParameters
             #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
@@ -912,7 +912,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference p
+        isOriginDeclaration p
           reference: <testLibrary>::@class::C::@field::p
           firstFragment: #F2
           type: int
@@ -939,13 +939,13 @@ library
           returnType: void
           variable: <testLibrary>::@class::C::@field::p
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F7
       type: List<C>
       getter: <testLibrary>::@getter::x
       setter: <testLibrary>::@setter::x
-    hasImplicitType hasInitializer isOriginDeclaration isStatic y
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F8
       type: Iterable<int>
@@ -1123,7 +1123,7 @@ library
         #E1 V
           firstFragment: #F3
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1247,7 +1247,7 @@ library
         #E1 V
           firstFragment: #F3
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference x
+        isOriginGetterSetter x
           reference: <testLibrary>::@class::C::@field::x
           firstFragment: #F4
           type: dynamic
@@ -1370,10 +1370,10 @@ library
         #F6 hasImplicitType hasInitializer isOriginDeclaration isStatic c (nameOffset:78) (firstTokenOffset:78) (offset:78)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
           element: <testLibrary>::@getter::c
       setters
-        #F8 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
+        #F8 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
           element: <testLibrary>::@setter::c
           formalParameters
             #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
@@ -1398,7 +1398,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::_
           firstFragment: #F5
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic c
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F6
       type: C<num>
@@ -1463,12 +1463,12 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic foo
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo
-        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic bar
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer bar
           reference: <testLibrary>::@class::A::@field::bar
           firstFragment: #F3
           type: int Function(double)
@@ -1514,10 +1514,10 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
@@ -1529,7 +1529,7 @@ library
             #F6 T (nameOffset:6) (firstTokenOffset:6) (offset:6)
               element: #E0 T
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
@@ -1585,42 +1585,42 @@ library
         #F3 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:73) (firstTokenOffset:73) (offset:73)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F4 isOriginVariable isStatic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F4 isCompleteDeclaration isOriginVariable isStatic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::m
-        #F5 isOriginVariable isStatic n (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+        #F5 isCompleteDeclaration isOriginVariable isStatic n (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@getter::n
-        #F6 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
+        #F6 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
           element: <testLibrary>::@getter::x
       setters
-        #F7 isOriginVariable isStatic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F7 isCompleteDeclaration isOriginVariable isStatic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::m
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::m::@formalParameter::value
-        #F9 isOriginVariable isStatic n (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+        #F9 isCompleteDeclaration isOriginVariable isStatic n (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@setter::n
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@setter::n::@formalParameter::value
-        #F11 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
+        #F11 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
           element: <testLibrary>::@setter::x
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:73)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference m
+    hasInitializer isOriginDeclaration isStatic m
       reference: <testLibrary>::@topLevelVariable::m
       firstFragment: #F1
       type: int Function<T>()?
       getter: <testLibrary>::@getter::m
       setter: <testLibrary>::@setter::m
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference n
+    hasInitializer isOriginDeclaration isStatic n
       reference: <testLibrary>::@topLevelVariable::n
       firstFragment: #F2
       type: int Function<T>()
       getter: <testLibrary>::@getter::n
       setter: <testLibrary>::@setter::n
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F3
       type: int
@@ -1693,16 +1693,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic m (nameOffset:30) (firstTokenOffset:30) (offset:30)
           element: <testLibrary>::@topLevelVariable::m
       getters
-        #F2 isOriginVariable isStatic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F2 isCompleteDeclaration isOriginVariable isStatic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@getter::m
       setters
-        #F3 isOriginVariable isStatic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F3 isCompleteDeclaration isOriginVariable isStatic m (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@setter::m
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@setter::m::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic m
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer m
       reference: <testLibrary>::@topLevelVariable::m
       firstFragment: #F1
       type: HashMap<dynamic, dynamic>
@@ -1750,31 +1750,31 @@ library
         #F4 hasImplicitType hasInitializer isOriginDeclaration isStatic d (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::d
       getters
-        #F5 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::a
-        #F6 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F6 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@getter::c
-        #F8 isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F8 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::d
       setters
-        #F9 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F9 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::a
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::a::@formalParameter::value
-        #F11 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F11 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::b
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::b::@formalParameter::value
-        #F13 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+        #F13 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
           element: <testLibrary>::@setter::c
           formalParameters
             #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F15 isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F15 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::d
           formalParameters
             #F16 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
@@ -1804,7 +1804,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    hasImplicitType hasInitializer isOriginDeclaration isStatic d
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer d
       reference: <testLibrary>::@topLevelVariable::d
       firstFragment: #F4
       type: int
@@ -1923,7 +1923,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        hasImplicitType isOriginDeclaration shouldUseTypeForInitializerInference v
+        hasImplicitType isOriginDeclaration v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F2
           type: int Function(String)
@@ -1957,7 +1957,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F7
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference v
+        isOriginGetterSetter v
           reference: <testLibrary>::@class::D::@field::v
           firstFragment: #F8
           type: int Function(String)
@@ -2000,16 +2000,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int
@@ -2052,16 +2052,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int?
@@ -2104,16 +2104,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: void Function()
@@ -2156,16 +2156,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: void Function()?
@@ -2253,7 +2253,7 @@ library
           firstFragment: #F2
       supertype: D<int, T>
       fields
-        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration shouldUseTypeForInitializerInference v
+        hasEnclosingTypeParameterReference hasImplicitType isOriginDeclaration v
           reference: <testLibrary>::@class::C::@field::v
           firstFragment: #F3
           type: Map<T, int>
@@ -2291,7 +2291,7 @@ library
         #E2 V
           firstFragment: #F10
       fields
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference v
+        hasEnclosingTypeParameterReference isOriginGetterSetter v
           reference: <testLibrary>::@class::D::@field::v
           firstFragment: #F11
           type: Map<V, U>
@@ -2328,10 +2328,10 @@ library
         #F2 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:53) (firstTokenOffset:53) (offset:53)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F3 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+        #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@getter::v
       setters
-        #F4 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+        #F4 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
           element: <testLibrary>::@setter::v
           formalParameters
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
@@ -2348,7 +2348,7 @@ library
       firstFragment: #F1
       aliasedType: void Function(int Function(String))
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F2
       type: dynamic
@@ -2669,10 +2669,10 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:40) (firstTokenOffset:40) (offset:40)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@getter::v
       setters
-        #F3 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+        #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
@@ -2689,7 +2689,7 @@ library
                 #F8 requiredPositional isOriginDeclaration h (nameOffset:21) (firstTokenOffset:16) (offset:21)
                   element: h@21
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: dynamic
@@ -2745,10 +2745,10 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::v
       setters
-        #F3 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+        #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
@@ -2765,7 +2765,7 @@ library
                 #F8 requiredPositional isOriginDeclaration h (nameOffset:22) (firstTokenOffset:17) (offset:22)
                   element: h@22
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: dynamic
@@ -2857,7 +2857,7 @@ library
       firstFragment: #F1
       supertype: D
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference f
+        isOriginGetterSetter f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F2
           type: int Function(String)
@@ -2881,7 +2881,7 @@ library
       reference: <testLibrary>::@class::D
       firstFragment: #F6
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference f
+        isOriginGetterSetter f
           reference: <testLibrary>::@class::D::@field::f
           firstFragment: #F7
           type: int Function(String)
@@ -3007,17 +3007,17 @@ library
         #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic a2 (nameOffset:50) (firstTokenOffset:50) (offset:50)
           element: <testLibrary>::@topLevelVariable::a2
       getters
-        #F6 isOriginVariable isStatic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F6 isCompleteDeclaration isOriginVariable isStatic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::a1
-        #F7 isOriginVariable isStatic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+        #F7 isCompleteDeclaration isOriginVariable isStatic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@getter::a2
       setters
-        #F8 isOriginVariable isStatic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F8 isCompleteDeclaration isOriginVariable isStatic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@setter::a1
           formalParameters
             #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@setter::a1::@formalParameter::value
-        #F10 isOriginVariable isStatic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+        #F10 isCompleteDeclaration isOriginVariable isStatic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@setter::a2
           formalParameters
             #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
@@ -3034,13 +3034,13 @@ library
           reference: <testLibrary>::@class::A::@constructor::named
           firstFragment: #F3
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic a1
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer a1
       reference: <testLibrary>::@topLevelVariable::a1
       firstFragment: #F4
       type: A
       getter: <testLibrary>::@getter::a1
       setter: <testLibrary>::@setter::a1
-    hasImplicitType hasInitializer isOriginDeclaration isStatic a2
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer a2
       reference: <testLibrary>::@topLevelVariable::a2
       firstFragment: #F5
       type: A
@@ -3108,29 +3108,29 @@ library
         #F2 hasImplicitType hasInitializer isOriginDeclaration isStatic a2 (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::a2
       getters
-        #F3 isOriginVariable isStatic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F3 isCompleteDeclaration isOriginVariable isStatic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@getter::a1
-        #F4 isOriginVariable isStatic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+        #F4 isCompleteDeclaration isOriginVariable isStatic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::a2
       setters
-        #F5 isOriginVariable isStatic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
+        #F5 isCompleteDeclaration isOriginVariable isStatic a1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
           element: <testLibrary>::@setter::a1
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@setter::a1::@formalParameter::value
-        #F7 isOriginVariable isStatic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+        #F7 isCompleteDeclaration isOriginVariable isStatic a2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@setter::a2
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@setter::a2::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic a1
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer a1
       reference: <testLibrary>::@topLevelVariable::a1
       firstFragment: #F1
       type: A
       getter: <testLibrary>::@getter::a1
       setter: <testLibrary>::@setter::a1
-    hasImplicitType hasInitializer isOriginDeclaration isStatic a2
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer a2
       reference: <testLibrary>::@topLevelVariable::a2
       firstFragment: #F2
       type: A
@@ -3187,10 +3187,10 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:71) (firstTokenOffset:71) (offset:71)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
           element: <testLibrary>::@getter::v
       setters
-        #F3 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+        #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
@@ -3213,7 +3213,7 @@ library
                 #F10 requiredPositional isOriginDeclaration y (nameOffset:54) (firstTokenOffset:47) (offset:54)
                   element: y@54
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: List<Object Function(int Function(String))>
@@ -3446,10 +3446,10 @@ library
         #F10 hasImplicitType hasInitializer isOriginDeclaration isStatic c (nameOffset:59) (firstTokenOffset:59) (offset:59)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F11 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+        #F11 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
           element: <testLibrary>::@getter::c
       setters
-        #F12 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
+        #F12 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
           element: <testLibrary>::@setter::c
           formalParameters
             #F13 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
@@ -3471,7 +3471,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference a
+        isOriginDeclaration a
           reference: <testLibrary>::@class::B::@field::a
           firstFragment: #F5
           type: A
@@ -3498,7 +3498,7 @@ library
           returnType: void
           variable: <testLibrary>::@class::B::@field::a
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic c
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F10
       type: double
@@ -3543,29 +3543,29 @@ library
         #F2 hasImplicitType hasInitializer isOriginDeclaration isStatic b (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::b
       getters
-        #F3 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::a
-        #F4 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+        #F4 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::b
       setters
-        #F5 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::a
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::a::@formalParameter::value
-        #F7 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+        #F7 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@setter::b
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@setter::b::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int Function()
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
-    hasImplicitType hasInitializer isOriginDeclaration isStatic b
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F2
       type: int
@@ -3625,16 +3625,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:35) (firstTokenOffset:35) (offset:35)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: Future<dynamic> Function()
@@ -3673,16 +3673,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int Function(int Function(String))
@@ -3721,16 +3721,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int Function(int Function(String))
@@ -3774,16 +3774,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic y (nameOffset:21) (firstTokenOffset:21) (offset:21)
           element: <testLibrary>::@topLevelVariable::y
       getters
-        #F2 isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F2 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::y
       setters
-        #F3 isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F3 isCompleteDeclaration isOriginVariable isStatic y (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::y
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::y::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic y
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer y
       reference: <testLibrary>::@topLevelVariable::y
       firstFragment: #F1
       type: int
@@ -3922,7 +3922,7 @@ library
             arguments: [a, c]
           type: dynamic
           getter: <testLibrary>::@class::A::@getter::a
-        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@class::A::@field::b
           firstFragment: #F3
           type: A
@@ -4027,7 +4027,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference value
+        hasEnclosingTypeParameterReference isOriginDeclaration value
           reference: <testLibrary>::@class::A::@field::value
           firstFragment: #F3
           type: T
@@ -4062,7 +4062,7 @@ library
       reference: <testLibrary>::@class::B
       firstFragment: #F9
       fields
-        hasImplicitType hasInitializer isOriginDeclaration a
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer a
           reference: <testLibrary>::@class::B::@field::a
           firstFragment: #F10
           type: A<String>
@@ -4180,7 +4180,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference value
+        hasEnclosingTypeParameterReference isOriginDeclaration value
           reference: <testLibrary>::@class::A::@field::value
           firstFragment: #F3
           type: T
@@ -4247,7 +4247,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F13
       fields
-        hasImplicitType hasInitializer isOriginDeclaration a
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer a
           reference: <testLibrary>::@class::C::@field::a
           firstFragment: #F14
           type: B<int>
@@ -4329,7 +4329,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasImplicitType hasInitializer isOriginDeclaration f
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer f
           reference: <testLibrary>::@class::A::@field::f
           firstFragment: #F3
           type: int
@@ -4394,9 +4394,9 @@ library
         #F5 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::b
       getters
-        #F6 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F6 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::a
-        #F7 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+        #F7 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::b
   classes
     isSimplyBounded class A
@@ -4460,16 +4460,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@getter::v
       setters
-        #F3 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+        #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: InvalidType
@@ -4508,16 +4508,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: dynamic Function(dynamic) Function(dynamic)
@@ -4556,16 +4556,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: int Function(int) Function(int)
@@ -4604,16 +4604,16 @@ library
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::x
       getters
-        #F2 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::x
       setters
-        #F3 isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::x
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::x::@formalParameter::value
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x
       firstFragment: #F1
       type: dynamic Function([dynamic])
@@ -4659,14 +4659,14 @@ library
         #F3 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F4 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-        #F5 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F5 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
-        #F6 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+        #F6 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::c
   topLevelVariables
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: dynamic
@@ -4725,11 +4725,11 @@ library
         #F3 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F4 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-        #F5 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F5 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
-        #F6 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+        #F6 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::c
   topLevelVariables
     hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic a
@@ -4746,7 +4746,7 @@ library
         arguments: [a, b]
       type: dynamic
       getter: <testLibrary>::@getter::b
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic c
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       type: dynamic
@@ -4795,13 +4795,13 @@ library
         #F4 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic d (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::d
       getters
-        #F5 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-        #F6 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F6 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::b
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::c
-        #F8 isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F8 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::d
   topLevelVariables
     hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic a
@@ -4883,11 +4883,11 @@ library
         #F3 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic c (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F4 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::a
-        #F5 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F5 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::b
-        #F6 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F6 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::c
   topLevelVariables
     hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic a
@@ -4988,9 +4988,9 @@ library
         #F12 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic c (nameOffset:113) (firstTokenOffset:113) (offset:113)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F13 isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
+        #F13 isCompleteDeclaration isOriginVariable isStatic b (nameOffset:<null>) (firstTokenOffset:<null>) (offset:98)
           element: <testLibrary>::@getter::b
-        #F14 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:113)
+        #F14 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:113)
           element: <testLibrary>::@getter::c
   classes
     isSimplyBounded class A
@@ -5017,7 +5017,7 @@ library
           firstFragment: #F6
           bound: A
       fields
-        hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference f
+        hasEnclosingTypeParameterReference isFinal isOriginDeclaration f
           reference: <testLibrary>::@class::C::@field::f
           firstFragment: #F7
           type: T
@@ -5038,12 +5038,12 @@ library
           returnType: T
           variable: <testLibrary>::@class::C::@field::f
   topLevelVariables
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic b
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer b
       reference: <testLibrary>::@topLevelVariable::b
       firstFragment: #F11
       type: B
       getter: <testLibrary>::@getter::b
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic c
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F12
       type: C<B>
@@ -5088,10 +5088,10 @@ library
         #F4 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F5 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+        #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::v
       setters
-        #F6 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+        #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@setter::v
           formalParameters
             #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
@@ -5103,7 +5103,7 @@ library
       extendedType: String
       onDeclaration: dart:core::@class::String
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@extension::0::@field::foo
           firstFragment: #F2
           type: int
@@ -5115,7 +5115,7 @@ library
           returnType: int
           variable: <testLibrary>::@extension::0::@field::foo
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: int
@@ -5173,17 +5173,17 @@ library
         #F6 hasInitializer isOriginDeclaration isStatic V (nameOffset:71) (firstTokenOffset:71) (offset:71)
           element: <testLibrary>::@topLevelVariable::V
       getters
-        #F7 isOriginVariable isStatic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+        #F7 isCompleteDeclaration isOriginVariable isStatic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
           element: <testLibrary>::@getter::V2
-        #F8 isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+        #F8 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
           element: <testLibrary>::@getter::V
       setters
-        #F9 isOriginVariable isStatic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
+        #F9 isCompleteDeclaration isOriginVariable isStatic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
           element: <testLibrary>::@setter::V2
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:56)
               element: <testLibrary>::@setter::V2::@formalParameter::value
-        #F11 isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+        #F11 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
           element: <testLibrary>::@setter::V
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
@@ -5212,13 +5212,13 @@ library
       firstFragment: #F4
       aliasedType: InvalidType Function(InvalidType)
   topLevelVariables
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference V2
+    hasInitializer isOriginDeclaration isStatic V2
       reference: <testLibrary>::@topLevelVariable::V2
       firstFragment: #F5
       type: InvalidType
       getter: <testLibrary>::@getter::V2
       setter: <testLibrary>::@setter::V2
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference V
+    hasInitializer isOriginDeclaration isStatic V
       reference: <testLibrary>::@topLevelVariable::V
       firstFragment: #F6
       type: int
@@ -5283,17 +5283,17 @@ library
         #F2 isOriginDeclaration isStatic V2 (nameOffset:22) (firstTokenOffset:22) (offset:22)
           element: <testLibrary>::@topLevelVariable::V2
       getters
-        #F3 isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::V
-        #F4 isOriginVariable isStatic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+        #F4 isCompleteDeclaration isOriginVariable isStatic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
           element: <testLibrary>::@getter::V2
       setters
-        #F5 isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F5 isCompleteDeclaration isOriginVariable isStatic V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::V
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::V::@formalParameter::value
-        #F7 isOriginVariable isStatic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
+        #F7 isCompleteDeclaration isOriginVariable isStatic V2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
           element: <testLibrary>::@setter::V2
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:22)
@@ -5305,7 +5305,7 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::V
       setter: <testLibrary>::@setter::V
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference V2
+    isOriginDeclaration isStatic V2
       reference: <testLibrary>::@topLevelVariable::V2
       firstFragment: #F2
       type: List<InvalidType>
@@ -5409,16 +5409,16 @@ library
         #F1 isOriginDeclaration isStatic v (nameOffset:4) (firstTokenOffset:4) (offset:4)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::v
       setters
-        #F3 isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
+        #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference v
+    isOriginDeclaration isStatic v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: InvalidType
@@ -5455,16 +5455,16 @@ library
         #F1 isOriginDeclaration isStatic d (nameOffset:6) (firstTokenOffset:6) (offset:6)
           element: <testLibrary>::@topLevelVariable::d
       getters
-        #F2 isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F2 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@getter::d
       setters
-        #F3 isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+        #F3 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
           element: <testLibrary>::@setter::d
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@setter::d::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference d
+    isOriginDeclaration isStatic d
       reference: <testLibrary>::@topLevelVariable::d
       firstFragment: #F1
       type: Never
@@ -5531,7 +5531,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference t
+        hasEnclosingTypeParameterReference isOriginDeclaration t
           reference: <testLibrary>::@class::C::@field::t
           firstFragment: #F3
           type: T
@@ -5602,7 +5602,7 @@ library
         #E0 T
           firstFragment: #F2
       fields
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference t
+        hasEnclosingTypeParameterReference isOriginDeclaration t
           reference: <testLibrary>::@class::C::@field::t
           firstFragment: #F3
           type: T?
@@ -5702,24 +5702,24 @@ library
         #F12 isOriginDeclaration isStatic f (nameOffset:49) (firstTokenOffset:49) (offset:49)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F13 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+        #F13 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@getter::c
-        #F14 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+        #F14 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
           element: <testLibrary>::@getter::e
-        #F15 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F15 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@getter::f
       setters
-        #F16 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+        #F16 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@setter::c
           formalParameters
             #F17 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F18 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
+        #F18 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
           element: <testLibrary>::@setter::e
           formalParameters
             #F19 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F20 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
+        #F20 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
           element: <testLibrary>::@setter::f
           formalParameters
             #F21 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
@@ -5738,7 +5738,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -5746,7 +5746,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -5776,19 +5776,19 @@ library
       firstFragment: #F9
       aliasedType: dynamic Function()
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F10
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F11
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F12
       type: dynamic Function()
@@ -5873,24 +5873,24 @@ library
         #F4 isOriginDeclaration isStatic f (nameOffset:38) (firstTokenOffset:38) (offset:38)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F5 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
           element: <testLibrary>::@getter::c
-        #F6 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+        #F6 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
           element: <testLibrary>::@getter::e
-        #F7 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+        #F7 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@getter::f
       setters
-        #F8 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+        #F8 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
           element: <testLibrary>::@setter::c
           formalParameters
             #F9 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F10 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
+        #F10 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
           element: <testLibrary>::@setter::e
           formalParameters
             #F11 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F12 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
+        #F12 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
           element: <testLibrary>::@setter::f
           formalParameters
             #F13 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:38)
@@ -5962,7 +5962,7 @@ library
       firstFragment: #F16
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F17
           type: E
@@ -5970,7 +5970,7 @@ library
             fragment: #F17
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F18
           type: List<E>
@@ -6000,19 +6000,19 @@ library
       firstFragment: #F22
       aliasedType: dynamic Function()
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F2
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F3
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F4
       type: dynamic Function()
@@ -6147,24 +6147,24 @@ library
         #F13 isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F14 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+        #F14 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@getter::c
-        #F15 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+        #F15 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@getter::e
-        #F16 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F16 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::f
       setters
-        #F17 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+        #F17 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@setter::c
           formalParameters
             #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F19 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+        #F19 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@setter::e
           formalParameters
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F21 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F21 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@setter::f
           formalParameters
             #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
@@ -6183,7 +6183,7 @@ library
       firstFragment: #F4
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F5
           type: E
@@ -6191,7 +6191,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
@@ -6221,19 +6221,19 @@ library
       firstFragment: #F10
       aliasedType: dynamic Function()
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F11
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F12
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F13
       type: dynamic Function()
@@ -6381,24 +6381,24 @@ library
         #F14 isOriginDeclaration isStatic f (nameOffset:23) (firstTokenOffset:23) (offset:23)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F15 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+        #F15 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@getter::c
-        #F16 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+        #F16 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@getter::e
-        #F17 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F17 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@getter::f
       setters
-        #F18 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+        #F18 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@setter::c
           formalParameters
             #F19 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F20 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+        #F20 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
           element: <testLibrary>::@setter::e
           formalParameters
             #F21 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F22 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
+        #F22 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
           element: <testLibrary>::@setter::f
           formalParameters
             #F23 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:23)
@@ -6417,7 +6417,7 @@ library
       firstFragment: #F5
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F6
           type: E
@@ -6425,7 +6425,7 @@ library
             fragment: #F6
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F7
           type: List<E>
@@ -6455,19 +6455,19 @@ library
       firstFragment: #F11
       aliasedType: dynamic Function()
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F12
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F13
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F14
       type: dynamic Function()
@@ -6603,24 +6603,24 @@ library
         #F13 isOriginDeclaration isStatic f (nameOffset:60) (firstTokenOffset:60) (offset:60)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F14 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+        #F14 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@getter::c
-        #F15 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+        #F15 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
           element: <testLibrary>::@getter::e
-        #F16 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+        #F16 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
           element: <testLibrary>::@getter::f
       setters
-        #F17 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+        #F17 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
           element: <testLibrary>::@setter::c
           formalParameters
             #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F19 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+        #F19 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
           element: <testLibrary>::@setter::e
           formalParameters
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F21 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
+        #F21 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
           element: <testLibrary>::@setter::f
           formalParameters
             #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:60)
@@ -6639,7 +6639,7 @@ library
       firstFragment: #F4
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F5
           type: E
@@ -6647,7 +6647,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F6
           type: List<E>
@@ -6677,19 +6677,19 @@ library
       firstFragment: #F10
       aliasedType: dynamic Function()
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F11
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F12
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F13
       type: dynamic Function()
@@ -6764,10 +6764,10 @@ library
         #F3 isOriginDeclaration isStatic c (nameOffset:13) (firstTokenOffset:13) (offset:13)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@getter::c
       setters
-        #F5 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
+        #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
           element: <testLibrary>::@setter::c
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -6781,7 +6781,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F3
       type: C
@@ -6830,10 +6830,10 @@ library
         #F5 isOriginDeclaration isStatic c (nameOffset:32) (firstTokenOffset:32) (offset:32)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F6 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+        #F6 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@getter::c
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
@@ -6852,7 +6852,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F5
       type: C<int, String>
@@ -6901,10 +6901,10 @@ library
         #F5 isOriginDeclaration isStatic c (nameOffset:19) (firstTokenOffset:19) (offset:19)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F6 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F6 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
@@ -6923,7 +6923,7 @@ library
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F4
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F5
       type: C<dynamic, dynamic>
@@ -6999,10 +6999,10 @@ library
         #F7 isOriginDeclaration isStatic e (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::e
       getters
-        #F8 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+        #F8 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@getter::e
       setters
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
@@ -7013,7 +7013,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -7021,7 +7021,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -7046,7 +7046,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F7
       type: E
@@ -7093,42 +7093,42 @@ library
         #F3 isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-        #F5 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F5 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F11 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F11 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7207,42 +7207,42 @@ library
         #F3 isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-        #F5 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F5 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F11 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F11 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7322,42 +7322,42 @@ library
         #F3 isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-        #F5 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F5 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F11 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F11 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7437,42 +7437,42 @@ library
         #F3 isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::c
-        #F5 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F5 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::e
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::f
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F11 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F11 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::f
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7551,42 +7551,42 @@ library
         #F3 isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::c
-        #F5 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F5 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::e
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::f
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F11 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F11 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::f
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7665,42 +7665,42 @@ library
         #F3 isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-        #F5 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F5 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F11 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F11 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7778,29 +7778,29 @@ library
         #F2 isOriginDeclaration isStatic c2 (nameOffset:27) (firstTokenOffset:27) (offset:27)
           element: <testLibrary>::@topLevelVariable::c2
       getters
-        #F3 isOriginVariable isStatic c1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+        #F3 isCompleteDeclaration isOriginVariable isStatic c1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
           element: <testLibrary>::@getter::c1
-        #F4 isOriginVariable isStatic c2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::c2
       setters
-        #F5 isOriginVariable isStatic c1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+        #F5 isCompleteDeclaration isOriginVariable isStatic c1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
           element: <testLibrary>::@setter::c1
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@setter::c1::@formalParameter::value
-        #F7 isOriginVariable isStatic c2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@setter::c2
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
               element: <testLibrary>::@setter::c2::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c1
+    isOriginDeclaration isStatic c1
       reference: <testLibrary>::@topLevelVariable::c1
       firstFragment: #F1
       type: C1
       getter: <testLibrary>::@getter::c1
       setter: <testLibrary>::@setter::c1
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c2
+    isOriginDeclaration isStatic c2
       reference: <testLibrary>::@topLevelVariable::c2
       firstFragment: #F2
       type: C2
@@ -7862,42 +7862,42 @@ library
         #F3 isOriginDeclaration isStatic f (nameOffset:31) (firstTokenOffset:31) (offset:31)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@getter::c
-        #F5 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F5 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::e
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@getter::f
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F11 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+        #F11 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
           element: <testLibrary>::@setter::f
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -7975,42 +7975,42 @@ library
         #F3 isOriginDeclaration isStatic f (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F4 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F4 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@getter::c
-        #F5 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F5 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@getter::e
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::f
       setters
-        #F7 isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
+        #F7 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
           element: <testLibrary>::@setter::c
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:19)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F9 isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
+        #F9 isCompleteDeclaration isOriginVariable isStatic e (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
           element: <testLibrary>::@setter::e
           formalParameters
             #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:24)
               element: <testLibrary>::@setter::e::@formalParameter::value
-        #F11 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F11 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@setter::f
           formalParameters
             #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference e
+    isOriginDeclaration isStatic e
       reference: <testLibrary>::@topLevelVariable::e
       firstFragment: #F2
       type: E
       getter: <testLibrary>::@getter::e
       setter: <testLibrary>::@setter::e
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F3
       type: dynamic Function()
@@ -8081,10 +8081,10 @@ library
         #F2 isOriginDeclaration isStatic f (nameOffset:15) (firstTokenOffset:15) (offset:15)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F3 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+        #F3 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@getter::f
       setters
-        #F4 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
+        #F4 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
           element: <testLibrary>::@setter::f
           formalParameters
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
@@ -8095,7 +8095,7 @@ library
       firstFragment: #F1
       aliasedType: dynamic Function()
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F2
       type: dynamic Function()
@@ -8145,10 +8145,10 @@ library
         #F4 isOriginDeclaration isStatic f (nameOffset:39) (firstTokenOffset:39) (offset:39)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F5 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+        #F5 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@getter::f
       setters
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
           element: <testLibrary>::@setter::f
           formalParameters
             #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:39)
@@ -8164,7 +8164,7 @@ library
           firstFragment: #F3
       aliasedType: U Function(T)
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F4
       type: String Function(int)
@@ -8221,10 +8221,10 @@ library
         #F4 isOriginDeclaration isStatic f (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F5 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F5 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::f
       setters
-        #F6 isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F6 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::f
           formalParameters
             #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
@@ -8240,7 +8240,7 @@ library
           firstFragment: #F3
       aliasedType: U Function(T)
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F4
       type: dynamic Function(dynamic)

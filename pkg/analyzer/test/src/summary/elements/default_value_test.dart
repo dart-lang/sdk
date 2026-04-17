@@ -139,7 +139,7 @@ library
       reference: <testLibrary>::@class::X
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference f
+        isFinal isOriginDeclaration f
           reference: <testLibrary>::@class::X::@field::f
           firstFragment: #F2
           type: void Function(dynamic)

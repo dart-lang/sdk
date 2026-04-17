@@ -119,7 +119,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -178,7 +178,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -338,7 +338,7 @@ library
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: dart:foo::@class::A::@field::foo
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -436,7 +436,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v1
           reference: dart:foo::@enum::E::@field::v1
           firstFragment: #F2
           type: E
@@ -444,7 +444,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: dart:foo::@enum::E::@getter::v1
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: dart:foo::@enum::E::@field::v2
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -453,7 +453,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: dart:foo::@enum::E::@getter::v2
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: dart:foo::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -543,7 +543,7 @@ library
       sinceSdkVersion: 2.15.0
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: dart:foo::@enum::E::@field::v
           firstFragment: #F2
           sinceSdkVersion: 2.15.0
@@ -552,7 +552,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: dart:foo::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: dart:foo::@enum::E::@field::values
           firstFragment: #F3
           sinceSdkVersion: 2.15.0
@@ -923,10 +923,10 @@ library
         #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic foo (nameOffset:47) (firstTokenOffset:47) (offset:47)
           element: dart:foo::@topLevelVariable::foo
       getters
-        #F2 isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
+        #F2 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:47)
           element: dart:foo::@getter::foo
   topLevelVariables
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic foo
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer foo
       reference: dart:foo::@topLevelVariable::foo
       firstFragment: #F1
       sinceSdkVersion: 2.15.0
