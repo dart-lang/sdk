@@ -965,31 +965,31 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference withInit
+        hasInitializer isOriginDeclaration withInit
           reference: <testLibrary>::@class::C::@field::withInit
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::C::@getter::withInit
           setter: <testLibrary>::@class::C::@setter::withInit
-        isOriginDeclaration shouldUseTypeForInitializerInference withoutInit
+        isOriginDeclaration withoutInit
           reference: <testLibrary>::@class::C::@field::withoutInit
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@class::C::@getter::withoutInit
           setter: <testLibrary>::@class::C::@setter::withoutInit
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference multiWithInit
+        hasInitializer isOriginDeclaration multiWithInit
           reference: <testLibrary>::@class::C::@field::multiWithInit
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@class::C::@getter::multiWithInit
           setter: <testLibrary>::@class::C::@setter::multiWithInit
-        isOriginDeclaration shouldUseTypeForInitializerInference multiWithoutInit
+        isOriginDeclaration multiWithoutInit
           reference: <testLibrary>::@class::C::@field::multiWithoutInit
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@class::C::@getter::multiWithoutInit
           setter: <testLibrary>::@class::C::@setter::multiWithoutInit
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference multiWithInit2
+        hasInitializer isOriginDeclaration multiWithInit2
           reference: <testLibrary>::@class::C::@field::multiWithInit2
           firstFragment: #F6
           type: int
@@ -1308,21 +1308,21 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference hasDocComment
+        isOriginDeclaration hasDocComment
           reference: <testLibrary>::@class::C::@field::hasDocComment
           firstFragment: #F2
           documentationComment: /// Comment 1.\n/// Comment 2.
           type: int
           getter: <testLibrary>::@class::C::@getter::hasDocComment
           setter: <testLibrary>::@class::C::@setter::hasDocComment
-        isOriginDeclaration shouldUseTypeForInitializerInference hasDocComment2
+        isOriginDeclaration hasDocComment2
           reference: <testLibrary>::@class::C::@field::hasDocComment2
           firstFragment: #F3
           documentationComment: /// Comment 1.\n/// Comment 2.
           type: int
           getter: <testLibrary>::@class::C::@getter::hasDocComment2
           setter: <testLibrary>::@class::C::@setter::hasDocComment2
-        isOriginDeclaration shouldUseTypeForInitializerInference hasAnnotation
+        isOriginDeclaration hasAnnotation
           reference: <testLibrary>::@class::C::@field::hasAnnotation
           firstFragment: #F4
           metadata
@@ -1339,7 +1339,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::hasAnnotation
           setter: <testLibrary>::@class::C::@setter::hasAnnotation
-        isOriginDeclaration shouldUseTypeForInitializerInference hasAnnotation2
+        isOriginDeclaration hasAnnotation2
           reference: <testLibrary>::@class::C::@field::hasAnnotation2
           firstFragment: #F5
           metadata
@@ -1356,7 +1356,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::hasAnnotation2
           setter: <testLibrary>::@class::C::@setter::hasAnnotation2
-        isOriginDeclaration shouldUseTypeForInitializerInference annotationThenComment
+        isOriginDeclaration annotationThenComment
           reference: <testLibrary>::@class::C::@field::annotationThenComment
           firstFragment: #F6
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1374,7 +1374,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::annotationThenComment
           setter: <testLibrary>::@class::C::@setter::annotationThenComment
-        isOriginDeclaration shouldUseTypeForInitializerInference annotationThenComment2
+        isOriginDeclaration annotationThenComment2
           reference: <testLibrary>::@class::C::@field::annotationThenComment2
           firstFragment: #F7
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1392,7 +1392,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::annotationThenComment2
           setter: <testLibrary>::@class::C::@setter::annotationThenComment2
-        isOriginDeclaration shouldUseTypeForInitializerInference commentThenAnnotation
+        isOriginDeclaration commentThenAnnotation
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation
           firstFragment: #F8
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1410,7 +1410,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::commentThenAnnotation
           setter: <testLibrary>::@class::C::@setter::commentThenAnnotation
-        isOriginDeclaration shouldUseTypeForInitializerInference commentThenAnnotation2
+        isOriginDeclaration commentThenAnnotation2
           reference: <testLibrary>::@class::C::@field::commentThenAnnotation2
           firstFragment: #F9
           documentationComment: /// Comment 1.\n/// Comment 2.
@@ -1428,7 +1428,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::commentThenAnnotation2
           setter: <testLibrary>::@class::C::@setter::commentThenAnnotation2
-        isOriginDeclaration shouldUseTypeForInitializerInference commentAroundAnnotation
+        isOriginDeclaration commentAroundAnnotation
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation
           firstFragment: #F10
           documentationComment: /// Comment 2.
@@ -1446,7 +1446,7 @@ library
           type: int
           getter: <testLibrary>::@class::C::@getter::commentAroundAnnotation
           setter: <testLibrary>::@class::C::@setter::commentAroundAnnotation
-        isOriginDeclaration shouldUseTypeForInitializerInference commentAroundAnnotation2
+        isOriginDeclaration commentAroundAnnotation2
           reference: <testLibrary>::@class::C::@field::commentAroundAnnotation2
           firstFragment: #F11
           documentationComment: /// Comment 2.
@@ -2182,31 +2182,31 @@ library
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:86)
               element: <testLibrary>::@setter::multiWithInit2::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference withInit
+    hasInitializer isOriginDeclaration isStatic withInit
       reference: <testLibrary>::@topLevelVariable::withInit
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::withInit
       setter: <testLibrary>::@setter::withInit
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference withoutInit
+    isOriginDeclaration isStatic withoutInit
       reference: <testLibrary>::@topLevelVariable::withoutInit
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::withoutInit
       setter: <testLibrary>::@setter::withoutInit
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference multiWithInit
+    hasInitializer isOriginDeclaration isStatic multiWithInit
       reference: <testLibrary>::@topLevelVariable::multiWithInit
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::multiWithInit
       setter: <testLibrary>::@setter::multiWithInit
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference multiWithoutInit
+    isOriginDeclaration isStatic multiWithoutInit
       reference: <testLibrary>::@topLevelVariable::multiWithoutInit
       firstFragment: #F4
       type: int
       getter: <testLibrary>::@getter::multiWithoutInit
       setter: <testLibrary>::@setter::multiWithoutInit
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference multiWithInit2
+    hasInitializer isOriginDeclaration isStatic multiWithInit2
       reference: <testLibrary>::@topLevelVariable::multiWithInit2
       firstFragment: #F5
       type: int
@@ -2508,21 +2508,21 @@ library
             #F40 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:365)
               element: <testLibrary>::@setter::commentAroundAnnotation2::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference hasDocComment
+    isOriginDeclaration isStatic hasDocComment
       reference: <testLibrary>::@topLevelVariable::hasDocComment
       firstFragment: #F1
       documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibrary>::@getter::hasDocComment
       setter: <testLibrary>::@setter::hasDocComment
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference hasDocComment2
+    isOriginDeclaration isStatic hasDocComment2
       reference: <testLibrary>::@topLevelVariable::hasDocComment2
       firstFragment: #F2
       documentationComment: /// Comment 1.\n/// Comment 2.
       type: int
       getter: <testLibrary>::@getter::hasDocComment2
       setter: <testLibrary>::@setter::hasDocComment2
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference hasAnnotation
+    isOriginDeclaration isStatic hasAnnotation
       reference: <testLibrary>::@topLevelVariable::hasAnnotation
       firstFragment: #F3
       metadata
@@ -2539,7 +2539,7 @@ library
       type: int
       getter: <testLibrary>::@getter::hasAnnotation
       setter: <testLibrary>::@setter::hasAnnotation
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference hasAnnotation2
+    isOriginDeclaration isStatic hasAnnotation2
       reference: <testLibrary>::@topLevelVariable::hasAnnotation2
       firstFragment: #F4
       metadata
@@ -2556,7 +2556,7 @@ library
       type: int
       getter: <testLibrary>::@getter::hasAnnotation2
       setter: <testLibrary>::@setter::hasAnnotation2
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference annotationThenComment
+    isOriginDeclaration isStatic annotationThenComment
       reference: <testLibrary>::@topLevelVariable::annotationThenComment
       firstFragment: #F5
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2574,7 +2574,7 @@ library
       type: int
       getter: <testLibrary>::@getter::annotationThenComment
       setter: <testLibrary>::@setter::annotationThenComment
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference annotationThenComment2
+    isOriginDeclaration isStatic annotationThenComment2
       reference: <testLibrary>::@topLevelVariable::annotationThenComment2
       firstFragment: #F6
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2592,7 +2592,7 @@ library
       type: int
       getter: <testLibrary>::@getter::annotationThenComment2
       setter: <testLibrary>::@setter::annotationThenComment2
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference commentThenAnnotation
+    isOriginDeclaration isStatic commentThenAnnotation
       reference: <testLibrary>::@topLevelVariable::commentThenAnnotation
       firstFragment: #F7
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2610,7 +2610,7 @@ library
       type: int
       getter: <testLibrary>::@getter::commentThenAnnotation
       setter: <testLibrary>::@setter::commentThenAnnotation
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference commentThenAnnotation2
+    isOriginDeclaration isStatic commentThenAnnotation2
       reference: <testLibrary>::@topLevelVariable::commentThenAnnotation2
       firstFragment: #F8
       documentationComment: /// Comment 1.\n/// Comment 2.
@@ -2628,7 +2628,7 @@ library
       type: int
       getter: <testLibrary>::@getter::commentThenAnnotation2
       setter: <testLibrary>::@setter::commentThenAnnotation2
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference commentAroundAnnotation
+    isOriginDeclaration isStatic commentAroundAnnotation
       reference: <testLibrary>::@topLevelVariable::commentAroundAnnotation
       firstFragment: #F9
       documentationComment: /// Comment 2.
@@ -2646,7 +2646,7 @@ library
       type: int
       getter: <testLibrary>::@getter::commentAroundAnnotation
       setter: <testLibrary>::@setter::commentAroundAnnotation
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference commentAroundAnnotation2
+    isOriginDeclaration isStatic commentAroundAnnotation2
       reference: <testLibrary>::@topLevelVariable::commentAroundAnnotation2
       firstFragment: #F10
       documentationComment: /// Comment 2.
@@ -2974,7 +2974,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -3033,7 +3033,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -3135,7 +3135,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -3427,7 +3427,7 @@ library
         #F2 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::foo
   topLevelVariables
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int

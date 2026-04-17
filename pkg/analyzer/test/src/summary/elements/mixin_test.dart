@@ -380,18 +380,18 @@ library
         C
         D
       fields
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference f
+        hasEnclosingTypeParameterReference isOriginDeclaration f
           reference: <testLibrary>::@mixin::M::@field::f
           firstFragment: #F12
           type: T
           getter: <testLibrary>::@mixin::M::@getter::f
           setter: <testLibrary>::@mixin::M::@setter::f
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference g
+        hasEnclosingTypeParameterReference isOriginGetterSetter g
           reference: <testLibrary>::@mixin::M::@field::g
           firstFragment: #F13
           type: U
           getter: <testLibrary>::@mixin::M::@getter::g
-        isOriginGetterSetter shouldUseTypeForInitializerInference s
+        isOriginGetterSetter s
           reference: <testLibrary>::@mixin::M::@field::s
           firstFragment: #F14
           type: int
@@ -599,7 +599,7 @@ library
       superclassConstraints
         Object
       fields
-        hasImplicitType hasInitializer isOriginDeclaration x
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer x
           reference: <testLibrary>::@mixin::M::@field::x
           firstFragment: #F2
           type: int
@@ -651,7 +651,7 @@ library
       superclassConstraints
         Object
       fields
-        hasImplicitType hasInitializer isFinal isOriginDeclaration x
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer x
           reference: <testLibrary>::@mixin::M::@field::x
           firstFragment: #F2
           type: int
@@ -707,7 +707,7 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -751,7 +751,7 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -795,7 +795,7 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -1617,7 +1617,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F4
           type: int
@@ -1955,7 +1955,7 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -2006,7 +2006,7 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -2070,7 +2070,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F4
           type: int
@@ -2417,7 +2417,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2503,7 +2503,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2589,7 +2589,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2678,7 +2678,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2751,7 +2751,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2820,7 +2820,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2889,13 +2889,13 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo1
+        hasInitializer isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo2
+        hasInitializer isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F7
           type: int
@@ -3000,13 +3000,13 @@ library
       superclassConstraints
         Object
       fields
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference foo1
+        hasEnclosingTypeParameterReference isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F5
           type: T
           getter: <testLibrary>::@mixin::A::@getter::foo1
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference foo2
+        hasEnclosingTypeParameterReference isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F9
           type: T
@@ -3088,12 +3088,12 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F5
           type: int
@@ -3166,12 +3166,12 @@ library
       superclassConstraints
         Object
       fields
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F5
           type: T
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F7
           type: T
@@ -3238,7 +3238,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -3324,7 +3324,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -3396,12 +3396,12 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F4
           type: int
@@ -3475,7 +3475,7 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -4012,12 +4012,12 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -4095,7 +4095,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -4176,12 +4176,12 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F4
           type: int

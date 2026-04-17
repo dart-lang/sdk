@@ -1323,7 +1323,7 @@ library
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference a
+    hasInitializer isOriginDeclaration isStatic a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
@@ -1392,7 +1392,7 @@ library
         #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int

@@ -39,7 +39,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: void Function()
@@ -87,7 +87,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: void Function()?
@@ -278,7 +278,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference v
+    isOriginDeclaration isStatic v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: int Function(int, String)
@@ -450,7 +450,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    hasImplicitType hasInitializer isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       metadata
@@ -610,7 +610,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function({int? a})>
@@ -718,7 +718,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function([int?])>
@@ -826,7 +826,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function({required int a})>
@@ -931,7 +931,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F4
       type: A<String Function(int)>

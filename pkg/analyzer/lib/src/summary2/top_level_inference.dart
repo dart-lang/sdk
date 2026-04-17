@@ -205,7 +205,7 @@ class _PropertyInducingElementTypeInference
   );
 
   @override
-  TypeImpl perform() {
+  ({TypeImpl type, bool isTypeInferredFromInitializer}) perform() {
     LibraryFragmentImpl? initializerLibraryFragment;
     Scope? scope;
     ExpressionImpl Function()? getInitializer;
@@ -235,12 +235,18 @@ class _PropertyInducingElementTypeInference
             getInitializer = () => node.defaultValue!;
           } else {
             _status = _InferenceStatus.inferred;
-            return _element.library.typeSystem.objectQuestion;
+            return (
+              type: _element.library.typeSystem.objectQuestion,
+              isTypeInferredFromInitializer: false,
+            );
           }
         case SimpleFormalParameterImpl():
           _assertElementFieldOriginDeclaringFormalParameter();
           _status = _InferenceStatus.inferred;
-          return _element.library.typeSystem.objectQuestion;
+          return (
+            type: _element.library.typeSystem.objectQuestion,
+            isTypeInferredFromInitializer: false,
+          );
       }
     }
 
@@ -248,14 +254,20 @@ class _PropertyInducingElementTypeInference
         scope == null ||
         getInitializer == null) {
       _status = _InferenceStatus.inferred;
-      return DynamicTypeImpl.instance;
+      return (
+        type: DynamicTypeImpl.instance,
+        isTypeInferredFromInitializer: false,
+      );
     }
 
     // With this status the type must be already set.
     // So, the element knows the type, ans should not call the inferrer.
     if (_status == _InferenceStatus.inferred) {
       assert(false, 'Should not happen: $_element');
-      return DynamicTypeImpl.instance;
+      return (
+        type: DynamicTypeImpl.instance,
+        isTypeInferredFromInitializer: false,
+      );
     }
 
     // If we are already inferring this element, we found a cycle.
@@ -273,7 +285,10 @@ class _PropertyInducingElementTypeInference
           inference._status = _InferenceStatus.inferred;
         }
       }
-      return DynamicTypeImpl.instance;
+      return (
+        type: DynamicTypeImpl.instance,
+        isTypeInferredFromInitializer: false,
+      );
     }
 
     assert(_status == _InferenceStatus.notInferred);
@@ -306,13 +321,16 @@ class _PropertyInducingElementTypeInference
     // We might have found a cycle, and already set the type.
     // Anyway, we are done.
     if (_status == _InferenceStatus.inferred) {
-      return _element.type;
+      return (type: _element.type, isTypeInferredFromInitializer: false);
     } else {
       _status = _InferenceStatus.inferred;
     }
 
     var initializerType = getInitializer().typeOrThrow;
-    return _refineType(initializerType);
+    return (
+      type: _refineType(initializerType),
+      isTypeInferredFromInitializer: true,
+    );
   }
 
   void _assertElementFieldOriginDeclaringFormalParameter() {

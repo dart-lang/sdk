@@ -134,7 +134,7 @@ library
         #F2 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic g (nameOffset:4) (firstTokenOffset:0) (offset:4)
           element: <testLibrary>::@getter::g
   topLevelVariables
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference g
+    isOriginGetterSetter isStatic g
       reference: <testLibrary>::@topLevelVariable::g
       firstFragment: #F1
       type: dynamic

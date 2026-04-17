@@ -117,7 +117,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic aaa
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer aaa
           reference: <testLibrary>::@enum::E::@field::aaa
           firstFragment: #F2
           type: E
@@ -125,7 +125,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::aaa
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic bbb
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer bbb
           reference: <testLibrary>::@enum::E::@field::bbb
           firstFragment: #F3
           type: E
@@ -133,7 +133,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::bbb
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic ccc
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer ccc
           reference: <testLibrary>::@enum::E::@field::ccc
           firstFragment: #F4
           type: E
@@ -141,7 +141,7 @@ library
             fragment: #F4
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::ccc
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -212,7 +212,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F2
           type: List<E>
@@ -269,7 +269,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F2
           type: List<E>
@@ -359,7 +359,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -367,7 +367,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -497,7 +497,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic int
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer int
           reference: <testLibrary>::@enum::E::@field::int
           firstFragment: #F3
           type: E<int>
@@ -505,7 +505,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::int
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic string
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer string
           reference: <testLibrary>::@enum::E::@field::string
           firstFragment: #F4
           type: E<String>
@@ -513,7 +513,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::string
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic>>
@@ -607,7 +607,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic _name
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer _name
           reference: <testLibrary>::@enum::E::@field::_name
           firstFragment: #F2
           type: E
@@ -615,7 +615,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::_name
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -724,7 +724,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<double>
@@ -732,7 +732,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -820,7 +820,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic _
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer _
           reference: <testLibrary>::@enum::E::@field::_
           firstFragment: #F2
           type: E
@@ -828,7 +828,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::_
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -919,7 +919,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -927,7 +927,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1017,7 +1017,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1025,7 +1025,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1113,7 +1113,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1121,7 +1121,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1221,7 +1221,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1229,7 +1229,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1329,7 +1329,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1337,7 +1337,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1456,7 +1456,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1464,7 +1464,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1472,12 +1472,12 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x::@def::0
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@enum::E::@getter::x::@def::0
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x::@def::1
           firstFragment: #F5
           type: String
@@ -1578,7 +1578,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1586,7 +1586,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1697,7 +1697,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1705,7 +1705,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1713,7 +1713,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: int
@@ -1817,7 +1817,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1825,7 +1825,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -1833,7 +1833,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: num
@@ -1934,7 +1934,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -1942,7 +1942,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2051,7 +2051,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2059,7 +2059,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2173,7 +2173,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2181,7 +2181,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2278,7 +2278,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2286,7 +2286,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2392,7 +2392,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -2400,7 +2400,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -2408,7 +2408,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F5
           type: int
@@ -2530,7 +2530,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2538,7 +2538,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2629,7 +2629,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2637,7 +2637,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2723,7 +2723,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2731,7 +2731,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2817,7 +2817,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2825,7 +2825,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -2911,7 +2911,7 @@ library
       documentationComment: /**\n * Docs\n */
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -2919,7 +2919,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -3012,7 +3012,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3020,7 +3020,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -3028,7 +3028,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        hasImplicitType hasInitializer isFinal isOriginDeclaration foo
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F4
           type: int
@@ -3078,7 +3078,7 @@ library
       firstFragment: #F0
       supertype: Enum
       fields
-        isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference _foo
+        isFinal isOriginDeclaration isPromotable _foo
           reference: <testLibrary>::@enum::E::@field::_foo
           firstFragment: #F1
           type: int?
@@ -3148,7 +3148,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -3156,7 +3156,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -3164,7 +3164,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F4
           type: int
@@ -3268,7 +3268,7 @@ library
       interfaces
         I
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -3276,7 +3276,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -3384,7 +3384,7 @@ library
         A
         C
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -3392,7 +3392,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -3419,7 +3419,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F9
           type: int
@@ -3523,7 +3523,7 @@ library
       interfaces
         I<U>
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F6
           type: E<dynamic>
@@ -3531,7 +3531,7 @@ library
             fragment: #F6
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F7
           type: List<E<dynamic>>
@@ -3648,7 +3648,7 @@ library
         X
         Z
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F6
           type: E
@@ -3656,7 +3656,7 @@ library
             fragment: #F6
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F7
           type: List<E>
@@ -3885,7 +3885,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -3893,7 +3893,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -3996,7 +3996,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -4004,7 +4004,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -4091,7 +4091,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::0::@field::v
           firstFragment: #F2
           type: InvalidType
@@ -4099,7 +4099,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::0::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::0::@field::values
           firstFragment: #F3
           type: List<<null>>
@@ -4189,7 +4189,7 @@ library
       mixins
         M
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -4197,7 +4197,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -4311,7 +4311,7 @@ library
         A
         C
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E
@@ -4319,7 +4319,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E>
@@ -4346,7 +4346,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F9
           type: int
@@ -4434,7 +4434,7 @@ library
         M1<int>
         M2<int>
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -4442,7 +4442,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -4552,7 +4552,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -4560,7 +4560,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -4568,7 +4568,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F4
           type: int
@@ -4667,7 +4667,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -4675,7 +4675,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -4773,7 +4773,7 @@ library
           bound: T
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F4
           type: E<num, num>
@@ -4781,7 +4781,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<num, num>>
@@ -4849,7 +4849,7 @@ library
           bound: dynamic
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -4922,7 +4922,7 @@ library
           bound: dynamic
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic, num, dynamic>>
@@ -4985,7 +4985,7 @@ library
           bound: void Function(E<dynamic>)
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -5047,7 +5047,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -5109,7 +5109,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -5171,7 +5171,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E<dynamic>>
@@ -5241,7 +5241,7 @@ library
           firstFragment: #F4
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F5
           type: List<E<dynamic, dynamic, dynamic>>
@@ -5346,7 +5346,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
           documentationComment: /**\n   * aaa\n   */
@@ -5355,7 +5355,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
           documentationComment: /// bbb
@@ -5364,7 +5364,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -5510,7 +5510,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
           documentationComment: /**\n   * aaa\n   */
@@ -5527,7 +5527,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
           documentationComment: /// bbb
@@ -5544,7 +5544,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -5574,7 +5574,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    hasInitializer isConst isOriginDeclaration isStatic shouldUseTypeForInitializerInference annotation
+    hasInitializer isConst isOriginDeclaration isStatic annotation
       reference: <testLibrary>::@topLevelVariable::annotation
       firstFragment: #F9
       type: int
@@ -5666,7 +5666,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -5674,7 +5674,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic <null-name>
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer <null-name>
           reference: <testLibrary>::@enum::E::@field::0
           firstFragment: #F3
           type: E
@@ -5682,7 +5682,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::1
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -5787,7 +5787,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v1
           reference: <testLibrary>::@enum::E::@field::v1
           firstFragment: #F2
           type: E
@@ -5795,7 +5795,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v1
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::E::@field::v2
           firstFragment: #F3
           type: E
@@ -5803,7 +5803,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::v2
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -5926,7 +5926,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v1
           reference: <testLibrary>::@enum::E1::@field::v1
           firstFragment: #F2
           type: E1
@@ -5934,7 +5934,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E1::@getter::v1
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E1::@field::values
           firstFragment: #F3
           type: List<E1>
@@ -5963,7 +5963,7 @@ library
       firstFragment: #F7
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::E2::@field::v2
           firstFragment: #F8
           type: E2
@@ -5971,7 +5971,7 @@ library
             fragment: #F8
             expression: expression_2
           getter: <testLibrary>::@enum::E2::@getter::v2
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E2::@field::values
           firstFragment: #F9
           type: List<E2>
@@ -6215,7 +6215,7 @@ library
       firstFragment: #F14
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F15
           type: E
@@ -6223,7 +6223,7 @@ library
             fragment: #F15
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F16
           type: E
@@ -6231,7 +6231,7 @@ library
             fragment: #F16
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F17
           type: E
@@ -6239,7 +6239,7 @@ library
             fragment: #F17
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::c
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F18
           type: List<E>
@@ -6347,7 +6347,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           metadata
@@ -6363,7 +6363,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -6388,7 +6388,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -6555,7 +6555,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference value
+        isFinal isOriginDeclaration value
           reference: <testLibrary>::@class::A::@field::value
           firstFragment: #F2
           type: dynamic
@@ -6581,7 +6581,7 @@ library
       firstFragment: #F6
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F7
           metadata
@@ -6604,7 +6604,7 @@ library
             fragment: #F7
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F8
           type: E
@@ -6612,7 +6612,7 @@ library
             fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer c
           reference: <testLibrary>::@enum::E::@field::c
           firstFragment: #F9
           metadata
@@ -6635,7 +6635,7 @@ library
             fragment: #F9
             expression: expression_2
           getter: <testLibrary>::@enum::E::@getter::c
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F10
           type: List<E>
@@ -6738,7 +6738,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           metadata
@@ -6754,7 +6754,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -6860,7 +6860,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -6868,7 +6868,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -6901,7 +6901,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -6999,7 +6999,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -7007,7 +7007,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -7045,7 +7045,7 @@ library
               element: <testLibrary>::@getter::a
           returnType: void
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: int
@@ -7178,7 +7178,7 @@ library
               element: <testLibrary>::@getter::foo
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -7186,7 +7186,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -7194,7 +7194,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F5
           type: int
@@ -7237,7 +7237,7 @@ library
               element: <testLibrary>::@enum::E::@getter::foo
           returnType: void
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F11
       type: int
@@ -7346,7 +7346,7 @@ library
               element: <testLibrary>::@getter::a
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -7354,7 +7354,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -7379,7 +7379,7 @@ library
           returnType: List<E<dynamic>>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F8
       type: int
@@ -7459,7 +7459,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -7467,7 +7467,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -7492,7 +7492,7 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F7
       type: int
@@ -7583,7 +7583,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7591,7 +7591,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7599,7 +7599,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int?
@@ -7701,7 +7701,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7709,7 +7709,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7717,7 +7717,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int?
@@ -7826,7 +7826,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7834,7 +7834,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7842,7 +7842,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int
@@ -7956,7 +7956,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -7964,7 +7964,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -7972,7 +7972,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           documentationComment: /// first\n/// second
@@ -8108,7 +8108,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8116,7 +8116,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8124,7 +8124,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           documentationComment: /// first\n/// second
@@ -8250,7 +8250,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8258,7 +8258,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8266,7 +8266,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int
@@ -8394,7 +8394,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::A::@field::foo
           firstFragment: #F2
           type: int
@@ -8417,7 +8417,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F6
           type: B
@@ -8425,7 +8425,7 @@ library
             fragment: #F6
             expression: expression_0
           getter: <testLibrary>::@enum::B::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F7
           type: List<B>
@@ -8433,7 +8433,7 @@ library
             fragment: #F7
             expression: expression_1
           getter: <testLibrary>::@enum::B::@getter::values
-        hasImplicitType isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        hasImplicitType isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::B::@field::foo
           firstFragment: #F8
           type: int
@@ -8543,7 +8543,7 @@ library
           firstFragment: #F2
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A<int>
@@ -8551,7 +8551,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A<dynamic>>
@@ -8559,7 +8559,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: T
@@ -8657,7 +8657,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8665,7 +8665,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8759,7 +8759,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8767,7 +8767,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8868,7 +8868,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8876,7 +8876,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -8884,7 +8884,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F4
           type: int
@@ -8980,7 +8980,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -8988,7 +8988,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -9077,7 +9077,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -9085,7 +9085,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -9230,7 +9230,7 @@ library
               element: <testLibrary>::@getter::foo
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F3
           type: E<dynamic>
@@ -9238,7 +9238,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E<dynamic>>
@@ -9246,7 +9246,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F5
           type: int
@@ -9291,7 +9291,7 @@ library
           returnType: int
           variable: <testLibrary>::@enum::E::@field::foo
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F11
       type: int
@@ -9392,7 +9392,7 @@ library
           bound: num
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F4
           type: A<int, int>
@@ -9400,7 +9400,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A<num, num>>
@@ -9490,7 +9490,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -9498,7 +9498,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -9581,7 +9581,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F2
           type: A
@@ -9589,7 +9589,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -9676,7 +9676,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -9684,7 +9684,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -9784,7 +9784,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -9792,7 +9792,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -9800,7 +9800,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference x
+        isFinal isOriginDeclaration x
           reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: int
@@ -9921,7 +9921,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -9929,7 +9929,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -9937,7 +9937,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference y
+        isFinal isOriginDeclaration y
           reference: <testLibrary>::@enum::E::@field::y
           firstFragment: #F4
           type: int
@@ -10066,7 +10066,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -10074,7 +10074,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -10179,7 +10179,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -10187,7 +10187,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -10280,7 +10280,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -10288,7 +10288,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -10375,7 +10375,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -10383,7 +10383,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -10485,7 +10485,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -10493,7 +10493,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -10607,7 +10607,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -10615,7 +10615,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -10702,7 +10702,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -10710,7 +10710,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -10813,7 +10813,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -10821,7 +10821,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11041,7 +11041,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A
@@ -11049,7 +11049,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A>
@@ -11179,7 +11179,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@def::0::@field::values
           firstFragment: #F2
           type: List<A>
@@ -11208,7 +11208,7 @@ library
       firstFragment: #F6
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@def::1::@field::v
           firstFragment: #F8
           type: A
@@ -11216,7 +11216,7 @@ library
             fragment: #F8
             expression: expression_1
           getter: <testLibrary>::@enum::A::@def::1::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@def::1::@field::values
           firstFragment: #F9
           type: List<A>
@@ -11303,7 +11303,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -11422,7 +11422,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -11430,7 +11430,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11438,7 +11438,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
@@ -11588,7 +11588,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -11596,7 +11596,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11604,7 +11604,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F9
           type: A
@@ -11612,7 +11612,7 @@ library
             fragment: #F9
             expression: expression_2
           getter: <testLibrary>::@enum::A::@getter::v2
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v3
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F11
           type: A
@@ -11758,7 +11758,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -11766,7 +11766,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -11774,7 +11774,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F8
           type: A
@@ -11933,7 +11933,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -11941,7 +11941,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v1
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F4
           type: A
@@ -11949,7 +11949,7 @@ library
             fragment: #F5
             expression: expression_4
           getter: <testLibrary>::@enum::A::@getter::v2
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v3
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v3
           reference: <testLibrary>::@enum::A::@field::v3
           firstFragment: #F6
           type: A
@@ -11957,7 +11957,7 @@ library
             fragment: #F6
             expression: expression_2
           getter: <testLibrary>::@enum::A::@getter::v3
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F7
           type: List<A>
@@ -12118,7 +12118,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v1
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v1
           reference: <testLibrary>::@enum::A::@field::v1
           firstFragment: #F3
           type: A
@@ -12126,7 +12126,7 @@ library
             fragment: #F4
             expression: expression_3
           getter: <testLibrary>::@enum::A::@getter::v1
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F5
           type: A
@@ -12134,7 +12134,7 @@ library
             fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::v2
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A>
@@ -12276,7 +12276,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12284,7 +12284,7 @@ library
             fragment: #F4
             expression: expression_3
           getter: <testLibrary>::@enum::A::@getter::v
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v2
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v2
           reference: <testLibrary>::@enum::A::@field::v2
           firstFragment: #F5
           type: A
@@ -12292,7 +12292,7 @@ library
             fragment: #F5
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::v2
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A>
@@ -12393,7 +12393,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12401,7 +12401,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12528,7 +12528,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -12536,7 +12536,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -12642,7 +12642,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12650,7 +12650,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12749,7 +12749,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12757,7 +12757,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12859,7 +12859,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12867,7 +12867,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12979,7 +12979,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -12987,7 +12987,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -12995,7 +12995,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference f
+        isFinal isOriginDeclaration f
           reference: <testLibrary>::@enum::A::@field::f
           firstFragment: #F5
           type: int
@@ -13103,7 +13103,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13111,7 +13111,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13119,7 +13119,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference f
+        isFinal isOriginDeclaration f
           reference: <testLibrary>::@enum::A::@field::f
           firstFragment: #F5
           type: int
@@ -13243,7 +13243,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13251,7 +13251,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13259,7 +13259,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13393,7 +13393,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13401,7 +13401,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13409,7 +13409,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13539,7 +13539,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13547,7 +13547,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13555,7 +13555,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13686,7 +13686,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13694,7 +13694,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13702,7 +13702,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13830,7 +13830,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13838,7 +13838,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13846,7 +13846,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -13968,7 +13968,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -13976,7 +13976,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -13984,7 +13984,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int Function()
@@ -14099,7 +14099,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14107,7 +14107,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -14115,7 +14115,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -14233,7 +14233,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14241,7 +14241,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -14249,7 +14249,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo1
+        hasInitializer isFinal isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
@@ -14257,7 +14257,7 @@ library
             fragment: #F5
             expression: expression_2
           getter: <testLibrary>::@enum::A::@getter::foo1
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo2
+        hasInitializer isFinal isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F10
           type: int
@@ -14393,7 +14393,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -14401,7 +14401,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -14409,12 +14409,12 @@ library
             fragment: #F6
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo1
+        hasEnclosingTypeParameterReference isFinal isOriginDeclaration foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F7
           type: T
           getter: <testLibrary>::@enum::A::@getter::foo1
-        hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo2
+        hasEnclosingTypeParameterReference isFinal isOriginDeclaration foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F12
           type: T
@@ -14530,7 +14530,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14538,7 +14538,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -14546,7 +14546,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F9
           type: int
@@ -14655,7 +14655,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14663,7 +14663,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -14671,7 +14671,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F8
           type: int
@@ -14788,7 +14788,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -14796,7 +14796,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -14804,12 +14804,12 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F10
           type: int
@@ -14942,7 +14942,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -14950,7 +14950,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -14958,12 +14958,12 @@ library
             fragment: #F6
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F7
           type: T
           getter: <testLibrary>::@enum::A::@getter::foo1
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F12
           type: T
@@ -15078,7 +15078,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15086,7 +15086,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15094,7 +15094,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -15220,7 +15220,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15228,7 +15228,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15236,7 +15236,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -15350,7 +15350,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15358,7 +15358,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15366,12 +15366,12 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
           getter: <testLibrary>::@enum::A::@getter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -15487,7 +15487,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15495,7 +15495,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15503,7 +15503,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -15622,7 +15622,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15630,7 +15630,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15638,7 +15638,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -15738,7 +15738,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -15746,7 +15746,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -15754,7 +15754,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F7
           type: int
@@ -15876,7 +15876,7 @@ library
         I1
         I2
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F7
           type: A
@@ -15884,7 +15884,7 @@ library
             fragment: #F7
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F8
           type: List<A>
@@ -16030,7 +16030,7 @@ library
         I2
         I3
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F9
           type: A
@@ -16038,7 +16038,7 @@ library
             fragment: #F9
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F10
           type: List<A>
@@ -16190,7 +16190,7 @@ library
         I1
         I2<T>
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F10
           type: A<int>
@@ -16198,7 +16198,7 @@ library
             fragment: #F10
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F11
           type: List<A<dynamic>>
@@ -16342,7 +16342,7 @@ library
         I1
         I2<T>
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F10
           type: A<dynamic>
@@ -16350,7 +16350,7 @@ library
             fragment: #F10
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F11
           type: List<A<dynamic>>
@@ -16451,7 +16451,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16459,7 +16459,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16571,7 +16571,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16579,7 +16579,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16697,7 +16697,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16705,7 +16705,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16822,7 +16822,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16830,7 +16830,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -16950,7 +16950,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -16958,7 +16958,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -17079,7 +17079,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -17087,7 +17087,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -17214,7 +17214,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -17222,7 +17222,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -17355,7 +17355,7 @@ library
           firstFragment: #F3
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -17363,7 +17363,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -17470,7 +17470,7 @@ library
         M1
         M2
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -17478,7 +17478,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -17636,7 +17636,7 @@ library
         M2<T>
         M3<T>
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F5
           type: A<int>
@@ -17644,7 +17644,7 @@ library
             fragment: #F5
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F6
           type: List<A<dynamic>>
@@ -17781,7 +17781,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -17789,7 +17789,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -17797,12 +17797,12 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
           setter: <testLibrary>::@enum::A::@setter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F11
           type: int
@@ -17927,7 +17927,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -17935,7 +17935,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -17943,7 +17943,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isFinal isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F5
           type: int
@@ -18062,7 +18062,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -18070,7 +18070,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -18078,7 +18078,7 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F8
           type: int
@@ -18204,7 +18204,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -18212,7 +18212,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -18220,12 +18220,12 @@ library
             fragment: #F4
             expression: expression_1
           getter: <testLibrary>::@enum::A::@getter::values
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@enum::A::@field::foo1
           firstFragment: #F5
           type: int
           setter: <testLibrary>::@enum::A::@setter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@enum::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -18338,7 +18338,7 @@ library
       firstFragment: #F3
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F4
           type: A
@@ -18346,7 +18346,7 @@ library
             fragment: #F4
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F5
           type: List<A>
@@ -18446,7 +18446,7 @@ library
       firstFragment: #F2
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@def::0::@field::v
           firstFragment: #F3
           type: A
@@ -18454,7 +18454,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@def::0::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@def::0::@field::values
           firstFragment: #F4
           type: List<A>
@@ -18478,7 +18478,7 @@ library
       firstFragment: #F7
       supertype: Enum
       fields
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@def::1::@field::values
           firstFragment: #F8
           type: List<A>
@@ -18594,7 +18594,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -18602,7 +18602,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -18710,7 +18710,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -18718,7 +18718,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -18820,7 +18820,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
@@ -18828,7 +18828,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
@@ -18939,7 +18939,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -18947,7 +18947,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::B::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F4
           type: List<B>
@@ -19067,7 +19067,7 @@ library
       interfaces
         A
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -19075,7 +19075,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::B::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F4
           type: List<B>
@@ -19195,7 +19195,7 @@ library
       mixins
         A
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::B::@field::v
           firstFragment: #F3
           type: B
@@ -19203,7 +19203,7 @@ library
             fragment: #F3
             expression: expression_0
           getter: <testLibrary>::@enum::B::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::B::@field::values
           firstFragment: #F4
           type: List<B>
@@ -19314,7 +19314,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -19322,7 +19322,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -19330,7 +19330,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        hasImplicitType hasInitializer isFinal isOriginDeclaration bar
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F4
           type: int
@@ -19445,7 +19445,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -19453,7 +19453,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -19461,13 +19461,13 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference foo
+        isFinal isOriginDeclaringFormalParameter foo
           reference: <testLibrary>::@enum::E::@field::foo
           firstFragment: #F4
           type: int
           getter: <testLibrary>::@enum::E::@getter::foo
           declaringFormalParameter: <testLibrary>::@enum::E::@constructor::new::@formalParameter::foo
-        hasImplicitType hasInitializer isFinal isOriginDeclaration bar
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F5
           type: int
@@ -19584,7 +19584,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -19592,7 +19592,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -19600,7 +19600,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        hasImplicitType hasInitializer isFinal isLate isOriginDeclaration bar
+        hasImplicitType hasInitializer isFinal isLate isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F4
           type: InvalidType
@@ -19730,7 +19730,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -19738,7 +19738,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -19746,7 +19746,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        hasImplicitType hasInitializer isFinal isOriginDeclaration bar
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F4
           type: int
@@ -19852,7 +19852,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::E::@field::v
           firstFragment: #F2
           type: E
@@ -19860,7 +19860,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F3
           type: List<E>
@@ -19868,7 +19868,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
-        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic bar
+        hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer bar
           reference: <testLibrary>::@enum::E::@field::bar
           firstFragment: #F4
           type: InvalidType
@@ -19996,7 +19996,7 @@ library
           bound: B
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
           reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F7
           type: A<B>
@@ -20004,7 +20004,7 @@ library
             fragment: #F7
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::v
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F8
           type: List<A<B>>

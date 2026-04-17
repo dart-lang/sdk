@@ -9817,9 +9817,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   @trackedIncludedInId
   TopLevelInferenceError? typeInferenceError;
 
-  PropertyInducingElementImpl() {
-    shouldUseTypeForInitializerInference = true;
-  }
+  PropertyInducingElementImpl();
 
   @override
   PropertyInducingFragmentImpl get firstFragment;
@@ -9834,8 +9832,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
       'hasInitializer': hasInitializer,
       'isOriginDeclaration': isOriginDeclaration,
       'isOriginGetterSetter': isOriginGetterSetter,
-      'shouldUseTypeForInitializerInference':
-          shouldUseTypeForInitializerInference,
+      'isTypeInferredFromInitializer': isTypeInferredFromInitializer,
     };
   }
 
@@ -9870,6 +9867,22 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     return _firstFragment.isOriginGetterSetter;
   }
 
+  @generated
+  @trackedIncludedInId
+  bool get isTypeInferredFromInitializer {
+    return hasFlag(
+      _ElementStorageFlag.propertyInducingElement_isTypeInferredFromInitializer,
+    );
+  }
+
+  @generated
+  set isTypeInferredFromInitializer(bool value) {
+    setFlag(
+      _ElementStorageFlag.propertyInducingElement_isTypeInferredFromInitializer,
+      value,
+    );
+  }
+
   @override
   @trackedIncludedInId
   LibraryElementImpl get library => super.library!;
@@ -9897,24 +9910,6 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
   @override
   Reference get reference;
 
-  @generated
-  @trackedIncludedInId
-  bool get shouldUseTypeForInitializerInference {
-    return hasFlag(
-      _ElementStorageFlag
-          .propertyInducingElement_shouldUseTypeForInitializerInference,
-    );
-  }
-
-  @generated
-  set shouldUseTypeForInitializerInference(bool value) {
-    setFlag(
-      _ElementStorageFlag
-          .propertyInducingElement_shouldUseTypeForInitializerInference,
-      value,
-    );
-  }
-
   @override
   @trackedIncludedInId
   TypeImpl get type {
@@ -9924,12 +9919,12 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
     }
 
     // We must be linking, and the type has not been set yet.
-    var type = typeInference?.perform();
-    type ??= InvalidTypeImpl.instance;
-    this.type = type;
-    shouldUseTypeForInitializerInference = false;
+    if (typeInference?.perform() case var result?) {
+      isTypeInferredFromInitializer = result.isTypeInferredFromInitializer;
+      return type = result.type;
+    }
 
-    return type;
+    return type = InvalidTypeImpl.instance;
   }
 
   @override
@@ -9966,7 +9961,7 @@ abstract class PropertyInducingElementImpl extends VariableElementImpl
 /// Instances of this class are set for fields and top-level variables
 /// to perform top-level type inference during linking.
 abstract class PropertyInducingElementTypeInference {
-  TypeImpl perform();
+  ({TypeImpl type, bool isTypeInferredFromInitializer}) perform();
 }
 
 @GenerateElementFlags(flags: _PropertyInducingElementFlags.values)
@@ -11789,7 +11784,7 @@ enum _ElementStorageFlag {
   fieldElement_hasEnclosingTypeParameterReference,
   instanceElement_isSimplyBounded,
   libraryElement_isSynthetic,
-  propertyInducingElement_shouldUseTypeForInitializerInference,
+  propertyInducingElement_isTypeInferredFromInitializer,
   typeAliasElement_isSimplyBounded,
 }
 
@@ -12036,7 +12031,7 @@ enum _PropertyInducingElementFlags {
     fragment: true,
     element: _ElementFlagSource.firstFragment,
   ),
-  shouldUseTypeForInitializerInference(element: _ElementFlagSource.stored);
+  isTypeInferredFromInitializer(element: _ElementFlagSource.stored);
 
   final bool fragment;
   final _ElementFlagSource element;

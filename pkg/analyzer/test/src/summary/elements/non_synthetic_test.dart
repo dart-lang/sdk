@@ -53,7 +53,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
@@ -113,7 +113,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
@@ -165,7 +165,7 @@ library
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@class::C::@field::foo
           firstFragment: #F2
           type: int
@@ -265,7 +265,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer a
           reference: <testLibrary>::@enum::E::@field::a
           firstFragment: #F2
           type: E
@@ -273,7 +273,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::a
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@field::b
           firstFragment: #F3
           type: E
@@ -281,7 +281,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::b
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
           type: List<E>
@@ -348,7 +348,7 @@ library
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -402,7 +402,7 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -448,7 +448,7 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -484,7 +484,7 @@ library
         #F2 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:8) (firstTokenOffset:0) (offset:8)
           element: <testLibrary>::@getter::foo
   topLevelVariables
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -523,7 +523,7 @@ library
             #F4 requiredPositional isOriginDeclaration value (nameOffset:30) (firstTokenOffset:26) (offset:30)
               element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -569,7 +569,7 @@ library
             #F3 requiredPositional isOriginDeclaration value (nameOffset:12) (firstTokenOffset:8) (offset:12)
               element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
@@ -611,7 +611,7 @@ library
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
               element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+    hasInitializer isOriginDeclaration isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int

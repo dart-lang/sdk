@@ -121,7 +121,7 @@ library
       reference: <testLibrary>::@class::A::@def::0
       firstFragment: #F1
       fields
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f01
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f01
           reference: <testLibrary>::@class::A::@def::0::@field::f01
           firstFragment: #F2
           type: int
@@ -129,7 +129,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@class::A::@def::0::@getter::f01
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f02
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f02
           reference: <testLibrary>::@class::A::@def::0::@field::f02
           firstFragment: #F3
           type: int
@@ -156,7 +156,7 @@ library
       reference: <testLibrary>::@class::A::@def::1
       firstFragment: #F7
       fields
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f11
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f11
           reference: <testLibrary>::@class::A::@def::1::@field::f11
           firstFragment: #F8
           type: int
@@ -164,7 +164,7 @@ library
             fragment: #F8
             expression: expression_2
           getter: <testLibrary>::@class::A::@def::1::@getter::f11
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f12
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f12
           reference: <testLibrary>::@class::A::@def::1::@field::f12
           firstFragment: #F9
           type: int
@@ -191,7 +191,7 @@ library
       reference: <testLibrary>::@class::A::@def::2
       firstFragment: #F13
       fields
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f21
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f21
           reference: <testLibrary>::@class::A::@def::2::@field::f21
           firstFragment: #F14
           type: int
@@ -199,7 +199,7 @@ library
             fragment: #F14
             expression: expression_4
           getter: <testLibrary>::@class::A::@def::2::@getter::f21
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic f22
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer f22
           reference: <testLibrary>::@class::A::@def::2::@field::f22
           firstFragment: #F15
           type: int
@@ -313,13 +313,13 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo::@def::0
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@class::A::@getter::foo::@def::0
           setter: <testLibrary>::@class::A::@setter::foo::@def::0
-        isOriginDeclaration shouldUseTypeForInitializerInference foo
+        isOriginDeclaration foo
           reference: <testLibrary>::@class::A::@field::foo::@def::1
           firstFragment: #F3
           type: double
@@ -665,7 +665,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic a
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer a
           reference: <testLibrary>::@enum::E::@def::0::@field::a
           firstFragment: #F2
           type: E
@@ -673,7 +673,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::E::@def::0::@getter::a
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic b
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer b
           reference: <testLibrary>::@enum::E::@def::0::@field::b
           firstFragment: #F3
           type: E
@@ -681,7 +681,7 @@ library
             fragment: #F3
             expression: expression_1
           getter: <testLibrary>::@enum::E::@def::0::@getter::b
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@def::0::@field::values
           firstFragment: #F4
           type: List<E>
@@ -715,7 +715,7 @@ library
       firstFragment: #F9
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic c
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer c
           reference: <testLibrary>::@enum::E::@def::1::@field::c
           firstFragment: #F10
           type: E
@@ -723,7 +723,7 @@ library
             fragment: #F10
             expression: expression_3
           getter: <testLibrary>::@enum::E::@def::1::@getter::c
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic d
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer d
           reference: <testLibrary>::@enum::E::@def::1::@field::d
           firstFragment: #F11
           type: E
@@ -731,7 +731,7 @@ library
             fragment: #F11
             expression: expression_4
           getter: <testLibrary>::@enum::E::@def::1::@getter::d
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic e
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer e
           reference: <testLibrary>::@enum::E::@def::1::@field::e
           firstFragment: #F12
           type: E
@@ -739,7 +739,7 @@ library
             fragment: #F12
             expression: expression_5
           getter: <testLibrary>::@enum::E::@def::1::@getter::e
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@def::1::@field::values
           firstFragment: #F13
           type: List<E>
@@ -864,7 +864,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasImplicitType hasInitializer isOriginDeclaration isStatic y
+        hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer y
           reference: <testLibrary>::@extension::E::@def::2::@field::y
           firstFragment: #F8
           type: int
@@ -942,7 +942,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::E::@def::0::@constructor::new
       typeErasure: int
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::E::@def::0::@field::it
           firstFragment: #F2
           type: int
@@ -970,7 +970,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::E::@def::1::@constructor::new
       typeErasure: double
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::E::@def::1::@field::it
           firstFragment: #F7
           type: double
@@ -1207,7 +1207,7 @@ library
       superclassConstraints
         Object
       fields
-        hasImplicitType hasInitializer isOriginDeclaration y
+        hasImplicitType hasInitializer isOriginDeclaration isTypeInferredFromInitializer y
           reference: <testLibrary>::@mixin::A::@def::2::@field::y
           firstFragment: #F8
           type: int
@@ -1280,7 +1280,7 @@ library
             #F14 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:32)
               element: <testLibrary>::@setter::x::@def::2::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration isStatic shouldUseTypeForInitializerInference x
+    isOriginDeclaration isStatic x
       reference: <testLibrary>::@topLevelVariable::x::@def::0
       firstFragment: #F1
       type: bool
@@ -1292,12 +1292,12 @@ library
       type: dynamic
       getter: <testLibrary>::@getter::x::@def::1
       setter: <testLibrary>::@setter::x::@def::1
-    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x::@def::2
       firstFragment: #F3
       type: int
       getter: <testLibrary>::@getter::x::@def::2
-    hasImplicitType hasInitializer isOriginDeclaration isStatic x
+    hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer x
       reference: <testLibrary>::@topLevelVariable::x::@def::3
       firstFragment: #F4
       type: double
@@ -1377,12 +1377,12 @@ library
         #F4 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:26) (firstTokenOffset:15) (offset:26)
           element: <testLibrary>::@getter::foo::@def::1
   topLevelVariables
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo::@def::0
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::foo::@def::0
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo::@def::1
       firstFragment: #F2
       type: double
@@ -1429,12 +1429,12 @@ library
             #F6 requiredPositional isOriginDeclaration _ (nameOffset:33) (firstTokenOffset:26) (offset:33)
               element: <testLibrary>::@setter::foo::@def::1::@formalParameter::_
   topLevelVariables
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo::@def::0
       firstFragment: #F1
       type: int
       setter: <testLibrary>::@setter::foo::@def::0
-    isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+    isOriginGetterSetter isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo::@def::1
       firstFragment: #F2
       type: double

@@ -1778,7 +1778,7 @@ library
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       fields
-        isOriginDeclaration shouldUseTypeForInitializerInference f
+        isOriginDeclaration f
           reference: <testLibrary>::@class::A::@field::f
           firstFragment: #F2
           type: int Function<T>(T)

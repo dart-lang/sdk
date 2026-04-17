@@ -142,7 +142,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic x
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer x
           reference: <testLibrary>::@extension::E::@field::x
           firstFragment: #F2
           type: int
@@ -343,7 +343,7 @@ library
       extendedType: List<T>
       onDeclaration: dart:core::@class::List
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@extension::E::@field::foo
           firstFragment: #F3
           type: int
@@ -392,7 +392,7 @@ library
       extendedType: List<T>
       onDeclaration: dart:core::@class::List
       fields
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo
           reference: <testLibrary>::@extension::E::@field::foo
           firstFragment: #F3
           type: T
@@ -486,7 +486,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo
+        hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@extension::E::@field::foo
           firstFragment: #F3
           type: int
@@ -514,7 +514,7 @@ library
               element: <testLibrary>::@extension::E::@getter::foo
           returnType: void
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F6
       type: int
@@ -579,7 +579,7 @@ library
       extendedType: A
       onDeclaration: <testLibrary>::@class::A
   topLevelVariables
-    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F4
       type: dynamic
@@ -742,7 +742,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@extension::E::@field::foo
           firstFragment: #F2
           type: int
@@ -788,7 +788,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@extension::E::@field::foo
           firstFragment: #F2
           type: int
@@ -925,7 +925,7 @@ library
       firstFragment: #F1
       supertype: Enum
       fields
-        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic foo
+        hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer foo
           reference: <testLibrary>::@enum::A::@field::foo
           firstFragment: #F2
           type: A
@@ -933,7 +933,7 @@ library
             fragment: #F2
             expression: expression_0
           getter: <testLibrary>::@enum::A::@getter::foo
-        isConst isOriginEnumValues isStatic shouldUseTypeForInitializerInference values
+        isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F3
           type: List<A>
@@ -1011,7 +1011,7 @@ library
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: Object?
       fields
-        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
+        isFinal isOriginDeclaringFormalParameter it
           reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: Object?
@@ -1378,7 +1378,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1464,7 +1464,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1550,7 +1550,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1639,7 +1639,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1712,7 +1712,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1779,7 +1779,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginGetterSetter isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginGetterSetter isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -1848,13 +1848,13 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo1
+        hasInitializer isOriginDeclaration isStatic foo1
           reference: <testLibrary>::@extension::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extension::A::@getter::foo1
           setter: <testLibrary>::@extension::A::@setter::foo1
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo2
+        hasInitializer isOriginDeclaration isStatic foo2
           reference: <testLibrary>::@extension::A::@field::foo2
           firstFragment: #F7
           type: int
@@ -1936,12 +1936,12 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@extension::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extension::A::@getter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@extension::A::@field::foo2
           firstFragment: #F5
           type: int
@@ -2014,12 +2014,12 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo1
           reference: <testLibrary>::@extension::A::@field::foo1
           firstFragment: #F5
           type: T
           getter: <testLibrary>::@extension::A::@getter::foo1
-        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        hasEnclosingTypeParameterReference isOriginGetterSetter foo2
           reference: <testLibrary>::@extension::A::@field::foo2
           firstFragment: #F7
           type: T
@@ -2086,7 +2086,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2172,7 +2172,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2244,12 +2244,12 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@extension::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@extension::A::@getter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@extension::A::@field::foo2
           firstFragment: #F4
           type: int
@@ -2323,7 +2323,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo
+        isOriginGetterSetter foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2715,12 +2715,12 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@extension::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@extension::A::@setter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@extension::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -2798,7 +2798,7 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        hasInitializer isOriginDeclaration isStatic shouldUseTypeForInitializerInference foo
+        hasInitializer isOriginDeclaration isStatic foo
           reference: <testLibrary>::@extension::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2879,12 +2879,12 @@ library
       extendedType: int
       onDeclaration: dart:core::@class::int
       fields
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
+        isOriginGetterSetter foo1
           reference: <testLibrary>::@extension::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@extension::A::@setter::foo1
-        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
+        isOriginGetterSetter foo2
           reference: <testLibrary>::@extension::A::@field::foo2
           firstFragment: #F4
           type: int
