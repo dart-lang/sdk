@@ -102,12 +102,12 @@ vars = {
 
   # Prefer to use hashes of binaryen that have been reviewed & rolled into g3.
   "binaryen_rev" : "58de22cdfd0ccb38ce68632695c0493c587af932",
-  "boringssl_rev": "f175cb106c8c3a445968e8ba1dbf768e0f0ff04a",
+  "boringssl_rev": "beafe3db15e3213bbce1711f85f704b6c00413d1",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
   "devtools_rev": "fa063f322c03cc7a690d819db124c196a69cff56",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
-  "flutter_rev": "36ea2bdeab611e908967b6fa57659998f600a2cb",
+  "flutter_rev": "49233d08009d7e3313da0bfbd859960d14d9c90c",
   "icu_rev": "a86a32e67b8d1384b33f8fa48c83a6079b86f8cd",
   "jinja2_rev": "2222b31554f03e62600cd7e383376a7c187967a1",
   "libcxx_rev": "bd557f6f764d1e40b62528a13b124ce740624f8f",

@@ -41,7 +41,7 @@ library
         #F2 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       supertype: Object
@@ -51,7 +51,7 @@ library
         M
         Object
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F2
       superclassConstraints
@@ -87,7 +87,7 @@ library
               element: #E0 T
             #F3 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
-        #F4 class B (nameOffset:23) (firstTokenOffset:17) (offset:23)
+        #F4 hasExtendsClause class B (nameOffset:23) (firstTokenOffset:17) (offset:23)
           element: <testLibrary>::@class::B
           typeParameters
             #F5 T (nameOffset:25) (firstTokenOffset:25) (offset:25)
@@ -98,7 +98,7 @@ library
         #F7 mixin M2 (nameOffset:86) (firstTokenOffset:80) (offset:86)
           element: <testLibrary>::@mixin::M2
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
@@ -108,7 +108,7 @@ library
           firstFragment: #F3
       allSupertypes
         Object
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       typeParameters
@@ -119,7 +119,7 @@ library
         A<int, T>
         Object
   mixins
-    mixin M1
+    isSimplyBounded mixin M1
       reference: <testLibrary>::@mixin::M1
       firstFragment: #F6
       superclassConstraints
@@ -127,7 +127,7 @@ library
       allSupertypes
         A<int, double>
         Object
-    mixin M2
+    isSimplyBounded mixin M2
       reference: <testLibrary>::@mixin::M2
       firstFragment: #F7
       superclassConstraints
@@ -168,23 +168,23 @@ library
         #F4 mixin M (nameOffset:40) (firstTokenOffset:34) (offset:40)
           element: <testLibrary>::@mixin::M
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       allSupertypes
         Object
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F2
       allSupertypes
         Object
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F3
       allSupertypes
         Object
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F4
       superclassConstraints
@@ -225,12 +225,12 @@ library
         #F3 mixin M (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@mixin::M
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       allSupertypes
         Object
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F2
       supertype: Object
@@ -241,7 +241,7 @@ library
         M
         Object
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F3
       superclassConstraints
@@ -313,50 +313,50 @@ library
             #F14 isOriginGetterSetter s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::M::@field::s
           getters
-            #F15 isOriginVariable isCompleteDeclaration f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+            #F15 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
               element: <testLibrary>::@mixin::M::@getter::f
-            #F16 isOriginDeclaration isCompleteDeclaration g (nameOffset:112) (firstTokenOffset:106) (offset:112)
+            #F16 isCompleteDeclaration isOriginDeclaration g (nameOffset:112) (firstTokenOffset:106) (offset:112)
               element: <testLibrary>::@mixin::M::@getter::g
           setters
-            #F17 isOriginVariable isCompleteDeclaration f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
+            #F17 isCompleteDeclaration isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
               element: <testLibrary>::@mixin::M::@setter::f
               formalParameters
                 #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:101)
                   element: <testLibrary>::@mixin::M::@setter::f::@formalParameter::value
-            #F19 isOriginDeclaration isCompleteDeclaration s (nameOffset:126) (firstTokenOffset:122) (offset:126)
+            #F19 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration s (nameOffset:126) (firstTokenOffset:122) (offset:126)
               element: <testLibrary>::@mixin::M::@setter::s
               formalParameters
-                #F20 requiredPositional v (nameOffset:132) (firstTokenOffset:128) (offset:132)
+                #F20 requiredPositional isOriginDeclaration v (nameOffset:132) (firstTokenOffset:128) (offset:132)
                   element: <testLibrary>::@mixin::M::@setter::s::@formalParameter::v
           methods
-            #F21 isOriginDeclaration isCompleteDeclaration m (nameOffset:144) (firstTokenOffset:140) (offset:144)
+            #F21 isCompleteDeclaration isOriginDeclaration m (nameOffset:144) (firstTokenOffset:140) (offset:144)
               element: <testLibrary>::@mixin::M::@method::m
               formalParameters
-                #F22 requiredPositional v (nameOffset:153) (firstTokenOffset:146) (offset:153)
+                #F22 requiredPositional isOriginDeclaration v (nameOffset:153) (firstTokenOffset:146) (offset:153)
                   element: <testLibrary>::@mixin::M::@method::m::@formalParameter::v
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F4
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F5
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F6
-    class D
+    isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F7
       constructors
@@ -364,7 +364,7 @@ library
           reference: <testLibrary>::@class::D::@constructor::new
           firstFragment: #F8
   mixins
-    hasNonFinalField mixin M
+    hasNonFinalField isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F9
       typeParameters
@@ -380,42 +380,37 @@ library
         C
         D
       fields
-        isOriginDeclaration f
+        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference f
           reference: <testLibrary>::@mixin::M::@field::f
           firstFragment: #F12
-          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@mixin::M::@getter::f
           setter: <testLibrary>::@mixin::M::@setter::f
-        isOriginGetterSetter g
+        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference g
           reference: <testLibrary>::@mixin::M::@field::g
           firstFragment: #F13
-          hasEnclosingTypeParameterReference: true
           type: U
           getter: <testLibrary>::@mixin::M::@getter::g
-        isOriginGetterSetter s
+        isOriginGetterSetter shouldUseTypeForInitializerInference s
           reference: <testLibrary>::@mixin::M::@field::s
           firstFragment: #F14
           type: int
           setter: <testLibrary>::@mixin::M::@setter::s
       getters
-        isOriginVariable f
+        hasEnclosingTypeParameterReference isOriginVariable f
           reference: <testLibrary>::@mixin::M::@getter::f
           firstFragment: #F15
-          hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@mixin::M::@field::f
-        isOriginDeclaration g
+        hasEnclosingTypeParameterReference isOriginDeclaration g
           reference: <testLibrary>::@mixin::M::@getter::g
           firstFragment: #F16
-          hasEnclosingTypeParameterReference: true
           returnType: U
           variable: <testLibrary>::@mixin::M::@field::g
       setters
-        isOriginVariable f
+        hasEnclosingTypeParameterReference isOriginVariable f
           reference: <testLibrary>::@mixin::M::@setter::f
           firstFragment: #F17
-          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional value
               firstFragment: #F18
@@ -454,10 +449,10 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin M (nameOffset:11) (firstTokenOffset:0) (offset:11)
+        #F1 isBase mixin M (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@mixin::M
   mixins
-    base mixin M
+    isBase isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
@@ -482,12 +477,12 @@ library
         #F2 mixin B (nameOffset:30) (firstTokenOffset:24) (offset:30)
           element: <testLibrary>::@mixin::B
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
-    mixin B
+    isSimplyBounded mixin B
       reference: <testLibrary>::@mixin::B
       firstFragment: #F2
       superclassConstraints
@@ -512,12 +507,12 @@ library
         #F2 mixin B (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@mixin::B
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
-    mixin B
+    isSimplyBounded mixin B
       reference: <testLibrary>::@mixin::B
       firstFragment: #F2
       superclassConstraints
@@ -539,7 +534,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
@@ -562,7 +557,7 @@ library
         #F1 mixin M (nameOffset:22) (firstTokenOffset:16) (offset:22)
           element: <testLibrary>::@mixin::M
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
@@ -586,19 +581,19 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 hasInitializer isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
+            #F2 hasImplicitType hasInitializer isOriginDeclaration x (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::M::@field::x
           getters
-            #F3 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::M::@getter::x
           setters
-            #F4 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::M::@setter::x
               formalParameters
                 #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::M::@setter::x::@formalParameter::value
   mixins
-    hasNonFinalField mixin M
+    hasNonFinalField isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
@@ -644,19 +639,19 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           fields
-            #F2 hasInitializer isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
+            #F2 hasImplicitType hasInitializer isFinal isOriginDeclaration x (nameOffset:18) (firstTokenOffset:18) (offset:18)
               element: <testLibrary>::@mixin::M::@field::x
           getters
-            #F3 isOriginVariable isCompleteDeclaration x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
+            #F3 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:18)
               element: <testLibrary>::@mixin::M::@getter::x
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        final hasImplicitType hasInitializer isOriginDeclaration x
+        hasImplicitType hasInitializer isFinal isOriginDeclaration x
           reference: <testLibrary>::@mixin::M::@field::x
           firstFragment: #F2
           type: int
@@ -703,22 +698,22 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
+            #F3 invokesSuperSelf isCompleteDeclaration isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@mixin::M::@getter::foo
       getters
-        isOriginDeclaration foo
+        invokesSuperSelf isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@getter::foo
           firstFragment: #F3
           returnType: int
@@ -747,22 +742,22 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
+            #F3 invokesSuperSelf isCompleteDeclaration isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@mixin::M::@getter::foo
       getters
-        isOriginDeclaration foo
+        invokesSuperSelf isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@getter::foo
           firstFragment: #F3
           returnType: int
@@ -791,16 +786,16 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           getters
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:25) (firstTokenOffset:17) (offset:25)
               element: <testLibrary>::@mixin::M::@getter::foo
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -828,7 +823,7 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
@@ -858,7 +853,7 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
+        #F4 hasExtendsClause class B (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::B
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
@@ -871,18 +866,17 @@ library
             #F7 U (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 U
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       supertype: A<int>
@@ -896,7 +890,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int}
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F6
       typeParameters
@@ -933,34 +927,33 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class B (nameOffset:20) (firstTokenOffset:14) (offset:20)
+        #F4 isMixinApplication class B (nameOffset:20) (firstTokenOffset:14) (offset:20)
           element: <testLibrary>::@class::B
           typeParameters
             #F5 T (nameOffset:22) (firstTokenOffset:22) (offset:22)
               element: #E1 T
           constructors
-            #F6 const isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
+            #F6 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:20)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F7 class C (nameOffset:51) (firstTokenOffset:45) (offset:51)
+        #F7 isMixinApplication class C (nameOffset:51) (firstTokenOffset:45) (offset:51)
           element: <testLibrary>::@class::C
           constructors
             #F8 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
-    class alias B
+    isMixinApplication isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F4
       typeParameters
@@ -970,10 +963,9 @@ library
       mixins
         A<T>
       constructors
-        const isOriginMixinApplication new
+        hasEnclosingTypeParameterReference isConst isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F6
-          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -981,7 +973,7 @@ library
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
               element: dart:core::@class::Object::@constructor::new
-    class alias C
+    isMixinApplication isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F7
       supertype: A<int>
@@ -1042,13 +1034,13 @@ library
             #F6 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
               element: <testLibrary>::@class::A2::@constructor::new
               typeName: A2
-        #F7 class B (nameOffset:36) (firstTokenOffset:30) (offset:36)
+        #F7 isMixinApplication class B (nameOffset:36) (firstTokenOffset:30) (offset:36)
           element: <testLibrary>::@class::B
           typeParameters
             #F8 T (nameOffset:38) (firstTokenOffset:38) (offset:38)
               element: #E2 T
           constructors
-            #F9 const isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+            #F9 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
         #F10 class Base (nameOffset:75) (firstTokenOffset:69) (offset:75)
@@ -1057,36 +1049,34 @@ library
             #F11 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
               element: <testLibrary>::@class::Base::@constructor::new
               typeName: Base
-        #F12 class C (nameOffset:108) (firstTokenOffset:102) (offset:108)
+        #F12 isMixinApplication class C (nameOffset:108) (firstTokenOffset:102) (offset:108)
           element: <testLibrary>::@class::C
           constructors
             #F13 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:108)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
   classes
-    class A1
+    isSimplyBounded class A1
       reference: <testLibrary>::@class::A1
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A1::@constructor::new
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
-    class A2
+    isSimplyBounded class A2
       reference: <testLibrary>::@class::A2
       firstFragment: #F4
       typeParameters
         #E1 T
           firstFragment: #F5
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A2::@constructor::new
           firstFragment: #F6
-          hasEnclosingTypeParameterReference: true
-    class alias B
+    isMixinApplication isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       typeParameters
@@ -1097,10 +1087,9 @@ library
         A1<T>
         A2<T>
       constructors
-        const isOriginMixinApplication new
+        hasEnclosingTypeParameterReference isConst isOriginMixinApplication new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F9
-          hasEnclosingTypeParameterReference: true
           constantInitializers
             SuperConstructorInvocation
               superKeyword: super @0
@@ -1108,7 +1097,7 @@ library
                 leftParenthesis: ( @0
                 rightParenthesis: ) @0
               element: dart:core::@class::Object::@constructor::new
-    class Base
+    isSimplyBounded class Base
       reference: <testLibrary>::@class::Base
       firstFragment: #F10
       interfaces
@@ -1117,7 +1106,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::Base::@constructor::new
           firstFragment: #F11
-    class alias C
+    isMixinApplication isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F12
       supertype: Base
@@ -1160,7 +1149,7 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class C (nameOffset:57) (firstTokenOffset:51) (offset:57)
+        #F4 hasExtendsClause class C (nameOffset:57) (firstTokenOffset:51) (offset:57)
           element: <testLibrary>::@class::C
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
@@ -1175,18 +1164,17 @@ library
             #F8 U (nameOffset:25) (firstTokenOffset:25) (offset:25)
               element: #E2 U
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       supertype: A<int Function(String)>
@@ -1200,7 +1188,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: int Function(String)}
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F6
       typeParameters
@@ -1226,7 +1214,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
+        #F1 isAbstract class A (nameOffset:15) (firstTokenOffset:0) (offset:15)
           element: <testLibrary>::@class::A
           typeParameters
             #F2 T (nameOffset:17) (firstTokenOffset:17) (offset:17)
@@ -1235,7 +1223,7 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F4 class C (nameOffset:57) (firstTokenOffset:51) (offset:57)
+        #F4 hasExtendsClause class C (nameOffset:57) (firstTokenOffset:51) (offset:57)
           element: <testLibrary>::@class::C
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
@@ -1248,18 +1236,17 @@ library
             #F7 T (nameOffset:31) (firstTokenOffset:31) (offset:31)
               element: #E1 T
   classes
-    abstract class A
+    isAbstract isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       typeParameters
         #E0 T
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F4
       supertype: A<List<int>>
@@ -1273,7 +1260,7 @@ library
             baseElement: <testLibrary>::@class::A::@constructor::new
             substitution: {T: List<int>}
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F6
       typeParameters
@@ -1308,7 +1295,7 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::I::@constructor::new
               typeName: I
-        #F4 class A (nameOffset:66) (firstTokenOffset:60) (offset:66)
+        #F4 isMixinApplication class A (nameOffset:66) (firstTokenOffset:60) (offset:66)
           element: <testLibrary>::@class::A
           constructors
             #F5 isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
@@ -1326,18 +1313,17 @@ library
             #F9 T (nameOffset:46) (firstTokenOffset:46) (offset:46)
               element: #E2 T
   classes
-    class I
+    isSimplyBounded class I
       reference: <testLibrary>::@class::I
       firstFragment: #F1
       typeParameters
         #E0 X
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::I::@constructor::new
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
-    class alias A
+    isMixinApplication isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F4
       supertype: I<int>
@@ -1359,7 +1345,7 @@ library
             baseElement: <testLibrary>::@class::I::@constructor::new
             substitution: {X: int}
   mixins
-    mixin M1
+    isSimplyBounded mixin M1
       reference: <testLibrary>::@mixin::M1
       firstFragment: #F6
       typeParameters
@@ -1367,7 +1353,7 @@ library
           firstFragment: #F7
       superclassConstraints
         I<T>
-    mixin M2
+    isSimplyBounded mixin M2
       reference: <testLibrary>::@mixin::M2
       firstFragment: #F8
       typeParameters
@@ -1404,7 +1390,7 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:62)
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
-        #F4 class X (nameOffset:78) (firstTokenOffset:72) (offset:78)
+        #F4 hasExtendsClause class X (nameOffset:78) (firstTokenOffset:72) (offset:78)
           element: <testLibrary>::@class::X
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:78)
@@ -1425,18 +1411,17 @@ library
             #F10 T2 (nameOffset:37) (firstTokenOffset:37) (offset:37)
               element: #E3 T2
   classes
-    class S
+    isSimplyBounded class S
       reference: <testLibrary>::@class::S
       firstFragment: #F1
       typeParameters
         #E0 T3
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::S::@constructor::new
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F4
       supertype: S<String>
@@ -1453,7 +1438,7 @@ library
             baseElement: <testLibrary>::@class::S::@constructor::new
             substitution: {T3: String}
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F6
       typeParameters
@@ -1464,7 +1449,7 @@ library
       superclassConstraints
         S<T>
   typeAliases
-    M2
+    isSimplyBounded M2
       reference: <testLibrary>::@typeAlias::M2
       firstFragment: #F9
       typeParameters
@@ -1502,7 +1487,7 @@ library
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:88)
               element: <testLibrary>::@class::S::@constructor::new
               typeName: S
-        #F4 class X (nameOffset:104) (firstTokenOffset:98) (offset:104)
+        #F4 hasExtendsClause class X (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::X
           constructors
             #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
@@ -1528,18 +1513,17 @@ library
             #F12 T3 (nameOffset:67) (firstTokenOffset:67) (offset:67)
               element: #E4 T3
   classes
-    class S
+    isSimplyBounded class S
       reference: <testLibrary>::@class::S
       firstFragment: #F1
       typeParameters
         #E0 T4
           firstFragment: #F2
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::S::@constructor::new
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F4
       supertype: S<String>
@@ -1556,7 +1540,7 @@ library
             baseElement: <testLibrary>::@class::S::@constructor::new
             substitution: {T4: String}
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F6
       typeParameters
@@ -1567,14 +1551,14 @@ library
       superclassConstraints
         S<T>
   typeAliases
-    M2
+    isSimplyBounded M2
       reference: <testLibrary>::@typeAlias::M2
       firstFragment: #F9
       typeParameters
         #E3 T2
           firstFragment: #F10
       aliasedType: M<T2, int>
-    M3
+    isSimplyBounded M3
       reference: <testLibrary>::@typeAlias::M3
       firstFragment: #F11
       typeParameters
@@ -1610,30 +1594,30 @@ library
         #F3 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F4 isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F5 isOriginVariable isCompleteDeclaration it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@extensionType::B::@getter::it
       mixins
         #F6 mixin M (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@mixin::M
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F2
   extensionTypes
-    extension type B
+    isSimplyBounded extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: #F3
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        final isOriginDeclaringFormalParameter it
+        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F4
           type: int
@@ -1646,7 +1630,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::B::@field::it
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F6
       superclassConstraints
@@ -1767,16 +1751,16 @@ library
         #F1 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::M
           methods
-            #F2 isOriginDeclaration isCompleteDeclaration foo (nameOffset:22) (firstTokenOffset:17) (offset:22) invokesSuperSelf
+            #F2 invokesSuperSelf isCompleteDeclaration isOriginDeclaration foo (nameOffset:22) (firstTokenOffset:17) (offset:22)
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
         Object
       methods
-        isOriginDeclaration foo
+        invokesSuperSelf isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: #F2
           returnType: void
@@ -1807,10 +1791,10 @@ library
         #F3 mixin B (nameOffset:17) (firstTokenOffset:11) (offset:17)
           element: <testLibrary>::@mixin::B
           methods
-            #F4 isOriginDeclaration isCompleteDeclaration A (nameOffset:33) (firstTokenOffset:28) (offset:33)
+            #F4 isCompleteDeclaration isOriginDeclaration A (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@mixin::B::@method::A
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -1818,7 +1802,7 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   mixins
-    mixin B
+    isSimplyBounded mixin B
       reference: <testLibrary>::@mixin::B
       firstFragment: #F3
       superclassConstraints
@@ -1851,10 +1835,10 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@mixin::M::@method::foo
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       typeParameters
@@ -1890,13 +1874,13 @@ library
             #F2 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:15) (offset:20)
               element: <testLibrary>::@mixin::M::@method::foo
               formalParameters
-                #F4 requiredPositional _ (nameOffset:26) (firstTokenOffset:24) (offset:26)
+                #F4 requiredPositional isOriginDeclaration _ (nameOffset:26) (firstTokenOffset:24) (offset:26)
                   element: <testLibrary>::@mixin::M::@method::foo::@formalParameter::_
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       typeParameters
@@ -1905,10 +1889,9 @@ library
       superclassConstraints
         Object
       methods
-        isOriginDeclaration foo
+        hasEnclosingTypeParameterReference isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@method::foo
           firstFragment: #F3
-          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional _
               firstFragment: #F4
@@ -1931,7 +1914,7 @@ library
         #F1 mixin <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
           element: <testLibrary>::@mixin::0
   mixins
-    mixin <null-name>
+    isSimplyBounded mixin <null-name>
       reference: <testLibrary>::@mixin::0
       firstFragment: #F1
       superclassConstraints
@@ -1960,19 +1943,19 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           setters
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                #F4 requiredPositional _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                #F4 requiredPositional isOriginDeclaration _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::_
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
@@ -2011,25 +1994,25 @@ library
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::M::@field::foo
           setters
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
+            #F3 hasImplicitReturnType invokesSuperSelf isCompleteDeclaration isOriginDeclaration foo (nameOffset:21) (firstTokenOffset:17) (offset:21)
               element: <testLibrary>::@mixin::M::@setter::foo
               formalParameters
-                #F4 requiredPositional _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
+                #F4 requiredPositional isOriginDeclaration _ (nameOffset:29) (firstTokenOffset:25) (offset:29)
                   element: <testLibrary>::@mixin::M::@setter::foo::@formalParameter::_
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::M::@field::foo
           firstFragment: #F2
           type: int
           setter: <testLibrary>::@mixin::M::@setter::foo
       setters
-        isOriginDeclaration foo
+        invokesSuperSelf isOriginDeclaration foo
           reference: <testLibrary>::@mixin::M::@setter::foo
           firstFragment: #F3
           formalParameters
@@ -2064,30 +2047,30 @@ library
         #F3 extension type B (nameOffset:26) (firstTokenOffset:11) (offset:26)
           element: <testLibrary>::@extensionType::B
           fields
-            #F4 isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F4 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@extensionType::B::@field::it
           getters
-            #F5 isOriginVariable isCompleteDeclaration it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+            #F5 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@extensionType::B::@getter::it
       mixins
         #F6 mixin M (nameOffset:56) (firstTokenOffset:50) (offset:56)
           element: <testLibrary>::@mixin::M
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F2
   extensionTypes
-    extension type B
+    isSimplyBounded extension type B
       reference: <testLibrary>::@extensionType::B
       firstFragment: #F3
       representation: <testLibrary>::@extensionType::B::@field::it
       primaryConstructor: <testLibrary>::@extensionType::B::@constructor::new
       typeErasure: int
       fields
-        final isOriginDeclaringFormalParameter it
+        isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference it
           reference: <testLibrary>::@extensionType::B::@field::it
           firstFragment: #F4
           type: int
@@ -2100,7 +2083,7 @@ library
           returnType: int
           variable: <testLibrary>::@extensionType::B::@field::it
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F6
       superclassConstraints
@@ -2124,7 +2107,7 @@ library
             #F2 T (nameOffset:11) (firstTokenOffset:8) (offset:11)
               element: #E0 T
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       typeParameters
@@ -2150,7 +2133,7 @@ library
             #F2 T (nameOffset:12) (firstTokenOffset:8) (offset:12)
               element: #E0 T
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       typeParameters
@@ -2176,7 +2159,7 @@ library
             #F2 T (nameOffset:14) (firstTokenOffset:8) (offset:14)
               element: #E0 T
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       typeParameters
@@ -2206,7 +2189,7 @@ library
             #F4 V (nameOffset:27) (firstTokenOffset:23) (offset:27)
               element: #E2 V
   mixins
-    mixin M
+    isSimplyBounded mixin M
       reference: <testLibrary>::@mixin::M
       firstFragment: #F1
       typeParameters
@@ -2242,15 +2225,15 @@ library
         #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
-        #F2 mixin A (nameOffset:26) (firstTokenOffset:12) (offset:26)
+        #F2 isAugmentation mixin A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F3
-        #F3 mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+        #F3 isAugmentation mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -2284,25 +2267,25 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin A (nameOffset:14) (firstTokenOffset:0) (offset:14)
+        #F1 isAugmentation mixin A (nameOffset:14) (firstTokenOffset:0) (offset:14)
           element: <testLibrary>::@mixin::A::@def::0
           methods
-            #F2 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
+            #F2 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
               element: <testLibrary>::@mixin::A::@def::0::@method::foo1
         #F3 mixin A (nameOffset:44) (firstTokenOffset:38) (offset:44)
           element: <testLibrary>::@mixin::A::@def::1
           nextFragment: #F4
           methods
-            #F5 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:55) (firstTokenOffset:50) (offset:55)
+            #F5 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:55) (firstTokenOffset:50) (offset:55)
               element: <testLibrary>::@mixin::A::@def::1::@method::foo2
-        #F4 mixin A (nameOffset:82) (firstTokenOffset:68) (offset:82)
+        #F4 isAugmentation mixin A (nameOffset:82) (firstTokenOffset:68) (offset:82)
           element: <testLibrary>::@mixin::A::@def::1
           previousFragment: #F3
           methods
-            #F6 isOriginDeclaration isCompleteDeclaration foo3 (nameOffset:93) (firstTokenOffset:88) (offset:93)
+            #F6 isCompleteDeclaration isOriginDeclaration foo3 (nameOffset:93) (firstTokenOffset:88) (offset:93)
               element: <testLibrary>::@mixin::A::@def::1::@method::foo3
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A::@def::0
       firstFragment: #F1
       superclassConstraints
@@ -2312,7 +2295,7 @@ library
           reference: <testLibrary>::@mixin::A::@def::0::@method::foo1
           firstFragment: #F2
           returnType: void
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A::@def::1
       firstFragment: #F3
       superclassConstraints
@@ -2351,25 +2334,25 @@ library
       mixins
         #F1 mixin B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::B
-        #F2 mixin A (nameOffset:26) (firstTokenOffset:12) (offset:26)
+        #F2 isAugmentation mixin A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@mixin::A
           nextFragment: #F3
           methods
-            #F4 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
+            #F4 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:37) (firstTokenOffset:32) (offset:37)
               element: <testLibrary>::@mixin::A::@method::foo1
-        #F3 mixin A (nameOffset:64) (firstTokenOffset:50) (offset:64)
+        #F3 isAugmentation mixin A (nameOffset:64) (firstTokenOffset:50) (offset:64)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F5 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:75) (firstTokenOffset:70) (offset:75)
+            #F5 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:75) (firstTokenOffset:70) (offset:75)
               element: <testLibrary>::@mixin::A::@method::foo2
   mixins
-    mixin B
+    isSimplyBounded mixin B
       reference: <testLibrary>::@mixin::B
       firstFragment: #F1
       superclassConstraints
         Object
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F2
       superclassConstraints
@@ -2412,29 +2395,29 @@ library
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
-            #F5 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
           setters
-            #F6 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
-        #F2 mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+        #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2489,38 +2472,38 @@ library
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
-            #F5 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
           setters
-            #F6 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
-        #F2 mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+        #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F8
           fields
-            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
+            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:60) (offset:60)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
               nextFragment: #F9
-        #F8 mixin A (nameOffset:86) (firstTokenOffset:72) (offset:86)
+        #F8 isAugmentation mixin A (nameOffset:86) (firstTokenOffset:72) (offset:86)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F9 augment hasInitializer isOriginDeclaration foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
+            #F9 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:104) (firstTokenOffset:104) (offset:104)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F4
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2575,38 +2558,38 @@ library
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
-            #F5 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               nextFragment: #F6
           setters
-            #F7 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F7 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
-        #F2 mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+        #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F9
           getters
-            #F6 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F5
-        #F9 mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+        #F9 isAugmentation mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2661,41 +2644,41 @@ library
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
-            #F5 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
           setters
-            #F6 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
               nextFragment: #F8
-        #F2 mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+        #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F9
           setters
-            #F8 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+            #F8 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
-                #F10 requiredPositional _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
+                #F10 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::_
               previousFragment: #F6
-        #F9 mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+        #F9 isAugmentation mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           fields
-            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
+            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:109) (offset:109)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2746,29 +2729,29 @@ library
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
-            #F5 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
           setters
-            #F6 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
-        #F2 mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+        #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
+            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:63) (offset:63)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2821,23 +2804,23 @@ library
               element: <testLibrary>::@mixin::A::@field::foo
               nextFragment: #F4
           getters
-            #F5 isOriginDeclaration isCompleteDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo
-        #F2 mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+        #F2 isAugmentation mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
-            #F4 augment hasInitializer isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
+            #F4 hasInitializer isAugmentation isOriginDeclaration foo (nameOffset:65) (firstTokenOffset:65) (offset:65)
               element: <testLibrary>::@mixin::A::@field::foo
               previousFragment: #F3
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginGetterSetter foo
+        hasInitializer isOriginGetterSetter shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -2876,43 +2859,43 @@ library
             #F3 hasInitializer isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
-            #F4 isOriginVariable isCompleteDeclaration foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo1
           setters
-            #F5 isOriginVariable isCompleteDeclaration foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo1
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo1::@formalParameter::value
-        #F2 mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
+        #F2 isAugmentation mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
             #F7 hasInitializer isOriginDeclaration foo2 (nameOffset:53) (firstTokenOffset:53) (offset:53)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
-            #F8 isOriginVariable isCompleteDeclaration foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F8 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@mixin::A::@getter::foo2
           setters
-            #F9 isOriginVariable isCompleteDeclaration foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+            #F9 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
               element: <testLibrary>::@mixin::A::@setter::foo2
               formalParameters
                 #F10 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
                   element: <testLibrary>::@mixin::A::@setter::foo2::@formalParameter::value
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo1
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        hasInitializer isOriginDeclaration foo2
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F7
           type: int
@@ -2980,15 +2963,15 @@ library
             #F5 isOriginDeclaration foo1 (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
-            #F6 isOriginVariable isCompleteDeclaration foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F6 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@mixin::A::@getter::foo1
           setters
-            #F7 isOriginVariable isCompleteDeclaration foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+            #F7 isCompleteDeclaration isOriginVariable foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
               element: <testLibrary>::@mixin::A::@setter::foo1
               formalParameters
                 #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
                   element: <testLibrary>::@mixin::A::@setter::foo1::@formalParameter::value
-        #F2 mixin A (nameOffset:40) (firstTokenOffset:26) (offset:40)
+        #F2 isAugmentation mixin A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -2999,16 +2982,16 @@ library
             #F9 isOriginDeclaration foo2 (nameOffset:51) (firstTokenOffset:51) (offset:51)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
-            #F10 isOriginVariable isCompleteDeclaration foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F10 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::A::@getter::foo2
           setters
-            #F11 isOriginVariable isCompleteDeclaration foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+            #F11 isCompleteDeclaration isOriginVariable foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@mixin::A::@setter::foo2
               formalParameters
                 #F12 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
                   element: <testLibrary>::@mixin::A::@setter::foo2::@formalParameter::value
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -3017,48 +3000,42 @@ library
       superclassConstraints
         Object
       fields
-        isOriginDeclaration foo1
+        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F5
-          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@mixin::A::@getter::foo1
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        isOriginDeclaration foo2
+        hasEnclosingTypeParameterReference isOriginDeclaration shouldUseTypeForInitializerInference foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F9
-          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@mixin::A::@getter::foo2
           setter: <testLibrary>::@mixin::A::@setter::foo2
       getters
-        isOriginVariable foo1
+        hasEnclosingTypeParameterReference isOriginVariable foo1
           reference: <testLibrary>::@mixin::A::@getter::foo1
           firstFragment: #F6
-          hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@mixin::A::@field::foo1
-        isOriginVariable foo2
+        hasEnclosingTypeParameterReference isOriginVariable foo2
           reference: <testLibrary>::@mixin::A::@getter::foo2
           firstFragment: #F10
-          hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@mixin::A::@field::foo2
       setters
-        isOriginVariable foo1
+        hasEnclosingTypeParameterReference isOriginVariable foo1
           reference: <testLibrary>::@mixin::A::@setter::foo1
           firstFragment: #F7
-          hasEnclosingTypeParameterReference: true
           formalParameters
             #E1 requiredPositional value
               firstFragment: #F8
               type: T
           returnType: void
           variable: <testLibrary>::@mixin::A::@field::foo1
-        isOriginVariable foo2
+        hasEnclosingTypeParameterReference isOriginVariable foo2
           reference: <testLibrary>::@mixin::A::@setter::foo2
           firstFragment: #F11
-          hasEnclosingTypeParameterReference: true
           formalParameters
             #E2 requiredPositional value
               firstFragment: #F12
@@ -3093,30 +3070,30 @@ library
             #F3 isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
-            #F4 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F4 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo1
-        #F2 mixin A (nameOffset:48) (firstTokenOffset:34) (offset:48)
+        #F2 isAugmentation mixin A (nameOffset:48) (firstTokenOffset:34) (offset:48)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
             #F5 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
-            #F6 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:62) (firstTokenOffset:54) (offset:62)
+            #F6 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:62) (firstTokenOffset:54) (offset:62)
               element: <testLibrary>::@mixin::A::@getter::foo2
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo1
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        isOriginGetterSetter foo2
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F5
           type: int
@@ -3164,9 +3141,9 @@ library
             #F5 isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
           getters
-            #F6 isOriginDeclaration foo1 (nameOffset:21) (firstTokenOffset:15) (offset:21)
+            #F6 isAbstract isOriginDeclaration foo1 (nameOffset:21) (firstTokenOffset:15) (offset:21)
               element: <testLibrary>::@mixin::A::@getter::foo1
-        #F2 mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+        #F2 isAugmentation mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -3177,10 +3154,10 @@ library
             #F7 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
-            #F8 isOriginDeclaration foo2 (nameOffset:59) (firstTokenOffset:53) (offset:59)
+            #F8 isAbstract isOriginDeclaration foo2 (nameOffset:59) (firstTokenOffset:53) (offset:59)
               element: <testLibrary>::@mixin::A::@getter::foo2
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -3189,29 +3166,25 @@ library
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo1
+        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F5
-          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        isOriginGetterSetter foo2
+        hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F7
-          hasEnclosingTypeParameterReference: true
           type: T
           getter: <testLibrary>::@mixin::A::@getter::foo2
       getters
-        abstract isOriginDeclaration foo1
+        hasEnclosingTypeParameterReference isOriginDeclaration foo1
           reference: <testLibrary>::@mixin::A::@getter::foo1
           firstFragment: #F6
-          hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@mixin::A::@field::foo1
-        abstract isOriginDeclaration foo2
+        hasEnclosingTypeParameterReference isOriginDeclaration foo2
           reference: <testLibrary>::@mixin::A::@getter::foo2
           firstFragment: #F8
-          hasEnclosingTypeParameterReference: true
           returnType: T
           variable: <testLibrary>::@mixin::A::@field::foo2
 ''');
@@ -3242,30 +3215,30 @@ library
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
-            #F4 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               nextFragment: #F5
           setters
-            #F6 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
-        #F2 mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+        #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           getters
-            #F5 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -3319,39 +3292,39 @@ library
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
-            #F4 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
               nextFragment: #F5
           setters
-            #F6 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F6 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F7 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
-        #F2 mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+        #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F8
           getters
-            #F5 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
+            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:48) (offset:64)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
               nextFragment: #F9
-        #F8 mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
+        #F8 isAugmentation mixin A (nameOffset:91) (firstTokenOffset:77) (offset:91)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           getters
-            #F9 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:113) (firstTokenOffset:97) (offset:113)
+            #F9 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:113) (firstTokenOffset:97) (offset:113)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F5
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -3404,31 +3377,31 @@ library
             #F4 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo2
           getters
-            #F5 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F5 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo1
               nextFragment: #F6
-            #F7 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:41) (firstTokenOffset:33) (offset:41)
+            #F7 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:41) (firstTokenOffset:33) (offset:41)
               element: <testLibrary>::@mixin::A::@getter::foo2
-        #F2 mixin A (nameOffset:69) (firstTokenOffset:55) (offset:69)
+        #F2 isAugmentation mixin A (nameOffset:69) (firstTokenOffset:55) (offset:69)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           getters
-            #F6 augment isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:91) (firstTokenOffset:75) (offset:91)
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:91) (firstTokenOffset:75) (offset:91)
               element: <testLibrary>::@mixin::A::@getter::foo1
               previousFragment: #F5
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo1
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           getter: <testLibrary>::@mixin::A::@getter::foo1
-        isOriginGetterSetter foo2
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F4
           type: int
@@ -3476,33 +3449,33 @@ library
             #F3 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
-            #F4 isOriginDeclaration isCompleteDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
+            #F4 isCompleteDeclaration isOriginDeclaration foo (nameOffset:20) (firstTokenOffset:12) (offset:20)
               element: <testLibrary>::@mixin::A::@getter::foo
               nextFragment: #F5
-        #F2 mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+        #F2 isAugmentation mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F6
           getters
-            #F5 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:69) (firstTokenOffset:53) (offset:69)
+            #F5 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:69) (firstTokenOffset:53) (offset:69)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F4
               nextFragment: #F7
-        #F6 mixin A (nameOffset:96) (firstTokenOffset:82) (offset:96)
+        #F6 isAugmentation mixin A (nameOffset:96) (firstTokenOffset:82) (offset:96)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           getters
-            #F7 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:118) (firstTokenOffset:102) (offset:118)
+            #F7 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:118) (firstTokenOffset:102) (offset:118)
               element: <testLibrary>::@mixin::A::@getter::foo
               previousFragment: #F5
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -3548,18 +3521,18 @@ library
         #F5 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
           nextFragment: #F6
-        #F6 mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
+        #F6 isAugmentation mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
           element: <testLibrary>::@mixin::A
           previousFragment: #F5
   classes
-    class I1
+    isSimplyBounded class I1
       reference: <testLibrary>::@class::I1
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I1::@constructor::new
           firstFragment: #F2
-    class I2
+    isSimplyBounded class I2
       reference: <testLibrary>::@class::I2
       firstFragment: #F3
       constructors
@@ -3567,7 +3540,7 @@ library
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F4
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F5
       superclassConstraints
@@ -3619,29 +3592,29 @@ library
         #F7 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
           nextFragment: #F8
-        #F8 mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
+        #F8 isAugmentation mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
           element: <testLibrary>::@mixin::A
           previousFragment: #F7
           nextFragment: #F9
-        #F9 mixin A (nameOffset:98) (firstTokenOffset:84) (offset:98)
+        #F9 isAugmentation mixin A (nameOffset:98) (firstTokenOffset:84) (offset:98)
           element: <testLibrary>::@mixin::A
           previousFragment: #F8
   classes
-    class I1
+    isSimplyBounded class I1
       reference: <testLibrary>::@class::I1
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I1::@constructor::new
           firstFragment: #F2
-    class I2
+    isSimplyBounded class I2
       reference: <testLibrary>::@class::I2
       firstFragment: #F3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F4
-    class I3
+    isSimplyBounded class I3
       reference: <testLibrary>::@class::I3
       firstFragment: #F5
       constructors
@@ -3649,7 +3622,7 @@ library
           reference: <testLibrary>::@class::I3::@constructor::new
           firstFragment: #F6
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F7
       superclassConstraints
@@ -3683,16 +3656,16 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
-        #F2 mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
+        #F2 isAugmentation mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 isOriginDeclaration isCompleteDeclaration bar (nameOffset:54) (firstTokenOffset:49) (offset:54)
+            #F4 isCompleteDeclaration isOriginDeclaration bar (nameOffset:54) (firstTokenOffset:49) (offset:54)
               element: <testLibrary>::@mixin::A::@method::bar
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -3732,20 +3705,20 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo1
               nextFragment: #F4
-            #F5 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:34) (firstTokenOffset:29) (offset:34)
+            #F5 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:34) (firstTokenOffset:29) (offset:34)
               element: <testLibrary>::@mixin::A::@method::foo2
-        #F2 mixin A (nameOffset:61) (firstTokenOffset:47) (offset:61)
+        #F2 isAugmentation mixin A (nameOffset:61) (firstTokenOffset:47) (offset:61)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:80) (firstTokenOffset:67) (offset:80)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:80) (firstTokenOffset:67) (offset:80)
               element: <testLibrary>::@mixin::A::@method::foo1
               previousFragment: #F3
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -3788,27 +3761,27 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
-        #F2 mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
+        #F2 isAugmentation mixin A (nameOffset:43) (firstTokenOffset:29) (offset:43)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F5
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:62) (firstTokenOffset:49) (offset:62)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:62) (firstTokenOffset:49) (offset:62)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F6
-        #F5 mixin A (nameOffset:88) (firstTokenOffset:74) (offset:88)
+        #F5 isAugmentation mixin A (nameOffset:88) (firstTokenOffset:74) (offset:88)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F6 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:107) (firstTokenOffset:94) (offset:107)
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:107) (firstTokenOffset:94) (offset:107)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -3847,9 +3820,9 @@ library
               element: #E0 T
               nextFragment: #F4
           methods
-            #F5 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
-        #F2 mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
+        #F2 isAugmentation mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -3857,10 +3830,10 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F6 isOriginDeclaration isCompleteDeclaration bar (nameOffset:63) (firstTokenOffset:61) (offset:63)
+            #F6 isCompleteDeclaration isOriginDeclaration bar (nameOffset:63) (firstTokenOffset:61) (offset:63)
               element: <testLibrary>::@mixin::A::@method::bar
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -3869,15 +3842,13 @@ library
       superclassConstraints
         Object
       methods
-        isOriginDeclaration foo
+        hasEnclosingTypeParameterReference isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F5
-          hasEnclosingTypeParameterReference: true
           returnType: T
-        isOriginDeclaration bar
+        hasEnclosingTypeParameterReference isOriginDeclaration bar
           reference: <testLibrary>::@mixin::A::@method::bar
           firstFragment: #F6
-          hasEnclosingTypeParameterReference: true
           returnType: T
 ''');
   }
@@ -3908,10 +3879,10 @@ library
               element: #E0 T
               nextFragment: #F4
           methods
-            #F5 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
+            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:15) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F6
-        #F2 mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
+        #F2 isAugmentation mixin A (nameOffset:52) (firstTokenOffset:38) (offset:52)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -3919,11 +3890,11 @@ library
               element: #E0 T
               previousFragment: #F3
           methods
-            #F6 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:71) (firstTokenOffset:61) (offset:71)
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:71) (firstTokenOffset:61) (offset:71)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F5
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -3932,10 +3903,9 @@ library
       superclassConstraints
         Object
       methods
-        isOriginDeclaration foo
+        hasEnclosingTypeParameterReference isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
           firstFragment: #F5
-          hasEnclosingTypeParameterReference: true
           returnType: T
 ''');
   }
@@ -3963,20 +3933,20 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
-            #F5 isOriginDeclaration isCompleteDeclaration bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
+            #F5 isCompleteDeclaration isOriginDeclaration bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@mixin::A::@method::bar
-        #F2 mixin A (nameOffset:59) (firstTokenOffset:45) (offset:59)
+        #F2 isAugmentation mixin A (nameOffset:59) (firstTokenOffset:45) (offset:59)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -4018,36 +3988,36 @@ library
             #F3 isOriginGetterSetter foo1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo1
           setters
-            #F4 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
+            #F4 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo1
               formalParameters
-                #F5 requiredPositional _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                #F5 requiredPositional isOriginDeclaration _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
                   element: <testLibrary>::@mixin::A::@setter::foo1::@formalParameter::_
-        #F2 mixin A (nameOffset:48) (firstTokenOffset:34) (offset:48)
+        #F2 isAugmentation mixin A (nameOffset:48) (firstTokenOffset:34) (offset:48)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           fields
             #F6 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@mixin::A::@field::foo2
           setters
-            #F7 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:58) (firstTokenOffset:54) (offset:58)
+            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:58) (firstTokenOffset:54) (offset:58)
               element: <testLibrary>::@mixin::A::@setter::foo2
               formalParameters
-                #F8 requiredPositional _ (nameOffset:67) (firstTokenOffset:63) (offset:67)
+                #F8 requiredPositional isOriginDeclaration _ (nameOffset:67) (firstTokenOffset:63) (offset:67)
                   element: <testLibrary>::@mixin::A::@setter::foo2::@formalParameter::_
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo1
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        isOriginGetterSetter foo2
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F6
           type: int
@@ -4099,33 +4069,33 @@ library
             #F3 hasInitializer isOriginDeclaration foo (nameOffset:16) (firstTokenOffset:16) (offset:16)
               element: <testLibrary>::@mixin::A::@field::foo
           getters
-            #F4 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F4 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@getter::foo
           setters
-            #F5 isOriginVariable isCompleteDeclaration foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
+            #F5 isCompleteDeclaration isOriginVariable foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
                 #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::value
               nextFragment: #F7
-        #F2 mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
+        #F2 isAugmentation mixin A (nameOffset:42) (firstTokenOffset:28) (offset:42)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           setters
-            #F7 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
+            #F7 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:60) (firstTokenOffset:48) (offset:60)
               element: <testLibrary>::@mixin::A::@setter::foo
               formalParameters
-                #F8 requiredPositional _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
+                #F8 requiredPositional isOriginDeclaration _ (nameOffset:68) (firstTokenOffset:64) (offset:68)
                   element: <testLibrary>::@mixin::A::@setter::foo::@formalParameter::_
               previousFragment: #F5
   mixins
-    hasNonFinalField mixin A
+    hasNonFinalField isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        hasInitializer isOriginDeclaration foo
+        hasInitializer isOriginDeclaration shouldUseTypeForInitializerInference foo
           reference: <testLibrary>::@mixin::A::@field::foo
           firstFragment: #F3
           type: int
@@ -4178,40 +4148,40 @@ library
             #F4 isOriginGetterSetter foo2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@mixin::A::@field::foo2
           setters
-            #F5 isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
+            #F5 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:16) (firstTokenOffset:12) (offset:16)
               element: <testLibrary>::@mixin::A::@setter::foo1
               formalParameters
-                #F6 requiredPositional _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
+                #F6 requiredPositional isOriginDeclaration _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
                   element: <testLibrary>::@mixin::A::@setter::foo1::@formalParameter::_
               nextFragment: #F7
-            #F8 isOriginDeclaration isCompleteDeclaration foo2 (nameOffset:37) (firstTokenOffset:33) (offset:37)
+            #F8 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:37) (firstTokenOffset:33) (offset:37)
               element: <testLibrary>::@mixin::A::@setter::foo2
               formalParameters
-                #F9 requiredPositional _ (nameOffset:46) (firstTokenOffset:42) (offset:46)
+                #F9 requiredPositional isOriginDeclaration _ (nameOffset:46) (firstTokenOffset:42) (offset:46)
                   element: <testLibrary>::@mixin::A::@setter::foo2::@formalParameter::_
-        #F2 mixin A (nameOffset:69) (firstTokenOffset:55) (offset:69)
+        #F2 isAugmentation mixin A (nameOffset:69) (firstTokenOffset:55) (offset:69)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           setters
-            #F7 augment isOriginDeclaration isCompleteDeclaration foo1 (nameOffset:87) (firstTokenOffset:75) (offset:87)
+            #F7 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:87) (firstTokenOffset:75) (offset:87)
               element: <testLibrary>::@mixin::A::@setter::foo1
               formalParameters
-                #F10 requiredPositional _ (nameOffset:96) (firstTokenOffset:92) (offset:96)
+                #F10 requiredPositional isOriginDeclaration _ (nameOffset:96) (firstTokenOffset:92) (offset:96)
                   element: <testLibrary>::@mixin::A::@setter::foo1::@formalParameter::_
               previousFragment: #F5
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       fields
-        isOriginGetterSetter foo1
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo1
           reference: <testLibrary>::@mixin::A::@field::foo1
           firstFragment: #F3
           type: int
           setter: <testLibrary>::@mixin::A::@setter::foo1
-        isOriginGetterSetter foo2
+        isOriginGetterSetter shouldUseTypeForInitializerInference foo2
           reference: <testLibrary>::@mixin::A::@field::foo2
           firstFragment: #F4
           type: int
@@ -4270,18 +4240,18 @@ library
         #F5 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
           nextFragment: #F6
-        #F6 mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+        #F6 isAugmentation mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
           element: <testLibrary>::@mixin::A
           previousFragment: #F5
   classes
-    class B1
+    isSimplyBounded class B1
       reference: <testLibrary>::@class::B1
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B1::@constructor::new
           firstFragment: #F2
-    class B2
+    isSimplyBounded class B2
       reference: <testLibrary>::@class::B2
       firstFragment: #F3
       constructors
@@ -4289,7 +4259,7 @@ library
           reference: <testLibrary>::@class::B2::@constructor::new
           firstFragment: #F4
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F5
       superclassConstraints
@@ -4339,29 +4309,29 @@ library
         #F7 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
           nextFragment: #F8
-        #F8 mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+        #F8 isAugmentation mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
           element: <testLibrary>::@mixin::A
           previousFragment: #F7
           nextFragment: #F9
-        #F9 mixin A (nameOffset:82) (firstTokenOffset:68) (offset:82)
+        #F9 isAugmentation mixin A (nameOffset:82) (firstTokenOffset:68) (offset:82)
           element: <testLibrary>::@mixin::A
           previousFragment: #F8
   classes
-    class I1
+    isSimplyBounded class I1
       reference: <testLibrary>::@class::I1
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I1::@constructor::new
           firstFragment: #F2
-    class I2
+    isSimplyBounded class I2
       reference: <testLibrary>::@class::I2
       firstFragment: #F3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F4
-    class I3
+    isSimplyBounded class I3
       reference: <testLibrary>::@class::I3
       firstFragment: #F5
       constructors
@@ -4369,7 +4339,7 @@ library
           reference: <testLibrary>::@class::I3::@constructor::new
           firstFragment: #F6
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F7
       superclassConstraints
@@ -4404,11 +4374,11 @@ library
         #F3 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
           nextFragment: #F4
-        #F4 mixin A (nameOffset:26) (firstTokenOffset:12) (offset:26)
+        #F4 isAugmentation mixin A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@mixin::A
           previousFragment: #F3
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       constructors
@@ -4416,7 +4386,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F2
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F3
       superclassConstraints
@@ -4463,7 +4433,7 @@ library
             #F8 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E1 T
               nextFragment: #F9
-        #F7 mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+        #F7 isAugmentation mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@mixin::A
           previousFragment: #F6
           typeParameters
@@ -4471,26 +4441,25 @@ library
               element: #E1 T
               previousFragment: #F8
   classes
-    class I1
+    isSimplyBounded class I1
       reference: <testLibrary>::@class::I1
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I1::@constructor::new
           firstFragment: #F2
-    class I2
+    isSimplyBounded class I2
       reference: <testLibrary>::@class::I2
       firstFragment: #F3
       typeParameters
         #E0 E
           firstFragment: #F4
       constructors
-        isOriginImplicitDefault new
+        hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
           firstFragment: #F5
-          hasEnclosingTypeParameterReference: true
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F6
       typeParameters
@@ -4517,21 +4486,21 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:25) (firstTokenOffset:11) (offset:25)
+        #F1 isAugmentation class A (nameOffset:25) (firstTokenOffset:11) (offset:25)
           element: <testLibrary>::@class::A
           nextFragment: #F2
-        #F2 class A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+        #F2 isAugmentation class A (nameOffset:44) (firstTokenOffset:30) (offset:44)
           element: <testLibrary>::@class::A
           previousFragment: #F1
       mixins
         #F3 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F3
       superclassConstraints
@@ -4554,7 +4523,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
+        #F1 isAugmentation class A (nameOffset:26) (firstTokenOffset:12) (offset:26)
           element: <testLibrary>::@class::A
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
@@ -4563,10 +4532,10 @@ library
       mixins
         #F3 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A::@def::0
-        #F4 mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+        #F4 isAugmentation mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
           element: <testLibrary>::@mixin::A::@def::1
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -4574,12 +4543,12 @@ library
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F2
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A::@def::0
       firstFragment: #F3
       superclassConstraints
         Object
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A::@def::1
       firstFragment: #F4
       superclassConstraints
@@ -4614,26 +4583,26 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:33) (firstTokenOffset:29) (offset:33)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:33) (firstTokenOffset:29) (offset:33)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
-                #F4 requiredPositional a (nameOffset:44) (firstTokenOffset:37) (offset:44)
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:44) (firstTokenOffset:37) (offset:44)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
       mixins
         #F5 mixin B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
-        #F6 mixin B (nameOffset:70) (firstTokenOffset:56) (offset:70)
+        #F6 isAugmentation mixin B (nameOffset:70) (firstTokenOffset:56) (offset:70)
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
           methods
-            #F7 isOriginDeclaration isCompleteDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
+            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:76) (offset:76)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
-                #F8 requiredPositional a (nameOffset:80) (firstTokenOffset:80) (offset:80)
+                #F8 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:80) (firstTokenOffset:80) (offset:80)
                   element: <testLibrary>::@mixin::B::@method::foo::@formalParameter::a
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -4650,7 +4619,7 @@ library
               type: String
           returnType: int
   mixins
-    mixin B
+    isSimplyBounded mixin B
       reference: <testLibrary>::@mixin::B
       firstFragment: #F5
       superclassConstraints
@@ -4694,26 +4663,26 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
-                #F4 requiredPositional a (nameOffset:55) (firstTokenOffset:48) (offset:55)
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:55) (firstTokenOffset:48) (offset:55)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
       mixins
         #F5 mixin B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 isOriginDeclaration isCompleteDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
-                #F8 requiredPositional a (nameOffset:16) (firstTokenOffset:16) (offset:16)
+                #F8 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:16) (firstTokenOffset:16) (offset:16)
                   element: <testLibrary>::@mixin::B::@method::foo::@formalParameter::a
-        #F6 mixin B (nameOffset:81) (firstTokenOffset:67) (offset:81)
+        #F6 isAugmentation mixin B (nameOffset:81) (firstTokenOffset:67) (offset:81)
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -4730,7 +4699,7 @@ library
               type: String
           returnType: int
   mixins
-    mixin B
+    isSimplyBounded mixin B
       reference: <testLibrary>::@mixin::B
       firstFragment: #F5
       superclassConstraints
@@ -4776,26 +4745,26 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:44) (firstTokenOffset:40) (offset:44)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
-                #F4 requiredPositional a (nameOffset:55) (firstTokenOffset:48) (offset:55)
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:55) (firstTokenOffset:48) (offset:55)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
       mixins
         #F5 mixin B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 isOriginDeclaration isCompleteDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
+            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: <testLibrary>::@mixin::B::@method::foo
               formalParameters
-                #F8 requiredPositional a (nameOffset:16) (firstTokenOffset:16) (offset:16)
+                #F8 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:16) (firstTokenOffset:16) (offset:16)
                   element: <testLibrary>::@mixin::B::@method::foo::@formalParameter::a
-        #F6 mixin B (nameOffset:81) (firstTokenOffset:67) (offset:81)
+        #F6 isAugmentation mixin B (nameOffset:81) (firstTokenOffset:67) (offset:81)
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -4812,7 +4781,7 @@ library
               type: String
           returnType: int
   mixins
-    mixin B
+    isSimplyBounded mixin B
       reference: <testLibrary>::@mixin::B
       firstFragment: #F5
       superclassConstraints
@@ -4858,36 +4827,36 @@ library
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:49) (firstTokenOffset:45) (offset:49)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:49) (firstTokenOffset:45) (offset:49)
               element: <testLibrary>::@class::A::@method::foo
               formalParameters
-                #F4 requiredPositional a (nameOffset:60) (firstTokenOffset:53) (offset:60)
+                #F4 requiredPositional isOriginDeclaration a (nameOffset:60) (firstTokenOffset:53) (offset:60)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::a
       mixins
         #F5 mixin B (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::B
           nextFragment: #F6
           methods
-            #F7 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
+            #F7 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
               element: <testLibrary>::@mixin::B::@method::foo
               nextFragment: #F8
               formalParameters
-                #F9 requiredPositional a (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                #F9 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: <testLibrary>::@mixin::B::@method::foo::@formalParameter::a
                   nextFragment: #F10
-        #F6 mixin B (nameOffset:86) (firstTokenOffset:72) (offset:86)
+        #F6 isAugmentation mixin B (nameOffset:86) (firstTokenOffset:72) (offset:86)
           element: <testLibrary>::@mixin::B
           previousFragment: #F5
           methods
-            #F8 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:100) (firstTokenOffset:92) (offset:100)
+            #F8 hasImplicitReturnType isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:100) (firstTokenOffset:92) (offset:100)
               element: <testLibrary>::@mixin::B::@method::foo
               previousFragment: #F7
               formalParameters
-                #F10 requiredPositional a (nameOffset:104) (firstTokenOffset:104) (offset:104)
+                #F10 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:104) (firstTokenOffset:104) (offset:104)
                   element: <testLibrary>::@mixin::B::@method::foo::@formalParameter::a
                   previousFragment: #F9
   classes
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
       constructors
@@ -4904,7 +4873,7 @@ library
               type: String
           returnType: int
   mixins
-    mixin B
+    isSimplyBounded mixin B
       reference: <testLibrary>::@mixin::B
       firstFragment: #F5
       superclassConstraints
@@ -4946,19 +4915,19 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
-        #F2 mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+        #F2 isAugmentation mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F7
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F8
@@ -4967,11 +4936,11 @@ library
                   element: #E0 T
                   previousFragment: #F5
                   nextFragment: #F9
-        #F7 mixin A (nameOffset:90) (firstTokenOffset:76) (offset:90)
+        #F7 isAugmentation mixin A (nameOffset:90) (firstTokenOffset:76) (offset:90)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F8 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:109) (firstTokenOffset:96) (offset:109)
+            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:96) (offset:109)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -4979,7 +4948,7 @@ library
                   element: #E0 T
                   previousFragment: #F6
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5020,19 +4989,19 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
-        #F2 mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+        #F2 isAugmentation mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F7
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F8
@@ -5041,11 +5010,11 @@ library
                   element: #E0 T
                   previousFragment: #F5
                   nextFragment: #F9
-        #F7 mixin A (nameOffset:93) (firstTokenOffset:79) (offset:93)
+        #F7 isAugmentation mixin A (nameOffset:93) (firstTokenOffset:79) (offset:93)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F8 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -5053,7 +5022,7 @@ library
                   element: #E0 T
                   previousFragment: #F6
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5094,7 +5063,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -5104,12 +5073,12 @@ library
                 #F7 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
                   element: #E1 U
                   nextFragment: #F8
-        #F2 mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+        #F2 isAugmentation mixin A (nameOffset:47) (firstTokenOffset:33) (offset:47)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F9
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               nextFragment: #F10
@@ -5122,11 +5091,11 @@ library
                   element: #E1 U
                   previousFragment: #F7
                   nextFragment: #F12
-        #F9 mixin A (nameOffset:93) (firstTokenOffset:79) (offset:93)
+        #F9 isAugmentation mixin A (nameOffset:93) (firstTokenOffset:79) (offset:93)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F10 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
@@ -5137,7 +5106,7 @@ library
                   element: #E1 U
                   previousFragment: #F8
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5177,18 +5146,18 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
-        #F2 mixin A (nameOffset:57) (firstTokenOffset:43) (offset:57)
+        #F2 isAugmentation mixin A (nameOffset:57) (firstTokenOffset:43) (offset:57)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5196,7 +5165,7 @@ library
                   element: #E0 T
                   previousFragment: #F5
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5235,18 +5204,18 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
-        #F2 mixin A (nameOffset:57) (firstTokenOffset:43) (offset:57)
+        #F2 isAugmentation mixin A (nameOffset:57) (firstTokenOffset:43) (offset:57)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5254,7 +5223,7 @@ library
                   element: #E0 T
                   previousFragment: #F5
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5293,18 +5262,18 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
-        #F2 mixin A (nameOffset:57) (firstTokenOffset:43) (offset:57)
+        #F2 isAugmentation mixin A (nameOffset:57) (firstTokenOffset:43) (offset:57)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:76) (firstTokenOffset:63) (offset:76)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5312,7 +5281,7 @@ library
                   element: #E0 T
                   previousFragment: #F5
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5351,18 +5320,18 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
-        #F2 mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+        #F2 isAugmentation mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5370,7 +5339,7 @@ library
                   element: #E0 T
                   previousFragment: #F5
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5409,7 +5378,7 @@ library
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
           methods
-            #F3 isOriginDeclaration isCompleteDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
               element: <testLibrary>::@mixin::A::@method::foo
               nextFragment: #F4
               typeParameters
@@ -5419,11 +5388,11 @@ library
                 #F7 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
                   element: #E1 U
                   nextFragment: #F8
-        #F2 mixin A (nameOffset:49) (firstTokenOffset:35) (offset:49)
+        #F2 isAugmentation mixin A (nameOffset:49) (firstTokenOffset:35) (offset:49)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           methods
-            #F4 augment isOriginDeclaration isCompleteDeclaration foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:68) (firstTokenOffset:55) (offset:68)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
               typeParameters
@@ -5434,7 +5403,7 @@ library
                   element: #E1 U
                   previousFragment: #F7
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5465,14 +5434,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       mixins
-        #F1 mixin A (nameOffset:11) (firstTokenOffset:0) (offset:11)
+        #F1 isBase mixin A (nameOffset:11) (firstTokenOffset:0) (offset:11)
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
-        #F2 mixin A (nameOffset:35) (firstTokenOffset:16) (offset:35)
+        #F2 isAugmentation isBase mixin A (nameOffset:35) (firstTokenOffset:16) (offset:35)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
   mixins
-    base mixin A
+    isBase isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
@@ -5503,7 +5472,7 @@ library
         #F3 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
   classes
-    class I
+    isSimplyBounded class I
       reference: <testLibrary>::@class::I
       firstFragment: #F1
       constructors
@@ -5511,7 +5480,7 @@ library
           reference: <testLibrary>::@class::I::@constructor::new
           firstFragment: #F2
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F3
       superclassConstraints
@@ -5544,7 +5513,7 @@ library
         #F3 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       constructors
@@ -5552,7 +5521,7 @@ library
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F2
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F3
       superclassConstraints
@@ -5581,7 +5550,7 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-        #F2 mixin A (nameOffset:39) (firstTokenOffset:25) (offset:39)
+        #F2 isAugmentation mixin A (nameOffset:39) (firstTokenOffset:25) (offset:39)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -5589,7 +5558,7 @@ library
               element: #E0 T
               previousFragment: #F3
   mixins
-    notSimplyBounded mixin A
+    mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -5623,7 +5592,7 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-        #F2 mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+        #F2 isAugmentation mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F5
@@ -5632,7 +5601,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F6
-        #F5 mixin A (nameOffset:50) (firstTokenOffset:36) (offset:50)
+        #F5 isAugmentation mixin A (nameOffset:50) (firstTokenOffset:36) (offset:50)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           typeParameters
@@ -5640,7 +5609,7 @@ library
               element: #E0 T
               previousFragment: #F4
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -5673,7 +5642,7 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-        #F2 mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+        #F2 isAugmentation mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F5
@@ -5682,7 +5651,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F6
-        #F5 mixin A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+        #F5 isAugmentation mixin A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           typeParameters
@@ -5690,7 +5659,7 @@ library
               element: #E0 T
               previousFragment: #F4
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -5726,7 +5695,7 @@ library
             #F5 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
               element: #E1 U
               nextFragment: #F6
-        #F2 mixin A (nameOffset:31) (firstTokenOffset:17) (offset:31)
+        #F2 isAugmentation mixin A (nameOffset:31) (firstTokenOffset:17) (offset:31)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           nextFragment: #F7
@@ -5739,7 +5708,7 @@ library
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9
-        #F7 mixin A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+        #F7 isAugmentation mixin A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           typeParameters
@@ -5750,7 +5719,7 @@ library
               element: #E1 U
               previousFragment: #F6
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -5784,7 +5753,7 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-        #F2 mixin A (nameOffset:40) (firstTokenOffset:26) (offset:40)
+        #F2 isAugmentation mixin A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -5792,7 +5761,7 @@ library
               element: #E0 T
               previousFragment: #F3
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -5825,7 +5794,7 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-        #F2 mixin A (nameOffset:40) (firstTokenOffset:26) (offset:40)
+        #F2 isAugmentation mixin A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -5833,7 +5802,7 @@ library
               element: #E0 T
               previousFragment: #F3
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -5866,7 +5835,7 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-        #F2 mixin A (nameOffset:40) (firstTokenOffset:26) (offset:40)
+        #F2 isAugmentation mixin A (nameOffset:40) (firstTokenOffset:26) (offset:40)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -5874,7 +5843,7 @@ library
               element: #E0 T
               previousFragment: #F3
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters
@@ -5907,7 +5876,7 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
-        #F2 mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+        #F2 isAugmentation mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
           typeParameters
@@ -5915,7 +5884,7 @@ library
               element: #E0 T
               previousFragment: #F3
   mixins
-    mixin A
+    isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       typeParameters

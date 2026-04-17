@@ -7365,7 +7365,7 @@ class B extends A {}
 [future] getLibraryByUri T1
   library
     classes
-      class B
+      isSimplyBounded class B
         supertype: A
         constructors
           isOriginImplicitDefault new
@@ -7448,7 +7448,7 @@ class A {
 [future] getLibraryByUri T2
   library
     classes
-      class B
+      isSimplyBounded class B
         supertype: A
         constructors
           isOriginImplicitDefault new
@@ -9505,7 +9505,7 @@ class B extends A {}
 [future] getLibraryByUri T1
   library
     classes
-      class B
+      isSimplyBounded class B
         supertype: A
         constructors
           isOriginImplicitDefault new
@@ -9585,7 +9585,7 @@ class A {
 [future] getLibraryByUri T2
   library
     classes
-      class B
+      isSimplyBounded class B
         supertype: A
         constructors
           isOriginImplicitDefault new
@@ -22969,10 +22969,10 @@ class C {}
 [future] getLibraryByUri T1
   library
     classes
-      class B
+      isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
-      class C
+      isSimplyBounded class C
         constructors
           isOriginImplicitDefault new
     exportedReferences
@@ -23016,10 +23016,10 @@ class C {}
 [future] getLibraryByUri T2
   library
     classes
-      class B
+      isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
-      class C
+      isSimplyBounded class C
         constructors
           isOriginImplicitDefault new
     exportedReferences
@@ -23088,7 +23088,7 @@ class B {}
 [future] getLibraryByUri T1
   library
     classes
-      class B
+      isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
     exportedReferences
@@ -23159,7 +23159,7 @@ class C {}
 [future] getLibraryByUri T2
   library
     classes
-      class B
+      isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
     exportedReferences
@@ -26702,7 +26702,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
     exportedReferences
       declared <testLibrary>::@getter::x
@@ -26783,7 +26783,7 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: double
     exportedReferences
       declared <testLibrary>::@getter::x
@@ -42333,7 +42333,7 @@ final x = foo();
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
       updatedA: r'''
@@ -42380,7 +42380,7 @@ double foo() {}
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: double
 ''',
     );
@@ -42434,7 +42434,7 @@ final x = foo();
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
       updatedA: r'''
@@ -42460,7 +42460,7 @@ double bar() {}
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
     );
@@ -42513,7 +42513,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
       updatedA: r'''
@@ -42562,7 +42562,7 @@ double get a => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: double
 ''',
     );
@@ -42619,7 +42619,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
       updatedA: r'''
@@ -42648,7 +42648,7 @@ double get b => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
     );
@@ -42723,7 +42723,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
       // Change the initializer, now `double`.
@@ -42800,7 +42800,7 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: double
 ''',
     );
@@ -42853,7 +42853,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
       // Change the initializer, now `double`.
@@ -42904,7 +42904,7 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: double
 ''',
     );
@@ -100037,7 +100037,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
       updatedA: r'''
@@ -100086,7 +100086,7 @@ double get a => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: double
 ''',
     );
@@ -100195,7 +100195,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
       updatedA: r'''
@@ -100227,7 +100227,7 @@ int get b => 0;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x
         type: int
 ''',
     );

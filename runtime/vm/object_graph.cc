@@ -136,7 +136,10 @@ class ObjectSlots {
       if (contains_only_tagged_words && (slots->length() > 0)) {
         auto expected_offset = (*slots)[0].offset;
         for (auto& slot : *slots) {
-          ASSERT_EQUAL(slot.offset, expected_offset);
+          if (slot.offset != expected_offset) {
+            FATAL("Slot %s has offset 0x%" Px32 ", expected offset 0x%" Px32,
+                  slot.name, slot.offset, expected_offset);
+          }
           expected_offset += kCompressedWordSize;
         }
       }

@@ -265,6 +265,7 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
       element.writeFlags(_sink);
+      _sink.writeBool(element.hasNonFinalField);
 
       _writeForLazyRead(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {

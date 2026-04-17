@@ -96,7 +96,7 @@ Future<ResolvedUnitResult> _getElementUnit() async {
   return unitResult as ResolvedUnitResult;
 }
 
-enum _ElementFlagSource { none, firstFragment, stored }
+enum _ElementFlagSource { none, firstFragment, stored, computed }
 
 class _ElementGenerator {
   final ResolvedUnitResult unitResult;
@@ -210,6 +210,7 @@ class _ElementGenerator {
         } else {
           switch (flag.elementSource) {
             case _ElementFlagSource.none:
+            case _ElementFlagSource.computed:
               break;
             case _ElementFlagSource.firstFragment:
               buffer.writeln();
@@ -239,6 +240,32 @@ class _ElementGenerator {
               buffer.writeln('}');
           }
         }
+      }
+
+      var flagsForTesting = generateFlags.flags.where((flag) {
+        return isFragment
+            ? flag.fragment
+            : flag.elementSource != _ElementFlagSource.none;
+      }).toList();
+
+      if (flagsForTesting.isNotEmpty) {
+        buffer.writeln();
+        buffer.writeln('@generated');
+        if (className != 'ElementImpl' && className != 'FragmentImpl') {
+          buffer.writeln('@override');
+        }
+        buffer.writeln('@visibleForTesting');
+        buffer.writeln('@trackedInternal');
+        buffer.writeln('Map<String, bool> get flagsForTesting {');
+        buffer.writeln('  return {');
+        if (className != 'ElementImpl' && className != 'FragmentImpl') {
+          buffer.writeln('    ...super.flagsForTesting,');
+        }
+        for (var flag in flagsForTesting) {
+          buffer.writeln("    '${flag.name}': ${flag.name},");
+        }
+        buffer.writeln('  };');
+        buffer.writeln('}');
       }
 
       if (buffer.isNotEmpty) {
@@ -359,6 +386,16 @@ extension _ClassElementExtension on ClassElement {
         elementSource: _ElementFlagSource.values.byName(elementSourceName),
       );
     }).toList();
+
+    for (var i = 0; i < flags.length - 1; i++) {
+      if (flags[i].name.compareTo(flags[i + 1].name) > 0) {
+        throw StateError(
+          'Flags for $name are not sorted: '
+          '"${flags[i].name}" appears before "${flags[i + 1].name}".',
+        );
+      }
+    }
+
     return _GenerateElementFlags(this, flags);
   }
 }
