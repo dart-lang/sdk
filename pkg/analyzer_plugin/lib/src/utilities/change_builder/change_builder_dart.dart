@@ -1797,10 +1797,10 @@ class DartFileEditBuilderImpl extends FileEditBuilderImpl
     this.resolvedUnit,
     int timeStamp,
     this.libraryChangeBuilder, {
-    required String eol,
+    required super.eol,
     bool createEditsForImports = true,
   }) : _createEditsForImports = createEditsForImports,
-       super(changeBuilder, resolvedUnit.path, timeStamp, eol: eol);
+       super(changeBuilder, resolvedUnit.path, timeStamp);
 
   @override
   bool get hasEdits =>
