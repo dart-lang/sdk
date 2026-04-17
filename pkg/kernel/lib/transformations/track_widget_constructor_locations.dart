@@ -677,20 +677,19 @@ class WidgetCreatorTracker {
           }
         }
         // Case after constant evaluation (incremental or modular compilation).
-        if (annotation is ConstantExpression) {
-          final Constant constant = annotation.constant;
+        if (annotation case ConstantExpression(
+          constant: final InstanceConstant constant,
+        )) {
+          final Class enclosingClass = constant.classNode;
 
-          if (constant is InstanceConstant) {
-            final Class enclosingClass = constant.classNode;
-
-            if (enclosingClass.name == 'pragma' &&
-                enclosingClass.enclosingLibrary.importUri.toString() ==
-                    'dart:core') {
-              for (final Constant value in constant.fieldValues.values) {
-                if (value is StringConstant &&
-                    value.value == 'track-creation-locations') {
-                  return true;
-                }
+          if (enclosingClass.name == 'pragma' &&
+              enclosingClass.enclosingLibrary.importUri.toString() ==
+                  'dart:core') {
+            for (final Constant value in constant.fieldValues.values) {
+              if (value case StringConstant(
+                value: 'track-creation-locations',
+              )) {
+                return true;
               }
             }
           }

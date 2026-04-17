@@ -262,7 +262,9 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
   )
   ..addFlag(
     'track-creation-locations',
-    help: 'Run a kernel transformer to track creation locations for widgets.',
+    help:
+        'Run a kernel transformer to track creation locations for'
+        ' classes annotated with @pragma(\'track-creation-locations\').',
     defaultsTo: false,
     aliases: [
       // TODO(schultek): Remove this once flutter is migrated to new flag.

@@ -73,7 +73,7 @@ void main() {
   );
   testLib.addClass(myWidgetClass);
 
-  final int fileOffset = 100;
+  const int fileOffset = 100;
   final Procedure mainProcedure = new Procedure(
     new Name('main'),
     ProcedureKind.Method,
