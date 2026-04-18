@@ -9,8 +9,8 @@ void testLoopbackIPv4() {
   NetworkInterface.list(includeLoopback: true).then((list) {
     for (var iface in list) {
       for (var entry in iface.addresses) {
-        if (!entry.address.isLoopback) continue;
-        if (entry.address.type != InternetAddressType.IPv4) continue;
+        if (!entry.isLoopback) continue;
+        if (entry.type != InternetAddressType.IPv4) continue;
         // 127.0.0.1/8 -> prefixLength=8, broadcast=127.255.255.255
         Expect.equals(8, entry.prefixLength);
         Expect.isNotNull(entry.broadcast);
@@ -25,8 +25,8 @@ void testLoopbackIPv6() {
   NetworkInterface.list(includeLoopback: true).then((list) {
     for (var iface in list) {
       for (var entry in iface.addresses) {
-        if (!entry.address.isLoopback) continue;
-        if (entry.address.type != InternetAddressType.IPv6) continue;
+        if (!entry.isLoopback) continue;
+        if (entry.type != InternetAddressType.IPv6) continue;
         // ::1/128 -> prefixLength=128, broadcast=null
         Expect.equals(128, entry.prefixLength);
         Expect.isNull(entry.broadcast);
@@ -39,10 +39,10 @@ void testPrefixLengthRange() {
   NetworkInterface.list(includeLoopback: true).then((list) {
     for (var iface in list) {
       for (var entry in iface.addresses) {
-        if (entry.address.type == InternetAddressType.IPv4) {
+        if (entry.type == InternetAddressType.IPv4) {
           Expect.isTrue(entry.prefixLength >= 0);
           Expect.isTrue(entry.prefixLength <= 32);
-        } else if (entry.address.type == InternetAddressType.IPv6) {
+        } else if (entry.type == InternetAddressType.IPv6) {
           Expect.isTrue(entry.prefixLength >= 0);
           Expect.isTrue(entry.prefixLength <= 128);
         }
@@ -55,7 +55,7 @@ void testIPv4BroadcastNotNull() {
   NetworkInterface.list(includeLoopback: true).then((list) {
     for (var iface in list) {
       for (var entry in iface.addresses) {
-        if (entry.address.type != InternetAddressType.IPv4) continue;
+        if (entry.type != InternetAddressType.IPv4) continue;
         Expect.isNotNull(entry.broadcast);
         Expect.equals(InternetAddressType.IPv4, entry.broadcast!.type);
       }
@@ -67,7 +67,7 @@ void testIPv6BroadcastIsNull() {
   NetworkInterface.list(includeLoopback: true).then((list) {
     for (var iface in list) {
       for (var entry in iface.addresses) {
-        if (entry.address.type != InternetAddressType.IPv6) continue;
+        if (entry.type != InternetAddressType.IPv6) continue;
         Expect.isNull(entry.broadcast);
       }
     }
