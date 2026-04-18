@@ -91,9 +91,9 @@ class _Collector extends RecursiveAstVisitor<void> {
   _Collector(this.newName, this.target);
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     _addNameToken(node.name, node.declaredFragment?.element);
-    super.visitSimpleFormalParameter(node);
+    super.visitRegularFormalParameter(node);
   }
 
   @override

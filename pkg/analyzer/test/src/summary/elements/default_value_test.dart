@@ -313,6 +313,17 @@ library
               parameters
                 #F3 optionalNamed hasImplicitType isOriginDeclaration a (nameOffset:11) (firstTokenOffset:11) (offset:11)
                   element: a@11
+                  initializer: expression_0
+                    IsExpression
+                      expression: IntegerLiteral
+                        literal: 0 @14
+                        staticType: null
+                      isOperator: is @16
+                      type: NamedType
+                        name: int @19
+                        element: <null>
+                        type: null
+                      staticType: null
   functions
     isOriginDeclaration isStatic f
       reference: <testLibrary>::@function::f
@@ -322,9 +333,12 @@ library
           firstFragment: #F2
           type: dynamic Function({dynamic a})
           formalParameters
-            #E1 optionalNamed hasImplicitType a
+            #E1 optionalNamed hasDefaultValue hasImplicitType a
               firstFragment: #F3
               type: dynamic
+              constantInitializer
+                fragment: #F3
+                expression: expression_0
       returnType: void
 ''');
   }
@@ -396,24 +410,16 @@ library
                 RecordLiteral
                   leftParenthesis: ( @32
                   fields
-                    NamedExpression
-                      name: Label
-                        label: SimpleIdentifier
-                          token: f1 @33
-                          element: <null>
-                          staticType: null
-                        colon: : @35
-                      expression: IntegerLiteral
+                    RecordLiteralNamedField
+                      name: f1 @33
+                      colon: : @35
+                      fieldExpression: IntegerLiteral
                         literal: 1 @37
                         staticType: int
-                    NamedExpression
-                      name: Label
-                        label: SimpleIdentifier
-                          token: f2 @40
-                          element: <null>
-                          staticType: null
-                        colon: : @42
-                      expression: BooleanLiteral
+                    RecordLiteralNamedField
+                      name: f2 @40
+                      colon: : @42
+                      fieldExpression: BooleanLiteral
                         literal: true @44
                         staticType: bool
                   rightParenthesis: ) @48
@@ -454,24 +460,16 @@ library
                   constKeyword: const @32
                   leftParenthesis: ( @38
                   fields
-                    NamedExpression
-                      name: Label
-                        label: SimpleIdentifier
-                          token: f1 @39
-                          element: <null>
-                          staticType: null
-                        colon: : @41
-                      expression: IntegerLiteral
+                    RecordLiteralNamedField
+                      name: f1 @39
+                      colon: : @41
+                      fieldExpression: IntegerLiteral
                         literal: 1 @43
                         staticType: int
-                    NamedExpression
-                      name: Label
-                        label: SimpleIdentifier
-                          token: f2 @46
-                          element: <null>
-                          staticType: null
-                        colon: : @48
-                      expression: BooleanLiteral
+                    RecordLiteralNamedField
+                      name: f2 @46
+                      colon: : @48
+                      fieldExpression: BooleanLiteral
                         literal: true @50
                         staticType: bool
                   rightParenthesis: ) @54

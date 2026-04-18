@@ -457,14 +457,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredFragment?.element;
-    if (element != null) {
+    if (element is FieldFormalParameterElement) {
       computer._addRegionForElement(node.thisKeyword, element.field);
       computer._addRegionForElement(node.name, element.field);
     }
 
     node.type?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
+    node.functionTypedSuffix?.accept(this);
+    node.defaultClause?.accept(this);
   }
 
   @override
@@ -520,6 +520,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLabelReference(LabelReference node) {
+    computer._addRegionForElement(node.name, node.element);
+    super.visitLabelReference(node);
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegionForElement(node.name, node.element);
     super.visitLibraryDirective(node);
@@ -535,6 +541,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitNamedArgument(NamedArgument node) {
+    computer._addRegionForElement(node.name, node.correspondingParameter);
+    node.argumentExpression.accept(this);
   }
 
   @override
@@ -660,13 +672,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     var nameToken = node.name;
     if (nameToken != null) {
       computer._addRegionForFragment(nameToken, node.declaredFragment);
     }
 
-    super.visitSimpleFormalParameter(node);
+    super.visitRegularFormalParameter(node);
   }
 
   @override
@@ -709,8 +721,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     }
 
     node.type?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
+    node.functionTypedSuffix?.accept(this);
+    node.defaultClause?.accept(this);
   }
 
   @override

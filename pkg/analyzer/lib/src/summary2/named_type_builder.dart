@@ -212,16 +212,15 @@ class NamedTypeBuilder extends TypeBuilder {
   }
 
   TypeImpl _buildFormalParameterType(FormalParameter node) {
-    if (node is DefaultFormalParameter) {
-      return _buildFormalParameterType(node.parameter);
-    } else if (node is FunctionTypedFormalParameterImpl) {
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
       return _buildFunctionType(
-        typeParameterList: node.typeParameters,
-        returnTypeNode: node.returnType,
-        parameterList: node.parameters,
-        hasQuestion: node.question != null,
+        typeParameterList:
+            functionTypedSuffix.typeParameters as TypeParameterListImpl?,
+        returnTypeNode: node.type as TypeAnnotationImpl?,
+        parameterList: functionTypedSuffix.formalParameters,
+        hasQuestion: functionTypedSuffix.question != null,
       );
-    } else if (node is SimpleFormalParameterImpl) {
+    } else if (node is RegularFormalParameterImpl) {
       return _buildNodeType(node.type);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');

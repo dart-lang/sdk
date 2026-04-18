@@ -1273,10 +1273,10 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   FieldElement? get field;
 
   @override
-  FieldFormalParameterFragment get firstFragment;
+  FormalParameterFragment get firstFragment;
 
   @override
-  List<FieldFormalParameterFragment> get fragments;
+  List<FormalParameterFragment> get fragments;
 
   /// Whether this is a declaring formal parameter.
   bool get isDeclaring;
@@ -1305,13 +1305,13 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FieldFormalParameterFragment implements FormalParameterFragment {
   @override
-  FieldFormalParameterElement get element;
+  FormalParameterElement get element;
 
   @override
-  FieldFormalParameterFragment? get nextFragment;
+  FormalParameterFragment? get nextFragment;
 
   @override
-  FieldFormalParameterFragment? get previousFragment;
+  FormalParameterFragment? get previousFragment;
 
   /// If this field formal parameter is a named parameter with a private name,
   /// the original private name.
@@ -3107,10 +3107,10 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameterElement implements FormalParameterElement {
   @override
-  SuperFormalParameterFragment get firstFragment;
+  FormalParameterFragment get firstFragment;
 
   @override
-  List<SuperFormalParameterFragment> get fragments;
+  List<FormalParameterFragment> get fragments;
 
   /// The associated super-constructor parameter, from the super-constructor
   /// that is referenced by the implicit or explicit super-constructor
@@ -3127,13 +3127,13 @@ abstract class SuperFormalParameterElement implements FormalParameterElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameterFragment implements FormalParameterFragment {
   @override
-  SuperFormalParameterElement get element;
+  FormalParameterElement get element;
 
   @override
-  SuperFormalParameterFragment? get nextFragment;
+  FormalParameterFragment? get nextFragment;
 
   @override
-  SuperFormalParameterFragment? get previousFragment;
+  FormalParameterFragment? get previousFragment;
 }
 
 /// A top-level function.

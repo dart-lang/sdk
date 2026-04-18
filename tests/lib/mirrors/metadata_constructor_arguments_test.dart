@@ -67,6 +67,7 @@ class H {
 
 @Tag(named: super)
 //          ^^^^^
+// [analyzer] SYNTACTIC_ERROR.MISSING_ASSIGNABLE_SELECTOR
 // [analyzer] COMPILE_TIME_ERROR.CONST_WITH_NON_CONSTANT_ARGUMENT
 // [analyzer] COMPILE_TIME_ERROR.SUPER_IN_INVALID_CONTEXT
 // [cfe] Expected identifier, but got 'super'.

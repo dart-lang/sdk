@@ -2949,14 +2949,10 @@ library
                   IntegerLiteral
                     literal: 1 @83
                     staticType: int
-                  NamedExpression
-                    name: Label
-                      label: SimpleIdentifier
-                        token: b @86
-                        element: <testLibrary>::@class::A::@constructor::aaa::@formalParameter::b
-                        staticType: null
-                      colon: : @87
-                    expression: IntegerLiteral
+                  NamedArgument
+                    name: b @86
+                    colon: : @87
+                    argumentExpression: IntegerLiteral
                       literal: 2 @89
                       staticType: int
                 rightParenthesis: ) @90
@@ -3219,14 +3215,10 @@ library
                   IntegerLiteral
                     literal: 1 @35
                     staticType: int
-                  NamedExpression
-                    name: Label
-                      label: SimpleIdentifier
-                        token: b @38
-                        element: <testLibrary>::@class::C::@constructor::named::@formalParameter::b
-                        staticType: null
-                      colon: : @39
-                    expression: IntegerLiteral
+                  NamedArgument
+                    name: b @38
+                    colon: : @39
+                    argumentExpression: IntegerLiteral
                       literal: 2 @41
                       staticType: int
                 rightParenthesis: ) @42
@@ -17808,7 +17800,7 @@ library
             #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:19) (firstTokenOffset:10) (offset:19)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:22) (firstTokenOffset:22) (offset:22)
+                #F5 optionalNamed hasImplicitType isOriginDeclaration a (nameOffset:22) (firstTokenOffset:22) (offset:22)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::a
   classes
     isSimplyBounded class C
@@ -17829,7 +17821,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional hasImplicitType a
+            #E0 optionalNamed hasImplicitType a
               firstFragment: #F5
               type: dynamic
           returnType: void
@@ -17910,7 +17902,7 @@ library
             #F4 isCompleteDeclaration isOriginDeclaration x (nameOffset:19) (firstTokenOffset:10) (offset:19)
               element: <testLibrary>::@class::C::@setter::x
               formalParameters
-                #F5 requiredPositional hasImplicitType isOriginDeclaration a (nameOffset:22) (firstTokenOffset:22) (offset:22)
+                #F5 optionalPositional hasImplicitType isOriginDeclaration a (nameOffset:22) (firstTokenOffset:22) (offset:22)
                   element: <testLibrary>::@class::C::@setter::x::@formalParameter::a
   classes
     isSimplyBounded class C
@@ -17931,7 +17923,7 @@ library
           reference: <testLibrary>::@class::C::@setter::x
           firstFragment: #F4
           formalParameters
-            #E0 requiredPositional hasImplicitType a
+            #E0 optionalPositional hasImplicitType a
               firstFragment: #F5
               type: dynamic
           returnType: void

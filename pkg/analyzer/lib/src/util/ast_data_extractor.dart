@@ -58,12 +58,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
     registerValue(uri, _nodeOffset(node), id, value, node);
   }
 
-  void computeForCollectionElement(CollectionElement node, NodeId? id) {
-    if (id == null) return;
-    T? value = computeNodeValue(id, node);
-    registerValue(uri, _nodeOffset(node), id, value, node);
-  }
-
   void computeForFormalParameter(FormalParameter node, NodeId? id) {
     if (id == null) return;
     T? value = computeNodeValue(id, node);
@@ -149,12 +143,6 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   @override
-  void visitCollectionElement(CollectionElement node) {
-    computeForCollectionElement(node, computeDefaultNodeId(node));
-    super.visitCollectionElement(node);
-  }
-
-  @override
   void visitCompilationUnit(CompilationUnit node) {
     var library = node.declaredFragment!.element;
     computeForLibrary(library, createLibraryId(library));
@@ -165,6 +153,18 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   void visitConstructorDeclaration(ConstructorDeclaration node) {
     computeForMember(node, createMemberId(node));
     super.visitConstructorDeclaration(node);
+  }
+
+  @override
+  void visitExpression(Expression node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitExpression(node);
+  }
+
+  @override
+  void visitForElement(ForElement node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitForElement(node);
   }
 
   @override
@@ -182,9 +182,33 @@ abstract class AstDataExtractor<T> extends GeneralizingAstVisitor<void>
   }
 
   @override
+  void visitIfElement(IfElement node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitIfElement(node);
+  }
+
+  @override
+  void visitMapLiteralEntry(MapLiteralEntry node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitMapLiteralEntry(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     computeForMember(node, createMemberId(node));
     super.visitMethodDeclaration(node);
+  }
+
+  @override
+  void visitNullAwareElement(NullAwareElement node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitNullAwareElement(node);
+  }
+
+  @override
+  void visitSpreadElement(SpreadElement node) {
+    computeForNode(node, computeDefaultNodeId(node));
+    super.visitSpreadElement(node);
   }
 
   @override

@@ -1965,7 +1965,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
     if (parameters != null) {
       for (var parameter in parameters.parameters) {
-        if (parameter is SimpleFormalParameterImpl && parameter.type == null) {
+        if (parameter is RegularFormalParameterImpl &&
+            parameter.functionTypedSuffix == null &&
+            parameter.type == null) {
           if (parameter == parameters.parameters.first) {
             parameter.declaredFragment?.element.type = parameterType;
           }
@@ -2005,7 +2007,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
     if (parameters != null) {
       var parameter = parameters.parameters.firstOrNull;
-      if (parameter is SimpleFormalParameterImpl) {
+      if (parameter is RegularFormalParameterImpl &&
+          parameter.functionTypedSuffix == null) {
         var declaredParameterType = parameter.type;
         if (declaredParameterType != null) {
           var declaredType = declaredParameterType.typeOrThrow;
@@ -2542,25 +2545,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
-    var fragment = node.declaredFragment!;
-    checkUnreachableNode(node);
-    node.parameter.accept(this);
-    var defaultValue = node.defaultValue;
-    if (defaultValue != null) {
-      analyzeExpression(
-        defaultValue,
-        SharedTypeSchemaView(fragment.element.type),
-      );
-      popRewrite();
-    }
-
-    if (node.isOfLocalFunction) {
-      fragment.constantInitializer = defaultValue;
-    }
-  }
-
-  @override
   void visitDoStatement(covariant DoStatementImpl node) {
     inferenceLogWriter?.enterStatement(node);
     checkUnreachableNode(node);
@@ -2802,7 +2786,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       var argumentList = arguments.argumentList;
       for (var argument in argumentList.arguments) {
         analyzeExpression(
-          argument,
+          argument.argumentExpression,
           SharedTypeSchemaView(
             argument.correspondingParameter?.type ??
                 UnknownInferredType.instance,
@@ -2985,8 +2969,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
+    _visitFormalParameter(node as FormalParameterImpl);
     elementResolver.visitFieldFormalParameter(node);
   }
 
@@ -3172,13 +3155,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     checkUnreachableNode(node);
     node.visitChildren(this);
     elementResolver.visitFunctionTypeAlias(node);
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
-    elementResolver.visitFunctionTypedFormalParameter(node);
   }
 
   @override
@@ -3634,24 +3610,16 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
-  void visitNamedExpression(
-    covariant NamedExpressionImpl node, {
+  void visitNamedArgument(
+    covariant NamedArgumentImpl node, {
     TypeImpl contextType = UnknownInferredType.instance,
   }) {
-    inferenceLogWriter?.enterExpression(node, contextType);
     checkUnreachableNode(node);
-    node.name.accept(this);
-    analyzeExpression(node.expression, SharedTypeSchemaView(contextType));
-    popRewrite();
-    typeAnalyzer.visitNamedExpression(node);
-    // Any "why not promoted" information that flow analysis had associated with
-    // `node.expression` now needs to be forwarded to `node`, so that when
-    // `visitArgumentList` iterates through the arguments, it will find it.
-    flowAnalysis.flow?.storeExpressionInfo(
-      node,
-      flowAnalysis.flow?.getExpressionInfo(node.expression),
+    analyzeExpression(
+      node.argumentExpression,
+      SharedTypeSchemaView(contextType),
     );
-    inferenceLogWriter?.exitExpression(node);
+    popRewrite();
   }
 
   @override
@@ -4052,6 +4020,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
   }
 
   @override
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _visitFormalParameter(node as FormalParameterImpl);
+    elementResolver.visitRegularFormalParameter(node);
+  }
+
+  @override
   void visitRethrowExpression(
     RethrowExpression node, {
     TypeImpl contextType = UnknownInferredType.instance,
@@ -4101,13 +4076,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitShowCombinator(ShowCombinator node) {}
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
-    elementResolver.visitSimpleFormalParameter(node);
-  }
 
   @override
   void visitSimpleIdentifier(
@@ -4218,8 +4186,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
-    checkUnreachableNode(node);
-    node.visitChildren(this);
+    _visitFormalParameter(node as FormalParameterImpl);
   }
 
   @override
@@ -4793,7 +4760,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           // `?.` to access static methods is equivalent to `.`, so do nothing.
           break;
         case ExtensionOverride(
-          argumentList: ArgumentListImpl(arguments: [var expression]),
+          argumentList: ArgumentListImpl(
+            arguments: [ArgumentImpl(argumentExpression: var expression)],
+          ),
         ):
         case var expression:
           flow.storeExpressionInfo(
@@ -4804,6 +4773,32 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
               SharedTypeView(expression.staticType ?? typeProvider.dynamicType),
             ),
           );
+      }
+    }
+  }
+
+  void _visitFormalParameter(FormalParameterImpl node) {
+    var fragment = node.declaredFragment!;
+    checkUnreachableNode(node);
+
+    node.documentationComment?.accept(this);
+    node.metadata.accept(this);
+    node.type?.accept(this);
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      functionTypedSuffix.typeParameters?.accept(this);
+      functionTypedSuffix.formalParameters.accept(this);
+    }
+
+    if (node.defaultClause case var defaultClause?) {
+      var defaultValue = defaultClause.value;
+      analyzeExpression(
+        defaultValue,
+        SharedTypeSchemaView(fragment.element.type),
+      );
+      popRewrite();
+
+      if (node.isOfLocalFunction) {
+        fragment.constantInitializer = defaultValue;
       }
     }
   }
@@ -4840,7 +4835,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       }
     }
     int unnamedIndex = 0;
-    NodeList<Expression> arguments = argumentList.arguments;
+    NodeList<Argument> arguments = argumentList.arguments;
     int argumentCount = arguments.length;
     var resolvedParameters = List<InternalFormalParameterElement?>.filled(
       argumentCount,
@@ -4851,8 +4846,8 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     Expression? firstUnresolvedArgument;
     Expression? lastPositionalArgument;
     for (int i = 0; i < argumentCount; i++) {
-      Expression argument = arguments[i];
-      if (argument is! NamedExpression) {
+      Argument argument = arguments[i];
+      if (argument is! NamedArgument) {
         if (argument is SimpleIdentifier && argument.name.isEmpty) {
           noBlankArguments = false;
         }
@@ -4860,9 +4855,9 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
         if (unnamedIndex < unnamedParameterCount) {
           resolvedParameters[i] = unnamedParameters[unnamedIndex++];
         } else {
-          firstUnresolvedArgument ??= argument;
+          firstUnresolvedArgument ??= argument.argumentExpression;
         }
-        lastPositionalArgument = argument;
+        lastPositionalArgument = argument.argumentExpression;
       }
     }
 
@@ -4880,10 +4875,10 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     }
 
     for (int i = 0; i < argumentCount; i++) {
-      Expression argument = arguments[i];
-      if (argument is NamedExpressionImpl) {
-        var nameNode = argument.name.label;
-        String name = nameNode.name;
+      Argument argument = arguments[i];
+      if (argument is NamedArgumentImpl) {
+        var nameNode = argument.name;
+        String name = nameNode.lexeme;
         var element = namedParameters != null ? namedParameters[name] : null;
         if (element == null) {
           element =
@@ -4905,7 +4900,6 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
           }
         } else {
           resolvedParameters[i] = element;
-          nameNode.element = element;
         }
         usedNames ??= <String>{};
         if (!usedNames.add(name)) {

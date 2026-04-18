@@ -1,3 +1,21 @@
+## 13.0.0-dev
+
+* **Breaking Change:** `DefaultFormalParameter` has been removed. Default values for parameters are now represented compositionally via a `defaultClause` property on all `FormalParameter` nodes.
+* **Breaking Change:** `SimpleFormalParameter` and `FunctionTypedFormalParameter` have been removed and replaced by `RegularFormalParameter`.
+* **Breaking Change:** Function-typed parameters are now represented compositionally via a `functionTypedSuffix` property on `FormalParameter`.
+* **Breaking Change:** `NormalFormalParameter` has been removed from the AST hierarchy.
+* **Breaking Change:** `AstVisitor` methods `visitDefaultFormalParameter`, `visitSimpleFormalParameter`, and `visitFunctionTypedFormalParameter` have been removed. Use `visitRegularFormalParameter` instead for standard parameters.
+* Added `FormalParameterDefaultClause` and `FunctionTypedFormalParameterSuffix` AST nodes to represent parameter defaults and function-typed parameter structures.
+* **Breaking Change:** `NamedExpression` has been removed and replaced with `NamedArgument` in `ArgumentList` and `RecordLiteralNamedField` in `RecordLiteral`.
+* **Breaking Change:** Added `Argument` and `RecordLiteralField` AST node interfaces, which `Expression` now implements.
+* **Breaking Change:** `ArgumentList.arguments` now returns `NodeList<Argument>` instead of `NodeList<Expression>`.
+* **Breaking Change:** `RecordLiteral.fields` now returns `NodeList<RecordLiteralField>` instead of `NodeList<Expression>`.
+* **Breaking Change:** `AstVisitor.visitNamedExpression` has been removed. Use `visitNamedArgument` and `visitRecordLiteralNamedField` instead.
+* **Breaking Change:** `FormalParameterElement.firstFragment` and `.fragments` now return `FormalParameterFragment` (instead of specific parameter fragment subtypes like `FieldFormalParameterFragment`), making formal parameter fragments heterogeneous to support augmentations.
+* Added `LabelReference` AST node to represent references to labels without them being in the expression hierarchy.
+* **Breaking Change:** `Label` now uses a `Token name` instead of `SimpleIdentifier label`.
+* **Breaking Change:** `BreakStatement.label` and `ContinueStatement.label` now return `LabelReference?` instead of `SimpleIdentifier?`.
+
 ## 12.2.0-dev
 
 * Added `InterfaceType.inheritedConcreteMembers` and `InterfaceType.interfaceMembers`.

@@ -27,14 +27,10 @@ void f((int, String) r) {
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: PropertyAccess
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: PropertyAccess
         target: SimpleIdentifier
           token: r
           element: <testLibrary>::@function::f::@formalParameter::r
@@ -78,6 +74,57 @@ RecordLiteral
 ''');
   }
 
+  test_hasContext_functionReference_named() async {
+    await assertNoErrorsInCode(r'''
+void f<T>() {}
+final ({void Function() f1}) x = (f1: f);
+''');
+
+    var node = findNode.singleRecordLiteral;
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: FunctionReference
+        function: SimpleIdentifier
+          token: f
+          element: <testLibrary>::@function::f
+          staticType: void Function<T>()
+        staticType: void Function()
+        typeArgumentTypes
+          dynamic
+  rightParenthesis: )
+  staticType: ({void Function() f1})
+''');
+  }
+
+  test_hasContext_functionReference_positional() async {
+    await assertNoErrorsInCode(r'''
+void f<T>() {}
+final (void Function(), ) x = (f, );
+''');
+
+    var node = findNode.singleRecordLiteral;
+    assertResolvedNodeText(node, r'''
+RecordLiteral
+  leftParenthesis: (
+  fields
+    FunctionReference
+      function: SimpleIdentifier
+        token: f
+        element: <testLibrary>::@function::f
+        staticType: void Function<T>()
+      staticType: void Function()
+      typeArgumentTypes
+        dynamic
+  rightParenthesis: )
+  staticType: (void Function(),)
+''');
+  }
+
   test_hasContext_greatestClosure() async {
     await assertNoErrorsInCode(r'''
 void f<T>((List<T>, List<T>) x) {}
@@ -118,14 +165,10 @@ final ({void Function() f1}) x = (f1: a);
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: ImplicitCallReference
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: ImplicitCallReference
         expression: SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
@@ -175,14 +218,10 @@ final ({int f1}) x = (f1: a);
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: SimpleIdentifier
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: dynamic
@@ -262,14 +301,10 @@ RecordLiteral
       staticType: A1
       typeArgumentTypes
         A1
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -293,14 +328,10 @@ RecordLiteral
       staticType: A2
       typeArgumentTypes
         A2
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f2
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -345,14 +376,10 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -397,14 +424,10 @@ RecordLiteral
       staticType: dynamic
       typeArgumentTypes
         dynamic
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f2
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -466,14 +489,10 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -485,14 +504,10 @@ RecordLiteral
         staticType: int
         typeArgumentTypes
           int
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f2
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -521,14 +536,10 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f2
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -540,14 +551,10 @@ RecordLiteral
         staticType: String
         typeArgumentTypes
           String
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -580,14 +587,10 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -620,14 +623,10 @@ T g<T>() => throw 0;
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -639,14 +638,10 @@ RecordLiteral
         staticType: dynamic
         typeArgumentTypes
           dynamic
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f2
-          element: <null>
-          staticType: null
-        colon: :
-      expression: MethodInvocation
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression: MethodInvocation
         methodName: SimpleIdentifier
           token: g
           element: <testLibrary>::@function::g
@@ -674,14 +669,10 @@ final ({Object? f1}) x = (f1: a);
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: SimpleIdentifier
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: SimpleIdentifier
         token: a
         element: <testLibrary>::@getter::a
         staticType: dynamic
@@ -1048,27 +1039,19 @@ RecordLiteral
     IntegerLiteral
       literal: 0
       staticType: int
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: IntegerLiteral
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: IntegerLiteral
         literal: 1
         staticType: int
     IntegerLiteral
       literal: 2
       staticType: int
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f2
-          element: <null>
-          staticType: null
-        colon: :
-      expression: IntegerLiteral
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression: IntegerLiteral
         literal: 3
         staticType: int
     IntegerLiteral
@@ -1089,24 +1072,16 @@ final x = (f1: 0, f2: true);
 RecordLiteral
   leftParenthesis: (
   fields
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f1
-          element: <null>
-          staticType: null
-        colon: :
-      expression: IntegerLiteral
+    RecordLiteralNamedField
+      name: f1
+      colon: :
+      fieldExpression: IntegerLiteral
         literal: 0
         staticType: int
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: f2
-          element: <null>
-          staticType: null
-        colon: :
-      expression: BooleanLiteral
+    RecordLiteralNamedField
+      name: f2
+      colon: :
+      fieldExpression: BooleanLiteral
         literal: true
         staticType: bool
   rightParenthesis: )

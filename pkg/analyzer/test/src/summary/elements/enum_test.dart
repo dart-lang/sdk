@@ -7536,14 +7536,10 @@ library
                   argumentList: ArgumentList
                     leftParenthesis: ( @27
                     arguments
-                      NamedExpression
-                        name: Label
-                          label: SimpleIdentifier
-                            token: foo @28
-                            element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
-                            staticType: null
-                          colon: : @31
-                        expression: IntegerLiteral
+                      NamedArgument
+                        name: foo @28
+                        colon: : @31
+                        argumentExpression: IntegerLiteral
                           literal: 0 @33
                           staticType: int
                     rightParenthesis: ) @34
@@ -7779,14 +7775,10 @@ library
                   argumentList: ArgumentList
                     leftParenthesis: ( @35
                     arguments
-                      NamedExpression
-                        name: Label
-                          label: SimpleIdentifier
-                            token: foo @36
-                            element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::foo
-                            staticType: null
-                          colon: : @39
-                        expression: IntegerLiteral
+                      NamedArgument
+                        name: foo @36
+                        colon: : @39
+                        argumentExpression: IntegerLiteral
                           literal: 0 @41
                           staticType: int
                     rightParenthesis: ) @42

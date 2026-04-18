@@ -1,5 +1,8 @@
 class C0 {
-  C0(int a, this.b, this.c) : d = a, e = b, f = c;
+  C0(int a, this.b, this.c)
+      : d = a,
+        e = b,
+        f = c;
   final int c;
   int b;
   int d;

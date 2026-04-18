@@ -1548,7 +1548,7 @@ class C {
   void m(int a^, int b) {}
 }
 ''');
-    node as SimpleFormalParameter;
+    node as RegularFormalParameter;
   }
 
   Future<void> test_between_identifierAndComma_typeArguments() async {

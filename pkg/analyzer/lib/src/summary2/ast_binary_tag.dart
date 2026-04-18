@@ -61,6 +61,7 @@ class Tag {
   static const int ForPartsWithDeclarations = 91;
   static const int ForPartsWithExpression = 99;
   static const int FormalParameterList = 17;
+  static const int RegularFormalParameter = 116;
   static const int FunctionDeclaration_getter = 57;
   static const int FunctionDeclaration_setter = 58;
   static const int FunctionExpressionInvocation = 93;
@@ -86,7 +87,7 @@ class Tag {
   static const int MethodDeclaration_getter = 85;
   static const int MethodDeclaration_setter = 86;
   static const int MethodInvocation = 59;
-  static const int NamedExpression = 60;
+  static const int NamedArgument = 60;
   static const int NamedType = 39;
   static const int NullAwareElement = 44;
   static const int NullLiteral = 49;
@@ -110,6 +111,8 @@ class Tag {
   static const int StringInterpolation = 76;
   static const int SuperConstructorInvocation = 69;
   static const int SuperExpression = 80;
+  static const int SuperFormalParameter = 117;
+  static const int RecordLiteralNamedField = 118;
   static const int SymbolLiteral = 74;
   static const int ThisExpression = 70;
   static const int ThrowExpression = 81;

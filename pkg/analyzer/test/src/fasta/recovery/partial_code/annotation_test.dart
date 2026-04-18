@@ -1730,12 +1730,10 @@ CompilationUnit
                       arguments: ArgumentList
                         leftParenthesis: (
                         arguments
-                          NamedExpression
-                            name: Label
-                              label: SimpleIdentifier
-                                token: l
-                              colon: :
-                            expression: SetOrMapLiteral
+                          NamedArgument
+                            name: l
+                            colon: :
+                            argumentExpression: SetOrMapLiteral
                               leftBracket: {
                               rightBracket: }
                               isMap: false

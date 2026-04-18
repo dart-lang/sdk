@@ -801,18 +801,19 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   @override
   void writeParameterMatchingArgument(
-    Expression argument,
+    Argument argument,
     int index,
     Set<String> usedNames, {
     List<TypeParameterElement>? typeParametersInScope,
     bool isOptional = false,
   }) {
+    var expression = argument.argumentExpression;
     // Append type name.
-    var type = argument.staticType;
+    var type = expression.staticType;
     if (type == null || type.isBottom || type.isDartCoreNull) {
       type = _typeProvider.objectQuestionType;
     }
-    if (argument is NamedExpression &&
+    if (argument is NamedArgument &&
         type.nullabilitySuffix == NullabilitySuffix.none &&
         !isOptional) {
       write('required ');
@@ -831,13 +832,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
       write(' ');
     }
     // Append parameter name.
-    if (argument is NamedExpression) {
-      write(argument.name.label.name);
+    if (argument is NamedArgument) {
+      write(argument.name.lexeme);
     } else {
       var suggestions = _getParameterNameSuggestions(
         usedNames,
         type,
-        argument,
+        expression,
         index,
       );
       var favorite = suggestions[0];
@@ -858,13 +859,13 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
   }) {
     var usedNames = <String>{};
     var arguments = argumentList.arguments;
-    var positionalArguments = <(int, Expression)>[];
-    var namedArguments = <(int, NamedExpression)>[];
+    var positionalArguments = <(int, Argument)>[];
+    var namedArguments = <(int, NamedArgument)>[];
     for (var i = 0; i < arguments.length; i++) {
       var argument = arguments[i];
-      if (argument is NamedExpression) {
+      if (argument is NamedArgument) {
         namedArguments.add((i, argument));
-        usedNames.add(argument.name.label.name);
+        usedNames.add(argument.name.lexeme);
       } else {
         positionalArguments.add((i, argument));
       }
@@ -1238,10 +1239,9 @@ class DartEditBuilderImpl extends EditBuilderImpl implements DartEditBuilder {
 
   String? _getBaseNameFromLocationInParent(Expression expression) {
     // Value in named expression.
-    if (expression.parent is NamedExpression) {
-      var namedExpression = expression.parent as NamedExpression;
-      if (namedExpression.expression == expression) {
-        return namedExpression.name.label.name;
+    if (expression.parent case NamedArgument namedArgument) {
+      if (namedArgument.argumentExpression == expression) {
+        return namedArgument.name.lexeme;
       }
     }
     // Positional argument.

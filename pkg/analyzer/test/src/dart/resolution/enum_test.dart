@@ -765,14 +765,10 @@ EnumDeclaration
           argumentList: ArgumentList
             leftParenthesis: (
             arguments
-              NamedExpression
-                name: Label
-                  label: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                    staticType: null
-                  colon: :
-                expression: IntegerLiteral
+              NamedArgument
+                name: a
+                colon: :
+                argumentExpression: IntegerLiteral
                   literal: 1
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -824,14 +820,10 @@ EnumDeclaration
           argumentList: ArgumentList
             leftParenthesis: (
             arguments
-              NamedExpression
-                name: Label
-                  label: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                    staticType: null
-                  colon: :
-                expression: IntegerLiteral
+              NamedArgument
+                name: a
+                colon: :
+                argumentExpression: IntegerLiteral
                   literal: 0
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a

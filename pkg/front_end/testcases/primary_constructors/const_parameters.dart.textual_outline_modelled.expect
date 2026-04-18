@@ -1,0 +1,48 @@
+class C0 {
+  const new (int c, dynamic d)
+      : a = d.length,
+        b = c;
+  final int a;
+  final int b;
+}
+
+class const C1(int c, dynamic d) {
+  final int a = d.length;
+  final int b = c;
+}
+
+class const C2(int c, dynamic d) {
+  final int a;
+  final int b;
+  this : a = d.length, b = c;
+}
+
+class const C3(int c, dynamic d) {
+  final int a = d.length;
+  final int b;
+  this : b = c;
+}
+
+class const C4(int c, dynamic d) {
+  final int a = d.length;
+  final int b = c;
+  this : a = d.length, b = c;
+}
+
+class const C5(int c, dynamic d) {
+  int? _;
+  int a = d.length;
+  int b = c;
+}
+
+class const C6(int c, dynamic d) {
+  var _;
+  var a = d.length;
+  var b = c;
+}
+
+expect(expected, actual) {}
+
+main() {}
+
+test() {}

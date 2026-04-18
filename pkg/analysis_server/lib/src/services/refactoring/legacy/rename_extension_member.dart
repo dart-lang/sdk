@@ -243,6 +243,18 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   _LocalElementsCollector(this.name);
 
   @override
+  void visitFormalParameter(FormalParameter node) {
+    if (node.name?.lexeme == name) {
+      var element = node.declaredFragment?.element;
+      if (element != null) {
+        elements.add(element);
+      }
+    }
+
+    super.visitFormalParameter(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.name.lexeme == name) {
       var element = node.declaredFragment?.element;
@@ -252,18 +264,6 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
     }
 
     super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    if (node.name?.lexeme == name) {
-      var element = node.declaredFragment?.element;
-      if (element != null) {
-        elements.add(element);
-      }
-    }
-
-    super.visitSimpleFormalParameter(node);
   }
 
   @override

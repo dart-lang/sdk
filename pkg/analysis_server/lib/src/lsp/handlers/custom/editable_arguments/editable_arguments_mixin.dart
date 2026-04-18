@@ -17,7 +17,7 @@ typedef EditableInvocationInfo = ({
   String? widgetName,
   String? widgetDocumentation,
   List<FormalParameterElement> parameters,
-  Map<FormalParameterElement, Expression> parameterArguments,
+  Map<FormalParameterElement, Argument> parameterArguments,
   Map<FormalParameterElement, int> positionalParameterIndexes,
   ArgumentList argumentList,
   int numPositionals,
@@ -115,7 +115,7 @@ mixin EditableArgumentsMixin {
 
     var numPositionals = parameters.where((p) => p.isPositional).length;
     var numSuppliedPositionals = argumentList.arguments
-        .where((argument) => argument is! NamedExpression)
+        .where((argument) => argument is! NamedArgument)
         .length;
 
     // Build a map of parameters to their positional index so we can tell

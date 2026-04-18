@@ -306,10 +306,10 @@ class MethodInvocationResolver with ScopeHelpers {
 
   bool _hasMatchingObjectMethod(
     MethodElement target,
-    NodeListImpl<ExpressionImpl> arguments,
+    NodeListImpl<ArgumentImpl> arguments,
   ) {
     return arguments.length == target.formalParameters.length &&
-        !arguments.any((e) => e is NamedExpression);
+        !arguments.any((e) => e is NamedArgument);
   }
 
   bool _isCoreFunction(DartType type) {

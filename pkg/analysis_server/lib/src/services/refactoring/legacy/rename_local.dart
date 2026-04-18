@@ -57,8 +57,7 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
       var targetRange = _getVisibleRange(target);
       if (targetRange != null &&
           targetRange.contains(node.offset) &&
-          !node.isQualified &&
-          !_isNamedExpressionName(node)) {
+          !node.isQualified) {
         nodeElement = getSyntheticAccessorVariable(nodeElement);
         var nodeKind = nodeElement.kind.displayName;
         var nodeName = getElementQualifiedName(nodeElement);
@@ -115,11 +114,6 @@ class ConflictValidatorVisitor extends RecursiveAstVisitor<void> {
       return elementRange != null && elementRange.intersects(targetRange);
     }
     return false;
-  }
-
-  static bool _isNamedExpressionName(SimpleIdentifier node) {
-    var parent = node.parent;
-    return parent is Label && parent.parent is NamedExpression;
   }
 }
 

@@ -156,14 +156,12 @@ class EditableArgumentsHandler
   EditableArgument? _toEditableArgument(
     ResolvedUnitResult result,
     FormalParameterElement parameter,
-    Expression? argument, {
+    Argument? argument, {
     int? positionalIndex,
     required int numPositionals,
     required int numSuppliedPositionals,
   }) {
-    var valueExpression = argument is NamedExpression
-        ? argument.expression
-        : argument;
+    var valueExpression = argument?.argumentExpression;
 
     // Lazily compute the values if we will use this parameter/argument.
     late var values = _getValues(parameter, valueExpression);

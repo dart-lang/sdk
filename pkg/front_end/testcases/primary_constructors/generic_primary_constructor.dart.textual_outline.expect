@@ -5,7 +5,11 @@ class C1<T> {
   T e;
   T f;
   Type g = T;
-  C1(T a, this.b, this.c) : d = a, e = b, f = c, g = T {}
+  C1(T a, this.b, this.c)
+      : d = a,
+        e = b,
+        f = c,
+        g = T {}
 }
 
 class C2<T>(T a, var T b, final T c) {
@@ -16,9 +20,26 @@ class C2<T>(T a, var T b, final T c) {
   this {}
 }
 
-enum E1<T> { a<int>(0, 1); final T b; final T c; final T d; final Type f; const E1(T a, this.b) : c = a, d = b, f = T; }
+enum E1<T> {
+  a<int>(0, 1);
 
-enum E2<T>(T a, final T b) { a<int>(0, 1); final T d = a; final T e = b; final Type f = T; }
+  final T b;
+  final T c;
+  final T d;
+  final Type f;
+  const E1(T a, this.b)
+      : c = a,
+        d = b,
+        f = T;
+}
+
+enum E2<T>(T a, final T b) {
+  a<int>(0, 1);
+
+  final T d = a;
+  final T e = b;
+  final Type f = T;
+}
 
 extension type ET1<T>(T a) {
   ET1.other(this.a) {}

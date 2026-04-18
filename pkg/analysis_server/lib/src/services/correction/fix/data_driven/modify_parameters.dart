@@ -350,11 +350,6 @@ class ModifyParameters extends Change<_Data> {
     if (parent is InvocationExpression) {
       var argumentList = parent.argumentList;
       return _Data(argumentList);
-    } else if (parent is Label) {
-      var argumentList = grandParent?.parent;
-      if (argumentList is ArgumentList) {
-        return _Data(argumentList);
-      }
     } else if (grandParent is InvocationExpression) {
       var argumentList = grandParent.argumentList;
       return _Data(argumentList);
@@ -363,17 +358,17 @@ class ModifyParameters extends Change<_Data> {
         greatGrandParent is InstanceCreationExpression) {
       var argumentList = greatGrandParent.argumentList;
       return _Data(argumentList);
-    } else if (parent is NamedExpression &&
+    } else if (parent is NamedArgument &&
         greatGrandParent is InstanceCreationExpression) {
       var argumentList = greatGrandParent.argumentList;
       return _Data(argumentList);
     } else if (grandParent is InstanceCreationExpression) {
       var argumentList = grandParent.argumentList;
       return _Data(argumentList);
-    } else if (parent is NamedExpression &&
+    } else if (parent is NamedArgument &&
         greatGrandParent is DotShorthandInvocation) {
       return _Data(greatGrandParent.argumentList);
-    } else if (parent is NamedExpression &&
+    } else if (parent is NamedArgument &&
         greatGrandParent is DotShorthandConstructorInvocation) {
       return _Data(greatGrandParent.argumentList);
     }
@@ -392,11 +387,11 @@ class ModifyParameters extends Change<_Data> {
   }
 
   /// Return the element of the argument list whose value is the given
-  /// [argument]. If the argument is the child of a named expression, then that
-  /// will be the named expression, otherwise it will be the argument itself.
-  Expression _realArgument(Expression argument) {
+  /// [argument]. If the argument is the child of a named argument, then that
+  /// will be the named argument, otherwise it will be the argument itself.
+  Argument _realArgument(Expression argument) {
     var parent = argument.parent;
-    return parent is NamedExpression ? parent : argument;
+    return parent is NamedArgument ? parent : argument;
   }
 }
 

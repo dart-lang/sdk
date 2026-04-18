@@ -31,7 +31,9 @@ class AvoidInitToNull extends AnalysisRule {
   ) {
     var visitor = _Visitor(this, context);
     registry.addVariableDeclaration(this, visitor);
-    registry.addDefaultFormalParameter(this, visitor);
+    registry.addFieldFormalParameter(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
+    registry.addSuperFormalParameter(this, visitor);
   }
 }
 
@@ -44,20 +46,18 @@ class _Visitor extends SimpleAstVisitor<void> {
   bool isNullable(DartType type) => context.typeSystem.isNullable(type);
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    var declaredElement = node.declaredFragment?.element;
-    if (declaredElement == null) return;
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _checkFormalParameter(node);
+  }
 
-    if (declaredElement is SuperFormalParameterElement) {
-      var superConstructorParameter = declaredElement.superConstructorParameter;
-      if (superConstructorParameter is! FormalParameterElement) return;
-      var defaultValue = superConstructorParameter.defaultValueCode ?? 'null';
-      if (defaultValue != 'null') return;
-    }
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _checkFormalParameter(node);
+  }
 
-    if (node.defaultValue.isNullLiteral && isNullable(declaredElement.type)) {
-      rule.reportAtNode(node);
-    }
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _checkFormalParameter(node);
   }
 
   @override
@@ -68,6 +68,25 @@ class _Visitor extends SimpleAstVisitor<void> {
         !node.isFinal &&
         node.initializer.isNullLiteral &&
         isNullable(declaredElement.type)) {
+      rule.reportAtNode(node);
+    }
+  }
+
+  void _checkFormalParameter(FormalParameter node) {
+    var defaultValue = node.defaultClause?.value;
+    if (defaultValue == null) return;
+
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement == null) return;
+
+    if (declaredElement is SuperFormalParameterElement) {
+      var superConstructorParameter = declaredElement.superConstructorParameter;
+      if (superConstructorParameter is! FormalParameterElement) return;
+      var defaultValue = superConstructorParameter.defaultValueCode ?? 'null';
+      if (defaultValue != 'null') return;
+    }
+
+    if (defaultValue.isNullLiteral && isNullable(declaredElement.type)) {
       rule.reportAtNode(node);
     }
   }

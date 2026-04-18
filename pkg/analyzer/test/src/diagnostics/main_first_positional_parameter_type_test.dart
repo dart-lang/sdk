@@ -32,9 +32,7 @@ void main(dynamic args) {}
     await resolveTestCode('''
 void main(void args()) {}
 ''');
-    assertErrorsInResult([
-      error(diag.mainFirstPositionalParameterType, 10, 11),
-    ]);
+    assertErrorsInResult([error(diag.mainFirstPositionalParameterType, 10, 4)]);
   }
 
   test_positionalRequired_iterableOfString() async {

@@ -487,16 +487,6 @@ class SubstitutedFieldFormalParameterElementImpl
   }
 
   @override
-  FieldFormalParameterFragmentImpl get firstFragment {
-    return baseElement.firstFragment;
-  }
-
-  @override
-  List<FieldFormalParameterFragmentImpl> get fragments {
-    return baseElement.fragments;
-  }
-
-  @override
   bool get hasDefaultValue => baseElement.hasDefaultValue;
 
   @override
@@ -927,16 +917,6 @@ class SubstitutedSuperFormalParameterElementImpl
   @override
   SuperFormalParameterElementImpl get baseElement =>
       super.baseElement as SuperFormalParameterElementImpl;
-
-  @override
-  SuperFormalParameterFragmentImpl get firstFragment {
-    return baseElement.firstFragment;
-  }
-
-  @override
-  List<SuperFormalParameterFragmentImpl> get fragments {
-    return baseElement.fragments;
-  }
 
   @override
   bool get hasDefaultValue => baseElement.hasDefaultValue;

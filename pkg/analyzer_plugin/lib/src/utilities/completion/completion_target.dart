@@ -332,7 +332,7 @@ class CompletionTarget {
   ExecutableElement? get executableElement {
     if (_executableElement == null) {
       AstNode? argumentList = containingNode;
-      if (argumentList is NamedExpression) {
+      if (argumentList is NamedArgument) {
         argumentList = argumentList.parent;
       }
       if (argumentList is! ArgumentList) {
@@ -373,7 +373,7 @@ class CompletionTarget {
   FunctionType? get functionType {
     if (_functionType == null) {
       AstNode? argumentList = containingNode;
-      if (argumentList is NamedExpression) {
+      if (argumentList is NamedArgument) {
         argumentList = argumentList.parent;
       }
       if (argumentList is! ArgumentList) {
@@ -622,7 +622,7 @@ class CompletionTarget {
 
   static int? _computeArgIndex(AstNode containingNode, Object? entity) {
     AstNode? argList = containingNode;
-    if (argList is NamedExpression) {
+    if (argList is NamedArgument) {
       entity = argList;
       argList = argList.parent;
     }
@@ -758,8 +758,8 @@ class CompletionTarget {
     AstNode argumentNode,
     int? argumentIndex,
   ) {
-    if (argumentNode is NamedExpression) {
-      var name = argumentNode.name.label.name;
+    if (argumentNode is NamedArgument) {
+      var name = argumentNode.name.lexeme;
       for (var parameter in parameters) {
         if (parameter.name == name) {
           return parameter;

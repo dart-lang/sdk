@@ -225,7 +225,7 @@ void f(int a) {}
 ''');
     var fragment = findElement2.parameter('a').firstFragment;
     var result = await getFragmentDeclaration(fragment);
-    var node = result!.node as SimpleFormalParameter;
+    var node = result!.node as RegularFormalParameter;
     expect(node.name!.lexeme, 'a');
   }
 

@@ -183,9 +183,7 @@ class _LocalNameScope {
   void addFormalParameters(FormalParameterList? parameterList) {
     if (parameterList != null) {
       for (var p in parameterList.parameters) {
-        if (p is NormalFormalParameter) {
-          add(p.name);
-        }
+        add(p.name);
       }
     }
   }
@@ -332,6 +330,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedArgument(NamedArgument node) {
+    names.add(node.name.lexeme);
+    super.visitNamedArgument(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     if (node.importPrefix case var prefix?) {
       // The parser doesn't know whether the prefix is an actual import prefix
@@ -357,7 +361,7 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     // Prepare name.
     String name = node.name;
     // Ignore names shadowed by local elements.
-    if (node.isQualified || _isNameExpressionLabel(parent)) {
+    if (node.isQualified) {
       // Cannot be local.
     } else {
       if (localScope.contains(name)) {
@@ -384,13 +388,5 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     }
 
     names.add(name);
-  }
-
-  static bool _isNameExpressionLabel(AstNode parent) {
-    if (parent is Label) {
-      var parent2 = parent.parent;
-      return parent2 is NamedExpression && parent2.name == parent;
-    }
-    return false;
   }
 }

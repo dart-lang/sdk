@@ -2881,23 +2881,15 @@ library
                   IntegerLiteral
                     literal: 2 @106
                     staticType: int
-                  NamedExpression
-                    name: Label
-                      label: SimpleIdentifier
-                        token: d @109
-                        element: <testLibrary>::@class::C::@constructor::named::@formalParameter::d
-                        staticType: null
-                      colon: : @110
-                    expression: SimpleStringLiteral
+                  NamedArgument
+                    name: d @109
+                    colon: : @110
+                    argumentExpression: SimpleStringLiteral
                       literal: 'ccc' @112
-                  NamedExpression
-                    name: Label
-                      label: SimpleIdentifier
-                        token: e @119
-                        element: <testLibrary>::@class::C::@constructor::named::@formalParameter::e
-                        staticType: null
-                      colon: : @120
-                    expression: DoubleLiteral
+                  NamedArgument
+                    name: e @119
+                    colon: : @120
+                    argumentExpression: DoubleLiteral
                       literal: 3.4 @122
                       staticType: double
                 rightParenthesis: ) @125
@@ -5802,14 +5794,10 @@ library
                   token: a @24
                   element: <testLibrary>::@getter::a
                   staticType: int
-                NamedExpression
-                  name: Label
-                    label: SimpleIdentifier
-                      token: a @27
-                      element: <null>
-                      staticType: null
-                    colon: : @28
-                  expression: SimpleIdentifier
+                RecordLiteralNamedField
+                  name: a @27
+                  colon: : @28
+                  fieldExpression: SimpleIdentifier
                     token: a @30
                     element: <testLibrary>::@getter::a
                     staticType: int
@@ -5880,14 +5868,10 @@ library
                   token: a @30
                   element: <testLibrary>::@getter::a
                   staticType: int
-                NamedExpression
-                  name: Label
-                    label: SimpleIdentifier
-                      token: a @33
-                      element: <null>
-                      staticType: null
-                    colon: : @34
-                  expression: SimpleIdentifier
+                RecordLiteralNamedField
+                  name: a @33
+                  colon: : @34
+                  fieldExpression: SimpleIdentifier
                     token: a @36
                     element: <testLibrary>::@getter::a
                     staticType: int

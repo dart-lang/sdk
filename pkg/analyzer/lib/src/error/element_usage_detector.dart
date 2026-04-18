@@ -111,8 +111,8 @@ class ElementUsageDetector<TagInfo extends Object> {
       errorEntity = node.name;
     } else if (node is NamedType) {
       errorEntity = node.name;
-    } else if (node is NamedExpression) {
-      errorEntity = node.name.label;
+    } else if (node is NamedArgument) {
+      errorEntity = node.name;
     } else if (node is PatternFieldImpl) {
       var fieldName = node.name;
       if (fieldName != null) {
@@ -219,9 +219,6 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void formalParameter(FormalParameter node) {
-    if (node.parent case DefaultFormalParameter defaultFormalParameter) {
-      node = defaultFormalParameter;
-    }
     var parent = node.parent;
     if (parent is! FormalParameterList) return;
     if (parent.parent case ConstructorDeclaration constructor) {
@@ -342,7 +339,10 @@ class ElementUsageDetector<TagInfo extends Object> {
   }
 
   void superFormalParameter(SuperFormalParameter node) {
-    checkUsage(node.declaredFragment!.element.superConstructorParameter, node);
+    var element = node.declaredFragment?.element;
+    if (element is SuperFormalParameterElement) {
+      checkUsage(element.superConstructorParameter, node);
+    }
   }
 
   void _invocationArguments(Element? element, ArgumentList arguments) {
@@ -371,13 +371,13 @@ class ElementUsageDetector<TagInfo extends Object> {
 
   void _visitParametersAndArguments(
     List<FormalParameterElement> parameters,
-    List<Expression> arguments,
+    List<Argument> arguments,
   ) {
     Map<String, FormalParameterElement>? namedParameters;
 
     var positionalIndex = 0;
     for (var argument in arguments) {
-      if (argument is NamedExpression) {
+      if (argument is NamedArgument) {
         if (namedParameters == null) {
           namedParameters = {};
           for (var parameter in parameters) {
@@ -388,7 +388,7 @@ class ElementUsageDetector<TagInfo extends Object> {
             }
           }
         }
-        var name = argument.name.label.name;
+        var name = argument.name.lexeme;
         var parameter = namedParameters[name];
         if (parameter != null) {
           checkUsage(parameter, argument);

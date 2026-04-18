@@ -25,12 +25,12 @@ class ReplaceColonWithEquals extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    if (node is! DefaultFormalParameter) {
+    if (node is! FormalParameterDefaultClause) {
       return;
     }
 
     var separator = node.separator;
-    if (separator == null) {
+    if (separator.lexeme != ':') {
       return;
     }
 

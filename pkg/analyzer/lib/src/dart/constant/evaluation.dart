@@ -353,7 +353,7 @@ class ConstantEvaluationEngine {
     LibraryElementImpl library,
     AstNode node,
     List<TypeImpl>? typeArguments,
-    List<Expression> arguments,
+    List<Argument> arguments,
     InternalConstructorElement constructor,
     ConstantVisitor constantVisitor, {
     ConstructorInvocationImpl? invocation,
@@ -405,7 +405,7 @@ class ConstantEvaluationEngine {
     LibraryElementImpl library,
     AstNode node,
     List<TypeImpl>? typeArguments,
-    List<Expression> arguments,
+    List<Argument> arguments,
     InternalConstructorElement constructor,
     ConstantVisitor constantVisitor, {
     ConstructorInvocationImpl? invocation,
@@ -1139,8 +1139,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
   }
 
   @override
-  Constant visitNamedExpression(NamedExpression node) =>
-      evaluateConstant(node.expression);
+  Constant visitNamedArgument(NamedArgument node) =>
+      evaluateConstant(node.argumentExpression);
 
   @override
   Constant visitNamedType(NamedType node) {
@@ -1306,9 +1306,9 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
     var positionalFields = <DartObjectImpl>[];
     var namedFields = <String, DartObjectImpl>{};
     for (var field in node.fields) {
-      if (field is NamedExpression) {
-        var name = field.name.label.name;
-        var value = evaluateConstant(field.expression);
+      if (field is RecordLiteralNamedField) {
+        var name = field.name.lexeme;
+        var value = evaluateConstant(field.fieldExpression);
         if (value is! DartObjectImpl) {
           return value;
         }
@@ -1559,6 +1559,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               );
               return result;
           }
+        case CollectionElementImpl():
+          throw StateError('Impossible CollectionElementImpl instance');
       }
     }
 
@@ -1676,6 +1678,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
             entity: element,
             locatableDiagnostic: diag.expressionInMap,
           );
+        case CollectionElementImpl():
+          throw StateError('Impossible CollectionElementImpl instance');
       }
     }
 
@@ -1797,6 +1801,8 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
               );
               return result;
           }
+        case CollectionElementImpl():
+          throw StateError('Impossible CollectionElementImpl instance');
       }
     }
 
@@ -2080,7 +2086,7 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
           return diag.invalidAnnotationConstantValueFromDeferredLibrary;
         } else if (current is ConstantContextForExpressionImpl) {
           return diag.constInitializedWithNonConstantValueFromDeferredLibrary;
-        } else if (current is DefaultFormalParameter) {
+        } else if (current is FormalParameterDefaultClause) {
           return diag.nonConstantDefaultValueFromDeferredLibrary;
         } else if (current is IfElement && current.expression == node) {
           return diag.ifElementConditionFromDeferredLibrary;
@@ -2774,7 +2780,7 @@ class _InitializersEvaluationResult {
 
   /// If a superinitializer was encountered, the arguments passed to the super
   /// constructor, otherwise `null`.
-  final List<Expression>? superArguments;
+  final List<Argument>? superArguments;
 
   _InitializersEvaluationResult(
     this.result, {
@@ -2874,7 +2880,7 @@ class _InstanceCreationEvaluator {
   TypeSystemImpl get typeSystem => _library.typeSystem;
 
   /// Evaluates this constructor call as a factory constructor call.
-  Constant evaluateFactoryConstructorCall(List<Expression> arguments) {
+  Constant evaluateFactoryConstructorCall(List<Argument> arguments) {
     var definingClass = _constructor.enclosingElement;
     var argumentCount = arguments.length;
     if (_constructor.name == "fromEnvironment") {
@@ -3057,14 +3063,14 @@ class _InstanceCreationEvaluator {
   /// parameter (if present). Note: "defaultValue" is always allowed to be
   /// `null`. Returns `true` if the arguments are correct, `false` otherwise.
   bool _checkFromEnvironmentArguments(
-    List<Expression> arguments,
+    List<Argument> arguments,
     InterfaceTypeImpl expectedDefaultValueType,
   ) {
     var argumentCount = arguments.length;
     if (argumentCount < 1 || argumentCount > 2) {
       return false;
     }
-    if (arguments[0] is NamedExpression) {
+    if (arguments[0] is NamedArgument) {
       return false;
     }
     if (firstArgument!.type != typeProvider.stringType) {
@@ -3072,11 +3078,11 @@ class _InstanceCreationEvaluator {
     }
     if (argumentCount == 2) {
       var secondArgument = arguments[1];
-      if (secondArgument is NamedExpression) {
-        if (!(secondArgument.name.label.name == _defaultValueParam)) {
+      if (secondArgument is NamedArgument) {
+        if (!(secondArgument.name.lexeme == _defaultValueParam)) {
           return false;
         }
-        var element = secondArgument.element;
+        var element = secondArgument.correspondingParameter;
         if (element is! FormalParameterElement) {
           return false;
         }
@@ -3106,7 +3112,7 @@ class _InstanceCreationEvaluator {
     // If we encounter a superinitializer, store the name of the constructor,
     // and the arguments.
     String? superName;
-    List<Expression>? superArguments;
+    List<Argument>? superArguments;
     for (var initializer in constructorBase.constantInitializers) {
       if (initializer is ConstructorFieldInitializer) {
         var initializerExpression = initializer.expression;
@@ -3388,7 +3394,7 @@ class _InstanceCreationEvaluator {
   /// Otherwise these parameters are `null`.
   InvalidConstant? _checkSuperConstructorCall({
     required String? superName,
-    required List<Expression>? superArguments,
+    required List<Argument>? superArguments,
   }) {
     var superclass = definingType.superclass;
     if (superclass != null && !superclass.isDartCoreObject) {
@@ -3464,11 +3470,11 @@ class _InstanceCreationEvaluator {
   ///
   /// The [arguments] are the AST nodes of the arguments. Returns `true` if the
   /// arguments are correct, `false` otherwise.
-  bool _checkSymbolArguments(List<Expression> arguments) {
+  bool _checkSymbolArguments(List<Argument> arguments) {
     if (arguments.length != 1) {
       return false;
     }
-    if (arguments[0] is NamedExpression) {
+    if (arguments[0] is NamedArgument) {
       return false;
     }
     if (firstArgument!.type != typeProvider.stringType) {
@@ -3532,7 +3538,7 @@ class _InstanceCreationEvaluator {
     AstNode node,
     InternalConstructorElement constructor,
     List<TypeImpl>? typeArguments,
-    List<Expression> arguments,
+    List<Argument> arguments,
     ConstantVisitor constantVisitor, {
     ConstructorInvocationImpl? invocation,
     required Map<FormalParameterElement, DartObjectImpl> implicitArgumentValues,
@@ -3575,16 +3581,17 @@ class _InstanceCreationEvaluator {
       // Use the corresponding parameter type as the default value if
       // an unresolved expression is evaluated. We do this to continue the
       // rest of the evaluation without producing unrelated errors.
-      if (argument is NamedExpressionImpl) {
-        var parameterType = argument.element?.type ?? InvalidTypeImpl.instance;
+      if (argument is NamedArgumentImpl) {
+        var parameterType =
+            argument.correspondingParameter?.type ?? InvalidTypeImpl.instance;
         var argumentConstant = constantVisitor._valueOf(
-          argument.expression,
+          argument.argumentExpression,
           parameterType,
         );
         if (argumentConstant is! DartObjectImpl) {
           return argumentConstant;
         }
-        if (argument.element?.baseElement
+        if (argument.correspondingParameter?.baseElement
             case FormalParameterElement baseParameter) {
           argumentValueMap[baseParameter] = argumentConstant;
           argumentNodeMap[baseParameter] = argument;
@@ -3597,7 +3604,7 @@ class _InstanceCreationEvaluator {
         positionalParameterIndex++;
         var parameterType = parameter?.type ?? InvalidTypeImpl.instance;
         var argumentConstant = constantVisitor._valueOf(
-          argument,
+          argument as ExpressionImpl,
           parameterType,
         );
         if (argumentConstant is! DartObjectImpl) {

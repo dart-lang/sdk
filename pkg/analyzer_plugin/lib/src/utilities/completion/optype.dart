@@ -599,15 +599,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    if (identical(entity, node.defaultValue)) {
-      optype.completionLocation = 'DefaultFormalParameter_defaultValue';
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-    }
-  }
-
-  @override
   void visitDoStatement(DoStatement node) {
     if (identical(entity, node.body)) {
       optype.completionLocation = 'DoStatement_body';
@@ -906,6 +897,15 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    if (identical(entity, node.value)) {
+      optype.completionLocation = 'DefaultFormalParameter_defaultValue';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     optype.completionLocation = 'FormalParameterList_parameter';
     var entity = this.entity;
@@ -923,11 +923,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     var parameter = CompletionTarget.findFormalParameter(node, offset);
     if (parameter == null) return;
 
-    // Handle default normal parameter just as a normal parameter.
-    if (parameter is DefaultFormalParameter) {
-      parameter = parameter.parameter;
-    }
-
     // "(^ this.field)"
     if (parameter is FieldFormalParameter) {
       if (offset < parameter.thisKeyword.offset) {
@@ -937,8 +932,13 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     }
 
     // "(Type name)"
-    if (parameter is SimpleFormalParameter) {
-      visitSimpleFormalParameter(parameter);
+    if (parameter is RegularFormalParameter) {
+      visitRegularFormalParameter(parameter);
+      return;
+    }
+
+    if (parameter is SuperFormalParameter) {
+      visitSuperFormalParameter(parameter);
     }
   }
 
@@ -1231,8 +1231,8 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    if (identical(entity, node.expression)) {
+  void visitNamedArgument(NamedArgument node) {
+    if (identical(entity, node.argumentExpression)) {
       var context = _argumentListContext(node.parent);
       optype.completionLocation = 'ArgumentList_${context}_named';
       optype.includeReturnValueSuggestions = true;
@@ -1252,9 +1252,9 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
         var parameters = element.formalParameters;
         var parameterElement = parameters.firstWhereOrNull((e) {
           if (e is FieldFormalParameterElement) {
-            return e.field?.name == node.name.label.name;
+            return e.field?.name == node.name.lexeme;
           }
-          return e.isNamed && e.name == node.name.label.name;
+          return e.isNamed && e.name == node.name.lexeme;
         });
         // Suggest tear-offs.
         if (parameterElement?.type is FunctionType) {
@@ -1305,14 +1305,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitNode(AstNode node) {
     // no suggestion by default
-  }
-
-  @override
-  void visitNormalFormalParameter(NormalFormalParameter node) {
-    if (node.name != entity) {
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-    }
   }
 
   @override
@@ -1439,9 +1431,19 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
     optype.completionLocation = 'RecordLiteral_fields';
 
     final entity = this.entity;
-    if (entity is NamedExpression && offset <= entity.name.colon.offset) {
+    if (entity is RecordLiteralNamedField && offset <= entity.colon.offset) {
       // No values, only names.
     } else {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitRecordLiteralNamedField(RecordLiteralNamedField node) {
+    if (identical(entity, node.fieldExpression)) {
+      var context = _argumentListContext(node.parent);
+      optype.completionLocation = 'ArgumentList_${context}_named';
       optype.includeReturnValueSuggestions = true;
       optype.includeTypeNameSuggestions = true;
     }
@@ -1511,54 +1513,7 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitRelationalPattern(RelationalPattern node) {
-    var operator = node.operator;
-    if (offset >= operator.end) {
-      if (operator.type == TokenType.LT &&
-          operator.nextNotSynthetic.type == TokenType.GT) {
-        // This is most likely a type argument list.
-        optype.completionLocation = 'TypeArgumentList_argument';
-        optype.includeTypeNameSuggestions = true;
-        return;
-      }
-      optype._forPattern('RelationalPattern_operand');
-    }
-  }
-
-  @override
-  void visitRestPatternElement(RestPatternElement node) {
-    if (identical(entity, node.pattern)) {
-      optype._forPattern('RestPatternElement_pattern');
-    }
-  }
-
-  @override
-  void visitReturnStatement(ReturnStatement node) {
-    if (identical(entity, node.expression) ||
-        (identical(entity, node.semicolon) && node.expression == null)) {
-      optype.completionLocation = 'ReturnStatement_expression';
-      optype.includeReturnValueSuggestions = true;
-      optype.includeTypeNameSuggestions = true;
-    }
-  }
-
-  @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
-    if (node.elements.contains(entity)) {
-      optype.completionLocation = 'SetOrMapLiteral_element';
-    }
-    visitTypedLiteral(node);
-  }
-
-  @override
-  void visitShowCombinator(ShowCombinator node) {
-    if (node.shownNames.contains(entity)) {
-      optype.completionLocation = 'ShowCombinator_shownName';
-    }
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     var type = node.type;
     var name = node.name;
 
@@ -1616,6 +1571,53 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitRelationalPattern(RelationalPattern node) {
+    var operator = node.operator;
+    if (offset >= operator.end) {
+      if (operator.type == TokenType.LT &&
+          operator.nextNotSynthetic.type == TokenType.GT) {
+        // This is most likely a type argument list.
+        optype.completionLocation = 'TypeArgumentList_argument';
+        optype.includeTypeNameSuggestions = true;
+        return;
+      }
+      optype._forPattern('RelationalPattern_operand');
+    }
+  }
+
+  @override
+  void visitRestPatternElement(RestPatternElement node) {
+    if (identical(entity, node.pattern)) {
+      optype._forPattern('RestPatternElement_pattern');
+    }
+  }
+
+  @override
+  void visitReturnStatement(ReturnStatement node) {
+    if (identical(entity, node.expression) ||
+        (identical(entity, node.semicolon) && node.expression == null)) {
+      optype.completionLocation = 'ReturnStatement_expression';
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+    if (node.elements.contains(entity)) {
+      optype.completionLocation = 'SetOrMapLiteral_element';
+    }
+    visitTypedLiteral(node);
+  }
+
+  @override
+  void visitShowCombinator(ShowCombinator node) {
+    if (node.shownNames.contains(entity)) {
+      optype.completionLocation = 'ShowCombinator_shownName';
+    }
+  }
+
+  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     // This should never happen; the containingNode will always be some node
     // higher up in the parse tree, and the SimpleIdentifier will be the
@@ -1635,6 +1637,14 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
   @override
   void visitStringLiteral(StringLiteral node) {
     // no suggestions
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    if (node.name != entity) {
+      optype.includeReturnValueSuggestions = true;
+      optype.includeTypeNameSuggestions = true;
+    }
   }
 
   @override
@@ -1948,9 +1958,6 @@ class _OpTypeAstVisitor extends GeneralizingAstVisitor<void> {
 
   static bool _isParameterOfGenericFunctionType(FormalParameter node) {
     var parameterList = node.parent;
-    if (parameterList is DefaultFormalParameter) {
-      parameterList = parameterList.parent;
-    }
     return parameterList is FormalParameterList &&
         parameterList.parent is GenericFunctionType;
   }

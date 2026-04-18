@@ -76,16 +76,10 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: x
-            element: ParameterMember
-              baseElement: <testLibrary>::@function::foo::@formalParameter::x
-              substitution: {T: int}
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 1
           staticType: int
         correspondingParameter: ParameterMember
@@ -215,14 +209,10 @@ MethodInvocation
           baseElement: <testLibrary>::@function::foo::@formalParameter::y
           substitution: {T: int}
         staticType: int
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: z
-            element: <null>
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: z
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 3
           staticType: int
         correspondingParameter: <null>

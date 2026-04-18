@@ -111,23 +111,17 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
 
     for (var parameter in node.parameters.parameters) {
       if (parameter is SuperFormalParameter) {
-        usedElements.addElement(
-          parameter.declaredFragment!.element.superConstructorParameter,
-        );
+        var element = parameter.declaredFragment?.element;
+        if (element is SuperFormalParameterElement) {
+          var superConstructorParameter = element.superConstructorParameter;
+          if (superConstructorParameter != null) {
+            usedElements.addElement(superConstructorParameter);
+          }
+        }
       }
     }
 
     super.visitConstructorDeclaration(node);
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    var element = node.declaredFragment?.element;
-    if (element is SuperFormalParameterElement) {
-      usedElements.addElement(element.superConstructorParameter);
-    }
-
-    super.visitDefaultFormalParameter(node);
   }
 
   @override

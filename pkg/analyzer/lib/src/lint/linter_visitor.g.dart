@@ -266,12 +266,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _runSubscriptions(node, _registry._forDefaultFormalParameter);
-    node.visitChildren(this);
-  }
-
-  @override
   void visitDoStatement(DoStatement node) {
     _runSubscriptions(node, _registry._forDoStatement);
     node.visitChildren(this);
@@ -436,6 +430,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    _runSubscriptions(node, _registry._forFormalParameterDefaultClause);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     _runSubscriptions(node, _registry._forFormalParameterList);
     node.visitChildren(this);
@@ -502,8 +502,10 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _runSubscriptions(node, _registry._forFunctionTypedFormalParameter);
+  void visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) {
+    _runSubscriptions(node, _registry._forFunctionTypedFormalParameterSuffix);
     node.visitChildren(this);
   }
 
@@ -616,6 +618,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitLabelReference(LabelReference node) {
+    _runSubscriptions(node, _registry._forLabelReference);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     _runSubscriptions(node, _registry._forLibraryDirective);
     node.visitChildren(this);
@@ -688,8 +696,8 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    _runSubscriptions(node, _registry._forNamedExpression);
+  void visitNamedArgument(NamedArgument node) {
+    _runSubscriptions(node, _registry._forNamedArgument);
     node.visitChildren(this);
   }
 
@@ -852,6 +860,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteralNamedField(RecordLiteralNamedField node) {
+    _runSubscriptions(node, _registry._forRecordLiteralNamedField);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRecordPattern(RecordPattern node) {
     _runSubscriptions(node, _registry._forRecordPattern);
     node.visitChildren(this);
@@ -896,6 +910,12 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _runSubscriptions(node, _registry._forRegularFormalParameter);
+    node.visitChildren(this);
+  }
+
+  @override
   void visitRelationalPattern(RelationalPattern node) {
     _runSubscriptions(node, _registry._forRelationalPattern);
     node.visitChildren(this);
@@ -934,12 +954,6 @@ class AnalysisRuleVisitor implements AstVisitor<void> {
   @override
   void visitShowCombinator(ShowCombinator node) {
     _runSubscriptions(node, _registry._forShowCombinator);
-    node.visitChildren(this);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _runSubscriptions(node, _registry._forSimpleFormalParameter);
     node.visitChildren(this);
   }
 
@@ -1271,9 +1285,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<DeclaredVariablePattern>>
   _forDeclaredVariablePattern = [];
 
-  final List<_Subscription<DefaultFormalParameter>> _forDefaultFormalParameter =
-      [];
-
   final List<_Subscription<DoStatement>> _forDoStatement = [];
 
   final List<_Subscription<DotShorthandConstructorInvocation>>
@@ -1338,6 +1349,9 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<ForElement>> _forForElement = [];
 
+  final List<_Subscription<FormalParameterDefaultClause>>
+  _forFormalParameterDefaultClause = [];
+
   final List<_Subscription<FormalParameterList>> _forFormalParameterList = [];
 
   final List<_Subscription<ForPartsWithDeclarations>>
@@ -1364,8 +1378,8 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<FunctionTypeAlias>> _forFunctionTypeAlias = [];
 
-  final List<_Subscription<FunctionTypedFormalParameter>>
-  _forFunctionTypedFormalParameter = [];
+  final List<_Subscription<FunctionTypedFormalParameterSuffix>>
+  _forFunctionTypedFormalParameterSuffix = [];
 
   final List<_Subscription<GenericFunctionType>> _forGenericFunctionType = [];
 
@@ -1407,6 +1421,8 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<Label>> _forLabel = [];
 
+  final List<_Subscription<LabelReference>> _forLabelReference = [];
+
   final List<_Subscription<LibraryDirective>> _forLibraryDirective = [];
 
   final List<_Subscription<ListLiteral>> _forListLiteral = [];
@@ -1431,7 +1447,7 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<MixinOnClause>> _forMixinOnClause = [];
 
-  final List<_Subscription<NamedExpression>> _forNamedExpression = [];
+  final List<_Subscription<NamedArgument>> _forNamedArgument = [];
 
   final List<_Subscription<NamedType>> _forNamedType = [];
 
@@ -1492,6 +1508,9 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
 
   final List<_Subscription<RecordLiteral>> _forRecordLiteral = [];
 
+  final List<_Subscription<RecordLiteralNamedField>>
+  _forRecordLiteralNamedField = [];
+
   final List<_Subscription<RecordPattern>> _forRecordPattern = [];
 
   final List<_Subscription<RecordTypeAnnotation>> _forRecordTypeAnnotation = [];
@@ -1508,6 +1527,9 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<RedirectingConstructorInvocation>>
   _forRedirectingConstructorInvocation = [];
 
+  final List<_Subscription<RegularFormalParameter>> _forRegularFormalParameter =
+      [];
+
   final List<_Subscription<RelationalPattern>> _forRelationalPattern = [];
 
   final List<_Subscription<RestPatternElement>> _forRestPatternElement = [];
@@ -1521,9 +1543,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   final List<_Subscription<SetOrMapLiteral>> _forSetOrMapLiteral = [];
 
   final List<_Subscription<ShowCombinator>> _forShowCombinator = [];
-
-  final List<_Subscription<SimpleFormalParameter>> _forSimpleFormalParameter =
-      [];
 
   final List<_Subscription<SimpleIdentifier>> _forSimpleIdentifier = [];
 
@@ -1825,16 +1844,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
-  void addDefaultFormalParameter(
-    AbstractAnalysisRule rule,
-    AstVisitor visitor,
-  ) {
-    _forDefaultFormalParameter.add(
-      _Subscription(rule, visitor, _getTimer(rule)),
-    );
-  }
-
-  @override
   void addDoStatement(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forDoStatement.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -2017,6 +2026,16 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addFormalParameterDefaultClause(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forFormalParameterDefaultClause.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addFormalParameterList(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forFormalParameterList.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -2092,11 +2111,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
-  void addFunctionTypedFormalParameter(
+  void addFunctionTypedFormalParameterSuffix(
     AbstractAnalysisRule rule,
     AstVisitor visitor,
   ) {
-    _forFunctionTypedFormalParameter.add(
+    _forFunctionTypedFormalParameterSuffix.add(
       _Subscription(rule, visitor, _getTimer(rule)),
     );
   }
@@ -2206,6 +2225,11 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addLabelReference(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forLabelReference.add(_Subscription(rule, visitor, _getTimer(rule)));
+  }
+
+  @override
   void addLibraryDirective(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forLibraryDirective.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -2266,8 +2290,8 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
-  void addNamedExpression(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forNamedExpression.add(_Subscription(rule, visitor, _getTimer(rule)));
+  void addNamedArgument(AbstractAnalysisRule rule, AstVisitor visitor) {
+    _forNamedArgument.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
 
   @override
@@ -2436,6 +2460,16 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addRecordLiteralNamedField(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forRecordLiteralNamedField.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addRecordPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRecordPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -2486,6 +2520,16 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   }
 
   @override
+  void addRegularFormalParameter(
+    AbstractAnalysisRule rule,
+    AstVisitor visitor,
+  ) {
+    _forRegularFormalParameter.add(
+      _Subscription(rule, visitor, _getTimer(rule)),
+    );
+  }
+
+  @override
   void addRelationalPattern(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forRelationalPattern.add(_Subscription(rule, visitor, _getTimer(rule)));
   }
@@ -2518,13 +2562,6 @@ class RuleVisitorRegistryImpl implements RuleVisitorRegistry {
   @override
   void addShowCombinator(AbstractAnalysisRule rule, AstVisitor visitor) {
     _forShowCombinator.add(_Subscription(rule, visitor, _getTimer(rule)));
-  }
-
-  @override
-  void addSimpleFormalParameter(AbstractAnalysisRule rule, AstVisitor visitor) {
-    _forSimpleFormalParameter.add(
-      _Subscription(rule, visitor, _getTimer(rule)),
-    );
   }
 
   @override

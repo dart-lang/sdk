@@ -2579,7 +2579,7 @@ Future<void> foo(BuildContext context) async {
 
 Future<void> bar({required BuildContext context}) async {}
 ''',
-      [lint(121, 16)],
+      [lint(130, 7)],
     );
   }
 

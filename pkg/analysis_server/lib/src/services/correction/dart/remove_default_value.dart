@@ -22,12 +22,11 @@ class RemoveDefaultValue extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var defaultFormalParameter = node
-        .thisOrAncestorOfType<DefaultFormalParameter>();
-    if (defaultFormalParameter is! DefaultFormalParameter) return;
-    var separator = defaultFormalParameter.separator;
+    var defaultFormalParameter = node.thisOrAncestorOfType<FormalParameter>();
+    if (defaultFormalParameter is! FormalParameter) return;
+    var separator = defaultFormalParameter.defaultClause?.separator;
     if (separator == null) return;
-    var defaultValue = defaultFormalParameter.defaultValue;
+    var defaultValue = defaultFormalParameter.defaultClause?.value;
     if (defaultValue == null) return;
 
     await builder.addDartFileEdit(file, (builder) {

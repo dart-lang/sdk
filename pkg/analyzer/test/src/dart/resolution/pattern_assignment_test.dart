@@ -291,14 +291,10 @@ PatternAssignment
   expression: RecordLiteral
     leftParenthesis: (
     fields
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: a
-            element: <null>
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      RecordLiteralNamedField
+        name: a
+        colon: :
+        fieldExpression: IntegerLiteral
           literal: 0
           staticType: int
     rightParenthesis: )

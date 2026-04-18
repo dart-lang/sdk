@@ -175,7 +175,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var arg in superInvocation.argumentList.arguments) {
       if (arg is SimpleIdentifier) {
         positionalSuperArgs.add(arg);
-      } else if (arg is! NamedExpression) {
+      } else if (arg is! NamedArgument) {
         return [];
       }
     }
@@ -241,9 +241,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool matchingArgument = false;
     var arguments = superInvocation.argumentList.arguments;
     for (var argument in arguments) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == parameterElement.name) {
-        var expression = argument.expression;
+      if (argument is NamedArgument &&
+          argument.name.lexeme == parameterElement.name) {
+        var expression = argument.argumentExpression;
         if (expression is SimpleIdentifier &&
             expression.element == parameterElement) {
           matchingArgument = true;

@@ -168,26 +168,22 @@ class FunctionTypeBuilder extends TypeBuilder {
 
   /// Return the type of the [node] as is, possibly a [TypeBuilder].
   static TypeImpl _getParameterType(FormalParameterImpl node) {
-    if (node is DefaultFormalParameterImpl) {
-      return _getParameterType(node.parameter);
-    } else if (node is SimpleFormalParameterImpl) {
-      return _getNodeType(node.type);
-    } else if (node is FunctionTypedFormalParameterImpl) {
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
       NullabilitySuffix nullabilitySuffix;
-      if (node.question != null) {
+      if (functionTypedSuffix.question != null) {
         nullabilitySuffix = NullabilitySuffix.question;
       } else {
         nullabilitySuffix = NullabilitySuffix.none;
       }
 
       return FunctionTypeBuilder(
-        typeParameters: _getTypeParameters(node.typeParameters),
-        formalParameters: getParameters(node.parameters),
-        returnType: _getNodeType(node.returnType),
+        typeParameters: _getTypeParameters(functionTypedSuffix.typeParameters),
+        formalParameters: getParameters(functionTypedSuffix.formalParameters),
+        returnType: _getNodeType(node.type),
         nullabilitySuffix: nullabilitySuffix,
       );
     } else {
-      throw UnimplementedError('(${node.runtimeType}) $node');
+      return _getNodeType(node.type);
     }
   }
 

@@ -207,11 +207,6 @@ class StaticTypeAnalyzer {
     throw StateError('Should not be invoked');
   }
 
-  void visitNamedExpression(covariant NamedExpressionImpl node) {
-    Expression expression = node.expression;
-    node.recordStaticType(expression.typeOrThrow, resolver: _resolver);
-  }
-
   /// The Dart Language Specification, 12.2: <blockquote>The static type of `null` is bottom.
   /// </blockquote>
   void visitNullLiteral(covariant NullLiteralImpl node) {

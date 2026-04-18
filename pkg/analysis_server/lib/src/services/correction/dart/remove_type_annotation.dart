@@ -46,14 +46,14 @@ class RemoveTypeAnnotation extends ParsedCorrectionProducer {
       if (node is DeclaredIdentifier) {
         return _removeFromDeclaredIdentifier(builder, node);
       }
-      if (node is SimpleFormalParameter) {
+      if (node is RegularFormalParameter) {
         return _removeTypeAnnotation(builder, node.type);
       }
       if (node is SuperFormalParameter) {
         return _removeTypeAnnotation(
           builder,
           node.type,
-          parameters: node.parameters,
+          parameters: node.functionTypedSuffix?.formalParameters,
         );
       }
       if (node case TypeAnnotation(:var parent) when diagnostic != null) {

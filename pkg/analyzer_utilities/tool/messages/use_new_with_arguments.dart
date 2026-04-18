@@ -199,7 +199,7 @@ class _Visitor extends RecursiveAstVisitor<void> {
         return null;
       }
       for (var argument in arguments) {
-        if (argument is NamedExpression) {
+        if (argument is NamedArgument) {
           rejectStats.dueToNamedArgument.add(location);
           return null;
         }

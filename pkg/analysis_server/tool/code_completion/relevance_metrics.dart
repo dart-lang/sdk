@@ -300,12 +300,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     var inWidgetConstructor =
         parent is InstanceCreationExpression && parent.staticType.isWidgetType;
     for (var argument in node.arguments) {
-      var realArgument = argument;
-      var argumentKind = 'unnamed';
-      if (argument is NamedExpression) {
-        realArgument = argument.expression;
-        argumentKind = 'named';
-      }
+      var realArgument = argument.argumentExpression;
+      var argumentKind = argument is NamedArgument ? 'named' : 'unnamed';
       _recordDataForNode(
         'ArgumentList (all, $argumentKind)',
         realArgument,
@@ -612,16 +608,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _recordDataForNode(
-      'DefaultFormalParameter (defaultValue)',
-      node.defaultValue,
-      allowedKeywords: expressionKeywords,
-    );
-    super.visitDefaultFormalParameter(node);
-  }
-
-  @override
   void visitDoStatement(DoStatement node) {
     _recordDataForNode(
       'DoStatement (body)',
@@ -803,6 +789,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    _recordDataForNode(
+      'DefaultFormalParameter (defaultValue)',
+      node.value,
+      allowedKeywords: expressionKeywords,
+    );
+    super.visitFormalParameterDefaultClause(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     for (var parameter in node.parameters) {
       _recordDataForNode(
@@ -909,9 +905,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) {
     // There are no completions.
-    super.visitFunctionTypedFormalParameter(node);
+    super.visitFunctionTypedFormalParameterSuffix(node);
   }
 
   @override
@@ -1219,9 +1217,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
+  void visitNamedArgument(NamedArgument node) {
     // Named expressions only occur in argument lists and are handled there.
-    super.visitNamedExpression(node);
+    super.visitNamedArgument(node);
   }
 
   @override
@@ -1333,6 +1331,12 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    // There are no completions.
+    super.visitRegularFormalParameter(node);
+  }
+
+  @override
   void visitRethrowExpression(RethrowExpression node) {
     // There are no completions.
     super.visitRethrowExpression(node);
@@ -1375,12 +1379,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDataForNode('ShowCombinator (name)', name);
     }
     super.visitShowCombinator(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    // There are no completions.
-    super.visitSimpleFormalParameter(node);
   }
 
   @override

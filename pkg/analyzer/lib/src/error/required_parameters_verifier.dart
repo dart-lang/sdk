@@ -60,7 +60,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   void visitEnumConstantDeclaration(EnumConstantDeclaration node) {
     _check(
       parameters: node.constructorElement?.formalParameters,
-      arguments: node.arguments?.argumentList.arguments ?? <Expression>[],
+      arguments: node.arguments?.argumentList.arguments ?? <Argument>[],
       errorEntity: node.name,
     );
   }
@@ -134,7 +134,7 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
   void _check({
     required List<FormalParameterElement>? parameters,
     ConstructorElement? enclosingConstructor,
-    required List<Expression> arguments,
+    required List<Argument> arguments,
     required SyntacticEntity errorEntity,
   }) {
     if (parameters == null) {
@@ -196,13 +196,13 @@ class RequiredParametersVerifier extends SimpleAstVisitor<void> {
 
   static bool _containsNamedExpression(
     ConstructorElement? enclosingConstructor,
-    List<Expression> arguments,
+    List<Argument> arguments,
     String name,
   ) {
     for (int i = arguments.length - 1; i >= 0; i--) {
-      Expression expression = arguments[i];
-      if (expression is NamedExpression) {
-        if (expression.name.label.name == name) {
+      var argument = arguments[i];
+      if (argument is NamedArgument) {
+        if (argument.name.lexeme == name) {
           return true;
         }
       }
