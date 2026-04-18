@@ -23,8 +23,8 @@ class AddRequiredKeyword extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     await builder.addDartFileEdit(file, (builder) {
-      var parameter = node.parent;
-      if (parameter is! FormalParameter) {
+      var parameter = node.thisOrAncestorOfType<FormalParameter>();
+      if (parameter == null) {
         return;
       }
 

@@ -167,10 +167,9 @@ String? _getBaseNameFromExpression(Expression expression) {
 
 String? _getBaseNameFromLocationInParent(Expression expression) {
   // value in named expression
-  if (expression.parent is NamedExpression) {
-    var namedExpression = expression.parent as NamedExpression;
-    if (namedExpression.expression == expression) {
-      return namedExpression.name.label.name;
+  if (expression.parent case NamedArgument namedArgument) {
+    if (namedArgument.argumentExpression == expression) {
+      return namedArgument.name.lexeme;
     }
   }
   // positional argument

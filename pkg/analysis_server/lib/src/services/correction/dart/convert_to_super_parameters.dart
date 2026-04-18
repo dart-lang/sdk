@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -77,11 +76,14 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
       argumentIndex++
     ) {
       var argument = arguments[argumentIndex];
-      if (argument is NamedExpression) {
-        var parameter = _parameterFor(parameterMap, argument.expression);
+      if (argument is NamedArgument) {
+        var parameter = _parameterFor(
+          parameterMap,
+          argument.argumentExpression,
+        );
         if (parameter != null &&
             parameter.isNamed &&
-            parameter.element.name == argument.name.label.name &&
+            parameter.element.name == argument.name.lexeme &&
             !referencedParameters.contains(parameter.element)) {
           var data = _dataForParameter(
             parameter,
@@ -93,7 +95,10 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
           }
         }
       } else if (positional != null) {
-        var parameter = _parameterFor(parameterMap, argument);
+        var parameter = _parameterFor(
+          parameterMap,
+          argument.argumentExpression,
+        );
         if (parameter == null ||
             !parameter.isPositional ||
             referencedParameters.contains(parameter.element)) {
@@ -283,14 +288,11 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     FormalParameterElement superParameter,
     FormalParameterElement thisParameter,
   ) {
-    if (parameter is DefaultFormalParameter) {
-      var defaultValue = parameter.defaultValue;
-      if (defaultValue != null) {
-        var superDefault = superParameter.computeConstantValue();
-        var thisDefault = thisParameter.computeConstantValue();
-        if (superDefault != null && superDefault == thisDefault) {
-          return range.endEnd(parameter.name!, defaultValue);
-        }
+    if (parameter.defaultClause case var defaultClause?) {
+      var superDefault = superParameter.computeConstantValue();
+      var thisDefault = thisParameter.computeConstantValue();
+      if (superDefault != null && superDefault == thisDefault) {
+        return range.endEnd(parameter.name!, defaultClause.value);
       }
     }
     return null;
@@ -300,10 +302,8 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// information about the ranges of text that need to be removed in order to
   /// remove the type annotation.
   Token? _finalKeyword(FormalParameter parameter) {
-    if (parameter is DefaultFormalParameter) {
-      return _finalKeyword(parameter.parameter);
-    } else if (parameter is SimpleFormalParameter) {
-      var keyword = parameter.keyword;
+    if (parameter is RegularFormalParameter) {
+      var keyword = parameter.constFinalOrVarKeyword;
       if (keyword?.type == Keyword.FINAL) {
         return keyword;
       }
@@ -367,9 +367,8 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     FormalParameter parameter,
     FormalParameterElement superParameter,
   ) {
-    return parameter is DefaultFormalParameter &&
-        !parameter.isRequired &&
-        parameter.defaultValue == null &&
+    return !parameter.isRequired &&
+        parameter.defaultClause == null &&
         superParameter.hasDefaultValue;
   }
 
@@ -393,9 +392,7 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
     FormalParameterList parameterList,
   ) {
     bool validParameter(FormalParameter parameter) {
-      parameter = parameter.notDefault;
-      return parameter is SimpleFormalParameter ||
-          parameter is FunctionTypedFormalParameter;
+      return parameter is RegularFormalParameter;
     }
 
     var map = <FormalParameterElement, _Parameter>{};
@@ -416,23 +413,27 @@ class ConvertToSuperParameters extends ResolvedCorrectionProducer {
   /// information about the ranges of text that need to be removed in order to
   /// remove the type annotation.
   _TypeData? _type(FormalParameter parameter) {
-    if (parameter is DefaultFormalParameter) {
-      return _type(parameter.parameter);
-    } else if (parameter is SimpleFormalParameter) {
-      var typeAnnotation = parameter.type;
-      if (typeAnnotation != null) {
+    if (parameter is RegularFormalParameter) {
+      if (parameter.functionTypedSuffix case var functionTypedSuffix?) {
+        var returnType = parameter.type;
         return _TypeData(
-          primaryRange: range.startStart(typeAnnotation, parameter.name!),
+          primaryRange: returnType != null
+              ? range.startStart(returnType, parameter.name!)
+              : null,
+          parameterRange: range.startEnd(
+            functionTypedSuffix.typeParameters ??
+                functionTypedSuffix.formalParameters,
+            functionTypedSuffix.endToken,
+          ),
         );
+      } else {
+        var typeAnnotation = parameter.type;
+        if (typeAnnotation != null) {
+          return _TypeData(
+            primaryRange: range.startStart(typeAnnotation, parameter.name!),
+          );
+        }
       }
-    } else if (parameter is FunctionTypedFormalParameter) {
-      var returnType = parameter.returnType;
-      return _TypeData(
-        primaryRange: returnType != null
-            ? range.startStart(returnType, parameter.name)
-            : null,
-        parameterRange: range.node(parameter.parameters),
-      );
     }
     return null;
   }

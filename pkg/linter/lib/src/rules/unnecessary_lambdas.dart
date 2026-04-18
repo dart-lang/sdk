@@ -271,8 +271,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (tearoffType == null) return;
 
       var parent = nodeToLint.parent;
-      if (parent is NamedExpression) {
-        var argType = parent.staticType;
+      if (parent is NamedArgument) {
+        var argType = parent.argumentExpression.staticType;
         if (argType == null) return;
         if (!typeSystem.isSubtypeOf(tearoffType, argType)) return;
       } else if (parent is VariableDeclaration) {

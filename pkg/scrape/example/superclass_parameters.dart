@@ -14,7 +14,7 @@ enum ArgumentMatch {
   prefix,
   suffix,
   middle,
-  noncontiguous
+  noncontiguous,
 }
 
 extension on ArgumentMatch {
@@ -96,19 +96,25 @@ class SuperclassParameterVisitor extends ScrapeVisitor {
     for (var i = 0; i < initializer.argumentList.arguments.length; i++) {
       var argument = initializer.argumentList.arguments[i];
 
-      if (argument is NamedExpression) {
-        var expression = argument.expression;
+      if (argument is NamedArgument) {
+        var expression = argument.argumentExpression;
         if (expression is! SimpleIdentifier) {
-          record('Individual arguments',
-              'Named argument expression is not identifier');
+          record(
+            'Individual arguments',
+            'Named argument expression is not identifier',
+          );
           unmatchedNamedArguments++;
-        } else if (argument.name.label.name != expression.name) {
-          record('Individual arguments',
-              'Named argument name does not match expression name');
+        } else if (argument.name.lexeme != expression.name) {
+          record(
+            'Individual arguments',
+            'Named argument name does not match expression name',
+          );
           unmatchedNamedArguments++;
         } else if (!namedParamNames.contains(expression.name)) {
-          record('Individual arguments',
-              'Named argument does not match a parameter');
+          record(
+            'Individual arguments',
+            'Named argument does not match a parameter',
+          );
           unmatchedNamedArguments++;
         } else {
           record('Individual arguments', 'Argument matches a parameter');
@@ -117,19 +123,25 @@ class SuperclassParameterVisitor extends ScrapeVisitor {
       } else {
         positionalArgCount++;
         if (argument is! SimpleIdentifier) {
-          record('Individual arguments',
-              'Positional argument expression is not identifier');
+          record(
+            'Individual arguments',
+            'Positional argument expression is not identifier',
+          );
           unmatchedPositionalArguments++;
         } else {
           // Start searching after the last matched positional parameter because
           // we don't allow reordering them. If two arguments are out of order,
           // that doesn't mean we can't use "super." at all, just that we can
           // only use it for *one* of those arguments.
-          var index =
-              positionalParamNames.indexOf(argument.name, lastPositionalParam);
+          var index = positionalParamNames.indexOf(
+            argument.name,
+            lastPositionalParam,
+          );
           if (index == -1) {
-            record('Individual arguments',
-                'Positional argument does not match a parameter');
+            record(
+              'Individual arguments',
+              'Positional argument does not match a parameter',
+            );
           } else {
             record('Individual arguments', 'Argument matches a parameter');
             lastPositionalParam = index;
@@ -295,11 +307,15 @@ class SuperclassParameterVisitor extends ScrapeVisitor {
     var subName = _constructorName(node.name);
     var superName = _constructorName(initializer.constructorName?.token);
 
-    record('No explicit super(), call same name',
-        (allParams && superName == subName) ? 'Yes' : 'No');
+    record(
+      'No explicit super(), call same name',
+      (allParams && superName == subName) ? 'Yes' : 'No',
+    );
 
-    record('No explicit super(), call unnamed',
-        (allParams && superName == '(unnamed)') ? 'Yes' : 'No');
+    record(
+      'No explicit super(), call unnamed',
+      (allParams && superName == '(unnamed)') ? 'Yes' : 'No',
+    );
   }
 
   String _constructorName(Token? name) {

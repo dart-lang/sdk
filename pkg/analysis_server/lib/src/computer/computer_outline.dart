@@ -224,22 +224,28 @@ class DartUnitOutlineComputer {
   }
 
   Outline _newDeclaredFieldOutline(FormalParameter parameter) {
-    if (parameter is DefaultFormalParameter) {
-      parameter = parameter.parameter;
-    }
+    var type = parameter.type;
+    var functionTypedSuffix = parameter.functionTypedSuffix;
 
     String typeName;
-    if (parameter is SimpleFormalParameter) {
-      typeName = _safeToSource(parameter.type);
-    } else if (parameter is FunctionTypedFormalParameter) {
-      var returnType = _safeToSource(parameter.returnType);
-      var typeParameters = _safeToSource(parameter.typeParameters);
-      var formalParameters = _safeToSource(parameter.parameters);
-      typeName = '$returnType Function$typeParameters$formalParameters';
+    if (functionTypedSuffix == null) {
+      typeName = _safeToSource(type);
     } else {
-      throw StateError('Unhandled parameter type: ${parameter.runtimeType}');
+      var returnType = _safeToSource(type);
+      var typeParameters = _safeToSource(functionTypedSuffix.typeParameters);
+      var formalParameters = _safeToSource(
+        functionTypedSuffix.formalParameters,
+      );
+      var question = functionTypedSuffix.question?.lexeme ?? '';
+      typeName =
+          '$returnType Function$typeParameters$formalParameters$question';
     }
-    var nameToken = parameter.name!;
+    var nameToken = parameter.name;
+    if (nameToken == null) {
+      throw StateError(
+        'Unhandled parameter without a name: ${parameter.runtimeType}',
+      );
+    }
     var name = nameToken.lexeme;
     var element = Element(
       ElementKind.FIELD,
@@ -739,16 +745,16 @@ class _FunctionBodyOutlinesVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    String extractString(NodeList<Expression>? arguments) {
+    String extractString(NodeList<Argument>? arguments) {
       if (arguments != null && arguments.isNotEmpty) {
-        var argument = arguments[0];
-        if (argument is StringLiteral) {
-          var value = argument.stringValue;
+        var valueArgument = arguments[0].argumentExpression;
+        if (valueArgument is StringLiteral) {
+          var value = valueArgument.stringValue;
           if (value != null) {
             return value;
           }
         }
-        return argument.toSource();
+        return valueArgument.toSource();
       }
       return 'unnamed';
     }

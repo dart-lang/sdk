@@ -33,7 +33,7 @@ class AvoidShadowingTypeParameters extends AnalysisRule {
     var visitor = _Visitor(this, context);
     registry.addFunctionDeclarationStatement(this, visitor);
     registry.addFunctionExpression(this, visitor);
-    registry.addFunctionTypedFormalParameter(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
     registry.addGenericFunctionType(this, visitor);
     registry.addGenericTypeAlias(this, visitor);
     registry.addMethodDeclaration(this, visitor);
@@ -70,13 +70,6 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    if (node.typeParameters != null) {
-      _checkAncestorParameters(node.typeParameters, node);
-    }
-  }
-
-  @override
   void visitGenericFunctionType(GenericFunctionType node) {
     if (node.typeParameters != null) {
       _checkAncestorParameters(node.typeParameters, node);
@@ -100,6 +93,14 @@ class _Visitor extends SimpleAstVisitor<void> {
     // Static methods have nothing above them to shadow.
     if (!node.isStatic) {
       _checkAncestorParameters(node.typeParameters, node);
+    }
+  }
+
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    var typeParameters = node.functionTypedSuffix?.typeParameters;
+    if (typeParameters != null) {
+      _checkAncestorParameters(typeParameters, node);
     }
   }
 
@@ -141,8 +142,12 @@ class _Visitor extends SimpleAstVisitor<void> {
           parent.functionExpression.typeParameters,
           'function',
         );
-      } else if (parent is FunctionTypedFormalParameter) {
-        _checkForShadowing(typeParameters, parent.typeParameters, 'parameter');
+      } else if (parent is RegularFormalParameter) {
+        _checkForShadowing(
+          typeParameters,
+          parent.functionTypedSuffix?.typeParameters,
+          'parameter',
+        );
       } else if (parent is GenericFunctionType) {
         _checkForShadowing(typeParameters, parent.typeParameters, 'function');
       } else if (parent is GenericTypeAlias) {

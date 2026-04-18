@@ -16,7 +16,6 @@ import 'package:analyzer/src/summary2/ast_binary_tag.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/bundle_reader.dart';
 import 'package:analyzer/src/summary2/unlinked_token_type.dart';
-import 'package:collection/collection.dart';
 
 /// Deserializer of ASTs.
 class AstBinaryReader {
@@ -64,13 +63,13 @@ class AstBinaryReader {
     );
     node.element = _reader.readElement();
     if (arguments != null) {
-      _resolveNamedExpressions(node.element, arguments);
+      _resolveArguments(node.element, arguments);
     }
     return node;
   }
 
   ArgumentList _readArgumentList() {
-    var arguments = _readNodeList<ExpressionImpl>();
+    var arguments = _readNodeList<ArgumentImpl>();
 
     return ArgumentListImpl(
       leftParenthesis: Tokens.openParenthesis(),
@@ -242,44 +241,6 @@ class AstBinaryReader {
     );
   }
 
-  DefaultFormalParameter _readDefaultFormalParameter() {
-    var flags = _readByte();
-    var parameter = _readNode() as NormalFormalParameterImpl;
-    var defaultValue = _readOptionalNode() as ExpressionImpl?;
-
-    ParameterKind kind;
-    if (AstBinaryFlags.isPositional(flags)) {
-      kind = AstBinaryFlags.isRequired(flags)
-          ? ParameterKind.REQUIRED
-          : ParameterKind.POSITIONAL;
-    } else {
-      kind = AstBinaryFlags.isRequired(flags)
-          ? ParameterKind.NAMED_REQUIRED
-          : ParameterKind.NAMED;
-    }
-
-    var node = DefaultFormalParameterImpl(
-      parameter: parameter,
-      kind: kind,
-      separator: AstBinaryFlags.hasInitializer(flags) ? Tokens.colon() : null,
-      defaultValue: defaultValue,
-    );
-
-    var nonDefaultFragment = parameter.declaredFragment!;
-    var fragment = FormalParameterFragmentImpl(
-      name: nonDefaultFragment.name,
-      nameOffset: nonDefaultFragment.nameOffset,
-      parameterKind: kind,
-    );
-    if (parameter is SimpleFormalParameterImpl) {
-      parameter.declaredFragment = fragment;
-    }
-    node.declaredFragment = fragment;
-    fragment.element.type = nonDefaultFragment.element.type;
-
-    return node;
-  }
-
   DotShorthandConstructorInvocation _readDotShorthandConstructorInvocation() {
     var flags = _readByte();
     var constructorName = _readNode() as SimpleIdentifierImpl;
@@ -293,7 +254,7 @@ class AstBinaryReader {
       argumentList: argumentList,
     )..isDotShorthand = AstBinaryFlags.isDotShorthand(flags);
     _readExpressionResolution(node);
-    _resolveNamedExpressions(node.constructorName.element, node.argumentList);
+    _resolveArguments(node.constructorName.element, node.argumentList);
     return node;
   }
 
@@ -370,37 +331,54 @@ class AstBinaryReader {
   }
 
   FieldFormalParameter _readFieldFormalParameter() {
-    var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var functionTypeParameters = _readOptionalNode() as TypeParameterListImpl?;
     var type = _readOptionalNode() as TypeAnnotationImpl?;
-    var formalParameters = _readOptionalNode() as FormalParameterListImpl?;
+    var functionFormalParameters =
+        _readOptionalNode() as FormalParameterListImpl?;
     var flags = _readByte();
     var metadata = _readNodeList<AnnotationImpl>();
     var name = _readDeclarationName();
+    var kind = _readFormalParameterKind(flags);
+    var functionTypedSuffix = functionFormalParameters == null
+        ? null
+        : FunctionTypedFormalParameterSuffixImpl(
+            typeParameters: functionTypeParameters,
+            formalParameters: functionFormalParameters,
+            question: AstBinaryFlags.formalParameterHasQuestion(flags)
+                ? Tokens.question()
+                : null,
+          );
     var node = FieldFormalParameterImpl(
-      name: name,
-      period: Tokens.period(),
-      thisKeyword: Tokens.this_(),
-      covariantKeyword: AstBinaryFlags.isCovariant(flags)
+      comment: null,
+      metadata: metadata,
+      kind: kind,
+      covariantKeyword: AstBinaryFlags.formalParameterIsCovariant(flags)
           ? Tokens.covariant_()
           : null,
-      typeParameters: typeParameters,
-      keyword: Tokens.choose(
-        AstBinaryFlags.isConst(flags),
+      requiredKeyword: _readFormalParameterRequiredKeyword(flags, kind),
+      constFinalOrVarKeyword: Tokens.choose(
+        AstBinaryFlags.formalParameterIsConst(flags),
         Tokens.const_(),
-        AstBinaryFlags.isFinal(flags),
+        AstBinaryFlags.formalParameterIsFinal(flags),
         Tokens.final_(),
-        AstBinaryFlags.isVar(flags),
+        AstBinaryFlags.formalParameterIsVar(flags),
         Tokens.var_(),
       ),
-      metadata: metadata,
-      comment: null,
       type: type,
-      parameters: formalParameters,
-      question: AstBinaryFlags.hasQuestion(flags) ? Tokens.question() : null,
-      requiredKeyword: AstBinaryFlags.isRequired(flags)
-          ? Tokens.required_()
-          : null,
+      thisKeyword: Tokens.this_(),
+      period: Tokens.period(),
+      name: name,
+      functionTypedSuffix: functionTypedSuffix,
+      defaultClause: _readFormalParameterDefaultClause(flags),
     );
+    var actualType = _reader.readRequiredType();
+    var fragment = FieldFormalParameterFragmentImpl(
+      name: name.lexeme,
+      nameOffset: null,
+      parameterKind: kind,
+      privateName: null,
+    );
+    _readFormalParameterResolution(node, fragment, actualType);
     return node;
   }
 
@@ -428,6 +406,30 @@ class AstBinaryReader {
     );
   }
 
+  FormalParameterDefaultClauseImpl? _readFormalParameterDefaultClause(
+    int flags,
+  ) {
+    if (!AstBinaryFlags.formalParameterHasInitializer(flags)) {
+      return null;
+    }
+    return FormalParameterDefaultClauseImpl(
+      separator: Tokens.colon(),
+      value: _readNode() as ExpressionImpl,
+    );
+  }
+
+  ParameterKind _readFormalParameterKind(int flags) {
+    if (AstBinaryFlags.formalParameterIsPositional(flags)) {
+      return AstBinaryFlags.formalParameterIsRequired(flags)
+          ? ParameterKind.REQUIRED
+          : ParameterKind.POSITIONAL;
+    } else {
+      return AstBinaryFlags.formalParameterIsRequired(flags)
+          ? ParameterKind.NAMED_REQUIRED
+          : ParameterKind.NAMED;
+    }
+  }
+
   FormalParameterList _readFormalParameterList() {
     var flags = _readByte();
     var parameters = _readNodeList<FormalParameterImpl>();
@@ -449,6 +451,34 @@ class AstBinaryReader {
       ),
       rightParenthesis: Tokens.closeParenthesis(),
     );
+  }
+
+  Token? _readFormalParameterRequiredKeyword(int flags, ParameterKind kind) {
+    return !kind.isPositional && AstBinaryFlags.formalParameterIsRequired(flags)
+        ? Tokens.required_()
+        : null;
+  }
+
+  void _readFormalParameterResolution(
+    FormalParameterImpl node,
+    FormalParameterFragmentImpl fragment,
+    TypeImpl actualType,
+  ) {
+    fragment.element.type = actualType;
+    fragment.constantInitializer = node.defaultClause?.value;
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      fragment.formalParameters = functionTypedSuffix
+          .formalParameters
+          .parameters
+          .map((parameter) => parameter.declaredFragment!)
+          .toList();
+      fragment.typeParameters =
+          functionTypedSuffix.typeParameters?.typeParameters
+              .map((parameter) => parameter.declaredFragment!)
+              .toList() ??
+          const [];
+    }
+    node.declaredFragment = fragment;
   }
 
   ForPartsWithDeclarations _readForPartsWithDeclarations() {
@@ -500,40 +530,6 @@ class AstBinaryReader {
     );
     node.typeArgumentTypes = _reader.readOptionalTypeList();
     _readExpressionResolution(node);
-    return node;
-  }
-
-  FunctionTypedFormalParameter _readFunctionTypedFormalParameter() {
-    var typeParameters = _readOptionalNode() as TypeParameterListImpl?;
-    var returnType = _readOptionalNode() as TypeAnnotationImpl?;
-    var formalParameters = _readNode() as FormalParameterListImpl;
-    var flags = _readByte();
-    var metadata = _readNodeList<AnnotationImpl>();
-    var name = _readDeclarationName();
-    var node = FunctionTypedFormalParameterImpl(
-      comment: null,
-      covariantKeyword: AstBinaryFlags.isCovariant(flags)
-          ? Tokens.covariant_()
-          : null,
-      name: name,
-      metadata: metadata,
-      parameters: formalParameters,
-      requiredKeyword: AstBinaryFlags.isRequired(flags)
-          ? Tokens.required_()
-          : null,
-      keyword: () {
-        if (AstBinaryFlags.isFinal(flags)) {
-          return Tokens.final_();
-        }
-        if (AstBinaryFlags.isVar(flags)) {
-          return Tokens.var_();
-        }
-        return null;
-      }(),
-      returnType: returnType,
-      typeParameters: typeParameters,
-      question: null,
-    );
     return node;
   }
 
@@ -644,7 +640,7 @@ class AstBinaryReader {
       typeArguments: null,
     );
     _readExpressionResolution(node);
-    _resolveNamedExpressions(node.constructorName.element, node.argumentList);
+    _resolveArguments(node.constructorName.element, node.argumentList);
     return node;
   }
 
@@ -788,18 +784,14 @@ class AstBinaryReader {
     return node;
   }
 
-  NamedExpression _readNamedExpression() {
+  NamedArgument _readNamedArgument() {
     var name = _readStringReference();
-    var nameNode = LabelImpl(
-      label: SimpleIdentifierImpl(
-        token: StringToken(TokenType.STRING, name, -1),
-      ),
+    var argumentExpression = _readNode() as ExpressionImpl;
+    return NamedArgumentImpl(
+      name: StringToken(TokenType.STRING, name, -1),
       colon: Tokens.colon(),
+      argumentExpression: argumentExpression,
     );
-    var expression = _readNode() as ExpressionImpl;
-    var node = NamedExpressionImpl(name: nameNode, expression: expression);
-    node.setPseudoExpressionStaticType(expression.staticType);
-    return node;
   }
 
   NamedType _readNamedType() {
@@ -852,8 +844,6 @@ class AstBinaryReader {
         return _readConstructorReference();
       case Tag.DeclaredIdentifier:
         return _readDeclaredIdentifier();
-      case Tag.DefaultFormalParameter:
-        return _readDefaultFormalParameter();
       case Tag.DotShorthandConstructorInvocation:
         return _readDotShorthandConstructorInvocation();
       case Tag.DotShorthandInvocation:
@@ -882,10 +872,10 @@ class AstBinaryReader {
         return _readFunctionExpressionInvocation();
       case Tag.FunctionReference:
         return _readFunctionReference();
-      case Tag.FunctionTypedFormalParameter:
-        return _readFunctionTypedFormalParameter();
       case Tag.GenericFunctionType:
         return _readGenericFunctionType();
+      case Tag.RegularFormalParameter:
+        return _readRegularFormalParameter();
       case Tag.IfElement:
         return _readIfElement();
       case Tag.ImplicitCallReference:
@@ -916,8 +906,8 @@ class AstBinaryReader {
         return _readMapLiteralEntry();
       case Tag.MethodInvocation:
         return _readMethodInvocation();
-      case Tag.NamedExpression:
-        return _readNamedExpression();
+      case Tag.NamedArgument:
+        return _readNamedArgument();
       case Tag.NullAwareElement:
         return _readNullAwareElement();
       case Tag.NullLiteral:
@@ -936,6 +926,8 @@ class AstBinaryReader {
         return _readPropertyAccess();
       case Tag.RecordLiteral:
         return _readRecordLiteral();
+      case Tag.RecordLiteralNamedField:
+        return _readRecordLiteralNamedField();
       case Tag.RecordTypeAnnotation:
         return _readRecordTypeAnnotation();
       case Tag.RecordTypeAnnotationNamedField:
@@ -948,8 +940,6 @@ class AstBinaryReader {
         return _readRedirectingConstructorInvocation();
       case Tag.SetOrMapLiteral:
         return _readSetOrMapLiteral();
-      case Tag.SimpleFormalParameter:
-        return _readSimpleFormalParameter();
       case Tag.SimpleIdentifier:
         return _readSimpleIdentifier();
       case Tag.SimpleStringLiteral:
@@ -962,6 +952,8 @@ class AstBinaryReader {
         return _readSuperConstructorInvocation();
       case Tag.SuperExpression:
         return _readSuperExpression();
+      case Tag.SuperFormalParameter:
+        return _readSuperFormalParameter();
       case Tag.SymbolLiteral:
         return _readSymbolLiteral();
       case Tag.ThisExpression:
@@ -1108,7 +1100,7 @@ class AstBinaryReader {
 
   RecordLiteralImpl _readRecordLiteral() {
     var flags = _readByte();
-    var fields = _readNodeList<ExpressionImpl>();
+    var fields = _readNodeList<RecordLiteralFieldImpl>();
     var node = RecordLiteralImpl(
       constKeyword: AstBinaryFlags.isConst(flags) ? Tokens.const_() : null,
       leftParenthesis: Tokens.openParenthesis(),
@@ -1117,6 +1109,16 @@ class AstBinaryReader {
     );
     _readExpressionResolution(node);
     return node;
+  }
+
+  RecordLiteralNamedField _readRecordLiteralNamedField() {
+    var name = _readStringReference();
+    var fieldExpression = _readNode() as ExpressionImpl;
+    return RecordLiteralNamedFieldImpl(
+      name: StringToken(TokenType.STRING, name, -1),
+      colon: Tokens.colon(),
+      fieldExpression: fieldExpression,
+    );
   }
 
   RecordTypeAnnotationImpl _readRecordTypeAnnotation() {
@@ -1187,7 +1189,61 @@ class AstBinaryReader {
       argumentList: argumentList,
     );
     node.element = _reader.readElement() as ConstructorElementImpl?;
-    _resolveNamedExpressions(node.element, node.argumentList);
+    _resolveArguments(node.element, node.argumentList);
+    return node;
+  }
+
+  RegularFormalParameter _readRegularFormalParameter() {
+    var functionTypeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
+    var functionFormalParameters =
+        _readOptionalNode() as FormalParameterListImpl?;
+    var flags = _readByte();
+    var metadata = _readNodeList<AnnotationImpl>();
+    var name = AstBinaryFlags.formalParameterHasName(flags)
+        ? _readDeclarationName()
+        : null;
+    var kind = _readFormalParameterKind(flags);
+    var functionTypedSuffix = functionFormalParameters == null
+        ? null
+        : FunctionTypedFormalParameterSuffixImpl(
+            typeParameters: functionTypeParameters,
+            formalParameters: functionFormalParameters,
+            question: AstBinaryFlags.formalParameterHasQuestion(flags)
+                ? Tokens.question()
+                : null,
+          );
+
+    var node = RegularFormalParameterImpl(
+      comment: null,
+      metadata: metadata,
+      kind: kind,
+      covariantKeyword: AstBinaryFlags.formalParameterIsCovariant(flags)
+          ? Tokens.covariant_()
+          : null,
+      constFinalOrVarKeyword: Tokens.choose(
+        AstBinaryFlags.formalParameterIsConst(flags),
+        Tokens.const_(),
+        AstBinaryFlags.formalParameterIsFinal(flags),
+        Tokens.final_(),
+        AstBinaryFlags.formalParameterIsVar(flags),
+        Tokens.var_(),
+      ),
+      type: type,
+      name: name,
+      functionTypedSuffix: functionTypedSuffix,
+      defaultClause: _readFormalParameterDefaultClause(flags),
+      requiredKeyword: _readFormalParameterRequiredKeyword(flags, kind),
+    );
+    var actualType = _reader.readRequiredType();
+
+    var fragment = FormalParameterFragmentImpl(
+      name: name?.lexeme,
+      nameOffset: null,
+      parameterKind: kind,
+    );
+    _readFormalParameterResolution(node, fragment, actualType);
+
     return node;
   }
 
@@ -1213,45 +1269,6 @@ class AstBinaryReader {
     }
 
     _readExpressionResolution(node);
-    return node;
-  }
-
-  SimpleFormalParameter _readSimpleFormalParameter() {
-    var type = _readOptionalNode() as TypeAnnotationImpl?;
-    var flags = _readByte();
-    var metadata = _readNodeList<AnnotationImpl>();
-    var name = AstBinaryFlags.hasName(flags) ? _readDeclarationName() : null;
-
-    var node = SimpleFormalParameterImpl(
-      name: name,
-      type: type,
-      covariantKeyword: AstBinaryFlags.isCovariant(flags)
-          ? Tokens.covariant_()
-          : null,
-      comment: null,
-      metadata: metadata,
-      keyword: Tokens.choose(
-        AstBinaryFlags.isConst(flags),
-        Tokens.const_(),
-        AstBinaryFlags.isFinal(flags),
-        Tokens.final_(),
-        AstBinaryFlags.isVar(flags),
-        Tokens.var_(),
-      ),
-      requiredKeyword: AstBinaryFlags.isRequired(flags)
-          ? Tokens.required_()
-          : null,
-    );
-    var actualType = _reader.readRequiredType();
-
-    var fragment = FormalParameterFragmentImpl(
-      name: name?.lexeme,
-      nameOffset: null,
-      parameterKind: node.kind,
-    );
-    fragment.element.type = actualType;
-    node.declaredFragment = fragment;
-
     return node;
   }
 
@@ -1310,13 +1327,67 @@ class AstBinaryReader {
       argumentList: argumentList,
     );
     node.element = _reader.readElement() as InternalConstructorElement?;
-    _resolveNamedExpressions(node.element, node.argumentList);
+    _resolveArguments(node.element, node.argumentList);
     return node;
   }
 
   SuperExpression _readSuperExpression() {
     var node = SuperExpressionImpl(superKeyword: Tokens.super_());
     _readExpressionResolution(node);
+    return node;
+  }
+
+  SuperFormalParameter _readSuperFormalParameter() {
+    var functionTypeParameters = _readOptionalNode() as TypeParameterListImpl?;
+    var type = _readOptionalNode() as TypeAnnotationImpl?;
+    var functionFormalParameters =
+        _readOptionalNode() as FormalParameterListImpl?;
+    var flags = _readByte();
+    var metadata = _readNodeList<AnnotationImpl>();
+    var name = _readDeclarationName();
+    var kind = _readFormalParameterKind(flags);
+    var functionTypedSuffix = functionFormalParameters == null
+        ? null
+        : FunctionTypedFormalParameterSuffixImpl(
+            typeParameters: functionTypeParameters,
+            formalParameters: functionFormalParameters,
+            question: AstBinaryFlags.formalParameterHasQuestion(flags)
+                ? Tokens.question()
+                : null,
+          );
+
+    var node = SuperFormalParameterImpl(
+      comment: null,
+      metadata: metadata,
+      kind: kind,
+      covariantKeyword: AstBinaryFlags.formalParameterIsCovariant(flags)
+          ? Tokens.covariant_()
+          : null,
+      requiredKeyword: _readFormalParameterRequiredKeyword(flags, kind),
+      constFinalOrVarKeyword: Tokens.choose(
+        AstBinaryFlags.formalParameterIsConst(flags),
+        Tokens.const_(),
+        AstBinaryFlags.formalParameterIsFinal(flags),
+        Tokens.final_(),
+        AstBinaryFlags.formalParameterIsVar(flags),
+        Tokens.var_(),
+      ),
+      type: type,
+      superKeyword: Tokens.super_(),
+      period: Tokens.period(),
+      name: name,
+      functionTypedSuffix: functionTypedSuffix,
+      defaultClause: _readFormalParameterDefaultClause(flags),
+    );
+    var actualType = _reader.readRequiredType();
+
+    var fragment = SuperFormalParameterFragmentImpl(
+      name: name.lexeme,
+      nameOffset: null,
+      parameterKind: kind,
+    );
+    _readFormalParameterResolution(node, fragment, actualType);
+
     return node;
   }
 
@@ -1436,21 +1507,35 @@ class AstBinaryReader {
     );
   }
 
-  void _resolveNamedExpressions(
-    Element? executable,
-    ArgumentList argumentList,
-  ) {
-    for (var argument in argumentList.arguments) {
-      if (argument is NamedExpressionImpl) {
-        var nameNode = argument.name.label;
-        if (executable is ExecutableElement) {
-          var formalParameters = executable.formalParameters;
-          var name = nameNode.name;
-          nameNode.element = formalParameters.firstWhereOrNull((e) {
-            return e.name == name;
-          });
-        }
+  void _resolveArguments(Element? executable, ArgumentListImpl argumentList) {
+    if (executable is! InternalExecutableElement) {
+      return;
+    }
+
+    var formalParameters = executable.formalParameters;
+    var positionalParameters = <InternalFormalParameterElement>[];
+    var namedParameters = <String, InternalFormalParameterElement>{};
+    for (var parameter in formalParameters) {
+      if (parameter.isNamed) {
+        namedParameters[parameter.name ?? ''] = parameter;
+      } else {
+        positionalParameters.add(parameter);
       }
     }
+
+    var resolved = List<InternalFormalParameterElement?>.filled(
+      argumentList.arguments.length,
+      null,
+    );
+    var positionalIndex = 0;
+    for (var i = 0; i < argumentList.arguments.length; i++) {
+      var argument = argumentList.arguments[i];
+      if (argument is NamedArgumentImpl) {
+        resolved[i] = namedParameters[argument.name.lexeme];
+      } else if (positionalIndex < positionalParameters.length) {
+        resolved[i] = positionalParameters[positionalIndex++];
+      }
+    }
+    argumentList.correspondingStaticParameters = resolved;
   }
 }

@@ -260,7 +260,6 @@ class DeclarationHelper {
     }
     // Skip fields that are already initialized in the parameter list.
     for (var parameter in constructor.parameters.parameters) {
-      parameter = parameter.notDefault;
       if (parameter is FieldFormalParameter) {
         var parameterElement = parameter.declaredFragment?.element;
         if (parameterElement is FieldFormalParameterElement) {
@@ -615,8 +614,8 @@ class DeclarationHelper {
       var specified = <String>{
         ...constructorElement.formalParameters.map((e) => e.name).nonNulls,
         ...?superConstructorInvocation?.argumentList.arguments
-            .whereType<NamedExpression>()
-            .map((e) => e.name.label.name),
+            .whereType<NamedArgument>()
+            .map((e) => e.name.lexeme),
       };
       for (var superParameter in superConstructor.formalParameters) {
         if (superParameter.isNamed &&

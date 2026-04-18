@@ -150,7 +150,7 @@ class _VisitorHelper extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter param) {
+  void visitRegularFormalParameter(RegularFormalParameter param) {
     if (param.type == null) {
       var paramName = param.name?.lexeme;
       if (paramName != null && !paramName.isJustUnderscores) {

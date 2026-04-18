@@ -17,6 +17,9 @@ class MockLibraryImportElement implements Element {
     : import = import as LibraryImportImpl;
 
   @override
+  Element get baseElement => this;
+
+  @override
   LibraryElement get enclosingElement => library;
 
   @override

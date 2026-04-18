@@ -438,21 +438,10 @@ abstract class LocalDeclarationVisitor extends UnifyingAstVisitor {
   void _visitParamList(FormalParameterList? paramList) {
     if (paramList != null) {
       for (var param in paramList.parameters) {
-        NormalFormalParameter? normalParam;
-        if (param is DefaultFormalParameter) {
-          normalParam = param.parameter;
-        } else if (param is NormalFormalParameter) {
-          normalParam = param;
+        var name = param.name;
+        if (name != null) {
+          declaredParam(name, param.declaredFragment?.element, param.type);
         }
-        TypeAnnotation? type;
-        if (normalParam is FieldFormalParameter) {
-          type = normalParam.type;
-        } else if (normalParam is FunctionTypedFormalParameter) {
-          type = normalParam.returnType;
-        } else if (normalParam is SimpleFormalParameter) {
-          type = normalParam.type;
-        }
-        declaredParam(param.name!, param.declaredFragment?.element, type);
       }
     }
   }

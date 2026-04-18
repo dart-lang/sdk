@@ -58,7 +58,7 @@ class _BodyVisitor extends RecursiveAstVisitor<void> {
     if (!methodName.startsWith('add')) return;
     var nodeType = methodName.substring(3);
     var args = node.argumentList.arguments;
-    var argType = args[1].staticType;
+    var argType = args[1].argumentExpression.staticType;
     if (argType is! InterfaceType) return;
     var visitor = argType.element;
     if (visitor is! ClassElement) return;

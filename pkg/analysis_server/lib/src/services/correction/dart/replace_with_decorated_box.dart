@@ -66,18 +66,16 @@ class ReplaceWithDecoratedBox extends ResolvedCorrectionProducer {
         canBeConst = true;
         var childrenConstMap = <InstanceCreationExpression, bool>{};
         for (var argument in expression.argumentList.arguments) {
-          if (argument is NamedExpression) {
-            var child = argument.expression;
-            var canChildBeConst = canExpressionBeConst(
-              child,
-              isReplace: applyingBulkFixes,
-            );
-            canBeConst &= canChildBeConst;
-            if (child is InstanceCreationExpression) {
-              childrenConstMap[child] = canChildBeConst;
-            }
-          } else {
-            canBeConst &= canExpressionBeConst(argument, isReplace: isReplace);
+          var child = argument.argumentExpression;
+          var canChildBeConst = canExpressionBeConst(
+            child,
+            isReplace: argument is NamedArgument
+                ? applyingBulkFixes
+                : isReplace,
+          );
+          canBeConst &= canChildBeConst;
+          if (child is InstanceCreationExpression) {
+            childrenConstMap[child] = canChildBeConst;
           }
         }
 

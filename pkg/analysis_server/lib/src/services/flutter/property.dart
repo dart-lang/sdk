@@ -53,9 +53,8 @@ class PropertyDescription {
   /// materialized.
   final VirtualContainerProperty? virtualContainer;
 
-  /// If the property is set, the full argument expression, might be a
-  /// [NamedExpression].
-  final Expression? argumentExpression;
+  /// If the property is set, the full argument node.
+  final Argument? argumentExpression;
 
   /// If the property is set, the value part of the argument expression,
   /// the same as [argumentExpression] if a positional argument, or the
@@ -194,8 +193,8 @@ class PropertyDescription {
 
         var insertOffset = 0;
         for (var argument in argumentList.arguments) {
-          if (argument is NamedExpression) {
-            var argumentName = argument.name.label.name;
+          if (argument is NamedArgument) {
+            var argumentName = argument.name.lexeme;
 
             if (argumentName.compareTo(parameterName) > 0 ||
                 _isChildArgument(argument) ||
@@ -278,7 +277,7 @@ class PropertyDescription {
       if (existingArgument == null) {
         return;
       }
-      var existingName = existingArgument.name.label.name;
+      var existingName = existingArgument.name.lexeme;
 
       int parameterOffset;
       var leadingComma = false;
@@ -341,14 +340,14 @@ class PropertyDescription {
   }
 
   // TODO(scheglov): Generalize to identifying by type.
-  bool _isChildArgument(NamedExpression argument) {
-    var argumentName = argument.name.label.name;
+  bool _isChildArgument(NamedArgument argument) {
+    var argumentName = argument.name.lexeme;
     return argumentName == 'child';
   }
 
   // TODO(scheglov): Generalize to identifying by type.
-  bool _isChildrenArgument(NamedExpression argument) {
-    var argumentName = argument.name.label.name;
+  bool _isChildrenArgument(NamedArgument argument) {
+    var argumentName = argument.name.lexeme;
     return argumentName == 'children';
   }
 
@@ -401,13 +400,13 @@ class VirtualContainerProperty {
 
   /// The argument from the [_parentCreation] that should be moved into
   /// the new `Container` creation during its materialization.
-  NamedExpression? _parentArgumentToMove;
+  NamedArgument? _parentArgumentToMove;
 
   VirtualContainerProperty(this.containerElement, this.widgetCreation);
 
   void setParentCreation(
     InstanceCreationExpression parentCreation,
-    NamedExpression parentArgumentToMove,
+    NamedArgument parentArgumentToMove,
   ) {
     _parentCreation = parentCreation;
     _parentArgumentToMove = parentArgumentToMove;
@@ -451,32 +450,32 @@ class _EdgeInsetsProperty {
         var arguments = propertyExpression.argumentList;
         var constructorName = constructor.name;
         if (constructorName == 'all') {
-          var expression = arguments.elementAtOrNull(0);
+          var expression = arguments.elementAtOrNull(0)?.argumentExpression;
           leftExpression = expression;
           topExpression = expression;
           rightExpression = expression;
           bottomExpression = expression;
         } else if (constructorName == 'fromLTRB') {
-          leftExpression = arguments.elementAtOrNull(0);
-          topExpression = arguments.elementAtOrNull(1);
-          rightExpression = arguments.elementAtOrNull(2);
-          bottomExpression = arguments.elementAtOrNull(3);
+          leftExpression = arguments.elementAtOrNull(0)?.argumentExpression;
+          topExpression = arguments.elementAtOrNull(1)?.argumentExpression;
+          rightExpression = arguments.elementAtOrNull(2)?.argumentExpression;
+          bottomExpression = arguments.elementAtOrNull(3)?.argumentExpression;
         } else if (constructorName == 'only') {
           var leftArgument = arguments.byName('left');
           var topArgument = arguments.byName('top');
           var rightArgument = arguments.byName('right');
           var bottomArgument = arguments.byName('bottom');
-          leftExpression = leftArgument?.expression;
-          topExpression = topArgument?.expression;
-          rightExpression = rightArgument?.expression;
-          bottomExpression = bottomArgument?.expression;
+          leftExpression = leftArgument?.argumentExpression;
+          topExpression = topArgument?.argumentExpression;
+          rightExpression = rightArgument?.argumentExpression;
+          bottomExpression = bottomArgument?.argumentExpression;
         } else if (constructorName == 'symmetric') {
           var hArgument = arguments.byName('horizontal');
           var vArgument = arguments.byName('vertical');
-          leftExpression = hArgument?.expression;
-          topExpression = vArgument?.expression;
-          rightExpression = hArgument?.expression;
-          bottomExpression = vArgument?.expression;
+          leftExpression = hArgument?.argumentExpression;
+          topExpression = vArgument?.argumentExpression;
+          rightExpression = hArgument?.argumentExpression;
+          bottomExpression = vArgument?.argumentExpression;
         }
 
         leftValue = _valueDouble(leftExpression);

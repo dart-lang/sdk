@@ -104,14 +104,10 @@ InstanceCreationExpression
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: x
-            element: <null>
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 123
           staticType: int
         correspondingParameter: <null>
@@ -149,25 +145,17 @@ InstanceCreationExpression
         literal: 0
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::a
         staticType: int
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: b
-            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
-            staticType: null
-          colon: :
-        expression: BooleanLiteral
+      NamedArgument
+        name: b
+        colon: :
+        argumentExpression: BooleanLiteral
           literal: true
           staticType: bool
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::b
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: c
-            element: <testLibrary>::@class::A::@constructor::new::@formalParameter::c
-            staticType: null
-          colon: :
-        expression: DoubleLiteral
+      NamedArgument
+        name: c
+        colon: :
+        argumentExpression: DoubleLiteral
           literal: 1.2
           staticType: double
         correspondingParameter: <testLibrary>::@class::A::@constructor::new::@formalParameter::c
@@ -1912,14 +1900,10 @@ InstanceCreationExpression
         staticType: A
         typeArgumentTypes
           A
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: c
-            element: <testLibrary>::@class::X::@constructor::new::@formalParameter::c
-            staticType: null
-          colon: :
-        expression: MethodInvocation
+      NamedArgument
+        name: c
+        colon: :
+        argumentExpression: MethodInvocation
           methodName: SimpleIdentifier
             token: g3
             element: <testLibrary>::@function::g3
@@ -1945,14 +1929,10 @@ InstanceCreationExpression
         staticType: B
         typeArgumentTypes
           B
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: d
-            element: <testLibrary>::@class::X::@constructor::new::@formalParameter::d
-            staticType: null
-          colon: :
-        expression: MethodInvocation
+      NamedArgument
+        name: d
+        colon: :
+        argumentExpression: MethodInvocation
           methodName: SimpleIdentifier
             token: g4
             element: <testLibrary>::@function::g4
@@ -2000,14 +1980,10 @@ InstanceCreationExpression
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: _x
-            element: <null>
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: _x
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 123
           staticType: int
         correspondingParameter: <null>
@@ -2043,14 +2019,10 @@ InstanceCreationExpression
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: x
-            element: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 123
           staticType: int
         correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x

@@ -29,7 +29,6 @@ import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/driver.dart';
-import 'package:analyzer/src/dart/analysis/index.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -462,6 +461,7 @@ abstract class RenameRefactoring implements Refactoring {
     }
     var session = resolvedUnit.session;
     var sessionHelper = AnalysisSessionHelper(session);
+    element = element.baseElement;
     if (element is PropertyAccessorElement) {
       element = element.variable;
     }
@@ -602,6 +602,10 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node;
     } else if (node is InstanceCreationExpression) {
       nameNode = node;
+    } else if (node is Label) {
+      nameNode = node.name;
+    } else if (node is LabelReference) {
+      nameNode = node.name;
     } else if (node is LibraryDirective) {
       nameNode = node;
     } else if (node is MethodDeclaration) {
@@ -620,9 +624,11 @@ abstract class RenameRefactoring implements Refactoring {
       nameNode = node.name;
     } else if (node is NamedType) {
       nameNode = node.name;
+    } else if (node is NamedArgument) {
+      nameNode = node.name;
     } else if (node is PrimaryConstructorName) {
       nameNode = node.name;
-    } else if (node is SimpleFormalParameter) {
+    } else if (node is FormalParameter) {
       nameNode = node.name;
     } else if (node is SimpleIdentifier) {
       nameNode = node.token;
@@ -636,10 +642,6 @@ abstract class RenameRefactoring implements Refactoring {
     }
     var offset = nameNode.offset;
     var length = nameNode.length;
-
-    if (node is SimpleIdentifier && element is FormalParameterElement) {
-      element = declaredParameterElement2(node, element);
-    }
 
     // Use the prefix offset/length when renaming an import directive.
     if (element is MockLibraryImportElement) {

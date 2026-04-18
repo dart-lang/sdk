@@ -424,13 +424,13 @@ extension on Expression {
   /// This is used to find the parent widget creation if it exists.
   InstanceCreationExpression? _getParentInstanceCreationExpression() {
     var self = this;
-    NamedExpression? namedExpression;
+    NamedArgument? namedExpression;
     if (self.parent case ListLiteral listLiteral) {
-      if (listLiteral.parent case NamedExpression parent) {
+      if (listLiteral.parent case NamedArgument parent) {
         namedExpression = parent;
       }
     }
-    // NamedExpression (child:), ArgumentList, InstanceCreationExpression
+    // NamedArgument (child:), ArgumentList, InstanceCreationExpression
     if ((namedExpression ?? self.parent)?.parent?.parent
         case InstanceCreationExpression parent?) {
       return parent;

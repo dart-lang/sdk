@@ -414,15 +414,6 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _visitChildren(node, {
-      'parameter': node.parameter,
-      'defaultValue': node.defaultValue,
-    });
-    super.visitDefaultFormalParameter(node);
-  }
-
-  @override
   void visitDoStatement(DoStatement node) {
     _visitChildren(node, {'body': node.body, 'condition': node.condition});
     super.visitDoStatement(node);
@@ -548,13 +539,15 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
     _visitChildren(node, {
       'documentationComment': node.documentationComment,
       'metadata': node.metadata,
-      'keyword': node.keyword,
+      'covariantKeyword': node.covariantKeyword,
+      'requiredKeyword': node.requiredKeyword,
+      'constFinalOrVarKeyword': node.constFinalOrVarKeyword,
       'type': node.type,
       'thisKeyword': node.thisKeyword,
+      'period': node.period,
       'name': node.name,
-      'typeParameters': node.typeParameters,
-      'parameters': node.parameters,
-      'question': node.question,
+      'functionTypedSuffix': node.functionTypedSuffix,
+      'defaultClause': node.defaultClause,
     });
     super.visitFieldFormalParameter(node);
   }
@@ -585,6 +578,12 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
       'body': node.body,
     });
     super.visitForElement(node);
+  }
+
+  @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    _visitChildren(node, {'separator': node.separator, 'value': node.value});
+    super.visitFormalParameterDefaultClause(node);
   }
 
   @override
@@ -677,16 +676,15 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) {
     _visitChildren(node, {
-      'covariantKeyword': node.covariantKeyword,
-      'returnType': node.returnType,
-      'name': node.name,
       'typeParameters': node.typeParameters,
-      'parameters': node.parameters,
+      'formalParameters': node.formalParameters,
       'question': node.question,
     });
-    super.visitFunctionTypedFormalParameter(node);
+    super.visitFunctionTypedFormalParameterSuffix(node);
   }
 
   @override
@@ -806,7 +804,7 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitLabel(Label node) {
-    _visitChildren(node, {'label': node.label});
+    _visitChildren(node, {'label': node.name});
     super.visitLabel(node);
   }
 
@@ -890,9 +888,9 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    _visitChildren(node, {'name': node.name, 'expression': node.expression});
-    super.visitNamedExpression(node);
+  void visitNamedArgument(NamedArgument node) {
+    _visitChildren(node, {'argumentExpression': node.argumentExpression});
+    super.visitNamedArgument(node);
   }
 
   @override
@@ -993,6 +991,22 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _visitChildren(node, {
+      'documentationComment': node.documentationComment,
+      'metadata': node.metadata,
+      'covariantKeyword': node.covariantKeyword,
+      'requiredKeyword': node.requiredKeyword,
+      'constFinalOrVarKeyword': node.constFinalOrVarKeyword,
+      'type': node.type,
+      'name': node.name,
+      'functionTypedSuffix': node.functionTypedSuffix,
+      'defaultClause': node.defaultClause,
+    });
+    super.visitRegularFormalParameter(node);
+  }
+
+  @override
   void visitRethrowExpression(RethrowExpression node) {
     _visitChildren(node, {});
     super.visitRethrowExpression(node);
@@ -1026,19 +1040,6 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _visitChildren(node, {
-      'documentationComment': node.documentationComment,
-      'metadata': node.metadata,
-      'covariantKeyword': node.covariantKeyword,
-      'keyword': node.keyword,
-      'type': node.type,
-      'name': node.name,
-    });
-    super.visitSimpleFormalParameter(node);
-  }
-
-  @override
   void visitSimpleStringLiteral(SimpleStringLiteral node) {
     _visitChildren(node, {});
     super.visitSimpleStringLiteral(node);
@@ -1069,6 +1070,24 @@ class CodeShapeDataCollector extends RecursiveAstVisitor<void> {
   void visitSuperExpression(SuperExpression node) {
     _visitChildren(node, {});
     super.visitSuperExpression(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _visitChildren(node, {
+      'documentationComment': node.documentationComment,
+      'metadata': node.metadata,
+      'covariantKeyword': node.covariantKeyword,
+      'requiredKeyword': node.requiredKeyword,
+      'constFinalOrVarKeyword': node.constFinalOrVarKeyword,
+      'type': node.type,
+      'superKeyword': node.superKeyword,
+      'period': node.period,
+      'name': node.name,
+      'functionTypedSuffix': node.functionTypedSuffix,
+      'defaultClause': node.defaultClause,
+    });
+    super.visitSuperFormalParameter(node);
   }
 
   @override

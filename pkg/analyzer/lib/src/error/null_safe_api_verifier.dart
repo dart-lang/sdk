@@ -75,7 +75,7 @@ class NullSafeApiVerifier {
     if (args.arguments.length > 1 || !_typeSystem.isNonNullable(type)) return;
 
     var argument = args.arguments.isEmpty ? null : args.arguments.single;
-    var argumentType = argument?.staticType;
+    var argumentType = argument?.argumentExpression.staticType;
     // Skip if the type is not currently resolved.
     if (argument != null && argumentType == null) return;
 

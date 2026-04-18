@@ -84,11 +84,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    node.parameter.accept(this);
-  }
-
-  @override
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
@@ -163,7 +158,9 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     node.metadata.accept(this);
-    node.parameters?.accept(this);
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      functionTypedSuffix.formalParameters.accept(this);
+    }
   }
 
   @override
@@ -185,13 +182,6 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFunctionTypeAlias(FunctionTypeAlias node) {
-    node.metadata.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters.accept(this);
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
     node.metadata.accept(this);
     node.typeParameters?.accept(this);
     node.parameters.accept(this);
@@ -270,14 +260,20 @@ class MetadataResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     node.metadata.accept(this);
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      functionTypedSuffix.typeParameters?.accept(this);
+      functionTypedSuffix.formalParameters.accept(this);
+    }
   }
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
     node.metadata.accept(this);
-    node.parameters?.accept(this);
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      functionTypedSuffix.formalParameters.accept(this);
+    }
   }
 
   @override

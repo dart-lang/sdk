@@ -76,8 +76,6 @@ const isDeclaration = TypeMatcher<Declaration>();
 
 const isDeclaredIdentifier = TypeMatcher<DeclaredIdentifier>();
 
-const isDefaultFormalParameter = TypeMatcher<DefaultFormalParameter>();
-
 const isDirective = TypeMatcher<Directive>();
 
 const isDoStatement = TypeMatcher<DoStatement>();
@@ -112,6 +110,9 @@ const isFieldFormalParameter = TypeMatcher<FieldFormalParameter>();
 
 const isFormalParameter = TypeMatcher<FormalParameter>();
 
+const isFormalParameterDefaultClause =
+    TypeMatcher<FormalParameterDefaultClause>();
+
 const isFormalParameterList = TypeMatcher<FormalParameterList>();
 
 const isFunctionBody = TypeMatcher<FunctionBody>();
@@ -130,8 +131,8 @@ const isFunctionReference = TypeMatcher<FunctionReference>();
 
 const isFunctionTypeAlias = TypeMatcher<FunctionTypeAlias>();
 
-const isFunctionTypedFormalParameter =
-    TypeMatcher<FunctionTypedFormalParameter>();
+const isFunctionTypedFormalParameterSuffix =
+    TypeMatcher<FunctionTypedFormalParameterSuffix>();
 
 const isGenericFunctionType = TypeMatcher<GenericFunctionType>();
 
@@ -185,7 +186,7 @@ const isMixinDeclaration = TypeMatcher<MixinDeclaration>();
 
 const isMixinOnClause = TypeMatcher<MixinOnClause>();
 
-const isNamedExpression = TypeMatcher<NamedExpression>();
+const isNamedArgument = TypeMatcher<NamedArgument>();
 
 const isNamedType = TypeMatcher<NamedType>();
 
@@ -194,8 +195,6 @@ const isNamespaceDirective = TypeMatcher<NamespaceDirective>();
 const isNativeClause = TypeMatcher<NativeClause>();
 
 const isNativeFunctionBody = TypeMatcher<NativeFunctionBody>();
-
-const isNormalFormalParameter = TypeMatcher<NormalFormalParameter>();
 
 const isNullLiteral = TypeMatcher<NullLiteral>();
 
@@ -216,6 +215,8 @@ const isPropertyAccess = TypeMatcher<PropertyAccess>();
 const isRedirectingConstructorInvocation =
     TypeMatcher<RedirectingConstructorInvocation>();
 
+const isRegularFormalParameter = TypeMatcher<RegularFormalParameter>();
+
 const isRethrowExpression = TypeMatcher<RethrowExpression>();
 
 const isReturnStatement = TypeMatcher<ReturnStatement>();
@@ -225,8 +226,6 @@ const isScriptTag = TypeMatcher<ScriptTag>();
 const isSetOrMapLiteral = TypeMatcher<SetOrMapLiteral>();
 
 const isShowCombinator = TypeMatcher<ShowCombinator>();
-
-const isSimpleFormalParameter = TypeMatcher<SimpleFormalParameter>();
 
 const isSimpleIdentifier = TypeMatcher<SimpleIdentifier>();
 

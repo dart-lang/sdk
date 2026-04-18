@@ -8729,7 +8729,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         static int? a;
-        C([!this.a!]);
+        C([!this!].a);
       }
       ```
 

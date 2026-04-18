@@ -3472,18 +3472,6 @@ class FieldFormalParameterElementImpl extends FormalParameterElementImpl
     return {...super.flagsForTesting, 'isDeclaring': isDeclaring};
   }
 
-  @override
-  List<FieldFormalParameterFragmentImpl> get fragments {
-    return [
-      for (
-        FieldFormalParameterFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
-  }
-
   @generated
   @override
   bool get isDeclaring {
@@ -3563,21 +3551,6 @@ class FieldFormalParameterFragmentImpl extends FormalParameterFragmentImpl
 
   @override
   bool get isInitializingFormal => true;
-
-  @override
-  FieldFormalParameterFragmentImpl? get nextFragment =>
-      super.nextFragment as FieldFormalParameterFragmentImpl?;
-
-  @override
-  FieldFormalParameterFragmentImpl? get previousFragment =>
-      super.previousFragment as FieldFormalParameterFragmentImpl?;
-
-  @override
-  FieldFormalParameterElementImpl _createElement(
-    FormalParameterFragment firstFragment,
-  ) => FieldFormalParameterElementImpl(
-    firstFragment as FormalParameterFragmentImpl,
-  );
 }
 
 @GenerateElementFlags(flags: _FieldElementFlags.values)
@@ -3748,7 +3721,12 @@ class FormalParameterElementImpl extends PromotableElementImpl
   /// corresponding covariant formal parameter.
   bool inheritsCovariant = false;
 
-  FormalParameterElementImpl(this._firstFragment) {
+  final FormalParameterElementImpl? _baseFormalParameter;
+
+  FormalParameterElementImpl(
+    this._firstFragment, {
+    FormalParameterElementImpl? baseFormalParameter,
+  }) : _baseFormalParameter = baseFormalParameter {
     FormalParameterFragmentImpl? fragment = _firstFragment;
     while (fragment != null) {
       fragment.element = this;
@@ -3760,14 +3738,18 @@ class FormalParameterElementImpl extends PromotableElementImpl
   factory FormalParameterElementImpl.synthetic(
     String? name,
     TypeImpl type,
-    ParameterKind parameterKind,
-  ) {
+    ParameterKind parameterKind, {
+    FormalParameterElementImpl? baseFormalParameter,
+  }) {
     var fragment = FormalParameterFragmentImpl.synthetic(name, parameterKind);
-    return FormalParameterElementImpl(fragment)..type = type;
+    return FormalParameterElementImpl(
+      fragment,
+      baseFormalParameter: baseFormalParameter,
+    )..type = type;
   }
 
   @override
-  FormalParameterElementImpl get baseElement => this;
+  FormalParameterElementImpl get baseElement => _baseFormalParameter ?? this;
 
   @override
   // TODO(augmentations): Implement the merge of formal parameters.
@@ -3991,15 +3973,29 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     if (_element != null) {
       return _element!;
     }
-    FormalParameterFragment firstFragment = this;
+    FormalParameterFragmentImpl firstFragment = this;
     var previousFragment = firstFragment.previousFragment;
     while (previousFragment != null) {
       firstFragment = previousFragment;
       previousFragment = firstFragment.previousFragment;
     }
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    return _createElement(firstFragment);
+
+    bool hasField = false;
+    bool hasSuper = false;
+    FormalParameterFragmentImpl? f = firstFragment;
+    while (f != null) {
+      if (f is FieldFormalParameterFragmentImpl) hasField = true;
+      if (f is SuperFormalParameterFragmentImpl) hasSuper = true;
+      f = f.nextFragment;
+    }
+
+    if (hasField) {
+      return FieldFormalParameterElementImpl(firstFragment);
+    } else if (hasSuper) {
+      return SuperFormalParameterElementImpl(firstFragment);
+    } else {
+      return FormalParameterElementImpl(firstFragment);
+    }
   }
 
   set element(FormalParameterElementImpl element) => _element = element;
@@ -4185,26 +4181,12 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     nextFragment = fragment;
   }
 
-  FormalParameterElementImpl _createElement(
-    FormalParameterFragment firstFragment,
-  ) => FormalParameterElementImpl(firstFragment as FormalParameterFragmentImpl);
-
   static void _linkFragments<T extends FragmentImpl>(
     List<T> fragments, {
     required List<FormalParameterFragmentImpl> Function(T) getFragments,
   }) {
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       var firstFormalParameters = getFragments(fragments.first);
-      for (var fragment in firstFormalParameters) {
-        switch (fragment) {
-          case FieldFormalParameterFragmentImpl():
-            FieldFormalParameterElementImpl(fragment);
-          case SuperFormalParameterFragmentImpl():
-            SuperFormalParameterElementImpl(fragment);
-          default:
-            FormalParameterElementImpl(fragment);
-        }
-      }
 
       var length = firstFormalParameters.length;
       fragments.reduce((previous, current) {
@@ -6090,12 +6072,6 @@ mixin InternalFieldFormalParameterElement on InternalFormalParameterElement
     implements FieldFormalParameterElement {
   @override
   FieldFormalParameterElementImpl get baseElement;
-
-  @override
-  FieldFormalParameterFragmentImpl get firstFragment;
-
-  @override
-  List<FieldFormalParameterFragmentImpl> get fragments;
 }
 
 mixin InternalFormalParameterElement on InternalVariableElement
@@ -6220,12 +6196,6 @@ mixin InternalSuperFormalParameterElement on InternalFormalParameterElement
     implements SuperFormalParameterElement {
   @override
   SuperFormalParameterElementImpl get baseElement;
-
-  @override
-  SuperFormalParameterFragmentImpl get firstFragment;
-
-  @override
-  List<SuperFormalParameterFragmentImpl> get fragments;
 
   @override
   InternalFormalParameterElement? get superConstructorParameter;
@@ -10310,21 +10280,6 @@ class SuperFormalParameterElementImpl extends FormalParameterElementImpl
   }
 
   @override
-  SuperFormalParameterFragmentImpl get firstFragment => _firstFragment;
-
-  @override
-  List<SuperFormalParameterFragmentImpl> get fragments {
-    return [
-      for (
-        SuperFormalParameterFragmentImpl? fragment = _firstFragment;
-        fragment != null;
-        fragment = fragment.nextFragment
-      )
-        fragment,
-    ];
-  }
-
-  @override
   InternalFormalParameterElement? get superConstructorParameter {
     var enclosingElement = this.enclosingElement;
     if (enclosingElement is ConstructorElementImpl) {
@@ -10427,29 +10382,6 @@ class SuperFormalParameterFragmentImpl extends FormalParameterFragmentImpl
 
   @override
   bool get isSuperFormal => true;
-
-  @override
-  SuperFormalParameterFragmentImpl? get nextFragment =>
-      super.nextFragment as SuperFormalParameterFragmentImpl?;
-
-  @override
-  SuperFormalParameterFragmentImpl? get previousFragment =>
-      super.previousFragment as SuperFormalParameterFragmentImpl?;
-
-  /// Return the index of this super-formal parameter among other super-formals.
-  int indexIn(ConstructorFragmentImpl enclosingFragment) {
-    return enclosingFragment.formalParameters
-        .whereType<SuperFormalParameterFragmentImpl>()
-        .toList()
-        .indexOf(this);
-  }
-
-  @override
-  FormalParameterElementImpl _createElement(
-    FormalParameterFragment firstFragment,
-  ) => SuperFormalParameterElementImpl(
-    firstFragment as FormalParameterFragmentImpl,
-  );
 }
 
 @elementClass

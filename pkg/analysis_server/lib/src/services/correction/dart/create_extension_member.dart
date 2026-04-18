@@ -235,7 +235,9 @@ class CreateExtensionMethod extends _CreateExtensionMember {
       typesInMemberScope = [
         ?returnType,
         ...?invocation?.typeArguments?.arguments.map((a) => a.type),
-        ...?invocation?.argumentList.arguments.map((e) => e.staticType),
+        ...?invocation?.argumentList.arguments.map(
+          (e) => e.argumentExpression.staticType,
+        ),
       ].nonNulls.toList();
     } else if (returnType is FunctionType) {
       functionType = returnType;

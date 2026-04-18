@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -118,17 +117,17 @@ class MakeFieldNotFinal extends ResolvedCorrectionProducer {
       parameter.firstFragment,
     );
     var parameterNode = declaration?.node;
-    if (parameterNode is! SimpleFormalParameter) {
+    if (parameterNode is! RegularFormalParameter) {
       return;
     }
-    var finalKeyword = parameterNode.keyword;
-    if (finalKeyword?.keyword != Keyword.FINAL) {
+    var finalKeyword = parameterNode.finalKeyword;
+    if (finalKeyword == null) {
       return;
     }
 
     _fieldName = parameter.displayName;
     await builder.addDartFileEdit(file, (builder) {
-      builder.addSimpleReplacement(range.token(finalKeyword!), 'var');
+      builder.addSimpleReplacement(range.token(finalKeyword), 'var');
     });
   }
 }

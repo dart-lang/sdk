@@ -85,7 +85,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // `g(i: (3)); => g({required (int,) i}) { }` is OK.
-    if (parent is NamedExpression &&
+    if (parent is NamedArgument &&
         parent.correspondingParameter?.type is RecordType) {
       if (expression is! RecordLiteral) return;
     }
@@ -350,7 +350,7 @@ extension on Expression {
   /// expression of a named argument.
   bool get isArgument =>
       parent is ArgumentList ||
-      (parent is NamedExpression && parent?.parent is ArgumentList);
+      (parent is NamedArgument && parent?.parent is ArgumentList);
 
   /// Whether this expression is a sigle token.
   ///

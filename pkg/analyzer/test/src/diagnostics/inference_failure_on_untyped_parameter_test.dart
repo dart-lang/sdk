@@ -31,7 +31,7 @@ class InferenceFailureOnUntypedParameterTest extends PubPackageResolutionTest {
       r'''
 class C(final a);
 ''',
-      [error(diag.inferenceFailureOnUntypedParameter, 8, 7)],
+      [error(diag.inferenceFailureOnUntypedParameter, 14, 1)],
     );
   }
 

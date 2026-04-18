@@ -1860,7 +1860,7 @@ void f(void g(covariant int a)) {}
 ''');
     parseResult.assertNoErrors();
 
-    var node = parseResult.findNode.simpleFormalParameter('a)');
+    var node = parseResult.findNode.regularFormalParameter('a)');
     assertParsedNodeText(node, r'''
 RegularFormalParameter
   covariantKeyword: covariant
@@ -1877,7 +1877,7 @@ void f(void g({required covariant int a})) {}
 ''');
     parseResult.assertNoErrors();
 
-    var node = parseResult.findNode.simpleFormalParameter('a}');
+    var node = parseResult.findNode.regularFormalParameter('a}');
     assertParsedNodeText(node, r'''
 RegularFormalParameter
   covariantKeyword: covariant
@@ -2039,8 +2039,8 @@ void f(void g(a)) {}
     var f = parseResult.findNode.functionDeclaration('f');
     var g =
         f.functionExpression.parameters!.parameters.single
-            as FunctionTypedFormalParameter;
-    var node = g.parameters.parameters.single;
+            as RegularFormalParameter;
+    var node = g.functionTypedSuffix!.formalParameters.parameters.single;
     assertParsedNodeText(node, r'''
 RegularFormalParameter
   name: a

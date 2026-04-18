@@ -6,11 +6,10 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/analysis/features.dart';
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -184,7 +183,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
   /// [node].
   _DeclarationInfo? _findDeclaringParameter() {
     var parameterDeclaration = node
-        .thisOrAncestorOfType<SimpleFormalParameterImpl>();
+        .thisOrAncestorOfType<RegularFormalParameter>();
     if (parameterDeclaration == null) {
       return null;
     }
@@ -322,10 +321,9 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       // private named parameters, then keep the public name for the parameter
       // and initialize the field from it in the initializer list.
       if (parameter.isNamed && !isEnabled(Feature.private_named_parameters)) {
-        var normalParam = parameter.notDefault;
-        if (normalParam is FieldFormalParameter) {
-          var start = normalParam.thisKeyword;
-          builder.addReplacement(range.startEnd(start, normalParam.period), (
+        if (parameter is FieldFormalParameter) {
+          var start = parameter.thisKeyword;
+          builder.addReplacement(range.startEnd(start, parameter.period), (
             builder,
           ) {
             if (type != null) {
@@ -348,10 +346,7 @@ class EncapsulateField extends ResolvedCorrectionProducer {
       }
 
       // Change `final` to `var` in declaring parameters.
-      if (parameter.notDefault case SimpleFormalParameterImpl(
-        finalOrVarKeyword: var finalKeyword?,
-        isFinal: true,
-      )) {
+      if (parameter.finalKeyword case var finalKeyword?) {
         builder.addSimpleReplacement(range.token(finalKeyword), 'var');
       }
     }

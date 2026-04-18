@@ -35,10 +35,8 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var node = this.node;
-    if (node is SimpleFormalParameter) {
-      await _forSimpleFormalParameter(builder, node);
-    } else if (node is FunctionTypedFormalParameter) {
-      await _forFunctionTypedFormalParameter(builder, node);
+    if (node is RegularFormalParameter) {
+      await _forRegularFormalParameter(builder, node);
     } else if (node is FieldFormalParameter) {
       await _forFieldFormalParameter(builder, node);
     } else if (node is SuperFormalParameter) {
@@ -131,15 +129,15 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
     FieldFormalParameter parameter,
   ) async {
-    if (parameter.parameters != null) {
+    if (parameter.functionTypedSuffix case var functionTypedSuffix?) {
       // A function-typed field formal parameter.
-      if (parameter.question != null) {
+      if (functionTypedSuffix.question != null) {
         return;
       }
       _variableName = parameter.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         // Add '?' after `)`.
-        builder.addSimpleInsertion(parameter.end, '?');
+        builder.addSimpleInsertion(functionTypedSuffix.end, '?');
       });
     } else {
       var type = parameter.type;
@@ -154,24 +152,21 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
   }
 
   /// Makes [parameter] nullable if possible.
-  Future<void> _forFunctionTypedFormalParameter(
+  Future<void> _forRegularFormalParameter(
     ChangeBuilder builder,
-    FunctionTypedFormalParameter parameter,
+    RegularFormalParameter parameter,
   ) async {
-    if (parameter.question != null) {
+    if (parameter.functionTypedSuffix case var functionTypedSuffix?) {
+      if (functionTypedSuffix.question != null) {
+        return;
+      }
+      _variableName = parameter.name!.lexeme;
+      await builder.addDartFileEdit(file, (builder) {
+        builder.addSimpleInsertion(functionTypedSuffix.end, '?');
+      });
       return;
     }
-    _variableName = parameter.name.lexeme;
-    await builder.addDartFileEdit(file, (builder) {
-      // Add '?' after `)`.
-      builder.addSimpleInsertion(parameter.end, '?');
-    });
-  }
 
-  Future<void> _forSimpleFormalParameter(
-    ChangeBuilder builder,
-    SimpleFormalParameter parameter,
-  ) async {
     var type = parameter.type;
     if (type == null || !_typeCanBeMadeNullable(type)) {
       return;
@@ -193,15 +188,15 @@ class MakeVariableNullable extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
     SuperFormalParameter parameter,
   ) async {
-    if (parameter.parameters != null) {
+    if (parameter.functionTypedSuffix case var functionTypedSuffix?) {
       // A function-typed field formal parameter.
-      if (parameter.question != null) {
+      if (functionTypedSuffix.question != null) {
         return;
       }
       _variableName = parameter.name.lexeme;
       await builder.addDartFileEdit(file, (builder) {
         // Add '?' after `)`.
-        builder.addSimpleInsertion(parameter.end, '?');
+        builder.addSimpleInsertion(functionTypedSuffix.end, '?');
       });
     } else {
       var type = parameter.type;

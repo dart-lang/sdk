@@ -62,7 +62,7 @@ class _Visitor extends SimpleAstVisitor<void> {
             node is ListLiteral ||
             node is SetOrMapLiteral ||
             node is MapLiteralEntry ||
-            node is NamedExpression)) {
+            node is NamedArgument)) {
       node = node?.parent;
     }
     if (!(node is InstanceCreationExpression &&

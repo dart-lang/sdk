@@ -41,11 +41,11 @@ class RemoveInitializer extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parameter = node.thisOrAncestorOfType<DefaultFormalParameter>();
+    var parameter = node.thisOrAncestorOfType<FormalParameter>();
     if (parameter != null) {
       // Handle formal parameters with default values.
       var identifier = parameter.name;
-      var defaultValue = parameter.defaultValue;
+      var defaultValue = parameter.defaultClause?.value;
       if (identifier != null && defaultValue != null) {
         await builder.addDartFileEdit(file, (builder) {
           builder.addDeletion(range.endEnd(identifier, defaultValue));

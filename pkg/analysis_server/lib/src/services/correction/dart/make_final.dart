@@ -40,11 +40,10 @@ class MakeFinal extends ResolvedCorrectionProducer {
       return;
     }
 
-    if (node is SimpleFormalParameter) {
+    if (node is RegularFormalParameter) {
       await builder.addDartFileEdit(file, (builder) {
-        var keyword = node.keyword;
-        if (keyword != null && keyword.keyword == Keyword.VAR) {
-          builder.addSimpleReplacement(range.token(keyword), 'final');
+        if (node.varKeyword case var varKeyword?) {
+          builder.addSimpleReplacement(range.token(varKeyword), 'final');
         } else {
           var type = node.type;
           if (type != null) {

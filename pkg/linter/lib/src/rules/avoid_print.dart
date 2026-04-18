@@ -44,7 +44,11 @@ class _Visitor extends SimpleAstVisitor<void> {
       rule.reportAtNode(node.methodName);
     }
 
-    node.argumentList.arguments.forEach(_validateArgument);
+    for (var argument in node.argumentList.arguments) {
+      if (argument is Expression) {
+        _validateArgument(argument);
+      }
+    }
   }
 
   bool _isDebugOnly(Expression expression) {

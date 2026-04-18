@@ -74,8 +74,8 @@ final class NamedFormalParameterReference extends FormalParameterReference {
   @override
   Expression? argumentFrom(ArgumentList argumentList) {
     for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression && argument.name.label.name == name) {
-        return argument.expression;
+      if (argument is NamedArgument && argument.name.lexeme == name) {
+        return argument.argumentExpression;
       }
     }
     return null;
@@ -102,10 +102,10 @@ final class PositionalFormalParameterReference
       return null;
     }
     var argument = arguments[index];
-    if (argument is NamedExpression) {
+    if (argument is NamedArgument) {
       return null;
     }
-    return argument;
+    return argument.argumentExpression;
   }
 
   @override

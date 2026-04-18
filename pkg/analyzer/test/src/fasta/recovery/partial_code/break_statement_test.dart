@@ -326,8 +326,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: l
+                label: LabelReference
+                  name: l
                 semicolon: ; <synthetic>
               ExpressionStatement
                 expression: SimpleIdentifier
@@ -361,8 +361,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: int
+                label: LabelReference
+                  name: int
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -623,8 +623,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
@@ -658,8 +658,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               Block
                 leftBracket: {
@@ -692,8 +692,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               BreakStatement
                 breakKeyword: break
@@ -726,8 +726,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ContinueStatement
                 continueKeyword: continue
@@ -757,8 +757,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               DoStatement
                 doKeyword: do
@@ -796,8 +796,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
             rightBracket: }
 ''');
@@ -824,8 +824,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ForStatement
                 forKeyword: for
@@ -866,8 +866,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
@@ -903,14 +903,13 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               LabeledStatement
                 labels
                   Label
-                    label: SimpleIdentifier
-                      token: l
+                    name: l
                     colon: :
                 statement: Block
                   leftBracket: {
@@ -940,8 +939,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -981,8 +980,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -1022,8 +1021,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               VariableDeclarationStatement
                 variables: VariableDeclarationList
@@ -1057,8 +1056,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ReturnStatement
                 returnKeyword: return
@@ -1088,8 +1087,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
@@ -1124,8 +1123,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               TryStatement
                 tryKeyword: try
@@ -1161,8 +1160,8 @@ CompilationUnit
             statements
               BreakStatement
                 breakKeyword: break
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while

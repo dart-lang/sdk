@@ -209,7 +209,7 @@ class _LocalBestTypeVisitor extends LocalDeclarationVisitor {
 
   @override
   void declaredLabel(Label label, bool isCaseLabel) {
-    if (label.label.name == targetName) {
+    if (label.name.lexeme == targetName) {
       // no type
       finished();
     }

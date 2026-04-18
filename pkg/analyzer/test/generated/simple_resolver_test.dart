@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -508,7 +509,8 @@ class A {
 
     var xParameter = findNode.fieldFormalParameter('this.x');
 
-    var xParameterElement = xParameter.declaredFragment!.element;
+    var xParameterElement =
+        xParameter.declaredFragment!.element as FieldFormalParameterElement;
     expect(xParameterElement.field, findElement2.field('x'));
 
     assertResolvedNodeText(findNode.simple('x {}'), r'''
@@ -1035,7 +1037,7 @@ f(@A int p<A>(int x)) {}''');
     var annotations = findElement2.parameter('p').metadata.annotations;
     expect(annotations, hasLength(1));
 
-    var pDeclaration = findNode.functionTypedFormalParameter('p<A>');
+    var pDeclaration = findNode.formalParameter('p<A>');
     assertResolvedNodeText(pDeclaration.metadata[0], r'''
 Annotation
   atSign: @

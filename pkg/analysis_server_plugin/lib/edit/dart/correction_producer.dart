@@ -24,7 +24,6 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -522,21 +521,26 @@ abstract class ResolvedCorrectionProducer
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
     var parent = expression.parent;
+    if (parent is NamedArgument && parent.argumentExpression == expression) {
+      return parent.correspondingParameter?.type;
+    }
+    RecordLiteralNamedField? namedField;
     // `(myFunction(),)` or `(name: myFunction())`.
-    if (parent case NamedExpression(parent: var grandParent) && var named) {
-      parent = grandParent;
-      expression = named;
+    if (parent is RecordLiteralNamedField) {
+      namedField = parent;
+      parent = parent.parent;
     }
     if (parent is RecordLiteral) {
       var recordType = inferUndefinedExpressionType(parent);
       if (recordType is RecordType) {
-        if (expression case NamedExpression named) {
+        if (namedField != null) {
+          var name = namedField.name;
           return recordType.namedFields
-              .firstWhereOrNull((field) => field.name == named.name.label.name)
+              .firstWhereOrNull((field) => field.name == name.lexeme)
               ?.type;
         } else {
           var index = parent.fields
-              .whereNotType<NamedExpression>()
+              .whereType<Expression>()
               .indexed
               .firstWhereOrNull((record) => record.$2 == expression)
               ?.$1;

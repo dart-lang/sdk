@@ -101,6 +101,9 @@ class TypeDefinitionHandler
           if (node.parent case PatternField field) {
             type = field.pattern.matchedValueType;
           }
+        } else if (node is NamedArgument) {
+          originEntity = node.name;
+          type = node.correspondingParameter?.type;
         } else if (node is Expression) {
           originEntity = node;
           type = _getType(node);
@@ -213,10 +216,6 @@ class TypeDefinitionHandler
         return element.thisType;
       } else if (element case analyzer.VariableElement element) {
         if (node.inDeclarationContext()) {
-          return element.type;
-        }
-        var parent = node.parent?.parent;
-        if (parent is NamedExpression && parent.name.label == node) {
           return element.type;
         }
       } else if (node.inSetterContext()) {

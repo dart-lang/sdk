@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -1153,11 +1152,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    node.parameter.accept(this);
-  }
-
-  @override
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
@@ -1464,11 +1458,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
 
-    if (node.parent case DefaultFormalParameterImpl parent) {
-      fragment.constantInitializer = parent.defaultValue;
-    }
-
-    fragment.hasImplicitType = node.type == null && node.parameters == null;
+    fragment.constantInitializer = node.defaultClause?.value;
+    fragment.hasImplicitType =
+        node.type == null && node.functionTypedSuffix == null;
     fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -1477,13 +1469,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     // TODO(scheglov): check that we don't set reference for parameters
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      var formalParameters = node.parameters;
+      var formalParameters = node.functionTypedSuffix?.formalParameters;
       if (formalParameters != null) {
         formalParameters.accept(this);
         fragment.formalParameters = holder.formalParameters;
       }
 
-      var typeParameters = node.typeParameters;
+      var typeParameters = node.functionTypedSuffix?.typeParameters;
       if (typeParameters != null) {
         typeParameters.accept(this);
         fragment.typeParameters = holder.typeParameters;
@@ -1581,53 +1573,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     });
 
     fragment.typeParameters = holder.typeParameters;
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
-  ) {
-    var nameToken = node.name;
-    var name2 = _getFragmentName(nameToken);
-
-    FormalParameterFragmentImpl fragment;
-    if (_linker.getDeclaringFormalInfo(node) case var declaring?) {
-      fragment = declaring.formalFragment;
-    } else {
-      fragment = FormalParameterFragmentImpl(
-        name: name2,
-        nameOffset: null,
-        parameterKind: node.kind,
-      );
-    }
-    _linker.elementNodes[fragment] = node;
-    _enclosingContext.addParameter(fragment);
-
-    if (node.parent case DefaultFormalParameterImpl parent) {
-      fragment.constantInitializer = parent.defaultValue;
-    }
-
-    fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-    fragment.isFinal = node.isFinal;
-    fragment.isOriginDeclaration = true;
-    fragment.metadata = _buildMetadata(node.metadata);
-
-    node.declaredFragment = fragment;
-
-    var holder = _EnclosingContext(fragment: fragment);
-    _withEnclosing(holder, () {
-      var formalParameters = node.parameters;
-      formalParameters.accept(this);
-      fragment.formalParameters = holder.formalParameters;
-
-      var typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        fragment.typeParameters = holder.typeParameters;
-      }
-    });
-
-    node.returnType?.accept(this);
   }
 
   @override
@@ -1845,10 +1790,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var isFirstFormalExtensionTypeRepresentation = false;
     if (parent is ExtensionTypeDeclarationImpl) {
-      var firstFormalParameter = formalParameters.firstOrNull?.notDefault;
+      var firstFormalParameter = formalParameters.firstOrNull;
       isFirstFormalExtensionTypeRepresentation =
-          firstFormalParameter is SimpleFormalParameterImpl ||
-          firstFormalParameter is FunctionTypedFormalParameterImpl;
+          firstFormalParameter is RegularFormalParameterImpl;
 
       if (!isFirstFormalExtensionTypeRepresentation) {
         var fieldFragment = FieldFragmentImpl(name: null);
@@ -1938,7 +1882,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
 
@@ -1955,19 +1899,30 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
 
-    if (_enclosingContext.hasDefaultFormalParameters) {
-      if (node.parent case DefaultFormalParameterImpl parent) {
-        fragment.constantInitializer = parent.defaultValue;
-      }
-    }
-
-    fragment.hasImplicitType = node.type == null;
+    fragment.constantInitializer = node.defaultClause?.value;
+    fragment.hasImplicitType =
+        node.type == null && node.functionTypedSuffix == null;
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
     fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
+
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      var holder = _EnclosingContext(fragment: fragment);
+      _withEnclosing(holder, () {
+        var formalParameters = functionTypedSuffix.formalParameters;
+        formalParameters.accept(this);
+        fragment.formalParameters = holder.formalParameters;
+
+        var typeParameters = functionTypedSuffix.typeParameters;
+        if (typeParameters != null) {
+          typeParameters.accept(this);
+          fragment.typeParameters = holder.typeParameters;
+        }
+      });
+    }
 
     node.type?.accept(this);
   }
@@ -1985,11 +1940,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
 
-    if (node.parent case DefaultFormalParameterImpl parent) {
-      fragment.constantInitializer = parent.defaultValue;
-    }
-
-    fragment.hasImplicitType = node.type == null && node.parameters == null;
+    fragment.constantInitializer = node.defaultClause?.value;
+    fragment.hasImplicitType =
+        node.type == null && node.functionTypedSuffix == null;
     fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -1998,13 +1951,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     // TODO(scheglov): check that we don't set reference for parameters
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      var formalParameters = node.parameters;
+      var formalParameters = node.functionTypedSuffix?.formalParameters;
       if (formalParameters != null) {
         formalParameters.accept(this);
         fragment.formalParameters = holder.formalParameters;
       }
 
-      var typeParameters = node.typeParameters;
+      var typeParameters = node.functionTypedSuffix?.typeParameters;
       if (typeParameters != null) {
         typeParameters.accept(this);
         fragment.typeParameters = holder.typeParameters;
@@ -2090,10 +2043,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     FormalParameterList? formalParameters,
     TypeParameterList? typeParameters,
   }) {
-    var holder = _EnclosingContext(
-      fragment: fragment,
-      hasDefaultFormalParameters: true,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       if (formalParameters != null) {
         formalParameters.accept(this);
@@ -2138,15 +2088,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
 class _EnclosingContext {
   final FragmentImpl fragment;
-  final bool hasDefaultFormalParameters;
 
   final List<FormalParameterFragmentImpl> formalParameters = [];
   final List<TypeParameterFragmentImpl> typeParameters = [];
 
-  _EnclosingContext({
-    required this.fragment,
-    this.hasDefaultFormalParameters = false,
-  });
+  _EnclosingContext({required this.fragment});
 
   void addParameter(FormalParameterFragmentImpl fragment) {
     formalParameters.add(fragment);
@@ -2172,16 +2118,9 @@ extension _ConstructorDeclarationImplExtension on ConstructorDeclarationImpl {
     }
 
     return parameters.parameters.any((parameter) {
-      var notDefault = parameter.notDefault;
-      return notDefault is FieldFormalParameterImpl ||
-          notDefault is SuperFormalParameterImpl;
+      return parameter is FieldFormalParameterImpl ||
+          parameter is SuperFormalParameterImpl;
     });
-  }
-}
-
-extension _FormalParameterImplExtension on FormalParameterImpl {
-  FormalParameterImpl get selfOrParentDefault {
-    return parent.tryCast<DefaultFormalParameterImpl>() ?? this;
   }
 }
 
@@ -2189,6 +2128,6 @@ extension _LinkerExtension on Linker {
   DeclaringFormalParameterInfo? getDeclaringFormalInfo(
     FormalParameterImpl node,
   ) {
-    return declaringFormalParameters[node.selfOrParentDefault];
+    return declaringFormalParameters[node];
   }
 }

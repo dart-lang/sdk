@@ -89,7 +89,7 @@ class InlineTypedef extends ResolvedCorrectionProducer {
             // formatting.
             builder.write(', ');
           }
-          if (parameter is DefaultFormalParameter) {
+          if (parameter.isNamed || parameter.isOptionalPositional) {
             if (groupEnd == null) {
               if (parameter.isNamed) {
                 groupEnd = '}';
@@ -99,11 +99,10 @@ class InlineTypedef extends ResolvedCorrectionProducer {
                 builder.write('[');
               }
             }
-            parameter = parameter.parameter;
           }
-          if (parameter is FunctionTypedFormalParameter) {
+          if (parameter.functionTypedSuffix != null) {
             builder.write(utils.getNodeText(parameter));
-          } else if (parameter is SimpleFormalParameter) {
+          } else if (parameter is RegularFormalParameter) {
             if (parameter.metadata.isNotEmpty) {
               builder.write(
                 utils.getRangeText(range.nodes(parameter.metadata)),
@@ -115,7 +114,7 @@ class InlineTypedef extends ResolvedCorrectionProducer {
             if (parameter.covariantKeyword != null) {
               builder.write('covariant ');
             }
-            var keyword = parameter.keyword;
+            var keyword = parameter.constFinalOrVarKeyword;
             if (keyword != null && keyword.type != Keyword.VAR) {
               builder.write(keyword.lexeme);
             }

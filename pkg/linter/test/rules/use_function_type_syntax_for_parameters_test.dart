@@ -35,7 +35,6 @@ class C(final bool x(int e));
     );
   }
 
-  @FailingTest(reason: 'Unimplemented')
   test_classicSyntax_fieldFormal() async {
     await assertDiagnostics(
       r'''

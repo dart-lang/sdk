@@ -16,9 +16,6 @@ import '../diagnostic.dart' as diag;
 const _desc =
     r"Don't reassign references to parameters of functions or methods.";
 
-bool _isDefaultFormalParameterWithDefaultValue(FormalParameter parameter) =>
-    parameter is DefaultFormalParameter && parameter.defaultValue != null;
-
 bool _isFormalParameterReassigned(
   FormalParameter parameter,
   AssignmentExpression assignment,
@@ -195,12 +192,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       var declaredElement = parameter.declaredFragment?.element;
       if (declaredElement != null &&
           body.isPotentiallyMutatedInScope(declaredElement)) {
-        var paramIsNotNullByDefault =
-            parameter is SimpleFormalParameter ||
-            _isDefaultFormalParameterWithDefaultValue(parameter);
         var paramDefaultsToNull =
-            parameter is DefaultFormalParameter &&
-            parameter.defaultValue == null;
+            parameter.isOptional && parameter.defaultClause == null;
+        var paramIsNotNullByDefault =
+            parameter.isRequiredPositional || parameter.defaultClause != null;
         if (paramDefaultsToNull || paramIsNotNullByDefault) {
           body.accept(
             _DeclarationVisitor(

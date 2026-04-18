@@ -11,7 +11,7 @@ import '../ast.dart';
 import '../extensions.dart';
 
 bool argumentsMatchParameters(
-  NodeList<Expression> arguments,
+  NodeList<Argument> arguments,
   NodeList<FormalParameter> parameters,
 ) {
   var namedParameters = <String, Element?>{};
@@ -30,14 +30,14 @@ bool argumentsMatchParameters(
     }
   }
   for (var argument in arguments) {
-    if (argument is NamedExpression) {
-      var element = argument.expression.canonicalElement;
+    if (argument is NamedArgument) {
+      var element = argument.argumentExpression.canonicalElement;
       if (element == null) {
         return false;
       }
-      namedArguments[argument.name.label.name] = element;
+      namedArguments[argument.name.lexeme] = element;
     } else {
-      var element = argument.canonicalElement;
+      var element = argument.argumentExpression.canonicalElement;
       if (element == null) {
         return false;
       }

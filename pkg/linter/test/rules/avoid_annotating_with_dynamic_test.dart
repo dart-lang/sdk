@@ -186,7 +186,7 @@ void f([dynamic p]) {}
       r'''
 void f([dynamic x = 1]) {}
 ''',
-      [lint(8, 9)],
+      [lint(8, 13)],
     );
   }
 

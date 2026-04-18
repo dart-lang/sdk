@@ -20,15 +20,38 @@ class C4 {
   this {}
 }
 
-enum E0 { a; this; }
+enum E0 {
+  a;
 
-enum E1 { a; this : assert(true); }
+  this;
+}
 
-enum E2() { a; this; this : assert(true); }
+enum E1 {
+  a;
 
-enum E3() { a; this; this : assert(true); }
+  this : assert(true);
+}
 
-enum E4 { a; this; this : assert(true); }
+enum E2() {
+  a;
+
+  this;
+  this : assert(true);
+}
+
+enum E3() {
+  a;
+
+  this;
+  this : assert(true);
+}
+
+enum E4 {
+  a;
+
+  this;
+  this : assert(true);
+}
 
 extension type ET1(int i) {
   this : assert(i > 0);

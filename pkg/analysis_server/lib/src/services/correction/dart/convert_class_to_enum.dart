@@ -564,7 +564,7 @@ class _EnumDescription {
         return null;
       }
       var arguments = field.instanceCreation.argumentList.arguments;
-      var argument = parameterData.getArgument(arguments);
+      var argument = parameterData.getArgumentExpression(arguments);
       if (argument is! IntegerLiteral) {
         return null;
       }
@@ -916,9 +916,11 @@ class _Parameter {
 
   /// Return the expression representing the argument associated with this
   /// parameter, or `null` if there is no such argument.
-  Expression? getArgument(NodeList<Expression> arguments) {
-    return arguments.firstWhereOrNull(
-      (argument) => argument.correspondingParameter == element,
-    );
+  Expression? getArgumentExpression(NodeList<Argument> arguments) {
+    return arguments
+        .firstWhereOrNull(
+          (argument) => argument.correspondingParameter == element,
+        )
+        ?.argumentExpression;
   }
 }

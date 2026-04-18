@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -37,8 +38,7 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
       return;
     }
 
-    var parent = maybeParameter.parent;
-    var parameter = parent is DefaultFormalParameter ? parent : maybeParameter;
+    var parameter = maybeParameter;
 
     var parameterList = parameter.parent;
     if (parameterList is! FormalParameterList) {
@@ -52,11 +52,13 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
       // To preserve the semantics, removing an optional field formal parameter
       // requires assigning the default value to field in the constructor's
       // initializer list.
-      fieldName = maybeParameter.declaredFragment?.element.field?.name;
+      var element = maybeParameter.declaredFragment?.element;
+      if (element is FieldFormalParameterElement) {
+        fieldName = element.field?.name;
+      }
       if (fieldName == null) return;
 
-      if (parameter is! DefaultFormalParameter) return;
-
+      var defaultClause = parameter.defaultClause;
       var constructor = parameterList.parent;
       if (constructor is! ConstructorDeclaration) return;
 
@@ -64,10 +66,9 @@ class RemoveUnusedParameter extends ResolvedCorrectionProducer {
       if (separator != null && separator.type != TokenType.COLON) return;
 
       needsSeparator = separator == null;
-      var expression = parameter.defaultValue;
-      defaultValue = expression == null
-          ? 'null'
-          : utils.getRangeText(expression.sourceRange);
+      defaultValue = defaultClause != null
+          ? utils.getRangeText(defaultClause.value.sourceRange)
+          : 'null';
     }
 
     var parameters = parameterList.parameters;

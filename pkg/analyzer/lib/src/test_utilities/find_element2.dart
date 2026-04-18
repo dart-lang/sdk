@@ -93,7 +93,7 @@ class FindElement2 extends _FindElementBase {
     unit.accept(
       FunctionAstVisitor(
         label: (node) {
-          updateResult(node.label.element!);
+          updateResult(node.declaredFragment!.element);
         },
       ),
     );

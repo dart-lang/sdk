@@ -34,8 +34,8 @@ class AnnotationVisitor extends ScrapeVisitor {
   }
 
   void _recordArgument(AstNode? node) {
-    if (node is NamedExpression) {
-      _recordArgument(node.expression);
+    if (node is NamedArgument) {
+      _recordArgument(node.argumentExpression);
     } else if (node is IfElement) {
       _recordArgument(node.thenElement);
       _recordArgument(node.elseElement);

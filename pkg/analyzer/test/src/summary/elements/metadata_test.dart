@@ -1501,14 +1501,10 @@ library
               arguments: ArgumentList
                 leftParenthesis: ( @19
                 arguments
-                  NamedExpression
-                    name: Label
-                      label: SimpleIdentifier
-                        token: value @20
-                        element: package:test/a.dart::@class::A::@constructor::new::@formalParameter::value
-                        staticType: null
-                      colon: : @25
-                    expression: IntegerLiteral
+                  NamedArgument
+                    name: value @20
+                    colon: : @25
+                    argumentExpression: IntegerLiteral
                       literal: 42 @27
                       staticType: int
                 rightParenthesis: ) @29
@@ -1527,14 +1523,10 @@ library
           arguments: ArgumentList
             leftParenthesis: ( @19
             arguments
-              NamedExpression
-                name: Label
-                  label: SimpleIdentifier
-                    token: value @20
-                    element: package:test/a.dart::@class::A::@constructor::new::@formalParameter::value
-                    staticType: null
-                  colon: : @25
-                expression: IntegerLiteral
+              NamedArgument
+                name: value @20
+                colon: : @25
+                argumentExpression: IntegerLiteral
                   literal: 42 @27
                   staticType: int
             rightParenthesis: ) @29

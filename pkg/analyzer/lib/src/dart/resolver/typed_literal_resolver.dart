@@ -256,6 +256,8 @@ class TypedLiteralResolver {
         return _typeProvider.dynamicType;
       case NullAwareElementImpl():
         return _typeSystem.promoteToNonNull(element.value.typeOrThrow);
+      default:
+        throw UnimplementedError('${element.runtimeType}');
     }
   }
 
@@ -463,6 +465,8 @@ class TypedLiteralResolver {
         return _InferredCollectionElementTypeInformation(
           elementType: _typeSystem.promoteToNonNull(element.value.typeOrThrow),
         );
+      default:
+        throw UnimplementedError('${element.runtimeType}');
     }
   }
 

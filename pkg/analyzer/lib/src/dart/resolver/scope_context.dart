@@ -228,20 +228,28 @@ class ScopeContext {
     });
   }
 
-  void visitFieldFormalParameter(
-    FieldFormalParameterImpl node, {
+  void visitFormalParameter(
+    FormalParameterImpl node, {
     required AstVisitor visitor,
   }) {
-    var element = node.declaredFragment!.element;
+    node.scope = nameScope;
 
     node.metadata.accept(visitor);
     node.documentationComment?.accept(visitor);
 
-    withTypeParameterScope(element.typeParameters, () {
+    var functionTypedSuffix = node.functionTypedSuffix;
+    if (functionTypedSuffix == null) {
       node.type?.accept(visitor);
-      node.typeParameters?.accept(visitor);
-      node.parameters?.accept(visitor);
-    });
+    } else {
+      var element = node.declaredFragment!.element;
+      withTypeParameterScope(element.typeParameters, () {
+        node.type?.accept(visitor);
+        functionTypedSuffix.typeParameters?.accept(visitor);
+        functionTypedSuffix.formalParameters.accept(visitor);
+      });
+    }
+
+    node.defaultClause?.accept(visitor);
   }
 
   void visitFunctionDeclaration(
@@ -300,22 +308,6 @@ class ScopeContext {
         scope.addFormalParameterList(node.parameters);
         node.documentationComment?.accept(visitor);
       });
-    });
-  }
-
-  void visitFunctionTypedFormalParameter(
-    FunctionTypedFormalParameterImpl node, {
-    required AstVisitor visitor,
-  }) {
-    var element = node.declaredFragment!.element;
-
-    node.metadata.accept(visitor);
-    node.documentationComment?.accept(visitor);
-
-    withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(visitor);
-      node.typeParameters?.accept(visitor);
-      node.parameters.accept(visitor);
     });
   }
 
@@ -429,22 +421,6 @@ class ScopeContext {
     withScope(primaryParameterScope, () {
       node.documentationComment?.accept(visitor);
       node.body.accept(visitor);
-    });
-  }
-
-  void visitSuperFormalParameter(
-    SuperFormalParameterImpl node, {
-    required AstVisitor visitor,
-  }) {
-    var element = node.declaredFragment!.element;
-
-    node.metadata.accept(visitor);
-    node.documentationComment?.accept(visitor);
-
-    withTypeParameterScope(element.typeParameters, () {
-      node.type?.accept(visitor);
-      node.typeParameters?.accept(visitor);
-      node.parameters?.accept(visitor);
     });
   }
 

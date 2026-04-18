@@ -54,22 +54,22 @@ class _Visitor extends SimpleAstVisitor<void> {
         .reversed
         .where(
           (element) =>
-              element is NamedExpression &&
-              element.expression is! FunctionExpression,
+              element is NamedArgument &&
+              element.argumentExpression is! FunctionExpression,
         )
         .isEmpty;
     if (!onlyClosuresAfterChild) {
       var argument = arguments.firstWhere(isChildArg);
-      var name = (argument as NamedExpression).name.label.name;
+      var name = (argument as NamedArgument).name.lexeme;
       rule.reportAtNode(argument, arguments: [name]);
     }
   }
 
-  static bool isChildArg(Expression e) {
-    if (e is! NamedExpression) return false;
+  static bool isChildArg(Argument e) {
+    if (e is! NamedArgument) return false;
 
-    var name = e.name.label.name;
+    var name = e.name.lexeme;
     return (name == 'child' || name == 'children') &&
-        e.staticType.isWidgetProperty;
+        e.argumentExpression.staticType.isWidgetProperty;
   }
 }

@@ -921,6 +921,7 @@ ConstructorDeclaration
   parameters: FormalParameterList
     leftParenthesis: (
     parameter: RegularFormalParameter
+      constFinalOrVarKeyword: const
       type: NamedType
         name: int
       name: a
@@ -2095,6 +2096,7 @@ ClassDeclaration
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
+        constFinalOrVarKeyword: const
         type: NamedType
           name: int
         name: a

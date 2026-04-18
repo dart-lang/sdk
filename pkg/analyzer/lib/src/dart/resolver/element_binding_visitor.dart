@@ -253,30 +253,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
-    var normalParameter = node.parameter;
-
-    normalParameter.accept(this);
-
-    var fragment = normalParameter.declaredFragment!;
-    node.declaredFragment = fragment;
-
-    var defaultValue = node.defaultValue;
-    if (_elementWalker == null) {
-      fragment.constantInitializer = defaultValue;
-      fragment.setCodeRange(node.offset, node.length);
-    }
-
-    if (defaultValue != null) {
-      _withElementWalker(null, () {
-        _withElementHolder(ElementHolder(fragment), () {
-          defaultValue.accept(this);
-        });
-      });
-    }
-  }
-
-  @override
   void visitEnumConstantDeclaration(
     covariant EnumConstantDeclarationImpl node,
   ) {
@@ -379,22 +355,13 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     var nameToken = node.name;
-    var fragment = _bindFormalParameter(node, () {
+    _visitFormalParameter(node, () {
       return FieldFormalParameterFragmentImpl(
         firstTokenOffset: node.offset,
         name: nameToken.nameIfNotEmpty,
         nameOffset: nameToken.offsetIfNotEmpty,
         parameterKind: node.kind,
         privateName: null,
-      );
-    });
-
-    _withElementHolder(ElementHolder(fragment), () {
-      _withElementWalker(
-        _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
-        () {
-          super.visitFieldFormalParameter(node);
-        },
       );
     });
   }
@@ -539,36 +506,6 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
           fragment.encloseElements(holder.formalParameters);
         });
       });
-    });
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
-  ) {
-    var nameToken = node.name;
-    var fragment = _bindFormalParameter(node, () {
-      return FormalParameterFragmentImpl(
-        firstTokenOffset: node.offset,
-        name: nameToken.nameIfNotEmpty,
-        nameOffset: nameToken.offsetIfNotEmpty,
-        parameterKind: node.kind,
-      );
-    });
-
-    var holder = ElementHolder(fragment);
-    _withElementHolder(holder, () {
-      _withElementWalker(
-        _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
-        () {
-          super.visitFunctionTypedFormalParameter(node);
-
-          if (_elementWalker == null) {
-            fragment.typeParameters = holder.typeParameters;
-            fragment.formalParameters = holder.formalParameters;
-          }
-        },
-      );
     });
   }
 
@@ -750,42 +687,31 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
     var nameToken = node.name;
-    _bindFormalParameter(node, () {
+    _visitFormalParameter(node, () {
       var fragment = FormalParameterFragmentImpl(
         firstTokenOffset: node.offset,
         name: nameToken?.nameIfNotEmpty,
         nameOffset: nameToken?.offsetIfNotEmpty,
         parameterKind: node.kind,
       );
-      if (node.type == null) {
+      if (node.type == null && node.functionTypedSuffix == null) {
         fragment.hasImplicitType = true;
       }
       return fragment;
     });
-
-    super.visitSimpleFormalParameter(node);
   }
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
     var nameToken = node.name;
-    var fragment = _bindFormalParameter(node, () {
+    _visitFormalParameter(node, () {
       return SuperFormalParameterFragmentImpl(
         firstTokenOffset: node.offset,
         name: nameToken.nameIfNotEmpty,
         nameOffset: nameToken.offsetIfNotEmpty,
         parameterKind: node.kind,
-      );
-    });
-
-    _withElementHolder(ElementHolder(fragment), () {
-      _withElementWalker(
-        _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
-        () {
-          super.visitSuperFormalParameter(node);
-        },
       );
     });
   }
@@ -866,39 +792,16 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     });
   }
 
-  T _bindFormalParameter<T extends FormalParameterFragmentImpl>(
-    NormalFormalParameterImpl node,
-    T Function() createFragment,
-  ) {
-    T fragment;
-    if (_elementWalker != null) {
-      fragment = _elementWalker!.getParameter() as T;
-    } else {
-      fragment = createFragment();
-      _elementHolder.addParameter(fragment);
-
-      fragment.setCodeRange(node.offset, node.length);
-      fragment.isConst = node.isConst;
-      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-      fragment.isFinal = node.isFinal;
-    }
-    node.declaredFragment = fragment;
-
-    _setOrCreateMetadataElements(fragment, node.metadata);
-    return fragment;
-  }
-
   /// Builds the label elements associated with [labels] and stores them in the
   /// element holder.
   void _buildLabelElements(List<LabelImpl> labels, bool onSwitchMember) {
     for (var label in labels) {
-      var labelName = label.label;
       var fragment = LabelFragmentImpl(
-        name: labelName.name,
+        name: label.name.lexeme,
         firstTokenOffset: label.offset,
         onSwitchMember: onSwitchMember,
       );
-      labelName.element = fragment.element;
+      label.declaredFragment = fragment;
       _elementHolder.enclose(fragment);
     }
   }
@@ -1004,6 +907,62 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
       fragment.metadata = MetadataImpl(
         annotations.map((a) => a.elementAnnotation!).toList(),
       );
+    }
+  }
+
+  void _visitFormalParameter<T extends FormalParameterFragmentImpl>(
+    FormalParameterImpl node,
+    T Function() createFragment,
+  ) {
+    T fragment;
+    if (_elementWalker != null) {
+      fragment = _elementWalker!.getParameter() as T;
+    } else {
+      fragment = createFragment();
+      _elementHolder.addParameter(fragment);
+
+      fragment.setCodeRange(node.offset, node.length);
+      fragment.isConst = node.isConst;
+      fragment.isExplicitlyCovariant = node.covariantKeyword != null;
+      fragment.isFinal = node.isFinal;
+    }
+    node.declaredFragment = fragment;
+
+    _setOrCreateMetadataElements(fragment, node.metadata);
+
+    var functionTypedSuffix = node.functionTypedSuffix;
+    if (functionTypedSuffix != null) {
+      var holder = ElementHolder(fragment);
+      _withElementHolder(holder, () {
+        _withElementWalker(
+          _elementWalker != null ? ElementWalker.forParameter(fragment) : null,
+          () {
+            node.documentationComment?.accept(this);
+            node.type?.accept(this);
+            functionTypedSuffix.typeParameters?.accept(this);
+            functionTypedSuffix.formalParameters.accept(this);
+          },
+        );
+      });
+      if (_elementWalker == null) {
+        fragment.typeParameters = holder.typeParameters;
+        fragment.formalParameters = holder.formalParameters;
+      }
+    } else {
+      node.documentationComment?.accept(this);
+      node.type?.accept(this);
+    }
+
+    if (node.defaultClause case var defaultClause?) {
+      if (_elementWalker == null) {
+        fragment.constantInitializer = defaultClause.value;
+      }
+
+      _withElementWalker(null, () {
+        _withElementHolder(ElementHolder(fragment), () {
+          defaultClause.value.accept(this);
+        });
+      });
     }
   }
 

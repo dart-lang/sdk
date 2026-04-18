@@ -227,26 +227,20 @@ class _PropertyInducingElementTypeInference
               }
             }
           }
-        case DefaultFormalParameterImpl():
+        case FormalParameterImpl():
           _assertElementFieldOriginDeclaringFormalParameter();
-          if (node.defaultValue != null) {
+          if (node.defaultClause case var defaultClause?) {
             initializerLibraryFragment = fragment.libraryFragment;
             scope = node.scope!;
-            getInitializer = () => node.defaultValue!;
-          } else {
+            getInitializer = () => defaultClause.value;
+          } else if (node is RegularFormalParameterImpl &&
+              node.functionTypedSuffix == null) {
             _status = _InferenceStatus.inferred;
             return (
               type: _element.library.typeSystem.objectQuestion,
               isTypeInferredFromInitializer: false,
             );
           }
-        case SimpleFormalParameterImpl():
-          _assertElementFieldOriginDeclaringFormalParameter();
-          _status = _InferenceStatus.inferred;
-          return (
-            type: _element.library.typeSystem.objectQuestion,
-            isTypeInferredFromInitializer: false,
-          );
       }
     }
 

@@ -42,7 +42,7 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
     }
 
     if (widgetCreation.childrenArgument case var childrenArgument?) {
-      var childrenExpression = childrenArgument.expression;
+      var childrenExpression = childrenArgument.argumentExpression;
       if (childrenExpression is ListLiteral &&
           childrenExpression.elements.isNotEmpty) {
         await _removeChildren(
@@ -52,11 +52,15 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
         );
       }
     } else if (widgetCreation.childArgument case var childArgument?) {
-      await _removeSingle(builder, widgetCreation, childArgument.expression);
+      await _removeSingle(
+        builder,
+        widgetCreation,
+        childArgument.argumentExpression,
+      );
     } else if (widgetCreation.builderArgument case var builderArgument?) {
       await _removeBuilder(builder, widgetCreation, builderArgument);
     } else if (widgetCreation.sliversArgument case var sliversArgument?) {
-      var sliversExpression = sliversArgument.expression;
+      var sliversExpression = sliversArgument.argumentExpression;
       if (sliversExpression is ListLiteral &&
           sliversExpression.elements.isNotEmpty) {
         await _removeChildren(
@@ -66,7 +70,11 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
         );
       }
     } else if (widgetCreation.sliverArgument case var sliverArgument?) {
-      await _removeSingle(builder, widgetCreation, sliverArgument.expression);
+      await _removeSingle(
+        builder,
+        widgetCreation,
+        sliverArgument.argumentExpression,
+      );
     } else {
       await _removeSingleWhenInList(builder, widgetCreation);
     }
@@ -75,9 +83,9 @@ class FlutterRemoveWidget extends ResolvedCorrectionProducer {
   Future<void> _removeBuilder(
     ChangeBuilder builder,
     InstanceCreationExpression widgetCreation,
-    NamedExpression builderArgument,
+    NamedArgument builderArgument,
   ) async {
-    var builderExpression = builderArgument.expression;
+    var builderExpression = builderArgument.argumentExpression;
     if (builderExpression is! FunctionExpression) return;
     var parameterElement = builderExpression
         .parameters
