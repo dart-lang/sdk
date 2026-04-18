@@ -9,6 +9,7 @@ import 'add_digit_separators_test.dart' as add_digit_separators;
 import 'add_late_test.dart' as add_late;
 import 'add_return_type_test.dart' as add_return_type;
 import 'add_type_annotation_test.dart' as add_type_annotation;
+import 'add_type_name_test.dart' as add_type_name;
 import 'assign_to_local_variable_test.dart' as assign_to_local_variable;
 import 'bind_all_to_fields_test.dart' as bind_all_to_fields_test;
 import 'bind_to_field_test.dart' as bind_to_field_test;
@@ -127,6 +128,7 @@ void main() {
     add_late.main();
     add_return_type.main();
     add_type_annotation.main();
+    add_type_name.main();
     assign_to_local_variable.main();
     bind_all_to_fields_test.main();
     bind_to_field_test.main();

@@ -150,8 +150,8 @@ class CollectedOptionsData {
 abstract class DiagnosticPage extends Page {
   final DiagnosticsSite site;
 
-  DiagnosticPage(this.site, String id, String title, {String? description})
-    : super(id, title, description: description);
+  DiagnosticPage(this.site, String id, String title, {super.description})
+    : super(id, title);
 
   bool get isNavPage => false;
 

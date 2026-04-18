@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/correction/dart/add_super_parameter
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/add_type_name.dart';
 import 'package:analysis_server/src/services/correction/dart/ambiguous_import_fix.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
@@ -553,6 +554,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ReplaceEmptyMapPattern.empty,
   ],
   diag.enumWithAbstractMember: [ConvertIntoBlockBody.missingBody],
+  diag.experimentNotEnabled: [AddTypeName.new],
   diag.extendsDisallowedClass: [RemoveNameFromDeclarationClause.new],
   diag.extendsNonClass: [
     ChangeTo.classOrMixin,

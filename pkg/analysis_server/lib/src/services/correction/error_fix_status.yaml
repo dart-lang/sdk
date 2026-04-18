@@ -2822,8 +2822,9 @@ expected_try_statement_body:
 expected_type_name:
   status: noFix
 experiment_not_enabled:
-  status: needsFix
+  status: hasFix
   notes: |-
+    Currently only for dot-shorthands.
     Update the sdk constraints.
 experiment_not_enabled_off_by_default:
   status: needsFix
