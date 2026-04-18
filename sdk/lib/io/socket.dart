@@ -166,19 +166,18 @@ abstract interface class InternetAddress {
   external static InternetAddress? tryParse(String address);
 }
 
-/// An internet address with prefix length bound to a [NetworkInterface].
+/// An [InternetAddress] bound to a [NetworkInterface], extended with
+/// network configuration details.
 ///
-/// This object holds an internet address together with its prefix length
-/// (also known as subnet mask length). It also provides the broadcast
-/// address for IPv4 networks.
-abstract interface class InterfaceAddress {
-  /// The internet address of this interface address.
-  InternetAddress get address;
-
+/// In addition to the address itself, provides the prefix length
+/// (also known as subnet mask length) and, for IPv4 addresses, the
+/// broadcast address of the network.
+abstract interface class InterfaceAddress implements InternetAddress {
   /// The prefix length of the network, also known as the subnet mask length.
   ///
   /// For example, a prefix length of `24` corresponds to a subnet mask of
-  /// `255.255.255.0` in IPv4.
+  /// `255.255.255.0` in IPv4. For IPv6, a prefix length of `64` means the
+  /// first 64 bits of the address are the network prefix.
   int get prefixLength;
 
   /// The broadcast address of this network.
