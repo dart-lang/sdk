@@ -109,7 +109,7 @@ class BundleWriter {
 
     // Write the library units.
     // This will write also resolution data, e.g. for classes.
-    _writeUnitElement(libraryElement.firstFragment);
+    _writeLibraryFragment(libraryElement.firstFragment);
 
     _writeClassElements(libraryElement.classes);
     _writeEnumElements(libraryElement.enums);
@@ -209,7 +209,10 @@ class BundleWriter {
       _sink.writeOptionalStringReference(fragment.typeName);
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _sink.writeList(
+          fragment.formalParameters,
+          _writeFormalParameterFragment,
+        );
         _resolutionSink._writeMetadata(fragment.metadata);
         _resolutionSink.writeList(
           fragment.constantInitializers,
@@ -240,7 +243,7 @@ class BundleWriter {
     } else if (element is DirectiveUriWithUnitImpl) {
       _sink.writeByte(DirectiveUriKind.withUnit.index);
       writeWithSource(element);
-      _writeUnitElement(element.libraryFragment);
+      _writeLibraryFragment(element.libraryFragment);
     } else if (element is DirectiveUriWithSource) {
       _sink.writeByte(DirectiveUriKind.withSource.index);
       writeWithSource(element);
@@ -477,6 +480,38 @@ class BundleWriter {
     _sink.writeBytes(bytes);
   }
 
+  /// Write a formal parameter fragment in the signature of a top-level
+  /// function, constructor, method, getter, or setter declaration.
+  // TODO(scheglov): Deduplicate parameter writing implementation.
+  void _writeFormalParameterFragment(FormalParameterFragmentImpl fragment) {
+    _writeFragmentId(fragment);
+    _writeFragmentName(fragment);
+    _sink.writeBool(fragment.isInitializingFormal);
+    _sink.writeBool(fragment.isSuperFormal);
+    _sink._writeFormalParameterFragmentKind(fragment);
+
+    if (fragment is FieldFormalParameterFragmentImpl) {
+      _sink.writeOptionalStringReference(fragment.privateName);
+    }
+
+    fragment.writeFlags(_sink);
+
+    _resolutionSink._writeMetadata(fragment.metadata);
+
+    _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
+      _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+      _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
+      _resolutionSink.writeBool(fragment.element.inheritsCovariant);
+      _resolutionSink.writeType(fragment.element.type);
+      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
+
+      if (fragment is FieldFormalParameterFragmentImpl) {
+        // TODO(scheglov): formal parameter types? Anything else?
+        _resolutionSink.writeElement(fragment.element.field);
+      }
+    });
+  }
+
   void _writeFragmentId(FragmentImpl fragment) {
     var id = _fragmentIds.getId(fragment);
     _sink.writeUint30(id);
@@ -506,7 +541,10 @@ class BundleWriter {
     _writeTemplateFragment(fragment, () {
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _sink.writeList(
+          fragment.formalParameters,
+          _writeFormalParameterFragment,
+        );
         _resolutionSink._writeMetadata(fragment.metadata);
       });
     });
@@ -530,6 +568,34 @@ class BundleWriter {
     _resolutionSink._writeMetadata(element.metadata);
     _sink.writeList(element.combinators, _writeNamespaceCombinator);
     _writeDirectiveUri(element.uri);
+  }
+
+  void _writeLibraryFragment(LibraryFragmentImpl fragment) {
+    _writeResolutionOffset();
+    fragment.writeFlags(_sink);
+
+    _sink.writeList(fragment.libraryImports, _writeLibraryImport);
+    _sink.writeList(fragment.libraryExports, _writeLibraryExport);
+
+    // Write the metadata for parts here, even though we write parts below.
+    // The reason is that resolution data must be in a single chunk.
+    _writePartElementsMetadata(fragment);
+
+    _sink.writeList(fragment.classes, _writeClassFragment);
+    _sink.writeList(fragment.enums, _writeEnumFragment);
+    _sink.writeList(fragment.extensions, _writeExtensionFragment);
+    _sink.writeList(fragment.extensionTypes, _writeExtensionTypeFragment);
+    _sink.writeList(fragment.functions, _writeTopLevelFunctionFragment);
+    _sink.writeList(fragment.mixins, _writeMixinFragment);
+    _sink.writeList(fragment.typeAliases, _writeTypeAliasFragment);
+
+    _sink.writeList(fragment.topLevelVariables, _writeTopLevelVariableFragment);
+    _sink.writeList(fragment.getters, _writeGetterFragment);
+    _sink.writeList(fragment.setters, _writeSetterFragment);
+
+    // Write parts after this library fragment, so that when we read, we
+    // process fragments of declarations in the same order as we build them.
+    _sink.writeList(fragment.parts, _writePartInclude);
   }
 
   void _writeLibraryImport(LibraryImportImpl element) {
@@ -573,7 +639,10 @@ class BundleWriter {
     _writeTemplateFragment(fragment, () {
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _sink.writeList(
+          fragment.formalParameters,
+          _writeFormalParameterFragment,
+        );
         _resolutionSink._writeMetadata(fragment.metadata);
       });
     });
@@ -645,38 +714,6 @@ class BundleWriter {
     _sink.writeOptionalObject(reference, _writeReference);
   }
 
-  /// Write a formal parameter fragment in the signature of a top-level
-  /// function, constructor, method, getter, or setter declaration.
-  // TODO(scheglov): Deduplicate parameter writing implementation.
-  void _writeParameterElement(FormalParameterFragmentImpl fragment) {
-    _writeFragmentId(fragment);
-    _writeFragmentName(fragment);
-    _sink.writeBool(fragment.isInitializingFormal);
-    _sink.writeBool(fragment.isSuperFormal);
-    _sink._writeFormalParameterKind(fragment);
-
-    if (fragment is FieldFormalParameterFragmentImpl) {
-      _sink.writeOptionalStringReference(fragment.privateName);
-    }
-
-    fragment.writeFlags(_sink);
-
-    _resolutionSink._writeMetadata(fragment.metadata);
-
-    _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
-      _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-      _sink.writeList(fragment.formalParameters, _writeParameterElement);
-      _resolutionSink.writeBool(fragment.element.inheritsCovariant);
-      _resolutionSink.writeType(fragment.element.type);
-      _resolutionSink._writeOptionalNode(fragment.constantInitializer);
-
-      if (fragment is FieldFormalParameterFragmentImpl) {
-        // TODO(scheglov): formal parameter types? Anything else?
-        _resolutionSink.writeElement(fragment.element.field);
-      }
-    });
-  }
-
   /// We write metadata here, to keep it inside [libraryFragment] resolution
   /// data, because [_writePartInclude] recursively writes included unit
   /// elements. But the bundle reader wants all metadata for `parts`
@@ -719,7 +756,10 @@ class BundleWriter {
     _writeTemplateFragment(fragment, () {
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _sink.writeList(
+          fragment.formalParameters,
+          _writeFormalParameterFragment,
+        );
         _resolutionSink._writeMetadata(fragment.metadata);
       });
     });
@@ -756,7 +796,10 @@ class BundleWriter {
     _writeTemplateFragment(fragment, () {
       _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
         _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-        _sink.writeList(fragment.formalParameters, _writeParameterElement);
+        _sink.writeList(
+          fragment.formalParameters,
+          _writeFormalParameterFragment,
+        );
         _resolutionSink._writeMetadata(fragment.metadata);
       });
     });
@@ -813,40 +856,6 @@ class BundleWriter {
     _resolutionSink._writeMetadata(fragment.metadata);
     _resolutionSink.writeType(fragment.element.bound);
     _resolutionSink.writeType(fragment.element.defaultType);
-  }
-
-  void _writeUnitElement(LibraryFragmentImpl libraryFragment) {
-    _writeResolutionOffset();
-    libraryFragment.writeFlags(_sink);
-
-    _sink.writeList(libraryFragment.libraryImports, _writeLibraryImport);
-    _sink.writeList(libraryFragment.libraryExports, _writeLibraryExport);
-
-    // Write the metadata for parts here, even though we write parts below.
-    // The reason is that resolution data must be in a single chunk.
-    _writePartElementsMetadata(libraryFragment);
-
-    _sink.writeList(libraryFragment.classes, _writeClassFragment);
-    _sink.writeList(libraryFragment.enums, _writeEnumFragment);
-    _sink.writeList(libraryFragment.extensions, _writeExtensionFragment);
-    _sink.writeList(
-      libraryFragment.extensionTypes,
-      _writeExtensionTypeFragment,
-    );
-    _sink.writeList(libraryFragment.functions, _writeTopLevelFunctionFragment);
-    _sink.writeList(libraryFragment.mixins, _writeMixinFragment);
-    _sink.writeList(libraryFragment.typeAliases, _writeTypeAliasFragment);
-
-    _sink.writeList(
-      libraryFragment.topLevelVariables,
-      _writeTopLevelVariableFragment,
-    );
-    _sink.writeList(libraryFragment.getters, _writeGetterFragment);
-    _sink.writeList(libraryFragment.setters, _writeSetterFragment);
-
-    // Write parts after this library fragment, so that when we read, we
-    // process fragments of declarations in the same order as we build them.
-    _sink.writeList(libraryFragment.parts, _writePartInclude);
   }
 
   void _writeVariableGetterSetterLinking(
@@ -1019,11 +1028,13 @@ class ResolutionSink extends BinaryWriter {
   }
 
   /// Write the formal parameter list for a function type annotation.
-  void _writeFormalParameters(List<InternalFormalParameterElement> parameters) {
-    writeList(parameters, (parameter) {
-      _writeElementName(parameter);
-      _writeFormalParameterKind2(parameter);
-      writeType(parameter.type);
+  void _writeFormalParameterElements(
+    List<InternalFormalParameterElement> elements,
+  ) {
+    writeList(elements, (element) {
+      _writeElementName(element);
+      _writeFormalParameterElementKind(element);
+      writeType(element.type);
     });
   }
 
@@ -1032,9 +1043,9 @@ class ResolutionSink extends BinaryWriter {
 
     writeEnum(TypeTag.FunctionType);
 
-    _writeTypeParameters2(type.typeParameters, () {
+    _writeTypeParameterElements(type.typeParameters, () {
       writeType(type.returnType);
-      _writeFormalParameters(type.formalParameters);
+      _writeFormalParameterElements(type.formalParameters);
     }, withAnnotations: false);
     _writeNullabilitySuffix(type.nullabilitySuffix);
   }
@@ -1091,17 +1102,17 @@ class ResolutionSink extends BinaryWriter {
     writeList(types, writeType);
   }
 
-  void _writeTypeParameters2(
-    List<TypeParameterElementImpl> typeParameters,
+  void _writeTypeParameterElements(
+    List<TypeParameterElementImpl> elements,
     void Function() f, {
     required bool withAnnotations,
   }) {
-    localElements.withElements(typeParameters, () {
-      writeList(typeParameters, _writeElementName);
-      for (var typeParameter in typeParameters) {
-        writeType(typeParameter.bound);
+    localElements.withElements(elements, () {
+      writeList(elements, _writeElementName);
+      for (var element in elements) {
+        writeType(element.bound);
         if (withAnnotations) {
-          _writeMetadata(typeParameter.metadata);
+          _writeMetadata(element.metadata);
         }
       }
       f();
@@ -1224,7 +1235,7 @@ extension on Map<FragmentImpl, int> {
 }
 
 extension _BinaryWriterExtension on BinaryWriter {
-  void _writeFormalParameterKind(FormalParameterFragmentImpl p) {
+  void _writeFormalParameterElementKind(InternalFormalParameterElement p) {
     if (p.isRequiredPositional) {
       writeByte(Tag.ParameterKindRequiredPositional);
     } else if (p.isOptionalPositional) {
@@ -1238,7 +1249,7 @@ extension _BinaryWriterExtension on BinaryWriter {
     }
   }
 
-  void _writeFormalParameterKind2(InternalFormalParameterElement p) {
+  void _writeFormalParameterFragmentKind(FormalParameterFragmentImpl p) {
     if (p.isRequiredPositional) {
       writeByte(Tag.ParameterKindRequiredPositional);
     } else if (p.isOptionalPositional) {

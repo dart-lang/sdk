@@ -7629,6 +7629,7 @@ class LibraryFragmentImpl extends FragmentImpl
   set libraryImports(List<LibraryImportImpl> imports) {
     for (var importElement in imports) {
       importElement.libraryFragment = this;
+      importElement.prefix?.enclosingFragment = this;
     }
     _libraryImports = imports;
   }
