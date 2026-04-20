@@ -3259,10 +3259,12 @@ deferredAfterPrefix = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments deferredImportOfExtension =
     DiagnosticWithoutArgumentsImpl(
       name: 'deferred_import_of_extension',
-      problemMessage: "Imports of deferred libraries must hide all extensions.",
+      problemMessage:
+          "Deferred library imports must hide all extension declarations.",
       correctionMessage:
           "Try adding either a show combinator listing the names you need to "
-          "reference or a hide combinator listing all of the extensions.",
+          "reference or a hide combinator listing all of the extension "
+          "declarations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName: 'deferred_import_of_extension',

@@ -4527,8 +4527,8 @@ CompileTimeErrorCode:
   deferredImportOfExtension:
     type: compileTimeError
     parameters: none
-    problemMessage: Imports of deferred libraries must hide all extensions.
-    correctionMessage: Try adding either a show combinator listing the names you need to reference or a hide combinator listing all of the extensions.
+    problemMessage: Deferred library imports must hide all extension declarations.
+    correctionMessage: Try adding either a show combinator listing the names you need to reference or a hide combinator listing all of the extension declarations.
     hasPublishedDocs: true
     documentation: |-
       #### Description
