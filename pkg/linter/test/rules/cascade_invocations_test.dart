@@ -62,6 +62,19 @@ class C {
     );
   }
 
+  test_constInstantiation() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A();
+}
+
+void f() {
+  const a = A();
+  a.toString();
+}
+''');
+  }
+
   test_methodCallDependsOnTarget() async {
     await assertNoDiagnostics(r'''
 class C {

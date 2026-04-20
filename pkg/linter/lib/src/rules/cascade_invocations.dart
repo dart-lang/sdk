@@ -167,7 +167,7 @@ class _CascadableExpression {
     return _CascadableExpression._internal(
       element,
       [],
-      canReceive: true,
+      canReceive: !node.variables.isConst,
       isCritical: true,
     );
   }
