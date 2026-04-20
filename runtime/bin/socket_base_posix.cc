@@ -347,7 +347,7 @@ static intptr_t PrefixLengthFromNetmask(const struct sockaddr* netmask) {
     intptr_t prefix = 0;
     for (int i = 0; i < 16; i++) {
       uint8_t byte = mask->sin6_addr.s6_addr[i];
-      prefix += Utils::CountOneBitsWord(byte);
+      prefix += Utils::CountLeadingOnes(byte);
       if (byte != 0xFF) {
         break;
       }
