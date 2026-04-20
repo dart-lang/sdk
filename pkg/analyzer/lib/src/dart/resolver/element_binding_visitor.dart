@@ -427,11 +427,15 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
         });
       } else {
         node.functionExpression.typeParameters?.accept(this);
-        node.functionExpression.parameters?.accept(this);
-        node.functionExpression.body.accept(this);
-
         fragment.typeParameters = holder.typeParameters;
+        for (var typeParameter in fragment.typeParameters) {
+          TypeParameterElementImpl(firstFragment: typeParameter);
+        }
+
+        node.functionExpression.parameters?.accept(this);
         fragment.formalParameters = holder.formalParameters;
+
+        node.functionExpression.body.accept(this);
       }
     });
   }
@@ -480,9 +484,16 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
     var holder = ElementHolder(fragment);
     _withElementHolder(holder, () {
-      super.visitFunctionExpression(node);
+      node.typeParameters?.accept(this);
       fragment.typeParameters = holder.typeParameters;
+      for (var typeParameter in fragment.typeParameters) {
+        TypeParameterElementImpl(firstFragment: typeParameter);
+      }
+
+      node.parameters?.accept(this);
       fragment.formalParameters = holder.formalParameters;
+
+      node.body.accept(this);
     });
 
     fragment.setCodeRange(node.offset, node.length);
@@ -527,6 +538,7 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
         super.visitGenericFunctionType(node);
         fragment.typeParameters = holder.typeParameters;
         fragment.formalParameters = holder.formalParameters;
+        GenericFunctionTypeElementImpl(fragment);
       });
     });
   }

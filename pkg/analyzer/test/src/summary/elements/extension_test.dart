@@ -2942,6 +2942,7 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F3
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -2979,6 +2980,7 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F2
   extensions
     extension A
       reference: <testLibrary>::@extension::A::@def::0
@@ -2988,6 +2990,7 @@ library
     extension A
       reference: <testLibrary>::@extension::A::@def::1
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
       extendedType: InvalidType
       onDeclaration: <null>
 ''');

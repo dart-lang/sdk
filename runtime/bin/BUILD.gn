@@ -650,6 +650,20 @@ gen_snapshot_action("generate_snapshot_bin") {
   ]
 }
 
+gen_snapshot_action("ffi_callback_stub_bin") {
+  deps = [ "../vm:vm_platform_stripped" ]
+  platform_dill = "$root_out_dir/vm_platform_stripped.dill"
+  inputs = [ platform_dill ]
+  outputs = [ "$target_gen_dir/ffi_callback_stub.bin" ]
+  args = [
+    "--deterministic",
+    "--snapshot_kind=ffi-callback-stub",
+    "--ffi_callback_stub=" +
+        rebase_path("$target_gen_dir/ffi_callback_stub.bin", root_build_dir),
+    rebase_path(platform_dill, root_build_dir),
+  ]
+}
+
 # Generates an assembly file defining a given symbol with the bytes from a
 # binary file. Places the symbol in a text section if 'executable' is true,
 # otherwise places the symbol in a read-only data section.

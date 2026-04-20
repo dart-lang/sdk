@@ -1280,6 +1280,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F2
       returnType: void
 ''');
   }
@@ -1355,6 +1356,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F4
+      previousFragmentOfDifferentKind: #F2
       returnType: void
 ''');
   }
@@ -1413,6 +1415,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F5
+      previousFragmentOfDifferentKind: #F1
       returnType: void
 ''');
   }
@@ -1596,6 +1599,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@function::foo
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
       returnType: void
 ''');
   }

@@ -13728,6 +13728,7 @@ library
         isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F12
+          previousFragmentOfDifferentKind: #F5
           formalParameters
             #E0 requiredPositional _
               firstFragment: #F13
@@ -17969,6 +17970,7 @@ library
         isOriginDeclaration foo
           reference: <testLibrary>::@enum::A::@setter::foo
           firstFragment: #F10
+          previousFragmentOfDifferentKind: #F5
           formalParameters
             #E0 requiredPositional _
               firstFragment: #F11
@@ -18324,6 +18326,7 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F3
   enums
     isSimplyBounded enum A
       reference: <testLibrary>::@enum::A
@@ -18432,6 +18435,7 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F2
   enums
     isSimplyBounded enum A
       reference: <testLibrary>::@enum::A::@def::0
@@ -18468,6 +18472,7 @@ library
     isSimplyBounded enum A
       reference: <testLibrary>::@enum::A::@def::1
       firstFragment: #F7
+      previousFragmentOfDifferentKind: #F1
       supertype: Enum
       fields
         isConst isOriginEnumValues isStatic values

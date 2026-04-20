@@ -4499,6 +4499,7 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F3
   mixins
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -4538,6 +4539,7 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
@@ -4551,6 +4553,7 @@ library
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A::@def::1
       firstFragment: #F4
+      previousFragmentOfDifferentKind: #F1
       superclassConstraints
         Object
 ''');

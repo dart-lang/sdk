@@ -363,6 +363,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeFragmentReference(
+        'previousFragmentOfDifferentKind',
+        e.previousFragmentOfDifferentKind,
+      );
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
@@ -583,6 +587,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeFragmentReference(
+        'previousFragmentOfDifferentKind',
+        e.previousFragmentOfDifferentKind,
+      );
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
@@ -891,6 +899,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeFragmentReference(
+        'previousFragmentOfDifferentKind',
+        e.previousFragmentOfDifferentKind,
+      );
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
@@ -998,6 +1010,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeFragmentReference(
+        'previousFragmentOfDifferentKind',
+        e.previousFragmentOfDifferentKind,
+      );
       _writeDocumentation(e.documentationComment);
       // _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
@@ -1259,6 +1275,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeFragmentReference(
+        'previousFragmentOfDifferentKind',
+        e.previousFragmentOfDifferentKind,
+      );
       // _writeElementReference(e.enclosingElement, label: 'enclosingElement');
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
@@ -1441,6 +1461,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeFragmentReference(
+        'previousFragmentOfDifferentKind',
+        e.previousFragmentOfDifferentKind,
+      );
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
@@ -1532,6 +1556,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeFragmentReference(
+        'previousFragmentOfDifferentKind',
+        e.previousFragmentOfDifferentKind,
+      );
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);
@@ -1625,6 +1653,10 @@ class _Element2Writer extends _AbstractElementWriter {
     _sink.withIndent(() {
       _writeReference(e);
       _writeFragmentReference('firstFragment', e.firstFragment);
+      _writeFragmentReference(
+        'previousFragmentOfDifferentKind',
+        e.previousFragmentOfDifferentKind,
+      );
       _writeDocumentation(e.documentationComment);
       _writeMetadata(e.metadata);
       _writeSinceSdkVersion(e);

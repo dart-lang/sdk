@@ -410,7 +410,7 @@ class FunctionTypeImpl extends TypeImpl
       return instantiate([
         for (var i = 0; i < typeParameters.length; i++)
           TypeParameterTypeImpl(
-            element: TypeParameterFragmentImpl.synthetic(name: 'T$i').element,
+            element: TypeParameterElementImpl.synthetic(name: 'T$i'),
             nullabilitySuffix: NullabilitySuffix.none,
           ),
       ]).hashCode;

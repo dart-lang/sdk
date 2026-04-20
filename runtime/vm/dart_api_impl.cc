@@ -6912,6 +6912,28 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
 }
 
 DART_EXPORT Dart_Handle
+Dart_WriteCallbackStub(Dart_StreamingWriteCallback callback,
+                       void* callback_data) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_NULL(callback);
+
+  callback(callback_data,
+           reinterpret_cast<uint8_t*>(
+               StubCode::FfiCallbackTrampoline().EntryPoint()),
+           StubCode::FfiCallbackTrampoline().Size());
+
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle
 Dart_CreateAppAOTSnapshotAsElf(Dart_StreamingWriteCallback callback,
                                void* callback_data,
                                bool strip,

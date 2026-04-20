@@ -313,11 +313,6 @@ void JSONStream::PrintValue(Metric* metric) {
   metric->PrintJSON(this);
 }
 
-void JSONStream::PrintValue(MessageQueue* queue) {
-  PrintCommaIfNeeded();
-  queue->PrintJSON(this);
-}
-
 void JSONStream::PrintValue(Isolate* isolate, bool ref) {
   PrintCommaIfNeeded();
   isolate->PrintJSON(this, ref);
@@ -373,12 +368,6 @@ void JSONStream::PrintProperty(const char* name, Metric* metric) {
   PRIVATE_NAME_CHECK();
   PrintPropertyName(name);
   PrintValue(metric);
-}
-
-void JSONStream::PrintProperty(const char* name, MessageQueue* queue) {
-  PRIVATE_NAME_CHECK();
-  PrintPropertyName(name);
-  PrintValue(queue);
 }
 
 void JSONStream::PrintProperty(const char* name, Isolate* isolate) {
