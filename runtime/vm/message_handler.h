@@ -72,6 +72,13 @@ class MessageHandler : public PortHandler {
   // handler.
   bool HasMessages();
 
+  struct MessageCount {
+    intptr_t num_messages;
+    intptr_t num_oob_messages;
+  };
+
+  MessageCount GetMessageCounts();
+
   // Whether to keep this message handler alive or whether it should shutdown.
   virtual bool KeepAliveLocked() { return true; }
 
@@ -108,36 +115,6 @@ class MessageHandler : public PortHandler {
   void PausedOnStart(bool paused);
   void PausedOnExit(bool paused);
 #endif
-
-  // Gives temporary ownership of |queue| and |oob_queue|. Using this object
-  // has the side effect that no OOB messages will be handled if a stack
-  // overflow interrupt is delivered.
-  class AcquiredQueues : public ValueObject {
-   public:
-    explicit AcquiredQueues(MessageHandler* handler);
-
-    ~AcquiredQueues();
-
-    MessageQueue* queue() {
-      if (handler_ == nullptr) {
-        return nullptr;
-      }
-      return handler_->queue_;
-    }
-
-    MessageQueue* oob_queue() {
-      if (handler_ == nullptr) {
-        return nullptr;
-      }
-      return handler_->oob_queue_;
-    }
-
-   private:
-    MessageHandler* handler_;
-    SafepointMonitorLocker ml_;
-
-    friend class MessageHandler;
-  };
 
  protected:
   // Custom message notification.  Optionally provided by subclass.
@@ -223,9 +200,6 @@ class MessageHandler : public PortHandler {
   Monitor monitor_;  // Protects all fields in MessageHandler.
   MessageQueue* queue_;
   MessageQueue* oob_queue_;
-  // This flag is not thread safe and can only reliably be accessed on a single
-  // thread.
-  bool oob_message_handling_allowed_;
 
   // Only accessed by [PortMap], protected by [PortMap]s lock. See ports()
   // getter.

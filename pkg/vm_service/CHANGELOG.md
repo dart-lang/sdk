@@ -1,3 +1,7 @@
+## 15.2.0
+- Update to version `4.22` of the spec.
+- Deprecate `Message` type and `messages` field of `Stack` type.
+
 ## 15.1.0
 - Update to version `4.21` of the spec.
 - Add `Pointer` to `InstanceKind`.

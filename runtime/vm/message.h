@@ -19,7 +19,6 @@ typedef int64_t Dart_Port;
 
 namespace dart {
 
-class JSONStream;
 class PersistentHandle;
 
 class Message {
@@ -126,10 +125,6 @@ class Message {
     }
   }
 
-  intptr_t Id() const;
-
-  static const char* PriorityAsString(Priority priority);
-
  private:
   static intptr_t const kPersistentHandleSnapshotLen = -1;
   static intptr_t const kFinalizerSnapshotLen = -2;
@@ -191,11 +186,6 @@ class MessageQueue {
   };
 
   intptr_t Length() const;
-
-  // Returns the message with id or nullptr.
-  Message* FindMessageById(intptr_t id);
-
-  void PrintJSON(JSONStream* stream);
 
  private:
   Message* head_;

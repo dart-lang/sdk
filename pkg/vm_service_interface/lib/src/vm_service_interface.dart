@@ -17,7 +17,7 @@ import 'service_extension_registry.dart';
 
 export 'service_extension_registry.dart' show ServiceExtensionRegistry;
 
-const String vmServiceVersion = '4.21.0';
+const String vmServiceVersion = '4.22.0';
 
 /// A class representation of the Dart VM Service Protocol.
 abstract interface class VmServiceInterface {
@@ -28,8 +28,11 @@ abstract interface class VmServiceInterface {
   Stream<Event> onEvent(String streamId);
 
   /// Handler for calling extra service extensions.
-  Future<Response> callServiceExtension(String method,
-      {String? isolateId, Map<String, dynamic>? args});
+  Future<Response> callServiceExtension(
+    String method, {
+    String? isolateId,
+    Map<String, dynamic>? args,
+  });
 
   /// Invoked by the Dart Development Service (DDS) immediately after it
   /// connects.
@@ -360,8 +363,11 @@ abstract interface class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<AllocationProfile> getAllocationProfile(String isolateId,
-      {bool? reset, bool? gc});
+  Future<AllocationProfile> getAllocationProfile(
+    String isolateId, {
+    bool? reset,
+    bool? gc,
+  });
 
   /// The `getAllocationTraces` RPC allows for the retrieval of allocation
   /// traces for objects of a specific set of types (see
@@ -421,7 +427,10 @@ abstract interface class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<CpuSamples> getCpuSamples(
-      String isolateId, int timeOriginMicros, int timeExtentMicros);
+    String isolateId,
+    int timeOriginMicros,
+    int timeExtentMicros,
+  );
 
   /// The `getFlagList` RPC returns a list of all command line flags in the VM
   /// along with their current values.
@@ -697,8 +706,11 @@ abstract interface class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<PerfettoCpuSamples> getPerfettoCpuSamples(String isolateId,
-      {int? timeOriginMicros, int? timeExtentMicros});
+  Future<PerfettoCpuSamples> getPerfettoCpuSamples(
+    String isolateId, {
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+  });
 
   /// The `getPerfettoVMTimeline` RPC is used to retrieve an object which
   /// contains a VM timeline trace represented in Perfetto's proto format. See
@@ -731,8 +743,10 @@ abstract interface class VmServiceInterface {
   /// or Perfettofile, an [RPCError] with error code `114`, `invalid timeline
   /// request`, will be returned as timeline events are written directly to a
   /// file, and thus cannot be retrieved through the VM Service, in these modes.
-  Future<PerfettoTimeline> getPerfettoVMTimeline(
-      {int? timeOriginMicros, int? timeExtentMicros});
+  Future<PerfettoTimeline> getPerfettoVMTimeline({
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+  });
 
   /// The `getPorts` RPC is used to retrieve the list of `ReceivePort` instances
   /// for a given isolate.
@@ -952,8 +966,10 @@ abstract interface class VmServiceInterface {
   /// Perfettofile, an [RPCError] with error code `114`, `invalid timeline
   /// request`, will be returned as timeline events are written directly to a
   /// file, and thus cannot be retrieved through the VM Service, in these modes.
-  Future<Timeline> getVMTimeline(
-      {int? timeOriginMicros, int? timeExtentMicros});
+  Future<Timeline> getVMTimeline({
+    int? timeOriginMicros,
+    int? timeExtentMicros,
+  });
 
   /// The `getVMTimelineFlags` RPC returns information about the current VM
   /// timeline configuration.
@@ -1016,8 +1032,11 @@ abstract interface class VmServiceInterface {
   /// of relative paths, but this is not guaranteed.
   ///
   /// See [UriList].
-  Future<UriList> lookupResolvedPackageUris(String isolateId, List<String> uris,
-      {bool? local});
+  Future<UriList> lookupResolvedPackageUris(
+    String isolateId,
+    List<String> uris, {
+    bool? local,
+  });
 
   /// The `lookupPackageUris` RPC is used to convert a list of URIs to their
   /// unresolved paths. For example, URIs passed to this RPC are mapped in the
@@ -1130,8 +1149,11 @@ abstract interface class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Success> resume(String isolateId,
-      {/*StepOption*/ String? step, int? frameIndex});
+  Future<Success> resume(
+    String isolateId, {
+    /*StepOption*/ String? step,
+    int? frameIndex,
+  });
 
   /// The `setBreakpointState` RPC allows for breakpoints to be enabled or
   /// disabled, without requiring for the breakpoint to be completely removed.
@@ -1143,7 +1165,10 @@ abstract interface class VmServiceInterface {
   ///
   /// See [Breakpoint].
   Future<Breakpoint> setBreakpointState(
-      String isolateId, String breakpointId, bool enable);
+    String isolateId,
+    String breakpointId,
+    bool enable,
+  );
 
   /// The `setExceptionPauseMode` RPC is used to control if an isolate pauses
   /// when an exception is thrown.
@@ -1161,7 +1186,9 @@ abstract interface class VmServiceInterface {
   /// returned.
   @Deprecated('Use setIsolatePauseMode instead')
   Future<Success> setExceptionPauseMode(
-      String isolateId, /*ExceptionPauseMode*/ String mode);
+    String isolateId,
+    /*ExceptionPauseMode*/ String mode,
+  );
 
   /// The `setIsolatePauseMode` RPC is used to control if or when an isolate
   /// will pause due to a change in execution state.
@@ -1180,9 +1207,11 @@ abstract interface class VmServiceInterface {
   ///
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
-  Future<Success> setIsolatePauseMode(String isolateId,
-      {/*ExceptionPauseMode*/ String? exceptionPauseMode,
-      bool? shouldPauseOnExit});
+  Future<Success> setIsolatePauseMode(
+    String isolateId, {
+    /*ExceptionPauseMode*/ String? exceptionPauseMode,
+    bool? shouldPauseOnExit,
+  });
 
   /// The `setFlag` RPC is used to set a VM flag at runtime. Returns an error if
   /// the named flag does not exist, the flag may not be set at runtime, or the
@@ -1222,7 +1251,10 @@ abstract interface class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Success> setLibraryDebuggable(
-      String isolateId, String libraryId, bool isDebuggable);
+    String isolateId,
+    String libraryId,
+    bool isDebuggable,
+  );
 
   /// The `setName` RPC is used to change the debugging name for an isolate.
   ///
@@ -1250,7 +1282,10 @@ abstract interface class VmServiceInterface {
   /// This method will throw a [SentinelException] in the case a [Sentinel] is
   /// returned.
   Future<Success> setTraceClassAllocation(
-      String isolateId, String classId, bool enable);
+    String isolateId,
+    String classId,
+    bool enable,
+  );
 
   /// The `setVMName` RPC is used to change the debugging name for the vm.
   ///
@@ -1371,8 +1406,12 @@ class VmServerConnection {
   /// Pending service extension requests to this client by id.
   final _pendingServiceExtensionRequests = <dynamic, _PendingServiceRequest>{};
 
-  VmServerConnection(this._requestStream, this._responseSink,
-      this._serviceExtensionRegistry, this._serviceImplementation) {
+  VmServerConnection(
+    this._requestStream,
+    this._responseSink,
+    this._serviceExtensionRegistry,
+    this._serviceImplementation,
+  ) {
     _requestStream.listen(_delegateRequest, onDone: _doneCompleter.complete);
     done.then((_) {
       for (var sub in _streamSubscriptions.values) {
@@ -1387,7 +1426,8 @@ class VmServerConnection {
   /// We don't attempt to do any serialization or deserialization of the
   /// request or response in this case
   Future<Map<String, Object?>> _forwardServiceExtensionRequest(
-      Map<String, Object?> request) {
+    Map<String, Object?> request,
+  ) {
     final originalId = request['id'];
     request = Map<String, Object?>.of(request);
     // Modify the request ID to ensure we don't have conflicts between
@@ -1411,8 +1451,12 @@ class VmServerConnection {
       }
       final method = request['method'] as String?;
       if (method == null) {
-        throw RPCError(null, RPCErrorKind.kInvalidRequest.code,
-            'Invalid Request', request);
+        throw RPCError(
+          null,
+          RPCErrorKind.kInvalidRequest.code,
+          'Invalid Request',
+          request,
+        );
       }
       final params = request['params'] as Map<String, dynamic>?;
       late Response response;
@@ -1674,14 +1718,10 @@ class VmServerConnection {
           response = await _serviceImplementation.getVMTimelineMicros();
           break;
         case 'pause':
-          response = await _serviceImplementation.pause(
-            params!['isolateId'],
-          );
+          response = await _serviceImplementation.pause(params!['isolateId']);
           break;
         case 'kill':
-          response = await _serviceImplementation.kill(
-            params!['isolateId'],
-          );
+          response = await _serviceImplementation.kill(params!['isolateId']);
           break;
         case 'lookupResolvedPackageUris':
           response = await _serviceImplementation.lookupResolvedPackageUris(
@@ -1771,9 +1811,7 @@ class VmServerConnection {
           );
           break;
         case 'setVMName':
-          response = await _serviceImplementation.setVMName(
-            params!['name'],
-          );
+          response = await _serviceImplementation.setVMName(params!['name']);
           break;
         case 'setVMTimelineFlags':
           response = await _serviceImplementation.setVMTimelineFlags(
@@ -1818,10 +1856,7 @@ class VmServerConnection {
             _responseSink.add({
               'jsonrpc': '2.0',
               'method': 'streamNotify',
-              'params': {
-                'streamId': id,
-                'event': e.toJson(),
-              },
+              'params': {'streamId': id, 'event': e.toJson()},
             });
           });
           response = Success();
@@ -1835,22 +1870,31 @@ class VmServerConnection {
           if (registeredClient != null) {
             // Check for any client which has registered this extension, if we
             // have one then delegate the request to that client.
-            _responseSink.add(await registeredClient
-                ._forwardServiceExtensionRequest(request));
+            _responseSink.add(
+              await registeredClient._forwardServiceExtensionRequest(request),
+            );
             // Bail out early in this case, we are just acting as a proxy and
             // never get a `Response` instance.
             return;
           } else if (method.startsWith('ext.')) {
             // Remaining methods with `ext.` are assumed to be registered via
             // dart:developer, which the service implementation handles.
-            final args =
-                params == null ? null : Map<String, dynamic>.of(params);
+            final args = params == null
+                ? null
+                : Map<String, dynamic>.of(params);
             final isolateId = args?.remove('isolateId');
-            response = await _serviceImplementation.callServiceExtension(method,
-                isolateId: isolateId, args: args);
+            response = await _serviceImplementation.callServiceExtension(
+              method,
+              isolateId: isolateId,
+              args: args,
+            );
           } else {
-            throw RPCError(method, RPCErrorKind.kMethodNotFound.code,
-                'Method not found', request);
+            throw RPCError(
+              method,
+              RPCErrorKind.kMethodNotFound.code,
+              'Method not found',
+              request,
+            );
           }
       }
       _responseSink.add({

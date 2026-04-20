@@ -55,7 +55,6 @@ const char* MessageHandler::MessageStatusString(MessageStatus status) {
 MessageHandler::MessageHandler()
     : queue_(new MessageQueue()),
       oob_queue_(new MessageQueue()),
-      oob_message_handling_allowed_(true),
       paused_(0),
 #if !defined(PRODUCT)
       should_pause_on_start_(false),
@@ -282,9 +281,6 @@ MessageHandler::MessageStatus MessageHandler::HandleNextMessage() {
 }
 
 MessageHandler::MessageStatus MessageHandler::HandleOOBMessages() {
-  if (!oob_message_handling_allowed_) {
-    return kOK;
-  }
   MonitorLocker ml(&monitor_);
 #if defined(DEBUG)
   CheckAccess();
@@ -330,6 +326,12 @@ std::unique_ptr<Message> MessageHandler::StealOOBMessage() {
 bool MessageHandler::HasMessages() {
   MonitorLocker ml(&monitor_);
   return !queue_->IsEmpty();
+}
+
+MessageHandler::MessageCount MessageHandler::GetMessageCounts() {
+  MonitorLocker ml(&monitor_);
+  return {.num_messages = queue_->Length(),
+          .num_oob_messages = queue_->Length()};
 }
 
 void MessageHandler::TaskCallback() {
@@ -539,16 +541,5 @@ void MessageHandler::PausedOnExitLocked(MonitorLocker* ml, bool paused) {
   }
 }
 #endif  // !defined(PRODUCT)
-
-MessageHandler::AcquiredQueues::AcquiredQueues(MessageHandler* handler)
-    : handler_(handler), ml_(&handler->monitor_) {
-  ASSERT(handler != nullptr);
-  handler_->oob_message_handling_allowed_ = false;
-}
-
-MessageHandler::AcquiredQueues::~AcquiredQueues() {
-  ASSERT(handler_ != nullptr);
-  handler_->oob_message_handling_allowed_ = true;
-}
 
 }  // namespace dart

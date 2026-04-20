@@ -4,7 +4,6 @@
 
 import 'dart:async';
 import 'dart:developer';
-import 'dart:isolate';
 
 import 'package:test/test.dart';
 import 'package:vm_service/vm_service.dart';
@@ -12,16 +11,14 @@ import 'package:vm_service/vm_service.dart';
 import 'common/service_test_common.dart';
 import 'common/test_helper.dart';
 
-const LINE_A = 25;
+const LINE_A = 22;
 
 int counter = 0;
-final port = RawReceivePort(msgHandler);
 
 // This name is used in a test below.
 void msgHandler(_) {}
 
 void periodicTask(_) {
-  port.sendPort.send(34);
   debugger(message: 'fo', when: true);
   counter++;
   if (counter % 300 == 0) {
@@ -60,39 +57,12 @@ final tests = <IsolateTest>[
       expect(frame.function, isNotNull);
       expect(frame.location, isNotNull);
     }
-
-    // Sanity check.
-    final messages = stack.messages!;
-    expect(messages.length, greaterThanOrEqualTo(1));
-
-    // Iterate over messages.
-    int messageDepth = 0;
-    // objectId of message to be handled by msgHandler.
-    String? msgHandlerObjectId;
-    for (final message in messages) {
-      print('checking message $messageDepth');
-      expect(message.index, messageDepth++);
-      expect(message.size, greaterThanOrEqualTo(0));
-      expect(message.handler, isNotNull);
-      expect(message.location, isNotNull);
-      if (message.handler!.name!.contains('msgHandler')) {
-        msgHandlerObjectId = message.messageObjectId;
-      }
-    }
-    expect(msgHandlerObjectId, isNotNull);
-
-    // Get object.
-    final object = await service.getObject(
-      isolateId,
-      msgHandlerObjectId!,
-    ) as Instance;
-    expect(object.valueAsString, '34');
-  }
+  },
 ];
 
 void main([args = const <String>[]]) => runIsolateTests(
-      args,
-      tests,
-      'get_stack_rpc_test.dart',
-      testeeBefore: startTimer,
-    );
+  args,
+  tests,
+  'get_stack_rpc_test.dart',
+  testeeBefore: startTimer,
+);
