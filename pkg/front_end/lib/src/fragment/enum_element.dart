@@ -428,7 +428,7 @@ class EnumElementDeclaration
     fieldType = inferredFieldType;
   }
 
-  (DartType, Expression?) _computeType(
+  (DartType, Expression?, ScopeProviderInfo?) _computeType(
     ClassHierarchyBase hierarchy,
     Token? token,
   ) {
@@ -441,12 +441,16 @@ class EnumElementDeclaration
       libraryBuilder.loader.coreTypes,
       token,
     );
-    return (fieldType, _field!.initializer);
+    return (fieldType, _field!.initializer, null);
   }
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildBody(CoreTypes coreTypes, Expression? initializer) {
+  void buildBody(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     // Initializer has already been created through [_buildElement].
   }
 

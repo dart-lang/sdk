@@ -9,11 +9,11 @@ extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
   List<Info> _list
 ) implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
-    ScopeProviderInfoKind scopeProviderInfoKind,
+    Set<ScopeProviderInfoKind> scopeProviderInfoKinds,
   ) {
     for (int index = _list.length - 1; index >= 0; index--) {
       Info info = _list[index];
-      if (info.kind == scopeProviderInfoKind) {
+      if (scopeProviderInfoKinds.contains(info.kind)) {
         return info;
       }
     }
@@ -25,9 +25,11 @@ enum ScopeProviderInfoKind {
   Block,
   BlockExpression,
   Catch,
-  Loop,
   FunctionNode,
   FunctionNodeWithThis,
+  InstanceField,
+  Loop,
+  StaticField,
 }
 
 class ScopeProviderInfo {
@@ -107,7 +109,10 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
 
   Scope _ensureScopeWithThis() {
     ScopeProviderInfo? scopeProviderInfo = _scopeProviderInfoStack
-        .topmostOfKind(ScopeProviderInfoKind.FunctionNodeWithThis);
+        .topmostOfKind(const {
+          ScopeProviderInfoKind.FunctionNodeWithThis,
+          ScopeProviderInfoKind.InstanceField,
+        });
     assert(scopeProviderInfo != null);
     return scopeProviderInfo!.scope ??= // Coverage-ignore(suite): Not run.
     new Scope(
@@ -230,6 +235,9 @@ class LoopDepthAllocationStrategy
       case ScopeProviderInfoKind.Loop:
       case ScopeProviderInfoKind.FunctionNode:
       case ScopeProviderInfoKind.FunctionNodeWithThis:
+      case ScopeProviderInfoKind.InstanceField:
+      // Coverage-ignore(suite): Not run.
+      case ScopeProviderInfoKind.StaticField:
         return true;
     }
   }
