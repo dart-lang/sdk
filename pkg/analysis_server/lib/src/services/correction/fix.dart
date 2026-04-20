@@ -163,6 +163,7 @@ abstract final class DartFixKind {
     'Add final initializing formal required named parameters',
   );
   @Deprecated('Use addKeyToConstructors')
+  // ignore: constant_identifier_names
   static const ADD_KEY_TO_CONSTRUCTORS = addKeyToConstructors;
   static const addKeyToConstructors = FixKind(
     'dart.fix.add.keyToConstructors',
@@ -170,6 +171,7 @@ abstract final class DartFixKind {
     "Add 'key' to constructors",
   );
   @Deprecated('Use addKeyToConstructorsMulti')
+  // ignore: constant_identifier_names
   static const ADD_KEY_TO_CONSTRUCTORS_MULTI = addKeyToConstructorsMulti;
   static const addKeyToConstructorsMulti = FixKind(
     'dart.fix.add.keyToConstructors.multi',

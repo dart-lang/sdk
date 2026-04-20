@@ -12,9 +12,6 @@ analyzer:
     # require some work to reach compliance.
     # See: https://github.com/dart-lang/sdk/issues/48785
 
-    # A fair amount of lib/ code (especially protocol-related code) does not
-    # comply.
-    constant_identifier_names: ignore
     # This package imports much of the implementation libraries of the
     # 'analyzer' (and sometimes the '_fe_analyzer_shared' package), because it
     # is tightly integrated. This will not likely change any time soon.

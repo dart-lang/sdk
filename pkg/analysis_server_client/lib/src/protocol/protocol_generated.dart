@@ -11,6 +11,8 @@ import 'dart:convert' hide JsonDecoder;
 import 'package:analysis_server_client/src/protocol/protocol_base.dart';
 import 'package:analysis_server_client/src/protocol/protocol_common.dart';
 import 'package:analysis_server_client/src/protocol/protocol_internal.dart';
+// We use many SCREAMING_SNAKE_CASE identifiers which might affect API.
+// ignore_for_file: constant_identifier_names, unnecessary_ignore
 
 /// analysis.analyzedFiles params
 ///
