@@ -207,9 +207,8 @@ class ElementBuilder {
       fragment,
     );
 
-    for (var typeParameterFragment in fragment.typeParameters) {
-      // Side effect: set element for the fragment.
-      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    for (var typeParameter in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
     }
 
     libraryElement.addClass(element);
@@ -240,6 +239,10 @@ class ElementBuilder {
       fragment,
     );
 
+    for (var typeParameter in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+
     libraryElement.addEnum(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -267,6 +270,11 @@ class ElementBuilder {
       _addTopReference('@extension', fragment.name),
       fragment,
     );
+
+    for (var typeParameter in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+
     libraryElement.addExtension(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -294,6 +302,11 @@ class ElementBuilder {
       _addTopReference('@extensionType', fragment.name),
       fragment,
     );
+
+    for (var typeParameter in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+
     libraryElement.addExtensionType(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -516,9 +529,8 @@ class ElementBuilder {
       return;
     }
 
-    for (var typeParameterFragment in fragment.typeParameters) {
-      // Side effect: set element for the fragment.
-      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    for (var typeParameter in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
     }
 
     instanceElement.addMethod(
@@ -612,9 +624,8 @@ class ElementBuilder {
       fragment,
     );
 
-    for (var typeParameterFragment in fragment.typeParameters) {
-      // Side effect: set element for the fragment.
-      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    for (var typeParameter in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
     }
 
     libraryElement.addMixin(element);
@@ -649,6 +660,11 @@ class ElementBuilder {
       _addTopReference('@function', fragment.name),
       fragment,
     );
+
+    for (var typeParameter in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+
     libraryElement.addTopLevelFunction(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -833,6 +849,11 @@ class ElementBuilder {
       _addTopReference('@typeAlias', fragment.name),
       fragment,
     );
+
+    for (var typeParameter in fragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+
     libraryElement.typeAliases.add(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -936,6 +957,11 @@ class ElementBuilder {
   }) {
     // Trim extra type parameters.
     if (lastFragments.length < fragments.length) {
+      // Recovery: phases that use AST, get fragment and expect element.
+      // TODO(scheglov): switch these phases to fragments
+      for (var i = lastFragments.length; i < fragments.length; i++) {
+        TypeParameterElementImpl(firstFragment: fragments[i]);
+      }
       fragments.length = lastFragments.length;
     }
 
@@ -1585,16 +1611,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      var formalParameters = node.parameters;
-      formalParameters.accept(this);
-      fragment.formalParameters = holder.formalParameters;
+      node.typeParameters?.accept(this);
+      fragment.typeParameters = holder.typeParameters;
 
-      var typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        fragment.typeParameters = holder.typeParameters;
-      }
+      node.parameters.accept(this);
+      fragment.formalParameters = holder.formalParameters;
     });
+    GenericFunctionTypeElementImpl(fragment);
 
     node.returnType?.accept(this);
   }

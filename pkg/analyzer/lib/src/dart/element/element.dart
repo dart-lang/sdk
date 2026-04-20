@@ -2596,6 +2596,7 @@ abstract class ExecutableElementImpl extends FunctionTypedElementImpl
   @override
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
+    _ensureReadResolution();
     var typeParameters = _firstFragment.typeParameters;
     return List.generate(
       typeParameters.length,
@@ -3732,6 +3733,9 @@ class FormalParameterElementImpl extends PromotableElementImpl
       fragment.element = this;
       fragment = fragment.nextFragment;
     }
+    for (var typeParameter in _firstFragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   /// Creates a synthetic parameter with [name], [type] and [parameterKind].
@@ -4536,7 +4540,12 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   /// The type defined by this element.
   FunctionTypeImpl? _type;
 
-  GenericFunctionTypeElementImpl(this._firstFragment);
+  GenericFunctionTypeElementImpl(this._firstFragment) {
+    _firstFragment.element = this;
+    for (var typeParameter in _firstFragment.typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+  }
 
   @override
   String? get documentationComment => _firstFragment.documentationComment;
@@ -4594,10 +4603,11 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
   }
 
   @override
-  List<TypeParameterElementImpl> get typeParameters => _firstFragment
-      .typeParameters
-      .map((fragment) => fragment.element)
-      .toList();
+  List<TypeParameterElementImpl> get typeParameters {
+    return _firstFragment.typeParameters
+        .map((fragment) => fragment.element)
+        .toList();
+  }
 
   @override
   T? accept<T>(ElementVisitor2<T> visitor) {
@@ -4624,8 +4634,8 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
   /// Is `true` if the type has the question mark, so is nullable.
   bool isNullable = false;
 
-  late final GenericFunctionTypeElementImpl _element2 =
-      GenericFunctionTypeElementImpl(this);
+  @override
+  late final GenericFunctionTypeElementImpl element;
 
   /// Initialize a newly created function element to have no name and the given
   /// [nameOffset]. This is used for function expressions, that have no name.
@@ -4633,9 +4643,6 @@ class GenericFunctionTypeFragmentImpl extends FragmentImpl
 
   @override
   List<Fragment> get children => [...typeParameters, ...formalParameters];
-
-  @override
-  GenericFunctionTypeElementImpl get element => _element2;
 
   @override
   List<FormalParameterFragmentImpl> get formalParameters {
@@ -5031,6 +5038,7 @@ sealed class InstanceElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
+    _ensureReadResolution();
     var typeParameters = _firstFragment.typeParameters;
     return List.generate(
       typeParameters.length,
@@ -10900,6 +10908,7 @@ class TypeAliasElementImpl extends ElementImpl
   @override
   @trackedIncludedInId
   List<TypeParameterElementImpl> get typeParameters {
+    _ensureReadResolution();
     return _firstFragment.typeParameters
         .map((fragment) => fragment.element)
         .toList();
@@ -11058,11 +11067,6 @@ class TypeParameterElementImpl extends ElementImpl
   /// there is no explicit variance modifier, meaning legacy covariance.
   shared.Variance? _variance;
 
-  /// The type representing the bound associated with this type parameter,
-  /// or `null` if this type parameter does not have an explicit bound.
-  ///
-  /// Being able to distinguish between an implicit and explicit bound is
-  /// needed by the instantiate to bounds algorithm.
   @override
   TypeImpl? bound;
 
@@ -11073,7 +11077,9 @@ class TypeParameterElementImpl extends ElementImpl
 
   TypeParameterElementImpl({required TypeParameterFragmentImpl firstFragment})
     : _firstFragment = firstFragment {
-    _firstFragment.element = this;
+    assert(firstFragment.previousFragment == null);
+    assert(firstFragment.nextFragment == null);
+    firstFragment.element = this;
   }
 
   factory TypeParameterElementImpl.synthetic({required String name}) {
@@ -11219,11 +11225,11 @@ class TypeParameterFragmentImpl extends FragmentImpl
   @override
   TypeParameterFragmentImpl? nextFragment;
 
-  /// The element corresponding to this fragment.
-  TypeParameterElementImpl? _element;
+  @override
+  late final TypeParameterElementImpl element;
 
-  /// Initialize a newly created method element to have the given [name] and
-  /// [offset].
+  /// Initialize a newly created type parameter fragment to have the given
+  /// [name] and [offset].
   TypeParameterFragmentImpl({required this.name, super.firstTokenOffset});
 
   TypeParameterFragmentImpl.synthetic({required this.name})
@@ -11234,26 +11240,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
 
   @override
   String get displayName => name ?? '';
-
-  @override
-  TypeParameterElementImpl get element {
-    if (_element != null) {
-      return _element!;
-    }
-    var firstFragment = this;
-    var previousFragment = firstFragment.previousFragment;
-    while (previousFragment != null) {
-      firstFragment = previousFragment;
-      previousFragment = firstFragment.previousFragment;
-    }
-    // As a side-effect of creating the element, all of the fragments in the
-    // chain will have their `_element` set to the newly created element.
-    return TypeParameterElementImpl(firstFragment: firstFragment);
-  }
-
-  set element(TypeParameterElementImpl element) {
-    _element = element;
-  }
 
   @generated
   @override

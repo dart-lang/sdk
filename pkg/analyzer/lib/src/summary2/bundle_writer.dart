@@ -159,6 +159,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
           _resolutionSink.writeType(element.supertype);
           _resolutionSink._writeTypeList(element.mixins);
           _resolutionSink._writeTypeList(element.interfaces);
@@ -192,14 +193,13 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
       element.writeFlags(_sink);
+      assert(element.typeParameters.isEmpty);
 
       _writeElementResolution(() {
-        _resolutionSink.withTypeParameters(element.typeParameters, () {
-          _resolutionSink.writeType(element.returnType);
-          _resolutionSink.writeElement(element.superConstructor);
-          _resolutionSink.writeElement(element.redirectedConstructor);
-          // TODO(scheglov): formal parameters
-        });
+        _resolutionSink.writeType(element.returnType);
+        _resolutionSink.writeElement(element.superConstructor);
+        _resolutionSink.writeElement(element.redirectedConstructor);
+        // TODO(scheglov): formal parameters
       });
     });
   }
@@ -207,18 +207,13 @@ class BundleWriter {
   void _writeConstructorFragment(ConstructorFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
       _sink.writeOptionalStringReference(fragment.typeName);
-      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
-        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-        _sink.writeList(
-          fragment.formalParameters,
-          _writeFormalParameterFragment,
-        );
-        _resolutionSink._writeMetadata(fragment.metadata);
-        _resolutionSink.writeList(
-          fragment.constantInitializers,
-          _resolutionSink._writeNode,
-        );
-      });
+      assert(fragment.typeParameters.isEmpty);
+      _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
+      _resolutionSink._writeMetadata(fragment.metadata);
+      _resolutionSink.writeList(
+        fragment.constantInitializers,
+        _resolutionSink._writeNode,
+      );
     });
   }
 
@@ -283,6 +278,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
           _resolutionSink.writeType(element.supertype);
           _resolutionSink._writeTypeList(element.mixins);
           _resolutionSink._writeTypeList(element.interfaces);
@@ -347,6 +343,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
           _resolutionSink.writeType(element.extendedType);
         });
       });
@@ -392,6 +389,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
           _resolutionSink.writeType(element.typeErasure);
           _resolutionSink._writeTypeList(element.interfaces);
           _resolutionSink.writeOptionalElementList(element.interfaceCycle);
@@ -500,6 +498,7 @@ class BundleWriter {
 
     _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
       _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
+      _writeTypeParameterElementResolutions(fragment.element.typeParameters);
       _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
       _resolutionSink.writeBool(fragment.element.inheritsCovariant);
       _resolutionSink.writeType(fragment.element.type);
@@ -530,6 +529,7 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
       element.writeFlags(_sink);
+      assert(element.typeParameters.isEmpty);
 
       _writeElementResolution(() {
         _resolutionSink.writeType(element.returnType);
@@ -539,14 +539,9 @@ class BundleWriter {
 
   void _writeGetterFragment(GetterFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
-        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-        _sink.writeList(
-          fragment.formalParameters,
-          _writeFormalParameterFragment,
-        );
-        _resolutionSink._writeMetadata(fragment.metadata);
-      });
+      assert(fragment.typeParameters.isEmpty);
+      _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
+      _resolutionSink._writeMetadata(fragment.metadata);
     });
   }
 
@@ -628,6 +623,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
           _resolutionSink.writeType(element.returnType);
           // TODO(scheglov): formal parameters
         });
@@ -668,6 +664,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
           _resolutionSink._writeTypeList(element.superclassConstraints);
           _resolutionSink._writeTypeList(element.interfaces);
           _resolutionSink.writeOptionalElementList(element.interfaceCycle);
@@ -744,6 +741,7 @@ class BundleWriter {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
       element.writeFlags(_sink);
+      assert(element.typeParameters.isEmpty);
 
       _writeElementResolution(() {
         _resolutionSink.writeType(element.returnType);
@@ -754,14 +752,9 @@ class BundleWriter {
 
   void _writeSetterFragment(SetterFragmentImpl fragment) {
     _writeTemplateFragment(fragment, () {
-      _resolutionSink.withTypeParameters(fragment.element.typeParameters, () {
-        _sink.writeList(fragment.typeParameters, _writeTypeParameterFragment);
-        _sink.writeList(
-          fragment.formalParameters,
-          _writeFormalParameterFragment,
-        );
-        _resolutionSink._writeMetadata(fragment.metadata);
-      });
+      assert(fragment.typeParameters.isEmpty);
+      _sink.writeList(fragment.formalParameters, _writeFormalParameterFragment);
+      _resolutionSink._writeMetadata(fragment.metadata);
     });
   }
 
@@ -786,6 +779,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
           _resolutionSink.writeType(element.returnType);
         });
       });
@@ -834,6 +828,7 @@ class BundleWriter {
 
       _writeElementResolution(() {
         _resolutionSink.withTypeParameters(element.typeParameters, () {
+          _writeTypeParameterElementResolutions(element.typeParameters);
           _resolutionSink.writeType(element.aliasedType);
         });
       });
@@ -849,13 +844,20 @@ class BundleWriter {
     });
   }
 
+  void _writeTypeParameterElementResolutions(
+    List<TypeParameterElementImpl> elements,
+  ) {
+    for (var element in elements) {
+      _resolutionSink.writeByte(_encodeVariance(element).index);
+      _resolutionSink.writeType(element.bound);
+      _resolutionSink.writeType(element.defaultType);
+    }
+  }
+
   void _writeTypeParameterFragment(TypeParameterFragmentImpl fragment) {
     _writeFragmentName(fragment);
     fragment.writeFlags(_sink);
-    _sink.writeByte(_encodeVariance(fragment.element).index);
     _resolutionSink._writeMetadata(fragment.metadata);
-    _resolutionSink.writeType(fragment.element.bound);
-    _resolutionSink.writeType(fragment.element.defaultType);
   }
 
   void _writeVariableGetterSetterLinking(

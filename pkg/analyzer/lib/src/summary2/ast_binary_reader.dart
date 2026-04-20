@@ -556,7 +556,7 @@ class AstBinaryReader {
     node.declaredFragment = fragment;
     _reader.currentLibraryFragment.encloseElement(fragment);
 
-    var element = fragment.element;
+    var element = GenericFunctionTypeElementImpl(fragment);
     element.returnType = type.returnType;
     element.type = type;
 

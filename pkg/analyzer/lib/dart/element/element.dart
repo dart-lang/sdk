@@ -3286,7 +3286,7 @@ abstract class TypeParameterElement implements Element {
   ///
   /// Returns `null` if this parameter does not have an explicit bound. Being
   /// able to distinguish between an implicit and explicit bound is needed by
-  /// the instantiate to bounds algorithm.`
+  /// the instantiate to bounds algorithm.
   DartType? get bound;
 
   @override
