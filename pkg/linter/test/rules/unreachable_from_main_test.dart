@@ -1246,6 +1246,82 @@ mixin M {}
     );
   }
 
+  test_operator_index() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  print(V()[0]);
+}
+
+class V {
+  int operator [](int index) => 7;
+}
+''');
+  }
+
+  test_operator_indexAssignment() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  V()[0] = 2;
+}
+
+class V {
+  void operator []=(int index, int value) {}
+}
+''');
+  }
+
+  test_operator_lessThan() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  if (V() < V()) {
+    print('ok');
+  }
+}
+
+class V {
+  bool operator <(V other) => false;
+}
+''');
+  }
+
+  test_operator_postfixIncrement() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  var v = V();
+  v++;
+}
+
+class V {
+  V operator +(int other) => this;
+}
+''');
+  }
+
+  test_operator_prefixIncrement() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  var v = V();
+  ++v;
+}
+
+class V {
+  V operator +(int other) => this;
+}
+''');
+  }
+
+  test_operator_unary() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  print(~V());
+}
+
+class V {
+  V operator ~() => this;
+}
+''');
+  }
+
   test_setUpClass_class_static_member_reachable() async {
     await assertNoDiagnostics('''
 void main() {
