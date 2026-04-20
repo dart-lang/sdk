@@ -762,6 +762,10 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     covariant EnumConstantDeclarationImpl node,
   ) {
     _checkEnumConstantSameAsEnclosing(node);
+    _checkAugmentationWithoutDeclaration(
+      node.augmentKeyword,
+      node.declaredFragment!,
+    );
     _requiredParametersVerifier.visitEnumConstantDeclaration(node);
     _typeArgumentsVerifier.checkEnumConstantDeclaration(node);
     super.visitEnumConstantDeclaration(node);
@@ -1871,7 +1875,9 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
   }
 
   @override
-  void visitTopLevelVariableDeclaration(TopLevelVariableDeclaration node) {
+  void visitTopLevelVariableDeclaration(
+    covariant TopLevelVariableDeclarationImpl node,
+  ) {
     var variableList = node.variables;
 
     if (node.augmentKeyword case var augmentKeyword?) {
@@ -2007,13 +2013,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
   void _checkAugmentationWithoutDeclaration(
     Token? augmentKeyword,
-    Fragment fragment,
+    FragmentImpl fragment,
   ) {
     if (augmentKeyword != null) {
       if (fragment.previousFragment == null) {
-        diagnosticReporter.report(
-          diag.augmentationWithoutDeclaration.at(augmentKeyword),
-        );
+        var element = fragment.element;
+        if (element.previousFragmentOfDifferentKind case var previous?) {
+          diagnosticReporter.report(
+            diag.augmentationOfDifferentDeclarationKind
+                .withArguments(
+                  declarationKind: previous.element.kind.displayName,
+                  augmentationKind: element.kind.displayName,
+                )
+                .withContextMessages([
+                  if (previous case FragmentImpl(
+                    libraryFragment: var libraryFragment?,
+                    name: var name?,
+                    nameOffset: var nameOffset?,
+                  ))
+                    DiagnosticMessageImpl(
+                      filePath: libraryFragment.source.fullName,
+                      message: "The declaration being augmented.",
+                      offset: nameOffset,
+                      length: name.length,
+                      url: null,
+                    ),
+                ])
+                .at(augmentKeyword),
+          );
+        } else {
+          diagnosticReporter.report(
+            diag.augmentationWithoutDeclaration.at(augmentKeyword),
+          );
+        }
       }
     }
   }

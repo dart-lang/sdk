@@ -2908,6 +2908,7 @@ library
     isOriginDeclaration isStatic A
       reference: <testLibrary>::@getter::A
       firstFragment: #F4
+      previousFragmentOfDifferentKind: #F1
       returnType: int
       variable: <testLibrary>::@topLevelVariable::A
   exportedReferences
@@ -2949,6 +2950,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F2
+      previousFragmentOfDifferentKind: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   functions
@@ -3319,6 +3321,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F2
+      previousFragmentOfDifferentKind: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
   setters
@@ -3654,6 +3657,7 @@ library
     isOriginDeclaration isStatic A
       reference: <testLibrary>::@setter::A
       firstFragment: #F4
+      previousFragmentOfDifferentKind: #F1
       formalParameters
         #E0 requiredPositional _
           firstFragment: #F5
@@ -3704,6 +3708,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F2
+      previousFragmentOfDifferentKind: #F4
       formalParameters
         #E0 requiredPositional _
           firstFragment: #F3
@@ -3766,6 +3771,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F2
       formalParameters
         #E0 requiredPositional _
           firstFragment: #F4
@@ -3823,6 +3829,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F2
       formalParameters
         #E0 requiredPositional _
           firstFragment: #F4
@@ -4287,6 +4294,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
       metadata
         Annotation
           atSign: @ @15
@@ -4358,6 +4366,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
       formalParameters
         #E0 requiredPositional _
           firstFragment: #F4
@@ -4473,6 +4482,7 @@ library
     isOriginDeclaration isStatic foo
       reference: <testLibrary>::@setter::foo
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
       formalParameters
         #E0 requiredPositional _
           firstFragment: #F4
@@ -4532,6 +4542,7 @@ library
     hasInitializer isOriginDeclaration isStatic A
       reference: <testLibrary>::@topLevelVariable::A
       firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
       type: int
       getter: <testLibrary>::@getter::A
       setter: <testLibrary>::@setter::A
@@ -4592,6 +4603,7 @@ library
     hasInitializer isOriginDeclaration isStatic foo
       reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F5
       type: int
       getter: <testLibrary>::@getter::foo
       setter: <testLibrary>::@setter::foo

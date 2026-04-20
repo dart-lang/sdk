@@ -1986,6 +1986,12 @@ abstract class ElementImpl implements Element {
   @trackedIncludedInId
   final int id = FragmentImpl._NEXT_ID++;
 
+  /// The previous fragment with the same name in the library, but of a
+  /// different kind. Used for error reporting when an augmentation does not
+  /// match the kind of the declaration it augments.
+  @trackedIncludedInId
+  FragmentImpl? previousFragmentOfDifferentKind;
+
   /// The flags associated with this element.
   EnumSet<_ElementStorageFlag> _flags = EnumSet.empty();
 

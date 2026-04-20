@@ -261,6 +261,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ClassFragmentImpl>();
       var element = ClassElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
 
       element.readFlags(_reader);
       element.hasNonFinalField = _reader.readBool();
@@ -344,6 +345,7 @@ class LibraryReader {
         firstFragment: fragments.first,
       );
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
       element.deferReadResolution(
@@ -457,6 +459,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<EnumFragmentImpl>();
       var element = EnumElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
       element.hasNonFinalField = _reader.readBool();
 
@@ -552,6 +555,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ExtensionFragmentImpl>();
       var element = ExtensionElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
       _lazyRead((offset) {
@@ -618,6 +622,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<ExtensionTypeFragmentImpl>();
       var element = ExtensionTypeElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
       element.hasRepresentationSelfReference = _reader.readBool();
@@ -698,6 +703,7 @@ class LibraryReader {
         firstFragment: fragments.first,
       );
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
       element.typeInferenceError = _readTopLevelInferenceError();
 
@@ -834,6 +840,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<GetterFragmentImpl>();
       var element = GetterElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
       element.deferReadResolution(
@@ -1013,6 +1020,7 @@ class LibraryReader {
         firstFragment: fragments.first,
       );
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
       element.typeInferenceError = _readTopLevelInferenceError();
 
@@ -1069,6 +1077,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<MixinFragmentImpl>();
       var element = MixinElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
 
       element.readFlags(_reader);
       element.hasNonFinalField = _reader.readBool();
@@ -1150,6 +1159,10 @@ class LibraryReader {
     }
   }
 
+  FragmentImpl? _readOptionalFragmentById() {
+    return _reader.readOptionalObject(_readFragmentById);
+  }
+
   /// Read the reference of a non-local element.
   Reference? _readOptionalReference() {
     return _reader.readOptionalObject(() => _readReference());
@@ -1174,6 +1187,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<SetterFragmentImpl>();
       var element = SetterElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
       element.deferReadResolution(
@@ -1251,6 +1265,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<TopLevelFunctionFragmentImpl>();
       var element = TopLevelFunctionElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
 
       element.deferReadResolution(
@@ -1304,6 +1319,7 @@ class LibraryReader {
       var fragments = _readFragmentsById<TopLevelVariableFragmentImpl>();
       var element = TopLevelVariableElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
+      element.previousFragmentOfDifferentKind = _readOptionalFragmentById();
       element.readFlags(_reader);
       element.typeInferenceError = _readTopLevelInferenceError();
 

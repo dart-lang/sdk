@@ -12019,6 +12019,7 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F3
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
@@ -12082,6 +12083,7 @@ library
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F1
+      previousFragmentOfDifferentKind: #F2
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A::@def::0
@@ -12105,6 +12107,7 @@ library
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A::@def::1
       firstFragment: #F5
+      previousFragmentOfDifferentKind: #F1
       representation: <testLibrary>::@extensionType::A::@def::1::@field::it
       primaryConstructor: <testLibrary>::@extensionType::A::@def::1::@constructor::new
       typeErasure: int

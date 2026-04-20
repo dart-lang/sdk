@@ -64,8 +64,20 @@ class ElementBuilder {
 
     for (var instanceEntry in elementChildFragments.entries) {
       var instanceElement = instanceEntry.key;
-      var lastFragments = <String?, FragmentImpl>{};
+      var lastInstanceFragments = <String?, FragmentImpl>{};
+      var lastStaticFragments = <String?, FragmentImpl>{};
       for (var fragment in instanceEntry.value) {
+        var isInStaticNamespace = switch (fragment) {
+          ConstructorFragmentImpl() => true,
+          FieldFragmentImpl(:var isStatic) => isStatic,
+          GetterFragmentImpl(:var isStatic) => isStatic,
+          SetterFragmentImpl(:var isStatic) => isStatic,
+          MethodFragmentImpl(:var isStatic) => isStatic,
+          _ => false,
+        };
+        var lastFragments = isInStaticNamespace
+            ? lastStaticFragments
+            : lastInstanceFragments;
         var lastFragment = lastFragments[fragment.name];
         switch (fragment) {
           case FieldFragmentImpl():
@@ -211,6 +223,10 @@ class ElementBuilder {
       TypeParameterElementImpl(firstFragment: typeParameter);
     }
 
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
     libraryElement.addClass(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -241,6 +257,10 @@ class ElementBuilder {
 
     for (var typeParameter in fragment.typeParameters) {
       TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
     }
 
     libraryElement.addEnum(element);
@@ -275,6 +295,10 @@ class ElementBuilder {
       TypeParameterElementImpl(firstFragment: typeParameter);
     }
 
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
     libraryElement.addExtension(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -305,6 +329,10 @@ class ElementBuilder {
 
     for (var typeParameter in fragment.typeParameters) {
       TypeParameterElementImpl(firstFragment: typeParameter);
+    }
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
     }
 
     libraryElement.addExtensionType(element);
@@ -345,6 +373,10 @@ class ElementBuilder {
       ),
       firstFragment: fragment,
     );
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
 
     interfaceElement.addConstructor(element);
   }
@@ -389,6 +421,9 @@ class ElementBuilder {
       ),
       firstFragment: fieldFragment,
     );
+    if (fieldFragment.isAugmentation && lastFragment != null) {
+      fieldElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     instanceElement.addField(fieldElement);
 
     {
@@ -462,6 +497,9 @@ class ElementBuilder {
       _addInstanceReference(instanceElement, '@getter', getterFragment.name),
       getterFragment,
     );
+    if (getterFragment.isAugmentation && lastFragment != null) {
+      getterElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     instanceElement.addGetter(getterElement);
 
     // `class Enum {}` in `dart:core` declares `int get index` as abstract.
@@ -533,17 +571,21 @@ class ElementBuilder {
       TypeParameterElementImpl(firstFragment: typeParameter);
     }
 
-    instanceElement.addMethod(
-      MethodElementImpl(
-        name: fragment.name,
-        reference: _addInstanceReference(
-          instanceElement,
-          '@method',
-          fragment.lookupName,
-        ),
-        firstFragment: fragment,
+    var element = MethodElementImpl(
+      name: fragment.name,
+      reference: _addInstanceReference(
+        instanceElement,
+        '@method',
+        fragment.lookupName,
       ),
+      firstFragment: fragment,
     );
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
+    instanceElement.addMethod(element);
   }
 
   void _handleInstanceSetterFragment(
@@ -570,6 +612,9 @@ class ElementBuilder {
       _addInstanceReference(instanceElement, '@setter', setterFragment.name),
       setterFragment,
     );
+    if (setterFragment.isAugmentation && lastFragment != null) {
+      setterElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     instanceElement.addSetter(setterElement);
 
     // If `setter` is already set, this is a compile-time error.
@@ -628,6 +673,10 @@ class ElementBuilder {
       TypeParameterElementImpl(firstFragment: typeParameter);
     }
 
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
     libraryElement.addMixin(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -665,6 +714,10 @@ class ElementBuilder {
       TypeParameterElementImpl(firstFragment: typeParameter);
     }
 
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
     libraryElement.addTopLevelFunction(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -690,6 +743,9 @@ class ElementBuilder {
       _addTopReference('@getter', getterFragment.name),
       getterFragment,
     );
+    if (getterFragment.isAugmentation && lastFragment != null) {
+      getterElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     libraryElement.addGetter(getterElement);
     libraryBuilder.declare(getterElement, getterElement.reference);
 
@@ -740,6 +796,9 @@ class ElementBuilder {
       _addTopReference('@setter', setterFragment.name),
       setterFragment,
     );
+    if (setterFragment.isAugmentation && lastFragment != null) {
+      setterElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     libraryElement.addSetter(setterElement);
     libraryBuilder.declare(setterElement, setterElement.reference);
 
@@ -787,6 +846,9 @@ class ElementBuilder {
       _addTopReference('@topLevelVariable', variableFragment.name),
       variableFragment,
     );
+    if (variableFragment.isAugmentation && lastFragment != null) {
+      variableElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     libraryElement.addTopLevelVariable(variableElement);
 
     {

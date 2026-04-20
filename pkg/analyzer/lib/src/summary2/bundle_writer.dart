@@ -140,6 +140,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       _sink.writeBool(element.hasNonFinalField);
 
@@ -192,6 +193,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       assert(element.typeParameters.isEmpty);
 
@@ -262,6 +264,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       _sink.writeBool(element.hasNonFinalField);
 
@@ -329,6 +332,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
 
       _writeForLazyRead(() {
@@ -370,6 +374,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
 
       // TODO(fshcheglov): Put these separate flags into modifiers
@@ -425,6 +430,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
@@ -528,6 +534,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       assert(element.typeParameters.isEmpty);
 
@@ -618,6 +625,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
 
@@ -648,6 +656,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       _sink.writeBool(element.hasNonFinalField);
 
@@ -707,6 +716,10 @@ class BundleWriter {
     }
   }
 
+  void _writeOptionalFragmentId(FragmentImpl? fragment) {
+    _sink.writeOptionalObject(fragment, _writeFragmentId);
+  }
+
   void _writeOptionalReference(Reference? reference) {
     _sink.writeOptionalObject(reference, _writeReference);
   }
@@ -740,6 +753,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       assert(element.typeParameters.isEmpty);
 
@@ -775,6 +789,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
 
       _writeElementResolution(() {
@@ -805,6 +820,7 @@ class BundleWriter {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
       _writeFragments(element.fragments);
+      _writeOptionalFragmentId(element.previousFragmentOfDifferentKind);
       element.writeFlags(_sink);
       _sink._writeTopLevelInferenceError(element.typeInferenceError);
       _writeElementResolution(() {
