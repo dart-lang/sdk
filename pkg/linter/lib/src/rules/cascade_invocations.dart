@@ -92,10 +92,7 @@ class CascadeInvocations extends AnalysisRule {
 /// A CascadableExpression is an object that is built from an expression and
 /// knows if it is able to join to another CascadableExpression.
 class _CascadableExpression {
-  static final nullCascadableExpression = _CascadableExpression._internal(
-    null,
-    [],
-  );
+  static final nullCascadableExpression = _CascadableExpression._(null, []);
 
   /// Whether this expression can be joined with a previous expression via a
   /// cascade operation.
@@ -164,20 +161,29 @@ class _CascadableExpression {
     VariableDeclarationStatement node,
   ) {
     var element = _getElementFromVariableDeclarationStatement(node);
-    return _CascadableExpression._internal(
+    return _CascadableExpression._(
       element,
-      [],
+      node.variables.variables.map((v) => v.initializer).nonNulls.toList(),
       canReceive: !node.variables.isConst,
       isCritical: true,
     );
   }
+
+  _CascadableExpression._(
+    this.element,
+    this.criticalNodes, {
+    this.canJoin = false,
+    this.canReceive = false,
+    this.canBeCascaded = false,
+    this.isCritical = false,
+  });
 
   factory _CascadableExpression._fromAssignmentExpression(
     AssignmentExpression node,
   ) {
     var leftExpression = node.leftHandSide.unParenthesized;
     if (leftExpression is SimpleIdentifier) {
-      return _CascadableExpression._internal(
+      return _CascadableExpression._(
         leftExpression.element,
         [node.rightHandSide],
         canReceive: node.operator.type != TokenType.QUESTION_QUESTION_EQ,
@@ -190,7 +196,7 @@ class _CascadableExpression {
         node.operator.type != TokenType.QUESTION_QUESTION_EQ &&
         variable is VariableElement &&
         !variable.isStatic;
-    return _CascadableExpression._internal(
+    return _CascadableExpression._(
       variable,
       [node.rightHandSide],
       canJoin: true,
@@ -201,7 +207,7 @@ class _CascadableExpression {
 
   factory _CascadableExpression._fromCascadeExpression(CascadeExpression node) {
     var targetIsSimple = node.target is SimpleIdentifier;
-    return _CascadableExpression._internal(
+    return _CascadableExpression._(
       _getTargetElementFromCascadeExpression(node),
       node.cascadeSections,
       canJoin: targetIsSimple,
@@ -215,9 +221,9 @@ class _CascadableExpression {
     var isNonStatic = executableElement?.isStatic == false;
     if (isNonStatic) {
       var targetIsSimple = node.target is SimpleIdentifier;
-      return _CascadableExpression._internal(
+      return _CascadableExpression._(
         _getTargetElementFromMethodInvocation(node),
-        [node.argumentList],
+        [node.methodName, node.argumentList],
         canJoin: targetIsSimple,
         canReceive: targetIsSimple,
         canBeCascaded: true,
@@ -228,9 +234,9 @@ class _CascadableExpression {
 
   factory _CascadableExpression._fromPrefixedIdentifier(
     PrefixedIdentifier node,
-  ) => _CascadableExpression._internal(
+  ) => _CascadableExpression._(
     node.prefix.canonicalElement,
-    [],
+    [node.identifier],
     canJoin: true,
     canReceive: true,
     canBeCascaded: true,
@@ -238,23 +244,14 @@ class _CascadableExpression {
 
   factory _CascadableExpression._fromPropertyAccess(PropertyAccess node) {
     var targetIsSimple = node.target is SimpleIdentifier;
-    return _CascadableExpression._internal(
+    return _CascadableExpression._(
       node.target.canonicalElement,
-      [],
+      [node.propertyName],
       canJoin: targetIsSimple,
       canReceive: targetIsSimple,
       canBeCascaded: true,
     );
   }
-
-  _CascadableExpression._internal(
-    this.element,
-    this.criticalNodes, {
-    this.canJoin = false,
-    this.canReceive = false,
-    this.canBeCascaded = false,
-    this.isCritical = false,
-  });
 
   /// Whether `this` is compatible to be joined with [expressionBox] with a
   /// cascade operation.
@@ -267,26 +264,23 @@ class _CascadableExpression {
       !_hasCriticalDependencies(expressionBox);
 
   bool _hasCriticalDependencies(_CascadableExpression expressionBox) {
-    if (!expressionBox.isCritical) return false;
-
+    var dependencyVisitor = _CriticalDependencyVisitor(expressionBox);
     for (var node in criticalNodes) {
-      if (_NodeVisitor(expressionBox).isOrHasCriticalNode(node)) {
-        return true;
-      }
+      if (dependencyVisitor.isOrHasCriticalNode(node)) return true;
     }
 
-    return false;
+    return expressionBox.criticalNodes.any(
+      (node) => dependencyVisitor.isOrHasCriticalNode(node),
+    );
   }
 }
 
-class _NodeVisitor extends UnifyingAstVisitor<void> {
+class _CriticalDependencyVisitor extends UnifyingAstVisitor<void> {
   final _CascadableExpression expressionBox;
 
   bool foundCriticalNode = false;
-  _NodeVisitor(this.expressionBox);
 
-  bool isCriticalNode(AstNode node) =>
-      node.canonicalElement == expressionBox.element;
+  _CriticalDependencyVisitor(this.expressionBox);
 
   bool isOrHasCriticalNode(AstNode node) {
     node.accept(this);
@@ -296,11 +290,42 @@ class _NodeVisitor extends UnifyingAstVisitor<void> {
   @override
   visitNode(AstNode node) {
     if (foundCriticalNode) return;
-    foundCriticalNode = isCriticalNode(node);
 
-    if (!foundCriticalNode) {
-      super.visitNode(node);
+    var targetElement = expressionBox.element;
+    if (node.canonicalElement == targetElement) {
+      foundCriticalNode = true;
+      return;
     }
+
+    if (targetElement is PropertyAccessorElement) {
+      if (node.canonicalElement == targetElement.variable) {
+        foundCriticalNode = true;
+        return;
+      }
+    }
+
+    var variable = switch (targetElement) {
+      PropertyAccessorElement() => targetElement.variable,
+      PropertyInducingElement() => targetElement,
+      _ => null,
+    };
+
+    if (variable is PropertyInducingElement) {
+      if (node is FunctionExpression) {
+        foundCriticalNode = true;
+        return;
+      }
+
+      var nodeElement = node.canonicalElement;
+      if (nodeElement is ExecutableElement) {
+        if (nodeElement.enclosingElement == variable.enclosingElement) {
+          foundCriticalNode = true;
+          return;
+        }
+      }
+    }
+
+    super.visitNode(node);
   }
 }
 

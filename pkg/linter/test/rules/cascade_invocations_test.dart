@@ -48,17 +48,21 @@ void f(List<int> list) {
     await assertDiagnostics(
       r'''
 class C {
-  late C parent;
-  late C c;
+  late D parent;
+  late D d;
 
-  void bar() {
-    c.bar();
-    c.bar();
-    parent.c.bar();
+  void m() {
+    d.toString();
+    d.toString();
+    parent.c.m();
   }
 }
+
+abstract class D {
+  C get c;
+}
 ''',
-      [lint(72, 8)],
+      [lint(75, 13)],
     );
   }
 
@@ -71,6 +75,99 @@ class A {
 void f() {
   const a = A();
   a.toString();
+}
+''');
+  }
+
+  test_invocationReferencesClosure_localVariable() async {
+    await assertNoDiagnostics(r'''
+void f() {
+  var b = B();
+  b.callback(() {
+    print(b);
+  });
+  b.toString();
+}
+
+class B {
+  void callback(_) {}
+}
+''');
+  }
+
+  test_invocationReferencesClosure_parameter() async {
+    await assertNoDiagnostics(r'''
+void f(B b) {
+  b = B();
+  b.callback(() {
+    print(b);
+  });
+  b.toString();
+}
+
+class B {
+  void callback(_) {}
+}
+''');
+  }
+
+  test_invocationReferencesClosure_topLevelVariable() async {
+    await assertNoDiagnostics(r'''
+late B b;
+void f() {
+  b = B();
+  b.callback(() {
+    print(b);
+  });
+  b.toString();
+}
+
+class B {
+  void callback(_) {}
+}
+''');
+  }
+
+  test_invocationReferencesMethod_instanceField() async {
+    await assertNoDiagnostics(r'''
+class A {
+  late B _b;
+
+  Foo() {
+    _b = B();
+    _b.callback(_handle);
+    _b.toString();
+  }
+
+  void _handle() {
+    print(_b);
+  }
+}
+
+class B {
+  void callback(_) {}
+}
+''');
+  }
+
+  test_invocationReferencesMethod_staticField() async {
+    await assertNoDiagnostics(r'''
+class A {
+  static late B _b;
+
+  Foo() {
+    _b = B();
+    _b.callback(_handle);
+    _b.toString();
+  }
+
+  void _handle() {
+    print(_b);
+  }
+}
+
+class B {
+  void callback(_) {}
 }
 ''');
   }
