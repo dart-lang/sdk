@@ -264,7 +264,7 @@ sealed class Member extends NamedNode implements Annotatable, FileUriNode {
 ///
 /// The implied getter and setter for the field are not represented explicitly,
 /// but can be made explicit if needed.
-class Field extends Member {
+class Field extends Member implements ScopeProvider {
   DartType type; // Not null. Defaults to DynamicType.
   int flags = 0;
   Expression? initializer; // May be null.
@@ -290,6 +290,9 @@ class Field extends Member {
   /// This should be used as the target in [FieldInitializer] and as the key
   /// in the field values of [InstanceConstant].
   Reference get fieldReference => super.reference;
+
+  @override
+  Scope? scope;
 
   Field.mutable(
     Name name, {

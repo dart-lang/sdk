@@ -30,7 +30,11 @@ sealed class FieldEncoding {
   ///
   /// This method is not called for fields in outlines unless their are constant
   /// or part of a const constructor.
-  void createBodies(CoreTypes coreTypes, Expression? initializer);
+  void createBodies(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  });
 
   /// The type of the declared field.
   abstract DartType type;
@@ -193,10 +197,15 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
   }
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression? initializer) {
+  void createBodies(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     if (initializer != null) {
       _field!.initializer = initializer..parent = _field;
     }
+    _field!.scope = scopeProviderInfo?.scope;
   }
 
   @override
@@ -454,7 +463,11 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression? initializer) {
+  void createBodies(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     assert(
       _type != null,
       "Type has not been computed for field ${_fragment.name}.",
@@ -494,6 +507,9 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
         ),
       );
     }
+    _field?.scope =
+        // Coverage-ignore(suite): Not run.
+        scopeProviderInfo?.scope;
   }
 
   @override
@@ -1190,7 +1206,11 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression? initializer) {
+  void createBodies(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     // TODO(johnniwinther): Enable this assert.
     //assert(initializer != null);
   }
@@ -1495,7 +1515,11 @@ class RepresentationFieldEncoding implements FieldEncoding {
 
   @override
   // Coverage-ignore(suite): Not run.
-  void createBodies(CoreTypes coreTypes, Expression? initializer) {
+  void createBodies(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     // TODO(johnniwinther): Enable this assert.
     //assert(initializer != null);
   }
@@ -1732,7 +1756,11 @@ class ExtensionInstanceFieldEncoding implements FieldEncoding {
   }
 
   @override
-  void createBodies(CoreTypes coreTypes, Expression? initializer) {
+  void createBodies(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     // TODO(johnniwinther): Enable this assert.
     //assert(initializer != null);
   }

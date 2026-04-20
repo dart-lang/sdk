@@ -5524,8 +5524,16 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required ThisVariable? internalThisVariable,
   });
 
-  /// Performs finishing computations after inferring the body of a function.
+  /// Finishes computations after inferring the body of a function.
   void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo);
+
+  /// Performs preliminary computations before inferring the field initializer.
+  ScopeProviderInfo beginFieldInference({
+    required ThisVariable? internalThisVariable,
+  });
+
+  /// Finishes computations after inferring the field initializer.
+  void endFieldInference(ScopeProviderInfo scopeProviderInfo);
 }
 
 /// Describes assignability kind of one type to another.

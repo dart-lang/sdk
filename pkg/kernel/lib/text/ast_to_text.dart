@@ -1345,6 +1345,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeSpace();
     writeAnnotatedType(node.type, annotator?.annotateField(this, node));
     writeName(getMemberName(node), showLibrary: true);
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+    }
     Expression? initializer = node.initializer;
     if (initializer != null) {
       writeSpaced('=');

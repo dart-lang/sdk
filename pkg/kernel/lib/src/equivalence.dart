@@ -2342,6 +2342,9 @@ class EquivalenceStrategy {
     if (!checkField_setterReference(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
+    if (!checkField_scope(visitor, node, other)) {
+      result = visitor.resultOnInequivalence;
+    }
     if (!checkField_fileEndOffset(visitor, node, other)) {
       result = visitor.resultOnInequivalence;
     }
@@ -8028,6 +8031,10 @@ class EquivalenceStrategy {
       other.setterReference,
       'setterReference',
     );
+  }
+
+  bool checkField_scope(EquivalenceVisitor visitor, Field node, Field other) {
+    return visitor.checkNodes(node.scope, other.scope, 'scope');
   }
 
   bool checkMember_fileEndOffset(

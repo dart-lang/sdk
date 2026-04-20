@@ -49,11 +49,12 @@ abstract class TypeInferrer {
   ///
   /// When [declaredType] is `null` and the [initializer] has type `Null`, the
   /// inferred field type is determined by [inferenceDefaultType].
-  ExpressionInferenceResult inferFieldInitializer({
+  InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
     required InferenceDefaultType inferenceDefaultType,
+    required ThisVariable? internalThisVariable,
   });
 
   /// Performs type inference on the given function body.
@@ -200,18 +201,28 @@ class TypeInferrerImpl implements TypeInferrer {
   }
 
   @override
-  ExpressionInferenceResult inferFieldInitializer({
+  InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
     required InferenceDefaultType inferenceDefaultType,
+    required ThisVariable? internalThisVariable,
   }) {
     InferenceVisitorBase visitor = _createInferenceVisitor(fileUri: fileUri);
+    ScopeProviderInfo? scopeProviderInfo;
+    if (isClosureContextLoweringEnabled) {
+      scopeProviderInfo = visitor.beginFieldInference(
+        internalThisVariable: internalThisVariable,
+      );
+    }
     ExpressionInferenceResult initializerResult = visitor.inferExpression(
       initializer,
       declaredType ?? const UnknownType(),
       isVoidAllowed: true,
     );
+    if (scopeProviderInfo != null) {
+      visitor.endFieldInference(scopeProviderInfo);
+    }
     if (declaredType != null) {
       // If the field has a declared type, check for assignability.
       initializerResult = visitor.ensureAssignableResult(
@@ -231,7 +242,7 @@ class TypeInferrerImpl implements TypeInferrer {
       );
     }
     visitor.checkCleanState();
-    return initializerResult;
+    return new InferredFieldInitializer(initializerResult, scopeProviderInfo);
   }
 
   @override
@@ -454,18 +465,20 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
   TypeSchemaEnvironment get typeSchemaEnvironment => impl.typeSchemaEnvironment;
 
   @override
-  ExpressionInferenceResult inferFieldInitializer({
+  InferredFieldInitializer inferFieldInitializer({
     required Uri fileUri,
     DartType? declaredType,
     required Expression initializer,
     required InferenceDefaultType inferenceDefaultType,
+    required ThisVariable? internalThisVariable,
   }) {
     benchmarker.beginSubdivide(BenchmarkSubdivides.inferFieldInitializer);
-    ExpressionInferenceResult result = impl.inferFieldInitializer(
+    InferredFieldInitializer result = impl.inferFieldInitializer(
       fileUri: fileUri,
       declaredType: declaredType,
       initializer: initializer,
       inferenceDefaultType: inferenceDefaultType,
+      internalThisVariable: internalThisVariable,
     );
     benchmarker.endSubdivide();
     return result;
@@ -583,6 +596,16 @@ class InferredFunctionBody {
   InferredFunctionBody(
     this.body,
     this.emittedValueType,
+    this.scopeProviderInfo,
+  );
+}
+
+class InferredFieldInitializer {
+  final ExpressionInferenceResult expressionInferenceResult;
+  final ScopeProviderInfo? scopeProviderInfo;
+
+  InferredFieldInitializer(
+    this.expressionInferenceResult,
     this.scopeProviderInfo,
   );
 }

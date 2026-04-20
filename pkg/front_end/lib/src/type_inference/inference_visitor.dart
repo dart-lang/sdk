@@ -17234,6 +17234,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     return const StatementInferenceResult();
   }
+
+  @override
+  ScopeProviderInfo beginFieldInference({
+    required ThisVariable? internalThisVariable,
+  }) {
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(
+          scopeProviderInfoKind: internalThisVariable == null
+              ? ScopeProviderInfoKind.StaticField
+              : ScopeProviderInfoKind.InstanceField,
+        );
+    if (internalThisVariable != null) {
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        internalThisVariable,
+        captureKind: _captureKindForVariable(internalThisVariable),
+      );
+    }
+    return scopeProviderInfo;
+  }
+
+  @override
+  void endFieldInference(ScopeProviderInfo scopeProviderInfo) {
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
+  }
 }
 
 /// Offset and type information collection in [InferenceVisitor.inferMapEntry].

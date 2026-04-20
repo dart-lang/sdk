@@ -43,7 +43,7 @@ import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
-    show TypeInferrer, InferredFunctionBody;
+    show TypeInferrer, InferredFieldInitializer, InferredFunctionBody;
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import 'assigned_variables_impl.dart';
@@ -233,7 +233,10 @@ class Resolver {
             declaredType: const UnknownType(),
             initializer: initializer,
             inferenceDefaultType: InferenceDefaultType.Dynamic,
-          );
+            internalThisVariable: bodyBuilderContext
+                .createInternalThisVariable(),
+          )
+          .expressionInferenceResult;
       initializer = inferenceResult.expression;
       fieldType = inferenceResult.inferredType;
     }
@@ -242,7 +245,7 @@ class Resolver {
     return (initializer, fieldType);
   }
 
-  ExpressionInferenceResult buildFieldInitializer({
+  InferredFieldInitializer buildFieldInitializer({
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
     required Uri fileUri,
@@ -264,6 +267,8 @@ class Resolver {
     ConstantContext constantContext = bodyBuilderContext.constantContext;
     List<FormalParameterBuilder>? primaryConstructorInitializerScopeParameters =
         bodyBuilderContext.primaryConstructorInitializerScopeParameters;
+    ThisVariable? internalThisVariable = bodyBuilderContext
+        .createInternalThisVariable();
     BodyBuilder bodyBuilder = _createBodyBuilder(
       context: context,
       bodyBuilderContext: bodyBuilderContext,
@@ -272,8 +277,7 @@ class Resolver {
       thisVariable: null,
       thisTypeParameters: null,
       formalParameterScope: null,
-      // TODO(cstefantsova): Should a [ThisVariable] be created here?
-      internalThisVariable: null,
+      internalThisVariable: internalThisVariable,
     );
     BuildFieldInitializerResult result = bodyBuilder.buildFieldInitializer(
       startToken: startToken,
@@ -285,15 +289,16 @@ class Resolver {
       thisVariable: null,
       formals: primaryConstructorInitializerScopeParameters,
     );
-    ExpressionInferenceResult expressionInferenceResult = context.typeInferrer
+    InferredFieldInitializer inferredFieldInitializer = context.typeInferrer
         .inferFieldInitializer(
           fileUri: fileUri,
           declaredType: declaredFieldType,
           initializer: result.initializer,
           inferenceDefaultType: inferenceDefaultType,
+          internalThisVariable: internalThisVariable,
         );
     context.performBacklog(result.annotations);
-    return expressionInferenceResult;
+    return inferredFieldInitializer;
   }
 
   void buildFields({
@@ -353,6 +358,7 @@ class Resolver {
         coreTypes: _coreTypes,
         fileUri: fileUri,
         initializer: initializer,
+        internalThisVariable: bodyBuilderContext.createInternalThisVariable(),
       );
     }
     context.performBacklog(result.annotations);
