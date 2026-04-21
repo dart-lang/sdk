@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/base/analyzer_public_api.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
@@ -1127,15 +1128,10 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.formalParameters = List.generate(
-        transformedParameters.length,
-        (index) => transformedParameters![index].firstFragment,
+      var freshTypeParameters = _FreshExecutableTypeParameters(
+        executable.typeParameters,
       );
-      var typeParameters = executable.typeParameters;
-      resultFragment.typeParameters = List.generate(
-        typeParameters.length,
-        (index) => typeParameters[index].firstFragment,
-      );
+      resultFragment.typeParameters = freshTypeParameters.fragments;
 
       var elementName = executable.name!;
       var result = MethodElementImpl(
@@ -1143,7 +1139,14 @@ class InheritanceManager3 {
         reference: elementReference,
         firstFragment: resultFragment,
       );
-      result.returnType = executable.returnType;
+      freshTypeParameters.initializeElements(result.typeParameters);
+
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(transformedParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
+          .map((e) => e.firstFragment)
+          .toFixedList();
+      result.returnType = freshTypeParameters.substitute(executable.returnType);
 
       return result;
     }
@@ -1160,12 +1163,16 @@ class InheritanceManager3 {
       var resultFragment = SetterFragmentImpl(name: executable.name);
       resultFragment.enclosingFragment = class_.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.formalParameters = transformedParameters
+      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
+      freshTypeParameters.initializeElements(const []);
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(transformedParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
           .map((e) => e.firstFragment)
-          .toList();
+          .toFixedList();
 
       var result = SetterElementImpl(setterReference, resultFragment);
-      result.returnType = executable.returnType;
+      result.returnType = freshTypeParameters.substitute(executable.returnType);
 
       var resultField = FieldFragmentImpl(name: executable.name);
       resultField.enclosingFragment = class_.firstFragment;
@@ -1234,23 +1241,27 @@ class InheritanceManager3 {
       var resultFragment = MethodFragmentImpl(name: fragmentName);
       resultFragment.enclosingFragment = targetClass.firstFragment;
       resultFragment.isOriginInterface = true;
-      resultFragment.typeParameters = resultType.typeParameters
-          .map((e) => e.firstFragment)
-          .toList();
-      // TODO(scheglov): check if can type cast instead
-      resultFragment.formalParameters = resultType.parameters
-          .map((e) => e.firstFragment)
-          .toList();
+      var freshTypeParameters = _FreshExecutableTypeParameters(
+        resultType.typeParameters,
+      );
+      resultFragment.typeParameters = freshTypeParameters.fragments;
 
       var elementName = firstElement.name!;
-      var resultElement = MethodElementImpl(
+      var result = MethodElementImpl(
         name: elementName,
         reference: elementReference,
         firstFragment: resultFragment,
       );
-      resultElement.returnType = resultType.returnType;
+      freshTypeParameters.initializeElements(result.typeParameters);
 
-      return resultElement;
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(resultType.formalParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
+          .map((e) => e.firstFragment)
+          .toFixedList();
+      result.returnType = freshTypeParameters.substitute(resultType.returnType);
+
+      return result;
     } else {
       firstElement as InternalPropertyAccessorElement;
       var fragmentName = firstElement.name!;
@@ -1271,9 +1282,8 @@ class InheritanceManager3 {
         var fragment = GetterFragmentImpl(name: fragmentName);
         resultFragment = fragment;
 
-        var element = GetterElementImpl(elementReference, fragment);
-        element.returnType = resultType.returnType;
-        resultElement = element;
+        var result = GetterElementImpl(elementReference, fragment);
+        resultElement = result;
       } else {
         var elementReference = targetClass.reference!
             .getChild('@setter')
@@ -1287,15 +1297,20 @@ class InheritanceManager3 {
         resultFragment = fragment;
         resultFragment.isOriginInterface = true;
 
-        var element = SetterElementImpl(elementReference, fragment);
-        element.returnType = resultType.returnType;
-        resultElement = element;
+        var result = SetterElementImpl(elementReference, fragment);
+        resultElement = result;
       }
       resultFragment.enclosingFragment = targetClass.firstFragment;
-      // TODO(scheglov): check if can type cast instead
-      resultFragment.formalParameters = resultType.parameters
+      var freshTypeParameters = _FreshExecutableTypeParameters(const []);
+      freshTypeParameters.initializeElements(const []);
+      var freshFormalParameterElements = freshTypeParameters
+          .freshFormalParameterElements(resultType.formalParameters);
+      resultFragment.formalParameters = freshFormalParameterElements
           .map((e) => e.firstFragment)
-          .toList();
+          .toFixedList();
+      resultElement.returnType = freshTypeParameters.substitute(
+        resultType.returnType,
+      );
 
       field.enclosingFragment = targetClass.firstFragment;
 
@@ -1313,7 +1328,7 @@ class InheritanceManager3 {
       if (firstElement is GetterElement) {
         fieldElement.type = resultType.returnType;
       } else {
-        var type = resultType.formalParameters[0].type;
+        var type = freshFormalParameterElements[0].type;
         fieldElement.type = type;
       }
 
@@ -1590,6 +1605,61 @@ class _ExtensionTypeCandidates {
       if (!precludedSetters.contains(name)) ...setters,
     ];
   }
+}
+
+/// Owns the fresh type parameters used while synthesizing an executable.
+///
+/// The caller creates [fragments] first, attaches them to a fragment, and only
+/// then calls [initializeElements] with the element-owned type parameters that
+/// were materialized from those fragments.
+final class _FreshExecutableTypeParameters {
+  final List<TypeParameterElementImpl> _source;
+  final List<TypeParameterFragmentImpl> fragments;
+  late final MapSubstitution _substitution;
+
+  _FreshExecutableTypeParameters(this._source)
+    : fragments = [
+        for (var typeParameter in _source)
+          TypeParameterFragmentImpl.synthetic(name: typeParameter.name ?? ''),
+      ];
+
+  List<FormalParameterElementImpl> freshFormalParameterElements(
+    List<InternalFormalParameterElement> formalParameters,
+  ) {
+    return [
+      for (var formalParameter in formalParameters)
+        formalParameter.copyWith(type: substitute(formalParameter.type)),
+    ];
+  }
+
+  void initializeElements(List<TypeParameterElementImpl> target) {
+    _substitution = Substitution.fromPairs2(_source, [
+      for (var element in target)
+        TypeParameterTypeImpl(
+          element: element,
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+    ]);
+
+    for (var i = 0; i < _source.length; i++) {
+      var sourceTypeParameter = _source[i];
+      var targetTypeParameter = target[i];
+      if (!sourceTypeParameter.isLegacyCovariant) {
+        targetTypeParameter.variance = sourceTypeParameter.variance;
+      }
+      var defaultType = sourceTypeParameter.defaultType;
+      if (defaultType != null) {
+        targetTypeParameter.defaultType = substitute(defaultType);
+      }
+
+      var bound = sourceTypeParameter.bound;
+      if (bound != null) {
+        targetTypeParameter.bound = substitute(bound);
+      }
+    }
+  }
+
+  TypeImpl substitute(DartType type) => _substitution.substituteType(type);
 }
 
 class _ParameterDesc {
