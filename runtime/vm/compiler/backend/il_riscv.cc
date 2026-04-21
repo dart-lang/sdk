@@ -1367,7 +1367,7 @@ void NativeCallInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   const Register result = locs()->out(0).reg();
 
   // Pass a pointer to the first argument in R2.
-  __ AddImmediate(T2, SP, (ArgumentCount() - 1) * kWordSize);
+  __ AddImmediate(S8, SP, (ArgumentCount() - 1) * kWordSize);
 
   // Compute the effective address. When running under the simulator,
   // this is a redirection address that forces the simulator to call
@@ -1629,7 +1629,7 @@ void NativeReturnInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   // The dummy return address is in RA, no need to pop it as on Intel.
 
   // These can be anything besides the return registers (A0, A1) and THR (S1).
-  const Register vm_tag_reg = T2;
+  const Register vm_tag_reg = S8;
   const Register old_exit_frame_reg = T3;
   const Register old_exit_through_ffi_reg = T4;
   const Register tmp = T5;
@@ -2965,7 +2965,7 @@ LocationSummary* AllocateUninitializedContextInstr::MakeLocationSummary(
   LocationSummary* locs = new (zone) LocationSummary(
       zone, kNumInputs, kNumTemps, LocationSummary::kCallOnSlowPath);
   locs->set_temp(0, Location::RegisterLocation(T1));
-  locs->set_temp(1, Location::RegisterLocation(T2));
+  locs->set_temp(1, Location::RegisterLocation(S8));
   locs->set_temp(2, Location::RegisterLocation(T3));
   locs->set_out(0, Location::RegisterLocation(A0));
   return locs;
@@ -6933,22 +6933,20 @@ void GotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
 LocationSummary* IndirectGotoInstr::MakeLocationSummary(Zone* zone,
                                                         bool opt) const {
   const intptr_t kNumInputs = 1;
-  const intptr_t kNumTemps = 2;
+  const intptr_t kNumTemps = 1;
 
   LocationSummary* summary = new (zone)
       LocationSummary(zone, kNumInputs, kNumTemps, LocationSummary::kNoCall);
 
   summary->set_in(0, Location::RequiresRegister());
   summary->set_temp(0, Location::RequiresRegister());
-  summary->set_temp(1, Location::RequiresRegister());
 
   return summary;
 }
 
 void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   Register index_reg = locs()->in(0).reg();
-  Register target_address_reg = locs()->temp(0).reg();
-  Register offset_reg = locs()->temp(1).reg();
+  Register offset_reg = locs()->temp(0).reg();
 
   ASSERT(RequiredInputRepresentation(0) == kTagged);
   __ LoadObject(offset_reg, offsets_);
@@ -6962,9 +6960,9 @@ void IndirectGotoInstr::EmitNativeCode(FlowGraphCompiler* compiler) {
   intx_t imm = -entry_offset;
   intx_t lo = ImmLo(imm);
   intx_t hi = ImmHi(imm);
-  __ auipc(target_address_reg, hi);
-  __ add(target_address_reg, target_address_reg, offset_reg);
-  __ jr(target_address_reg, lo);
+  __ auipc(FAR_TMP, hi);
+  __ add(FAR_TMP, FAR_TMP, offset_reg);
+  __ jr(FAR_TMP, lo);
 }
 
 LocationSummary* StrictCompareInstr::MakeLocationSummary(Zone* zone,

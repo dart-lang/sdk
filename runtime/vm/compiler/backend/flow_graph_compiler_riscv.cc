@@ -1071,7 +1071,7 @@ void FlowGraphCompiler::EmitNativeLoad(Register dst,
 
   Register tmp = kNoRegister;
   if (dst != T1 && base != T1) tmp = T1;
-  if (dst != T2 && base != T2) tmp = T2;
+  if (dst != S8 && base != S8) tmp = S8;
   if (dst != T3 && base != T3) tmp = T3;
   ASSERT(tmp != kNoRegister);
   if (base == SP) offset += compiler::target::kWordSize;

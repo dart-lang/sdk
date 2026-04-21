@@ -111,18 +111,18 @@ void StubCodeCompiler::GenerateCallToRuntimeStub() {
   ASSERT(thread_offset == 0 * target::kWordSize);
   ASSERT(argc_tag_offset == 1 * target::kWordSize);
   ASSERT(argv_offset == 2 * target::kWordSize);
-  __ slli(T2, T4, target::kWordSizeLog2);
-  __ add(T2, FP, T2);  // Compute argv.
+  __ slli(S8, T4, target::kWordSizeLog2);
+  __ add(S8, FP, S8);  // Compute argv.
   // Set argv in target::NativeArguments.
-  __ AddImmediate(T2,
+  __ AddImmediate(S8,
                   target::frame_layout.param_end_from_fp * target::kWordSize);
 
   ASSERT(retval_offset == 3 * target::kWordSize);
-  __ AddImmediate(T3, T2, target::kWordSize);
+  __ AddImmediate(T3, S8, target::kWordSize);
 
   __ StoreToOffset(THR, SP, thread_offset);
   __ StoreToOffset(T4, SP, argc_tag_offset);
-  __ StoreToOffset(T2, SP, argv_offset);
+  __ StoreToOffset(S8, SP, argv_offset);
   __ StoreToOffset(T3, SP, retval_offset);
   __ mv(A0, SP);  // Pass the pointer to the target::NativeArguments.
 
@@ -266,9 +266,9 @@ void StubCodeCompiler::GenerateCallNativeThroughSafepointStub() {
 
 #if defined(DEBUG)
   // Check SP alignment.
-  __ andi(T2 /*volatile*/, SP, ~(OS::ActivationFrameAlignment() - 1));
+  __ andi(S8 /*volatile*/, SP, ~(OS::ActivationFrameAlignment() - 1));
   Label done;
-  __ beq(T2, SP, &done);
+  __ beq(S8, SP, &done);
   __ Breakpoint();
   __ Bind(&done);
 #endif
@@ -408,7 +408,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
     __ jalr(T1);
     __ mv(THR, A0);
-    __ lx(T2, Address(SP, 0 * target::kWordSize));  // entry_point
+    __ lx(T4, Address(SP, 0 * target::kWordSize));  // entry_point
     __ lx(T3, Address(SP, 1 * target::kWordSize));  // is_tail
     __ lx(S2, Address(SP, 2 * target::kWordSize));  // epilogue
 
@@ -419,7 +419,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
   __ bnez(T3, &tail, Assembler::kNearJump);
 
   {
-    __ jalr(T2);  // entry_point
+    __ jalr(T4);  // entry_point
     __ PushRegistersAligned(kReturnRegisterSet, 0);
     __ mv(A0, THR);
     __ jalr(S2);  // DLRT_ExitSyncCallback, etc
@@ -437,7 +437,7 @@ void StubCodeCompiler::GenerateFfiCallbackTrampolineStub() {
 
   {
     __ Bind(&tail);
-    __ jalr(T2);  // entry_point
+    __ jalr(T4);  // entry_point
     __ mv(A0, THR);
     __ mv(A1, S2);
     __ lx(S2, Address(SP, 0 * target::kWordSize));
@@ -543,7 +543,7 @@ void StubCodeCompiler::GenerateWriteError(bool with_fpu_regs) {
 //   RA : return address.
 //   SP : address of return value.
 //   T5 : address of the native function to call.
-//   T2 : address of first argument in argument array.
+//   S8 : address of first argument in argument array.
 //   T1 : argc_tag including number of arguments and function kind.
 static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
                                               Address wrapper) {
@@ -598,7 +598,7 @@ static void GenerateCallNativeWithWrapperStub(Assembler* assembler,
   // For now, space is reserved on the stack and we pass a pointer to it.
   __ StoreToOffset(THR, SP, thread_offset);
   __ StoreToOffset(T1, SP, argc_tag_offset);
-  __ StoreToOffset(T2, SP, argv_offset);
+  __ StoreToOffset(S8, SP, argv_offset);
   __ StoreToOffset(T3, SP, retval_offset);
   __ mv(A0, SP);  // Pass the pointer to the target::NativeArguments.
   __ mv(A1, T5);  // Pass the function entrypoint to call.
@@ -777,22 +777,22 @@ void StubCodeCompiler::GenerateFixParameterizedAllocationStubTargetStub() {
 }
 
 // Input parameters:
-//   T2: smi-tagged argument count, may be zero.
+//   S8: smi-tagged argument count, may be zero.
 //   FP[target::frame_layout.param_end_from_fp + 1]: last argument.
 static void PushArrayOfArguments(Assembler* assembler) {
-  COMPILE_ASSERT(AllocateArrayABI::kLengthReg == T2);
+  COMPILE_ASSERT(AllocateArrayABI::kLengthReg == S8);
   COMPILE_ASSERT(AllocateArrayABI::kTypeArgumentsReg == T1);
 
   // Allocate array to store arguments of caller.
   __ LoadObject(T1, NullObject());
   // T1: null element type for raw Array.
-  // T2: smi-tagged argument count, may be zero.
+  // S8: smi-tagged argument count, may be zero.
   __ JumpAndLink(StubCodeAllocateArray());
   // A0: newly allocated array.
-  // T2: smi-tagged argument count, may be zero (was preserved by the stub).
+  // S8: smi-tagged argument count, may be zero (was preserved by the stub).
   __ PushRegister(A0);  // Array is in A0 and on top of stack.
-  __ SmiUntag(T2);
-  __ slli(T1, T2, target::kWordSizeLog2);
+  __ SmiUntag(S8);
+  __ slli(T1, S8, target::kWordSizeLog2);
   __ add(T1, T1, FP);
   __ AddImmediate(T1,
                   target::frame_layout.param_end_from_fp * target::kWordSize);
@@ -802,12 +802,12 @@ static void PushArrayOfArguments(Assembler* assembler) {
 
   Label loop, loop_exit;
   __ Bind(&loop);
-  __ beqz(T2, &loop_exit);
+  __ beqz(S8, &loop_exit);
   __ lx(T6, Address(T1, 0));
   __ addi(T1, T1, -target::kWordSize);
   __ StoreCompressedIntoObject(A0, Address(T3, 0), T6);
   __ addi(T3, T3, target::kCompressedWordSize);
-  __ addi(T2, T2, -1);
+  __ addi(S8, S8, -1);
   __ j(&loop);
   __ Bind(&loop_exit);
 }
@@ -897,7 +897,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   } else if (kind == kLazyDeoptFromThrow) {
     // Restore result into T1 temporarily.
     __ LoadFromOffset(T1, FP, saved_exception_slot_from_fp * target::kWordSize);
-    __ LoadFromOffset(T2, FP,
+    __ LoadFromOffset(S8, FP,
                       saved_stacktrace_slot_from_fp * target::kWordSize);
   }
 
@@ -915,7 +915,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   } else if (kind == kLazyDeoptFromThrow) {
     // Preserve exception as first local.
     // Preserve stacktrace as second local.
-    __ PushRegistersInOrder({T1, T2});
+    __ PushRegistersInOrder({T1, S8});
   }
   {
     __ mv(A0, FP);  // Pass last FP as parameter in R0.
@@ -943,7 +943,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ LoadFromOffset(
         T1, FP, target::frame_layout.first_local_from_fp * target::kWordSize);
     __ LoadFromOffset(
-        T2, FP,
+        S8, FP,
         (target::frame_layout.first_local_from_fp - 1) * target::kWordSize);
   }
   // Code above cannot cause GC.
@@ -963,15 +963,15 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
     __ PushRegister(CODE_REG);
     // Preserve exception, it will be GC-d here.
     // Preserve stacktrace, it will be GC-d here.
-    __ PushRegistersInOrder({T1, T2});
+    __ PushRegistersInOrder({T1, S8});
   }
 
   __ PushRegister(ZR);  // Space for the result.
   __ CallRuntime(kDeoptimizeMaterializeRuntimeEntry, 0);
   // Result tells stub how many bytes to remove from the expression stack
   // of the bottom-most frame. They were used as materialization arguments.
-  __ PopRegister(T2);
-  __ SmiUntag(T2);
+  __ PopRegister(S8);
+  __ SmiUntag(S8);
   if (kind == kLazyDeoptFromReturn) {
     __ PopRegister(A0);  // Restore result.
   } else if (kind == kLazyDeoptFromThrow) {
@@ -981,7 +981,7 @@ static void GenerateDeoptimizationSequence(Assembler* assembler,
   }
   __ LeaveStubFrame();
   // Remove materialization arguments.
-  __ add(SP, SP, T2);
+  __ add(SP, SP, S8);
   // The caller is responsible for emitting the return instruction.
 
   if (kind == kLazyDeoptFromThrow) {
@@ -1042,8 +1042,8 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
 
   // Load the receiver.
   __ LoadCompressedSmiFieldFromOffset(
-      T2, ARGS_DESC_REG, target::ArgumentsDescriptor::size_offset());
-  __ AddShifted(TMP, FP, T2, target::kWordSizeLog2 - 1);  // T2 is Smi.
+      S8, ARGS_DESC_REG, target::ArgumentsDescriptor::size_offset());
+  __ AddShifted(TMP, FP, S8, target::kWordSizeLog2 - 1);  // S8 is Smi.
   __ LoadFromOffset(A0, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
   // Push: result slot, receiver, ICData/MegamorphicCache,
@@ -1056,10 +1056,10 @@ static void GenerateNoSuchMethodDispatcherBody(Assembler* assembler) {
   Label args_count_ok;
   __ beqz(T3, &args_count_ok, Assembler::kNearJump);
   // Include the type arguments.
-  __ addi(T2, T2, target::ToRawSmi(1));
+  __ addi(S8, S8, target::ToRawSmi(1));
   __ Bind(&args_count_ok);
 
-  // T2: Smi-tagged arguments array length.
+  // S8: Smi-tagged arguments array length.
   PushArrayOfArguments(assembler);
   const intptr_t kNumArgs = 4;
   __ CallRuntime(kNoSuchMethodFromCallStubRuntimeEntry, kNumArgs);
@@ -1393,13 +1393,13 @@ void StubCodeCompiler::GenerateInvokeDartCodeStub() {
   Label push_arguments;
   Label done_push_arguments;
   __ beqz(T5, &done_push_arguments);  // check if there are arguments.
-  __ LoadImmediate(T2, 0);
+  __ LoadImmediate(S8, 0);
   __ Bind(&push_arguments);
   __ lx(T3, Address(A2, 0));
   __ PushRegister(T3);
-  __ addi(T2, T2, 1);
+  __ addi(S8, S8, 1);
   __ addi(A2, A2, target::kWordSize);
-  __ blt(T2, T5, &push_arguments, compiler::Assembler::kNearJump);
+  __ blt(S8, T5, &push_arguments, compiler::Assembler::kNearJump);
   __ Bind(&done_push_arguments);
 
   if (FLAG_precompiled_mode) {
@@ -1459,7 +1459,7 @@ void StubCodeCompiler::GenerateInvokeDartCodeFromBytecodeStub() {
 // Output:
 //   A0: new allocated Context object.
 // Clobbered:
-//   T2, T3, T4, TMP
+//   S8, T3, T4, TMP
 static void GenerateAllocateContextSpaceStub(Assembler* assembler,
                                              Label* slow_case) {
   // First compute the rounded instance size.
@@ -1467,20 +1467,20 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   intptr_t fixed_size_plus_alignment_padding =
       target::Context::header_size() +
       target::ObjectAlignment::kObjectAlignment - 1;
-  __ slli(T2, T1, kCompressedWordSizeLog2);
-  __ AddImmediate(T2, fixed_size_plus_alignment_padding);
-  __ andi(T2, T2, ~(target::ObjectAlignment::kObjectAlignment - 1));
+  __ slli(S8, T1, kCompressedWordSizeLog2);
+  __ AddImmediate(S8, fixed_size_plus_alignment_padding);
+  __ andi(S8, S8, ~(target::ObjectAlignment::kObjectAlignment - 1));
 
   NOT_IN_PRODUCT(__ MaybeTraceAllocation(kContextCid, slow_case, T4));
   // Now allocate the object.
   // T1: number of context variables.
-  // T2: object size.
+  // S8: object size.
   __ lx(A0, Address(THR, target::Thread::top_offset()));
-  __ add(T3, T2, A0);
+  __ add(T3, S8, A0);
   // Check if the allocation fits into the remaining space.
   // A0: potential new object.
   // T1: number of context variables.
-  // T2: object size.
+  // S8: object size.
   // T3: potential next object start.
   __ lx(TMP, Address(THR, target::Thread::end_offset()));
   __ CompareRegisters(T3, TMP);
@@ -1491,7 +1491,7 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // next object start and initialize the object.
   // A0: new object.
   // T1: number of context variables.
-  // T2: object size.
+  // S8: object size.
   // T3: next object start.
   __ sx(T3, Address(THR, target::Thread::top_offset()));
   __ addi(A0, A0, kHeapObjectTag);
@@ -1499,15 +1499,15 @@ static void GenerateAllocateContextSpaceStub(Assembler* assembler,
   // Calculate the size tag.
   // A0: new object.
   // T1: number of context variables.
-  // T2: object size.
+  // S8: object size.
   const intptr_t shift = target::UntaggedObject::kSizeTagPos -
                          target::ObjectAlignment::kObjectAlignmentLog2;
   __ li(T3, 0);
-  __ CompareImmediate(T2, target::UntaggedObject::kSizeTagMaxSizeTag);
+  __ CompareImmediate(S8, target::UntaggedObject::kSizeTagMaxSizeTag);
   // If no size tag overflow, shift R2 left, else set R2 to zero.
   compiler::Label zero_tag;
   __ BranchIf(HI, &zero_tag);
-  __ slli(T3, T2, shift);
+  __ slli(T3, S8, shift);
   __ Bind(&zero_tag);
 
   // Get the class index and insert it into the tags.
@@ -1707,7 +1707,7 @@ COMPILE_ASSERT(kWriteBarrierObjectReg == A0);
 COMPILE_ASSERT(kWriteBarrierValueReg == A1);
 COMPILE_ASSERT(kWriteBarrierSlotReg == A6);
 static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
-  RegisterSet spill_set((1 << T2) | (1 << T3) | (1 << T4), 0);
+  RegisterSet spill_set((1 << S8) | (1 << T3) | (1 << T4), 0);
 
   Label skip_marking;
   __ lbu(TMP, FieldAddress(A1, target::Object::tags_offset()));
@@ -1732,13 +1732,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
 
     auto mark_stack_push = [&](intptr_t offset, const RuntimeEntry& entry) {
       __ lx(T4, Address(THR, offset));
-      __ lw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
-      __ slli(T3, T2, target::kWordSizeLog2);
+      __ lw(S8, Address(T4, target::MarkingStackBlock::top_offset()));
+      __ slli(T3, S8, target::kWordSizeLog2);
       __ add(T3, T4, T3);
       __ sx(A1, Address(T3, target::MarkingStackBlock::pointers_offset()));
-      __ addi(T2, T2, 1);
-      __ sw(T2, Address(T4, target::MarkingStackBlock::top_offset()));
-      __ CompareImmediate(T2, target::MarkingStackBlock::kSize);
+      __ addi(S8, S8, 1);
+      __ sw(S8, Address(T4, target::MarkingStackBlock::top_offset()));
+      __ CompareImmediate(S8, target::MarkingStackBlock::kSize);
       __ BranchIf(NE, &done);
 
       {
@@ -1798,13 +1798,13 @@ static void GenerateWriteBarrierStubHelper(Assembler* assembler, bool cards) {
     __ beqz(TMP2, &done);  // Was already clear -> lost race.
 
     __ lx(T4, Address(THR, target::Thread::store_buffer_block_offset()));
-    __ lw(T2, Address(T4, target::StoreBufferBlock::top_offset()));
-    __ slli(T3, T2, target::kWordSizeLog2);
+    __ lw(S8, Address(T4, target::StoreBufferBlock::top_offset()));
+    __ slli(T3, S8, target::kWordSizeLog2);
     __ add(T3, T4, T3);
     __ sx(A0, Address(T3, target::StoreBufferBlock::pointers_offset()));
-    __ addi(T2, T2, 1);
-    __ sw(T2, Address(T4, target::StoreBufferBlock::top_offset()));
-    __ CompareImmediate(T2, target::StoreBufferBlock::kSize);
+    __ addi(S8, S8, 1);
+    __ sw(S8, Address(T4, target::StoreBufferBlock::top_offset()));
+    __ CompareImmediate(S8, target::StoreBufferBlock::kSize);
     __ BranchIf(NE, &done);
 
     {
@@ -2076,8 +2076,8 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
 
   // Load the receiver.
   __ LoadCompressedSmiFieldFromOffset(
-      T2, S4, target::ArgumentsDescriptor::size_offset());
-  __ AddShifted(TMP, FP, T2, target::kWordSizeLog2 - 1);  // T2 is Smi
+      S8, S4, target::ArgumentsDescriptor::size_offset());
+  __ AddShifted(TMP, FP, S8, target::kWordSizeLog2 - 1);  // S8 is Smi
   __ LoadFromOffset(A0, TMP,
                     target::frame_layout.param_end_from_fp * target::kWordSize);
 
@@ -2093,10 +2093,10 @@ void StubCodeCompiler::GenerateCallClosureNoSuchMethodStub() {
   Label args_count_ok;
   __ beqz(T3, &args_count_ok, Assembler::kNearJump);
   // Include the type arguments.
-  __ addi(T2, T2, target::ToRawSmi(1));
+  __ addi(S8, S8, target::ToRawSmi(1));
   __ Bind(&args_count_ok);
 
-  // T2: Smi-tagged arguments array length.
+  // S8: Smi-tagged arguments array length.
   PushArrayOfArguments(assembler);
 
   const intptr_t kNumArgs = 4;
@@ -2317,7 +2317,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
       __ slli(A7, A7, target::kWordSizeLog2 - kSmiTagSize);
       __ add(A7, SP, A7);
       __ lx(A6, Address(A7, -2 * target::kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(T2, A6);
+      __ LoadTaggedClassIdMayBeSmi(S8, A6);
     }
   } else {
     __ LoadFieldFromOffset(ARGS_DESC_REG, IC_DATA_REG,
@@ -2330,11 +2330,11 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     __ LoadTaggedClassIdMayBeSmi(T1, A6);
     if (num_args == 2) {
       __ lx(A6, Address(A7, -2 * target::kWordSize));
-      __ LoadTaggedClassIdMayBeSmi(T2, A6);
+      __ LoadTaggedClassIdMayBeSmi(S8, A6);
     }
   }
   // T1: first argument class ID as Smi.
-  // T2: second argument class ID as Smi.
+  // S8: second argument class ID as Smi.
   // S4: args descriptor
 
   // We unroll the generic one that is generated once more than the others.
@@ -2354,7 +2354,7 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     } else {
       __ bne(A7, T1, &update);  // Continue.
       __ LoadCompressedSmiFromOffset(A7, A1, target::kCompressedWordSize);
-      __ beq(A7, T2, &found);  // Class id match?
+      __ beq(A7, S8, &found);  // Class id match?
     }
     __ Bind(&update);
 
@@ -2446,14 +2446,14 @@ void StubCodeCompiler::GenerateNArgsCheckInlineCacheStub(
     // Note: UntaggedICData::receivers_static_type_ is guaranteed to be not null
     // because we only emit calls to this stub when it is not null.
     __ LoadCompressed(
-        T2, FieldAddress(S5, target::ICData::receivers_static_type_offset()));
-    __ LoadCompressed(T2, FieldAddress(T2, target::Type::arguments_offset()));
+        S8, FieldAddress(S5, target::ICData::receivers_static_type_offset()));
+    __ LoadCompressed(S8, FieldAddress(S8, target::Type::arguments_offset()));
     // T1 contains an offset to type arguments in words as a smi,
     // hence TIMES_4. A0 is guaranteed to be non-smi because it is expected
     // to have type arguments.
     __ LoadIndexedPayload(TMP, A0, 0, T1, TIMES_COMPRESSED_HALF_WORD_SIZE,
                           kObjectBytes);
-    __ beq(T2, TMP, &call_target_function_through_unchecked_entry);
+    __ beq(S8, TMP, &call_target_function_through_unchecked_entry);
 
     // Update exactness state (not-exact anymore).
     __ LoadImmediate(
@@ -3144,10 +3144,10 @@ void StubCodeCompiler::GenerateMegamorphicCallStub() {
   Label cid_loaded;
   __ Bind(&cid_loaded);
   __ lx(T1, FieldAddress(IC_DATA_REG, target::MegamorphicCache::mask_offset()));
-  __ lx(T2,
+  __ lx(S8,
         FieldAddress(IC_DATA_REG, target::MegamorphicCache::buckets_offset()));
   // T1: mask as a smi - load first to support insertion w/o stopping Dart code.
-  // T2: cache buckets array.
+  // S8: cache buckets array.
 
   // Make the cid into a smi.
   __ SmiTag(T5);
@@ -3165,7 +3165,7 @@ void StubCodeCompiler::GenerateMegamorphicCallStub() {
 
   const intptr_t base = target::Array::data_offset();
   // T3 is smi tagged, but table entries are 16 bytes, so LSL 3.
-  __ AddShifted(TMP, T2, T3, kCompressedWordSizeLog2);
+  __ AddShifted(TMP, S8, T3, kCompressedWordSizeLog2);
   __ LoadCompressedSmiFieldFromOffset(T4, TMP, base);
   Label probe_failed;
   __ CompareObjectRegisters(T4, T5);
@@ -3223,9 +3223,9 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
   // A1: receiver cid as Smi
 
   __ Bind(&loop);
-  __ LoadCompressedSmi(T2, Address(T1, 0));
-  __ beq(A1, T2, &found);
-  __ CompareImmediate(T2, target::ToRawSmi(kIllegalCid));
+  __ LoadCompressedSmi(S8, Address(T1, 0));
+  __ beq(A1, S8, &found);
+  __ CompareImmediate(S8, target::ToRawSmi(kIllegalCid));
   __ BranchIf(EQ, &miss);
 
   const intptr_t entry_length =
@@ -3260,19 +3260,19 @@ void StubCodeCompiler::GenerateICCallThroughCodeStub() {
 //   A0: receiver
 //   S5: MonomorphicSmiableCall object
 //
-//   T1,T2: clobbered
+//   T1,S8: clobbered
 void StubCodeCompiler::GenerateMonomorphicSmiableCheckStub() {
   Label miss;
   __ LoadClassIdMayBeSmi(T1, A0);
 
   // Note: this stub is only used in AOT mode, hence the direct (bare) call.
   __ LoadField(
-      T2,
+      S8,
       FieldAddress(S5, target::MonomorphicSmiableCall::expected_cid_offset()));
   __ LoadField(
       TMP,
       FieldAddress(S5, target::MonomorphicSmiableCall::entrypoint_offset()));
-  __ bne(T1, T2, &miss);
+  __ bne(T1, S8, &miss);
   __ jr(TMP);
 
   __ Bind(&miss);
@@ -3310,10 +3310,10 @@ void StubCodeCompiler::GenerateSwitchableCallMissStub() {
 void StubCodeCompiler::GenerateSingleTargetCallStub() {
   Label miss;
   __ LoadClassIdMayBeSmi(A1, A0);
-  __ lhu(T2, FieldAddress(S5, target::SingleTargetCache::lower_limit_offset()));
+  __ lhu(S8, FieldAddress(S5, target::SingleTargetCache::lower_limit_offset()));
   __ lhu(T3, FieldAddress(S5, target::SingleTargetCache::upper_limit_offset()));
 
-  __ blt(A1, T2, &miss);
+  __ blt(A1, S8, &miss);
   __ bgt(A1, T3, &miss);
 
   __ lx(TMP, FieldAddress(S5, target::SingleTargetCache::entry_point_offset()));
@@ -3360,7 +3360,7 @@ void StubCodeCompiler::GenerateAllocateTypedDataArrayStub(intptr_t cid) {
   const intptr_t max_len = TypedDataMaxNewSpaceElements(cid);
   const intptr_t scale_shift = GetScaleFactor(element_size);
 
-  COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == T2);
+  COMPILE_ASSERT(AllocateTypedDataArrayABI::kLengthReg == S8);
   COMPILE_ASSERT(AllocateTypedDataArrayABI::kResultReg == A0);
 
   if (!FLAG_use_slow_path && FLAG_inline_alloc) {
