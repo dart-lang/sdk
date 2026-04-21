@@ -7738,3 +7738,13 @@ fieldInitializedPrimaryConstructorDuplicateContext:
   parameters: none
   problemMessage: "This is the field declaration."
   severity: CONTEXT
+
+anonymousMethodWrongParameterTypeCfe:
+  parameters:
+    Type receiverType: The type of the receiver.
+    Type parameterType: The type of the parameter.
+  problemMessage: "The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' in an anonymous method."
+  correctionMessage: "Try removing the parameter type, or make it a supertype of the receiver type."
+  experiments: anonymous-methods
+  statement:
+    - '"".(int i) => 1;'

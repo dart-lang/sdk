@@ -566,7 +566,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         break;
       case AssignabilityKind.unassignable:
         // Error: not assignable.  Perform error recovery.
-        result = _wrapUnassignableExpression(
+        result = wrapUnassignableExpression(
           expression,
           expressionType,
           contextType,
@@ -614,7 +614,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           whyNotPromoted ??= flowAnalysis.whyNotPromoted(
             flowAnalysis.getExpressionInfo(expression),
           );
-          result = _wrapUnassignableExpression(
+          result = wrapUnassignableExpression(
             expression,
             expressionType,
             contextType,
@@ -630,7 +630,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             ),
           );
         } else {
-          result = _wrapUnassignableExpression(
+          result = wrapUnassignableExpression(
             expression,
             expressionType,
             contextType,
@@ -742,12 +742,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return errorNode;
   }
 
-  Expression _wrapUnassignableExpression(
+  Expression wrapUnassignableExpression(
     Expression expression,
     DartType expressionType,
     DartType contextType,
     Message message, {
     List<LocatedMessage>? context,
+    int? fileOffset,
   }) {
     Expression errorNode =
         new AsExpression(
@@ -762,7 +763,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 : contextType,
           )
           ..isTypeError = true
-          ..fileOffset = expression.fileOffset;
+          ..fileOffset = fileOffset ?? expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = problemReporting.wrapInProblem(
         compilerContext: compilerContext,

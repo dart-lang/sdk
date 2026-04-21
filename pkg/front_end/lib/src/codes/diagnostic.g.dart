@@ -210,6 +210,37 @@ const MessageCode anonymousContinueTargetOutsideFunction = const MessageCode(
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function({
+    required DartType receiverType,
+    required DartType parameterType,
+  })
+>
+anonymousMethodWrongParameterTypeCfe = const Template(
+  "AnonymousMethodWrongParameterTypeCfe",
+  withArguments: _withArgumentsAnonymousMethodWrongParameterTypeCfe,
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+Message _withArgumentsAnonymousMethodWrongParameterTypeCfe({
+  required DartType receiverType,
+  required DartType parameterType,
+}) {
+  TypeLabeler labeler = new TypeLabeler();
+  var receiverType_0 = labeler.labelType(receiverType);
+  var parameterType_0 = labeler.labelType(parameterType);
+  return new Message(
+    anonymousMethodWrongParameterTypeCfe,
+    problemMessage:
+        """The receiver type '${receiverType_0}' must be assignable to the formal parameter type '${parameterType_0}' in an anonymous method.""" +
+        labeler.originMessages,
+    correctionMessage:
+        """Try removing the parameter type, or make it a supertype of the receiver type.""",
+    arguments: {'receiverType': receiverType, 'parameterType': parameterType},
+  );
+}
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const Template<
+  Message Function({
     required DartType actualType,
     required DartType expectedType,
   })

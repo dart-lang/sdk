@@ -12208,6 +12208,146 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, node);
   }
 
+  ExpressionInferenceResult visitAnonymousMethodExpression(
+    AnonymousMethodExpression node,
+    DartType typeContext,
+  ) {
+    DartType variableType = node.variable.type;
+    ExpressionInferenceResult initializerResult = inferExpression(
+      node.variable.initializer!,
+      const UnknownType(),
+      continueNullShorting: true,
+    );
+
+    Expression initializer = initializerResult.expression;
+    DartType initializerType = initializerResult.inferredType;
+
+    if (initializerType is VoidType) {
+      // Coverage-ignore-block(suite): Not run.
+      initializer = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: initializer,
+        message: diag.voidExpression,
+        fileUri: fileUri,
+        fileOffset: initializer.fileOffset,
+        length: noLength,
+      );
+    }
+
+    if (node.isImplicitlyTyped) {
+      // Coverage-ignore-block(suite): Not run.
+      node.variable.type = node.isNullAware
+          ? initializerType.toNonNull()
+          : initializerType;
+    } else {
+      DartType checkedType = node.isNullAware
+          ?
+            // Coverage-ignore(suite): Not run.
+            initializerType.toNonNull()
+          : initializerType;
+      if (!isAssignable(variableType, checkedType)) {
+        initializer = wrapUnassignableExpression(
+          initializer,
+          checkedType,
+          variableType,
+          diag.anonymousMethodWrongParameterTypeCfe.withArguments(
+            receiverType: checkedType,
+            parameterType: variableType,
+          ),
+          fileOffset: node.variable.fileOffset,
+        );
+      }
+    }
+    node.variable.initializer = initializer..parent = node.variable;
+
+    flowAnalysis.declare(
+      node.variable,
+      new SharedTypeView(node.variable.type),
+      initialized: true,
+    );
+    if (node.isNullAware) {
+      // Coverage-ignore-block(suite): Not run.
+      flow.nullAwareAccess_rightBegin(
+        flowAnalysis.getExpressionInfo(node.variable.initializer!),
+        new SharedTypeView(initializerType),
+        guardVariable: node.variable,
+      );
+    }
+
+    ExpressionInferenceResult bodyResult = inferExpression(
+      node.body,
+      typeContext,
+      isVoidAllowed: true,
+    );
+
+    if (node.isNullAware) {
+      // Coverage-ignore-block(suite): Not run.
+      flow.nullAwareAccess_end();
+    }
+
+    DartType inferredType;
+    Expression body;
+
+    if (node.isCascade) {
+      // Coverage-ignore-block(suite): Not run.
+      inferredType = initializerType;
+
+      VariableDeclaration tempVar = new VariableDeclaration(
+        null,
+        initializer: bodyResult.expression,
+        isSynthesized: true,
+      )..fileOffset = node.fileOffset;
+
+      body = new Let(tempVar, new VariableGet(node.variable))
+        ..fileOffset = node.fileOffset;
+    } else {
+      inferredType = bodyResult.inferredType;
+      body = bodyResult.expression;
+    }
+
+    Expression replacement;
+    if (node.isNullAware) {
+      // Coverage-ignore-block(suite): Not run.
+      VariableDeclaration tempVar =
+          new VariableDeclaration(
+              null,
+              initializer: node.variable.initializer!,
+              isSynthesized: true,
+            )
+            ..type = initializerType
+            ..fileOffset = node.fileOffset;
+
+      Expression condition = new EqualsNull(new VariableGet(tempVar));
+      Expression thenExpression = new NullLiteral();
+
+      node.variable.initializer = new AsExpression(
+        new VariableGet(tempVar),
+        node.variable.type,
+      )
+            ..fileOffset = node.fileOffset
+            ..parent = node.variable;
+
+      Expression elseExpression = new Let(node.variable, body)
+        ..fileOffset = node.fileOffset;
+
+      replacement = new Let(
+        tempVar,
+        new ConditionalExpression(
+          condition,
+          thenExpression,
+          elseExpression,
+          inferredType.withDeclaredNullability(Nullability.nullable),
+        ),
+      )..fileOffset = node.fileOffset;
+
+      inferredType = inferredType.withDeclaredNullability(Nullability.nullable);
+    } else {
+      replacement = new Let(node.variable, body)..fileOffset = node.fileOffset;
+    }
+
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
   ExpressionInferenceResult visitPropertySet(
     PropertySet node,
     DartType typeContext,
