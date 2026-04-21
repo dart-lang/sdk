@@ -11,6 +11,7 @@ import 'package:dart_style/dart_style.dart'
     show DartFormatter, FormatterException;
 import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:front_end/src/util/textual_outline.dart';
+import 'package:pub_semver/src/version.dart';
 import 'package:testing/testing.dart'
     show
         Chain,
@@ -24,6 +25,7 @@ import 'package:testing/testing.dart'
 import 'testing/environment_keys.dart';
 import 'testing/experimental_features.dart';
 import 'testing/folder_options.dart';
+import 'utils/io_utils.dart';
 import 'utils/kernel_chain.dart' show MatchContext;
 import 'utils/suite_utils.dart';
 
@@ -152,11 +154,11 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
             }
           }
 
-          // Default to the latest language version. If the test should be at
-          // an older language version, it will contain a `// @dart=x.y`
-          // comment, which takes precedence over this argument.
+          // Default to the same language version as front_end.
+          // If the test should be at an older language version, it will contain
+          // a `// @dart=x.y` comment, which takes precedence over this argument.
           result = new DartFormatter(
-            languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+            languageVersion: frontendVersion,
             experimentFlags: experimentFlags,
           ).format(result);
         } catch (e, st) {
@@ -210,3 +212,5 @@ class TextualOutline extends Step<TestDescription, TestDescription, Context> {
     return new Result.pass(description);
   }
 }
+
+Version frontendVersion = getPackageVersionFor("front_end");

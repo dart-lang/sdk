@@ -1,9 +1,7 @@
 class C0 {
   final int a;
   final int b;
-  const new (int c, dynamic d)
-      : a = d.length,
-        b = c;
+  const new(int c, dynamic d) : a = d.length, b = c;
 }
 
 class const C1(int c, dynamic d) {

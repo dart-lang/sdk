@@ -5,10 +5,18 @@ abstract class Implement1 {
 class C extends Object with M1, M2 {}
 
 class Direct {
-  void named(
-      {covariant int a = 0, int b = 0, covariant int c = 0, int d = 0}) {}
-  void optional(
-      [covariant int a = 0, int b = 0, covariant int c = 0, int d = 0]) {}
+  void named({
+    covariant int a = 0,
+    int b = 0,
+    covariant int c = 0,
+    int d = 0,
+  }) {}
+  void optional([
+    covariant int a = 0,
+    int b = 0,
+    covariant int c = 0,
+    int d = 0,
+  ]) {}
   void positional(covariant int a, int b, covariant int c, int d, int e) {}
 }
 

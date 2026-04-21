@@ -44,24 +44,25 @@ class B<T, S> {
 
 class C implements A<int>, B<int, String> {
   C(
-      this.field1,
-      this.field2,
-      this.field3,
-      this.field4,
-      this.field5,
-      this.field6,
-      this.field7,
-      this.field8,
-      this.field9,
-      this.field10,
-      this.field11,
-      this.field12,
-      this.field13,
-      this.field14,
-      this.field15,
-      this.field16,
-      this.field17,
-      this.field18);
+    this.field1,
+    this.field2,
+    this.field3,
+    this.field4,
+    this.field5,
+    this.field6,
+    this.field7,
+    this.field8,
+    this.field9,
+    this.field10,
+    this.field11,
+    this.field12,
+    this.field13,
+    this.field14,
+    this.field15,
+    this.field16,
+    this.field17,
+    this.field18,
+  );
   int? field12;
   int? field14;
   var field1;
@@ -84,24 +85,25 @@ class C implements A<int>, B<int, String> {
 
 class D<T> implements A<T>, B<T, T> {
   D(
-      this.field1,
-      this.field2,
-      this.field3,
-      this.field4,
-      this.field5,
-      this.field6,
-      this.field7,
-      this.field8,
-      this.field9,
-      this.field10,
-      this.field11,
-      this.field12,
-      this.field13,
-      this.field14,
-      this.field15,
-      this.field16,
-      this.field17,
-      this.field18);
+    this.field1,
+    this.field2,
+    this.field3,
+    this.field4,
+    this.field5,
+    this.field6,
+    this.field7,
+    this.field8,
+    this.field9,
+    this.field10,
+    this.field11,
+    this.field12,
+    this.field13,
+    this.field14,
+    this.field15,
+    this.field16,
+    this.field17,
+    this.field18,
+  );
   T field12;
   T field14;
   var field1;

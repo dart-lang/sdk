@@ -16,11 +16,11 @@ class C4() {
 }
 
 class C5.primary() {
-  new ();
+  new();
 }
 
 class C6.primary() {
-  new () : this.primary();
+  new() : this.primary();
 }
 
 enum E1() {
@@ -57,14 +57,14 @@ enum E5.primary() {
   a(),
   b.primary();
 
-  const new ();
+  const new();
 }
 
 enum E6.primary() {
   a(),
   b.primary();
 
-  const new () : this.primary();
+  const new() : this.primary();
 }
 
 extension type ET1(int i) {
@@ -76,9 +76,9 @@ extension type E2T(int i) {
 }
 
 extension type ET3.primary(int i) {
-  new (this.i);
+  new(this.i);
 }
 
 extension type ET4.primary(int i) {
-  new (int i) : this.primary(i);
+  new(int i) : this.primary(i);
 }

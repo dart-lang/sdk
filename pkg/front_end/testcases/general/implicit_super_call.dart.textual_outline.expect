@@ -31,7 +31,8 @@ class Class4 extends Super4 {
 }
 
 class Super5 {
-  int Function(int) get call => (int a) => a;
+  int Function(int) get call =>
+      (int a) => a;
 }
 
 class Class5 extends Super5 {

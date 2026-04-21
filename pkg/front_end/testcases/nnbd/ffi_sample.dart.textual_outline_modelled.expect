@@ -8,7 +8,11 @@ final class Coordinate extends Struct {
   @Double()
   external double y;
   factory Coordinate.allocate(
-      Allocator allocator, double x, double y, Pointer<Coordinate> next) {}
+    Allocator allocator,
+    double x,
+    double y,
+    Pointer<Coordinate> next,
+  ) {}
 }
 
 main() {}

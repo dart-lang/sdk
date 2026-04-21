@@ -1,6 +1,10 @@
-enum E1() { a }
+enum E1() {
+  a
+}
 
-enum const E2() { a }
+enum const E2() {
+  a
+}
 
 enum const E3() {
   a;

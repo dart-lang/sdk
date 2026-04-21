@@ -212,7 +212,8 @@ size       unique-size  count     class                data
       }
 
       await run(
-          'stats foobar = (follow (follow global) ^:type_arguments ^Root ^Smi)');
+        'stats foobar = (follow (follow global) ^:type_arguments ^Root ^Smi)',
+      );
       expectLogPattern('''
 size       count     class
 --------   --------  --------
@@ -225,13 +226,13 @@ size       count     class
       await run('examine users foobar');
       expectLogPattern(r'''
   _List@\d+ .* {
-    type_arguments_
+    type_arguments
     length_
     \[0\] *Foo@\d+ .*/cli_test.dart
     \[1\] *Foo@\d+ .*/cli_test.dart
   }
   _List@\d+ .* {
-    type_arguments_
+    type_arguments
     length_
     \[0\] *Bar@\d+ .*/cli_test.dart
     \[1\] *Bar@\d+ .*/cli_test.dart
@@ -367,8 +368,9 @@ class Global {
 // report their length (such as /dev/zero).
 final bool supportsExternalTypedDataTest = File('/dev/zero').existsSync();
 
-final Uint8List externalTypedData1234567 =
-    File('/dev/zero').openSync().readSync(1234567);
+final Uint8List externalTypedData1234567 = File(
+  '/dev/zero',
+).openSync().readSync(1234567);
 
 final weakTest = WeakTest(Object());
 
@@ -378,8 +380,8 @@ class WeakTest {
   final Finalizer finalizer;
 
   WeakTest(this.object)
-      : weakList = List.filled(1, WeakReference(object)),
-        finalizer = Finalizer((_) {})..attach(object, Object(), detach: object);
+    : weakList = List.filled(1, WeakReference(object)),
+      finalizer = Finalizer((_) {})..attach(object, Object(), detach: object);
 
   String get use => '$object|$weakList|$finalizer';
 }

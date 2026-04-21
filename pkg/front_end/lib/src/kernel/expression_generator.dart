@@ -885,7 +885,7 @@ class PropertyAccessGenerator extends Generator {
         helper,
         token,
         name,
-        thisVariable: null,
+        thisVariable: helper.thisVariable,
         thisOffset: receiver.fileOffset,
         isNullAware: isNullAware,
       );
@@ -6551,7 +6551,11 @@ class ThisAccessGenerator extends Generator {
         return buildFieldInitializerError(null);
       } else {
         _helper.readInternalThisVariable();
-        return intern.createThisExpression(fileOffset);
+        return _helper.thisVariable != null
+            ?
+              // Coverage-ignore(suite): Not run.
+              _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+            : intern.createThisExpression(fileOffset);
       }
     } else {
       return _helper.buildProblem(
@@ -6621,7 +6625,11 @@ class ThisAccessGenerator extends Generator {
       } else {
         _helper.readInternalThisVariable();
         return _helper.buildMethodInvocation(
-          intern.createThisExpression(fileOffset),
+          _helper.thisVariable != null
+              ?
+                // Coverage-ignore(suite): Not run.
+                _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+              : intern.createThisExpression(fileOffset),
           name,
           selector.typeArguments,
           selector.arguments,
@@ -6646,7 +6654,7 @@ class ThisAccessGenerator extends Generator {
           // TODO(ahe): This is not the 'this' token.
           selector.token,
           name,
-          thisVariable: null,
+          thisVariable: _helper.thisVariable,
           thisOffset: fileOffset,
           isNullAware: isNullAware,
         );
@@ -6677,7 +6685,11 @@ class ThisAccessGenerator extends Generator {
       _helper.readInternalThisVariable();
       return intern.createExpressionInvocation(
         offset,
-        intern.createThisExpression(fileOffset),
+        _helper.thisVariable != null
+            ?
+              // Coverage-ignore(suite): Not run.
+              _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+            : intern.createThisExpression(fileOffset),
         typeArguments,
         arguments,
       );

@@ -40,8 +40,8 @@ var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
 
 var topLevelExtensionFunctionTypeExplicitCall = nullableClass.call();
 
-var topLevelExtensionFunctionTypeGetter =
-    nullableClass.extensionFunctionTypeGetter();
+var topLevelExtensionFunctionTypeGetter = nullableClass
+    .extensionFunctionTypeGetter();
 
 var topLevelExtensionFunctionTypeImplicitCall = nullableClass();
 

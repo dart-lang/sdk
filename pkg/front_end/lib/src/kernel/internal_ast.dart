@@ -510,6 +510,48 @@ class Cascade extends InternalExpression {
   }
 }
 
+/// Internal expression representing an anonymous method invocation.
+class AnonymousMethodExpression extends InternalExpression {
+  VariableDeclaration variable;
+  Expression body;
+  final bool isImplicitlyTyped;
+  final bool isNullAware;
+  final bool isCascade;
+
+  AnonymousMethodExpression(
+    this.variable,
+    this.body, {
+    required this.isImplicitlyTyped,
+    required this.isNullAware,
+    required this.isCascade,
+  }) {
+    variable.parent = this;
+    body.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitAnonymousMethodExpression(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "AnonymousMethodExpression(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('let ');
+    printer.writeVariableInitialization(variable);
+    printer.write(' in ');
+    printer.writeExpression(body);
+  }
+}
+
 /// Internal expression representing a deferred check.
 // TODO(johnniwinther): Change the representation to be direct and perform
 // the [Let] encoding in the replacement.

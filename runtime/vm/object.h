@@ -12417,6 +12417,8 @@ class LinkedHashBase : public Instance {
   static constexpr intptr_t kInitialIndexSize = 1 << (kInitialIndexBits + 1);
   static constexpr intptr_t kUninitializedIndexSize = 1;
 
+  static const ClassId kClassId = kLinkedHashBaseCid;
+
  private:
   LinkedHashBasePtr ptr() const { return static_cast<LinkedHashBasePtr>(ptr_); }
   UntaggedLinkedHashBase* untag() const {

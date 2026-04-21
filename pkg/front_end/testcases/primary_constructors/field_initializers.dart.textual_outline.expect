@@ -5,10 +5,7 @@ class C0 {
   int e;
   int f;
   int g = 42;
-  C0(int a, this.b, this.c)
-      : d = a,
-        e = b,
-        f = c;
+  C0(int a, this.b, this.c) : d = a, e = b, f = c;
 }
 
 class C1(int a, var int b, final int c) {

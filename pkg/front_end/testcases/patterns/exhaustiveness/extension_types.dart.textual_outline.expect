@@ -13,56 +13,56 @@ class B extends S {}
 extension type ExtensionTypeSealed(S s) {}
 
 methodNull1(ExtensionTypeNullable o) => switch (o) {
-      null => 0,
-      String s => 1,
-    };
+  null => 0,
+  String s => 1,
+};
 
 methodNull2(ExtensionTypeNullable o) => switch (o) {
-      ExtensionTypeNullable() => 2,
-    };
+  ExtensionTypeNullable() => 2,
+};
 
 methodNull3(String? o) => switch (o) {
-      ExtensionTypeNullable s => 3,
-    };
+  ExtensionTypeNullable s => 3,
+};
 
 methodNum1(ExtensionTypeNum o) => switch (o) {
-      int() => 0,
-      double() => 1,
-    };
+  int() => 0,
+  double() => 1,
+};
 
 methodNum2(ExtensionTypeNum o) => switch (o) {
-      ExtensionTypeNum() => 2,
-    };
+  ExtensionTypeNum() => 2,
+};
 
 methodNum3(num o) => switch (o) {
-      ExtensionTypeNum() => 3,
-    };
+  ExtensionTypeNum() => 3,
+};
 
 methodBool1(ExtensionTypeBool o) => switch (o) {
-      true => 0,
-      false => 1,
-    };
+  true => 0,
+  false => 1,
+};
 
 methodBool2(ExtensionTypeBool o) => switch (o) {
-      ExtensionTypeBool() => 2,
-    };
+  ExtensionTypeBool() => 2,
+};
 
 methodBool3(bool o) => switch (o) {
-      ExtensionTypeBool() => 3,
-    };
+  ExtensionTypeBool() => 3,
+};
 
 methodSealed1(ExtensionTypeSealed o) => switch (o) {
-      A() => 0,
-      B() => 1,
-    };
+  A() => 0,
+  B() => 1,
+};
 
 methodSealed2(ExtensionTypeSealed o) => switch (o) {
-      ExtensionTypeSealed() => 2,
-    };
+  ExtensionTypeSealed() => 2,
+};
 
 methodSealed3(S o) => switch (o) {
-      ExtensionTypeSealed() => 3,
-    };
+  ExtensionTypeSealed() => 3,
+};
 
 main() {}
 

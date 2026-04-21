@@ -509,7 +509,7 @@ anonymousMethodWrongParameterType = DiagnosticWithArguments(
   name: 'anonymous_method_wrong_parameter_type',
   problemMessage:
       "The receiver type '{0}' must be assignable to the formal parameter type "
-      "'{1}' of an anonymous method.",
+      "'{1}' in an anonymous method.",
   correctionMessage:
       "Try removing the parameter type, or make it a supertype of the "
       "receiver type.",

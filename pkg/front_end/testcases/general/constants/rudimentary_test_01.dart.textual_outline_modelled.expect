@@ -1,7 +1,13 @@
 const String bar =
-    "hello" " " "${String.fromEnvironment("baz", defaultValue: "world")}" "!";
+    "hello"
+    " "
+    "${String.fromEnvironment("baz", defaultValue: "world")}"
+    "!";
 
-const String bar2 = "hello2" " 2" + bar;
+const String bar2 =
+    "hello2"
+        " 2" +
+    bar;
 
 const blaSymbol = #_x;
 

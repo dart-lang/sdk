@@ -325,11 +325,14 @@ class BodyBuilderImpl extends StackListenerImpl
 
   List<MultiTargetAnnotations>? _multiTargetAnnotations;
 
+  final LocalStack<VariableDeclaration> _thisVariables;
+
   /// If the current member is an instance member in an extension declaration or
   /// an instance member or constructor in and extension type declaration,
   /// [thisVariable] holds the synthetically added variable holding the value
   /// for `this`.
-  final VariableDeclaration? thisVariable;
+  @override
+  VariableDeclaration? get thisVariable => _thisVariables.currentOrNull;
 
   /// If the current member is an instance member of a non-extension
   /// declaration, and the closure context lowering experiment is enabled, this
@@ -340,6 +343,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   final LocalStack<LocalScope> _localScopes;
 
+  int _parameterlessAnonymousMethodDepth = 0;
   Set<VariableDeclaration>? declaredInCurrentGuard;
 
   JumpTarget? breakTarget;
@@ -359,7 +363,7 @@ class BodyBuilderImpl extends StackListenerImpl
     this.formalParameterScope,
     required this.hierarchy,
     required this.coreTypes,
-    this.thisVariable,
+    VariableDeclaration? thisVariable,
     this.thisTypeParameters,
     required this.uri,
     required this.assignedVariables,
@@ -374,6 +378,7 @@ class BodyBuilderImpl extends StackListenerImpl
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
        _labelScopes = new LocalStack([new LabelScopeImpl()]),
+       _thisVariables = new LocalStack([?thisVariable]),
        _internalThisVariable = internalThisVariable {
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
@@ -2607,16 +2612,16 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       // TODO(johnniwinther): This should exclude identifies occurring in
       //  metadata.
-      hasThisAccess = isDeclarationInstanceContext && !inFormals;
-      if (hasThisAccess) {
-        if (isQualified) {
-          hasThisAccess = false;
-        } else if (inFieldInitializer) {
-          if (!inLateFieldInitializer ||
-              _context.isExtensionDeclaration ||
-              _context.isExtensionTypeDeclaration) {
-            hasThisAccess = false;
-          }
+      hasThisAccess = false;
+      if (!isQualified) {
+        if (_parameterlessAnonymousMethodDepth > 0) {
+          hasThisAccess = true;
+        } else if (isDeclarationInstanceContext && !inFormals) {
+          hasThisAccess =
+              !inFieldInitializer ||
+              (inLateFieldInitializer &&
+                  !_context.isExtensionDeclaration &&
+                  !_context.isExtensionTypeDeclaration);
         }
       }
     }
@@ -5399,7 +5404,8 @@ class BodyBuilderImpl extends StackListenerImpl
     int nameOffset = offsetForToken(nameToken);
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
-        memberKind != MemberKind.GeneralizedFunctionType) {
+        memberKind != MemberKind.GeneralizedFunctionType &&
+        memberKind != MemberKind.AnonymousMethod) {
       parameter = _context.getFormalParameterByNameOffset(nameOffset);
 
       if (parameter == null) {
@@ -5770,7 +5776,9 @@ class BodyBuilderImpl extends StackListenerImpl
       inFormals = pop() as bool;
       constantContext = pop() as ConstantContext;
       push(formals);
-      if ((inCatchClause || functionNestingLevel != 0) &&
+      if ((inCatchClause ||
+              functionNestingLevel != 0 ||
+              kind == MemberKind.AnonymousMethod) &&
           kind != MemberKind.GeneralizedFunctionType) {
         enterLocalScope(
           formals.computeFormalParameterScope(
@@ -7550,7 +7558,9 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
-    if (context.isScopeReference && isDeclarationInstanceContext) {
+    if (context.isScopeReference &&
+        (isDeclarationInstanceContext ||
+            _thisVariables.currentOrNull != null)) {
       if (thisVariable != null && !inConstructorInitializer) {
         if (constantContext != ConstantContext.none) {
           push(
@@ -7573,13 +7583,15 @@ class BodyBuilderImpl extends StackListenerImpl
         // In an extension (type) where we don't (here) have a "this" variable.
         push(new IncompleteErrorGenerator(this, token, diag.thisAsIdentifier));
       } else {
+        bool inParameterlessAnonymousMethod =
+            _parameterlessAnonymousMethodDepth > 0;
         push(
           new ThisAccessGenerator(
             this,
             token,
             inInitializerLeftHandSide,
-            inFieldInitializer,
-            inLateFieldInitializer,
+            inFieldInitializer && !inParameterlessAnonymousMethod,
+            inLateFieldInitializer && !inParameterlessAnonymousMethod,
           ),
         );
       }
@@ -7959,6 +7971,147 @@ class BodyBuilderImpl extends StackListenerImpl
         /* function expression or problem */ ValueKinds.Expression,
       ]),
     );
+  }
+
+  @override
+  void beginAnonymousMethodInvocation(Token token) {
+    debugEvent("beginAnonymousMethodInvocation");
+    assert(
+      checkState(token, [
+        /* receiver */ const UnionValueKind([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+        ]),
+      ]),
+    );
+    assignedVariables.beginNode();
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void handleImplicitFormalParameters(Token punctuation) {
+    debugEvent("handleImplicitFormalParameters");
+    Token token = punctuation; // fallback offset
+    Expression receiver = toValue(peek());
+    VariableDeclaration variable = intern.createVariableDeclarationForValue(
+      receiver,
+    )..isSynthesized = true;
+    variable.fileOffset = offsetForToken(token);
+    _thisVariables.push(variable);
+    _parameterlessAnonymousMethodDepth++;
+
+    assignedVariables.declare(variable);
+    push(NullValues.FormalParameters);
+  }
+
+  @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    debugEvent("endAnonymousMethodInvocation");
+    assert(
+      checkState(beginToken, [
+        /* body */ const UnionValueKind([
+          ValueKinds.Block,
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+        ]),
+        /* formal parameters */ const UnionValueKind([
+          ValueKinds.FormalParameters,
+          ValueKinds.FormalListOrNull,
+        ]),
+        /* receiver */ const UnionValueKind([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+        ]),
+      ]),
+    );
+
+    Object? body = pop();
+    Object? formals = pop(NullValues.FormalParameters);
+    VariableDeclaration? syntheticThisVariable;
+    if (formals == null) {
+      // Coverage-ignore-block(suite): Not run.
+      syntheticThisVariable = _thisVariables.pop();
+      _parameterlessAnonymousMethodDepth--;
+    } else if (_localScope.kind == LocalScopeKind.formals) {
+      exitLocalScope(expectedScopeKinds: const [LocalScopeKind.formals]);
+    }
+
+    if (isExpression) {
+      Expression bodyExpr;
+      Expression receiver;
+      VariableDeclaration variable;
+
+      bool isImplicitlyTyped;
+      if (formals is FormalParameters && formals.parameters?.length == 1) {
+        bodyExpr = toValue(body);
+        receiver = popForValue();
+        FormalParameterBuilder formal = formals.parameters![0];
+
+        // Build the variable declaration.
+        variable = formal.build(libraryBuilder);
+        variable.initializer = receiver;
+        variable.initializer!.parent = variable;
+
+        isImplicitlyTyped = false;
+        if (variable is InternalVariable) {
+          isImplicitlyTyped = (variable as InternalVariable).isImplicitlyTyped;
+        }
+      } else if (formals == null) {
+        // Coverage-ignore-block(suite): Not run.
+        bodyExpr = toValue(body);
+        receiver = popForValue();
+        variable = syntheticThisVariable!;
+        isImplicitlyTyped = true;
+      } else {
+        FormalParameters formalParameters = formals as FormalParameters;
+        addProblem(
+          diag.anonymousMethodWrongParameterList,
+          formalParameters.charOffset,
+          formalParameters.length,
+        );
+        popForValue();
+        bodyExpr = toValue(body);
+        Expression result = new InvalidExpression(
+          "An anonymous method must have a single mandatory positional "
+          "parameter, or no parameter list at all",
+        )..fileOffset = offsetForToken(beginToken);
+        push(result);
+        assignedVariables.endNode(
+          result,
+          isClosureOrLateVariableInitializer: false,
+        );
+        return;
+      }
+      int variableOffset = variable.initializer!.fileOffset;
+
+      // Build the result expression.
+      bool isNullAware =
+          beginToken.lexeme == '?.' || beginToken.lexeme == '?..';
+      bool isCascade = beginToken.lexeme == '..' || beginToken.lexeme == '?..';
+
+      Expression result = new AnonymousMethodExpression(
+        variable,
+        bodyExpr,
+        isImplicitlyTyped: isImplicitlyTyped,
+        isNullAware: isNullAware,
+        isCascade: isCascade,
+      )..fileOffset = variableOffset;
+
+      push(result);
+      assignedVariables.endNode(
+        result,
+        isClosureOrLateVariableInitializer: false,
+      );
+      return;
+    }
+
+    // Coverage-ignore-block(suite): Not run.
+    throw new UnimplementedError("endAnonymousMethodInvocation other cases");
   }
 
   @override
