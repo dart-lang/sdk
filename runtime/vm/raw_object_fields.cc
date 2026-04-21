@@ -155,37 +155,15 @@ namespace dart {
   F(Closure, length_and_flags_)                                                \
   F(Closure, hash_)                                                            \
   F(String, length_)                                                           \
-  F(Array, type_arguments_)                                                    \
   F(Array, length_)                                                            \
-  F(ImmutableArray, type_arguments_)                                           \
   F(ImmutableArray, length_)                                                   \
-  F(GrowableObjectArray, type_arguments_)                                      \
   F(GrowableObjectArray, length_)                                              \
   F(GrowableObjectArray, data_)                                                \
-  F(Map, type_arguments_)                                                      \
-  F(Map, index_)                                                               \
-  F(Map, hash_mask_)                                                           \
-  F(Map, data_)                                                                \
-  F(Map, used_data_)                                                           \
-  F(Map, deleted_keys_)                                                        \
-  F(ConstMap, type_arguments_)                                                 \
-  F(ConstMap, index_)                                                          \
-  F(ConstMap, hash_mask_)                                                      \
-  F(ConstMap, data_)                                                           \
-  F(ConstMap, used_data_)                                                      \
-  F(ConstMap, deleted_keys_)                                                   \
-  F(Set, type_arguments_)                                                      \
-  F(Set, index_)                                                               \
-  F(Set, hash_mask_)                                                           \
-  F(Set, data_)                                                                \
-  F(Set, used_data_)                                                           \
-  F(Set, deleted_keys_)                                                        \
-  F(ConstSet, type_arguments_)                                                 \
-  F(ConstSet, index_)                                                          \
-  F(ConstSet, hash_mask_)                                                      \
-  F(ConstSet, data_)                                                           \
-  F(ConstSet, used_data_)                                                      \
-  F(ConstSet, deleted_keys_)                                                   \
+  F(LinkedHashBase, hash_mask_)                                                \
+  F(LinkedHashBase, data_)                                                     \
+  F(LinkedHashBase, used_data_)                                                \
+  F(LinkedHashBase, deleted_keys_)                                             \
+  F(LinkedHashBase, index_)                                                    \
   F(TypedData, length_)                                                        \
   F(ExternalTypedData, length_)                                                \
   F(ReceivePort, send_port_)                                                   \
@@ -207,12 +185,10 @@ namespace dart {
   F(WeakProperty, key_)                                                        \
   F(WeakProperty, value_)                                                      \
   F(WeakReference, target_)                                                    \
-  F(WeakReference, type_arguments_)                                            \
   F(Finalizer, detachments_)                                                   \
   F(Finalizer, all_entries_)                                                   \
   F(Finalizer, entries_collected_)                                             \
   F(Finalizer, callback_)                                                      \
-  F(Finalizer, type_arguments_)                                                \
   F(NativeFinalizer, detachments_)                                             \
   F(NativeFinalizer, all_entries_)                                             \
   F(NativeFinalizer, entries_collected_)                                       \
@@ -225,7 +201,6 @@ namespace dart {
   F(MirrorReference, referent_)                                                \
   F(UserTag, label_)                                                           \
   F(Pointer, data_)                                                            \
-  F(Pointer, type_arguments_)                                                  \
   F(DynamicLibrary, handle_)                                                   \
   F(DynamicLibrary, isClosed_)                                                 \
   F(DynamicLibrary, canBeClosed_)                                              \
@@ -234,8 +209,7 @@ namespace dart {
   F(FfiTrampolineData, callback_exceptional_return_)                           \
   F(TypedDataView, length_)                                                    \
   F(TypedDataView, typed_data_)                                                \
-  F(TypedDataView, offset_in_bytes_)                                           \
-  F(FutureOr, type_arguments_)
+  F(TypedDataView, offset_in_bytes_)
 
 #define AOT_CLASSES_AND_FIELDS(F)
 
