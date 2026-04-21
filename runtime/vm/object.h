@@ -6203,9 +6203,17 @@ class LocalVarDescriptors : public Object {
                UntaggedLocalVarDescriptors::VarInfo* info) const;
 
   static constexpr intptr_t kBytesPerElement =
-      sizeof(UntaggedLocalVarDescriptors::VarInfo);
+      sizeof(UntaggedLocalVarDescriptors::VarInfo) +
+      sizeof(CompressedStringPtr);
   static constexpr intptr_t kMaxElements =
       UntaggedLocalVarDescriptors::VarInfo::kMaxIndex;
+
+  struct ArrayTraits {
+    static intptr_t elements_start_offset() {
+      return sizeof(UntaggedLocalVarDescriptors);
+    }
+    static constexpr intptr_t kElementSize = kBytesPerElement;
+  };
 
   static intptr_t InstanceSize() {
     ASSERT(sizeof(UntaggedLocalVarDescriptors) ==
@@ -6214,10 +6222,8 @@ class LocalVarDescriptors : public Object {
   }
   static intptr_t InstanceSize(intptr_t len) {
     ASSERT(0 <= len && len <= kMaxElements);
-    return RoundedAllocationSize(
-        sizeof(UntaggedLocalVarDescriptors) +
-        (len * kWordSize)  // RawStrings for names.
-        + (len * sizeof(UntaggedLocalVarDescriptors::VarInfo)));
+    return RoundedAllocationSize(sizeof(UntaggedLocalVarDescriptors) +
+                                 len * kBytesPerElement);
   }
 
   static LocalVarDescriptorsPtr New(intptr_t num_variables);

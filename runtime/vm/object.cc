@@ -1111,6 +1111,7 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<TypeArgumentsPtr>(address + kHeapObjectTag));
     Roots::empty_type_arguments().untag()->set_length(Smi::New(0));
     Roots::empty_type_arguments().untag()->set_hash(Smi::New(0));
+    Roots::empty_type_arguments().untag()->set_nullability(Smi::New(0));
     Roots::empty_type_arguments().ComputeHash();
     Roots::empty_type_arguments().SetCanonical();
   }

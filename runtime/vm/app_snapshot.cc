@@ -3757,6 +3757,103 @@ class RODataDeserializationCluster
 #endif  // !DART_COMPRESSED_POINTERS
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class LocalVarDescriptorsSerializationCluster : public SerializationCluster {
+ public:
+  LocalVarDescriptorsSerializationCluster()
+      : SerializationCluster("LocalVarDescriptors", kLocalVarDescriptorsCid) {}
+  ~LocalVarDescriptorsSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    LocalVarDescriptorsPtr handlers = LocalVarDescriptors::RawCast(object);
+    objects_.Add(handlers);
+
+    const intptr_t length = handlers->untag()->num_entries_;
+    for (intptr_t i = 0; i < length; i++) {
+      s->Push(handlers->untag()->name(i));
+    }
+  }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      LocalVarDescriptorsPtr handlers = objects_[i];
+      s->AssignRef(handlers);
+      AutoTraceObject(handlers);
+      const intptr_t length = handlers->untag()->num_entries_;
+      s->WriteUnsigned(length);
+      target_memory_size_ +=
+          compiler::target::LocalVarDescriptors::InstanceSize(length);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      LocalVarDescriptorsPtr handlers = objects_[i];
+      AutoTraceObject(handlers);
+      const intptr_t length = handlers->untag()->num_entries_;
+      s->WriteUnsigned(length);
+      WriteFromTo(handlers, length);
+      for (intptr_t j = 0; j < length; j++) {
+        UntaggedLocalVarDescriptors::VarInfo& info =
+            handlers->untag()->data()[j];
+        s->Write<int32_t>(info.index_kind);
+        s->WriteTokenPosition(info.declaration_pos);
+        s->WriteTokenPosition(info.begin_pos);
+        s->WriteTokenPosition(info.end_pos);
+        s->Write<int64_t>(info.scope_id);
+      }
+    }
+  }
+
+ private:
+  GrowableArray<LocalVarDescriptorsPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class LocalVarDescriptorsDeserializationCluster
+    : public DeserializationCluster {
+ public:
+  LocalVarDescriptorsDeserializationCluster()
+      : DeserializationCluster("LocalVarDescriptors") {}
+  ~LocalVarDescriptorsDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    start_index_ = d->next_index();
+    const intptr_t count = d->ReadUnsigned();
+    for (intptr_t i = 0; i < count; i++) {
+      const intptr_t length = d->ReadUnsigned();
+      d->AssignRef(d->Allocate(LocalVarDescriptors::InstanceSize(length)));
+    }
+    stop_index_ = d->next_index();
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    ASSERT(!is_canonical());  // Never canonical.
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      LocalVarDescriptorsPtr handlers =
+          static_cast<LocalVarDescriptorsPtr>(d.Ref(id));
+      const intptr_t length = d.ReadUnsigned();
+      Deserializer::InitializeHeader(handlers, kLocalVarDescriptorsCid,
+                                     LocalVarDescriptors::InstanceSize(length));
+      d.ReadFromTo(handlers, length);
+      for (intptr_t j = 0; j < length; j++) {
+        UntaggedLocalVarDescriptors::VarInfo& info =
+            handlers->untag()->data()[j];
+        info.index_kind = d.Read<int32_t>();
+        info.declaration_pos = d.ReadTokenPosition();
+        info.begin_pos = d.ReadTokenPosition();
+        info.end_pos = d.ReadTokenPosition();
+        info.scope_id = d.Read<int64_t>();
+      }
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class ExceptionHandlersSerializationCluster : public SerializationCluster {
  public:
   ExceptionHandlersSerializationCluster()
@@ -4342,6 +4439,66 @@ class LoadingUnitDeserializationCluster : public DeserializationCluster {
 };
 
 #if !defined(DART_PRECOMPILED_RUNTIME)
+class ApiErrorSerializationCluster : public SerializationCluster {
+ public:
+  ApiErrorSerializationCluster()
+      : SerializationCluster("ApiError",
+                             kApiErrorCid,
+                             compiler::target::ApiError::InstanceSize()) {}
+  ~ApiErrorSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    ApiErrorPtr error = ApiError::RawCast(object);
+    objects_.Add(error);
+    PushFromTo(error);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      ApiErrorPtr error = objects_[i];
+      s->AssignRef(error);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      ApiErrorPtr error = objects_[i];
+      AutoTraceObject(error);
+      WriteFromTo(error);
+    }
+  }
+
+ private:
+  GrowableArray<ApiErrorPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class ApiErrorDeserializationCluster : public DeserializationCluster {
+ public:
+  ApiErrorDeserializationCluster() : DeserializationCluster("ApiError") {}
+  ~ApiErrorDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, ApiError::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    ASSERT(!is_canonical());  // Never canonical.
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      ApiErrorPtr error = static_cast<ApiErrorPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(error, kApiErrorCid,
+                                     ApiError::InstanceSize());
+      d.ReadFromTo(error);
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 class LanguageErrorSerializationCluster : public SerializationCluster {
  public:
   LanguageErrorSerializationCluster()
@@ -4467,6 +4624,68 @@ class UnhandledExceptionDeserializationCluster : public DeserializationCluster {
       Deserializer::InitializeHeader(exception, kUnhandledExceptionCid,
                                      UnhandledException::InstanceSize());
       d.ReadFromTo(exception);
+    }
+  }
+};
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
+class UnwindErrorSerializationCluster : public SerializationCluster {
+ public:
+  UnwindErrorSerializationCluster()
+      : SerializationCluster("UnwindError",
+                             kUnwindErrorCid,
+                             compiler::target::UnwindError::InstanceSize()) {}
+  ~UnwindErrorSerializationCluster() {}
+
+  void Trace(Serializer* s, ObjectPtr object) {
+    UnwindErrorPtr error = UnwindError::RawCast(object);
+    objects_.Add(error);
+    PushFromTo(error);
+  }
+
+  void WriteAlloc(Serializer* s) {
+    const intptr_t count = objects_.length();
+    s->WriteUnsigned(count);
+    for (intptr_t i = 0; i < count; i++) {
+      UnwindErrorPtr error = objects_[i];
+      s->AssignRef(error);
+    }
+  }
+
+  void WriteFill(Serializer* s) {
+    const intptr_t count = objects_.length();
+    for (intptr_t i = 0; i < count; i++) {
+      UnwindErrorPtr error = objects_[i];
+      AutoTraceObject(error);
+      WriteFromTo(error);
+      s->Write<bool>(error->untag()->is_user_initiated_);
+    }
+  }
+
+ private:
+  GrowableArray<UnwindErrorPtr> objects_;
+};
+#endif  // !DART_PRECOMPILED_RUNTIME
+
+class UnwindErrorDeserializationCluster : public DeserializationCluster {
+ public:
+  UnwindErrorDeserializationCluster() : DeserializationCluster("UnwindError") {}
+  ~UnwindErrorDeserializationCluster() {}
+
+  void ReadAlloc(Deserializer* d) override {
+    ReadAllocFixedSize(d, UnwindError::InstanceSize());
+  }
+
+  void ReadFill(Deserializer* d_) override {
+    Deserializer::Local d(d_);
+
+    ASSERT(!is_canonical());  // Never canonical.
+    for (intptr_t id = start_index_, n = stop_index_; id < n; id++) {
+      UnwindErrorPtr error = static_cast<UnwindErrorPtr>(d.Ref(id));
+      Deserializer::InitializeHeader(error, kUnwindErrorCid,
+                                     UnwindError::InstanceSize());
+      d.ReadFromTo(error);
+      error->untag()->is_user_initiated_ = d.Read<bool>();
     }
   }
 };
@@ -8058,10 +8277,14 @@ SerializationCluster* Serializer::NewClusterForClass(intptr_t cid,
       return new (Z) SubtypeTestCacheSerializationCluster();
     case kLoadingUnitCid:
       return new (Z) LoadingUnitSerializationCluster();
+    case kApiErrorCid:
+      return new (Z) ApiErrorSerializationCluster();
     case kLanguageErrorCid:
       return new (Z) LanguageErrorSerializationCluster();
     case kUnhandledExceptionCid:
       return new (Z) UnhandledExceptionSerializationCluster();
+    case kUnwindErrorCid:
+      return new (Z) UnwindErrorSerializationCluster();
     case kLibraryPrefixCid:
       return new (Z) LibraryPrefixSerializationCluster();
     case kTypeCid:
@@ -9270,6 +9493,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       ASSERT(!is_canonical);
       ASSERT(!is_deeply_immutable);
       return new (Z) CompressedStackMapsDeserializationCluster();
+    case kLocalVarDescriptorsCid:
+      ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
+      return new (Z) LocalVarDescriptorsDeserializationCluster();
     case kExceptionHandlersCid:
       ASSERT(!is_canonical);
       ASSERT(!is_deeply_immutable);
@@ -9302,6 +9529,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       ASSERT(!is_canonical);
       ASSERT(!is_deeply_immutable);
       return new (Z) LoadingUnitDeserializationCluster();
+    case kApiErrorCid:
+      ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
+      return new (Z) ApiErrorDeserializationCluster();
     case kLanguageErrorCid:
       ASSERT(!is_canonical);
       ASSERT(!is_deeply_immutable);
@@ -9310,6 +9541,10 @@ DeserializationCluster* Deserializer::ReadCluster() {
       ASSERT(!is_canonical);
       ASSERT(!is_deeply_immutable);
       return new (Z) UnhandledExceptionDeserializationCluster();
+    case kUnwindErrorCid:
+      ASSERT(!is_canonical);
+      ASSERT(!is_deeply_immutable);
+      return new (Z) UnwindErrorDeserializationCluster();
     case kLibraryPrefixCid:
       ASSERT(!is_canonical);
       ASSERT(!is_deeply_immutable);
