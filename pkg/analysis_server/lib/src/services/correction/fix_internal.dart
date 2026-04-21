@@ -439,6 +439,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unnecessaryBraceInStringInterps: [RemoveInterpolationBraces.new],
   diag.unnecessaryBreaks: [RemoveBreak.new],
   diag.unnecessaryConst: [RemoveUnnecessaryConst.new],
+  diag.unnecessaryConstInEnumConstructor: [RemoveUnnecessaryConst.new],
   diag.unnecessaryConstructorName: [RemoveConstructorName.new],
   diag.unnecessaryFinalWithType: [ReplaceFinalWithVar.new],
   diag.unnecessaryFinalWithoutType: [ReplaceFinalWithVar.new],

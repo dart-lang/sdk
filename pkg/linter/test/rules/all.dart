@@ -265,6 +265,8 @@ import 'unnecessary_await_in_return_test.dart' as unnecessary_await_in_return;
 import 'unnecessary_brace_in_string_interps_test.dart'
     as unnecessary_brace_in_string_interps;
 import 'unnecessary_breaks_test.dart' as unnecessary_breaks;
+import 'unnecessary_const_in_enum_constructor_test.dart'
+    as unnecessary_const_in_enum_constructor;
 import 'unnecessary_const_test.dart' as unnecessary_const;
 import 'unnecessary_constructor_name_test.dart' as unnecessary_constructor_name;
 import 'unnecessary_final_test.dart' as unnecessary_final;
@@ -528,6 +530,7 @@ void main() {
   unnecessary_brace_in_string_interps.main();
   unnecessary_breaks.main();
   unnecessary_const.main();
+  unnecessary_const_in_enum_constructor.main();
   unnecessary_constructor_name.main();
   unnecessary_final.main();
   unnecessary_getters_setters.main();

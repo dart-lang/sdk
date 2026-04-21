@@ -6,10 +6,10 @@ import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/type_system_base.dart';
 import 'string_types.dart';
 
@@ -57,11 +57,16 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_implementsNotNullable() {
-    var element = extensionType2(
-      'A',
-      representationType: intNone,
-      interfaces: [intNone],
+    buildLibrary(
+      extensionTypes: [
+        const ExtensionTypeSpec(
+          name: 'A',
+          representationType: 'int',
+          interfaces: ['int'],
+        ),
+      ],
     );
+    var element = extensionTypeElement('A');
     var type = interfaceTypeNone(element);
 
     isSubtype(type, objectQuestion);
@@ -72,7 +77,12 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_noImplementedInterfaces() {
-    var element = extensionType2('A', representationType: intNone);
+    buildLibrary(
+      extensionTypes: [
+        const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+      ],
+    );
+    var element = extensionTypeElement('A');
     var type = interfaceTypeNone(element);
 
     isSubtype(type, objectQuestion);
@@ -81,14 +91,22 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_superinterfaces() {
-    var A = class_2(name: 'A');
-    var B = class_2(name: 'B');
-
-    var element = extensionType2(
-      'X',
-      representationType: intNone,
-      interfaces: [interfaceTypeNone(A)],
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B'),
+      ],
+      extensionTypes: [
+        const ExtensionTypeSpec(
+          name: 'X',
+          representationType: 'int',
+          interfaces: ['A'],
+        ),
+      ],
     );
+    var A = classElement('A');
+    var B = classElement('B');
+    var element = extensionTypeElement('X');
     var type = interfaceTypeNone(element);
 
     isSubtype(type, interfaceTypeNone(A));
@@ -96,11 +114,16 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_typeArguments() {
-    var A = extensionType2(
-      'A',
-      representationType: intNone,
-      typeParameters: [typeParameter('T')],
+    buildLibrary(
+      extensionTypes: [
+        const ExtensionTypeSpec(
+          name: 'A',
+          representationType: 'int',
+          typeParameters: ['T'],
+        ),
+      ],
     );
+    var A = extensionTypeElement('A');
 
     var A_object = interfaceTypeNone(A, typeArguments: [objectNone]);
 
@@ -2224,17 +2247,14 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_25_interfaces() {
-    var I = class_2(name: 'I');
-
-    var A = class_2(
-      name: 'A',
-      interfaces: [
-        I.instantiateImpl(
-          typeArguments: const [],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'I'),
+        ClassSpec(name: 'A', interfaces: ['I']),
       ],
     );
+    var I = classElement('I');
+    var A = classElement('A');
 
     var A_none = A.instantiateImpl(
       typeArguments: const [],
@@ -2250,17 +2270,14 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_26_mixins() {
-    var M = class_2(name: 'M');
-
-    var A = class_2(
-      name: 'A',
-      mixins: [
-        M.instantiateImpl(
-          typeArguments: const [],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'M'),
+        ClassSpec(name: 'A', mixins: ['M']),
       ],
     );
+    var M = classElement('M');
+    var A = classElement('A');
 
     var A_none = A.instantiateImpl(
       typeArguments: const [],
@@ -2307,45 +2324,53 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_class_augmented_interfaces() {
-    var A = class_2(name: 'A');
-    var I = class_2(name: 'I');
-
-    var A1 = class_(
-      name: 'A',
-      isAugmentation: true,
-      interfaces: [interfaceTypeNone(I)],
-    );
-    A.addAugmentations([A1]);
-
-    var A_none = interfaceTypeNone(A);
-    var I_none = interfaceTypeNone(I);
-
-    isSubtype(A_none, I_none, strT0: 'A', strT1: 'I');
-    isNotSubtype(I_none, A_none, strT0: 'I', strT1: 'A');
+    // var A = class_2(name: 'A');
+    // var I = class_2(name: 'I');
+    //
+    // var A1 = class_(
+    //   name: 'A',
+    //   isAugmentation: true,
+    //   interfaces: [interfaceTypeNone(I)],
+    // );
+    // A.addAugmentations([A1]);
+    //
+    // var A_none = interfaceTypeNone(A);
+    // var I_none = interfaceTypeNone(I);
+    //
+    // isSubtype(A_none, I_none, strT0: 'A', strT1: 'I');
+    // isNotSubtype(I_none, A_none, strT0: 'I', strT1: 'A');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_class_augmented_mixins() {
-    var A = class_2(name: 'A');
-    var M = mixin_2(name: 'M');
-
-    var A1 = class_(
-      name: 'A',
-      isAugmentation: true,
-      mixins: [interfaceTypeNone(M)],
-    );
-    A.addAugmentations([A1]);
-
-    var A_none = interfaceTypeNone(A);
-    var M_none = interfaceTypeNone(M);
-
-    isSubtype(A_none, M_none, strT0: 'A', strT1: 'M');
-    isNotSubtype(M_none, A_none, strT0: 'M', strT1: 'A');
+    // var A = class_2(name: 'A');
+    // var M = mixin_2(name: 'M');
+    //
+    // var A1 = class_(
+    //   name: 'A',
+    //   isAugmentation: true,
+    //   mixins: [interfaceTypeNone(M)],
+    // );
+    // A.addAugmentations([A1]);
+    //
+    // var A_none = interfaceTypeNone(A);
+    // var M_none = interfaceTypeNone(M);
+    //
+    // isSubtype(A_none, M_none, strT0: 'A', strT1: 'M');
+    // isNotSubtype(M_none, A_none, strT0: 'M', strT1: 'A');
   }
 
   test_interfaceType_contravariant() {
-    var T = typeParameter('T', variance: Variance.contravariant);
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(
+          name: 'A',
+          typeParameters: ['T'],
+          typeParameterVariances: {'T': Variance.contravariant},
+        ),
+      ],
+    );
+    var A = classElement('A');
 
     var A_num = A.instantiateImpl(
       typeArguments: [numNone],
@@ -2363,8 +2388,16 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_covariant() {
-    var T = typeParameter('T', variance: Variance.covariant);
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(
+          name: 'A',
+          typeParameters: ['T'],
+          typeParameterVariances: {'T': Variance.covariant},
+        ),
+      ],
+    );
+    var A = classElement('A');
 
     var A_num = A.instantiateImpl(
       typeArguments: [numNone],
@@ -2382,8 +2415,16 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_invariant() {
-    var T = typeParameter('T', variance: Variance.invariant);
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(
+          name: 'A',
+          typeParameters: ['T'],
+          typeParameterVariances: {'T': Variance.invariant},
+        ),
+      ],
+    );
+    var A = classElement('A');
 
     var A_num = A.instantiateImpl(
       typeArguments: [numNone],
@@ -2402,40 +2443,40 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_mixin_augmented_interfaces() {
-    var M = mixin_2(name: 'M');
-    var I = class_2(name: 'I');
-
-    var M1 = mixin_(
-      name: 'M1',
-      isAugmentation: true,
-      interfaces: [interfaceTypeNone(I)],
-    );
-    M.addAugmentations([M1]);
-
-    var M_none = interfaceTypeNone(M);
-    var I_none = interfaceTypeNone(I);
-
-    isSubtype(M_none, I_none, strT0: 'M', strT1: 'I');
-    isNotSubtype(I_none, M_none, strT0: 'I', strT1: 'M');
+    // var M = mixin_2(name: 'M');
+    // var I = class_2(name: 'I');
+    //
+    // var M1 = mixin_(
+    //   name: 'M1',
+    //   isAugmentation: true,
+    //   interfaces: [interfaceTypeNone(I)],
+    // );
+    // M.addAugmentations([M1]);
+    //
+    // var M_none = interfaceTypeNone(M);
+    // var I_none = interfaceTypeNone(I);
+    //
+    // isSubtype(M_none, I_none, strT0: 'M', strT1: 'I');
+    // isNotSubtype(I_none, M_none, strT0: 'I', strT1: 'M');
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
   test_interfaceType_mixin_augmented_superclassConstraints() {
-    var M = mixin_2(name: 'M');
-    var C = class_2(name: 'C');
-
-    var M1 = mixin_(
-      name: 'M1',
-      isAugmentation: true,
-      constraints: [interfaceTypeNone(C)],
-    );
-    M.addAugmentations([M1]);
-
-    var M_none = interfaceTypeNone(M);
-    var C_none = interfaceTypeNone(C);
-
-    isSubtype(M_none, C_none, strT0: 'M', strT1: 'C');
-    isNotSubtype(C_none, M_none, strT0: 'C', strT1: 'M');
+    // var M = mixin_2(name: 'M');
+    // var C = class_2(name: 'C');
+    //
+    // var M1 = mixin_(
+    //   name: 'M1',
+    //   isAugmentation: true,
+    //   constraints: [interfaceTypeNone(C)],
+    // );
+    // M.addAugmentations([M1]);
+    //
+    // var M_none = interfaceTypeNone(M);
+    // var C_none = interfaceTypeNone(C);
+    //
+    // isSubtype(M_none, C_none, strT0: 'M', strT1: 'C');
+    // isNotSubtype(C_none, M_none, strT0: 'C', strT1: 'M');
   }
 
   test_invalidType() {
@@ -4831,4 +4872,28 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
   }
 }
 
-class _SubtypingTestBase extends AbstractTypeSystemTest {}
+class _SubtypingTestBase extends AbstractTypeSystemTest {
+  void buildLibrary({
+    List<ClassSpec> classes = const [],
+    List<ExtensionTypeSpec> extensionTypes = const [],
+    List<MixinSpec> mixins = const [],
+  }) {
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core'],
+        classes: classes,
+        extensionTypes: extensionTypes,
+        mixins: mixins,
+      ),
+    );
+  }
+
+  ClassElementImpl classElement(String name) {
+    return testLibrary.getClass(name)!;
+  }
+
+  ExtensionTypeElementImpl extensionTypeElement(String name) {
+    return testLibrary.getExtensionType(name)!;
+  }
+}

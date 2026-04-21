@@ -64,6 +64,7 @@
   ARRAY(Code, element_offset)                                                  \
   ARRAY(Context, variable_offset)                                              \
   ARRAY(ContextScope, element_offset)                                          \
+  ARRAY(LocalVarDescriptors, element_offset)                                   \
   ARRAY(ExceptionHandlers, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
   ARRAY(OneByteString, element_offset)                                         \
@@ -76,6 +77,7 @@
   ARRAY_SIZEOF(Code, InstanceSize, element_offset)                             \
   ARRAY_SIZEOF(Context, InstanceSize, variable_offset)                         \
   ARRAY_SIZEOF(ContextScope, InstanceSize, element_offset)                     \
+  ARRAY_SIZEOF(LocalVarDescriptors, InstanceSize, element_offset)              \
   ARRAY_SIZEOF(ExceptionHandlers, InstanceSize, element_offset)                \
   ARRAY_SIZEOF(ObjectPool, InstanceSize, element_offset)                       \
   ARRAY_SIZEOF(OneByteString, InstanceSize, element_offset)                    \

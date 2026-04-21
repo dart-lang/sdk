@@ -3109,6 +3109,16 @@ const LinterLintWithoutArguments unnecessaryConst = LinterLintWithoutArguments(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments unnecessaryConstInEnumConstructor =
+    LinterLintWithoutArguments(
+      name: 'unnecessary_const_in_enum_constructor',
+      problemMessage: "Unnecessary 'const' keyword in an enum constructor.",
+      correctionMessage: "Try removing the keyword.",
+      uniqueName: 'unnecessary_const_in_enum_constructor',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments unnecessaryConstructorName =
     LinterLintWithoutArguments(
       name: 'unnecessary_constructor_name',

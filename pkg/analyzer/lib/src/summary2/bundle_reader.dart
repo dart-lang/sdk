@@ -1356,13 +1356,8 @@ class LibraryReader {
   void _readTypeAliasElements() {
     _libraryElement.typeAliases = _reader.readTypedList(() {
       var reference = _readReference();
-      var fragments = _readFragmentsById<TypeAliasFragmentImpl>();
-      var element = TypeAliasElementImpl(reference, fragments.first);
-      DeferredResolutionReadingHelper.withoutLoadingResolution(() {
-        for (var typeParameter in fragments.first.typeParameters) {
-          TypeParameterElementImpl(firstFragment: typeParameter);
-        }
-      });
+      var fragment = _readFragmentById<TypeAliasFragmentImpl>();
+      var element = TypeAliasElementImpl(reference, fragment);
       element.readFlags(_reader);
 
       element.deferReadResolution(

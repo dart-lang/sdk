@@ -839,7 +839,7 @@ class BundleWriter {
   void _writeTypeAliasElements(List<TypeAliasElementImpl> elements) {
     _sink.writeList(elements, (element) {
       _writeReference(element.reference);
-      _writeFragments(element.fragments);
+      _writeFragmentId(element.firstFragment);
       element.writeFlags(_sink);
 
       _writeElementResolution(() {

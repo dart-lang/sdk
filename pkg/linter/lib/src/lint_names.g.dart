@@ -529,6 +529,9 @@ abstract final class LintNames {
 
   static const String unnecessary_const = 'unnecessary_const';
 
+  static const String unnecessary_const_in_enum_constructor =
+      'unnecessary_const_in_enum_constructor';
+
   static const String unnecessary_constructor_name =
       'unnecessary_constructor_name';
 

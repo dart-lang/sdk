@@ -944,6 +944,19 @@ augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
 );
 
 /// No parameters.
+const DiagnosticWithoutArguments augmentationOfMixinApplicationClass =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'augmentation_of_mixin_application_class',
+      problemMessage: "Mixin application classes can't be augmented.",
+      correctionMessage:
+          "Try removing the 'augment' keyword, or making the target a normal "
+          "class.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'augmentation_of_mixin_application_class',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const DiagnosticWithoutArguments augmentationTypeParameterBound =
     DiagnosticWithoutArgumentsImpl(
       name: 'augmentation_type_parameter_bound',

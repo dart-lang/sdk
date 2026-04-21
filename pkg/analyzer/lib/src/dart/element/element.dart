@@ -148,6 +148,10 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     isBase = _firstFragment.isBase;
     isFinal = _firstFragment.isFinal;
     isInterface = _firstFragment.isInterface;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   /// If we can find all possible subtypes of this class, return them.
@@ -792,6 +796,10 @@ class ConstructorElementImpl extends ExecutableElementImpl
   }) : _firstFragment = firstFragment {
     reference.element = this;
     _firstFragment.element = this;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   @override
@@ -2280,6 +2288,10 @@ class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   EnumElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   @override
@@ -2827,6 +2839,10 @@ class ExtensionElementImpl extends InstanceElementImpl
   ExtensionElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   @override
@@ -3057,6 +3073,10 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
   ExtensionTypeElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   @override
@@ -3739,7 +3759,8 @@ class FormalParameterElementImpl extends PromotableElementImpl
       fragment.element = this;
       fragment = fragment.nextFragment;
     }
-    for (var typeParameter in _firstFragment.typeParameters) {
+
+    for (var typeParameter in _firstFragment._typeParameters) {
       TypeParameterElementImpl(firstFragment: typeParameter);
     }
   }
@@ -4548,7 +4569,8 @@ class GenericFunctionTypeElementImpl extends FunctionTypedElementImpl
 
   GenericFunctionTypeElementImpl(this._firstFragment) {
     _firstFragment.element = this;
-    for (var typeParameter in _firstFragment.typeParameters) {
+
+    for (var typeParameter in _firstFragment._typeParameters) {
       TypeParameterElementImpl(firstFragment: typeParameter);
     }
   }
@@ -8592,6 +8614,10 @@ class MethodElementImpl extends ExecutableElementImpl
   }) : _firstFragment = firstFragment {
     reference.element = this;
     _firstFragment.element = this;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   @override
@@ -8864,6 +8890,10 @@ class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   MixinElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   @override
@@ -10413,6 +10443,10 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
   TopLevelFunctionElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   @override
@@ -10786,6 +10820,10 @@ class TypeAliasElementImpl extends ElementImpl
   TypeAliasElementImpl(this.reference, this._firstFragment) {
     reference.element = this;
     _firstFragment.element = this;
+
+    for (var typeParameter in _firstFragment._typeParameters) {
+      TypeParameterElementImpl(firstFragment: typeParameter);
+    }
   }
 
   @override
@@ -11298,8 +11336,6 @@ class TypeParameterFragmentImpl extends FragmentImpl
     DeferredResolutionReadingHelper.withoutLoadingResolution(() {
       var firstFragments = getFragments(fragments.first);
       for (var i = 0; i < firstFragments.length; i++) {
-        // Side effect: set element for the fragment.
-        TypeParameterElementImpl(firstFragment: firstFragments[i]);
         fragments.reduce((previous, current) {
           getFragments(previous)[i].addFragment(getFragments(current)[i]);
           return current;

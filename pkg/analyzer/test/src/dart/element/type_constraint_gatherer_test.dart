@@ -6,6 +6,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_constraint_gatherer.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,6 +23,20 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   late final TypeParameterElementImpl T;
   late final TypeParameterTypeImpl T_none;
   late final TypeParameterTypeImpl T_question;
+
+  void buildLibrary({List<ClassSpec> classes = const []}) {
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core'],
+        classes: classes,
+      ),
+    );
+  }
+
+  ClassElementImpl classElement(String name) {
+    return testLibrary.getClass(name)!;
+  }
 
   @override
   void setUp() {
@@ -593,30 +608,27 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     var testClassIndex = 0;
 
     void check1(
-      TypeImpl extendsTypeArgument,
-      TypeImpl implementsTypeArgument,
+      String extendsTypeArgument,
+      String implementsTypeArgument,
       String expectedConstraint,
     ) {
-      // class A<T> {}
-      var A = class_2(name: 'A', typeParameters: [typeParameter('T')]);
-
-      // class B<T> extends A<T> {}
-      var B_T = typeParameter('T');
-      var B_T_none = typeParameterTypeNone(B_T);
-      var B = class_2(
-        name: 'B',
-        typeParameters: [B_T],
-        superType: interfaceTypeNone(A, typeArguments: [B_T_none]),
-      );
-
-      // class Cx extends A<> implements B<> {}
-      var C = class_2(
-        name: 'C${testClassIndex++}',
-        superType: interfaceTypeNone(A, typeArguments: [extendsTypeArgument]),
-        interfaces: [
-          interfaceTypeNone(B, typeArguments: [implementsTypeArgument]),
+      buildLibrary(
+        classes: [
+          ClassSpec(name: 'A', typeParameters: ['T']),
+          ClassSpec(name: 'B', typeParameters: ['T'], supertype: 'A<T>'),
+          ClassSpec(
+            name: 'C$testClassIndex',
+            supertype: 'A<$extendsTypeArgument>',
+            interfaces: ['B<$implementsTypeArgument>'],
+          ),
         ],
       );
+      testClassIndex++;
+      var A = classElement('A');
+
+      // class B<T> extends A<T> {}
+      // class Cx extends A<> implements B<> {}
+      var C = classElement('C${testClassIndex - 1}');
 
       _checkMatch(
         [T],
@@ -628,16 +640,16 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
     }
 
     void check(
-      TypeImpl typeArgument1,
-      TypeImpl typeArgument2,
+      String typeArgument1,
+      String typeArgument2,
       String expectedConstraint,
     ) {
       check1(typeArgument1, typeArgument2, expectedConstraint);
       check1(typeArgument2, typeArgument1, expectedConstraint);
     }
 
-    check(objectQuestion, dynamicType, 'Object? <: T <: _');
-    check(voidNone, objectQuestion, 'Object? <: T <: _');
+    check('Object?', 'dynamic', 'Object? <: T <: _');
+    check('void', 'Object?', 'Object? <: T <: _');
   }
 
   /// If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:

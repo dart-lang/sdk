@@ -203,7 +203,9 @@ class ElementBuilder {
   ) {
     libraryFragment.addClass(fragment);
 
-    if (fragment.isAugmentation && lastFragment is ClassFragmentImpl) {
+    if (fragment.isAugmentation &&
+        lastFragment is ClassFragmentImpl &&
+        !lastFragment.isMixinApplication) {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
@@ -218,10 +220,6 @@ class ElementBuilder {
       _addTopReference('@class', fragment.name),
       fragment,
     );
-
-    for (var typeParameter in fragment.typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
 
     if (fragment.isAugmentation && lastFragment != null) {
       element.previousFragmentOfDifferentKind = lastFragment;
@@ -255,10 +253,6 @@ class ElementBuilder {
       fragment,
     );
 
-    for (var typeParameter in fragment.typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
-
     if (fragment.isAugmentation && lastFragment != null) {
       element.previousFragmentOfDifferentKind = lastFragment;
     }
@@ -291,10 +285,6 @@ class ElementBuilder {
       fragment,
     );
 
-    for (var typeParameter in fragment.typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
-
     if (fragment.isAugmentation && lastFragment != null) {
       element.previousFragmentOfDifferentKind = lastFragment;
     }
@@ -326,10 +316,6 @@ class ElementBuilder {
       _addTopReference('@extensionType', fragment.name),
       fragment,
     );
-
-    for (var typeParameter in fragment.typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
 
     if (fragment.isAugmentation && lastFragment != null) {
       element.previousFragmentOfDifferentKind = lastFragment;
@@ -567,10 +553,6 @@ class ElementBuilder {
       return;
     }
 
-    for (var typeParameter in fragment.typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
-
     var element = MethodElementImpl(
       name: fragment.name,
       reference: _addInstanceReference(
@@ -669,10 +651,6 @@ class ElementBuilder {
       fragment,
     );
 
-    for (var typeParameter in fragment.typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
-
     if (fragment.isAugmentation && lastFragment != null) {
       element.previousFragmentOfDifferentKind = lastFragment;
     }
@@ -709,10 +687,6 @@ class ElementBuilder {
       _addTopReference('@function', fragment.name),
       fragment,
     );
-
-    for (var typeParameter in fragment.typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
 
     if (fragment.isAugmentation && lastFragment != null) {
       element.previousFragmentOfDifferentKind = lastFragment;
@@ -911,10 +885,6 @@ class ElementBuilder {
       _addTopReference('@typeAlias', fragment.name),
       fragment,
     );
-
-    for (var typeParameter in fragment.typeParameters) {
-      TypeParameterElementImpl(firstFragment: typeParameter);
-    }
 
     libraryElement.typeAliases.add(element);
     libraryBuilder.declare(element, element.reference);

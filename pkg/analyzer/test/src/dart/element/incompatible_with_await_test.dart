@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -30,24 +31,25 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_extensionType_implementsFuture() {
-    var futureOfIntNone = futureNone(intNone);
     isNotIncompatible(
       interfaceTypeNone(
-        extensionType2(
-          'A',
-          representationType: futureOfIntNone,
-          interfaces: [futureOfIntNone],
+        buildExtensionType(
+          const ExtensionTypeSpec(
+            name: 'A',
+            representationType: 'Future<int>',
+            interfaces: ['Future<int>'],
+          ),
         ),
       ),
     );
   }
 
   test_extensionType_notImplementsFuture() {
-    var futureOfIntNone = futureNone(intNone);
-
     isIncompatible(
       interfaceTypeNone(
-        extensionType2('A', representationType: futureOfIntNone),
+        buildExtensionType(
+          const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
+        ),
       ),
     );
   }
@@ -61,12 +63,12 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_extensionType_implementsFuture() {
-    var futureOfIntNone = futureNone(intNone);
-
-    var A = extensionType2(
-      'A',
-      representationType: futureOfIntNone,
-      interfaces: [futureOfIntNone],
+    var A = buildExtensionType(
+      const ExtensionTypeSpec(
+        name: 'A',
+        representationType: 'Future<int>',
+        interfaces: ['Future<int>'],
+      ),
     );
 
     isNotIncompatible(
@@ -75,9 +77,9 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_extensionType_notImplementsFuture() {
-    var futureOfIntNone = futureNone(intNone);
-
-    var A = extensionType2('A', representationType: futureOfIntNone);
+    var A = buildExtensionType(
+      const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
+    );
 
     isIncompatible(
       typeParameterTypeNone(typeParameter('T', bound: interfaceTypeNone(A))),
@@ -91,17 +93,24 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_promotedBound_extensionType_implementsFuture() {
-    var futureOfIntNone = futureNone(intNone);
-
     // Incompatible with `await`, used as a bound.
     // Does not matter, `T` is promoted to not incompatible.
-    var N = extensionType2('N', representationType: futureOfIntNone);
-
-    var F = extensionType2(
-      'F',
-      representationType: futureOfIntNone,
-      interfaces: [futureOfIntNone],
+    testLibrary = buildTestLibrary(
+      const LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: ['dart:core', 'dart:async'],
+        extensionTypes: [
+          ExtensionTypeSpec(name: 'N', representationType: 'Future<int>'),
+          ExtensionTypeSpec(
+            name: 'F',
+            representationType: 'Future<int>',
+            interfaces: ['Future<int>'],
+          ),
+        ],
+      ),
     );
+    var N = testLibrary.getExtensionType('N')!;
+    var F = testLibrary.getExtensionType('F')!;
 
     isNotIncompatible(
       typeParameterTypeNone(
@@ -112,9 +121,9 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_promotedBound_extensionType_notImplementsFuture() {
-    var futureOfIntNone = futureNone(intNone);
-
-    var A = extensionType2('A', representationType: futureOfIntNone);
+    var A = buildExtensionType(
+      const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
+    );
 
     isIncompatible(
       typeParameterTypeNone(

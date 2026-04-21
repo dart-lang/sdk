@@ -5,7 +5,9 @@
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -82,16 +84,21 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
 
   test_notContravariant_invariant() {
     // typedef F<T> = T Function(T);
-    var T = typeParameter('T', variance: Variance.invariant);
-    var T_none = typeParameterTypeNone(T);
-    var F = typeAlias(
-      name: 'F',
-      typeParameters: [T],
-      aliasedType: functionTypeNone(
-        returnType: T_none,
-        formalParameters: [requiredParameter(type: T_none)],
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core'],
+        typeAliases: [
+          TypeAliasSpec(
+            name: 'F',
+            typeParameters: ['T'],
+            typeParameterVariances: {'T': Variance.invariant},
+            aliasedType: 'T Function(T)',
+          ),
+        ],
       ),
     );
+    var F = testLibrary.getTypeAlias('F')! as TypeAliasElementImpl;
 
     var F_dynamic = F.instantiateImpl(
       typeArguments: [dynamicType],

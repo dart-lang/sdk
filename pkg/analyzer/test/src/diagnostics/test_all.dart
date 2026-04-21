@@ -47,6 +47,8 @@ import 'augmentation_modifier_missing_test.dart'
     as augmentation_modifier_missing;
 import 'augmentation_of_different_declaration_kind_test.dart'
     as augmentation_of_different_declaration_kind;
+import 'augmentation_of_mixin_application_class_test.dart'
+    as augmentation_of_mixin_application_class;
 import 'augmentation_type_parameter_bound_test.dart'
     as augmentation_type_parameter_bound;
 import 'augmentation_type_parameter_count_test.dart'
@@ -984,6 +986,7 @@ main() {
     augmentation_modifier_extra.main();
     augmentation_modifier_missing.main();
     augmentation_of_different_declaration_kind.main();
+    augmentation_of_mixin_application_class.main();
     augmentation_type_parameter_bound.main();
     augmentation_type_parameter_count.main();
     augmentation_type_parameter_name.main();

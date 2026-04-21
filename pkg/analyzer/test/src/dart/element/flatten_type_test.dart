@@ -4,6 +4,7 @@
 
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -131,7 +132,16 @@ class FutureTypeTest extends AbstractTypeSystemTest {
   }
 
   test_implements_Future() {
-    var A = class_2(name: 'A', interfaces: [futureNone(intNone)]);
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core', 'dart:async'],
+        classes: [
+          ClassSpec(name: 'A', interfaces: ['Future<int>']),
+        ],
+      ),
+    );
+    var A = testLibrary.getClass('A')!;
 
     _check(interfaceTypeNone(A), 'Future<int>');
     _check(interfaceTypeQuestion(A), null);

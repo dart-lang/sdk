@@ -505,6 +505,11 @@ base class VMOffsets {
   int get ContextScope_elementSize => throw 'Unknown';
   int ContextScope_elementOffset(int index) =>
       ContextScope_elementsStartOffset + index * ContextScope_elementSize;
+  int get LocalVarDescriptors_elementsStartOffset => throw 'Unknown';
+  int get LocalVarDescriptors_elementSize => throw 'Unknown';
+  int LocalVarDescriptors_elementOffset(int index) =>
+      LocalVarDescriptors_elementsStartOffset +
+      index * LocalVarDescriptors_elementSize;
   int get ExceptionHandlers_elementsStartOffset => throw 'Unknown';
   int get ExceptionHandlers_elementSize => throw 'Unknown';
   int ExceptionHandlers_elementOffset(int index) =>
@@ -572,6 +577,10 @@ final class Arm64VMOffsets extends VMOffsets {
   int get ContextScope_elementsStartOffset => 0x10;
   @override
   int get ContextScope_elementSize => 0x50;
+  @override
+  int get LocalVarDescriptors_elementsStartOffset => 0x10;
+  @override
+  int get LocalVarDescriptors_elementSize => 0x1c;
   @override
   int get ExceptionHandlers_elementsStartOffset => 0x18;
   @override
@@ -1535,6 +1544,10 @@ final class Arm64ProductVMOffsets extends VMOffsets {
   int get ContextScope_elementsStartOffset => 0x10;
   @override
   int get ContextScope_elementSize => 0x50;
+  @override
+  int get LocalVarDescriptors_elementsStartOffset => 0x10;
+  @override
+  int get LocalVarDescriptors_elementSize => 0x1c;
   @override
   int get ExceptionHandlers_elementsStartOffset => 0x18;
   @override

@@ -5,9 +5,11 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -78,8 +80,12 @@ class MapSubstitutionTest extends _Base {
 class SubstituteEmptyTest extends _Base {
   test_interface() async {
     // class A<T> {}
-    var T = typeParameter('T');
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A', typeParameters: ['T']),
+      ],
+    );
+    var A = classElement('A');
 
     var type = interfaceTypeNone(A, typeArguments: [intNone]);
 
@@ -92,12 +98,17 @@ class SubstituteEmptyTest extends _Base {
 class SubstituteFromInterfaceTypeTest extends _Base {
   test_interface() async {
     // class A<T> {}
-    var T = typeParameter('T');
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A', typeParameters: ['T']),
+        ClassSpec(name: 'B', typeParameters: ['U']),
+      ],
+    );
+    var A = classElement('A');
 
     // class B<U>  {}
-    var U = typeParameter('U');
-    var B = class_2(name: 'B', typeParameters: [U]);
+    var B = classElement('B');
+    var U = B.typeParameters.single;
 
     var BofInt = interfaceTypeNone(B, typeArguments: [intNone]);
     var substitution = Substitution.fromInterfaceType(BofInt);
@@ -115,9 +126,14 @@ class SubstituteFromInterfaceTypeTest extends _Base {
 class SubstituteFromPairsTest extends _Base {
   test_interface() async {
     // class A<T, U> {}
-    var T = typeParameter('T');
-    var U = typeParameter('U');
-    var A = class_2(name: 'A', typeParameters: [T, U]);
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A', typeParameters: ['T', 'U']),
+      ],
+    );
+    var A = classElement('A');
+    var T = A.typeParameters[0];
+    var U = A.typeParameters[1];
 
     var type = interfaceTypeNone(
       A,
@@ -146,12 +162,16 @@ class SubstituteTest extends _Base {
 
   test_function_fromAlias_hasRef() async {
     // typedef Alias<T> = void Function();
-    var T = typeParameter('T');
-    var Alias = typeAlias(
-      name: 'Alias',
-      typeParameters: [T],
-      aliasedType: functionTypeNone(returnType: voidNone),
+    buildLibrary(
+      typeAliases: [
+        TypeAliasSpec(
+          name: 'Alias',
+          typeParameters: ['T'],
+          aliasedType: 'void Function()',
+        ),
+      ],
     );
+    var Alias = typeAliasElement('Alias');
 
     var U = typeParameter('U');
     var type = typeAliasTypeNone(
@@ -164,12 +184,16 @@ class SubstituteTest extends _Base {
 
   test_function_fromAlias_noRef() async {
     // typedef Alias<T> = void Function();
-    var T = typeParameter('T');
-    var Alias = typeAlias(
-      name: 'Alias',
-      typeParameters: [T],
-      aliasedType: functionTypeNone(returnType: voidNone),
+    buildLibrary(
+      typeAliases: [
+        TypeAliasSpec(
+          name: 'Alias',
+          typeParameters: ['T'],
+          aliasedType: 'void Function()',
+        ),
+      ],
     );
+    var Alias = typeAliasElement('Alias');
 
     var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
     assertType(type, 'void Function() via Alias<double>');
@@ -180,12 +204,16 @@ class SubstituteTest extends _Base {
 
   test_function_fromAlias_noTypeParameters() async {
     // typedef Alias<T> = void Function();
-    var T = typeParameter('T');
-    var Alias = typeAlias(
-      name: 'Alias',
-      typeParameters: [T],
-      aliasedType: functionTypeNone(returnType: voidNone),
+    buildLibrary(
+      typeAliases: [
+        TypeAliasSpec(
+          name: 'Alias',
+          typeParameters: ['T'],
+          aliasedType: 'void Function()',
+        ),
+      ],
     );
+    var Alias = typeAliasElement('Alias');
 
     var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
     assertType(type, 'void Function() via Alias<int>');
@@ -240,22 +268,20 @@ class SubstituteTest extends _Base {
 
   test_function_typeFormals_bounds() async {
     // class Triple<X, Y, Z> {}
-    // typedef F<V> = bool Function<T extends Triplet<T, U, V>, U>();
-    var classTriplet = class_2(
-      name: 'Triple',
-      typeParameters: [
-        typeParameter('X'),
-        typeParameter('Y'),
-        typeParameter('Z'),
+    // typedef F<V> = bool Function<T extends Triple<T, U, V>, U>();
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'Triple', typeParameters: ['X', 'Y', 'Z']),
       ],
     );
+    var classTriple = classElement('Triple');
 
     var T = typeParameter('T');
     var U = typeParameter('U');
     var V = typeParameter('V');
 
     T.bound = interfaceTypeNone(
-      classTriplet,
+      classTriple,
       typeArguments: [
         typeParameterTypeNone(T),
         typeParameterTypeNone(U),
@@ -278,8 +304,12 @@ class SubstituteTest extends _Base {
 
   test_interface_arguments() async {
     // class A<T> {}
-    var T = typeParameter('T');
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A', typeParameters: ['T']),
+      ],
+    );
+    var A = classElement('A');
 
     var U = typeParameter('U');
     var type = interfaceTypeNone(A, typeArguments: [typeParameterTypeNone(U)]);
@@ -289,8 +319,12 @@ class SubstituteTest extends _Base {
   }
 
   test_interface_arguments_deep() async {
-    var T = typeParameter('T');
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A', typeParameters: ['T']),
+      ],
+    );
+    var A = classElement('A');
 
     var U = typeParameter('U');
     var type = interfaceTypeNone(
@@ -309,7 +343,8 @@ class SubstituteTest extends _Base {
 
   test_interface_noArguments() async {
     // class A {}
-    var A = class_2(name: 'A');
+    buildLibrary(classes: [ClassSpec(name: 'A')]);
+    var A = classElement('A');
 
     var type = interfaceTypeNone(A);
     var T = typeParameter('T');
@@ -318,8 +353,12 @@ class SubstituteTest extends _Base {
 
   test_interface_noArguments_inArguments() async {
     // class A<T> {}
-    var T = typeParameter('T');
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A', typeParameters: ['T']),
+      ],
+    );
+    var A = classElement('A');
 
     var type = interfaceTypeNone(A, typeArguments: [intNone]);
 
@@ -329,15 +368,13 @@ class SubstituteTest extends _Base {
 
   test_interface_noTypeParameters_fromAlias_hasRef() async {
     // class A {}
-    var A = class_2(name: 'A');
-
-    // typedef Alias<T> = A;
-    var T = typeParameter('T');
-    var Alias = typeAlias(
-      name: 'Alias',
-      typeParameters: [T],
-      aliasedType: interfaceTypeNone(A),
+    buildLibrary(
+      classes: [ClassSpec(name: 'A')],
+      typeAliases: [
+        TypeAliasSpec(name: 'Alias', typeParameters: ['T'], aliasedType: 'A'),
+      ],
     );
+    var Alias = typeAliasElement('Alias');
 
     var U = typeParameter('U');
     var type = typeAliasTypeNone(
@@ -350,15 +387,13 @@ class SubstituteTest extends _Base {
 
   test_interface_noTypeParameters_fromAlias_noRef() async {
     // class A {}
-    var A = class_2(name: 'A');
-
-    // typedef Alias<T> = A;
-    var T = typeParameter('T');
-    var Alias = typeAlias(
-      name: 'Alias',
-      typeParameters: [T],
-      aliasedType: interfaceTypeNone(A),
+    buildLibrary(
+      classes: [ClassSpec(name: 'A')],
+      typeAliases: [
+        TypeAliasSpec(name: 'Alias', typeParameters: ['T'], aliasedType: 'A'),
+      ],
     );
+    var Alias = typeAliasElement('Alias');
 
     var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
     assertType(type, 'A via Alias<double>');
@@ -369,14 +404,11 @@ class SubstituteTest extends _Base {
 
   test_interface_noTypeParameters_fromAlias_noTypeParameters() async {
     // class A {}
-    var A = class_2(name: 'A');
-
-    // typedef Alias = A;
-    var Alias = typeAlias(
-      name: 'Alias',
-      typeParameters: [],
-      aliasedType: interfaceTypeNone(A),
+    buildLibrary(
+      classes: [ClassSpec(name: 'A')],
+      typeAliases: [TypeAliasSpec(name: 'Alias', aliasedType: 'A')],
     );
+    var Alias = typeAliasElement('Alias');
 
     var type = typeAliasTypeNone(Alias);
     assertType(type, 'A via Alias');
@@ -401,12 +433,16 @@ class SubstituteTest extends _Base {
 
   test_record_fromAlias() async {
     // typedef Alias<T> = (int, String);
-    var T = typeParameter('T');
-    var Alias = typeAlias(
-      name: 'Alias',
-      typeParameters: [T],
-      aliasedType: recordTypeNone(positionalTypes: [intNone, stringNone]),
+    buildLibrary(
+      typeAliases: [
+        TypeAliasSpec(
+          name: 'Alias',
+          typeParameters: ['T'],
+          aliasedType: '(int, String)',
+        ),
+      ],
     );
+    var Alias = typeAliasElement('Alias');
 
     var U = typeParameter('U');
     var type = typeAliasTypeNone(
@@ -419,13 +455,16 @@ class SubstituteTest extends _Base {
 
   test_record_fromAlias2() async {
     // typedef Alias<T> = (T, List<T>);
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
-    var Alias = typeAlias(
-      name: 'Alias',
-      typeParameters: [T],
-      aliasedType: recordTypeNone(positionalTypes: [T_none, listNone(T_none)]),
+    buildLibrary(
+      typeAliases: [
+        TypeAliasSpec(
+          name: 'Alias',
+          typeParameters: ['T'],
+          aliasedType: '(T, List<T>)',
+        ),
+      ],
     );
+    var Alias = typeAliasElement('Alias');
 
     var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
     assertType(type, '(int, List<int>) via Alias<int>');
@@ -504,8 +543,12 @@ class SubstituteWithNullabilityTest extends _Base {
 
   test_interface_none() async {
     // class A<T> {}
-    var T = typeParameter('T');
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A', typeParameters: ['T']),
+      ],
+    );
+    var A = classElement('A');
 
     var U = typeParameter('U');
     var type = A.instantiateImpl(
@@ -517,8 +560,12 @@ class SubstituteWithNullabilityTest extends _Base {
 
   test_interface_question() async {
     // class A<T> {}
-    var T = typeParameter('T');
-    var A = class_2(name: 'A', typeParameters: [T]);
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A', typeParameters: ['T']),
+      ],
+    );
+    var A = classElement('A');
 
     var U = typeParameter('U');
     var type = A.instantiateImpl(
@@ -529,11 +576,10 @@ class SubstituteWithNullabilityTest extends _Base {
   }
 
   test_withNullability_updatesAlias_function() {
-    var alias = typeAlias(
-      name: 'A',
-      typeParameters: const [],
-      aliasedType: functionTypeNone(returnType: voidNone),
+    buildLibrary(
+      typeAliases: [TypeAliasSpec(name: 'A', aliasedType: 'void Function()')],
     );
+    var alias = typeAliasElement('A');
     var type = alias.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -545,11 +591,10 @@ class SubstituteWithNullabilityTest extends _Base {
   }
 
   test_withNullability_updatesAlias_interface() {
-    var alias = typeAlias(
-      name: 'A',
-      typeParameters: const [],
-      aliasedType: intNone,
+    buildLibrary(
+      typeAliases: [TypeAliasSpec(name: 'A', aliasedType: 'int')],
     );
+    var alias = typeAliasElement('A');
     var type = alias.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -561,11 +606,10 @@ class SubstituteWithNullabilityTest extends _Base {
   }
 
   test_withNullability_updatesAlias_record() {
-    var alias = typeAlias(
-      name: 'A',
-      typeParameters: const [],
-      aliasedType: recordTypeNone(positionalTypes: [intNone]),
+    buildLibrary(
+      typeAliases: [TypeAliasSpec(name: 'A', aliasedType: '(int,)')],
     );
+    var alias = typeAliasElement('A');
     var type = alias.instantiateImpl(
       typeArguments: const [],
       nullabilitySuffix: NullabilitySuffix.question,
@@ -577,12 +621,12 @@ class SubstituteWithNullabilityTest extends _Base {
   }
 
   test_withNullability_updatesAlias_typeParameter() {
-    var T = typeParameter('T');
-    var alias = typeAlias(
-      name: 'A',
-      typeParameters: [T],
-      aliasedType: typeParameterTypeNone(T),
+    buildLibrary(
+      typeAliases: [
+        TypeAliasSpec(name: 'A', typeParameters: ['T'], aliasedType: 'T'),
+      ],
     );
+    var alias = typeAliasElement('A');
 
     var U = typeParameter('U');
     var type = alias.instantiateImpl(
@@ -600,6 +644,28 @@ class _Base extends AbstractTypeSystemTest {
   void assertType(DartType type, String expected) {
     var typeStr = _typeStr(type);
     expect(typeStr, expected);
+  }
+
+  void buildLibrary({
+    List<ClassSpec> classes = const [],
+    List<TypeAliasSpec> typeAliases = const [],
+  }) {
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core'],
+        classes: classes,
+        typeAliases: typeAliases,
+      ),
+    );
+  }
+
+  ClassElementImpl classElement(String name) {
+    return testLibrary.getClass(name)!;
+  }
+
+  TypeAliasElementImpl typeAliasElement(String name) {
+    return testLibrary.getTypeAlias(name)! as TypeAliasElementImpl;
   }
 
   void _assertSubstitution(

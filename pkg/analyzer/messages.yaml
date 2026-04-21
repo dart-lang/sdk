@@ -1869,6 +1869,13 @@ CompileTimeErrorCode:
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
     hasPublishedDocs: false
+  augmentationOfMixinApplicationClass:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "Mixin application classes can't be augmented."
+    correctionMessage: Try removing the 'augment' keyword, or making the target a normal class.
+    hasPublishedDocs: false
   augmentedExpressionIsNotSetter:
     type: compileTimeError
     parameters: none

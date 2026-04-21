@@ -916,6 +916,8 @@ class CompressedStackMaps : public AllStatic {
 
 class LocalVarDescriptors : public AllStatic {
  public:
+  static word element_offset(intptr_t index);
+  static word InstanceSize(intptr_t length);
   static word InstanceSize();
   FINAL_CLASS();
 };

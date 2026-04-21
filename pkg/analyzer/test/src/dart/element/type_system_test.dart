@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -25,7 +26,9 @@ class IsValidExtensionTypeSuperinterfaceTest extends AbstractTypeSystemTest {
   }
 
   test_interfaceType_extensionType() {
-    var element = extensionType2('A', representationType: intNone);
+    var element = buildExtensionType(
+      const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+    );
     _assertValid(interfaceTypeNone(element));
   }
 
