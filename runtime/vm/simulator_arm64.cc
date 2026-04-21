@@ -4001,6 +4001,55 @@ void Simulator::ExecuteTrace() {
   }
 }
 
+// Verifies that callee-saved registers are preserved across Dart execution.
+// On construction, saves and overwrites callee-saved registers with a known
+// value. On destruction, asserts that the known value is still present and
+// restores the original values.
+class CalleeRegisterVerifier {
+ public:
+  explicit CalleeRegisterVerifier(Simulator* sim)
+      : sim_(sim),
+        callee_saved_value_(
+            bit_cast<int64_t, double>(static_cast<double>(sim->get_icount()))) {
+    for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+      const Register r = static_cast<Register>(i);
+      preserved_cpu_[i - kAbiFirstPreservedCpuReg] = sim->get_register(r);
+      sim->set_register(nullptr, r, callee_saved_value_);
+    }
+    // Only the bottom half of the V registers must be preserved.
+    for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+      const VRegister r = static_cast<VRegister>(i);
+      preserved_fpu_[i - kAbiFirstPreservedFpuReg] = sim->get_vregisterd(r, 0);
+      sim->set_vregisterd(r, 0, callee_saved_value_);
+      sim->set_vregisterd(r, 1, 0);
+    }
+  }
+
+  ~CalleeRegisterVerifier() {
+    for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
+      const Register r = static_cast<Register>(i);
+      ASSERT(callee_saved_value_ == sim_->get_register(r));
+      sim_->set_register(nullptr, r,
+                         preserved_cpu_[i - kAbiFirstPreservedCpuReg]);
+    }
+    for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
+      const VRegister r = static_cast<VRegister>(i);
+      ASSERT(callee_saved_value_ == sim_->get_vregisterd(r, 0));
+      sim_->set_vregisterd(r, 0,
+                           preserved_fpu_[i - kAbiFirstPreservedFpuReg]);
+      sim_->set_vregisterd(r, 1, 0);
+    }
+  }
+
+ private:
+  Simulator* const sim_;
+  const int64_t callee_saved_value_;
+  int64_t preserved_cpu_[kAbiPreservedCpuRegCount];
+  int64_t preserved_fpu_[kAbiPreservedFpuRegCount];
+
+  DISALLOW_COPY_AND_ASSIGN(CalleeRegisterVerifier);
+};
+
 int64_t Simulator::Call(int64_t entry,
                         int64_t parameter0,
                         int64_t parameter1,
@@ -4043,43 +4092,10 @@ int64_t Simulator::Call(int64_t entry,
   // the LR the simulation stops when returning to this call point.
   set_register(nullptr, LR, kEndSimulatingPC);
 
-  // Remember the values of callee-saved registers, and set them up with a
-  // known value so that we are able to check that they are preserved
-  // properly across Dart execution.
-  int64_t preserved_vals[kAbiPreservedCpuRegCount];
-  const double dicount = static_cast<double>(icount_);
-  const int64_t callee_saved_value = bit_cast<int64_t, double>(dicount);
-  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
-    const Register r = static_cast<Register>(i);
-    preserved_vals[i - kAbiFirstPreservedCpuReg] = get_register(r);
-    set_register(nullptr, r, callee_saved_value);
-  }
-
-  // Only the bottom half of the V registers must be preserved.
-  int64_t preserved_dvals[kAbiPreservedFpuRegCount];
-  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
-    const VRegister r = static_cast<VRegister>(i);
-    preserved_dvals[i - kAbiFirstPreservedFpuReg] = get_vregisterd(r, 0);
-    set_vregisterd(r, 0, callee_saved_value);
-    set_vregisterd(r, 1, 0);
-  }
-
-  // Start the simulation.
-  Execute();
-
-  // Check that the callee-saved registers have been preserved,
-  // and restore them with the original value.
-  for (int i = kAbiFirstPreservedCpuReg; i <= kAbiLastPreservedCpuReg; i++) {
-    const Register r = static_cast<Register>(i);
-    ASSERT(callee_saved_value == get_register(r));
-    set_register(nullptr, r, preserved_vals[i - kAbiFirstPreservedCpuReg]);
-  }
-
-  for (int i = kAbiFirstPreservedFpuReg; i <= kAbiLastPreservedFpuReg; i++) {
-    const VRegister r = static_cast<VRegister>(i);
-    ASSERT(callee_saved_value == get_vregisterd(r, 0));
-    set_vregisterd(r, 0, preserved_dvals[i - kAbiFirstPreservedFpuReg]);
-    set_vregisterd(r, 1, 0);
+  {
+    // Verify callee-saved registers are preserved across Dart execution.
+    CalleeRegisterVerifier callee_saved(this);
+    Execute();
   }
 
   // Restore the SP register and return R0.
