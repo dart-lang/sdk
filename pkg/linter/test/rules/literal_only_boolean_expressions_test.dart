@@ -261,10 +261,10 @@ void f(bool p) {
       r'''
 void f() {
   const a = 15;
-  if ('$a'=='20') {}
+  if ('$a' == '20') {}
 }
 ''',
-      [lint(29, 18)],
+      [lint(29, 20)],
     );
   }
 
@@ -272,6 +272,14 @@ void f() {
     await assertNoDiagnostics(r'''
 void f(int a) {
   if ('$a'=='20') {}
+}
+''');
+  }
+
+  test_string_interpolation_typeVariable() async {
+    await assertNoDiagnostics(r'''
+void f<T>() {
+  if ('$T' == '20') {}
 }
 ''');
   }
