@@ -297,6 +297,8 @@ import 'unnecessary_string_interpolations_test.dart'
 import 'unnecessary_this_test.dart' as unnecessary_this;
 import 'unnecessary_to_list_in_spreads_test.dart'
     as unnecessary_to_list_in_spreads;
+import 'unnecessary_type_name_in_constructor_test.dart'
+    as unnecessary_type_name_in_constructor;
 import 'unnecessary_unawaited_test.dart' as unnecessary_unawaited;
 import 'unnecessary_underscores_test.dart' as unnecessary_underscores;
 import 'unreachable_from_main_test.dart' as unreachable_from_main;
@@ -553,6 +555,7 @@ void main() {
   unnecessary_string_interpolations.main();
   unnecessary_this.main();
   unnecessary_to_list_in_spreads.main();
+  unnecessary_type_name_in_constructor.main();
   unnecessary_unawaited.main();
   unnecessary_underscores.main();
   unreachable_from_main.main();

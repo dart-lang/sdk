@@ -231,6 +231,7 @@ import 'remove_returned_value_test.dart' as remove_returned_value;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
+import 'remove_type_name_test.dart' as remove_type_name;
 import 'remove_unawaited_test.dart' as remove_unawaited;
 import 'remove_unexpected_underscores_test.dart'
     as remove_unexpected_underscores;
@@ -526,6 +527,7 @@ void main() {
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();
+    remove_type_name.main();
     remove_unawaited.main();
     remove_unexpected_underscores.main();
     remove_unnecessary_cast.main();
