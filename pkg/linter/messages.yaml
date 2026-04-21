@@ -12433,7 +12433,32 @@ LinterLintCode:
       experimental: "3.6"
       stable: "3.11"
     categories: [style]
-    hasPublishedDocs: false
+    hasPublishedDocs: true
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a local variable is declared
+      using `var` and its type is [non-obvious](https://dart.dev/glossary/obviously-typed).
+
+      Type annotations on local variables improve code readability by making the
+      expected type explicit, helping readers understand the code without analyzing
+      complex initializer expressions.
+
+      #### Example
+
+      The following code produces this diagnostic:
+
+      ```dart
+      var desserts = [!genericFunctionDeclaredFarAway(<num>[42], 'Something')!];
+      ```
+
+      #### Common fixes
+
+      Add an explicit type annotation:
+
+      ```dart
+      List<List<Ingredient>> desserts = genericFunctionDeclaredFarAway(<num>[42], 'Something');
+      ```
     deprecatedDetails: |-
       Do type annotate initialized local variables when
       the type is [non-obvious](https://dart.dev/glossary/obviously-typed).
