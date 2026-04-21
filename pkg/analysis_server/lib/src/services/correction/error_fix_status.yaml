@@ -241,6 +241,8 @@ augmentation_modifier_missing:
   status: needsFix
 augmentation_of_different_declaration_kind:
   status: noFix
+augmentation_of_mixin_application_class:
+  status: needsEvaluation
 augmentation_type_parameter_bound:
   status: noFix
 augmentation_type_parameter_count:

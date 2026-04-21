@@ -8,6 +8,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
 import 'package:meta/meta.dart';
 
 class MockLibraryImportElement implements Element {
@@ -257,6 +258,24 @@ extension FormalParameterElementExtension on FormalParameterElement {
 extension FormalParameterElementImplExtension on FormalParameterElementImpl {
   FormalParameterFragmentImpl get asElement {
     return firstFragment;
+  }
+}
+
+extension FragmentImplExtension on FragmentImpl {
+  DiagnosticMessageImpl? contextMessageAt(String message) {
+    var libraryFragment = this.libraryFragment;
+    var nameOffset = this.nameOffset;
+    var name = this.name;
+    if (libraryFragment != null && nameOffset != null && name != null) {
+      return DiagnosticMessageImpl(
+        filePath: libraryFragment.source.fullName,
+        message: message,
+        offset: nameOffset,
+        length: name.length,
+        url: null,
+      );
+    }
+    return null;
   }
 }
 

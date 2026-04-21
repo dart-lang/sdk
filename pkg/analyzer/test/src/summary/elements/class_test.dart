@@ -26038,6 +26038,70 @@ library
 ''');
   }
 
+  test_augmentation_mixinApplication() async {
+    var library = await buildLibrary(r'''
+mixin M {}
+class C = Object with M;
+augment class C {}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 isMixinApplication class C (nameOffset:17) (firstTokenOffset:11) (offset:17)
+          element: <testLibrary>::@class::C::@def::0
+          constructors
+            #F2 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+              element: <testLibrary>::@class::C::@def::0::@constructor::new
+              typeName: C
+        #F3 isAugmentation class C (nameOffset:50) (firstTokenOffset:36) (offset:50)
+          element: <testLibrary>::@class::C::@def::1
+          constructors
+            #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:50)
+              element: <testLibrary>::@class::C::@def::1::@constructor::new
+              typeName: C
+      mixins
+        #F5 mixin M (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::M
+  classes
+    isMixinApplication isSimplyBounded class C
+      reference: <testLibrary>::@class::C::@def::0
+      firstFragment: #F1
+      supertype: Object
+      mixins
+        M
+      constructors
+        isConst isOriginMixinApplication new
+          reference: <testLibrary>::@class::C::@def::0::@constructor::new
+          firstFragment: #F2
+          constantInitializers
+            SuperConstructorInvocation
+              superKeyword: super @0
+              argumentList: ArgumentList
+                leftParenthesis: ( @0
+                rightParenthesis: ) @0
+              element: dart:core::@class::Object::@constructor::new
+    isSimplyBounded class C
+      reference: <testLibrary>::@class::C::@def::1
+      firstFragment: #F3
+      previousFragmentOfDifferentKind: #F1
+      constructors
+        isOriginImplicitDefault new
+          reference: <testLibrary>::@class::C::@def::1::@constructor::new
+          firstFragment: #F4
+  mixins
+    isSimplyBounded mixin M
+      reference: <testLibrary>::@mixin::M
+      firstFragment: #F5
+      superclassConstraints
+        Object
+''');
+  }
+
   test_augmentationTarget() async {
     newFile('$testPackageLibPath/a1.dart', r'''
 part of 'test.dart';

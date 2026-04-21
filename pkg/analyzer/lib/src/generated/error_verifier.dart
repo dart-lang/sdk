@@ -2018,33 +2018,38 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     if (augmentKeyword != null) {
       if (fragment.previousFragment == null) {
         var element = fragment.element;
-        if (element.previousFragmentOfDifferentKind case var previous?) {
-          diagnosticReporter.report(
-            diag.augmentationOfDifferentDeclarationKind
-                .withArguments(
-                  declarationKind: previous.element.kind.displayName,
-                  augmentationKind: element.kind.displayName,
-                )
-                .withContextMessages([
-                  if (previous case FragmentImpl(
-                    libraryFragment: var libraryFragment?,
-                    name: var name?,
-                    nameOffset: var nameOffset?,
-                  ))
-                    DiagnosticMessageImpl(
-                      filePath: libraryFragment.source.fullName,
-                      message: "The declaration being augmented.",
-                      offset: nameOffset,
-                      length: name.length,
-                      url: null,
+        var previousFragmentOfDifferentKind =
+            element.previousFragmentOfDifferentKind;
+        switch (previousFragmentOfDifferentKind) {
+          case ClassFragmentImpl(isMixinApplication: true):
+            diagnosticReporter.report(
+              diag.augmentationOfMixinApplicationClass
+                  .withContextMessages([
+                    ?previousFragmentOfDifferentKind.contextMessageAt(
+                      "The declaration being augmented.",
                     ),
-                ])
-                .at(augmentKeyword),
-          );
-        } else {
-          diagnosticReporter.report(
-            diag.augmentationWithoutDeclaration.at(augmentKeyword),
-          );
+                  ])
+                  .at(augmentKeyword),
+            );
+          case FragmentImpl previousFragment:
+            var previousElement = previousFragment.element;
+            diagnosticReporter.report(
+              diag.augmentationOfDifferentDeclarationKind
+                  .withArguments(
+                    declarationKind: previousElement.kind.displayName,
+                    augmentationKind: element.kind.displayName,
+                  )
+                  .withContextMessages([
+                    ?previousFragment.contextMessageAt(
+                      "The declaration being augmented.",
+                    ),
+                  ])
+                  .at(augmentKeyword),
+            );
+          case null:
+            diagnosticReporter.report(
+              diag.augmentationWithoutDeclaration.at(augmentKeyword),
+            );
         }
       }
     }

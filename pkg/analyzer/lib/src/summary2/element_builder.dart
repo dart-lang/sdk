@@ -203,7 +203,9 @@ class ElementBuilder {
   ) {
     libraryFragment.addClass(fragment);
 
-    if (fragment.isAugmentation && lastFragment is ClassFragmentImpl) {
+    if (fragment.isAugmentation &&
+        lastFragment is ClassFragmentImpl &&
+        !lastFragment.isMixinApplication) {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
