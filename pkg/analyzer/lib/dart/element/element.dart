@@ -2741,18 +2741,6 @@ abstract class MixinFragment implements InterfaceFragment {
 
   @override
   MixinFragment? get previousFragment;
-
-  /// The superclass constraints defined for this mixin.
-  ///
-  /// If the declaration does not have an `on` clause, then the list will
-  /// contain the type for the class `Object`.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  List<InterfaceType> get superclassConstraints;
 }
 
 /// A pseudo-element that represents multiple elements defined within a single

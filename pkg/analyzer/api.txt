@@ -3987,7 +3987,6 @@ package:analyzer/dart/element/element.dart:
     element (getter: MixinElement)
     nextFragment (getter: MixinFragment?)
     previousFragment (getter: MixinFragment?)
-    superclassConstraints (getter: List<InterfaceType>)
   MultiplyDefinedElement (class extends Object implements Element, abstract):
     new (constructor: MultiplyDefinedElement Function())
     conflictingElements (getter: List<Element>)

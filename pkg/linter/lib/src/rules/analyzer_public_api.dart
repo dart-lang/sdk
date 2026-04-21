@@ -216,8 +216,8 @@ class _Visitor extends SimpleAstVisitor<void> {
             isUsageSiteExperimental: isUsageSiteExperimental,
           );
         }
-        if (fragment case MixinFragment(:var superclassConstraints)) {
-          for (var t in superclassConstraints) {
+        if (fragment case MixinFragment(:var element)) {
+          for (var t in element.superclassConstraints) {
             _checkType(
               t,
               fragment: fragment,
