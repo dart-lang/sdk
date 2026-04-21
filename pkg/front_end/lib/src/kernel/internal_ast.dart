@@ -1333,6 +1333,15 @@ class InternalNamedParameter extends TreeNode
   }
 
   @override
+  List<Expression> get annotations => astVariable.annotations;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void addAnnotation(Expression node) {
+    astVariable.addAnnotation(node);
+  }
+
+  @override
   // Coverage-ignore(suite): Not run.
   String get parameterName => astVariable.parameterName;
 

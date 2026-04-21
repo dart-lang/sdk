@@ -205,7 +205,7 @@ mixin RegularFieldEncodingMixin implements FieldEncoding {
     if (initializer != null) {
       _field!.initializer = initializer..parent = _field;
     }
-    _field!.scope = scopeProviderInfo?.scope;
+    _field!.scope = scopeProviderInfo?.scope?..parent = _field;
   }
 
   @override
@@ -509,7 +509,7 @@ abstract class AbstractLateFieldEncoding implements FieldEncoding {
     }
     _field?.scope =
         // Coverage-ignore(suite): Not run.
-        scopeProviderInfo?.scope;
+        scopeProviderInfo?.scope?..parent = _field;
   }
 
   @override

@@ -200,8 +200,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     this._constructorBuilder,
     this.operations,
     this.typeAnalyzerOptions,
-    super.expressionEvaluationHelper,
-  ) : _contextAllocationStrategy = new LoopDepthAllocationStrategy();
+    super.expressionEvaluationHelper, {
+    required ContextAllocationStrategy contextAllocationStrategy,
+  }) : _contextAllocationStrategy = contextAllocationStrategy;
 
   @override
   ThisVariable get internalThisVariable =>
@@ -539,7 +540,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (scopeProviderInfo != null) {
       // Coverage-ignore-block(suite): Not run.
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return new ExpressionInferenceResult(valueResult.inferredType, node);
   }
@@ -1288,7 +1289,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return statementInferenceResult;
   }
@@ -3575,7 +3576,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.body = body..parent = node;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return const StatementInferenceResult();
   }
@@ -3716,7 +3717,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.for_end();
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return const StatementInferenceResult();
   }
@@ -3787,13 +3788,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ScopeProviderInfo beginFunctionBodyInference(
     List<VariableDeclaration> parameters, {
     required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
-    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
-        .enterScopeProvider(
-          scopeProviderInfoKind: internalThisVariable == null
-              ? ScopeProviderInfoKind.FunctionNode
-              : ScopeProviderInfoKind.FunctionNodeWithThis,
-        );
+    scopeProviderInfo ??= _contextAllocationStrategy.enterScopeProvider(
+      scopeProviderInfoKind: internalThisVariable == null
+          ? ScopeProviderInfoKind.FunctionNode
+          : ScopeProviderInfoKind.FunctionNodeWithThis,
+    );
     if (internalThisVariable != null) {
       _contextAllocationStrategy.handleDeclarationOfVariable(
         internalThisVariable,
@@ -3860,7 +3861,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.function.scope = scopeProviderInfo.scope;
+      node.function.scope = scopeProviderInfo.scope?..parent = node.function;
     }
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -4734,7 +4735,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [element]
       // is desugared into.
-      element.scope = scopeProviderInfo.scope;
+      element.scope = scopeProviderInfo.scope?..parent = element;
     }
     return new ExpressionInferenceResult(bodyResult.inferredType, element);
   }
@@ -7912,7 +7913,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [entry]
       // is desugared into.
-      entry.scope = scopeProviderInfo.scope;
+      entry.scope = scopeProviderInfo.scope?..parent = entry;
     }
     return entry;
   }
@@ -13624,7 +13625,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
   }
 
@@ -13843,7 +13844,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.whileStatement_end();
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope =
+          scopeProviderInfo
+              .scope // Coverage-ignore(suite): Not run.
+            ?..parent = node;
     }
     return const StatementInferenceResult();
   }
