@@ -6,6 +6,7 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
@@ -47,20 +48,18 @@ class ParameterAssignments extends AnalysisRule {
 }
 
 class _DeclarationVisitor extends RecursiveAstVisitor<void> {
-  final FormalParameter parameter;
+  final FormalParameter _parameter;
   final AnalysisRule rule;
-  final bool paramIsNotNullByDefault;
-  final bool paramDefaultsToNull;
+
   bool hasBeenAssigned = false;
 
-  _DeclarationVisitor(
-    this.parameter,
-    this.rule, {
-    required this.paramIsNotNullByDefault,
-    required this.paramDefaultsToNull,
-  });
+  _DeclarationVisitor(this._parameter, this.rule);
 
-  Element? get parameterElement => parameter.declaredFragment?.element;
+  Element? get parameterElement => _parameter.declaredFragment?.element;
+
+  /// Whether the default value of [_parameter] is `null`.
+  bool get _defaultValueIsNull =>
+      _parameter.isOptional && _parameter.defaultClause == null;
 
   void checkPatternElements(DartPattern node) {
     NodeList<PatternField>? fields;
@@ -89,27 +88,25 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
   }
 
   void reportLint(AstNode node) {
-    rule.reportAtNode(node, arguments: [parameter.name!.lexeme]);
+    rule.reportAtNode(node, arguments: [_parameter.name!.lexeme]);
   }
 
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
-    if (!_isFormalParameterReassigned(parameter, node)) return;
+    if (!_isFormalParameterReassigned(_parameter, node)) return;
 
-    if (paramIsNotNullByDefault) {
+    if (!_defaultValueIsNull) {
       reportLint(node);
       return;
     }
 
-    if (paramDefaultsToNull) {
-      if (node.operator.type.lexeme == '??=') {
-        if (hasBeenAssigned) {
-          reportLint(node);
-        }
-        hasBeenAssigned = true;
-      } else {
+    if (node.operator.type == TokenType.QUESTION_QUESTION_EQ) {
+      if (hasBeenAssigned) {
         reportLint(node);
       }
+      hasBeenAssigned = true;
+    } else {
+      reportLint(node);
     }
 
     super.visitAssignmentExpression(node);
@@ -124,10 +121,14 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   visitPostfixExpression(PostfixExpression node) {
-    if (paramIsNotNullByDefault) {
-      var operand = node.operand;
-      if (operand is SimpleIdentifier && operand.element == parameterElement) {
-        reportLint(node);
+    if (!_defaultValueIsNull) {
+      if (node.operator.type == TokenType.PLUS_PLUS ||
+          node.operator.type == TokenType.MINUS_MINUS) {
+        var operand = node.operand;
+        if (operand is SimpleIdentifier &&
+            operand.element == parameterElement) {
+          reportLint(node);
+        }
       }
     }
 
@@ -136,10 +137,14 @@ class _DeclarationVisitor extends RecursiveAstVisitor<void> {
 
   @override
   visitPrefixExpression(PrefixExpression node) {
-    if (paramIsNotNullByDefault) {
-      var operand = node.operand;
-      if (operand is SimpleIdentifier && operand.element == parameterElement) {
-        reportLint(node);
+    if (!_defaultValueIsNull) {
+      if (node.operator.type == TokenType.PLUS_PLUS ||
+          node.operator.type == TokenType.MINUS_MINUS) {
+        var operand = node.operand;
+        if (operand is SimpleIdentifier &&
+            operand.element == parameterElement) {
+          reportLint(node);
+        }
       }
     }
 
@@ -192,20 +197,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var declaredElement = parameter.declaredFragment?.element;
       if (declaredElement != null &&
           body.isPotentiallyMutatedInScope(declaredElement)) {
-        var paramDefaultsToNull =
-            parameter.isOptional && parameter.defaultClause == null;
-        var paramIsNotNullByDefault =
-            parameter.isRequiredPositional || parameter.defaultClause != null;
-        if (paramDefaultsToNull || paramIsNotNullByDefault) {
-          body.accept(
-            _DeclarationVisitor(
-              parameter,
-              rule,
-              paramDefaultsToNull: paramDefaultsToNull,
-              paramIsNotNullByDefault: paramIsNotNullByDefault,
-            ),
-          );
-        }
+        body.accept(_DeclarationVisitor(parameter, rule));
       }
     }
   }

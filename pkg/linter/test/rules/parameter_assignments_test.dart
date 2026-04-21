@@ -55,6 +55,18 @@ void main() {
     );
   }
 
+  test_assignment_followedByNotOperator() async {
+    await assertDiagnostics(
+      r'''
+void f(bool p) {
+  p = true;
+  if (!p || p) {}
+}
+''',
+      [lint(19, 8)],
+    );
+  }
+
   test_assignment_inIfElseBranches() async {
     await assertDiagnostics(
       r'''
