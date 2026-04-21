@@ -1416,6 +1416,10 @@ class Capture {
   /// The captured [VariableDeclaration] or [TypeParameter].
   final TreeNode variable;
 
+  /// Whether the variable was captured in the initializer (if constructor
+  /// parameter).
+  final bool isInInitializer;
+
   late final Context context;
 
   /// The index of the captured variable or type parameter in its context
@@ -1429,7 +1433,7 @@ class Capture {
   /// context.
   bool written = false;
 
-  Capture(this.variable) {
+  Capture(this.variable, this.isInInitializer) {
     assert(variable is VariableDeclaration || variable is TypeParameter);
   }
 
@@ -1503,12 +1507,20 @@ class Closures {
     final member = _member;
     final find = _CaptureFinder(this, member);
     if (member is Constructor) {
+      find.isInInitializer = true;
       Class cls = member.enclosingClass;
       for (Field field in cls.fields) {
         if (field.isInstanceMember && field.initializer != null) {
           field.initializer!.accept(find);
         }
       }
+      for (final init in member.initializers) {
+        init.accept(find);
+      }
+      find.isInInitializer = false;
+
+      member.function.body?.accept(find);
+      return;
     }
     member.accept(find);
   }
@@ -1581,6 +1593,8 @@ class _CaptureFinder extends RecursiveVisitor {
   final Closures closures;
   final Member member;
 
+  bool isInInitializer = false;
+
   // Stores the depth of captured type parameters and variables. The [TreeNode]
   // key must be either a [VariableDeclaration] or a [TypeParameter].
   final Map<TreeNode, int> variableDepth = {};
@@ -1604,6 +1618,7 @@ class _CaptureFinder extends RecursiveVisitor {
   @override
   void visitFunctionNode(FunctionNode node) {
     assert(depth == 0); // Nested function nodes are skipped by [_visitLambda].
+    assert(member.function == node);
     functionIsSyncStarOrAsync[0] =
         node.asyncMarker == AsyncMarker.SyncStar ||
         node.asyncMarker == AsyncMarker.Async;
@@ -1647,7 +1662,10 @@ class _CaptureFinder extends RecursiveVisitor {
     int declDepth = variableDepth[variable] ?? 0;
     assert(declDepth <= depth);
     if (declDepth < depth || functionIsSyncStarOrAsync[declDepth]) {
-      final capture = closures.captures[variable] ??= Capture(variable);
+      final capture = closures.captures[variable] ??= Capture(
+        variable,
+        isInInitializer,
+      );
       if (functionIsSyncStarOrAsync[declDepth]) capture.written = true;
     } else if (variable is VariableDeclaration &&
         variable.parent is FunctionDeclaration) {
@@ -1703,15 +1721,18 @@ class _CaptureFinder extends RecursiveVisitor {
     bool classTypeParameter =
         node.parameter.declaration == member.enclosingClass;
 
-    if (classTypeParameter && member is Constructor) {
-      // Type parameters can be captured by lambdas inside the initializer
-      // list, which does not have access to `this` as the object has not been
-      // allocated yet. Therefore, these captured type parameters must be
-      // added to the context instead.
-      _visitVariableUse(node.parameter);
-    } else if (classTypeParameter) {
-      _visitThis();
-    } else if (node.parameter.declaration is GenericFunction) {
+    if (classTypeParameter) {
+      if (member is Constructor && isInInitializer) {
+        // Type parameters can be captured by lambdas inside the initializer
+        // list, which does not have access to `this` as the object has not been
+        // allocated yet. Therefore, these captured type parameters must be
+        // added to the context instead.
+        _visitVariableUse(node.parameter);
+      } else {
+        _visitThis();
+      }
+    } else {
+      assert(node.parameter.declaration is GenericFunction);
       _visitVariableUse(node.parameter);
     }
     super.visitTypeParameterType(node);
@@ -1774,6 +1795,7 @@ class _ContextCollector extends RecursiveVisitor {
   final Closures closures;
   Context? currentContext;
   final bool enableAsserts;
+  bool isInInitializer = false;
 
   _ContextCollector(this.closures, this.enableAsserts);
 
@@ -1792,7 +1814,9 @@ class _ContextCollector extends RecursiveVisitor {
   }
 
   void _newContext(TreeNode node) {
-    bool outerMost = currentContext == null;
+    bool outerMost =
+        currentContext == null ||
+        node.parent is Constructor && !isInInitializer;
     Context? oldContext = currentContext;
     Context? parent = currentContext;
     while (parent != null && parent.isEmpty) {
@@ -1810,9 +1834,11 @@ class _ContextCollector extends RecursiveVisitor {
     // Constructors should always be the outermost context.
     assert(currentContext == null);
 
+    isInInitializer = true;
+
     // Create constructor context.
-    final Context constructorAllocatorContext = Context(node, null, false);
-    currentContext = constructorAllocatorContext;
+    final Context constructorContext = Context(node, null, false);
+    currentContext = constructorContext;
 
     // Visit the class's type parameters so that captured type parameters can
     // be added to the context. Initializer lists don't have access to `this`,
@@ -1832,63 +1858,13 @@ class _ContextCollector extends RecursiveVisitor {
     // context.
     visitList(node.initializers, this);
 
-    // If no type parameters, arguments, or `this` are captured by the
-    // constructor body, we do not need to allocate a context for the
-    // constructor or constructor body. If parameters are captured, we want
-    // the constructor context to contain these, so that they can be shared
-    // between the constructor initializer and body functions. If `this` is
-    // captured, we want the constructor body function context to contain it.
+    isInInitializer = false;
 
-    if (!constructorAllocatorContext.isEmpty) {
-      // Some type arguments or variables have been captured by the
-      // initializer list.
-
-      if (closures._isThisCaptured) {
-        // In this case, we need two contexts: a constructor context to store
-        // the captured arguments/type parameters (shared by the initializer
-        // and constructor body, and a separate context just for the
-        // constructor body to store the captured `this`, as initializer lists
-        // cannot have access to `this`.
-        assert(!constructorAllocatorContext.containsThis);
-        final constructorBodyContext = Context(
-          node.function,
-          constructorAllocatorContext,
-          true,
-        );
-
-        closures.contexts[node.function] = constructorBodyContext;
-        closures.contexts[node] = constructorAllocatorContext;
-
-        currentContext = constructorBodyContext;
-      } else {
-        // We only need the constructor context, so contexts in the constructor
-        // body can have this as parent.
-        closures.contexts[node] = constructorAllocatorContext;
-      }
-
-      node.function.body?.accept(this);
-    } else {
-      // We may only need a context for the constructor body function, as no
-      // parameters have been captured by the initializer list, and we only
-      // need the body context if the body captures parameters, or contains
-      // `this`. We must create a new context with the correct owner
-      // (node.function) for debugging purposes, and drop the
-      // constructor allocator context as it is not used.
-      final Context constructorBodyContext = Context(
-        node.function,
-        null,
-        closures._isThisCaptured,
-      );
-      currentContext = constructorBodyContext;
-
-      node.function.body?.accept(this);
-
-      if (!constructorBodyContext.isEmpty) {
-        // We only allocate the context if it is not empty.
-        closures.contexts[node.function] = constructorBodyContext;
-      }
+    if (!constructorContext.isEmpty) {
+      closures.contexts[node] = constructorContext;
+      currentContext = constructorContext;
     }
-
+    _newContext(node.function);
     currentContext = null;
   }
 
@@ -1916,8 +1892,10 @@ class _ContextCollector extends RecursiveVisitor {
   void visitVariableDeclaration(VariableDeclaration node) {
     Capture? capture = closures.captures[node];
     if (capture != null) {
-      currentContext!.variables.add(node);
-      capture.context = currentContext!;
+      if (isInInitializer == capture.isInInitializer) {
+        currentContext!.variables.add(node);
+        capture.context = currentContext!;
+      }
     }
     super.visitVariableDeclaration(node);
   }
@@ -1926,8 +1904,10 @@ class _ContextCollector extends RecursiveVisitor {
   void visitTypeParameter(TypeParameter node) {
     Capture? capture = closures.captures[node];
     if (capture != null) {
-      currentContext!.typeParameters.add(node);
-      capture.context = currentContext!;
+      if (isInInitializer == capture.isInInitializer) {
+        currentContext!.typeParameters.add(node);
+        capture.context = currentContext!;
+      }
     }
     super.visitTypeParameter(node);
   }
