@@ -2593,7 +2593,7 @@ class OutlineBuilder extends StackListenerImpl {
         /* method body kind */ ValueKinds.MethodBody,
       ]),
     );
-    pop() as Token; // Method body token
+    Token bodyToken = pop() as Token;
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -2658,13 +2658,24 @@ class OutlineBuilder extends StackListenerImpl {
       modifiers |= Modifiers.External;
     }
 
-    bool isConst = modifiers.isConst;
-
-    if (isConst &&
-        bodyKind != MethodBody.Abstract &&
-        !libraryFeatures.constFunctions.isEnabled) {
-      addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
+    if (modifiers.isConst) {
+      if (bodyKind != MethodBody.Abstract &&
+          !libraryFeatures.constFunctions.isEnabled) {
+        addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
+      }
+    } else if (kind == DeclarationKind.Enum &&
+        libraryFeatures.primaryConstructors.isEnabled) {
+      modifiers |= Modifiers.Const;
+      if (bodyKind != MethodBody.Abstract &&
+          !libraryFeatures.constFunctions.isEnabled) {
+        addProblem(
+          diag.implicitlyConstEnumConstructorWithBody,
+          bodyToken.charOffset,
+          noLength,
+        );
+      }
     }
+
     if (returnType != null) {
       addProblem(
         diag.constructorWithReturnType,

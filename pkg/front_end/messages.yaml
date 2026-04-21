@@ -1113,6 +1113,15 @@ constConstructorWithBody:
   script:
     - "class C { const C() {} }"
 
+implicitlyConstEnumConstructorWithBody:
+  parameters: none
+  problemMessage: "A generative enum constructor can't have a body."
+  correctionMessage: "Try removing the constructor body."
+  experiments: primary-constructors
+  script:
+    - "enum E { a ; new() {} }"
+  exampleAllowOtherCodes: true # TODO(johnniwinther): Avoid cascading error in constant evaluator.
+
 externalFieldInitializer:
   parameters: none
   problemMessage: "External fields cannot have initializers."
