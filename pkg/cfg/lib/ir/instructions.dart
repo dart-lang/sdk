@@ -1748,16 +1748,14 @@ abstract base class MoveOp {}
 /// that `instr.stage.index < instr.next.stage.index`.
 enum ParallelMoveStage {
   // Move fixed output of the instruction to its desired location.
+  // Moves which split live ranges between instructions.
+  // Also control flow moves at the beginning of basic block.
   output,
   // Spill output of the instruction.
   spill,
-  // Split live ranges between instructions.
-  split,
-  // Split live ranges at the next instruction.
-  splitLate,
-  // Moves at control flow edges (including phi moves).
-  control,
   // Move instruction inputs to their fixed locations.
+  // Moves which split live ranges at the next instructions.
+  // Also control flow moves at the end of basic block.
   input,
 }
 
