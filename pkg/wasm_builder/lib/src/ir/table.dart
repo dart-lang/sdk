@@ -18,8 +18,13 @@ class Table with Indexable, Exportable implements Serializable {
   @override
   final Module enclosingModule;
 
-  Table(this.enclosingModule, this.finalizableIndex, this.type, this.minSize,
-      this.maxSize);
+  Table(
+    this.enclosingModule,
+    this.finalizableIndex,
+    this.type,
+    this.minSize,
+    this.maxSize,
+  );
 
   @override
   void serialize(Serializer s) {
@@ -41,8 +46,13 @@ class Table with Indexable, Exportable implements Serializable {
 
 /// A table defined in a module.
 class DefinedTable extends Table {
-  DefinedTable(super.enclosingModule, super.finalizableIndex, super.type,
-      super.minSize, super.maxSize);
+  DefinedTable(
+    super.enclosingModule,
+    super.finalizableIndex,
+    super.type,
+    super.minSize,
+    super.maxSize,
+  );
 
   void printTo(IrPrinter p) {
     p.write('(table ');
@@ -72,8 +82,15 @@ class ImportedTable extends Table implements Import {
   @override
   final String name;
 
-  ImportedTable(super.enclosingModule, this.module, this.name,
-      super.finalizableIndex, super.type, super.minSize, super.maxSize);
+  ImportedTable(
+    super.enclosingModule,
+    this.module,
+    this.name,
+    super.finalizableIndex,
+    super.type,
+    super.minSize,
+    super.maxSize,
+  );
 
   @override
   void serialize(Serializer s) {

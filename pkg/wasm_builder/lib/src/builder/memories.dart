@@ -17,16 +17,33 @@ class MemoriesBuilder with Builder<ir.Memories> {
   /// Add a new memory to the module.
   ir.DefinedMemory define(bool shared, int minSize, [int? maxSize]) {
     final memory = ir.DefinedMemory(
-        _module, ir.FinalizableIndex(), shared, minSize, maxSize);
+      _module,
+      ir.FinalizableIndex(),
+      shared,
+      minSize,
+      maxSize,
+    );
     _definedMemories.add(memory);
     return memory;
   }
 
   /// Imports a memory into this module.
-  ir.ImportedMemory import(String module, String name, bool shared, int minSize,
-      [int? maxSize]) {
+  ir.ImportedMemory import(
+    String module,
+    String name,
+    bool shared,
+    int minSize, [
+    int? maxSize,
+  ]) {
     final memory = ir.ImportedMemory(
-        _module, module, name, ir.FinalizableIndex(), shared, minSize, maxSize);
+      _module,
+      module,
+      name,
+      ir.FinalizableIndex(),
+      shared,
+      minSize,
+      maxSize,
+    );
     _importedMemories.add(memory);
     return memory;
   }

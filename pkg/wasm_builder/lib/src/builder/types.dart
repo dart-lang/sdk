@@ -49,7 +49,8 @@ ir.StructType _getBrandType(int index) {
     final useMutable = index & 1 == 1;
     final digitIndex = (index >> 1) % numDigits;
     fields.add(
-        ir.FieldType(_brandTypeFieldValues[digitIndex], mutable: useMutable));
+      ir.FieldType(_brandTypeFieldValues[digitIndex], mutable: useMutable),
+    );
     index = index ~/ (numDigits * 2);
   }
   return ir.StructType(brandName, fields: fields);
@@ -103,7 +104,9 @@ class _RecGroupBuilder {
   ///
   /// Assumes both groups are the same size.
   static bool _areGroupsStructurallyEqual(
-      List<ir.DefType> group1, List<ir.DefType> group2) {
+    List<ir.DefType> group1,
+    List<ir.DefType> group2,
+  ) {
     for (int i = 0; i < group1.length; i++) {
       final type1 = group1[i];
       final type2 = group2[i];
@@ -135,8 +138,11 @@ class _RecGroupBuilder {
       // Skip groups with no struct types.
       if (structIndex == -1) continue;
       final structType = group[structIndex] as ir.StructType;
-      final key =
-          _RecursionGroupKey(group.length, structType.fields.length, group);
+      final key = _RecursionGroupKey(
+        group.length,
+        structType.fields.length,
+        group,
+      );
       equivalenceGroups.putIfAbsent(key, () => []).add(group);
     }
 
@@ -208,7 +214,8 @@ class _RecGroupBuilder {
   /// The returned list includes all rec groups that contain a directly or
   /// indirectly used type.
   List<List<ir.DefType>> createGroupsForModule(
-      Set<ir.DefType> directlyUsedTypes) {
+    Set<ir.DefType> directlyUsedTypes,
+  ) {
     final allUsedTypes = {...directlyUsedTypes};
 
     void addUsedType(ir.DefType type) {
@@ -240,7 +247,7 @@ class TypesBuilder with Builder<ir.Types> {
   final _RecGroupBuilder _recGroupBuilder;
 
   TypesBuilder(this._module, {TypesBuilder? parent})
-      : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
+    : _recGroupBuilder = parent?._recGroupBuilder ?? _RecGroupBuilder();
 
   Map<ir.DefType, int> get brandTypeAssignments =>
       _recGroupBuilder._brandTypeAssignments;
@@ -258,8 +265,10 @@ class TypesBuilder with Builder<ir.Types> {
   /// This means that recursive function types (without any non-function types
   /// on the recursion path) are not supported.
   ir.FunctionType defineFunction(
-      Iterable<ir.ValueType> inputs, Iterable<ir.ValueType> outputs,
-      {ir.DefType? superType}) {
+    Iterable<ir.ValueType> inputs,
+    Iterable<ir.ValueType> outputs, {
+    ir.DefType? superType,
+  }) {
     final List<ir.ValueType> inputList = List.unmodifiable(inputs);
     final List<ir.ValueType> outputList = List.unmodifiable(outputs);
     final _FunctionTypeKey key = _FunctionTypeKey(inputList, outputList);
@@ -274,8 +283,11 @@ class TypesBuilder with Builder<ir.Types> {
   ///
   /// Fields can be added later, by adding to the [fields] list. This enables
   /// struct types to be recursive.
-  ir.StructType defineStruct(String name,
-      {Iterable<ir.FieldType>? fields, ir.DefType? superType}) {
+  ir.StructType defineStruct(
+    String name, {
+    Iterable<ir.FieldType>? fields,
+    ir.DefType? superType,
+  }) {
     final type = ir.StructType(name, fields: fields, superType: superType);
     _recGroupBuilder.addDefinedType(type);
     return type;
@@ -285,10 +297,16 @@ class TypesBuilder with Builder<ir.Types> {
   ///
   /// The element type can be specified later. This enables array types to be
   /// recursive.
-  ir.ArrayType defineArray(String name,
-      {ir.FieldType? elementType, ir.DefType? superType}) {
-    final type =
-        ir.ArrayType(name, elementType: elementType, superType: superType);
+  ir.ArrayType defineArray(
+    String name, {
+    ir.FieldType? elementType,
+    ir.DefType? superType,
+  }) {
+    final type = ir.ArrayType(
+      name,
+      elementType: elementType,
+      superType: superType,
+    );
     _recGroupBuilder.addDefinedType(type);
     return type;
   }

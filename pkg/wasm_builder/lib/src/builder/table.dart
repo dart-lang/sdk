@@ -9,11 +9,20 @@ import 'builder.dart';
 class TableBuilder extends ir.Table with IndexableBuilder<ir.DefinedTable> {
   final ModuleBuilder moduleBuilder;
 
-  TableBuilder(this.moduleBuilder, ir.FinalizableIndex index, ir.RefType type,
-      int minSize, int? maxSize)
-      : super(moduleBuilder.module, index, type, minSize, maxSize);
+  TableBuilder(
+    this.moduleBuilder,
+    ir.FinalizableIndex index,
+    ir.RefType type,
+    int minSize,
+    int? maxSize,
+  ) : super(moduleBuilder.module, index, type, minSize, maxSize);
 
   @override
   ir.DefinedTable forceBuild() => ir.DefinedTable(
-      enclosingModule, finalizableIndex, type, minSize, maxSize);
+    enclosingModule,
+    finalizableIndex,
+    type,
+    minSize,
+    maxSize,
+  );
 }

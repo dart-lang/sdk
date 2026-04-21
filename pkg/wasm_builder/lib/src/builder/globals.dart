@@ -27,8 +27,12 @@ class GlobalsBuilder with Builder<ir.Globals> {
 
   /// Defines a new global variable in this module.
   GlobalBuilder define(ir.GlobalType type, [String? name]) {
-    final global =
-        GlobalBuilder(_moduleBuilder, ir.FinalizableIndex(), type, name);
+    final global = GlobalBuilder(
+      _moduleBuilder,
+      ir.FinalizableIndex(),
+      type,
+      name,
+    );
     _globalBuilders.add(global);
     return global;
   }
@@ -36,7 +40,12 @@ class GlobalsBuilder with Builder<ir.Globals> {
   /// Imports a global variable into this module.
   ir.ImportedGlobal import(String module, String name, ir.GlobalType type) {
     final global = ir.ImportedGlobal(
-        _moduleBuilder.module, module, name, ir.FinalizableIndex(), type);
+      _moduleBuilder.module,
+      module,
+      name,
+      ir.FinalizableIndex(),
+      type,
+    );
     _importedGlobals.add(global);
     return global;
   }
@@ -62,8 +71,10 @@ class GlobalsBuilder with Builder<ir.Globals> {
       dfs(g);
     }
 
-    final built =
-        finalizeImportsAndBuilders<ir.DefinedGlobal>(_importedGlobals, order);
+    final built = finalizeImportsAndBuilders<ir.DefinedGlobal>(
+      _importedGlobals,
+      order,
+    );
     return ir.Globals(_importedGlobals, built);
   }
 }

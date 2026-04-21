@@ -13,8 +13,11 @@ class DataSegmentBuilder extends ir.BaseDataSegment
   final BytesBuilder content;
 
   DataSegmentBuilder(
-      super.index, Uint8List initialContent, super.memory, super.offset)
-      : content = BytesBuilder()..add(initialContent);
+    super.index,
+    Uint8List initialContent,
+    super.memory,
+    super.offset,
+  ) : content = BytesBuilder()..add(initialContent);
 
   bool get isActive => memory != null;
   bool get isPassive => memory == null;
@@ -24,8 +27,9 @@ class DataSegmentBuilder extends ir.BaseDataSegment
   /// Append content to the data segment.
   void append(Uint8List data) {
     content.add(data);
-    assert(isPassive ||
-        offset! >= 0 && offset! + content.length <= memory!.minSize);
+    assert(
+      isPassive || offset! >= 0 && offset! + content.length <= memory!.minSize,
+    );
   }
 
   @override
