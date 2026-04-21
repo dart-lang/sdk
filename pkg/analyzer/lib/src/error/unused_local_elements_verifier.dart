@@ -42,9 +42,7 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitAssignmentExpression(AssignmentExpression node) {
     var element = node.element;
-    if (element != null) {
-      usedElements.members.add(element);
-    }
+    usedElements.addMember(element);
     super.visitAssignmentExpression(node);
   }
 
