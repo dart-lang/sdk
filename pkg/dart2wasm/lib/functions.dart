@@ -519,15 +519,6 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
 
   @override
   w.FunctionType visitConstructor(Constructor node, Reference target) {
-    // Get this constructor's argument types
-    List<w.ValueType> arguments = _getInputTypes(
-      translator,
-      target,
-      null,
-      false,
-      translator.translateType,
-    );
-
     // We need the contexts of the constructor before generating the initializer
     // and constructor body functions, as these functions will return/take a
     // context argument if context must be shared between them. Generate the
@@ -537,141 +528,167 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
     );
 
     if (target.isInitializerReference) {
-      return _getInitializerType(node, target, arguments);
+      return _getInitializerType(node, target);
     }
 
     if (target.isConstructorBodyReference) {
-      return _getConstructorBodyType(node, arguments);
+      return _getConstructorBodyType(node);
     }
 
-    return _getConstructorAllocatorType(node, arguments);
+    return _getConstructorAllocatorType(node);
   }
 
-  w.FunctionType _getConstructorAllocatorType(
-    Constructor node,
-    List<w.ValueType> arguments,
-  ) {
-    return translator.typesBuilder.defineFunction(arguments, [
+  w.FunctionType _getConstructorAllocatorType(Constructor node) {
+    final constructorInfo = translator.getConstructorInfo(node);
+    List<w.ValueType> inputs = _getConstructorInputTypes(
+      translator,
+      node,
+      node.enclosingClass.typeParameters,
+      constructorInfo.allParameters,
+      translator.translateType,
+    );
+    return translator.typesBuilder.defineFunction(inputs, [
       translator.classInfo[node.enclosingClass]!.nonNullableType.unpacked,
     ]);
   }
 
-  w.FunctionType _getInitializerType(
-    Constructor node,
-    Reference target,
-    List<w.ValueType> arguments,
-  ) {
-    final ClassInfo info = translator.classInfo[node.enclosingClass]!;
+  w.FunctionType _getInitializerType(Constructor node, Reference target) {
+    final info = translator.classInfo[node.enclosingClass]!;
     assert(translator.constructorClosures.containsKey(node.reference));
-    Closures closures = translator.constructorClosures[node.reference]!;
 
-    List<w.ValueType> superOrRedirectedInitializerArgs = [];
+    final constructorInfo = translator.getConstructorInfo(node);
+    final inputs = _getConstructorInputTypes(
+      translator,
+      node,
+      constructorInfo.initializerTypeParameters,
+      constructorInfo.initializerParameters,
+      translator.translateType,
+    );
 
-    for (Initializer initializer in node.initializers) {
-      if (initializer is SuperInitializer) {
-        Supertype? supersupertype = initializer.target.enclosingClass.supertype;
-
-        if (supersupertype != null) {
-          ClassInfo superInfo = info.superInfo!;
-          w.FunctionType superInitializer = translator.signatureForDirectCall(
-            initializer.target.initializerReference,
+    final outputs = <w.ValueType>[];
+    final closures = translator.constructorClosures[node.reference]!;
+    // Redirecting constructors don't have a real body and don't need the
+    // context in the body.
+    final isRedirectInitializer =
+        node.initializers.lastOrNull is RedirectingInitializer;
+    if (!isRedirectInitializer) {
+      if (closures.contexts[node] case var context?) {
+        assert(!context.isEmpty);
+        outputs.add(const w.RefType.struct(nullable: true));
+      }
+    }
+    outputs.addAll(
+      _getConstructorInputTypes(
+        translator,
+        node,
+        const [],
+        constructorInfo.bodyParameters,
+        translator.translateType,
+      ),
+    );
+    for (final initializer in node.initializers) {
+      if (initializer is SuperInitializer ||
+          initializer is RedirectingInitializer) {
+        final target = initializer is SuperInitializer
+            ? initializer.target
+            : (initializer as RedirectingInitializer).target;
+        if (target.enclosingClass.supertype != null) {
+          final targetInfo = translator.classInfo[target.enclosingClass]!;
+          final targetOutputs = translator
+              .signatureForDirectCall(target.initializerReference)
+              .outputs;
+          outputs.addAll(
+            targetOutputs.sublist(
+              0,
+              targetOutputs.length - targetInfo.getClassFieldTypes().length,
+            ),
           );
-
-          final int numSuperclassFields = superInfo.getClassFieldTypes().length;
-          final int numSuperContextAndConstructorArgs =
-              superInitializer.outputs.length - numSuperclassFields;
-
-          // get types of super initializer outputs, ignoring the superclass
-          // fields
-          superOrRedirectedInitializerArgs = superInitializer.outputs.sublist(
-            0,
-            numSuperContextAndConstructorArgs,
-          );
-        }
-      } else if (initializer is RedirectingInitializer) {
-        Supertype? supersupertype = initializer.target.enclosingClass.supertype;
-
-        if (supersupertype != null) {
-          w.FunctionType redirectedInitializer = translator
-              .signatureForDirectCall(initializer.target.initializerReference);
-
-          final int numClassFields = info.getClassFieldTypes().length;
-          final int numRedirectedContextAndConstructorArgs =
-              redirectedInitializer.outputs.length - numClassFields;
-
-          // get types of redirecting initializer outputs, ignoring the class
-          // fields
-          superOrRedirectedInitializerArgs = redirectedInitializer.outputs
-              .sublist(0, numRedirectedContextAndConstructorArgs);
+          break;
         }
       }
     }
 
-    // Get this classes's field types
-    final List<w.ValueType> fieldTypes = info.getClassFieldTypes();
+    outputs.addAll(info.getClassFieldTypes());
 
-    // Add nullable context reference for when the constructor has a non-empty
-    // context
-    Context? context = closures.contexts[node];
-    w.ValueType? contextRef;
-
-    if (context != null) {
-      assert(!context.isEmpty);
-      contextRef = w.RefType.struct(nullable: true);
-    }
-
-    final List<w.ValueType> outputs =
-        superOrRedirectedInitializerArgs +
-        arguments.reversed.toList() +
-        (contextRef != null ? [contextRef] : []) +
-        fieldTypes;
-
-    return translator.typesBuilder.defineFunction(arguments, outputs);
+    return translator.typesBuilder.defineFunction(inputs, outputs);
   }
 
-  w.FunctionType _getConstructorBodyType(
-    Constructor node,
-    List<w.ValueType> arguments,
-  ) {
+  w.FunctionType _getConstructorBodyType(Constructor node) {
     assert(translator.constructorClosures.containsKey(node.reference));
-    Closures closures = translator.constructorClosures[node.reference]!;
-    Context? context = closures.contexts[node];
 
-    List<w.ValueType> inputs = [
+    final inputs = <w.ValueType>[
       translator.classInfo[node.enclosingClass]!.nonNullableType.unpacked,
     ];
 
-    if (context != null) {
-      assert(!context.isEmpty);
-      // Nullable context reference for when the constructor has a non-empty
-      // context
-      w.ValueType contextRef = w.RefType.struct(nullable: true);
-      inputs.add(contextRef);
+    final closures = translator.constructorClosures[node.reference]!;
+    // Redirecting constructors don't have a real body and don't need the
+    // context in the body.
+    final isRedirectInitializer =
+        node.initializers.lastOrNull is RedirectingInitializer;
+    if (!isRedirectInitializer) {
+      if (closures.contexts[node] case var context?) {
+        assert(!context.isEmpty);
+        inputs.add(w.RefType.struct(nullable: true));
+      }
     }
 
-    inputs += arguments;
+    final constructorInfo = translator.getConstructorInfo(node);
+    inputs.addAll(
+      _getConstructorInputTypes(
+        translator,
+        node,
+        const [],
+        constructorInfo.bodyParameters,
+        translator.translateType,
+      ),
+    );
 
-    for (Initializer initializer in node.initializers) {
+    for (final initializer in node.initializers) {
       if (initializer is SuperInitializer ||
           initializer is RedirectingInitializer) {
-        Constructor target = initializer is SuperInitializer
+        final target = initializer is SuperInitializer
             ? initializer.target
             : (initializer as RedirectingInitializer).target;
-
-        Supertype? supersupertype = target.enclosingClass.supertype;
-
-        if (supersupertype != null) {
-          w.FunctionType superOrRedirectedConstructorBodyType = translator
-              .signatureForDirectCall(target.constructorBodyReference);
-
+        if (target.enclosingClass.supertype != null) {
+          final targetBodyType = translator.signatureForDirectCall(
+            target.constructorBodyReference,
+          );
           // drop receiver param
-          inputs += superOrRedirectedConstructorBodyType.inputs.sublist(1);
+          inputs.addAll(targetBodyType.inputs.sublist(1));
         }
       }
     }
 
     return translator.typesBuilder.defineFunction(inputs, []);
   }
+}
+
+List<w.ValueType> _getConstructorInputTypes(
+  Translator translator,
+  Constructor member,
+  List<TypeParameter> typeParameters,
+  List<VariableDeclaration> parameters,
+  w.ValueType Function(DartType) translateType,
+) {
+  final List<w.ValueType> inputs = [];
+
+  final List<w.ValueType> wasmTypeParameters = List.filled(
+    typeParameters.length,
+    translateType(InterfaceType(translator.typeClass, Nullability.nonNullable)),
+  );
+  inputs.addAll(wasmTypeParameters);
+
+  final List<DartType> params = parameters.map((p) {
+    final function = p.parent as FunctionNode;
+    final positionalIndex = function.positionalParameters.indexOf(p);
+    final isRequired = positionalIndex != -1
+        ? positionalIndex < function.requiredParameterCount
+        : p.isRequired;
+    return translator.typeOfParameterVariable(p, isRequired);
+  }).toList();
+  inputs.addAll(params.map(translateType));
+
+  return inputs;
 }
 
 List<w.ValueType> _getInputTypes(
@@ -687,12 +704,9 @@ List<w.ValueType> _getInputTypes(
   if (member is Field) {
     params = [if (target.isImplicitSetter) member.setterType];
   } else {
+    assert(member is Procedure);
     FunctionNode function = member.function!;
-    typeParamCount =
-        (member is Constructor
-                ? member.enclosingClass.typeParameters
-                : function.typeParameters)
-            .length;
+    typeParamCount = function.typeParameters.length;
     List<String> names = [for (var p in function.namedParameters) p.name!]
       ..sort();
     final typeForParam = translator.typeOfParameterVariable;
