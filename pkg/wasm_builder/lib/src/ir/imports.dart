@@ -15,23 +15,24 @@ class Imports {
   final List<ImportedMemory> memories;
 
   Imports(this.functions, this.tags, this.globals, this.tables, this.memories) {
-    all = [
-      ...functions,
-      ...tags,
-      ...globals,
-      ...tables,
-      ...memories,
-    ];
+    all = [...functions, ...tags, ...globals, ...tables, ...memories];
   }
 
-  Imports.deserialized(this.all, this.functions, this.tags, this.globals,
-      this.tables, this.memories)
-      : assert(all.length ==
+  Imports.deserialized(
+    this.all,
+    this.functions,
+    this.tags,
+    this.globals,
+    this.tables,
+    this.memories,
+  ) : assert(
+        all.length ==
             (functions.length +
                 tags.length +
                 globals.length +
                 tables.length +
-                memories.length));
+                memories.length),
+      );
 }
 
 /// Any import (function, table, memory or global).

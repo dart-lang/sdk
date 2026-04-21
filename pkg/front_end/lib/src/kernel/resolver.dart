@@ -38,12 +38,19 @@ import '../source/check_helper.dart';
 import '../source/offset_map.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
+import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart'
     show ExpressionEvaluationHelper;
+import '../type_inference/inference_visitor_base.dart'
+    show InferenceVisitorBase;
 import '../type_inference/type_inference_engine.dart';
 import '../type_inference/type_inferrer.dart'
-    show TypeInferrer, InferredFieldInitializer, InferredFunctionBody;
+    show
+        TypeInferrer,
+        InferredConstructorInitializer,
+        InferredFieldInitializer,
+        InferredFunctionBody;
 import '../type_inference/type_schema.dart';
 import '../util/helpers.dart';
 import 'assigned_variables_impl.dart';
@@ -518,6 +525,8 @@ class Resolver {
             formal.variable,
         ],
         internalThisVariable: internalThisVariable,
+        contextAllocationStrategy:
+            InferenceVisitorBase.createContextAllocationStrategy(),
       );
     }
     context.performBacklog(result.annotations);
@@ -991,6 +1000,9 @@ class Resolver {
           expressionEvaluationHelper: expressionEvaluationHelper,
           parameters: formalParameters,
           internalThisVariable: internalThisVariable,
+          scopeProviderInfo: null,
+          contextAllocationStrategy:
+              InferenceVisitorBase.createContextAllocationStrategy(),
         );
     assert(
       fakeReturn == inferredFunctionBody.body,
@@ -1263,7 +1275,7 @@ class Resolver {
     }
   }
 
-  void _finishConstructor({
+  ScopeProviderInfo? _finishConstructor({
     required _ResolverContext context,
     required CompilerContext compilerContext,
     required ProblemReporting problemReporting,
@@ -1279,6 +1291,7 @@ class Resolver {
     required bool forPrimaryConstructor,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
+    required ContextAllocationStrategy contextAllocationStrategy,
   }) {
     _InitializerBuilder initializerBuilder = new _InitializerBuilder(
       compilerContext: compilerContext,
@@ -1288,17 +1301,19 @@ class Resolver {
       coreTypes: _coreTypes,
       fileUri: fileUri,
     );
-    initializerBuilder.processInitializers(
-      libraryBuilder: libraryBuilder,
-      libraryFeatures: libraryFeatures,
-      superParameterArguments: superParameterArguments,
-      initializers: initializers,
-      asyncMarker: asyncModifier,
-      asyncModifierFileOffset: body?.fileOffset,
-      forPrimaryConstructor: forPrimaryConstructor,
-      parameters: parameters,
-      internalThisVariable: internalThisVariable,
-    );
+    ScopeProviderInfo? scopeProviderInfo = initializerBuilder
+        .processInitializers(
+          libraryBuilder: libraryBuilder,
+          libraryFeatures: libraryFeatures,
+          superParameterArguments: superParameterArguments,
+          initializers: initializers,
+          asyncMarker: asyncModifier,
+          asyncModifierFileOffset: body?.fileOffset,
+          forPrimaryConstructor: forPrimaryConstructor,
+          parameters: parameters,
+          internalThisVariable: internalThisVariable,
+          contextAllocationStrategy: contextAllocationStrategy,
+        );
 
     if (body == null && !bodyBuilderContext.isExternalConstructor) {
       /// >If a generative constructor c is not a redirecting constructor
@@ -1325,6 +1340,8 @@ class Resolver {
         length: noLength,
       );
     }
+
+    return scopeProviderInfo;
   }
 
   void _finishFunction({
@@ -1418,8 +1435,11 @@ class Resolver {
       for (FormalParameterBuilder formal in bodyBuilderContext.formals ?? [])
         formal.variable,
     ];
+    ScopeProviderInfo? scopeProviderInfo;
+    ContextAllocationStrategy contextAllocationStrategy =
+        InferenceVisitorBase.createContextAllocationStrategy();
     if (bodyBuilderContext.isConstructor) {
-      _finishConstructor(
+      scopeProviderInfo = _finishConstructor(
         context: context,
         compilerContext: compilerContext,
         problemReporting: problemReporting,
@@ -1435,6 +1455,7 @@ class Resolver {
         forPrimaryConstructor: forPrimaryConstructor,
         parameters: parameters,
         internalThisVariable: internalThisVariable,
+        contextAllocationStrategy: contextAllocationStrategy,
       );
     }
 
@@ -1460,8 +1481,11 @@ class Resolver {
         body: body,
         parameters: parameters,
         internalThisVariable: internalThisVariable,
+        scopeProviderInfo: scopeProviderInfo,
+        contextAllocationStrategy: contextAllocationStrategy,
       );
       body = inferredFunctionBody.body;
+      scopeProviderInfo = inferredFunctionBody.scopeProviderInfo;
     } else {
       // Normalize abstract members markers to sync.
       asyncMarker = AsyncMarker.Sync;
@@ -1497,7 +1521,7 @@ class Resolver {
     );
     bodyBuilderContext.registerFunctionBody(
       body: body,
-      scopeProviderInfo: inferredFunctionBody?.scopeProviderInfo,
+      scopeProviderInfo: scopeProviderInfo,
       asyncMarker: asyncMarker,
       emittedValueType: emittedValueType,
     );

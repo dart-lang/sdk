@@ -11,13 +11,21 @@ class GlobalBuilder extends ir.Global with IndexableBuilder<ir.DefinedGlobal> {
   final InstructionsBuilder initializer;
 
   GlobalBuilder(
-      this.moduleBuilder, ir.FinalizableIndex index, ir.GlobalType type,
-      [String? globalName])
-      : initializer = InstructionsBuilder(moduleBuilder, [], [type.type],
-            constantExpression: true),
-        super(moduleBuilder.module, index, type, globalName);
+    this.moduleBuilder,
+    ir.FinalizableIndex index,
+    ir.GlobalType type, [
+    String? globalName,
+  ]) : initializer = InstructionsBuilder(moduleBuilder, [], [
+         type.type,
+       ], constantExpression: true),
+       super(moduleBuilder.module, index, type, globalName);
 
   @override
   ir.DefinedGlobal forceBuild() => ir.DefinedGlobal(
-      enclosingModule, initializer.build(), finalizableIndex, type, globalName);
+    enclosingModule,
+    initializer.build(),
+    finalizableIndex,
+    type,
+    globalName,
+  );
 }

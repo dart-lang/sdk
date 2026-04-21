@@ -113,7 +113,7 @@ class NumType extends ValueType {
     return switch (kind) {
       NumTypeKind.i32 || NumTypeKind.f32 => 4,
       NumTypeKind.i64 || NumTypeKind.f64 => 8,
-      NumTypeKind.v128 => 16
+      NumTypeKind.v128 => 16,
     };
   }
 
@@ -170,19 +170,20 @@ class RefType extends ValueType {
   final bool nullable;
 
   RefType(this.heapType, {bool? nullable})
-      : nullable = nullable ??
-            heapType.nullableByDefault ??
-            (throw "Unspecified nullability");
+    : nullable =
+          nullable ??
+          heapType.nullableByDefault ??
+          (throw "Unspecified nullability");
 
   const RefType._(this.heapType, this.nullable);
 
   /// Internal supertype above any, func and extern. Not a real Wasm ref type.
   const RefType.common({required bool nullable})
-      : this._(HeapType.common, nullable);
+    : this._(HeapType.common, nullable);
 
   /// A (possibly nullable) reference to the `extern` heap type.
   const RefType.extern({required bool nullable})
-      : this._(HeapType.extern, nullable);
+    : this._(HeapType.extern, nullable);
 
   /// A (possibly nullable) reference to the `any` heap type.
   const RefType.any({required bool nullable}) : this._(HeapType.any, nullable);
@@ -192,37 +193,37 @@ class RefType extends ValueType {
 
   /// A (possibly nullable) reference to the `func` heap type.
   const RefType.func({required bool nullable})
-      : this._(HeapType.func, nullable);
+    : this._(HeapType.func, nullable);
 
   /// A (possibly nullable) reference to the `struct` heap type.
   const RefType.struct({required bool nullable})
-      : this._(HeapType.struct, nullable);
+    : this._(HeapType.struct, nullable);
 
   /// A (possibly nullable) reference to the `array` heap type.
   const RefType.array({required bool nullable})
-      : this._(HeapType.array, nullable);
+    : this._(HeapType.array, nullable);
 
   /// A (possibly nullable) reference to the `i31` heap type.
   const RefType.i31({required bool nullable}) : this._(HeapType.i31, nullable);
 
   /// A (possibly nullable) reference to the `none` heap type.
   const RefType.none({required bool nullable})
-      : this._(HeapType.none, nullable);
+    : this._(HeapType.none, nullable);
 
   /// A (possibly nullable) reference to the `noextern` heap type.
   const RefType.noextern({required bool nullable})
-      : this._(HeapType.noextern, nullable);
+    : this._(HeapType.noextern, nullable);
 
   /// A (possibly nullable) reference to the `nofunc` heap type.
   const RefType.nofunc({required bool nullable})
-      : this._(HeapType.nofunc, nullable);
+    : this._(HeapType.nofunc, nullable);
 
   /// A (possibly nullable) reference to the `exn` heap type.
   const RefType.exn({required bool nullable}) : this._(HeapType.exn, nullable);
 
   /// A (possibly nullable) reference to a custom heap type.
   RefType.def(DefType defType, {required bool nullable})
-      : this(defType, nullable: nullable);
+    : this(defType, nullable: nullable);
 
   @override
   RefType withNullability(bool nullable) =>
@@ -716,7 +717,7 @@ abstract class DefType extends HeapType {
   bool hasAnySubtypes = false;
 
   DefType({this.superType})
-      : depth = superType != null ? superType.depth + 1 : 0 {
+    : depth = superType != null ? superType.depth + 1 : 0 {
     superType?.hasAnySubtypes = true;
   }
 
@@ -1025,7 +1026,10 @@ class FunctionType extends DefType {
   }
 
   static FunctionType deserializeAllocate(
-      Deserializer d, DefType? superType, List<DefType> existing) {
+    Deserializer d,
+    DefType? superType,
+    List<DefType> existing,
+  ) {
     d.readList((d) => ValueType.deserialize(d, existing));
     d.readList((d) => ValueType.deserialize(d, existing));
     return FunctionType([], [], superType: superType);
@@ -1124,8 +1128,9 @@ class StructType extends DataType {
   HeapType get abstractSuperType => HeapType.struct;
 
   @override
-  Iterable<StorageType> get constituentTypes =>
-      [for (FieldType f in fields) f.type];
+  Iterable<StorageType> get constituentTypes => [
+    for (FieldType f in fields) f.type,
+  ];
 
   @override
   bool isStructuralSubtypeOf(HeapType other) {
@@ -1165,7 +1170,10 @@ class StructType extends DataType {
   }
 
   static StructType deserializeAllocate(
-      Deserializer d, DefType? superType, List<DefType> existing) {
+    Deserializer d,
+    DefType? superType,
+    List<DefType> existing,
+  ) {
     d.readList((d) => FieldType.deserialize(d, existing));
     return StructType(null, fields: [], superType: superType);
   }
@@ -1250,7 +1258,10 @@ class ArrayType extends DataType {
   }
 
   static ArrayType deserializeAllocate(
-      Deserializer d, DefType? superType, List<DefType> existing) {
+    Deserializer d,
+    DefType? superType,
+    List<DefType> existing,
+  ) {
     FieldType.deserialize(d, existing);
     return ArrayType(null, elementType: null, superType: superType);
   }
@@ -1288,7 +1299,9 @@ class _WithMutability<T extends StorageType> implements Serializable {
   }
 
   static (T, bool) deserialize<T extends StorageType>(
-      Deserializer d, T Function(Deserializer) fun) {
+    Deserializer d,
+    T Function(Deserializer) fun,
+  ) {
     final type = fun(d);
     final mutable = d.readByte() == 0x01;
     return (type, mutable);
@@ -1305,8 +1318,10 @@ class GlobalType extends _WithMutability<ValueType> {
   GlobalType(super.type, {super.mutable = true});
 
   static GlobalType deserialize(Deserializer d, List<DefType> types) {
-    final (type, mutable) =
-        _WithMutability.deserialize(d, (d) => ValueType.deserialize(d, types));
+    final (type, mutable) = _WithMutability.deserialize(
+      d,
+      (d) => ValueType.deserialize(d, types),
+    );
     return GlobalType(type, mutable: mutable);
   }
 
@@ -1342,7 +1357,9 @@ class FieldType extends _WithMutability<StorageType> {
 
   static FieldType deserialize(Deserializer d, List<DefType> existing) {
     final (type, mutable) = _WithMutability.deserialize(
-        d, (d) => StorageType.deserialize(d, existing));
+      d,
+      (d) => StorageType.deserialize(d, existing),
+    );
     return FieldType(type, mutable: mutable);
   }
 }
@@ -1372,7 +1389,10 @@ class PackedType implements StorageType {
 
   @override
   int get byteSize {
-    return switch (kind) { PackedTypeKind.i8 => 1, PackedTypeKind.i16 => 2 };
+    return switch (kind) {
+      PackedTypeKind.i8 => 1,
+      PackedTypeKind.i16 => 2,
+    };
   }
 
   @override

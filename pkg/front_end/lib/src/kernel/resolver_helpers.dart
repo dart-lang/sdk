@@ -126,8 +126,12 @@ class _ResolverContext {
   void inferSingleTargetAnnotation({
     required SingleTargetAnnotations singleTarget,
   }) {
+    Annotatable target = singleTarget.target;
+    if (target is InternalVariable) {
+      target = target.astVariable;
+    }
     _inferAnnotations(
-      annotatable: singleTarget.target,
+      annotatable: target,
       indices: singleTarget.indicesOfAnnotationsToBeInferred,
     );
   }
@@ -211,24 +215,30 @@ class _InitializerBuilder {
        this._needsImplicitSuperInitializer = bodyBuilderContext
            .needsImplicitSuperInitializer(coreTypes);
 
-  void _inferInitializer(
+  ScopeProviderInfo? _inferInitializer(
     Initializer initializer, {
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required ContextAllocationStrategy contextAllocationStrategy,
   }) {
-    InitializerInferenceResult result = _bodyBuilderContext.inferInitializer(
-      typeInferrer: _typeInferrer,
-      fileUri: _fileUri,
-      initializer: initializer,
-      parameters: parameters,
-      internalThisVariable: internalThisVariable,
-    );
+    InferredConstructorInitializer result = _bodyBuilderContext
+        .inferInitializer(
+          typeInferrer: _typeInferrer,
+          fileUri: _fileUri,
+          initializer: initializer,
+          parameters: parameters,
+          internalThisVariable: internalThisVariable,
+          scopeProviderInfo: scopeProviderInfo,
+          contextAllocationStrategy: contextAllocationStrategy,
+        );
     if (!_bodyBuilderContext.isExternalConstructor) {
-      _addInferredInitializer(result);
+      _addInferredInitializer(result.initializerInferenceResult);
     }
+    return result.scopeProviderInfo;
   }
 
-  void processInitializers({
+  ScopeProviderInfo? processInitializers({
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
     required _SuperParameterArguments? superParameterArguments,
@@ -238,6 +248,7 @@ class _InitializerBuilder {
     required bool forPrimaryConstructor,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
+    required ContextAllocationStrategy contextAllocationStrategy,
   }) {
     if (initializers.isNotEmpty) {
       if (_bodyBuilderContext.isMixinClass) {
@@ -260,6 +271,7 @@ class _InitializerBuilder {
       }
     }
 
+    ScopeProviderInfo? scopeProviderInfo;
     for (Initializer initializer in initializers) {
       switch (initializer) {
         case AuxiliaryInitializer():
@@ -267,16 +279,20 @@ class _InitializerBuilder {
             switch (initializer) {
               case ExtensionTypeRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
-                _inferInitializer(
+                scopeProviderInfo = _inferInitializer(
                   initializer,
                   parameters: parameters,
                   internalThisVariable: internalThisVariable,
+                  scopeProviderInfo: scopeProviderInfo,
+                  contextAllocationStrategy: contextAllocationStrategy,
                 );
               case ExtensionTypeRepresentationFieldInitializer():
-                _inferInitializer(
+                scopeProviderInfo = _inferInitializer(
                   initializer,
                   parameters: parameters,
                   internalThisVariable: internalThisVariable,
+                  scopeProviderInfo: scopeProviderInfo,
+                  contextAllocationStrategy: contextAllocationStrategy,
                 );
               case InternalRedirectingInitializer():
                 _needsImplicitSuperInitializer = false;
@@ -295,10 +311,12 @@ class _InitializerBuilder {
                     new PositionalArgument(enumSyntheticArguments[1]),
                   ], positionalCount: 2);
                 }
-                _inferInitializer(
+                scopeProviderInfo = _inferInitializer(
                   initializer,
                   parameters: parameters,
                   internalThisVariable: internalThisVariable,
+                  scopeProviderInfo: scopeProviderInfo,
+                  contextAllocationStrategy: contextAllocationStrategy,
                 );
               case InternalSuperInitializer():
                 _needsImplicitSuperInitializer = false;
@@ -350,27 +368,33 @@ class _InitializerBuilder {
                     );
                   }
                 }
-                _inferInitializer(
+                scopeProviderInfo = _inferInitializer(
                   initializer,
                   parameters: parameters,
                   internalThisVariable: internalThisVariable,
+                  scopeProviderInfo: scopeProviderInfo,
+                  contextAllocationStrategy: contextAllocationStrategy,
                 );
             }
           }
         case InvalidInitializer():
           _needsImplicitSuperInitializer = false;
-          _inferInitializer(
+          scopeProviderInfo = _inferInitializer(
             initializer,
             parameters: parameters,
             internalThisVariable: internalThisVariable,
+            scopeProviderInfo: scopeProviderInfo,
+            contextAllocationStrategy: contextAllocationStrategy,
           );
         case FieldInitializer():
         case LocalInitializer():
         case AssertInitializer():
-          _inferInitializer(
+          scopeProviderInfo = _inferInitializer(
             initializer,
             parameters: parameters,
             internalThisVariable: internalThisVariable,
+            scopeProviderInfo: scopeProviderInfo,
+            contextAllocationStrategy: contextAllocationStrategy,
           );
         // Coverage-ignore(suite): Not run.
         case SuperInitializer():
@@ -383,7 +407,7 @@ class _InitializerBuilder {
     }
 
     if (asyncMarker != AsyncMarker.Sync) {
-      _inferInitializer(
+      scopeProviderInfo = _inferInitializer(
         extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
@@ -395,15 +419,20 @@ class _InitializerBuilder {
         ),
         parameters: parameters,
         internalThisVariable: internalThisVariable,
+        scopeProviderInfo: scopeProviderInfo,
+        contextAllocationStrategy: contextAllocationStrategy,
       );
       _needsImplicitSuperInitializer = false;
     }
 
     if (_needsImplicitSuperInitializer) {
-      _addImplicitSuperInitializer(
+      scopeProviderInfo = _addImplicitSuperInitializer(
         libraryBuilder: libraryBuilder,
         typeInferrer: _typeInferrer,
         superParameterArguments: superParameterArguments,
+        internalThisVariable: internalThisVariable,
+        scopeProviderInfo: scopeProviderInfo,
+        contextAllocationStrategy: contextAllocationStrategy,
       );
     }
     _bodyBuilderContext.registerInitializers([
@@ -411,6 +440,8 @@ class _InitializerBuilder {
       ?_redirectingInitializer,
       ?_superInitializer,
     ], isErroneous: _isErroneous);
+
+    return scopeProviderInfo;
   }
 
   void _addSuperInitializer(
@@ -549,25 +580,30 @@ class _InitializerBuilder {
     }
   }
 
-  void _addInferredInitializer(InitializerInferenceResult inferenceResult) {
-    Initializer initializer = inferenceResult.initializer;
+  void _addInferredInitializer(
+    InitializerInferenceResult initializerInferenceResult,
+  ) {
+    Initializer initializer = initializerInferenceResult.initializer;
     switch (initializer) {
       case SuperInitializer():
-        _addSuperInitializer(inferenceResult, initializer);
+        _addSuperInitializer(initializerInferenceResult, initializer);
       case RedirectingInitializer():
-        _addRedirectingInitializer(inferenceResult, initializer);
+        _addRedirectingInitializer(initializerInferenceResult, initializer);
       case LocalInitializer():
       case AssertInitializer():
       case InvalidInitializer():
       case FieldInitializer():
-        _addRegularInitializer(inferenceResult, initializer);
+        _addRegularInitializer(initializerInferenceResult, initializer);
       case AuxiliaryInitializer():
         if (initializer is InternalInitializer) {
           switch (initializer) {
             case ExtensionTypeRedirectingInitializer():
-              _addRedirectingInitializer(inferenceResult, initializer);
+              _addRedirectingInitializer(
+                initializerInferenceResult,
+                initializer,
+              );
             case ExtensionTypeRepresentationFieldInitializer():
-              _addRegularInitializer(inferenceResult, initializer);
+              _addRegularInitializer(initializerInferenceResult, initializer);
             // Coverage-ignore(suite): Not run.
             case InternalRedirectingInitializer():
             case InternalSuperInitializer():
@@ -585,10 +621,13 @@ class _InitializerBuilder {
     }
   }
 
-  void _addImplicitSuperInitializer({
+  ScopeProviderInfo? _addImplicitSuperInitializer({
     required SourceLibraryBuilder libraryBuilder,
     required TypeInferrer typeInferrer,
     required _SuperParameterArguments? superParameterArguments,
+    required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required ContextAllocationStrategy contextAllocationStrategy,
   }) {
     /// >If no superinitializer is provided, an implicit superinitializer
     /// >of the form super() is added at the end of the constructor's
@@ -779,7 +818,13 @@ class _InitializerBuilder {
     }
     // The [parameters] and [internalThisVariable] won't be used in the implicit
     // super initializer.
-    _inferInitializer(initializer, parameters: [], internalThisVariable: null);
+    return _inferInitializer(
+      initializer,
+      parameters: [],
+      internalThisVariable: internalThisVariable,
+      scopeProviderInfo: scopeProviderInfo,
+      contextAllocationStrategy: contextAllocationStrategy,
+    );
   }
 }
 

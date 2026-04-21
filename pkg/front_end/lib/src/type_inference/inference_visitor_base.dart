@@ -126,6 +126,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     this.expressionEvaluationHelper,
   );
 
+  static ContextAllocationStrategy createContextAllocationStrategy() {
+    return new LoopDepthAllocationStrategy();
+  }
+
   ThisVariable get internalThisVariable;
 
   // TODO(cstefantsova): Replace this flag by implementing the default
@@ -5523,6 +5527,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ScopeProviderInfo beginFunctionBodyInference(
     List<VariableDeclaration> parameters, {
     required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
   /// Finishes computations after inferring the body of a function.
