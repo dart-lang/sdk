@@ -208,6 +208,7 @@ import 'rules/unnecessary_await_in_return.dart';
 import 'rules/unnecessary_brace_in_string_interps.dart';
 import 'rules/unnecessary_breaks.dart';
 import 'rules/unnecessary_const.dart';
+import 'rules/unnecessary_const_in_enum_constructor.dart';
 import 'rules/unnecessary_constructor_name.dart';
 import 'rules/unnecessary_final.dart';
 import 'rules/unnecessary_getters_setters.dart';
@@ -466,6 +467,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryBraceInStringInterps())
     ..registerLintRule(UnnecessaryBreaks())
     ..registerLintRule(UnnecessaryConst())
+    ..registerLintRule(UnnecessaryConstInEnumConstructor())
     ..registerLintRule(UnnecessaryConstructorName())
     ..registerLintRule(UnnecessaryFinal())
     ..registerLintRule(UnnecessaryGettersSetters())

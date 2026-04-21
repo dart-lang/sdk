@@ -2467,6 +2467,8 @@ unnecessary_breaks:
   status: hasFix
 unnecessary_const:
   status: hasFix
+unnecessary_const_in_enum_constructor:
+  status: hasFix
 unnecessary_constructor_name:
   status: hasFix
 unnecessary_final_with_type:

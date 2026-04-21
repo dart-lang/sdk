@@ -13759,6 +13759,106 @@ LinterLintCode:
         final b = const [A()];
       }
       ```
+  unnecessaryConstInEnumConstructor:
+    type: lint
+    parameters: none
+    problemMessage: "Unnecessary 'const' keyword in an enum constructor."
+    correctionMessage: "Try removing the keyword."
+    state:
+      experimental: "3.14"
+    categories: [brevity, style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when the keyword `const` is used in
+      a generative enum constructor. Generative num constructors are implicitly
+      `const`.
+
+      #### Examples
+
+      The following code produces this diagnostic because the keyword `const` in
+      the enum's primary constructor isn't needed:
+
+      ```dart
+      %experiments=primary-constructors
+      enum [!const!] E(final int i) {
+        a(1), b(2);
+      }
+      ```
+
+      The following code produces this diagnostic because the keyword `const` in
+      the enum's secondary constructor isn't needed:
+
+      ```dart
+      %experiments=primary-constructors
+      enum E {
+        a(1), b(2);
+
+        [!const!] E(this.i);
+
+        final int i;
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the unnecessary keyword:
+
+      ```dart
+      %experiments=primary-constructors
+      enum E(final int i) {
+        a(1), b(2);
+      }
+      ```
+
+      ```dart
+      %experiments=primary-constructors
+      enum E {
+        a(1), b(2);
+
+        E(this.i);
+
+        final int i;
+      }
+      ```
+    deprecatedDetails: |-
+      Don't use an explicit `const` in a generative enum constructor. Generative
+      enum constructors are implicitly `const`.
+
+      **BAD:**
+      ```dart
+      enum const E(final int i) {
+        a(1), b(2);
+      }
+      ```
+
+      ```dart
+      enum E {
+        a(1), b(2);
+
+        const E(this.i);
+
+        final int i;
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      enum E(final int i) {
+        a(1), b(2);
+      }
+      ```
+
+      ```dart
+      enum E {
+        a(1), b(2);
+
+        E(this.i);
+
+        final int i;
+      }
+      ```
   unnecessaryConstructorName:
     type: lint
     parameters: none
