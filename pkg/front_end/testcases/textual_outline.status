@@ -7,6 +7,7 @@
 
 # These tests have errors in them which isn't reported by the parser but the
 # formatter still sees as syntax errors and thus won't format.
+constructor_tearoffs/issue46133: FormatterCrash
 enhanced_enums/external_constructor: FormatterCrash
 general/invalid_operator: FormatterCrash
 general/invalid_super_initializer: FormatterCrash
@@ -14,8 +15,6 @@ general/issue45700.crash: FormatterCrash
 general/issue48919: FormatterCrash
 inference/property_set_bad_setter: FormatterCrash
 nnbd/instance_duplicates: FormatterCrash
-nnbd/required: FormatterCrash
-patterns/pattern_variable_final: FormatterCrash
 regress/annotation_on_type_parameter_name_clash_on_constructor: FormatterCrash
 regress/annotation_on_type_parameter_name_extension_type_constructor: FormatterCrash
 regress/erroneous_setter: FormatterCrash

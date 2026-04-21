@@ -7,6 +7,7 @@ import 'dart:math' as math;
 import 'package:dart_style/dart_style.dart';
 
 import '../../test/simple_stats.dart';
+import '../../test/utils/io_utils.dart';
 
 /// Key used for a strategy in a test setup.
 class Strategy {
@@ -242,7 +243,7 @@ class SeriesSet {
     }
     sb.write(']);');
     return new DartFormatter(
-      languageVersion: DartFormatter.latestShortStyleLanguageVersion,
+      languageVersion: getPackageVersionFor("front_end"),
     ).format(sb.toString());
   }
 }

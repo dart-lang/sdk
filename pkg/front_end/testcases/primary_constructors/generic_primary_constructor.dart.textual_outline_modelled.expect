@@ -1,9 +1,5 @@
 class C1<T> {
-  C1(T a, this.b, this.c)
-      : d = a,
-        e = b,
-        f = c,
-        g = T {}
+  C1(T a, this.b, this.c) : d = a, e = b, f = c, g = T {}
   T b;
   T d;
   T e;
@@ -27,10 +23,7 @@ enum E1<T> {
   final T c;
   final T d;
   final Type f;
-  const E1(T a, this.b)
-      : c = a,
-        d = b,
-        f = T;
+  const E1(T a, this.b) : c = a, d = b, f = T;
 }
 
 enum E2<T>(T a, final T b) {

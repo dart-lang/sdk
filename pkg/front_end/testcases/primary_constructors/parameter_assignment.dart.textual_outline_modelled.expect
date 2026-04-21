@@ -19,7 +19,7 @@ class C1(int x, Object? z) {
 class C2(int x, Object? z) {
   Record y;
   this
-      : y = (
+    : y = (
         ++x,
         --x,
         x++,

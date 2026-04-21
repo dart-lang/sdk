@@ -1,4 +1,6 @@
-enum E1() { a }
+enum E1() {
+  a
+}
 
 enum E5() {
   a;
@@ -14,7 +16,9 @@ enum E6(int? x) {
   this : b = x;
 }
 
-enum const E2() { a }
+enum const E2() {
+  a
+}
 
 enum const E3() {
   a;
