@@ -217,6 +217,10 @@ class LiteralElementVerifier {
   /// Verify that the type of the elements of the given [expression] can be
   /// assigned to the [elementType] of the enclosing collection.
   void _verifySpreadForListOrSet(bool isNullAware, Expression expression) {
+    if (_errorVerifier.checkForUseOfVoidResult(expression)) {
+      return;
+    }
+
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {
@@ -316,6 +320,10 @@ class LiteralElementVerifier {
   /// Verify that the [expression] is a subtype of `Map<Object, Object>`, and
   /// its key and values are assignable to [mapKeyType] and [mapValueType].
   void _verifySpreadForMap(bool isNullAware, Expression expression) {
+    if (_errorVerifier.checkForUseOfVoidResult(expression)) {
+      return;
+    }
+
     var expressionType = expression.typeOrThrow;
     if (expressionType is DynamicType) {
       if (_errorVerifier.strictCasts) {

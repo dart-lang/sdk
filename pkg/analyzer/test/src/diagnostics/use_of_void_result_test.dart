@@ -770,6 +770,72 @@ class A {
     );
   }
 
+  test_void_spread_list() async {
+    await assertErrorsInCode(
+      '''
+void f(void e) {
+  [...e];
+}
+''',
+      [error(diag.useOfVoidResult, 23, 1)],
+    );
+  }
+
+  test_void_spread_list_nullAware() async {
+    await assertErrorsInCode(
+      '''
+void f(void e) {
+  [...?e];
+}
+''',
+      [error(diag.useOfVoidResult, 24, 1)],
+    );
+  }
+
+  test_void_spread_map() async {
+    await assertErrorsInCode(
+      '''
+void f(void e) {
+  <String, int>{...e};
+}
+''',
+      [error(diag.useOfVoidResult, 36, 1)],
+    );
+  }
+
+  test_void_spread_map_nullAware() async {
+    await assertErrorsInCode(
+      '''
+void f(void e) {
+  <String, int>{...?e};
+}
+''',
+      [error(diag.useOfVoidResult, 37, 1)],
+    );
+  }
+
+  test_void_spread_set() async {
+    await assertErrorsInCode(
+      '''
+void f(void e) {
+  <Object?>{...e};
+}
+''',
+      [error(diag.useOfVoidResult, 32, 1)],
+    );
+  }
+
+  test_void_spread_set_nullAware() async {
+    await assertErrorsInCode(
+      '''
+void f(void e) {
+  <Object?>{...?e};
+}
+''',
+      [error(diag.useOfVoidResult, 33, 1)],
+    );
+  }
+
   test_yieldStarVoid_asyncStar() async {
     await assertErrorsInCode(
       '''
