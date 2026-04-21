@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -17,13 +18,15 @@ Map<String, LibraryElementImpl> buildLibrariesFromSpec(
   engine.AnalysisContext analysisContext,
   Reference rootReference,
   AnalysisSessionImpl analysisSession,
-  Map<String, LibrarySpec> specs,
-) {
+  Map<String, LibrarySpec> specs, {
+  Map<String, LibraryElementImpl> externalLibraries = const {},
+}) {
   var builder = _LibraryBuilder(
     rootReference,
     analysisContext,
     analysisSession,
     specs,
+    externalLibraries,
   );
   return builder.build();
 }
@@ -31,20 +34,28 @@ Map<String, LibraryElementImpl> buildLibrariesFromSpec(
 class ClassSpec {
   final String name;
   final List<String> typeParameters;
+  final Map<String, String> typeParameterBounds;
+  final Map<String, Variance> typeParameterVariances;
   final String? supertype;
   final List<String> interfaces;
+  final List<String> mixins;
   final List<ConstructorSpec> constructors;
   final List<MethodSpec> methods;
   final bool isAbstract;
+  final bool isSealed;
 
   const ClassSpec({
     required this.name,
     this.typeParameters = const [],
+    this.typeParameterBounds = const {},
+    this.typeParameterVariances = const {},
     this.supertype,
     this.interfaces = const [],
+    this.mixins = const [],
     this.constructors = const [],
     this.methods = const [],
     this.isAbstract = false,
+    this.isSealed = false,
   });
 }
 
@@ -59,6 +70,33 @@ class ConstructorSpec {
     this.formalParameters = '',
     this.isConst = false,
     this.isFactory = false,
+  });
+}
+
+class EnumSpec {
+  final String name;
+  final List<String> constants;
+
+  const EnumSpec({required this.name, this.constants = const []});
+}
+
+class ExtensionTypeSpec {
+  final String name;
+  final String representationName;
+  final String representationType;
+  final List<String> typeParameters;
+  final Map<String, String> typeParameterBounds;
+  final Map<String, Variance> typeParameterVariances;
+  final List<String> interfaces;
+
+  const ExtensionTypeSpec({
+    required this.name,
+    this.representationName = 'it',
+    required this.representationType,
+    this.typeParameters = const [],
+    this.typeParameterBounds = const {},
+    this.typeParameterVariances = const {},
+    this.interfaces = const [],
   });
 }
 
@@ -78,27 +116,75 @@ class FunctionSpec {
 
 class LibrarySpec {
   final String uri;
+  final List<String> imports;
   final List<ClassSpec> classes;
+  final List<EnumSpec> enums;
+  final List<ExtensionTypeSpec> extensionTypes;
   final List<FunctionSpec> functions;
+  final List<MixinSpec> mixins;
+  final List<TypeAliasSpec> typeAliases;
 
   const LibrarySpec({
     required this.uri,
+    this.imports = const [],
     this.classes = const [],
+    this.enums = const [],
+    this.extensionTypes = const [],
     this.functions = const [],
+    this.mixins = const [],
+    this.typeAliases = const [],
   });
 }
 
 class MethodSpec {
   final String name;
   final List<String> typeParameters;
+  final Map<String, String> typeParameterBounds;
+  final Map<String, Variance> typeParameterVariances;
   final String formalParameters;
   final String returnType;
 
   const MethodSpec({
     required this.name,
     this.typeParameters = const [],
+    this.typeParameterBounds = const {},
+    this.typeParameterVariances = const {},
     this.formalParameters = '',
     required this.returnType,
+  });
+}
+
+class MixinSpec {
+  final String name;
+  final List<String> typeParameters;
+  final List<String> constraints;
+  final List<String> interfaces;
+  final Map<String, String> typeParameterBounds;
+  final Map<String, Variance> typeParameterVariances;
+
+  const MixinSpec({
+    required this.name,
+    this.typeParameters = const [],
+    this.constraints = const [],
+    this.interfaces = const [],
+    this.typeParameterBounds = const {},
+    this.typeParameterVariances = const {},
+  });
+}
+
+class TypeAliasSpec {
+  final String name;
+  final List<String> typeParameters;
+  final Map<String, String> typeParameterBounds;
+  final Map<String, Variance> typeParameterVariances;
+  final String aliasedType;
+
+  const TypeAliasSpec({
+    required this.name,
+    this.typeParameters = const [],
+    this.typeParameterBounds = const {},
+    this.typeParameterVariances = const {},
+    required this.aliasedType,
   });
 }
 
@@ -121,12 +207,16 @@ class _LibraryBuilder {
   final engine.AnalysisContext analysisContext;
   final AnalysisSessionImpl analysisSession;
   final Map<String, LibrarySpec> specs;
+  final Map<String, LibraryElementImpl> externalLibraries;
 
   final Map<String, LibraryElementImpl> _libraryElements = {};
   final Map<String, LibraryFragmentImpl> _libraryFragments = {};
   final Map<String, ClassElementImpl> _classElements = {};
+  final Map<String, EnumElementImpl> _enumElements = {};
+  final Map<String, ExtensionTypeElementImpl> _extensionTypeElements = {};
+  final Map<String, MixinElementImpl> _mixinElements = {};
+  final Map<String, List<TypeAliasElementImpl>> _typeAliasElements = {};
 
-  late final _Scope _rootScope;
   final _TypeParser _typeParser = _TypeParser();
 
   _LibraryBuilder(
@@ -134,15 +224,41 @@ class _LibraryBuilder {
     this.analysisContext,
     this.analysisSession,
     this.specs,
-  ) {
-    _rootScope = _Scope.root(_classElements);
-  }
+    this.externalLibraries,
+  );
 
   /// Builds all libraries specified in [specs] and returns them in a map.
   Map<String, LibraryElementImpl> build() {
     _buildElementShells();
     _populateElements();
     return _libraryElements;
+  }
+
+  void _addImportedInterfaces(
+    Map<String, InterfaceElementImpl> interfaces,
+    LibraryElementImpl library,
+  ) {
+    for (var element in library.classes) {
+      interfaces[element.name!] = element;
+    }
+    for (var element in library.enums) {
+      interfaces[element.name!] = element;
+    }
+    for (var element in library.extensionTypes) {
+      interfaces[element.name!] = element;
+    }
+    for (var element in library.mixins) {
+      interfaces[element.name!] = element;
+    }
+  }
+
+  void _addImportedTypeAliases(
+    Map<String, TypeAliasElementImpl> typeAliases,
+    LibraryElementImpl library,
+  ) {
+    for (var element in library.typeAliases) {
+      typeAliases[element.name!] = element;
+    }
   }
 
   /// Create empty shells for all libraries and elements.
@@ -169,6 +285,7 @@ class _LibraryBuilder {
 
       for (var classSpec in libSpec.classes) {
         var fragment = ClassFragmentImpl(name: classSpec.name);
+        fragment.isSealed = classSpec.isSealed;
         var element = ClassElementImpl(
           rootReference.getChild('@class').getChild(classSpec.name),
           fragment,
@@ -178,6 +295,75 @@ class _LibraryBuilder {
         libraryElement.addClass(element);
         _classElements[classSpec.name] = element;
       }
+
+      for (var mixinSpec in libSpec.mixins) {
+        var fragment = MixinFragmentImpl(name: mixinSpec.name);
+        var element = MixinElementImpl(
+          rootReference.getChild('@mixin').getChild(mixinSpec.name),
+          fragment,
+        );
+
+        libraryFragment.addMixin(fragment);
+        libraryElement.addMixin(element);
+        _mixinElements[mixinSpec.name] = element;
+      }
+
+      for (var enumSpec in libSpec.enums) {
+        var fragment = EnumFragmentImpl(name: enumSpec.name);
+        fragment.fields = enumSpec.constants.map((name) {
+          return FieldFragmentImpl(name: name)
+            ..isEnumConstant = true
+            ..isOriginDeclaration = true;
+        }).toList();
+        var element = EnumElementImpl(
+          rootReference.getChild('@enum').getChild(enumSpec.name),
+          fragment,
+        );
+
+        libraryFragment.addEnum(fragment);
+        libraryElement.addEnum(element);
+        _enumElements[enumSpec.name] = element;
+      }
+
+      for (var extensionTypeSpec in libSpec.extensionTypes) {
+        var fieldFragment = FieldFragmentImpl(
+          name: extensionTypeSpec.representationName,
+        )..isOriginDeclaringFormalParameter = true;
+        var fragment = ExtensionTypeFragmentImpl(name: extensionTypeSpec.name);
+        fragment.fields = [fieldFragment];
+        var element = ExtensionTypeElementImpl(
+          rootReference
+              .getChild('@extensionType')
+              .getChild(extensionTypeSpec.name),
+          fragment,
+        );
+        var fieldElement = FieldElementImpl(
+          reference: element.reference
+              .getChild('@field')
+              .getChild(extensionTypeSpec.representationName),
+          firstFragment: fieldFragment,
+        );
+        element.fields = [fieldElement];
+
+        libraryFragment.addExtensionType(fragment);
+        libraryElement.addExtensionType(element);
+        _extensionTypeElements[extensionTypeSpec.name] = element;
+      }
+
+      var typeAliases = <TypeAliasElementImpl>[];
+      for (var typeAliasSpec in libSpec.typeAliases) {
+        var fragment = TypeAliasFragmentImpl(
+          name: typeAliasSpec.name,
+          firstTokenOffset: null,
+        );
+        var element = TypeAliasElementImpl(
+          rootReference.getChild('@typeAlias').getChild(typeAliasSpec.name),
+          fragment,
+        );
+        libraryFragment.addTypeAlias(fragment);
+        typeAliases.add(element);
+      }
+      _typeAliasElements[libraryUriStr] = typeAliases;
     }
   }
 
@@ -214,9 +400,10 @@ class _LibraryBuilder {
   TopLevelFunctionFragmentImpl _createFunctionFragment(
     LibraryElementImpl library,
     FunctionSpec spec,
+    _Scope libraryScope,
   ) {
     var fragment = TopLevelFunctionFragmentImpl(name: spec.name);
-    var scope = _Scope.child(_rootScope);
+    var scope = _Scope.child(libraryScope);
 
     var element = TopLevelFunctionElementImpl(
       rootReference.getChild('@function').getChild(spec.name),
@@ -263,6 +450,12 @@ class _LibraryBuilder {
       scope.addTypeParameter(tpElement);
       return tpElement.firstFragment;
     }).toList();
+    _initializeTypeParameters(
+      typeParameters: element.typeParameters,
+      bounds: spec.typeParameterBounds,
+      variances: spec.typeParameterVariances,
+      scope: scope,
+    );
 
     var formalParameterElements = _typeParser.parseFormalParameters(
       scope,
@@ -283,26 +476,70 @@ class _LibraryBuilder {
     return TypeParameterElementImpl(firstFragment: fragment);
   }
 
+  void _initializeTypeParameters({
+    required List<TypeParameterElementImpl> typeParameters,
+    required Map<String, String> bounds,
+    required Map<String, Variance> variances,
+    required _Scope scope,
+  }) {
+    for (var typeParameter in typeParameters) {
+      if (bounds[typeParameter.name] case var boundStr?) {
+        typeParameter.bound = _typeParser.parse(boundStr, scope);
+      }
+      if (variances[typeParameter.name] case var variance?) {
+        typeParameter.variance = variance;
+      }
+    }
+  }
+
+  Map<String, InterfaceElementImpl> _interfacesFor(LibrarySpec spec) {
+    var interfaces = <String, InterfaceElementImpl>{};
+
+    for (var importUri in spec.imports) {
+      if (externalLibraries[importUri] case var externalLibrary?) {
+        _addImportedInterfaces(interfaces, externalLibrary);
+      }
+    }
+
+    interfaces.addAll(_classElements);
+    interfaces.addAll(_enumElements);
+    interfaces.addAll(_extensionTypeElements);
+    interfaces.addAll(_mixinElements);
+    return interfaces;
+  }
+
   void _populateClasses(LibrarySpec libSpec) {
+    var libraryScope = _Scope.root(
+      interfaces: _interfacesFor(libSpec),
+      typeAliases: _typeAliasesFor(libSpec),
+    );
     for (var classSpec in libSpec.classes) {
       var element = _classElements[classSpec.name]!;
       var fragment = element.firstFragment;
-      var scope = _Scope.child(_rootScope);
+      var scope = _Scope.child(libraryScope);
 
       fragment.typeParameters = classSpec.typeParameters.map((name) {
         var tpElement = _createTypeParameterElement(name);
         scope.addTypeParameter(tpElement);
         return tpElement.firstFragment;
       }).toList();
+      _initializeTypeParameters(
+        typeParameters: element.typeParameters,
+        bounds: classSpec.typeParameterBounds,
+        variances: classSpec.typeParameterVariances,
+        scope: scope,
+      );
 
-      if (classSpec.supertype case var supertypeStr?) {
-        var supertype = _typeParser.parse(supertypeStr, scope);
-        element.supertype = supertype as InterfaceTypeImpl;
-      }
+      var supertype = _typeParser.parse(classSpec.supertype ?? 'Object', scope);
+      element.supertype = supertype as InterfaceTypeImpl;
 
       element.interfaces = classSpec.interfaces.map((interfaceStr) {
         var interface = _typeParser.parse(interfaceStr, scope);
         return interface as InterfaceTypeImpl;
+      }).toList();
+      element.mixins = classSpec.mixins.map((mixinStr) {
+        var mixin = _typeParser.parse(mixinStr, scope);
+        return mixin as InterfaceTypeImpl;
       }).toList();
 
       for (var constructorSpec in classSpec.constructors) {
@@ -329,19 +566,104 @@ class _LibraryBuilder {
   /// Populate the shells with types, methods, and other details.
   void _populateElements() {
     for (var libSpec in specs.values) {
+      _populateTypeAliases(libSpec);
+      _populateExtensionTypes(libSpec);
+      _populateMixins(libSpec);
       _populateClasses(libSpec);
       _populateTopLevelFunctions(libSpec);
+    }
+  }
+
+  void _populateExtensionTypes(LibrarySpec libSpec) {
+    var libraryScope = _Scope.root(
+      interfaces: _interfacesFor(libSpec),
+      typeAliases: _typeAliasesFor(libSpec),
+    );
+
+    for (var extensionTypeSpec in libSpec.extensionTypes) {
+      var element = _extensionTypeElements[extensionTypeSpec.name]!;
+      var fragment = element.firstFragment;
+      var scope = _Scope.child(libraryScope);
+
+      fragment.typeParameters = extensionTypeSpec.typeParameters.map((name) {
+        var typeParameter = _createTypeParameterElement(name);
+        scope.addTypeParameter(typeParameter);
+        return typeParameter.firstFragment;
+      }).toList();
+      _initializeTypeParameters(
+        typeParameters: element.typeParameters,
+        bounds: extensionTypeSpec.typeParameterBounds,
+        variances: extensionTypeSpec.typeParameterVariances,
+        scope: scope,
+      );
+
+      var representationType = _typeParser.parse(
+        extensionTypeSpec.representationType,
+        scope,
+      );
+      element.typeErasure = representationType;
+      element.fields.single.type = representationType;
+
+      element.interfaces = extensionTypeSpec.interfaces.map((interfaceStr) {
+        var interface = _typeParser.parse(interfaceStr, scope);
+        return interface as InterfaceTypeImpl;
+      }).toList();
+    }
+  }
+
+  void _populateMixins(LibrarySpec libSpec) {
+    var libraryScope = _Scope.root(
+      interfaces: _interfacesFor(libSpec),
+      typeAliases: _typeAliasesFor(libSpec),
+    );
+
+    for (var mixinSpec in libSpec.mixins) {
+      var element = _mixinElements[mixinSpec.name]!;
+      var fragment = element.firstFragment;
+      var scope = _Scope.child(libraryScope);
+
+      fragment.typeParameters = mixinSpec.typeParameters.map((name) {
+        var typeParameter = _createTypeParameterElement(name);
+        scope.addTypeParameter(typeParameter);
+        return typeParameter.firstFragment;
+      }).toList();
+      _initializeTypeParameters(
+        typeParameters: element.typeParameters,
+        bounds: mixinSpec.typeParameterBounds,
+        variances: mixinSpec.typeParameterVariances,
+        scope: scope,
+      );
+
+      element.superclassConstraints =
+          (mixinSpec.constraints.isEmpty
+                  ? const ['Object']
+                  : mixinSpec.constraints)
+              .map((constraintStr) {
+                var constraint = _typeParser.parse(constraintStr, scope);
+                return constraint as InterfaceTypeImpl;
+              })
+              .toList();
+
+      element.interfaces = mixinSpec.interfaces.map((interfaceStr) {
+        var interface = _typeParser.parse(interfaceStr, scope);
+        return interface as InterfaceTypeImpl;
+      }).toList();
     }
   }
 
   void _populateTopLevelFunctions(LibrarySpec libSpec) {
     var libraryElement = _libraryElements[libSpec.uri]!;
     var libraryFragment = _libraryFragments[libSpec.uri]!;
+    var libraryScope = _Scope.root(
+      interfaces: _interfacesFor(libSpec),
+      typeAliases: _typeAliasesFor(libSpec),
+    );
 
     for (var functionSpec in libSpec.functions) {
       var functionFragment = _createFunctionFragment(
         libraryElement,
         functionSpec,
+        libraryScope,
       );
       libraryFragment.addFunction(functionFragment);
     }
@@ -350,6 +672,55 @@ class _LibraryBuilder {
     ) {
       return fragment.element;
     }).toList();
+  }
+
+  void _populateTypeAliases(LibrarySpec libSpec) {
+    var libraryElement = _libraryElements[libSpec.uri]!;
+    var libraryScope = _Scope.root(
+      interfaces: _interfacesFor(libSpec),
+      typeAliases: _typeAliasesFor(libSpec),
+    );
+    var typeAliases = _typeAliasElements[libSpec.uri]!;
+
+    for (var i = 0; i < libSpec.typeAliases.length; i++) {
+      var typeAliasSpec = libSpec.typeAliases[i];
+      var element = typeAliases[i];
+      var fragment = element.firstFragment;
+      var scope = _Scope.child(libraryScope);
+
+      fragment.typeParameters = typeAliasSpec.typeParameters.map((name) {
+        var typeParameter = _createTypeParameterElement(name);
+        scope.addTypeParameter(typeParameter);
+        return typeParameter.firstFragment;
+      }).toList();
+      _initializeTypeParameters(
+        typeParameters: element.typeParameters,
+        bounds: typeAliasSpec.typeParameterBounds,
+        variances: typeAliasSpec.typeParameterVariances,
+        scope: scope,
+      );
+
+      element.aliasedType = _typeParser.parse(typeAliasSpec.aliasedType, scope);
+    }
+
+    libraryElement.typeAliases = typeAliases;
+  }
+
+  Map<String, TypeAliasElementImpl> _typeAliasesFor(LibrarySpec spec) {
+    var typeAliases = <String, TypeAliasElementImpl>{};
+
+    for (var importUri in spec.imports) {
+      if (externalLibraries[importUri] case var externalLibrary?) {
+        _addImportedTypeAliases(typeAliases, externalLibrary);
+      }
+    }
+
+    for (var libraryTypeAliases in _typeAliasElements.values) {
+      for (var element in libraryTypeAliases) {
+        typeAliases[element.name!] = element;
+      }
+    }
+    return typeAliases;
   }
 }
 
@@ -449,6 +820,13 @@ class _PreNamedType implements _PreType {
       );
     }
 
+    if (scope.lookupTypeAlias(name) case var element?) {
+      return element.instantiateImpl(
+        typeArguments: args.map((arg) => arg.materialize(scope)).toList(),
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
+    }
+
     var element = scope.lookupInterface(name);
     if (element == null) throw StateError('Unknown type: $name');
 
@@ -469,6 +847,31 @@ class _PreNullableType implements _PreType {
   @override
   TypeImpl materialize(_Scope scope) {
     return inner.materialize(scope).withNullability(NullabilitySuffix.question);
+  }
+}
+
+class _PreRecordType implements _PreType {
+  final List<_PreType> positionalTypes;
+  final List<({String name, _PreType type})> namedTypes;
+
+  _PreRecordType({required this.positionalTypes, required this.namedTypes});
+
+  @override
+  TypeImpl materialize(_Scope scope) {
+    return RecordTypeImpl(
+      positionalFields: [
+        for (var type in positionalTypes)
+          RecordTypePositionalFieldImpl(type: type.materialize(scope)),
+      ],
+      namedFields: [
+        for (var field in namedTypes)
+          RecordTypeNamedFieldImpl(
+            name: field.name,
+            type: field.type.materialize(scope),
+          ),
+      ],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
   }
 }
 
@@ -498,14 +901,22 @@ class _Scope {
   final _Scope? parent;
   final Map<String, TypeParameterElementImpl> _typeParameters = {};
   final Map<String, InterfaceElementImpl> _interfaces;
+  final Map<String, TypeAliasElementImpl> _typeAliases;
 
   /// Creates a nested scope that inherits its parent's context.
   ///
   /// This is used to add type parameters of a class, method, etc.
-  _Scope.child(_Scope this.parent) : _interfaces = parent._interfaces;
+  _Scope.child(_Scope this.parent)
+    : _interfaces = parent._interfaces,
+      _typeAliases = parent._typeAliases;
 
   /// Creates a root scope containing all known interfaces.
-  _Scope.root(this._interfaces) : parent = null;
+  _Scope.root({
+    required Map<String, InterfaceElementImpl> interfaces,
+    required Map<String, TypeAliasElementImpl> typeAliases,
+  }) : parent = null,
+       _interfaces = interfaces,
+       _typeAliases = typeAliases;
 
   /// Adds a type parameter to the current scope.
   void addTypeParameter(TypeParameterElementImpl element) {
@@ -515,6 +926,10 @@ class _Scope {
   /// Looks up an interface by name.
   InterfaceElementImpl? lookupInterface(String name) {
     return _interfaces[name];
+  }
+
+  TypeAliasElementImpl? lookupTypeAlias(String name) {
+    return _typeAliases[name];
   }
 
   /// Looks up a type parameter by name, walking up the scope chain.
@@ -656,10 +1071,16 @@ class _TypeParser {
   }
 
   _PreType _parsePrimaryType(_TokenStream stream) {
+    if (stream.peekIs('(')) {
+      return _parseRecordType(stream);
+    }
+
     var name = stream.consume();
     switch (name) {
       case 'dynamic':
         return _PreExplicitType(type: DynamicTypeImpl.instance);
+      case 'Never':
+        return _PreExplicitType(type: NeverTypeImpl.instance);
       case 'void':
         return _PreExplicitType(type: VoidTypeImpl.instance);
     }
@@ -673,6 +1094,49 @@ class _TypeParser {
       stream.expect('>');
     }
     return _PreNamedType(name: name, args: args);
+  }
+
+  List<({String name, _PreType type})> _parseRecordNamedTypes(
+    _TokenStream stream,
+  ) {
+    var namedTypes = <({String name, _PreType type})>[];
+
+    while (!stream.isAtEnd && !stream.peekIs('}')) {
+      var type = _parseType(stream);
+      var name = stream.consume();
+      namedTypes.add((name: name, type: type));
+      stream.match(',');
+    }
+
+    return namedTypes;
+  }
+
+  _PreRecordType _parseRecordType(_TokenStream stream) {
+    stream.expect('(');
+
+    var positionalTypes = <_PreType>[];
+    var namedTypes = <({String name, _PreType type})>[];
+
+    while (!stream.isAtEnd && !stream.peekIsAnyOf(const {')', '{'})) {
+      positionalTypes.add(_parseType(stream));
+      if (!stream.match(',')) {
+        break;
+      }
+      if (stream.peekIsAnyOf(const {')', '{'})) {
+        break;
+      }
+    }
+
+    if (stream.match('{')) {
+      namedTypes = _parseRecordNamedTypes(stream);
+      stream.expect('}');
+    }
+
+    stream.expect(')');
+    return _PreRecordType(
+      positionalTypes: positionalTypes,
+      namedTypes: namedTypes,
+    );
   }
 
   _PreType _parseType(_TokenStream stream) {

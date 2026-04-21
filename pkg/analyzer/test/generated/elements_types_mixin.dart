@@ -15,9 +15,6 @@ import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
-import 'package:analyzer/src/summary2/reference.dart';
-import 'package:analyzer/src/utilities/extensions/element.dart';
-import 'package:test/test.dart';
 
 mixin ElementsTypesMixin {
   InterfaceTypeImpl get boolNone {
@@ -116,61 +113,6 @@ mixin ElementsTypesMixin {
 
   VoidTypeImpl get voidNone => VoidTypeImpl.instance;
 
-  ClassFragmentImpl class_({
-    required String name,
-    bool isAbstract = false,
-    bool isAugmentation = false,
-    bool isSealed = false,
-    InterfaceTypeImpl? superType,
-    List<TypeParameterElementImpl> typeParameters = const [],
-    List<InterfaceTypeImpl> interfaces = const [],
-    List<InterfaceTypeImpl> mixins = const [],
-    List<MethodFragmentImpl> methods = const [],
-  }) {
-    var fragment = ClassFragmentImpl(name: name);
-    fragment.isAbstract = isAbstract;
-    fragment.isAugmentation = isAugmentation;
-    fragment.isSealed = isSealed;
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.methods = methods;
-
-    var element = ClassElementImpl(Reference.root(), fragment);
-    element.supertype = superType ?? typeProvider.objectType;
-    element.mixins = mixins;
-    element.interfaces = interfaces;
-
-    return fragment;
-  }
-
-  ClassElementImpl class_2({
-    required String name,
-    bool isAbstract = false,
-    bool isAugmentation = false,
-    bool isSealed = false,
-    InterfaceTypeImpl? superType,
-    List<TypeParameterElementImpl> typeParameters = const [],
-    List<InterfaceTypeImpl> interfaces = const [],
-    List<InterfaceTypeImpl> mixins = const [],
-    List<MethodElementImpl> methods = const [],
-  }) {
-    var fragment = ClassFragmentImpl(name: name);
-    fragment.isAbstract = isAbstract;
-    fragment.isAugmentation = isAugmentation;
-    fragment.isSealed = isSealed;
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.typeParameters = typeParameters
-        .map((e) => e.firstFragment)
-        .toList();
-    fragment.methods = methods.map((e) => e.firstFragment).toList();
-
-    var element = ClassElementImpl(Reference.root(), fragment);
-    element.supertype = superType ?? typeProvider.objectType;
-    element.mixins = mixins;
-    element.interfaces = interfaces;
-    return element;
-  }
-
   InterfaceTypeImpl comparableNone(TypeImpl type) {
     var coreLibrary = typeProvider.intElement.library;
     var element = coreLibrary.getClass('Comparable')!;
@@ -187,107 +129,6 @@ mixin ElementsTypesMixin {
       typeArguments: [type],
       nullabilitySuffix: NullabilitySuffix.question,
     );
-  }
-
-  EnumFragmentImpl enum_({
-    required String name,
-    required List<FieldFragmentImpl> constants,
-  }) {
-    var fragment = EnumFragmentImpl(name: name);
-    EnumElementImpl(Reference.root(), fragment);
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.fields = constants;
-    return fragment;
-  }
-
-  EnumElementImpl enum_2({
-    required String name,
-    required List<FieldFragmentImpl> constants,
-  }) {
-    var fragment = EnumFragmentImpl(name: name);
-    var element = EnumElementImpl(Reference.root(), fragment);
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.fields = constants;
-    return element;
-  }
-
-  FieldFragmentImpl enumConstant_(String name) {
-    return FieldFragmentImpl(name: name)
-      ..isEnumConstant = true
-      ..isOriginDeclaration = true;
-  }
-
-  ExtensionFragmentImpl extension({
-    required TypeImpl extendedType,
-    String? name,
-    bool isAugmentation = false,
-    List<TypeParameterFragmentImpl> typeParameters = const [],
-    List<MethodFragmentImpl> methods = const [],
-  }) {
-    var element = ExtensionFragmentImpl(name: name);
-    ExtensionElementImpl(Reference.root(), element);
-    element.element.extendedType = extendedType;
-    element.isAugmentation = isAugmentation;
-    element.enclosingFragment = testLibrary.firstFragment;
-    element.typeParameters = typeParameters;
-    element.methods = methods;
-    return element;
-  }
-
-  ExtensionTypeFragmentImpl extensionType(
-    String name, {
-    String representationName = 'it',
-    required TypeImpl representationType,
-    List<TypeParameterElementImpl> typeParameters = const [],
-    List<InterfaceTypeImpl> interfaces = const [],
-  }) {
-    var fragment = ExtensionTypeFragmentImpl(name: name);
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-
-    var fieldFragment = FieldFragmentImpl(name: representationName)
-      ..isOriginDeclaringFormalParameter = true;
-    var fieldElement = FieldElementImpl(
-      reference: Reference.root(),
-      firstFragment: fieldFragment,
-    );
-    fieldElement.type = representationType;
-    fragment.fields = [fieldFragment];
-
-    var element = ExtensionTypeElementImpl(Reference.root(), fragment);
-    element.typeErasure = representationType;
-    element.interfaces = interfaces;
-
-    return fragment;
-  }
-
-  ExtensionTypeElementImpl extensionType2(
-    String name, {
-    String representationName = 'it',
-    required TypeImpl representationType,
-    List<TypeParameterElementImpl> typeParameters = const [],
-    List<InterfaceTypeImpl> interfaces = const [],
-  }) {
-    var fragment = ExtensionTypeFragmentImpl(name: name);
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-
-    var fieldFragment = FieldFragmentImpl(name: representationName)
-      ..isOriginDeclaringFormalParameter = true;
-    fragment.fields = [fieldFragment];
-
-    var element = ExtensionTypeElementImpl(Reference.root(), fragment);
-    element.typeErasure = representationType;
-    element.interfaces = interfaces;
-
-    var fieldElement = FieldElementImpl(
-      reference: Reference.root(),
-      firstFragment: fieldFragment,
-    );
-    element.fields = [fieldElement];
-    fieldElement.type = representationType;
-
-    return element;
   }
 
   FunctionTypeImpl functionType({
@@ -451,65 +292,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  MethodFragmentImpl method(
-    String name,
-    TypeImpl returnType, {
-    bool isStatic = false,
-    List<TypeParameterElementImpl> typeParameters = const [],
-    List<FormalParameterElementImpl> formalParameters = const [],
-  }) {
-    var fragment = MethodFragmentImpl(name: name)
-      ..isStatic = isStatic
-      ..formalParameters = formalParameters.map((e) => e.asElement).toList()
-      ..typeParameters = typeParameters.map((e) => e.asElement).toList();
-    var element = MethodElementImpl(
-      name: name,
-      reference: Reference.root(),
-      firstFragment: fragment,
-    );
-    element.returnType = returnType;
-    return fragment;
-  }
-
-  MixinFragmentImpl mixin_({
-    required String name,
-    bool isAugmentation = false,
-    List<TypeParameterElementImpl> typeParameters = const [],
-    List<InterfaceTypeImpl>? constraints,
-    List<InterfaceTypeImpl> interfaces = const [],
-  }) {
-    var fragment = MixinFragmentImpl(name: name);
-    fragment.isAugmentation = isAugmentation;
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.constructors = const <ConstructorFragmentImpl>[];
-
-    var element = MixinElementImpl(Reference.root(), fragment);
-    element.superclassConstraints = constraints ?? [typeProvider.objectType];
-    element.interfaces = interfaces;
-
-    return fragment;
-  }
-
-  MixinElementImpl mixin_2({
-    required String name,
-    bool isAugmentation = false,
-    List<TypeParameterElementImpl> typeParameters = const [],
-    List<InterfaceTypeImpl>? constraints,
-    List<InterfaceTypeImpl> interfaces = const [],
-  }) {
-    var fragment = MixinFragmentImpl(name: name);
-    fragment.isAugmentation = isAugmentation;
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-    fragment.constructors = const <ConstructorFragmentImpl>[];
-
-    var element = MixinElementImpl(Reference.root(), fragment);
-    element.superclassConstraints = constraints ?? [typeProvider.objectType];
-    element.interfaces = interfaces;
-    return element;
-  }
-
   FormalParameterElementImpl namedParameter({
     required String name,
     required TypeImpl type,
@@ -638,20 +420,6 @@ mixin ElementsTypesMixin {
     return FormalParameterElementImpl(fragment)..type = type;
   }
 
-  TypeAliasElementImpl typeAlias({
-    required String name,
-    required List<TypeParameterElementImpl> typeParameters,
-    required TypeImpl aliasedType,
-  }) {
-    var fragment = TypeAliasFragmentImpl(name: name, firstTokenOffset: null);
-    fragment.enclosingFragment = testLibrary.firstFragment;
-    fragment.typeParameters = typeParameters.map((e) => e.asElement).toList();
-
-    var element = TypeAliasElementImpl(Reference.root(), fragment);
-    element.aliasedType = aliasedType;
-    return element;
-  }
-
   TypeImpl typeAliasTypeNone(
     TypeAliasElementImpl element, {
     List<TypeImpl> typeArguments = const [],
@@ -718,76 +486,4 @@ class _MockSource implements Source {
 
   @override
   noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-}
-
-extension ClassElementImpl2Extension on ClassElementImpl {
-  void addAugmentations(List<ClassFragmentImpl> augmentations) {
-    var augmentationTarget = fragments.last;
-    for (var augmentation in augmentations) {
-      expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.nextFragment = augmentation;
-      augmentation.previousFragment = augmentationTarget;
-      augmentationTarget = augmentation;
-
-      expect(
-        augmentation.typeParameters,
-        isEmpty,
-        reason: 'Not supported in tests',
-      );
-    }
-  }
-}
-
-extension ClassElementImplExtension on ClassFragmentImpl {
-  void addAugmentations(List<ClassFragmentImpl> augmentations) {
-    var augmentationTarget = this;
-    for (var augmentation in augmentations) {
-      expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.nextFragment = augmentation;
-      augmentation.previousFragment = augmentationTarget;
-      augmentationTarget = augmentation;
-
-      expect(
-        augmentation.typeParameters,
-        isEmpty,
-        reason: 'Not supported in tests',
-      );
-    }
-  }
-}
-
-extension MixinElementImpl2Extension on MixinElementImpl {
-  void addAugmentations(List<MixinFragmentImpl> augmentations) {
-    var augmentationTarget = fragments.last;
-    for (var augmentation in augmentations) {
-      expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.nextFragment = augmentation;
-      augmentation.previousFragment = augmentationTarget;
-      augmentationTarget = augmentation;
-
-      expect(
-        augmentation.typeParameters,
-        isEmpty,
-        reason: 'Not supported in tests',
-      );
-    }
-  }
-}
-
-extension MixinElementImplExtension on MixinFragmentImpl {
-  void addAugmentations(List<MixinFragmentImpl> augmentations) {
-    var augmentationTarget = this;
-    for (var augmentation in augmentations) {
-      expect(augmentation.isAugmentation, isTrue);
-      augmentationTarget.nextFragment = augmentation;
-      augmentation.previousFragment = augmentationTarget;
-      augmentationTarget = augmentation;
-
-      expect(
-        augmentation.typeParameters,
-        isEmpty,
-        reason: 'Not supported in tests',
-      );
-    }
-  }
 }

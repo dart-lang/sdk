@@ -25,21 +25,25 @@ class TestAnalysisContext implements AnalysisContext {
   final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
   final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
 
+  late final LibraryElementImpl coreLibrary;
+  late final LibraryElementImpl asyncLibrary;
   late TypeProviderImpl _typeProvider;
   late TypeSystemImpl _typeSystem;
 
   TestAnalysisContext() {
     var sdkElements = MockSdkElements(this, rootReference, _analysisSession);
+    coreLibrary = sdkElements.coreLibrary;
+    asyncLibrary = sdkElements.asyncLibrary;
 
     _typeProvider = TypeProviderImpl(
-      coreLibrary: sdkElements.coreLibrary,
-      asyncLibrary: sdkElements.asyncLibrary,
+      coreLibrary: coreLibrary,
+      asyncLibrary: asyncLibrary,
     );
 
     _typeSystem = TypeSystemImpl(typeProvider: _typeProvider);
 
-    _setLibraryTypeSystem(sdkElements.coreLibrary);
-    _setLibraryTypeSystem(sdkElements.asyncLibrary);
+    _setLibraryTypeSystem(coreLibrary);
+    _setLibraryTypeSystem(asyncLibrary);
   }
 
   AnalysisSessionImpl get analysisSession => _analysisSession;

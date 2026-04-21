@@ -7,6 +7,7 @@ import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -22,6 +23,8 @@ DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 
 @reflectiveTest
 class FunctionTypeTest extends AbstractTypeSystemTest {
+  final Map<String, InterfaceTypeImpl> _classTypes = {};
+
   InterfaceType get intType => typeProvider.intType;
 
   ClassElement get listElement => typeProvider.listElement;
@@ -252,18 +255,17 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
 
   test_hash_nullabilitySuffix() {
     _testHashesSometimesDifferPairwise((i) {
-      var cf = class_(name: 'C$i');
-      var c = cf.element;
+      var cType = _classType('C$i');
       return (
         FunctionTypeImpl(
           typeParameters: const [],
-          parameters: [requiredParameter(name: 'x', type: c.thisType)],
+          parameters: [requiredParameter(name: 'x', type: cType)],
           returnType: typeProvider.voidType,
           nullabilitySuffix: NullabilitySuffix.none,
         ),
         FunctionTypeImpl(
           typeParameters: const [],
-          parameters: [requiredParameter(name: 'x', type: c.thisType)],
+          parameters: [requiredParameter(name: 'x', type: cType)],
           returnType: typeProvider.voidType,
           nullabilitySuffix: NullabilitySuffix.question,
         ),
@@ -286,12 +288,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     _testHashesSometimesDiffer(
       (i) => FunctionTypeImpl(
         typeParameters: const [],
-        parameters: [
-          namedParameter(
-            name: 'x',
-            type: class_(name: 'C$i').element.thisType,
-          ),
-        ],
+        parameters: [namedParameter(name: 'x', type: _classType('C$i'))],
         returnType: typeProvider.voidType,
         nullabilitySuffix: NullabilitySuffix.none,
       ),
@@ -316,12 +313,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     _testHashesAlwaysEqual(
       (i) => FunctionTypeImpl(
         typeParameters: const [],
-        parameters: [
-          positionalParameter(
-            name: 'x',
-            type: class_(name: 'C$i').element.thisType,
-          ),
-        ],
+        parameters: [positionalParameter(name: 'x', type: _classType('C$i'))],
         returnType: typeProvider.voidType,
         nullabilitySuffix: NullabilitySuffix.none,
       ),
@@ -369,10 +361,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       (i) => FunctionTypeImpl(
         typeParameters: const [],
         parameters: [
-          namedRequiredParameter(
-            name: 'x',
-            type: class_(name: 'C$i').element.thisType,
-          ),
+          namedRequiredParameter(name: 'x', type: _classType('C$i')),
         ],
         returnType: typeProvider.voidType,
         nullabilitySuffix: NullabilitySuffix.none,
@@ -398,12 +387,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     _testHashesAlwaysEqual(
       (i) => FunctionTypeImpl(
         typeParameters: const [],
-        parameters: [
-          requiredParameter(
-            name: 'x',
-            type: class_(name: 'C$i').element.thisType,
-          ),
-        ],
+        parameters: [requiredParameter(name: 'x', type: _classType('C$i'))],
         returnType: typeProvider.voidType,
         nullabilitySuffix: NullabilitySuffix.none,
       ),
@@ -415,7 +399,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       (i) => FunctionTypeImpl(
         typeParameters: const [],
         parameters: const [],
-        returnType: class_(name: 'C$i').element.thisType,
+        returnType: _classType('C$i'),
         nullabilitySuffix: NullabilitySuffix.none,
       ),
     );
@@ -605,6 +589,19 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       returnType: typeParameterTypeNone(t),
       typeFormals: [same(t)],
     );
+  }
+
+  InterfaceTypeImpl _classType(String name) {
+    return _classTypes.putIfAbsent(name, () {
+      testLibrary = buildTestLibrary(
+        LibrarySpec(
+          uri: 'package:test/test.dart',
+          imports: const ['dart:core'],
+          classes: [ClassSpec(name: name)],
+        ),
+      );
+      return testLibrary.getClass(name)!.thisType;
+    });
   }
 
   /// Verifies that the objects returned by [generate] always have equal hashes,

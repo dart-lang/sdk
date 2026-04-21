@@ -5,6 +5,7 @@
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/least_upper_bound.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -18,35 +19,48 @@ main() {
 }
 
 @reflectiveTest
-class PathToObjectTest extends AbstractTypeSystemTest {
+class PathToObjectTest extends _Base {
   void test_class_mixins1() {
-    var M1 = mixin_2(name: 'M1');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'X', supertype: 'A', mixins: ['M1']),
+      ],
+      mixins: [MixinSpec(name: 'M1')],
+    );
+    var M1 = mixinElement('M1');
     expect(_toElement(M1), 2);
 
-    var A = class_2(name: 'A');
+    var A = classElement('A');
     expect(_toElement(A), 2);
+    var X = classElement('X');
 
     // class _X&A&M1 extends A implements M1 {}
     //    length: 2
     // class X extends _X&A&M1 {}
     //    length: 3
-    var X = class_2(
-      name: 'X',
-      superType: interfaceTypeNone(A),
-      mixins: [interfaceTypeNone(M1)],
-    );
-
     expect(_toElement(X), 4);
   }
 
   void test_class_mixins2() {
-    var M1 = mixin_2(name: 'M1');
-    var M2 = mixin_2(name: 'M2');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'X', supertype: 'A', mixins: ['M1', 'M2']),
+      ],
+      mixins: [
+        MixinSpec(name: 'M1'),
+        MixinSpec(name: 'M2'),
+      ],
+    );
+    var M1 = mixinElement('M1');
+    var M2 = mixinElement('M2');
     expect(_toElement(M1), 2);
     expect(_toElement(M2), 2);
 
-    var A = class_2(name: 'A');
+    var A = classElement('A');
     expect(_toElement(A), 2);
+    var X = classElement('X');
 
     // class _X&A&M1 extends A implements M1 {}
     //    length: 2
@@ -54,31 +68,39 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    length: 3
     // class X extends _X&A&M1&M2 {}
     //    length: 4
-    var X = class_2(
-      name: 'X',
-      superType: interfaceTypeNone(A),
-      mixins: [interfaceTypeNone(M1), interfaceTypeNone(M2)],
-    );
-
     expect(_toElement(X), 5);
   }
 
   void test_class_mixins_longerViaSecondMixin() {
-    var I1 = class_2(name: 'I1');
-    var I2 = class_2(name: 'I2', superType: interfaceTypeNone(I1));
-    var I3 = class_2(name: 'I3', superType: interfaceTypeNone(I2));
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'I1'),
+        ClassSpec(name: 'I2', supertype: 'I1'),
+        ClassSpec(name: 'I3', supertype: 'I2'),
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'X', supertype: 'A', mixins: ['M1', 'M2']),
+      ],
+      mixins: [
+        MixinSpec(name: 'M1'),
+        MixinSpec(name: 'M2', interfaces: ['I3']),
+      ],
+    );
+    var I1 = classElement('I1');
+    var I2 = classElement('I2');
+    var I3 = classElement('I3');
 
     expect(_toElement(I1), 2);
     expect(_toElement(I2), 3);
     expect(_toElement(I3), 4);
 
-    var M1 = mixin_2(name: 'M1');
-    var M2 = mixin_2(name: 'M2', interfaces: [interfaceTypeNone(I3)]);
+    var M1 = mixinElement('M1');
+    var M2 = mixinElement('M2');
     expect(_toElement(M1), 2);
     expect(_toElement(M2), 5);
 
-    var A = class_2(name: 'A');
+    var A = classElement('A');
     expect(_toElement(A), 2);
+    var X = classElement('X');
 
     // class _X&A&M1 extends A implements M1 {}
     //    length: 2
@@ -86,12 +108,6 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    length: 5 = max(1 + _X&A&M1, 1 + M2)
     // class X extends _X&A&M1&M2 {}
     //    length: 6
-    var X = class_2(
-      name: 'X',
-      superType: interfaceTypeNone(A),
-      mixins: [interfaceTypeNone(M1), interfaceTypeNone(M2)],
-    );
-
     expect(_toElement(X), 7);
   }
 
@@ -109,18 +125,17 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    \ /
     //     E
     //
-    var classA = class_2(name: "A");
-    var classB = class_2(name: "B");
-    var classC = class_2(name: "C");
-    var classD = class_2(name: "D");
-    var classE = class_2(name: "E");
-    classB.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
-    classC.interfaces = <InterfaceType>[interfaceTypeNone(classA)];
-    classD.interfaces = <InterfaceType>[interfaceTypeNone(classC)];
-    classE.interfaces = <InterfaceType>[
-      interfaceTypeNone(classB),
-      interfaceTypeNone(classD),
-    ];
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', interfaces: ['A']),
+        ClassSpec(name: 'C', interfaces: ['A']),
+        ClassSpec(name: 'D', interfaces: ['C']),
+        ClassSpec(name: 'E', interfaces: ['B', 'D']),
+      ],
+    );
+    var classB = classElement('B');
+    var classE = classElement('E');
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE implements typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -142,12 +157,17 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //    \ /
     //     E
     //
-    var classA = class_2(name: "A");
-    var classB = class_2(name: "B", superType: interfaceTypeNone(classA));
-    var classC = class_2(name: "C", superType: interfaceTypeNone(classA));
-    var classD = class_2(name: "D", superType: interfaceTypeNone(classC));
-    var classE = class_2(name: "E", superType: interfaceTypeNone(classB));
-    classE.interfaces = <InterfaceType>[interfaceTypeNone(classD)];
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', supertype: 'A'),
+        ClassSpec(name: 'C', supertype: 'A'),
+        ClassSpec(name: 'D', supertype: 'C'),
+        ClassSpec(name: 'E', supertype: 'B', interfaces: ['D']),
+      ],
+    );
+    var classB = classElement('B');
+    var classE = classElement('E');
     // assertion: even though the longest path to Object for typeB is 2, and
     // typeE extends typeB, the longest path for typeE is 4 since it also
     // implements typeD
@@ -165,8 +185,14 @@ class PathToObjectTest extends AbstractTypeSystemTest {
   }
 
   void test_class_recursion() {
-    var classA = class_2(name: "A");
-    var classB = class_2(name: "B", superType: interfaceTypeNone(classA));
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', supertype: 'A'),
+      ],
+    );
+    var classA = classElement('A');
+    var classB = classElement('B');
     classA.supertype = interfaceTypeNone(classB);
     expect(_toElement(classA), 2);
   }
@@ -183,11 +209,16 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //     |
     //     C
     //
-    var classA = class_2(name: "A");
-    var classB = class_2(name: "B");
-    var classC = class_2(name: "C");
-    classB.interfaces = [interfaceTypeNone(classA)];
-    classC.interfaces = [interfaceTypeNone(classB)];
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', interfaces: ['A']),
+        ClassSpec(name: 'C', interfaces: ['B']),
+      ],
+    );
+    var classA = classElement('A');
+    var classB = classElement('B');
+    var classC = classElement('C');
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
@@ -205,94 +236,125 @@ class PathToObjectTest extends AbstractTypeSystemTest {
     //     |
     //     C
     //
-    var classA = class_2(name: "A");
-    var classB = class_2(name: "B", superType: interfaceTypeNone(classA));
-    var classC = class_2(name: "C", superType: interfaceTypeNone(classB));
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', supertype: 'A'),
+        ClassSpec(name: 'C', supertype: 'B'),
+      ],
+    );
+    var classA = classElement('A');
+    var classB = classElement('B');
+    var classC = classElement('C');
     expect(_toElement(classA), 2);
     expect(_toElement(classB), 3);
     expect(_toElement(classC), 4);
   }
 
   void test_mixin_constraints_interfaces_allSame() {
-    var A = class_2(name: 'A');
-    var B = class_2(name: 'B');
-    var I = class_2(name: 'I');
-    var J = class_2(name: 'J');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B'),
+        ClassSpec(name: 'I'),
+        ClassSpec(name: 'J'),
+      ],
+      mixins: [
+        MixinSpec(name: 'M', constraints: ['A', 'B'], interfaces: ['I', 'J']),
+      ],
+    );
+    var A = classElement('A');
+    var B = classElement('B');
+    var I = classElement('I');
+    var J = classElement('J');
     expect(_toElement(A), 2);
     expect(_toElement(B), 2);
     expect(_toElement(I), 2);
     expect(_toElement(J), 2);
-
+    var M = mixinElement('M');
     // The interface of M is:
     // class _M&A&A implements A, B, I, J {}
-    var M = mixin_2(
-      name: 'M',
-      constraints: [interfaceTypeNone(A), interfaceTypeNone(B)],
-      interfaces: [interfaceTypeNone(I), interfaceTypeNone(J)],
-    );
     expect(_toElement(M), 3);
   }
 
   void test_mixin_longerConstraint_1() {
-    var A1 = class_2(name: 'A1');
-    var A = class_2(name: 'A', superType: interfaceTypeNone(A1));
-    var B = class_2(name: 'B');
-    var I = class_2(name: 'I');
-    var J = class_2(name: 'J');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A1'),
+        ClassSpec(name: 'A', supertype: 'A1'),
+        ClassSpec(name: 'B'),
+        ClassSpec(name: 'I'),
+        ClassSpec(name: 'J'),
+      ],
+      mixins: [
+        MixinSpec(name: 'M', constraints: ['A', 'B'], interfaces: ['I', 'J']),
+      ],
+    );
+    var A = classElement('A');
+    var B = classElement('B');
+    var I = classElement('I');
+    var J = classElement('J');
     expect(_toElement(A), 3);
     expect(_toElement(B), 2);
     expect(_toElement(I), 2);
     expect(_toElement(J), 2);
-
+    var M = mixinElement('M');
     // The interface of M is:
     // class _M&A&A implements A, B, I, J {}
-    var M = mixin_2(
-      name: 'M',
-      constraints: [interfaceTypeNone(A), interfaceTypeNone(B)],
-      interfaces: [interfaceTypeNone(I), interfaceTypeNone(J)],
-    );
     expect(_toElement(M), 4);
   }
 
   void test_mixin_longerConstraint_2() {
-    var A = class_2(name: 'A');
-    var B1 = class_2(name: 'B1');
-    var B = class_2(name: 'B', interfaces: [interfaceTypeNone(B1)]);
-    var I = class_2(name: 'I');
-    var J = class_2(name: 'J');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B1'),
+        ClassSpec(name: 'B', interfaces: ['B1']),
+        ClassSpec(name: 'I'),
+        ClassSpec(name: 'J'),
+      ],
+      mixins: [
+        MixinSpec(name: 'M', constraints: ['A', 'B'], interfaces: ['I', 'J']),
+      ],
+    );
+    var A = classElement('A');
+    var B = classElement('B');
+    var I = classElement('I');
+    var J = classElement('J');
     expect(_toElement(A), 2);
     expect(_toElement(B), 3);
     expect(_toElement(I), 2);
     expect(_toElement(J), 2);
-
+    var M = mixinElement('M');
     // The interface of M is:
     // class _M&A&A implements A, B, I, J {}
-    var M = mixin_2(
-      name: 'M',
-      constraints: [interfaceTypeNone(A), interfaceTypeNone(B)],
-      interfaces: [interfaceTypeNone(I), interfaceTypeNone(J)],
-    );
     expect(_toElement(M), 4);
   }
 
   void test_mixin_longerInterface_1() {
-    var A = class_2(name: 'A');
-    var B = class_2(name: 'B');
-    var I1 = class_2(name: 'I1');
-    var I = class_2(name: 'I', interfaces: [interfaceTypeNone(I1)]);
-    var J = class_2(name: 'J');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B'),
+        ClassSpec(name: 'I1'),
+        ClassSpec(name: 'I', interfaces: ['I1']),
+        ClassSpec(name: 'J'),
+      ],
+      mixins: [
+        MixinSpec(name: 'M', constraints: ['A', 'B'], interfaces: ['I', 'J']),
+      ],
+    );
+    var A = classElement('A');
+    var B = classElement('B');
+    var I = classElement('I');
+    var J = classElement('J');
     expect(_toElement(A), 2);
     expect(_toElement(B), 2);
     expect(_toElement(I), 3);
     expect(_toElement(J), 2);
-
+    var M = mixinElement('M');
     // The interface of M is:
     // class _M&A&A implements A, B, I, J {}
-    var M = mixin_2(
-      name: 'M',
-      constraints: [interfaceTypeNone(A), interfaceTypeNone(B)],
-      interfaces: [interfaceTypeNone(I), interfaceTypeNone(J)],
-    );
     expect(_toElement(M), 4);
   }
 
@@ -309,7 +371,7 @@ class PathToObjectTest extends AbstractTypeSystemTest {
 }
 
 @reflectiveTest
-class SuperinterfaceSetTest extends AbstractTypeSystemTest {
+class SuperinterfaceSetTest extends _Base {
   void test_genericInterfacePath() {
     //
     //  A
@@ -321,22 +383,19 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  D
     //
 
-    var classA = class_2(name: 'A');
-    var instA = interfaceTypeNone(classA);
-
-    var BT = typeParameter('T');
-    var classB = class_2(name: 'B', typeParameters: [BT], interfaces: [instA]);
-
-    var CT = typeParameter('T');
-    var classC = class_2(
-      name: 'C',
-      typeParameters: [CT],
-      interfaces: [
-        interfaceTypeNone(classB, typeArguments: [typeParameterTypeNone(CT)]),
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', typeParameters: ['T'], interfaces: ['A']),
+        ClassSpec(name: 'C', typeParameters: ['T'], interfaces: ['B<T>']),
+        ClassSpec(name: 'D'),
       ],
     );
-
-    var classD = class_2(name: 'D');
+    var classA = classElement('A');
+    var instA = interfaceTypeNone(classA);
+    var classB = classElement('B');
+    var classC = classElement('C');
+    var classD = classElement('D');
 
     // A
     expect(
@@ -377,26 +436,19 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  D
     //
 
-    var classA = class_2(name: 'A');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', typeParameters: ['T'], supertype: 'A'),
+        ClassSpec(name: 'C', typeParameters: ['T'], supertype: 'B<T>'),
+        ClassSpec(name: 'D'),
+      ],
+    );
+    var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
-
-    var classB = class_2(
-      name: 'B',
-      typeParameters: [typeParameter('T')],
-      superType: instA,
-    );
-
-    var typeParameterCT = typeParameter('T');
-    var classC = class_2(
-      name: 'B',
-      typeParameters: [typeParameterCT],
-      superType: interfaceTypeNone(
-        classB,
-        typeArguments: [typeParameterTypeNone(typeParameterCT)],
-      ),
-    );
-
-    var classD = class_2(name: 'D');
+    var classB = classElement('B');
+    var classC = classElement('C');
+    var classD = classElement('D');
 
     // A
     expect(
@@ -427,16 +479,23 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_constraints() {
-    var classA = class_2(name: 'A');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', interfaces: ['A']),
+        ClassSpec(name: 'C'),
+      ],
+      mixins: [
+        MixinSpec(name: 'M', constraints: ['B', 'C']),
+      ],
+    );
+    var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
-
-    var classB = class_2(name: 'B', interfaces: [instA]);
+    var classB = classElement('B');
     var instB = interfaceTypeNone(classB);
-
-    var classC = class_2(name: 'C');
+    var classC = classElement('C');
     var instC = interfaceTypeNone(classC);
-
-    var mixinM = mixin_2(name: 'M', constraints: [instB, instC]);
+    var mixinM = mixinElement('M');
     var instM = interfaceTypeNone(mixinM);
 
     expect(
@@ -446,7 +505,8 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_constraints_object() {
-    var mixinM = mixin_2(name: 'M');
+    buildLibrary(mixins: [MixinSpec(name: 'M')]);
+    var mixinM = mixinElement('M');
     var instM = interfaceTypeNone(mixinM);
 
     expect(
@@ -456,16 +516,23 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_mixin_interfaces() {
-    var classA = class_2(name: 'A');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', interfaces: ['A']),
+        ClassSpec(name: 'C'),
+      ],
+      mixins: [
+        MixinSpec(name: 'M', interfaces: ['B', 'C']),
+      ],
+    );
+    var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
-
-    var classB = class_2(name: 'B', interfaces: [instA]);
+    var classB = classElement('B');
     var instB = interfaceTypeNone(classB);
-
-    var classC = class_2(name: 'C');
+    var classC = classElement('C');
     var instC = interfaceTypeNone(classC);
-
-    var mixinM = mixin_2(name: 'M', interfaces: [instB, instC]);
+    var mixinM = mixinElement('M');
     var instM = interfaceTypeNone(mixinM);
 
     expect(
@@ -475,19 +542,24 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_multipleInterfacePaths() {
-    var classA = class_2(name: 'A');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', interfaces: ['A']),
+        ClassSpec(name: 'C', interfaces: ['A']),
+        ClassSpec(name: 'D', interfaces: ['C']),
+        ClassSpec(name: 'E', interfaces: ['B', 'D']),
+      ],
+    );
+    var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
-
-    var classB = class_2(name: 'B', interfaces: [instA]);
+    var classB = classElement('B');
     var instB = interfaceTypeNone(classB);
-
-    var classC = class_2(name: 'C', interfaces: [instA]);
+    var classC = classElement('C');
     var instC = interfaceTypeNone(classC);
-
-    var classD = class_2(name: 'D', interfaces: [instC]);
+    var classD = classElement('D');
     var instD = interfaceTypeNone(classD);
-
-    var classE = class_2(name: 'E', interfaces: [instB, instD]);
+    var classE = classElement('E');
     var instE = interfaceTypeNone(classE);
 
     // D
@@ -504,19 +576,24 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_multipleSuperclassPaths() {
-    var classA = class_2(name: 'A');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', supertype: 'A'),
+        ClassSpec(name: 'C', supertype: 'A'),
+        ClassSpec(name: 'D', supertype: 'C'),
+        ClassSpec(name: 'E', supertype: 'B', interfaces: ['D']),
+      ],
+    );
+    var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
-
-    var classB = class_2(name: 'B', superType: instA);
+    var classB = classElement('B');
     var instB = interfaceTypeNone(classB);
-
-    var classC = class_2(name: 'C', superType: instA);
+    var classC = classElement('C');
     var instC = interfaceTypeNone(classC);
-
-    var classD = class_2(name: 'D', superType: instC);
+    var classD = classElement('D');
     var instD = interfaceTypeNone(classD);
-
-    var classE = class_2(name: 'E', superType: instB, interfaces: [instD]);
+    var classE = classElement('E');
     var instE = interfaceTypeNone(classE);
 
     // D
@@ -533,10 +610,15 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_recursion() {
-    var classA = class_2(name: 'A');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', supertype: 'A'),
+      ],
+    );
+    var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
-
-    var classB = class_2(name: 'B', superType: instA);
+    var classB = classElement('B');
     var instB = interfaceTypeNone(classB);
 
     classA.supertype = instB;
@@ -547,13 +629,18 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   }
 
   void test_singleInterfacePath() {
-    var classA = class_2(name: 'A');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', interfaces: ['A']),
+        ClassSpec(name: 'C', interfaces: ['B']),
+      ],
+    );
+    var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
-
-    var classB = class_2(name: 'B', interfaces: [instA]);
+    var classB = classElement('B');
     var instB = interfaceTypeNone(classB);
-
-    var classC = class_2(name: 'C', interfaces: [instB]);
+    var classC = classElement('C');
     var instC = interfaceTypeNone(classC);
 
     // A
@@ -583,13 +670,18 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
     //  |
     //  C
     //
-    var classA = class_2(name: 'A');
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', supertype: 'A'),
+        ClassSpec(name: 'C', supertype: 'B'),
+      ],
+    );
+    var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
-
-    var classB = class_2(name: 'B', superType: instA);
+    var classB = classElement('B');
     var instB = interfaceTypeNone(classB);
-
-    var classC = class_2(name: 'C', superType: instB);
+    var classC = classElement('C');
     var instC = interfaceTypeNone(classC);
 
     // A
@@ -614,5 +706,29 @@ class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   Set<InterfaceType> _superInterfaces(InterfaceType type) {
     var helper = InterfaceLeastUpperBoundHelper(typeSystem);
     return helper.computeSuperinterfaceSet(type);
+  }
+}
+
+abstract class _Base extends AbstractTypeSystemTest {
+  void buildLibrary({
+    List<ClassSpec> classes = const [],
+    List<MixinSpec> mixins = const [],
+  }) {
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core'],
+        classes: classes,
+        mixins: mixins,
+      ),
+    );
+  }
+
+  ClassElementImpl classElement(String name) {
+    return testLibrary.getClass(name)!;
+  }
+
+  MixinElementImpl mixinElement(String name) {
+    return testLibrary.getMixin(name)!;
   }
 }
