@@ -57,7 +57,7 @@ def Main():
             else:
                 output_file.write(".const\n")
             output_file.write(".global _%s\n" % options.symbol_name)
-            output_file.write(".balign 32\n")
+            output_file.write(".balign 64\n")
             output_file.write("_%s:\n" % options.symbol_name)
         elif options.target_os in ["win"]:
             output_file.write("ifndef _ML64_X64\n")
@@ -76,7 +76,7 @@ def Main():
             else:
                 output_file.write(".section .rodata\n")
             output_file.write(".global %s\n" % options.symbol_name)
-            output_file.write(".balign 32\n")
+            output_file.write(".balign 64\n")
             output_file.write("%s:\n" % options.symbol_name)
         else:
             if options.executable:
@@ -86,7 +86,7 @@ def Main():
                 output_file.write(".section .rodata\n")
                 output_file.write(".type %s STT_OBJECT\n" % options.symbol_name)
             output_file.write(".global %s\n" % options.symbol_name)
-            output_file.write(".balign 32\n")
+            output_file.write(".balign 64\n")
             output_file.write("%s:\n" % options.symbol_name)
 
         size = 0
