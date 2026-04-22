@@ -12,6 +12,8 @@ import 'elements_types_mixin.dart';
 import 'test_analysis_context.dart';
 
 abstract class AbstractTypeSystemTest with ElementsTypesMixin {
+  static const _testLibraryUri = 'package:test/test.dart';
+
   late TestAnalysisContext analysisContext;
 
   @override
@@ -24,31 +26,15 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 
   late TypeSystemOperations typeSystemOperations;
 
-  ExtensionTypeElementImpl buildExtensionType(
-    ExtensionTypeSpec spec, {
-    List<String> imports = const ['dart:core', 'dart:async'],
-    Map<String, LibraryElementImpl>? externalLibraries,
-  }) {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: imports,
-        extensionTypes: [spec],
-      ),
-      externalLibraries: externalLibraries,
-    );
-    return testLibrary.getExtensionType(spec.name)!;
-  }
-
-  Map<String, LibraryElementImpl> buildTestLibrariesFromSpec(
+  Map<String, LibraryElementImpl> buildLibraries(
     Map<String, LibrarySpec> specs, {
     Map<String, LibraryElementImpl>? externalLibraries,
   }) {
     var libraries = buildLibrariesFromSpec(
-      analysisContext,
-      analysisContext.rootReference,
-      analysisContext.analysisSession,
-      specs,
+      analysisContext: analysisContext,
+      rootReference: analysisContext.rootReference,
+      analysisSession: analysisContext.analysisSession,
+      specs: specs,
       externalLibraries:
           externalLibraries ??
           {
@@ -65,13 +51,45 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
     return libraries;
   }
 
-  LibraryElementImpl buildTestLibrary(
-    LibrarySpec spec, {
+  LibraryElementImpl buildTestLibrary({
+    List<String> imports = const ['dart:core'],
+    List<ClassSpec> classes = const [],
+    List<EnumSpec> enums = const [],
+    List<ExtensionTypeSpec> extensionTypes = const [],
+    List<TopLevelFunctionSpec> functions = const [],
+    List<MixinSpec> mixins = const [],
+    List<TypeAliasSpec> typeAliases = const [],
     Map<String, LibraryElementImpl>? externalLibraries,
   }) {
-    return buildTestLibrariesFromSpec({
-      spec.uri: spec,
-    }, externalLibraries: externalLibraries)[spec.uri]!;
+    testLibrary = buildLibraries({
+      _testLibraryUri: LibrarySpec(
+        uri: _testLibraryUri,
+        imports: imports,
+        classes: classes,
+        enums: enums,
+        extensionTypes: extensionTypes,
+        functions: functions,
+        mixins: mixins,
+        typeAliases: typeAliases,
+      ),
+    }, externalLibraries: externalLibraries)[_testLibraryUri]!;
+    return testLibrary;
+  }
+
+  ClassElementImpl classElement(String name) {
+    return testLibrary.getClass(name)!;
+  }
+
+  EnumElementImpl enumElement(String name) {
+    return testLibrary.getEnum(name)!;
+  }
+
+  ExtensionTypeElementImpl extensionTypeElement(String name) {
+    return testLibrary.getExtensionType(name)!;
+  }
+
+  MixinElementImpl mixinElement(String name) {
+    return testLibrary.getMixin(name)!;
   }
 
   void setUp() {
@@ -82,12 +100,9 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
       typeSystem,
       strictCasts: analysisContext.analysisOptions.strictCasts,
     );
+  }
 
-    testLibrary = library_(
-      uriStr: 'package:test/test.dart',
-      analysisContext: analysisContext,
-      analysisSession: analysisContext.analysisSession,
-      typeSystem: typeSystem,
-    );
+  TypeAliasElementImpl typeAliasElement(String name) {
+    return testLibrary.getTypeAlias(name)! as TypeAliasElementImpl;
   }
 }

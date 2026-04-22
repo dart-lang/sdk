@@ -2,10 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
@@ -84,21 +82,10 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
 
   test_notContravariant_invariant() {
     // typedef F<T> = T Function(T);
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core'],
-        typeAliases: [
-          TypeAliasSpec(
-            name: 'F',
-            typeParameters: ['T'],
-            typeParameterVariances: {'T': Variance.invariant},
-            aliasedType: 'T Function(T)',
-          ),
-        ],
-      ),
+    buildTestLibrary(
+      typeAliases: [TypeAliasSpec('typedef F<inout T> = T Function(T)')],
     );
-    var F = testLibrary.getTypeAlias('F')! as TypeAliasElementImpl;
+    var F = typeAliasElement('F');
 
     var F_dynamic = F.instantiateImpl(
       typeArguments: [dynamicType],

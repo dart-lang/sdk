@@ -66,16 +66,16 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_interface_extensionType2() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
-    var AWithInt = buildExtensionType(
-      const ExtensionTypeSpec(
-        name: 'A',
-        representationType: 'int',
-        interfaces: ['int'],
-      ),
+    var A = extensionTypeElement('A');
+    buildTestLibrary(
+      extensionTypes: [
+        ExtensionTypeSpec('extension type A(int it) implements int'),
+      ],
     );
+    var AWithInt = extensionTypeElement('A');
     isNotNonNullable(interfaceTypeNone(A));
 
     isNonNullable(interfaceTypeNone(AWithInt));
@@ -174,16 +174,16 @@ class IsNullableTest extends AbstractTypeSystemTest {
   }
 
   test_interface_extensionType2() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
-    var AWithInt = buildExtensionType(
-      const ExtensionTypeSpec(
-        name: 'A',
-        representationType: 'int',
-        interfaces: ['int'],
-      ),
+    var A = extensionTypeElement('A');
+    buildTestLibrary(
+      extensionTypes: [
+        ExtensionTypeSpec('extension type A(int it) implements int'),
+      ],
     );
+    var AWithInt = extensionTypeElement('A');
     isNotNullable(interfaceTypeNone(A));
 
     isNotNullable(interfaceTypeNone(AWithInt));
@@ -267,16 +267,16 @@ class IsPotentiallyNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_interface_extensionType2() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
-    var AWithInt = buildExtensionType(
-      const ExtensionTypeSpec(
-        name: 'A',
-        representationType: 'int',
-        interfaces: ['int'],
-      ),
+    var A = extensionTypeElement('A');
+    buildTestLibrary(
+      extensionTypes: [
+        ExtensionTypeSpec('extension type A(int it) implements int'),
+      ],
     );
+    var AWithInt = extensionTypeElement('A');
     isPotentiallyNonNullable(interfaceTypeNone(A));
 
     isPotentiallyNonNullable(interfaceTypeNone(AWithInt));
@@ -325,16 +325,16 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
   }
 
   test_interface_extensionType2() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
-    var AWithInt = buildExtensionType(
-      const ExtensionTypeSpec(
-        name: 'A',
-        representationType: 'int',
-        interfaces: ['int'],
-      ),
+    var A = extensionTypeElement('A');
+    buildTestLibrary(
+      extensionTypes: [
+        ExtensionTypeSpec('extension type A(int it) implements int'),
+      ],
     );
+    var AWithInt = extensionTypeElement('A');
     isPotentiallyNullable(interfaceTypeQuestion(A));
 
     isPotentiallyNullable(interfaceTypeNone(A));
@@ -402,16 +402,16 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_interface_extensionType2() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
-    var AWithInt = buildExtensionType(
-      const ExtensionTypeSpec(
-        name: 'A',
-        representationType: 'int',
-        interfaces: ['int'],
-      ),
+    var A = extensionTypeElement('A');
+    buildTestLibrary(
+      extensionTypes: [
+        ExtensionTypeSpec('extension type A(int it) implements int'),
+      ],
     );
+    var AWithInt = extensionTypeElement('A');
     isNotStrictlyNonNullable(interfaceTypeNone(A));
 
     isStrictlyNonNullable(interfaceTypeNone(AWithInt));

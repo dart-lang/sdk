@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart' show Variance;
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -21,7 +20,7 @@ main() {
 }
 
 @reflectiveTest
-class SubtypeTest extends _SubtypingTestBase with StringTypes {
+class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
   void isNotSubtype(TypeImpl T0, TypeImpl T1, {String? strT0, String? strT1}) {
     assertExpectedString(T0, strT0);
     assertExpectedString(T1, strT1);
@@ -57,13 +56,9 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_implementsNotNullable() {
-    buildLibrary(
+    buildTestLibrary(
       extensionTypes: [
-        const ExtensionTypeSpec(
-          name: 'A',
-          representationType: 'int',
-          interfaces: ['int'],
-        ),
+        ExtensionTypeSpec('extension type A(int it) implements int'),
       ],
     );
     var element = extensionTypeElement('A');
@@ -77,10 +72,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_noImplementedInterfaces() {
-    buildLibrary(
-      extensionTypes: [
-        const ExtensionTypeSpec(name: 'A', representationType: 'int'),
-      ],
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
     var element = extensionTypeElement('A');
     var type = interfaceTypeNone(element);
@@ -91,17 +84,10 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_superinterfaces() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B'),
-      ],
+    buildTestLibrary(
+      classes: [ClassSpec('class A'), ClassSpec('class B')],
       extensionTypes: [
-        const ExtensionTypeSpec(
-          name: 'X',
-          representationType: 'int',
-          interfaces: ['A'],
-        ),
+        ExtensionTypeSpec('extension type X(int it) implements A'),
       ],
     );
     var A = classElement('A');
@@ -114,14 +100,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_extensionType_typeArguments() {
-    buildLibrary(
-      extensionTypes: [
-        const ExtensionTypeSpec(
-          name: 'A',
-          representationType: 'int',
-          typeParameters: ['T'],
-        ),
-      ],
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A<T>(int it)')],
     );
     var A = extensionTypeElement('A');
 
@@ -2247,11 +2227,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_25_interfaces() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'I'),
-        ClassSpec(name: 'A', interfaces: ['I']),
-      ],
+    buildTestLibrary(
+      classes: [ClassSpec('class I'), ClassSpec('class A implements I')],
     );
     var I = classElement('I');
     var A = classElement('A');
@@ -2270,11 +2247,8 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_26_mixins() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'M'),
-        ClassSpec(name: 'A', mixins: ['M']),
-      ],
+    buildTestLibrary(
+      classes: [ClassSpec('class M'), ClassSpec('class A with M')],
     );
     var M = classElement('M');
     var A = classElement('A');
@@ -2361,15 +2335,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_contravariant() {
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.contravariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<in T>')]);
     var A = classElement('A');
 
     var A_num = A.instantiateImpl(
@@ -2388,15 +2354,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_covariant() {
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.covariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<out T>')]);
     var A = classElement('A');
 
     var A_num = A.instantiateImpl(
@@ -2415,15 +2373,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
   }
 
   test_interfaceType_invariant() {
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.invariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<inout T>')]);
     var A = classElement('A');
 
     var A_num = A.instantiateImpl(
@@ -4648,7 +4598,7 @@ class SubtypeTest extends _SubtypingTestBase with StringTypes {
 }
 
 @reflectiveTest
-class SubtypingCompoundTest extends _SubtypingTestBase {
+class SubtypingCompoundTest extends AbstractTypeSystemTest {
   test_double() {
     var equivalents = <TypeImpl>[doubleNone];
     var supertypes = <TypeImpl>[numNone];
@@ -4869,31 +4819,5 @@ class SubtypingCompoundTest extends _SubtypingTestBase {
 
   static String _typeStr(TypeImpl type) {
     return type.getDisplayString();
-  }
-}
-
-class _SubtypingTestBase extends AbstractTypeSystemTest {
-  void buildLibrary({
-    List<ClassSpec> classes = const [],
-    List<ExtensionTypeSpec> extensionTypes = const [],
-    List<MixinSpec> mixins = const [],
-  }) {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core'],
-        classes: classes,
-        extensionTypes: extensionTypes,
-        mixins: mixins,
-      ),
-    );
-  }
-
-  ClassElementImpl classElement(String name) {
-    return testLibrary.getClass(name)!;
-  }
-
-  ExtensionTypeElementImpl extensionTypeElement(String name) {
-    return testLibrary.getExtensionType(name)!;
   }
 }

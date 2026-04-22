@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
@@ -797,11 +796,11 @@ class LowerBoundTest extends _BoundsTestBase {
     // class A
     // class B implements A
     // class C implements B
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['B']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements B'),
       ],
     );
     var A = classElement('A');
@@ -818,12 +817,12 @@ class LowerBoundTest extends _BoundsTestBase {
     // class B
     // class C
     // class D extends A with B, C
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B'),
-        ClassSpec(name: 'C'),
-        ClassSpec(name: 'D', supertype: 'A', mixins: ['B', 'C']),
+        ClassSpec('class A'),
+        ClassSpec('class B'),
+        ClassSpec('class C'),
+        ClassSpec('class D extends A with B, C'),
       ],
     );
     var A = classElement('A');
@@ -847,11 +846,11 @@ class LowerBoundTest extends _BoundsTestBase {
     // class A
     // class B extends A
     // class C extends B
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'B'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends B'),
       ],
     );
     var A = classElement('A');
@@ -1768,11 +1767,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B implements A
     // class C implements B
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['B']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements B'),
       ],
     );
     var B = classElement('B');
@@ -1789,11 +1788,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B extends A
     // class C extends B
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'B'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends B'),
       ],
     );
     var B = classElement('B');
@@ -1806,11 +1805,8 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_directSuperclass_nullability() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-      ],
+    buildTestLibrary(
+      classes: [ClassSpec('class A'), ClassSpec('class B extends A')],
     );
     var aElement = classElement('A');
     var aQuestion = interfaceTypeQuestion(aElement);
@@ -1839,14 +1835,9 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_mixinAndClass_constraintAndInterface() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-      ],
-      mixins: [
-        MixinSpec(name: 'M', constraints: ['A']),
-      ],
+    buildTestLibrary(
+      classes: [ClassSpec('class A'), ClassSpec('class B implements A')],
+      mixins: [MixinSpec('mixin M on A')],
     );
     var A = classElement('A');
     var A_none = interfaceTypeNone(A);
@@ -1858,9 +1849,9 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_mixinAndClass_object() {
-    buildLibrary(
-      classes: [ClassSpec(name: 'A')],
-      mixins: [MixinSpec(name: 'M')],
+    buildTestLibrary(
+      classes: [ClassSpec('class A')],
+      mixins: [MixinSpec('mixin M')],
     );
     var A = classElement('A');
     var M = mixinElement('M');
@@ -1873,14 +1864,9 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_mixinAndClass_sharedInterface() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-      ],
-      mixins: [
-        MixinSpec(name: 'M', interfaces: ['A']),
-      ],
+    buildTestLibrary(
+      classes: [ClassSpec('class A'), ClassSpec('class B implements A')],
+      mixins: [MixinSpec('mixin M implements A')],
     );
     var A = classElement('A');
     var A_none = interfaceTypeNone(A);
@@ -1892,7 +1878,7 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_sameElement_nullability() {
-    buildLibrary(classes: [ClassSpec(name: 'A')]);
+    buildTestLibrary(classes: [ClassSpec('class A')]);
     var aElement = classElement('A');
 
     var aQuestion = interfaceTypeQuestion(aElement);
@@ -1915,12 +1901,9 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B with M {}
     // class C with M {}
 
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'B', mixins: ['M']),
-        ClassSpec(name: 'C', mixins: ['M']),
-      ],
-      mixins: [MixinSpec(name: 'M')],
+    buildTestLibrary(
+      classes: [ClassSpec('class B with M'), ClassSpec('class C with M')],
+      mixins: [MixinSpec('mixin M')],
     );
     var M = mixinElement('M');
     var M_none = interfaceTypeNone(M);
@@ -1941,15 +1924,15 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class A with M1, M2 {}
     // class B with M1, M3 {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A', mixins: ['M1', 'M2']),
-        ClassSpec(name: 'B', mixins: ['M1', 'M3']),
+        ClassSpec('class A with M1, M2'),
+        ClassSpec('class B with M1, M3'),
       ],
       mixins: [
-        MixinSpec(name: 'M1'),
-        MixinSpec(name: 'M2'),
-        MixinSpec(name: 'M3'),
+        MixinSpec('mixin M1'),
+        MixinSpec('mixin M2'),
+        MixinSpec('mixin M3'),
       ],
     );
     var M1 = mixinElement('M1');
@@ -1971,15 +1954,15 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class A with M2, M1 {}
     // class B with M3, M1 {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A', mixins: ['M2', 'M1']),
-        ClassSpec(name: 'B', mixins: ['M3', 'M1']),
+        ClassSpec('class A with M2, M1'),
+        ClassSpec('class B with M3, M1'),
       ],
       mixins: [
-        MixinSpec(name: 'M1'),
-        MixinSpec(name: 'M2'),
-        MixinSpec(name: 'M3'),
+        MixinSpec('mixin M1'),
+        MixinSpec('mixin M2'),
+        MixinSpec('mixin M3'),
       ],
     );
     var M1 = mixinElement('M1');
@@ -1999,11 +1982,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B extends A {}
     // class C extends A {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'A'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends A'),
       ],
     );
     var A = classElement('A');
@@ -2019,11 +2002,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_sharedSuperclass1_nullability() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'A'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends A'),
       ],
     );
     var aElement = classElement('A');
@@ -2057,12 +2040,12 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class C extends A {}
     // class D extends C {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'A'),
-        ClassSpec(name: 'D', supertype: 'C'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends A'),
+        ClassSpec('class D extends C'),
       ],
     );
     var A = classElement('A');
@@ -2083,12 +2066,12 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class C extends B {}
     // class D extends B {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'B'),
-        ClassSpec(name: 'D', supertype: 'B'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends B'),
+        ClassSpec('class D extends B'),
       ],
     );
     var B = classElement('B');
@@ -2110,13 +2093,13 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B extends A implements A2 {}
     // class C extends A implement A3 {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'A2'),
-        ClassSpec(name: 'A3'),
-        ClassSpec(name: 'B', supertype: 'A', interfaces: ['A2']),
-        ClassSpec(name: 'C', supertype: 'A', interfaces: ['A3']),
+        ClassSpec('class A'),
+        ClassSpec('class A2'),
+        ClassSpec('class A3'),
+        ClassSpec('class B extends A implements A2'),
+        ClassSpec('class C extends A implements A3'),
       ],
     );
     var A = classElement('A');
@@ -2136,11 +2119,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B implements A {}
     // class C implements A {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['A']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements A'),
       ],
     );
     var A = classElement('A');
@@ -2161,12 +2144,12 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class C implements A {}
     // class D implements C {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['A']),
-        ClassSpec(name: 'D', interfaces: ['C']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements A'),
+        ClassSpec('class D implements C'),
       ],
     );
     var A = classElement('A');
@@ -2187,12 +2170,12 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class C implements B {}
     // class D implements B {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['B']),
-        ClassSpec(name: 'D', interfaces: ['B']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements B'),
+        ClassSpec('class D implements B'),
       ],
     );
     var B = classElement('B');
@@ -2214,13 +2197,13 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
     // class B implements A, A2 {}
     // class C implements A, A3 {}
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'A2'),
-        ClassSpec(name: 'A3'),
-        ClassSpec(name: 'B', interfaces: ['A', 'A2']),
-        ClassSpec(name: 'C', interfaces: ['A', 'A3']),
+        ClassSpec('class A'),
+        ClassSpec('class A2'),
+        ClassSpec('class A3'),
+        ClassSpec('class B implements A, A2'),
+        ClassSpec('class C implements A, A3'),
       ],
     );
     var A = classElement('A');
@@ -2373,19 +2356,11 @@ class UpperBoundTest extends _BoundsTestBase {
     // extension type B(Object?) implements A {}
     // extension type C(Object?) implements A {}
 
-    buildLibrary(
+    buildTestLibrary(
       extensionTypes: [
-        const ExtensionTypeSpec(name: 'A', representationType: 'Object?'),
-        const ExtensionTypeSpec(
-          name: 'B',
-          representationType: 'Object?',
-          interfaces: ['A'],
-        ),
-        const ExtensionTypeSpec(
-          name: 'C',
-          representationType: 'Object?',
-          interfaces: ['A'],
-        ),
+        ExtensionTypeSpec('extension type A(Object? it)'),
+        ExtensionTypeSpec('extension type B(Object? it) implements A'),
+        ExtensionTypeSpec('extension type C(Object? it) implements A'),
       ],
     );
     var A_none = interfaceTypeNone(extensionTypeElement('A'));
@@ -2401,18 +2376,10 @@ class UpperBoundTest extends _BoundsTestBase {
     // extension type A(int) implements int {}
     // extension type B(double) implements double {}
 
-    buildLibrary(
+    buildTestLibrary(
       extensionTypes: [
-        const ExtensionTypeSpec(
-          name: 'A',
-          representationType: 'int',
-          interfaces: ['int'],
-        ),
-        const ExtensionTypeSpec(
-          name: 'B',
-          representationType: 'double',
-          interfaces: ['double'],
-        ),
+        ExtensionTypeSpec('extension type A(int it) implements int'),
+        ExtensionTypeSpec('extension type B(double it) implements double'),
       ],
     );
     _checkLeastUpperBound(
@@ -2426,10 +2393,10 @@ class UpperBoundTest extends _BoundsTestBase {
     // extension type A(int) {}
     // extension type B(double) {}
 
-    buildLibrary(
+    buildTestLibrary(
       extensionTypes: [
-        const ExtensionTypeSpec(name: 'A', representationType: 'int'),
-        const ExtensionTypeSpec(name: 'B', representationType: 'double'),
+        ExtensionTypeSpec('extension type A(int it)'),
+        ExtensionTypeSpec('extension type B(double it)'),
       ],
     );
     _checkLeastUpperBound(
@@ -2440,20 +2407,10 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_extensionType_withTypeParameters_objectNone() {
-    buildLibrary(
+    buildTestLibrary(
       extensionTypes: [
-        const ExtensionTypeSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          representationType: 'T',
-          interfaces: ['Object?'],
-        ),
-        const ExtensionTypeSpec(
-          name: 'B',
-          typeParameters: ['T'],
-          representationType: 'T',
-          interfaces: ['Object?'],
-        ),
+        ExtensionTypeSpec('extension type A<T>(T it) implements Object?'),
+        ExtensionTypeSpec('extension type B<T>(T it) implements Object?'),
       ],
     );
     var A = extensionTypeElement('A');
@@ -2467,27 +2424,14 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_extensionType_withTypeParameters_withInterfaces() {
-    buildLibrary(
+    buildTestLibrary(
       extensionTypes: [
-        const ExtensionTypeSpec(
-          name: 'E',
-          typeParameters: ['T'],
-          representationType: 'T',
-          interfaces: ['Object?'],
+        ExtensionTypeSpec('extension type E<T>(T it) implements Object?'),
+        ExtensionTypeSpec(
+          'extension type A<T1 extends String>(T1 it) implements E<T1>, String',
         ),
-        const ExtensionTypeSpec(
-          name: 'A',
-          typeParameters: ['T1'],
-          typeParameterBounds: {'T1': 'String'},
-          representationType: 'T1',
-          interfaces: ['E<T1>', 'String'],
-        ),
-        const ExtensionTypeSpec(
-          name: 'B',
-          typeParameters: ['T2'],
-          typeParameterBounds: {'T2': 'int'},
-          representationType: 'T2',
-          interfaces: ['E<T2?>', 'num'],
+        ExtensionTypeSpec(
+          'extension type B<T2 extends int>(T2 it) implements E<T2?>, num',
         ),
       ],
     );
@@ -2596,7 +2540,7 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_interfaceType_functionType() {
-    buildLibrary(classes: [ClassSpec(name: 'A')]);
+    buildTestLibrary(classes: [ClassSpec('class A')]);
     var A = classElement('A');
 
     _checkLeastUpperBound(
@@ -2839,11 +2783,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameter_fBounded() {
     // class A<T> {}
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'A', typeParameters: ['T']),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<T>')]);
     var A = classElement('A');
 
     // <S extends A<S>>
@@ -2929,11 +2869,11 @@ class UpperBoundTest extends _BoundsTestBase {
   }
 
   void test_typeParameter_interface_bounded() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'A'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends A'),
       ],
     );
     var A = classElement('A');
@@ -2983,11 +2923,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameter_intersection_fbounded() {
     // `X`, `class C<X> {}`, `Y extends C<Y>?`, `Y & C<Y>`.
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'C', typeParameters: ['X']),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class C<X>')]);
     var C = classElement('C');
     var Y = typeParameter('Y');
     var Y_none = typeParameterTypeNone(Y);
@@ -3024,15 +2960,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_contravariant_different() {
     // class A<in T>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.contravariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<in T>')]);
     var A = classElement('A');
 
     // A<num>
@@ -3045,15 +2973,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_contravariant_same() {
     // class A<in T>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.contravariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<in T>')]);
     var A = classElement('A');
 
     // A<num>
@@ -3064,15 +2984,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_covariant_different() {
     // class A<out T>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.covariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<out T>')]);
     var A = classElement('A');
 
     // A<num>
@@ -3085,15 +2997,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_covariant_same() {
     // class A<out T>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.covariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<out T>')]);
     var A = classElement('A');
 
     // A<num>
@@ -3104,15 +3008,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_invariant_object() {
     // class A<inout T>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.invariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<inout T>')]);
     var A = classElement('A');
 
     // A<num>
@@ -3125,15 +3021,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_invariant_same() {
     // class A<inout T>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T'],
-          typeParameterVariances: {'T': Variance.invariant},
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<inout T>')]);
     var A = classElement('A');
 
     // A<num>
@@ -3144,19 +3032,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_multi_basic() {
     // class A<out T, inout U, in V>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T', 'U', 'V'],
-          typeParameterVariances: {
-            'T': Variance.covariant,
-            'U': Variance.invariant,
-            'V': Variance.contravariant,
-          },
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<out T, inout U, in V>')]);
     var A = classElement('A');
 
     // A<num, num, num>
@@ -3181,19 +3057,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_multi_objectInterface() {
     // class A<out T, inout U, in V>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T', 'U', 'V'],
-          typeParameterVariances: {
-            'T': Variance.covariant,
-            'U': Variance.invariant,
-            'V': Variance.contravariant,
-          },
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<out T, inout U, in V>')]);
     var A = classElement('A');
 
     // A<num, String, num>
@@ -3212,19 +3076,7 @@ class UpperBoundTest extends _BoundsTestBase {
 
   void test_typeParameters_multi_objectType() {
     // class A<out T, inout U, in V>
-    buildLibrary(
-      classes: [
-        ClassSpec(
-          name: 'A',
-          typeParameters: ['T', 'U', 'V'],
-          typeParameterVariances: {
-            'T': Variance.covariant,
-            'U': Variance.invariant,
-            'V': Variance.contravariant,
-          },
-        ),
-      ],
-    );
+    buildTestLibrary(classes: [ClassSpec('class A<out T, inout U, in V>')]);
     var A = classElement('A');
 
     // A<String, num, num>
@@ -3264,34 +3116,6 @@ class UpperBoundTest extends _BoundsTestBase {
 
 @reflectiveTest
 class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
-  void buildLibrary({
-    List<ClassSpec> classes = const [],
-    List<ExtensionTypeSpec> extensionTypes = const [],
-    List<MixinSpec> mixins = const [],
-  }) {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core'],
-        classes: classes,
-        extensionTypes: extensionTypes,
-        mixins: mixins,
-      ),
-    );
-  }
-
-  ClassElementImpl classElement(String name) {
-    return testLibrary.getClass(name)!;
-  }
-
-  ExtensionTypeElementImpl extensionTypeElement(String name) {
-    return testLibrary.getExtensionType(name)!;
-  }
-
-  MixinElementImpl mixinElement(String name) {
-    return testLibrary.getMixin(name)!;
-  }
-
   @override
   void setUp() {
     super.setUp();

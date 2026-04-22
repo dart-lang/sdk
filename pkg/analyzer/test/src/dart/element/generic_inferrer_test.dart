@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
@@ -28,20 +27,6 @@ main() {
 
 @reflectiveTest
 class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
-  void buildLibrary({List<ClassSpec> classes = const []}) {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core'],
-        classes: classes,
-      ),
-    );
-  }
-
-  ClassElementImpl classElement(String name) {
-    return testLibrary.getClass(name)!;
-  }
-
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');
@@ -63,23 +48,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByOuterClass() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
         ClassSpec(
-          name: 'C',
-          typeParameters: ['T'],
-          typeParameterBounds: {'T': 'A'},
-          methods: [
-            MethodSpec(
-              name: 'm',
-              typeParameters: ['S'],
-              typeParameterBounds: {'S': 'T'},
-              formalParameters: 'S _',
-              returnType: 'S',
-            ),
-          ],
+          'class C<T extends A>',
+          methods: [MethodSpec('S m<S extends T>(S _)')],
         ),
       ],
     );
@@ -122,23 +97,13 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByOuterClassSubstituted() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
         ClassSpec(
-          name: 'C',
-          typeParameters: ['T'],
-          typeParameterBounds: {'T': 'A'},
-          methods: [
-            MethodSpec(
-              name: 'm',
-              typeParameters: ['S'],
-              typeParameterBounds: {'S': 'Iterable<T>'},
-              formalParameters: 'S _',
-              returnType: 'S',
-            ),
-          ],
+          'class C<T extends A>',
+          methods: [MethodSpec('S m<S extends Iterable<T>>(S _)')],
         ),
       ],
     );
@@ -180,14 +145,10 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void test_boundedRecursively() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(
-          name: 'Cloneable',
-          typeParameters: ['T'],
-          typeParameterBounds: {'T': 'Cloneable<T>'},
-        ),
-        ClassSpec(name: 'B', supertype: 'Cloneable<B>'),
+        ClassSpec('class Cloneable<T extends Cloneable<T>>'),
+        ClassSpec('class B extends Cloneable<B>'),
       ],
     );
 
@@ -218,6 +179,25 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
     _assertTypes(_inferCall(clone, [stringNone, numNone], expectError: true), [
       interfaceTypeNone(A, typeArguments: [objectQuestion]),
     ]);
+  }
+
+  void test_buildTestLibrary_topLevelFunctionHeader() {
+    buildTestLibrary(functions: [TopLevelFunctionSpec('T f<T>(T value)')]);
+
+    _assertType(testLibrary.topLevelFunctions.single.type, 'T Function<T>(T)');
+  }
+
+  void test_buildTestLibrary_topLevelFunctionHeader_namedParameters() {
+    buildTestLibrary(
+      functions: [
+        TopLevelFunctionSpec('void f({int optional, required int required})'),
+      ],
+    );
+
+    _assertType(
+      testLibrary.topLevelFunctions.single.type,
+      'void Function({int optional, required int required})',
+    );
   }
 
   /// https://github.com/dart-lang/language/issues/1182#issuecomment-702272641
