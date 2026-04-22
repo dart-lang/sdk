@@ -45,7 +45,6 @@ import 'dry_run.dart';
 import 'dynamic_module_kernel_metadata.dart';
 import 'dynamic_modules.dart';
 import 'io_util.dart';
-import 'js/method_collector.dart' show JSMethods;
 import 'js/runtime_generator.dart' as js;
 import 'modules.dart';
 import 'record_class_generator.dart';
@@ -79,7 +78,6 @@ class TfaResult extends CompilationSuccess {
   final LibraryIndex libraryIndex;
   final ModuleStrategy moduleStrategy;
   final MainModuleMetadata mainModuleMetadata;
-  final JSMethods jsInteropMethods;
   final Map<RecordShape, Class> recordClasses;
 
   TfaResult(
@@ -88,7 +86,6 @@ class TfaResult extends CompilationSuccess {
     this.libraryIndex,
     this.moduleStrategy,
     this.mainModuleMetadata,
-    this.jsInteropMethods,
     this.recordClasses,
   );
 }
@@ -413,9 +410,7 @@ Future<TfaResult> _loadTfaResult(
 ) async {
   final component = createEmptyComponent();
   final recordClassesRepository = _RecordClassesRepository();
-  final interopMethodsRepository = _InteropMethodsRepository();
   component.addMetadataRepository(recordClassesRepository);
-  component.addMetadataRepository(interopMethodsRepository);
 
   await ioManager.readComponent(options.mainUri, component);
 
@@ -470,7 +465,6 @@ Future<TfaResult> _loadTfaResult(
     libraryIndex,
     moduleStrategy,
     mainModuleMetadata,
-    interopMethodsRepository.mapping,
     recordClasses,
   );
 }
@@ -494,7 +488,7 @@ Future<CompilationResult> _runTfaPhase(
     );
   }
 
-  var jsInteropMethods = js.performJSInteropTransformations(
+  js.performJSInteropTransformations(
     component.getDynamicSubmoduleLibraries(coreTypes),
     coreTypes,
     classHierarchy,
@@ -515,11 +509,10 @@ Future<CompilationResult> _runTfaPhase(
     // Join the submodule libraries with the TFAed component from the main
     // module compilation. JS interop transformer must be run before this since
     // some methods it uses may have been tree-shaken from the TFAed component.
-    (component, jsInteropMethods) = await generateDynamicSubmoduleComponent(
+    component = await generateDynamicSubmoduleComponent(
       component,
       coreTypes,
       dynamicMainModuleUri!,
-      jsInteropMethods,
     );
     coreTypes = CoreTypes(component);
     classHierarchy =
@@ -649,12 +642,6 @@ Future<CompilationResult> _runTfaPhase(
       recordClassesRepo.mapping[cls] = shape;
     });
     component.addMetadataRepository(recordClassesRepo);
-
-    final interopMethodsRepo = _InteropMethodsRepository();
-    jsInteropMethods.forEach((method, info) {
-      interopMethodsRepo.mapping[method] = info;
-    });
-    component.addMetadataRepository(interopMethodsRepo);
   }
 
   assert(() {
@@ -680,7 +667,6 @@ Future<CompilationResult> _runTfaPhase(
     libraryIndex,
     moduleStrategy,
     mainModuleMetadata,
-    jsInteropMethods,
     recordClasses,
   );
 }
@@ -705,7 +691,6 @@ Future<CompilationResult> _runCodegenPhase(
     :libraryIndex,
     :recordClasses,
     :mainModuleMetadata,
-    :jsInteropMethods,
   ) = tfaSuccess;
 
   final loadingMap = DeferredModuleLoadingMap.fromComponent(component);
@@ -772,7 +757,10 @@ Future<CompilationResult> _runCodegenPhase(
   });
   await Future.wait(writeFutures);
 
-  final jsRuntimeFinalizer = js.RuntimeFinalizer(jsInteropMethods);
+  final jsRuntimeFinalizer = js.RuntimeFinalizer(
+    coreTypes,
+    translator.interopMemberNamer,
+  );
 
   final dynamicMainModuleUri = await ioManager.resolveUri(
     options.dynamicMainModuleUri,
@@ -1013,36 +1001,6 @@ class _RecordClassesRepository extends MetadataRepository<RecordShape> {
     for (final name in metadata.names) {
       sink.writeStringReference(name);
     }
-  }
-}
-
-class _InteropMethodsRepository
-    extends MetadataRepository<({String importName, String jsCode})> {
-  static const String _tag = 'dart2wasm.interopMethods';
-  @override
-  final Map<Procedure, ({String importName, String jsCode})> mapping = {};
-
-  @override
-  ({String importName, String jsCode}) readFromBinary(
-    Node node,
-    BinarySource source,
-  ) {
-    final importName = source.readStringReference();
-    final jsCode = source.readStringReference();
-    return (importName: importName, jsCode: jsCode);
-  }
-
-  @override
-  String get tag => _tag;
-
-  @override
-  void writeToBinary(
-    ({String importName, String jsCode}) metadata,
-    Node node,
-    BinarySink sink,
-  ) {
-    sink.writeStringReference(metadata.importName);
-    sink.writeStringReference(metadata.jsCode);
   }
 }
 

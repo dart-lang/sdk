@@ -12,11 +12,12 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart';
 
+import '../namer.dart';
 import 'interop_transformer.dart';
-import 'method_collector.dart';
 import 'runtime_blob.dart';
+import 'util.dart';
 
-JSMethods _performJSInteropTransformations(
+void _performJSInteropTransformations(
   CoreTypes coreTypes,
   ClassHierarchy classHierarchy,
   Set<Library> interopDependentLibraries,
@@ -47,33 +48,47 @@ JSMethods _performJSInteropTransformations(
   for (Library library in interopDependentLibraries) {
     staticInteropClassEraser.visitLibrary(library);
   }
-  return transformer.jsMethods;
 }
 
 class RuntimeFinalizer {
   static String escape(String s) => json.encode(s);
+  final CoreTypes _coreTypes;
+  final InteropMemberNamer _interopMemberNamer;
 
-  final Map<Procedure, ({String importName, String jsCode})> allJSMethods;
-
-  RuntimeFinalizer(this.allJSMethods);
+  RuntimeFinalizer(this._coreTypes, this._interopMemberNamer);
 
   String generateJsMethods(Iterable<Procedure> translatedProcedures) {
     Set<Procedure> usedProcedures = {};
     final usedJSMethods = <({String importName, String jsCode})>[];
     for (Procedure p in translatedProcedures) {
-      if (usedProcedures.add(p) && allJSMethods.containsKey(p)) {
-        usedJSMethods.add(allJSMethods[p]!);
+      if (!usedProcedures.add(p)) continue;
+      final annotationInfo = JsInteropMemberData.fromMember(p, _coreTypes);
+      if (annotationInfo == null) continue;
+      switch (annotationInfo) {
+        case JsCodeData(:final jsCode):
+          final importName = _interopMemberNamer.getImportName(p)!.itemName;
+          usedJSMethods.add((importName: importName, jsCode: jsCode));
+        case JsTrampolineWrapperData(:final trampoline):
+          final importName = _interopMemberNamer.getImportName(p)!.itemName;
+          usedJSMethods.add((
+            importName: importName,
+            jsCode: annotationInfo.jsCode(
+              _interopMemberNamer.getExportName(trampoline)!,
+            ),
+          ));
+        case JsTrampolineData():
+        // do nothing
       }
     }
     // Sort so _9 comes before _11 (for example)
     usedJSMethods.sort((a, b) => compareNatural(a.importName, b.importName));
 
     final jsMethods = StringBuffer();
-    for (final jsMethod in usedJSMethods) {
+    for (final (:importName, :jsCode) in usedJSMethods) {
       jsMethods.write('      ');
-      jsMethods.write(jsMethod.importName);
+      jsMethods.write(importName);
       jsMethods.write(': ');
-      final lines = _unindentJsCode(jsMethod.jsCode);
+      final lines = _unindentJsCode(jsCode);
       for (int i = 0; i < lines.length; ++i) {
         if (i != 0) {
           jsMethods.write('      ');
@@ -146,6 +161,7 @@ class RuntimeFinalizer {
         ? moduleLoadingHelperTemplate.instantiate({
             ...jsStringBuiltinPolyfillImportVars,
             'MAIN_MODULE_NAME': mainModuleName,
+            'THIS_MODULE_SETTER_NAME': _interopMemberNamer.thisModuleSetterName,
           })
         : '';
 
@@ -154,6 +170,9 @@ class RuntimeFinalizer {
       ...moduleLoadingImportVars,
       'BUILTINS_MAP_BODY': builtins.join(', '),
       'JS_METHODS': jsMethods,
+      'THIS_MODULE_SETTER_NAME': _interopMemberNamer.thisModuleSetterName,
+      'INTERNAL_IMPORTS_MODULE_NAME':
+          _interopMemberNamer.interopHelperModuleName,
       'IMPORTED_JS_STRINGS_IN_MJS': internalizedStrings,
       'JS_STRING_POLYFILL_METHODS': requireJsBuiltin ? '' : jsPolyFillMethods,
       'DEFERRED_LIBRARY_HELPER_METHODS': moduleLoadingHelperMethods,
@@ -177,7 +196,7 @@ class RuntimeFinalizer {
   }
 }
 
-JSMethods performJSInteropTransformations(
+void performJSInteropTransformations(
   List<Library> libraries,
   CoreTypes coreTypes,
   ClassHierarchy classHierarchy,

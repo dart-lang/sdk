@@ -169,16 +169,37 @@ String intToBase64(int i) => base64.encode(_intToLittleEndianBytes(i));
 /// For simplicity, this only uses combinations of 1-byte characters. The 2+
 /// byte characters don't significantly impact the average string size.
 ///
-/// Starts at 1 to avoid emitting the empty string.
+/// Will not emit an empty string.
 String intToMinString(int i) {
+  // Stick to the 92 printable characters (starting after "), from 35 to 126.
+  var base = 92;
   assert(i >= 0);
   i += 1;
   final codeUnits = <int>[];
   while (i > 0) {
-    // Stick to the 92 printable characters (starting after "), from 35 to 126.
-    int remainder = i % 92;
-    i ~/= 92;
+    int remainder = i % base;
+    i ~/= base;
     codeUnits.add(remainder + 35);
+  }
+  return String.fromCharCodes(codeUnits);
+}
+
+/// Maps ints to minimal length strings that are safe to use as JavaScript
+/// identifiers.
+///
+/// Will not emit an empty string.
+String intToMinJsSafeString(int i) {
+  assert(i >= 0);
+  i += 1;
+  final codeUnits = <int>[];
+  while (i > 0) {
+    int remainder = i % 52;
+    i ~/= 52;
+    if (remainder < 26) {
+      codeUnits.add(remainder + 65); // 'A'-'Z'
+    } else {
+      codeUnits.add(remainder - 26 + 97); // 'a'-'z'
+    }
   }
   return String.fromCharCodes(codeUnits);
 }

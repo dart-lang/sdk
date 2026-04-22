@@ -109,7 +109,7 @@ class CompiledApp {
     };
 
     const baseImports = {
-      dart2wasm: dart2wasm,
+      <<INTERNAL_IMPORTS_MODULE_NAME>>: dart2wasm,
       Math: Math,
       Date: Date,
       Object: Object,
@@ -131,7 +131,7 @@ class CompiledApp {
       <<MODULE_LOADING_IMPORT>>
       <<JS_POLYFILL_IMPORT>>
     });
-    dartInstance.exports.$setThisModule(dartInstance);
+    dartInstance.exports.<<THIS_MODULE_SETTER_NAME>>(dartInstance);
 
     return new InstantiatedApp(this, dartInstance);
   }
@@ -208,7 +208,7 @@ final moduleLoadingHelperTemplate = Template(r'''
         <<JS_POLYFILL_IMPORT>>
         "<<MAIN_MODULE_NAME>>": dartInstance.exports,
       });
-      moduleInstance.exports.$setThisModule(moduleInstance);
+      moduleInstance.exports.<<THIS_MODULE_SETTER_NAME>>(moduleInstance);
     }
     const moduleLoadingHelper = {
       "loadDeferredModules": async (moduleNames) => {
@@ -237,7 +237,7 @@ final moduleLoadingHelperTemplate = Template(r'''
             "<<MAIN_MODULE_NAME>>": dartInstance.exports,
             ...jsModule.imports(finalizeWrapper),
           });
-          moduleInstance.exports.$setThisModule(moduleInstance);
+          moduleInstance.exports.<<THIS_MODULE_SETTER_NAME>>(moduleInstance);
         }
         await loadDynamicModule(wasmUri, jsUri, handleDynamicModuleBytes.bind(this));
         return moduleInstance.exports.$invokeEntryPoint;

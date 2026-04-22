@@ -31,6 +31,7 @@ import 'functions.dart';
 import 'globals.dart';
 import 'kernel_nodes.dart';
 import 'modules.dart';
+import 'namer.dart';
 import 'param_info.dart';
 import 'records.dart';
 import 'reference_extensions.dart';
@@ -48,6 +49,7 @@ class TranslatorOptions {
   bool enableAsserts = false;
   bool importSharedMemory = false;
   bool uniqueConstantNames = true;
+  bool minifyInteropNames = true;
   int optimizationLevel = 1;
   bool? inliningOverride;
   bool jsCompatibility = false;
@@ -83,6 +85,8 @@ class TranslatorOptions {
   void serialize(DataSerializer sink) {
     sink.writeBool(enableAsserts);
     sink.writeBool(importSharedMemory);
+    sink.writeBool(uniqueConstantNames);
+    sink.writeBool(minifyInteropNames);
     sink.writeInt(optimizationLevel);
     sink.writeNullable(inliningOverride, sink.writeBool);
     sink.writeBool(jsCompatibility);
@@ -113,6 +117,8 @@ class TranslatorOptions {
     final TranslatorOptions options = TranslatorOptions();
     options.enableAsserts = source.readBool();
     options.importSharedMemory = source.readBool();
+    options.uniqueConstantNames = source.readBool();
+    options.minifyInteropNames = source.readBool();
     options.optimizationLevel = source.readInt();
     options.inliningOverride = source.readNullable(source.readBool);
     options.jsCompatibility = source.readBool();
@@ -154,8 +160,6 @@ class Translator with KernelNodes {
   final TranslatorOptions options;
 
   final Symbols symbols;
-
-  late final Exporter exporter;
 
   // Kernel input and context.
   final Component component;
@@ -216,6 +220,10 @@ class Translator with KernelNodes {
 
   late final DynamicModuleConstants? dynamicModuleConstants;
   late final DeferredModuleLoadingMap loadingMap;
+
+  final Namer exportNamer;
+  late final DynamicModuleExporter dynamicModuleExporter;
+  late final InteropMemberNamer interopMemberNamer;
 
   // Information about the program used and updated by the various phases.
 
@@ -528,7 +536,8 @@ class Translator with KernelNodes {
   }) : symbols = Symbols(options.minify),
        libraries = component.libraries,
        hierarchy =
-           ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy {
+           ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy,
+       exportNamer = Namer(minify: options.minify) {
     if (enableDynamicModules) {
       dynamicModuleInfo = DynamicModuleInfo(this, mainModuleMetadata);
     }
@@ -555,11 +564,17 @@ class Translator with KernelNodes {
                     as DynamicModuleConstantRepository?)
                 ?.mapping[component] ??=
             DynamicModuleConstants();
-
-    exporter = Exporter(
-      options.minify,
+    dynamicModuleExporter = DynamicModuleExporter(
+      coreTypes,
       mainModuleMetadata,
       dynamicModuleConstants,
+      exportNamer,
+    );
+    interopMemberNamer = InteropMemberNamer(
+      coreTypes,
+      exportNamer,
+      mainModuleMetadata,
+      options,
     );
   }
 
@@ -597,7 +612,10 @@ class Translator with KernelNodes {
         ], const []),
         "setThisModule",
       );
-      module.exports.export("\$setThisModule", thisModuleSetter);
+      module.exports.export(
+        interopMemberNamer.thisModuleSetterName,
+        thisModuleSetter,
+      );
       final fb = thisModuleSetter.body;
       fb.local_get(thisModuleSetter.locals[0]);
       fb.global_set(global);
@@ -2443,7 +2461,9 @@ class Translator with KernelNodes {
         this,
         topLevelExternalMemoryGetter,
       )!;
-      final exportName = getExportName(topLevelExternalMemoryGetter.reference);
+      final exportName = interopMemberNamer.getExportName(
+        topLevelExternalMemoryGetter,
+      );
       final import = util.getWasmImportPragma(
         coreTypes,
         topLevelExternalMemoryGetter,
@@ -2471,17 +2491,6 @@ class Translator with KernelNodes {
       }
       return memory;
     });
-  }
-
-  /// If the member with the reference [target] is exported, get the export
-  /// name.
-  String? getExportName(Reference target) {
-    final member = target.asMember;
-    if (member.reference == target) {
-      return util.getWasmExportPragma(coreTypes, member) ??
-          util.getWasmWeakExportPragma(coreTypes, member);
-    }
-    return null;
   }
 
   void instantiateDummyValueHeapType(
@@ -3693,6 +3702,14 @@ void instantiateDummyValue(
   }
 }
 
+/// Manages wasm entities that are shared between internal Dart wasm modules.
+///
+/// Both deferred loading and dynamic modules depend on sharing wasm entities
+/// between modules. This class manages the naming and import/export of those
+/// entities.
+///
+/// As these entities are internal to the Dart wasm modules, we can minify the
+/// names used to refer to them.
 abstract class _WasmImporter<T extends w.Exportable> {
   final Translator _translator;
   final String _exportPrefix;
@@ -3700,7 +3717,7 @@ abstract class _WasmImporter<T extends w.Exportable> {
 
   _WasmImporter(this._translator, this._exportPrefix);
 
-  T _import(
+  T import(
     w.ModuleBuilder importingModule,
     T definition,
     String moduleName,
@@ -3721,6 +3738,7 @@ abstract class _WasmImporter<T extends w.Exportable> {
 
     final owningModule =
         _translator.moduleToBuilder[exportable.enclosingModule]!;
+    _translator.exportNamer.reserveName(name);
     owningModule.exports.export(name, exportable);
     _map[exportable] = {};
   }
@@ -3730,15 +3748,14 @@ abstract class _WasmImporter<T extends w.Exportable> {
     if (keyModuleBuilder == module) return key;
 
     final innerMap = _map.putIfAbsent(key, () {
-      _translator.exporter.export(
-        keyModuleBuilder,
+      final name = _translator.exportNamer.getName(
         '$_exportPrefix${_map.length}',
-        key,
       );
+      keyModuleBuilder.exports.export(name, key);
       return {};
     });
     return innerMap.putIfAbsent(module, () {
-      return _import(
+      return import(
         module,
         key,
         _translator.nameForModule(keyModuleBuilder),
@@ -3756,7 +3773,7 @@ class WasmFunctionImporter extends _WasmImporter<w.BaseFunction> {
   WasmFunctionImporter(super._translator, super._exportPrefix);
 
   @override
-  w.BaseFunction _import(
+  w.BaseFunction import(
     w.ModuleBuilder importingModule,
     w.BaseFunction definition,
     String moduleName,
@@ -3777,7 +3794,7 @@ class WasmGlobalImporter extends _WasmImporter<w.Global> {
   WasmGlobalImporter(super._translator, super._exportPrefix);
 
   @override
-  w.Global _import(
+  w.Global import(
     w.ModuleBuilder importingModule,
     w.Global definition,
     String moduleName,
@@ -3797,7 +3814,7 @@ class WasmMemoryImporter extends _WasmImporter<w.Memory> {
   WasmMemoryImporter(super._translator, super._exportPrefix);
 
   @override
-  w.Memory _import(
+  w.Memory import(
     w.ModuleBuilder importingModule,
     w.Memory definition,
     String moduleName,
@@ -3817,7 +3834,7 @@ class WasmTableImporter extends _WasmImporter<w.Table> {
   WasmTableImporter(super._translator, super._exportPrefix);
 
   @override
-  w.Table _import(
+  w.Table import(
     w.ModuleBuilder importingModule,
     w.Table definition,
     String moduleName,
@@ -3837,7 +3854,7 @@ class WasmTagImporter extends _WasmImporter<w.Tag> {
   WasmTagImporter(super._translator, super._exportPrefix);
 
   @override
-  w.Tag _import(
+  w.Tag import(
     w.ModuleBuilder importingModule,
     w.Tag definition,
     String moduleName,

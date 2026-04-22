@@ -584,17 +584,26 @@ class AnnotationVerifier {
           reportInvalidAnnotation(fieldName);
         }
       }
-    } else if (parent.declaredFragment?.element case var declaredElement?) {
-      if (element.isVisibleForOverriding &&
-          (!declaredElement.isInstanceMember ||
-              declaredElement.enclosingElement is ExtensionTypeElement)) {
-        // This is reported by `_checkKinds`.
-        return;
+    } else {
+      Element? declaredElement;
+      if (parent is PrimaryConstructorBody) {
+        declaredElement = parent.declaration?.declaredFragment?.element;
+      } else {
+        declaredElement = parent.declaredFragment?.element;
       }
 
-      var name = declaredElement.name;
-      if (name != null && Identifier.isPrivateName(name)) {
-        reportInvalidAnnotation(name);
+      if (declaredElement != null) {
+        if (element.isVisibleForOverriding &&
+            (!declaredElement.isInstanceMember ||
+                declaredElement.enclosingElement is ExtensionTypeElement)) {
+          // This is reported by `_checkKinds`.
+          return;
+        }
+
+        var name = declaredElement.name;
+        if (name != null && Identifier.isPrivateName(name)) {
+          reportInvalidAnnotation(name);
+        }
       }
     }
   }
