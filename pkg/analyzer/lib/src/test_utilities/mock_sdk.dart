@@ -1785,12 +1785,15 @@ extension type JSString._(String _) implements JSAny {}
 
 extension type JSNumber._(num _) implements JSAny {}
 
+@JS('Object')
 extension type JSObject._(Object _) implements JSAny {}
 
+@JS('Array')
 extension type JSArray<T extends JSAny?>._(List _) implements JSObject {}
 
 extension type JSTypedArray._(TypedData _) implements JSObject {}
 
+@JS('Uint8Array')
 extension type JSUint8List._(Uint8List _) implements JSTypedArray {}
 
 extension JSAnyUtilityExtension on JSAny? {

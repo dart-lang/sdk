@@ -47,7 +47,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.argumentList.arguments.length != 1) return;
 
     var argument = node.argumentList.arguments.first;
-    var element = switch (argument.unParenthesized) {
+    var element = switch (argument.argumentExpression.unParenthesized) {
       BinaryExpression(:var element) => element,
       MethodInvocation(:var methodName) => methodName.element,
       PrefixExpression(:var element) => element,

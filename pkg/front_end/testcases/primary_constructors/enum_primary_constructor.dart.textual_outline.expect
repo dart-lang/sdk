@@ -1,11 +1,64 @@
-enum E1() { a }
+enum E1() {
+  a
+}
 
-enum const E2() { a }
+enum const E2() {
+  a
+}
 
-enum const E3() { a; final int? b; }
+enum const E3() {
+  a;
 
-enum const E4() { a; int? b; }
+  final int? b;
+}
 
-enum E5() { a; final int? b; this : b = 0; }
+enum const E4() {
+  a;
 
-enum E6(int? x) { a(0); final int? b; this : b = x; }
+  int? b;
+}
+
+enum E5() {
+  a;
+
+  final int? b;
+  this : b = 0;
+}
+
+enum E6(int? x) {
+  a(0);
+
+  final int? b;
+  this : b = x;
+}
+
+enum E7 {
+  a(0),
+  b.named(1);
+
+  final int? c;
+  new(this.c);
+  const new named(int? c) : this(c);
+  const factory fact(int? c) => E7(c);
+  const factory redirect(int? c) = E7;
+}
+
+enum E8 {
+  a(0),
+  b.named(1);
+
+  final int? c;
+  const new(this.c);
+  new named(int? c) : this(c);
+  factory fact(int? c) => E8(c);
+  factory redirect(int? c) = E8;
+}
+
+enum E9 {
+  a(0),
+  b.named(1);
+
+  final int? c;
+  const new(this.c) {}
+  new named(this.c) {}
+}

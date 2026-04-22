@@ -156,7 +156,7 @@ class _Visitor extends SimpleAstVisitor<void> {
 
     var args = invocation.argumentList.arguments;
     if (args.length == 2) {
-      var start = args[1];
+      var start = args[1].argumentExpression;
       if (getIntValue(start, context) != 0) return false;
     }
 

@@ -98,8 +98,8 @@ class _PushConstVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    node.expression.accept(this);
+  void visitNamedArgument(NamedArgument node) {
+    node.argumentExpression.accept(this);
   }
 
   @override

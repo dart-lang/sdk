@@ -104,7 +104,7 @@ class DartSnippetRequest {
           tokenType == TokenType.STRING_INTERPOLATION_IDENTIFIER) {
         return SnippetContext.inString;
       }
-    } else if (entity is NamedExpression &&
+    } else if (entity is NamedArgument &&
         target.offset >= entity.name.offset &&
         target.offset <= entity.name.end) {
       return SnippetContext.inName;

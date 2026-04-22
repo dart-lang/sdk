@@ -64,7 +64,9 @@ class _Visitor extends SimpleAstVisitor<void> {
       // print(xxx.toString())
       if (node.methodName.element.isDartCorePrint &&
           node.argumentList.arguments.length == 1) {
-        _checkToStringInvocation(node.argumentList.arguments.first);
+        _checkToStringInvocation(
+          node.argumentList.arguments.first.argumentExpression,
+        );
       }
       return;
     }

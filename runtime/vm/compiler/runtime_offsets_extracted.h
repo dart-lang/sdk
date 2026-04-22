@@ -42,6 +42,10 @@ static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
+static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
     0xc;
@@ -805,6 +809,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x1c;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -1581,6 +1589,10 @@ static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
+static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
     0xc;
@@ -2343,6 +2355,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x1c;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -3122,6 +3138,10 @@ static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
+static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
     0xc;
@@ -3893,6 +3913,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -4667,6 +4691,10 @@ static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
+static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
     0xc;
@@ -5298,9 +5326,9 @@ static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     0x4, 0xc, 0x8, 0x10};
 static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
-        -1,    -1,    -1, -1, -1, 0x2c0, 0x2c4, 0x2c8, -1,    -1,    0x2cc,
-        0x2d0, 0x2d4, -1, -1, -1, 0x2d8, 0x2dc, 0x2e0, 0x2e4, 0x2e8, 0x2ec,
-        0x2f0, 0x2f4, -1, -1, -1, -1,    0x2f8, 0x2fc, 0x300, 0x304};
+        -1,    -1,    -1,    -1, -1, 0x2c0, 0x2c4, -1,    -1,    -1,    0x2c8,
+        0x2cc, 0x2d0, -1,    -1, -1, 0x2d4, 0x2d8, 0x2dc, 0x2e0, 0x2e4, 0x2e8,
+        0x2ec, 0x2f0, 0x2f4, -1, -1, -1,    0x2f8, 0x2fc, 0x300, 0x304};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Array_header_size = 0xc;
@@ -5431,6 +5459,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x1c;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -6074,9 +6106,9 @@ static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     0x8, 0x18, 0x10, 0x20};
 static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
-        -1,    -1,    -1, -1, -1, 0x580, 0x588, 0x590, -1,    -1,    0x598,
-        0x5a0, 0x5a8, -1, -1, -1, 0x5b0, 0x5b8, 0x5c0, 0x5c8, 0x5d0, 0x5d8,
-        0x5e0, 0x5e8, -1, -1, -1, -1,    0x5f0, 0x5f8, 0x600, 0x608};
+        -1,    -1,    -1,    -1, -1, 0x580, 0x588, -1,    -1,    -1,    0x590,
+        0x598, 0x5a0, -1,    -1, -1, 0x5a8, 0x5b0, 0x5b8, 0x5c0, 0x5c8, 0x5d0,
+        0x5d8, 0x5e0, 0x5e8, -1, -1, -1,    0x5f0, 0x5f8, 0x600, 0x608};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x18;
@@ -6204,6 +6236,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -6960,6 +6996,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x1c;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -7728,6 +7768,10 @@ static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
+static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
     0xc;
@@ -8482,6 +8526,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x1c;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -9253,6 +9301,10 @@ static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
+static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
     0xc;
@@ -10016,6 +10068,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x4;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -10782,6 +10838,10 @@ static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x28;
 static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x18;
+static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
     0xc;
@@ -11408,9 +11468,9 @@ static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     0x4, 0xc, 0x8, 0x10};
 static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
-        -1,    -1,    -1, -1, -1, 0x2c0, 0x2c4, 0x2c8, -1,    -1,    0x2cc,
-        0x2d0, 0x2d4, -1, -1, -1, 0x2d8, 0x2dc, 0x2e0, 0x2e4, 0x2e8, 0x2ec,
-        0x2f0, 0x2f4, -1, -1, -1, -1,    0x2f8, 0x2fc, 0x300, 0x304};
+        -1,    -1,    -1,    -1, -1, 0x2c0, 0x2c4, -1,    -1,    -1,    0x2c8,
+        0x2cc, 0x2d0, -1,    -1, -1, 0x2d4, 0x2d8, 0x2dc, 0x2e0, 0x2e4, 0x2e8,
+        0x2ec, 0x2f0, 0x2f4, -1, -1, -1,    0x2f8, 0x2fc, 0x300, 0x304};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x14;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x8;
 static constexpr dart::compiler::target::word Array_header_size = 0xc;
@@ -11538,6 +11598,10 @@ static constexpr dart::compiler::target::word Context_element_size = 0x8;
 static constexpr dart::compiler::target::word
     ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word ContextScope_element_size = 0x50;
+static constexpr dart::compiler::target::word
+    LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word LocalVarDescriptors_element_size =
+    0x1c;
 static constexpr dart::compiler::target::word
     ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word ExceptionHandlers_element_size =
@@ -12176,9 +12240,9 @@ static constexpr dart::compiler::target::word Code_entry_point_offset[] = {
     0x8, 0x18, 0x10, 0x20};
 static constexpr dart::compiler::target::word
     Thread_write_barrier_wrappers_thread_offset[] = {
-        -1,    -1,    -1, -1, -1, 0x580, 0x588, 0x590, -1,    -1,    0x598,
-        0x5a0, 0x5a8, -1, -1, -1, 0x5b0, 0x5b8, 0x5c0, 0x5c8, 0x5d0, 0x5d8,
-        0x5e0, 0x5e8, -1, -1, -1, -1,    0x5f0, 0x5f8, 0x600, 0x608};
+        -1,    -1,    -1,    -1, -1, 0x580, 0x588, -1,    -1,    -1,    0x590,
+        0x598, 0x5a0, -1,    -1, -1, 0x5a8, 0x5b0, 0x5b8, 0x5c0, 0x5c8, 0x5d0,
+        0x5d8, 0x5e0, 0x5e8, -1, -1, -1,    0x5f0, 0x5f8, 0x600, 0x608};
 static constexpr dart::compiler::target::word AbstractType_InstanceSize = 0x28;
 static constexpr dart::compiler::target::word ApiError_InstanceSize = 0x10;
 static constexpr dart::compiler::target::word Array_header_size = 0x18;
@@ -12306,6 +12370,10 @@ static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x28;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x18;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -13156,6 +13224,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x50;
 static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x1c;
+static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_element_size = 0xc;
@@ -14016,6 +14088,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x50;
 static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x1c;
+static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_element_size = 0xc;
@@ -14872,6 +14948,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x28;
 static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x18;
+static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_element_size = 0xc;
@@ -15727,6 +15807,10 @@ static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x28;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x18;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -16586,6 +16670,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x28;
 static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x18;
+static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_element_size = 0xc;
@@ -17283,9 +17371,9 @@ static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     0x4, 0xc, 0x8, 0x10};
 static constexpr dart::compiler::target::word
     AOT_Thread_write_barrier_wrappers_thread_offset[] = {
-        -1,    -1,    -1, -1, -1, 0x2c0, 0x2c4, 0x2c8, -1,    -1,    0x2cc,
-        0x2d0, 0x2d4, -1, -1, -1, 0x2d8, 0x2dc, 0x2e0, 0x2e4, 0x2e8, 0x2ec,
-        0x2f0, 0x2f4, -1, -1, -1, -1,    0x2f8, 0x2fc, 0x300, 0x304};
+        -1,    -1,    -1,    -1, -1, 0x2c0, 0x2c4, -1,    -1,    -1,    0x2c8,
+        0x2cc, 0x2d0, -1,    -1, -1, 0x2d4, 0x2d8, 0x2dc, 0x2e0, 0x2e4, 0x2e8,
+        0x2ec, 0x2f0, 0x2f4, -1, -1, -1,    0x2f8, 0x2fc, 0x300, 0x304};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x8;
@@ -17435,6 +17523,10 @@ static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x50;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -18137,9 +18229,9 @@ static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     0x8, 0x18, 0x10, 0x20};
 static constexpr dart::compiler::target::word
     AOT_Thread_write_barrier_wrappers_thread_offset[] = {
-        -1,    -1,    -1, -1, -1, 0x580, 0x588, 0x590, -1,    -1,    0x598,
-        0x5a0, 0x5a8, -1, -1, -1, 0x5b0, 0x5b8, 0x5c0, 0x5c8, 0x5d0, 0x5d8,
-        0x5e0, 0x5e8, -1, -1, -1, -1,    0x5f0, 0x5f8, 0x600, 0x608};
+        -1,    -1,    -1,    -1, -1, 0x580, 0x588, -1,    -1,    -1,    0x590,
+        0x598, 0x5a0, -1,    -1, -1, 0x5a8, 0x5b0, 0x5b8, 0x5c0, 0x5c8, 0x5d0,
+        0x5d8, 0x5e0, 0x5e8, -1, -1, -1,    0x5f0, 0x5f8, 0x600, 0x608};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;
@@ -18287,6 +18379,10 @@ static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x28;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x18;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
@@ -19127,6 +19223,10 @@ static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x50;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -19979,6 +20079,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x50;
 static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x1c;
+static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_element_size = 0xc;
@@ -20826,6 +20930,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x28;
 static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x18;
+static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_element_size = 0xc;
@@ -21672,6 +21780,10 @@ static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x28;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x18;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word
@@ -22522,6 +22634,10 @@ static constexpr dart::compiler::target::word
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x28;
 static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x8;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x18;
+static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0xc;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_element_size = 0xc;
@@ -23213,9 +23329,9 @@ static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     0x4, 0xc, 0x8, 0x10};
 static constexpr dart::compiler::target::word
     AOT_Thread_write_barrier_wrappers_thread_offset[] = {
-        -1,    -1,    -1, -1, -1, 0x2c0, 0x2c4, 0x2c8, -1,    -1,    0x2cc,
-        0x2d0, 0x2d4, -1, -1, -1, 0x2d8, 0x2dc, 0x2e0, 0x2e4, 0x2e8, 0x2ec,
-        0x2f0, 0x2f4, -1, -1, -1, -1,    0x2f8, 0x2fc, 0x300, 0x304};
+        -1,    -1,    -1,    -1, -1, 0x2c0, 0x2c4, -1,    -1,    -1,    0x2c8,
+        0x2cc, 0x2d0, -1,    -1, -1, 0x2d4, 0x2d8, 0x2dc, 0x2e0, 0x2e4, 0x2e8,
+        0x2ec, 0x2f0, 0x2f4, -1, -1, -1,    0x2f8, 0x2fc, 0x300, 0x304};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
     0x14;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x8;
@@ -23362,6 +23478,10 @@ static constexpr dart::compiler::target::word
     AOT_ContextScope_elements_start_offset = 0x10;
 static constexpr dart::compiler::target::word AOT_ContextScope_element_size =
     0x50;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_elements_start_offset = 0x10;
+static constexpr dart::compiler::target::word
+    AOT_LocalVarDescriptors_element_size = 0x1c;
 static constexpr dart::compiler::target::word
     AOT_ExceptionHandlers_elements_start_offset = 0x18;
 static constexpr dart::compiler::target::word
@@ -24058,9 +24178,9 @@ static constexpr dart::compiler::target::word AOT_Code_entry_point_offset[] = {
     0x8, 0x18, 0x10, 0x20};
 static constexpr dart::compiler::target::word
     AOT_Thread_write_barrier_wrappers_thread_offset[] = {
-        -1,    -1,    -1, -1, -1, 0x580, 0x588, 0x590, -1,    -1,    0x598,
-        0x5a0, 0x5a8, -1, -1, -1, 0x5b0, 0x5b8, 0x5c0, 0x5c8, 0x5d0, 0x5d8,
-        0x5e0, 0x5e8, -1, -1, -1, -1,    0x5f0, 0x5f8, 0x600, 0x608};
+        -1,    -1,    -1,    -1, -1, 0x580, 0x588, -1,    -1,    -1,    0x590,
+        0x598, 0x5a0, -1,    -1, -1, 0x5a8, 0x5b0, 0x5b8, 0x5c0, 0x5c8, 0x5d0,
+        0x5d8, 0x5e0, 0x5e8, -1, -1, -1,    0x5f0, 0x5f8, 0x600, 0x608};
 static constexpr dart::compiler::target::word AOT_AbstractType_InstanceSize =
     0x28;
 static constexpr dart::compiler::target::word AOT_ApiError_InstanceSize = 0x10;

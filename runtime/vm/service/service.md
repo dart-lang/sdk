@@ -1,8 +1,8 @@
-# Dart VM Service Protocol 4.21
+# Dart VM Service Protocol 4.22
 
 > Please post feedback to the [observatory-discuss group][discuss-list]
 
-This document describes of _version 4.20_ of the Dart VM Service Protocol. This
+This document describes of _version 4.22_ of the Dart VM Service Protocol. This
 protocol is used to communicate with a running Dart Virtual Machine.
 
 To use the Service Protocol, start the VM with the *--observe* flag.
@@ -679,7 +679,7 @@ Success invalidateIdZone(string isolateId, string idZoneId)
 ```
 
 The _invalidateIdZone_ RPC is used to invalidate all the IDs that have been
-allocated in a certain ID zone. Invaliding the IDs makes them expire. See 
+allocated in a certain ID zone. Invaliding the IDs makes them expire. See
 [IDs and Names](#ids-and-names) for more information.
 
 ### invoke
@@ -4058,6 +4058,9 @@ class Message extends Response {
 A _Message_ provides information about a pending isolate message and the
 function that will be invoked to handle it.
 
+This type is deprecated starting with protocol version 4.22 and instances of
+this type will not be returned in protocol responses.
+
 ### Microtask
 
 ```
@@ -4713,6 +4716,9 @@ class Stack extends Response {
   // different encoding.
   Frame[] awaiterFrames [optional];
 
+  // Deprecated since version 4.22 of the protocol. Will always be empty
+  // in the response.
+  //
   // A list of messages in the isolate's message queue.
   Message[] messages;
 
@@ -5073,5 +5079,7 @@ version | comments
 4.18 | Added `Microtask` timeline stream.
 4.19 | Added `getQueuedMicrotasks` RPC, added `Microtask` and `QueuedMicrotasks` types, and added RPC error 115 "Cannot get queued microtasks".
 4.20 | Deprecated `streamCpuSamplesWithUserTag` RPC.
+4.21 | Added `InstanceKind.Pointer`.
+4.22 | Deprecated `messages` property on `Stack`. Deprecated `Message` type.
 
 [discuss-list]: https://groups.google.com/a/dartlang.org/forum/#!forum/observatory-discuss

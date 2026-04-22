@@ -178,8 +178,8 @@ class _WidgetDescriptionComputer {
 
     InstanceCreationExpression? parentCreation;
     var childArgument = widgetCreation.parent;
-    if (childArgument is NamedExpression &&
-        childArgument.name.label.name == 'child') {
+    if (childArgument is NamedArgument &&
+        childArgument.name.lexeme == 'child') {
       var argumentList = childArgument.parent;
       var argumentListParent = argumentList?.parent;
       if (argumentList is ArgumentList &&
@@ -284,12 +284,9 @@ class _WidgetDescriptionComputer {
         var parameter = argumentExpression.correspondingParameter;
         if (parameter == null) continue;
 
-        Expression valueExpression;
-        if (argumentExpression is NamedExpression) {
-          valueExpression = argumentExpression.expression;
+        var valueExpression = argumentExpression.argumentExpression;
+        if (argumentExpression is NamedArgument) {
           existingNamed.add(parameter.name!);
-        } else {
-          valueExpression = argumentExpression;
         }
 
         _addProperty(
@@ -326,7 +323,7 @@ class _WidgetDescriptionComputer {
     required FormalParameterElement parameter,
     ClassDescription? classDescription,
     InstanceCreationExpression? instanceCreation,
-    Expression? argumentExpression,
+    Argument? argumentExpression,
     Expression? valueExpression,
   }) {
     var documentation = getParameterDocumentation(parameter);
@@ -491,7 +488,7 @@ class _WidgetDescriptionComputer {
           parameter: staticParameterElement,
           instanceCreation: parentCreation,
           argumentExpression: argument,
-          valueExpression: argument.expression,
+          valueExpression: argument.argumentExpression,
         );
 
         var replacement = replacements[0];

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 
 /// Compute the [DefinedNames] for the given [unit].
 DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
@@ -34,12 +33,8 @@ DefinedNames computeDefinedNames(CompilationUnitImpl unit) {
     var parameters = constructor.formalParameters.parameters;
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
-      var notDefault = parameter.notDefault;
       var isRepresentation =
-          isExtensionType &&
-          i == 0 &&
-          (notDefault is SimpleFormalParameterImpl ||
-              notDefault is FunctionTypedFormalParameterImpl);
+          isExtensionType && i == 0 && parameter is RegularFormalParameterImpl;
       if (parameter.finalOrVarKeyword != null || isRepresentation) {
         appendName(names.classMemberNames, parameter.name);
       }

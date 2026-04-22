@@ -89,7 +89,6 @@ class ForwardingTestListener extends ForwardingListener {
   void beginClassDeclaration(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -101,7 +100,6 @@ class ForwardingTestListener extends ForwardingListener {
     super.beginClassDeclaration(
       beginToken,
       abstractToken,
-      macroToken,
       sealedToken,
       baseToken,
       interfaceToken,
@@ -489,7 +487,6 @@ class ForwardingTestListener extends ForwardingListener {
   void beginNamedMixinApplication(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -501,7 +498,6 @@ class ForwardingTestListener extends ForwardingListener {
     super.beginNamedMixinApplication(
       beginToken,
       abstractToken,
-      macroToken,
       sealedToken,
       baseToken,
       interfaceToken,
@@ -1073,9 +1069,9 @@ class ForwardingTestListener extends ForwardingListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     end('Import');
-    super.endImport(importKeyword, augmentToken, semicolon);
+    super.endImport(importKeyword, semicolon);
   }
 
   @override

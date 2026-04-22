@@ -109,10 +109,18 @@ class PrimaryConstructorFieldDeclaration
 
   @override
   // Coverage-ignore(suite): Not run.
-  void buildBody(CoreTypes coreTypes, Expression? initializer) {
+  void buildBody(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
-    _encoding.createBodies(coreTypes, initializer);
+    _encoding.createBodies(
+      coreTypes,
+      initializer,
+      scopeProviderInfo: scopeProviderInfo,
+    );
   }
 
   @override
@@ -440,15 +448,14 @@ class PrimaryConstructorFieldDeclaration
     _encoding.setCovariantByClass();
   }
 
-  (DartType, Expression?) _computeInferredType(
+  (DartType, Expression?, ScopeProviderInfo?) _computeInferredType(
     ClassHierarchyBase classHierarchy,
     Token? token,
   ) {
     SourceLibraryBuilder libraryBuilder = builder.libraryBuilder;
     if (token != null) {
       LookupScope scope = _fragment.enclosingScope;
-      ExpressionInferenceResult expressionInferenceResult = libraryBuilder
-          .loader
+      InferredFieldInitializer inferredFieldInitializer = libraryBuilder.loader
           .createResolver()
           .buildFieldInitializer(
             libraryBuilder: libraryBuilder,
@@ -465,12 +472,13 @@ class PrimaryConstructorFieldDeclaration
             inferenceDefaultType: inferenceDefaultType,
           );
       return (
-        expressionInferenceResult.inferredType,
-        expressionInferenceResult.expression,
+        inferredFieldInitializer.expressionInferenceResult.inferredType,
+        inferredFieldInitializer.expressionInferenceResult.expression,
+        inferredFieldInitializer.scopeProviderInfo,
       );
     } else {
       assert(inferenceDefaultType == InferenceDefaultType.NullableObject);
-      return (classHierarchy.coreTypes.objectNullableRawType, null);
+      return (classHierarchy.coreTypes.objectNullableRawType, null, null);
     }
   }
 

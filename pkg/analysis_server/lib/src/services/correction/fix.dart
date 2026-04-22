@@ -163,6 +163,7 @@ abstract final class DartFixKind {
     'Add final initializing formal required named parameters',
   );
   @Deprecated('Use addKeyToConstructors')
+  // ignore: constant_identifier_names
   static const ADD_KEY_TO_CONSTRUCTORS = addKeyToConstructors;
   static const addKeyToConstructors = FixKind(
     'dart.fix.add.keyToConstructors',
@@ -170,6 +171,7 @@ abstract final class DartFixKind {
     "Add 'key' to constructors",
   );
   @Deprecated('Use addKeyToConstructorsMulti')
+  // ignore: constant_identifier_names
   static const ADD_KEY_TO_CONSTRUCTORS_MULTI = addKeyToConstructorsMulti;
   static const addKeyToConstructorsMulti = FixKind(
     'dart.fix.add.keyToConstructors.multi',
@@ -335,6 +337,16 @@ abstract final class DartFixKind {
     'dart.fix.add.typeAnnotation.multi',
     DartFixKindPriority.inFile,
     'Add type annotations everywhere in file',
+  );
+  static const addTypeName = FixKind(
+    'dart.fix.add.typeName',
+    DartFixKindPriority.standard,
+    'Add implicit type name',
+  );
+  static const addTypeNameMulti = FixKind(
+    'dart.fix.add.typeName.multi',
+    DartFixKindPriority.inFile,
+    'Add implicit type name everywhere in file',
   );
   static const changeArgumentName = FixKind(
     'dart.fix.change.argumentName',
@@ -1644,6 +1656,16 @@ abstract final class DartFixKind {
     'dart.fix.remove.comparison.multi',
     DartFixKindPriority.inFile,
     'Remove type check everywhere in file',
+  );
+  static const removeTypeName = FixKind(
+    'dart.fix.remove.typeName',
+    DartFixKindPriority.standard,
+    'Remove the type name',
+  );
+  static const removeTypeNameMulti = FixKind(
+    'dart.fix.remove.typeName.multi',
+    DartFixKindPriority.standard,
+    'Remove unnecessary type names in file',
   );
   static const removeUnawaited = FixKind(
     'dart.fix.remove.unawaited',

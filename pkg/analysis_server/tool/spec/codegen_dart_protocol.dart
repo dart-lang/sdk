@@ -420,6 +420,13 @@ class CodegenProtocolVisitor extends DartCodegenVisitor with CodeGenerator {
         "import 'package:$packageName/src/protocol/protocol_internal.dart';",
       );
     }
+
+    writeln(
+      '// We use many SCREAMING_SNAKE_CASE identifiers which might affect API.',
+    );
+    writeln(
+      '// ignore_for_file: constant_identifier_names, unnecessary_ignore',
+    );
   }
 
   /// Emit the class to encapsulate an object type.

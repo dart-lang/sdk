@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -174,6 +175,39 @@ class A {
 }
 f() {
   final A(a: b) = A(1);
+}
+''');
+  }
+
+  test_destructured_objectPattern_join() async {
+    await assertDiagnostics(
+      r'''
+void fn(Object val) {
+  if (val case String(:var isEmpty) || List(:var isEmpty)) {
+  }
+}
+''',
+      [
+        lint(45, 11, contextMessages: [contextMessage(testFile, 71, 7)]),
+      ],
+    );
+  }
+
+  test_destructured_objectPattern_join_final() async {
+    await assertNoDiagnostics(r'''
+void fn(Object val) {
+  if (val case String(:final isEmpty) || List(:final isEmpty)) {
+  }
+}
+''');
+  }
+
+  test_destructured_objectPattern_join_mutated() async {
+    await assertNoDiagnostics(r'''
+void fn(Object val) {
+  if (val case String(:var isEmpty) || List(:var isEmpty)) {
+    isEmpty = true;
+  }
 }
 ''');
   }

@@ -22,7 +22,7 @@ class A {
   dynamic field = ({this.field}) {};
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 30, 10)],
+      [error(diag.fieldInitializerOutsideConstructor, 30, 4)],
     );
   }
 
@@ -34,7 +34,7 @@ class A {
   m([this.x = 0]) {}
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 28, 6)],
+      [error(diag.fieldInitializerOutsideConstructor, 28, 4)],
     );
   }
 
@@ -47,7 +47,7 @@ class A {
   m(int this.x()) {}
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 35, 12)],
+      [error(diag.fieldInitializerOutsideConstructor, 39, 4)],
     );
   }
 
@@ -59,7 +59,7 @@ class A {
   A(int p(this.x));
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 30, 6)],
+      [error(diag.fieldInitializerOutsideConstructor, 30, 4)],
     );
   }
 
@@ -71,7 +71,7 @@ void f() {
   foo(x: 0);
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 23, 6)],
+      [error(diag.fieldInitializerOutsideConstructor, 23, 4)],
     );
   }
 
@@ -83,7 +83,7 @@ void f() {
   foo(0);
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 23, 6)],
+      [error(diag.fieldInitializerOutsideConstructor, 23, 4)],
     );
   }
 
@@ -95,7 +95,7 @@ void f() {
   foo(x: 0);
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 23, 15)],
+      [error(diag.fieldInitializerOutsideConstructor, 32, 4)],
     );
   }
 
@@ -107,7 +107,7 @@ void f() {
   foo(0);
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 22, 6)],
+      [error(diag.fieldInitializerOutsideConstructor, 22, 4)],
     );
   }
 
@@ -120,7 +120,7 @@ class A {
   m(this.x) {}
 }
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 24, 6)],
+      [error(diag.fieldInitializerOutsideConstructor, 24, 4)],
     );
   }
 
@@ -129,7 +129,7 @@ class A {
       r'''
 f(this.x(y)) {}
 ''',
-      [error(diag.fieldInitializerOutsideConstructor, 2, 9)],
+      [error(diag.fieldInitializerOutsideConstructor, 2, 4)],
     );
   }
 }

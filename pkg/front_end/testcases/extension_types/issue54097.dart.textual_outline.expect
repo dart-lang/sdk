@@ -10,9 +10,7 @@ typedef void H1<X extends E1<X>>();
 
 extension Ext1<X extends E1<X>> on List<X> {}
 
-enum Enum1<X extends E1<X>> {
-  element<Never>();
-}
+enum Enum1<X extends E1<X>> { element<Never>() }
 
 foo1<X extends E1<X>>() {}
 
@@ -32,9 +30,7 @@ typedef void H2<X extends E1<Y>, Y extends X>();
 
 extension Ext2<X extends E1<Y>, Y extends X> on List<X> {}
 
-enum Enum2<X extends E1<Y>, Y extends X> {
-  element<Never, Never>();
-}
+enum Enum2<X extends E1<Y>, Y extends X> { element<Never, Never>() }
 
 foo2<X extends E1<Y>, Y extends X>() {}
 

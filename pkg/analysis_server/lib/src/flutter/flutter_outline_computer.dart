@@ -9,6 +9,7 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/utilities/extensions/flutter.dart';
 
 /// Computer for Flutter specific outlines.
@@ -48,7 +49,7 @@ class FlutterOutlineComputer {
   /// Flutter attribute, add it to the [attributes].
   void _addAttribute(
     List<protocol.FlutterOutlineAttribute> attributes,
-    Expression argument,
+    Argument argument,
     FormalParameterElement? parameter,
   ) {
     if (parameter == null) {
@@ -56,16 +57,22 @@ class FlutterOutlineComputer {
     }
 
     protocol.Location? nameLocation;
-    if (argument is NamedExpression) {
-      nameLocation = protocol.newLocation_fromNode(argument.name.label);
-      argument = argument.expression;
+    if (argument is NamedArgument) {
+      nameLocation = protocol.newLocation_fromUnit(
+        resolvedUnit.unit,
+        SourceRange(argument.name.offset, argument.name.length),
+      );
     }
 
-    var valueLocation = protocol.newLocation_fromNode(argument);
+    var valueArgument = argument.argumentExpression;
+    var valueLocation = protocol.newLocation_fromNode(valueArgument);
 
     var name = parameter.displayName;
 
-    var label = resolvedUnit.content.substring(argument.offset, argument.end);
+    var label = resolvedUnit.content.substring(
+      valueArgument.offset,
+      valueArgument.end,
+    );
     if (label.contains('\n')) {
       label = '…';
     }
@@ -73,25 +80,25 @@ class FlutterOutlineComputer {
     bool? literalValueBoolean;
     int? literalValueInteger;
     String? literalValueString;
-    if (argument is BooleanLiteral) {
-      literalValueBoolean = argument.value;
-    } else if (argument is IntegerLiteral) {
-      literalValueInteger = argument.value;
-    } else if (argument is StringLiteral) {
-      literalValueString = argument.stringValue;
+    if (valueArgument is BooleanLiteral) {
+      literalValueBoolean = valueArgument.value;
+    } else if (valueArgument is IntegerLiteral) {
+      literalValueInteger = valueArgument.value;
+    } else if (valueArgument is StringLiteral) {
+      literalValueString = valueArgument.stringValue;
     } else {
-      if (argument is FunctionExpression) {
-        var parameters = argument.parameters;
+      if (valueArgument is FunctionExpression) {
+        var parameters = valueArgument.parameters;
         var hasParameters =
             parameters != null && parameters.parameters.isNotEmpty;
-        if (argument.body is ExpressionFunctionBody) {
+        if (valueArgument.body is ExpressionFunctionBody) {
           label = hasParameters ? '(…) => …' : '() => …';
         } else {
           label = hasParameters ? '(…) { … }' : '() { … }';
         }
-      } else if (argument is ListLiteral) {
+      } else if (valueArgument is ListLiteral) {
         label = '[…]';
-      } else if (argument is SetOrMapLiteral) {
+      } else if (valueArgument is SetOrMapLiteral) {
         label = '{…}';
       }
     }
@@ -145,12 +152,10 @@ class FlutterOutlineComputer {
         String? parentAssociationLabel;
         Expression childrenExpression;
 
-        if (argument is NamedExpression) {
-          parentAssociationLabel = argument.name.label.name;
-          childrenExpression = argument.expression;
-        } else {
-          childrenExpression = argument;
+        if (argument is NamedArgument) {
+          parentAssociationLabel = argument.name.lexeme;
         }
+        childrenExpression = argument.argumentExpression;
 
         void addChildrenFrom(CollectionElement? element) {
           if (element is ConditionalExpression) {
@@ -175,7 +180,7 @@ class FlutterOutlineComputer {
           }
         }
 
-        var argumentType = argument.staticType;
+        var argumentType = childrenExpression.staticType;
         var isWidgetArgument = argumentType.isWidgetType;
         var isWidgetListArgument =
             argumentType != null && argumentType.isListOfWidgetsType;

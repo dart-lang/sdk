@@ -434,17 +434,13 @@ class A {
 class A {
   A({required void ^f(int i)});
 }
-
-void foo(int k) => null;
 ''');
     await assertHasAssist('''
 class A {
   void Function(int i) f;
 
-  A({this.f});
+  A({required this.f});
 }
-
-void foo(int k) => null;
 ''');
   }
 

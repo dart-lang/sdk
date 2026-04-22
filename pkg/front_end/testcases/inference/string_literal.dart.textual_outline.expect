@@ -6,6 +6,8 @@ var a = 'aaa';
 
 var b = 'b ${x} bb';
 
-var c = 'c ${x} cc' 'ccc';
+var c =
+    'c ${x} cc'
+    'ccc';
 
 main() {}

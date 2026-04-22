@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -39,28 +40,54 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
   }
 
   test_class_sealed() {
-    var A = class_2(name: 'A', isSealed: true);
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core'],
+        classes: [ClassSpec(name: 'A', isSealed: true)],
+      ),
+    );
+    var A = testLibrary.getClass('A')!;
     isAlwaysExhaustive(interfaceTypeNone(A));
     isAlwaysExhaustive(interfaceTypeQuestion(A));
   }
 
   test_enum() {
-    var E = enum_2(name: 'E', constants: []);
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core'],
+        enums: [EnumSpec(name: 'E')],
+      ),
+    );
+    var E = testLibrary.getEnum('E')!;
     isAlwaysExhaustive(interfaceTypeNone(E));
     isAlwaysExhaustive(interfaceTypeQuestion(E));
   }
 
   test_extensionType() {
     isAlwaysExhaustive(
-      interfaceTypeNone(extensionType2('A', representationType: boolNone)),
+      interfaceTypeNone(
+        buildExtensionType(
+          const ExtensionTypeSpec(name: 'A', representationType: 'bool'),
+        ),
+      ),
     );
 
     isAlwaysExhaustive(
-      interfaceTypeNone(extensionType2('A', representationType: boolQuestion)),
+      interfaceTypeNone(
+        buildExtensionType(
+          const ExtensionTypeSpec(name: 'A', representationType: 'bool?'),
+        ),
+      ),
     );
 
     isNotAlwaysExhaustive(
-      interfaceTypeNone(extensionType2('A', representationType: intNone)),
+      interfaceTypeNone(
+        buildExtensionType(
+          const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+        ),
+      ),
     );
   }
 

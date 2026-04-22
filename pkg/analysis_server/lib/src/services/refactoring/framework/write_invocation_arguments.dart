@@ -42,7 +42,7 @@ Future<WriteArgumentsStatus> writeArguments({
               // TODO(scheglov): maybe support renames
               newArguments.add(_ArgumentAsIs(argument: argument));
             } else {
-              newArguments.add(_ArgumentRemoveName(namedExpression: argument));
+              newArguments.add(_ArgumentRemoveName(namedArgument: argument));
             }
           case PositionalFormalParameterReference():
             var argument = positionArguments.elementAtOrNull(reference.index);
@@ -97,7 +97,7 @@ Future<WriteArgumentsStatus> writeArguments({
           case _ArgumentNewPositional():
             builder.write(argument.valueCode);
           case _ArgumentRemoveName():
-            var expression = argument.namedExpression.expression;
+            var expression = argument.namedArgument.argumentExpression;
             var text = utils.getNodeText(expression);
             builder.write(text);
         }
@@ -209,14 +209,14 @@ sealed class _Argument {}
 /// The argument to write as a named expression.
 final class _ArgumentAddName extends _Argument {
   final String name;
-  final Expression argument;
+  final Argument argument;
 
   _ArgumentAddName({required this.name, required this.argument});
 }
 
 /// The argument to write as is, positional or named.
 final class _ArgumentAsIs extends _Argument {
-  final Expression argument;
+  final Argument argument;
 
   _ArgumentAsIs({required this.argument});
 }
@@ -242,9 +242,9 @@ final class _ArgumentNewPositional extends _ArgumentNew {
 
 /// The argument to write without the name.
 final class _ArgumentRemoveName extends _Argument {
-  final NamedExpression namedExpression;
+  final NamedArgument namedArgument;
 
-  _ArgumentRemoveName({required this.namedExpression});
+  _ArgumentRemoveName({required this.namedArgument});
 }
 
 extension on ArgumentList {
@@ -254,18 +254,16 @@ extension on ArgumentList {
     return nextToken != null && nextToken.type == TokenType.COMMA;
   }
 
-  Map<String, NamedExpression> get namedMap {
+  Map<String, NamedArgument> get namedMap {
     return Map.fromEntries(
-      arguments.whereType<NamedExpression>().map((namedExpression) {
-        var name = namedExpression.name.label.name;
+      arguments.whereType<NamedArgument>().map((namedExpression) {
+        var name = namedExpression.name.lexeme;
         return MapEntry(name, namedExpression);
       }),
     );
   }
 
-  List<Expression> get positional {
-    return arguments
-        .whereNot((argument) => argument is NamedExpression)
-        .toList();
+  List<Argument> get positional {
+    return arguments.whereNot((argument) => argument is NamedArgument).toList();
   }
 }

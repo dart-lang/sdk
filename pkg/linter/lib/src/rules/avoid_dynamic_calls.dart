@@ -108,7 +108,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.target != null) {
       if (methodName == 'noSuchMethod' &&
           node.argumentList.arguments.length == 1 &&
-          node.argumentList.arguments.first is! NamedExpression) {
+          node.argumentList.arguments.first is! NamedArgument) {
         // Allowed as these exist on every object, even those typed `Object?`.
         return;
       }

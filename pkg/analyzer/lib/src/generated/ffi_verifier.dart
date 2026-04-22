@@ -844,15 +844,16 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     return computedConstant?.value != null;
   }
 
-  bool _isLeaf(NodeList<Expression>? args) {
+  bool _isLeaf(NodeList<Argument>? args) {
     if (args == null) {
       return false;
     }
     for (var arg in args) {
-      if (arg is! NamedExpression || arg.element?.name != _isLeafParamName) {
+      if (arg is! NamedArgument ||
+          arg.correspondingParameter?.name != _isLeafParamName) {
         continue;
       }
-      return _maybeGetBoolConstValue(arg.expression) ?? false;
+      return _maybeGetBoolConstValue(arg.argumentExpression) ?? false;
     }
     return false;
   }
@@ -1664,7 +1665,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     var f = node.argumentList.arguments[0];
-    var FT = f.typeOrThrow;
+    var FT = f.argumentExpression.typeOrThrow;
     if (!_validateCompatibleFunctionTypes(
       _FfiTypeCheckDirection.dartToNative,
       FT,
@@ -1698,7 +1699,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
             .at(node.methodName),
       );
     } else {
-      Expression e = node.argumentList.arguments[1];
+      Expression e = node.argumentList.arguments[1].argumentExpression;
       var eType = e.typeOrThrow;
       if (!_validateCompatibleNativeType(
         _FfiTypeCheckDirection.dartToNative,
@@ -1727,13 +1728,13 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     var args = node.argumentList.arguments;
     if (args.isNotEmpty) {
       for (var arg in args) {
-        if (arg is NamedExpression) {
-          if (arg.element?.name == _isLeafParamName) {
-            if (!_isConst(arg.expression)) {
+        if (arg is NamedArgument) {
+          if (arg.correspondingParameter?.name == _isLeafParamName) {
+            if (!_isConst(arg.argumentExpression)) {
               _diagnosticReporter.report(
                 diag.argumentMustBeAConstant
                     .withArguments(argumentName: _isLeafParamName)
-                    .at(arg.expression),
+                    .at(arg.argumentExpression),
               );
             }
           }
@@ -1841,7 +1842,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
               );
             }
           } else {
-            if (argument.staticType case var staticType?
+            if (argument.argumentExpression.staticType case var staticType?
                 when nativeType is DynamicType) {
               // No type argument was given on the @Native annotation, so we try
               // to infer the native type from the Dart signature.
@@ -1939,7 +1940,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
     }
 
     var f = node.argumentList.arguments[0];
-    var funcType = f.typeOrThrow;
+    var funcType = f.argumentExpression.typeOrThrow;
     if (!_validateCompatibleFunctionTypes(
       _FfiTypeCheckDirection.dartToNative,
       funcType,
@@ -1975,7 +1976,8 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
           diag.missingExceptionValue.withArguments(methodName: name).at(node),
         );
       } else {
-        var e = (node.argumentList.arguments[1] as NamedExpression).expression;
+        var e = (node.argumentList.arguments[1] as NamedArgument)
+            .argumentExpression;
         var eType = e.typeOrThrow;
         if (!_validateCompatibleNativeType(
           _FfiTypeCheckDirection.dartToNative,
@@ -2170,12 +2172,9 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       return switch (annotation.arguments) {
         // `@Array.variableMulti([..], variableDimension: ..)`
         ArgumentList(
-          arguments: [
-            ListLiteral dimensions,
-            NamedExpression variableDimension,
-          ],
+          arguments: [ListLiteral dimensions, NamedArgument variableDimension],
         ) =>
-          (dimensions.elements, variableDimension.expression),
+          (dimensions.elements, variableDimension.argumentExpression),
         // `@Array.variableMulti([..])`
         ArgumentList(arguments: [ListLiteral dimensions]) => (
           dimensions.elements,
@@ -2183,7 +2182,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
         ),
         // `@Array(..)`, `@Array.variable(..)`,
         // `@Array.variableWithVariableDimension(..)`
-        ArgumentList(arguments: NodeList<AstNode> dimensions) => (
+        ArgumentList(arguments: NodeList<Argument> dimensions) => (
           dimensions,
           null,
         ),
@@ -2198,7 +2197,7 @@ class FfiVerifier extends RecursiveAstVisitor<void> {
       if (dimensionsNodes case var dimensionsNodes?) {
         if (dimensionsNodes.length > i && variableDimensionNode == null) {
           var node = dimensionsNodes[i];
-          errorNode = node is NamedExpression ? node.expression : node;
+          errorNode = node is Argument ? node.argumentExpression : node;
         }
       }
 

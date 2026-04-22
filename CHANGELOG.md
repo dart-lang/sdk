@@ -30,8 +30,8 @@ parameter, you had to write an explicit initializer list:
 class Point {
   final int _x, _y;
   Point({required int x, required int y})
-    : x = _x,
-      y = _y;
+    : _x = x,
+      _y = y;
 }
 ```
 

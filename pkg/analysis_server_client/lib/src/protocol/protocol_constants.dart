@@ -6,6 +6,7 @@
 // To regenerate the file, use the script
 // "pkg/analysis_server/tool/spec/generate_files".
 
+// ignore: constant_identifier_names
 const String PROTOCOL_VERSION = '1.40.1';
 
 const String analysisNotificationAnalyzedFiles = 'analysis.analyzedFiles';

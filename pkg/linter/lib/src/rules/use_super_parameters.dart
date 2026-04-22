@@ -91,11 +91,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var identifiers = _checkForConvertiblePositionalParams(
       constructorElement,
       superInvocation,
-      parameters,
+      parameters.parameters,
       referencedParameters,
     );
 
-    // Bail if there are positional params that can't be converted.
+    // Bail if the constructor is in a bad state.
     if (identifiers == null) return;
 
     for (var parameter in parameters.parameters) {
@@ -159,72 +159,69 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
   }
 
-  /// Check if all super positional parameters can be converted to use super-
-  /// initializers. Return a list of convertible named parameters or `null` if
-  /// there are parameters that can't be converted since this will short-circuit
-  /// the lint.
+  /// Checks if all positional arguments to the super-constructor invocation can
+  /// be converted to use super-parameters.
+  ///
+  /// Returns a list of convertible positional parameters or `null` if the
+  /// constructor is in a bad state (element types are not as expected, or
+  /// perhaps resolution is incomplete).
   List<String>? _checkForConvertiblePositionalParams(
     ConstructorElement constructorElement,
     SuperConstructorInvocation superInvocation,
-    FormalParameterList parameters,
+    List<FormalParameter> parameters,
     Set<FormalParameterElement> referencedParameters,
   ) {
     var positionalSuperArgs = <SimpleIdentifier>[];
     for (var arg in superInvocation.argumentList.arguments) {
       if (arg is SimpleIdentifier) {
         positionalSuperArgs.add(arg);
-      } else if (arg is! NamedExpression) {
-        return null;
+      } else if (arg is! NamedArgument) {
+        return [];
       }
     }
 
     if (positionalSuperArgs.isEmpty) return [];
 
-    var constructorParams = parameters.parameters;
-    var convertibleConstructorParams = <String>[];
-    var matchedConstructorParamIndex = 0;
+    var convertibleParams = <String>[];
+    var matchedParamIndex = 0;
 
-    var seenSuperParams = <Element>{};
+    var seenParamsInSuperConstructor = <Element>{};
 
     // For each super arg, ensure there is a constructor param (in the right
     // order).
     for (var i = 0; i < positionalSuperArgs.length; ++i) {
       var superArg = positionalSuperArgs[i];
-      var superParam = superArg.element;
-      if (superParam is! FormalParameterElement) return null;
-      if (superParam.isNamed) return null;
+      var paramPassedToSuper = superArg.element;
+      if (paramPassedToSuper is! FormalParameterElement) return null;
+      if (paramPassedToSuper.isNamed) return null;
 
-      // Check for the case where a super param is used more than once.
-      if (!seenSuperParams.add(superParam)) return null;
+      // Check for the case where a parameter passed to the super-constructor is
+      // used more than once.
+      if (!seenParamsInSuperConstructor.add(paramPassedToSuper)) {
+        return null;
+      }
 
       bool match = false;
-      for (var i = 0; i < constructorParams.length && !match; ++i) {
-        var constructorParam = constructorParams[i];
-        if (constructorParam is FieldFormalParameter) return null;
-        if (constructorParam is SuperFormalParameter) return null;
-        var constructorElement = constructorParam.declaredFragment?.element;
-        if (constructorElement == null) return null;
-        if (referencedParameters.contains(constructorElement)) return null;
-        if (constructorElement == superParam) {
-          // Compare the types.
-          var superType = superParam.type;
-          var argType = constructorElement.type;
-          if (!context.typeSystem.isSubtypeOf(argType, superType)) {
-            return null;
-          }
-
+      for (var j = 0; j < parameters.length && !match; ++j) {
+        var parameter = parameters[j];
+        if (parameter is FieldFormalParameter) return [];
+        if (parameter is SuperFormalParameter) return null;
+        var parameterElement = parameter.declaredFragment?.element;
+        if (parameterElement == null) return null;
+        if (referencedParameters.contains(parameterElement)) return [];
+        if (parameterElement == paramPassedToSuper) {
           match = true;
-          var identifier = constructorParam.name?.lexeme;
+          var identifier = parameter.name?.lexeme;
           if (identifier == null) return null;
-          convertibleConstructorParams.add(identifier);
+          convertibleParams.add(identifier);
           // Ensure we're not out of order.
-          if (i < matchedConstructorParamIndex) return null;
-          matchedConstructorParamIndex = i;
+          if (j < matchedParamIndex) return [];
+          matchedParamIndex = j;
         }
       }
     }
 
-    return convertibleConstructorParams;
+    return convertibleParams;
   }
 
   /// Return `true` if the named [parameter] can be converted into a super
@@ -244,9 +241,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     bool matchingArgument = false;
     var arguments = superInvocation.argumentList.arguments;
     for (var argument in arguments) {
-      if (argument is NamedExpression &&
-          argument.name.label.name == parameterElement.name) {
-        var expression = argument.expression;
+      if (argument is NamedArgument &&
+          argument.name.lexeme == parameterElement.name) {
+        var expression = argument.argumentExpression;
         if (expression is SimpleIdentifier &&
             expression.element == parameterElement) {
           matchingArgument = true;

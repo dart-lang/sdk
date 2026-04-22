@@ -1294,8 +1294,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
       'isFinal': item.flags.isFinal,
       'isLate': item.flags.isLate,
       'isStatic': item.flags.isStatic,
-      'shouldUseTypeForInitializerInference':
-          item.flags.shouldUseTypeForInitializerInference,
+      'isTypeInferredFromInitializer': item.flags.isTypeInferredFromInitializer,
     };
   }
 

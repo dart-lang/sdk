@@ -1,5 +1,8 @@
 import 'dart:async';
 
-Future<void>
-    bar<T extends Future<num>, S, U extends num, V extends FutureOr<num>>(
-        T t, S s, U u, V v) async {}
+Future<void> bar<
+  T extends Future<num>,
+  S,
+  U extends num,
+  V extends FutureOr<num>
+>(T t, S s, U u, V v) async {}

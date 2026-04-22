@@ -50,6 +50,7 @@ import 'add_super_parameter_test.dart' as add_super_parameter;
 import 'add_switch_case_break_test.dart' as add_switch_case_break;
 import 'add_trailing_comma_test.dart' as add_trailing_comma;
 import 'add_type_annotation_test.dart' as add_type_annotation;
+import 'add_type_name_test.dart' as add_type_name;
 import 'ambiguous_import_fix_test.dart' as ambiguous_import_fix;
 import 'analysis_options/test_all.dart' as analysis_options;
 import 'bulk_fix_processor_test.dart' as bulk_fix_processor;
@@ -230,6 +231,7 @@ import 'remove_returned_value_test.dart' as remove_returned_value;
 import 'remove_this_expression_test.dart' as remove_this_expression;
 import 'remove_type_annotation_test.dart' as remove_type_annotation;
 import 'remove_type_arguments_test.dart' as remove_type_arguments;
+import 'remove_type_name_test.dart' as remove_type_name;
 import 'remove_unawaited_test.dart' as remove_unawaited;
 import 'remove_unexpected_underscores_test.dart'
     as remove_unexpected_underscores;
@@ -369,6 +371,7 @@ void main() {
     add_switch_case_break.main();
     add_trailing_comma.main();
     add_type_annotation.main();
+    add_type_name.main();
     analysis_options.main();
     bulk_fix_processor.main();
     change_argument_name.main();
@@ -524,6 +527,7 @@ void main() {
     remove_this_expression.main();
     remove_type_annotation.main();
     remove_type_arguments.main();
+    remove_type_name.main();
     remove_unawaited.main();
     remove_unexpected_underscores.main();
     remove_unnecessary_cast.main();

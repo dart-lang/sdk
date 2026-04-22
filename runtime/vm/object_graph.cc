@@ -67,48 +67,52 @@ class ObjectSlots {
       if (!cls.is_finalized()) continue;
 
       auto slots = cid2object_slots_[cid] = new ObjectSlotsType();
-      for (const auto& entry : OffsetsTable::offsets_table()) {
-        if (entry.class_id == cid) {
-          slots->Add(ObjectSlot(entry.offset, entry.is_compressed_pointer,
-                                entry.field_name));
-        }
+      // If the class has native fields, the native fields array is the first
+      // field and therefore starts after the `kWordSize` tagging word.
+      if (cls.num_native_fields() > 0) {
+        slots->Add(ObjectSlot(kWordSize, true, "native_fields"));
+      }
+      // If the class or any super class is generic, it will have a type
+      // arguments vector.
+      const auto tav_offset = cls.host_type_arguments_field_offset();
+      if (tav_offset != Class::kNoTypeArguments) {
+        slots->Add(ObjectSlot(tav_offset, true, "type_arguments"));
       }
 
-      // The VM doesn't define a layout for the object, so it's a regular Dart
-      // class.
-      if (slots->is_empty()) {
-        // If the class has native fields, the native fields array is the first
-        // field and therefore starts after the `kWordSize` tagging word.
-        if (cls.num_native_fields() > 0) {
-          slots->Add(ObjectSlot(kWordSize, true, "native_fields"));
-        }
-        // If the class or any super class is generic, it will have a type
-        // arguments vector.
-        const auto tav_offset = cls.host_type_arguments_field_offset();
-        if (tav_offset != Class::kNoTypeArguments) {
-          slots->Add(ObjectSlot(tav_offset, true, "type_arguments"));
-        }
-
-        // Add slots for all user-defined instance fields in the hierarchy.
-        while (!cls.IsNull()) {
-          fields = cls.fields();
-          if (!fields.IsNull()) {
-            for (intptr_t i = 0; i < fields.Length(); ++i) {
-              field ^= fields.At(i);
-              if (!field.is_instance()) continue;
-              name = field.name();
-              // If the field is unboxed, we don't know the size of it (may be
-              // multiple words) - but that doesn't matter because
-              //   a) we will process instances using the slots we collect
-              //     (instead of regular GC visitor);
-              //   b) we will not write the value of the field and instead treat
-              //     it like a dummy reference to 0 (like we do with Smis).
-              slots->Add(ObjectSlot(field.HostOffset(), !field.is_unboxed(),
-                                    name.ToCString()));
+      // Add slots for all user-defined instance fields in the hierarchy.
+      while (!cls.IsNull()) {
+        const intptr_t current_cid = cls.id();
+        if (current_cid < kNumPredefinedCids) {
+          bool slots_added = false;
+          for (const auto& entry : OffsetsTable::offsets_table()) {
+            if (entry.class_id == current_cid) {
+              slots->Add(ObjectSlot(entry.offset, entry.is_compressed_pointer,
+                                    entry.field_name));
+              slots_added = true;
             }
           }
-          cls = cls.SuperClass();
+          if (slots_added) {
+            break;
+          }
         }
+
+        fields = cls.fields();
+        if (!fields.IsNull()) {
+          for (intptr_t i = 0; i < fields.Length(); ++i) {
+            field ^= fields.At(i);
+            if (!field.is_instance()) continue;
+            name = field.name();
+            // If the field is unboxed, we don't know the size of it (may be
+            // multiple words) - but that doesn't matter because
+            //   a) we will process instances using the slots we collect
+            //     (instead of regular GC visitor);
+            //   b) we will not write the value of the field and instead treat
+            //     it like a dummy reference to 0 (like we do with Smis).
+            slots->Add(ObjectSlot(field.HostOffset(), !field.is_unboxed(),
+                                  name.ToCString()));
+          }
+        }
+        cls = cls.SuperClass();
       }
 
       // We sort the slots, so we'll visit the slots in memory order.
@@ -136,7 +140,10 @@ class ObjectSlots {
       if (contains_only_tagged_words && (slots->length() > 0)) {
         auto expected_offset = (*slots)[0].offset;
         for (auto& slot : *slots) {
-          ASSERT_EQUAL(slot.offset, expected_offset);
+          if (slot.offset != expected_offset) {
+            FATAL("Slot %s has offset 0x%" Px32 ", expected offset 0x%" Px32,
+                  slot.name, slot.offset, expected_offset);
+          }
           expected_offset += kCompressedWordSize;
         }
       }

@@ -432,7 +432,7 @@ class FlowAnalysisHelper {
 
   static bool _hasLabel(List<Label> labels, Element element) {
     for (var nodeLabel in labels) {
-      if (identical(nodeLabel.label.element, element)) {
+      if (identical(nodeLabel.declaredFragment!.element, element)) {
         return true;
       }
     }

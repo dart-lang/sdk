@@ -1455,7 +1455,11 @@ class A {}
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(2, (builder) {
-        builder.writeParameterMatchingArgument(argument, 0, <String>{});
+        builder.writeParameterMatchingArgument(
+          argument.argumentExpression,
+          0,
+          <String>{},
+        );
       });
     });
     var edit = getEdit(builder);

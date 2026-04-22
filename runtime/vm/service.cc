@@ -1755,8 +1755,8 @@ static void GetStack(Thread* thread, JSONStream* js) {
   jsobj.AddProperty("truncated", truncated);
 
   {
-    MessageHandler::AcquiredQueues aq(isolate->message_handler());
-    jsobj.AddProperty("messages", aq.queue());
+    // Deprecated and always empty since protocol version 4.22.
+    JSONArray jsarr(&jsobj, "messages");
   }
 }
 
@@ -2209,29 +2209,6 @@ static ObjectPtr LookupHeapObjectCode(char** parts, int num_parts) {
   return Object::sentinel().ptr();
 }
 
-static ObjectPtr LookupHeapObjectMessage(Thread* thread,
-                                         char** parts,
-                                         int num_parts) {
-  if (num_parts != 2) {
-    return Object::sentinel().ptr();
-  }
-  uword message_id = 0;
-  if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
-    return Object::sentinel().ptr();
-  }
-  MessageHandler::AcquiredQueues aq(thread->isolate()->message_handler());
-  Message* message = aq.queue()->FindMessageById(message_id);
-  if (message == nullptr) {
-    // The user may try to load an expired message.
-    return Object::sentinel().ptr();
-  }
-  if (message->IsRaw()) {
-    return message->raw_obj();
-  } else {
-    return ReadMessage(thread, message);
-  }
-}
-
 static ObjectPtr LookupHeapObject(Thread* thread,
                                   const char* id_original,
                                   ObjectIdRing::LookupResult* result) {
@@ -2284,8 +2261,6 @@ static ObjectPtr LookupHeapObject(Thread* thread,
     return LookupHeapObjectTypeArguments(thread, parts, num_parts);
   } else if (strcmp(parts[0], "code") == 0) {
     return LookupHeapObjectCode(parts, num_parts);
-  } else if (strcmp(parts[0], "messages") == 0) {
-    return LookupHeapObjectMessage(thread, parts, num_parts);
   }
 
   // Not found.

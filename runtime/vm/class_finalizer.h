@@ -92,9 +92,9 @@ class ClassFinalizer : public AllStatic {
 
 #if !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
   static void FinalizeMemberTypes(const Class& cls);
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
   static void PrintClassInformation(const Class& cls);
+#endif
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 #if !defined(DART_PRECOMPILED_RUNTIME)

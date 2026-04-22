@@ -101,4 +101,13 @@ void f() {
 }
 ''');
   }
+
+  test_tearoff_named() async {
+    await assertNoDiagnostics(r'''
+void g({void Function(Object?)? log}) {}
+void f() {
+  g(log: print);
+}
+''');
+  }
 }

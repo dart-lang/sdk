@@ -544,6 +544,7 @@ const List<Suite> suites = [
     textual_outline.createContext,
     "../testing.json",
     shardCount: 1,
+    requiresGit: true,
   ),
   const Suite(
     "coverage_merger",

@@ -28,8 +28,8 @@ typedef G2<X extends num> = void Function<T extends X>();
 
 typedef G3<X, Y> = void Function<T extends X, S extends Y>();
 
-typedef G4<X extends num, Y extends num> = void
-    Function<T extends X, S extends Y>();
+typedef G4<X extends num, Y extends num> =
+    void Function<T extends X, S extends Y>();
 
 typedef G5<X extends num> = void Function<T extends S, S extends X>();
 

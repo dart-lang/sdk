@@ -25,9 +25,8 @@ import '../source/source_library_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../type_inference/context_allocation_strategy.dart';
-import '../type_inference/inference_results.dart'
-    show InitializerInferenceResult;
-import '../type_inference/type_inferrer.dart' show TypeInferrer;
+import '../type_inference/type_inferrer.dart'
+    show InferredConstructorInitializer, TypeInferrer;
 import '../util/helpers.dart';
 import 'internal_ast.dart';
 
@@ -372,12 +371,14 @@ abstract class BodyBuilderContext {
   }
 
   /// Infers the [initializer].
-  InitializerInferenceResult inferInitializer({
+  InferredConstructorInitializer inferInitializer({
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required ContextAllocationStrategy contextAllocationStrategy,
   }) {
     throw new UnsupportedError('${runtimeType}.inferInitializer');
   }

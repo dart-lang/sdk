@@ -2556,6 +2556,10 @@ class UntaggedLocalVarDescriptors : public UntaggedObject {
     return reinterpret_cast<VarInfo*>(nameAddrAt(num_entries_));
   }
 
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind, intptr_t num_entries) {
+    return to(num_entries);
+  }
+
   friend class Object;
 };
 
@@ -2831,6 +2835,7 @@ class UntaggedApiError : public UntaggedError {
   COMPRESSED_POINTER_FIELD(StringPtr, message)
   VISIT_FROM(message)
   VISIT_TO(message)
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class UntaggedLanguageError : public UntaggedError {
@@ -2867,6 +2872,7 @@ class UntaggedUnwindError : public UntaggedError {
   VISIT_FROM(message)
   VISIT_TO(message)
   bool is_user_initiated_;
+  CompressedObjectPtr* to_snapshot(Snapshot::Kind kind) { return to(); }
 };
 
 class UntaggedInstance : public UntaggedObject {

@@ -47,12 +47,12 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
 
   @override
   void visitBreakStatement(BreakStatement node) {
-    _labelTracker?.recordUsage(node.label?.name);
+    _labelTracker?.recordUsage(node.label?.name.lexeme);
   }
 
   @override
   void visitContinueStatement(ContinueStatement node) {
-    _labelTracker?.recordUsage(node.label?.name);
+    _labelTracker?.recordUsage(node.label?.name.lexeme);
   }
 
   @override
@@ -175,7 +175,7 @@ class DeadCodeVerifier extends RecursiveAstVisitor<void> {
     } finally {
       for (Label label in labelTracker.unusedLabels()) {
         _diagnosticReporter.report(
-          diag.unusedLabel.withArguments(name: label.label.name).at(label),
+          diag.unusedLabel.withArguments(name: label.name.lexeme).at(label),
         );
       }
       _labelTracker = labelTracker.outerTracker;
@@ -598,7 +598,7 @@ class _LabelTracker {
   _LabelTracker(this.outerTracker, this.labels) {
     used = List.filled(labels.length, false);
     for (int i = 0; i < labels.length; i++) {
-      labelMap[labels[i].label.name] = i;
+      labelMap[labels[i].name.lexeme] = i;
     }
   }
 

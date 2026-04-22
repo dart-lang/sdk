@@ -334,7 +334,7 @@ abstract class Target {
   /// Perform target-specific transformations on the outlines stored in
   /// [Component] when generating summaries.
   ///
-  /// This is used to transforming the libraries, but not for instance
+  /// This is used to transform the libraries, but not for instance
   /// filtering the output libraries or adding metadata. Do this in
   /// [performOutlineComponentOperations] instead.
   /// This transformation is not applied when compiling full kernel programs to
@@ -620,6 +620,17 @@ abstract class Target {
   /// invalidation was only within the body of the mixin member.
   bool get incrementalCompilerIncludeMixinApplicationInvalidatedLibraries =>
       false;
+
+  /// If this target is - or can be made - to be compatible with [other].
+  ///
+  /// Used for the modular incremental compilation pipeline.
+  bool isModularlyCompatibleWith(Target other) => true;
+
+  /// Update this target to be compatible with [other]. Assumes
+  /// [isModularlyCompatibleWith] returns true.
+  ///
+  /// Used for the modular incremental compilation pipeline.
+  void updateModularCompatibilityAs(Target other) {}
 }
 
 class NoneConstantsBackend extends ConstantsBackend {

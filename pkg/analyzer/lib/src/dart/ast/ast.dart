@@ -1015,25 +1015,46 @@ final class AnonymousMethodInvocationImpl extends ExpressionImpl
   }
 }
 
+/// A node that can occur in an [ArgumentList].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class Argument implements AstNode {
+  /// The expression that computes the value for this argument.
+  Expression get argumentExpression;
+
+  /// The parameter element representing the parameter to which the value of
+  /// this argument is bound.
+  FormalParameterElement? get correspondingParameter;
+}
+
+base mixin ArgumentImpl on AstNodeImpl implements Argument {
+  @override
+  ExpressionImpl get argumentExpression;
+
+  @override
+  InternalFormalParameterElement? get correspondingParameter {
+    var parent = this.parent;
+    if (parent is ArgumentListImpl) {
+      return parent._getStaticParameterElementFor(this);
+    }
+    return null;
+  }
+}
+
 /// A list of arguments in the invocation of an executable element (that is, a
 /// function, method, or constructor).
 ///
 ///    argumentList ::=
-///        '(' arguments? ')'
-///
-///    arguments ::=
-///        [NamedExpression] (',' [NamedExpression])*
-///      | [Expression] (',' [Expression])* (',' [NamedExpression])*
+///        '(' [Argument]? (',' [Argument])* ')'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class ArgumentList implements AstNode {
-  /// The expressions producing the values of the arguments.
+  /// The arguments in this list.
   ///
   /// If there are no arguments the list will be empty.
   ///
   /// Although the language requires that positional arguments appear before
   /// named arguments unless the [Feature.named_arguments_anywhere] is enabled,
   /// this class allows them to be intermixed.
-  NodeList<Expression> get arguments;
+  NodeList<Argument> get arguments;
 
   /// The left parenthesis.
   Token get leftParenthesis;
@@ -1056,7 +1077,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
 
   @generated
   @override
-  final NodeListImpl<ExpressionImpl> arguments = NodeListImpl._();
+  final NodeListImpl<ArgumentImpl> arguments = NodeListImpl._();
 
   @generated
   @override
@@ -1075,7 +1096,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @generated
   ArgumentListImpl({
     required this.leftParenthesis,
-    required List<ExpressionImpl> arguments,
+    required List<ArgumentImpl> arguments,
     required this.rightParenthesis,
   }) {
     this.arguments._initialize(this, arguments);
@@ -1139,7 +1160,7 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(NodeListImpl<ExpressionImpl>)? visitArguments,
+    void Function(NodeListImpl<ArgumentImpl>)? visitArguments,
   }) {
     if (visitArguments != null) {
       visitArguments(arguments);
@@ -1159,15 +1180,15 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
   }
 
   /// Returns the parameter element representing the parameter to which the
-  /// value of the given expression is bound, or `null` if any of the following
+  /// value of the given argument is bound, or `null` if any of the following
   /// are not true
-  /// - the given [expression] is a child of this list
+  /// - the given [argument] is a child of this list
   /// - the AST structure is resolved
   /// - the function being invoked is known based on static type information
-  /// - the expression corresponds to one of the parameters of the function
+  /// - the argument corresponds to one of the parameters of the function
   ///   being invoked
   InternalFormalParameterElement? _getStaticParameterElementFor(
-    Expression expression,
+    Argument argument,
   ) {
     if (_correspondingStaticParameters == null ||
         _correspondingStaticParameters!.length != arguments.length) {
@@ -1176,9 +1197,9 @@ final class ArgumentListImpl extends AstNodeImpl implements ArgumentList {
       // modified after the parameters were set.
       return null;
     }
-    int index = arguments.indexOf(expression);
+    int index = arguments.indexOf(argument);
     if (index < 0) {
-      // The expression isn't a child of this node.
+      // The argument isn't a child of this node.
       return null;
     }
     return _correspondingStaticParameters![index];
@@ -3073,7 +3094,7 @@ abstract final class BreakStatement implements Statement {
   Token get breakKeyword;
 
   /// The label associated with the statement, or `null` if there's no label.
-  SimpleIdentifier? get label;
+  LabelReference? get label;
 
   /// The semicolon terminating the statement.
   Token get semicolon;
@@ -3105,7 +3126,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   final Token breakKeyword;
 
   @generated
-  SimpleIdentifierImpl? _label;
+  LabelReferenceImpl? _label;
 
   @generated
   @override
@@ -3117,7 +3138,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   @generated
   BreakStatementImpl({
     required this.breakKeyword,
-    required SimpleIdentifierImpl? label,
+    required LabelReferenceImpl? label,
     required this.semicolon,
   }) : _label = label {
     _becomeParentOf(label);
@@ -3137,10 +3158,10 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
 
   @generated
   @override
-  SimpleIdentifierImpl? get label => _label;
+  LabelReferenceImpl? get label => _label;
 
   @generated
-  set label(SimpleIdentifierImpl? label) {
+  set label(LabelReferenceImpl? label) {
     _label = _becomeParentOf(label);
   }
 
@@ -3176,7 +3197,7 @@ final class BreakStatementImpl extends StatementImpl implements BreakStatement {
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(SimpleIdentifierImpl)? visitLabel,
+    void Function(LabelReferenceImpl)? visitLabel,
   }) {
     if (label case var label?) {
       if (visitLabel != null) {
@@ -4816,8 +4837,7 @@ final class ClassTypeAliasImpl extends TypeAliasImpl implements ClassTypeAlias {
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 sealed class CollectionElement implements AstNode {}
 
-sealed class CollectionElementImpl extends AstNodeImpl
-    implements CollectionElement {
+base mixin CollectionElementImpl on AstNodeImpl implements CollectionElement {
   /// Dispatches this collection element to the [resolver], with the given
   /// [context] information.
   void resolveElement(
@@ -6947,7 +6967,7 @@ abstract final class ContinueStatement implements Statement {
   Token get continueKeyword;
 
   /// The label associated with the statement, or `null` if there's no label.
-  SimpleIdentifier? get label;
+  LabelReference? get label;
 
   /// The semicolon terminating the statement.
   Token get semicolon;
@@ -6978,7 +6998,7 @@ final class ContinueStatementImpl extends StatementImpl
   final Token continueKeyword;
 
   @generated
-  SimpleIdentifierImpl? _label;
+  LabelReferenceImpl? _label;
 
   @generated
   @override
@@ -6990,7 +7010,7 @@ final class ContinueStatementImpl extends StatementImpl
   @generated
   ContinueStatementImpl({
     required this.continueKeyword,
-    required SimpleIdentifierImpl? label,
+    required LabelReferenceImpl? label,
     required this.semicolon,
   }) : _label = label {
     _becomeParentOf(label);
@@ -7010,10 +7030,10 @@ final class ContinueStatementImpl extends StatementImpl
 
   @generated
   @override
-  SimpleIdentifierImpl? get label => _label;
+  LabelReferenceImpl? get label => _label;
 
   @generated
-  set label(SimpleIdentifierImpl? label) {
+  set label(LabelReferenceImpl? label) {
     _label = _becomeParentOf(label);
   }
 
@@ -7049,7 +7069,7 @@ final class ContinueStatementImpl extends StatementImpl
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(SimpleIdentifierImpl)? visitLabel,
+    void Function(LabelReferenceImpl)? visitLabel,
   }) {
     if (label case var label?) {
       if (visitLabel != null) {
@@ -7210,7 +7230,7 @@ abstract final class DeclaredIdentifier implements Declaration {
   /// even though they are implicitly final.
   bool get isFinal;
 
-  /// The token representing either the `final`, `const` or `var` keyword, or
+  /// The token representing either the `const`, `final` or `var` keyword, or
   /// `null` if no keyword was used.
   Token? get keyword;
 
@@ -7521,193 +7541,6 @@ final class DeclaredVariablePatternImpl extends VariablePatternImpl
     if (type case var type?) {
       if (type._containsOffset(rangeOffset, rangeEnd)) {
         return type;
-      }
-    }
-    return null;
-  }
-}
-
-/// A formal parameter with a default value.
-///
-/// There are two kinds of parameters that are both represented by this class:
-/// named formal parameters and positional formal parameters.
-///
-///    defaultFormalParameter ::=
-///        [NormalFormalParameter] ('=' [Expression])?
-///
-///    defaultNamedParameter ::=
-///        [NormalFormalParameter] (':' [Expression])?
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class DefaultFormalParameter implements FormalParameter {
-  /// The expression computing the default value for the parameter, or `null` if
-  /// there's no default value.
-  Expression? get defaultValue;
-
-  /// The formal parameter with which the default value is associated.
-  NormalFormalParameter get parameter;
-
-  /// The token separating the parameter from the default value, or `null` if
-  /// there's no default value.
-  Token? get separator;
-}
-
-@GenerateNodeImpl(
-  childEntitiesOrder: [
-    GenerateNodeProperty('parameter'),
-    GenerateNodeProperty('separator'),
-    GenerateNodeProperty('defaultValue', isInValueExpressionSlot: true),
-    GenerateNodeProperty('kind', type: ParameterKind),
-  ],
-)
-final class DefaultFormalParameterImpl extends FormalParameterImpl
-    implements DefaultFormalParameter {
-  @generated
-  NormalFormalParameterImpl _parameter;
-
-  @generated
-  @override
-  final Token? separator;
-
-  @generated
-  ExpressionImpl? _defaultValue;
-
-  @generated
-  @override
-  final ParameterKind kind;
-
-  @generated
-  DefaultFormalParameterImpl({
-    required NormalFormalParameterImpl parameter,
-    required this.separator,
-    required ExpressionImpl? defaultValue,
-    required this.kind,
-  }) : _parameter = parameter,
-       _defaultValue = defaultValue {
-    _becomeParentOf(parameter);
-    _becomeParentOf(defaultValue);
-  }
-
-  @generated
-  @override
-  Token get beginToken {
-    return parameter.beginToken;
-  }
-
-  @override
-  Token? get covariantKeyword => null;
-
-  @override
-  FormalParameterFragmentImpl? get declaredFragment =>
-      _parameter.declaredFragment;
-
-  @generated
-  @override
-  ExpressionImpl? get defaultValue => _defaultValue;
-
-  @generated
-  set defaultValue(ExpressionImpl? defaultValue) {
-    _defaultValue = _becomeParentOf(defaultValue);
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    if (defaultValue case var defaultValue?) {
-      return defaultValue.endToken;
-    }
-    if (separator case var separator?) {
-      return separator;
-    }
-    return parameter.endToken;
-  }
-
-  @override
-  bool get isConst => _parameter.isConst;
-
-  @override
-  bool get isExplicitlyTyped => _parameter.isExplicitlyTyped;
-
-  @override
-  bool get isFinal => _parameter.isFinal;
-
-  @override
-  NodeListImpl<AnnotationImpl> get metadata => _parameter.metadata;
-
-  @override
-  Token? get name => _parameter.name;
-
-  @generated
-  @override
-  NormalFormalParameterImpl get parameter => _parameter;
-
-  @generated
-  set parameter(NormalFormalParameterImpl parameter) {
-    _parameter = _becomeParentOf(parameter);
-  }
-
-  @override
-  Token? get requiredKeyword => null;
-
-  @generated
-  @override
-  ChildEntities get _childEntities => ChildEntities()
-    ..addNode('parameter', parameter)
-    ..addToken('separator', separator)
-    ..addNode('defaultValue', defaultValue);
-
-  @generated
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitDefaultFormalParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return identical(defaultValue, child);
-  }
-
-  @generated
-  @override
-  void visitChildren(AstVisitor visitor) {
-    parameter.accept(visitor);
-    defaultValue?.accept(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(NormalFormalParameterImpl)? visitParameter,
-    void Function(ExpressionImpl)? visitDefaultValue,
-  }) {
-    if (visitParameter != null) {
-      visitParameter(parameter);
-    } else {
-      parameter.accept(visitor);
-    }
-    if (defaultValue case var defaultValue?) {
-      if (visitDefaultValue != null) {
-        visitDefaultValue(defaultValue);
-      } else {
-        defaultValue.accept(visitor);
-      }
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (parameter._containsOffset(rangeOffset, rangeEnd)) {
-      return parameter;
-    }
-    if (defaultValue case var defaultValue?) {
-      if (defaultValue._containsOffset(rangeOffset, rangeEnd)) {
-        return defaultValue;
       }
     }
     return null;
@@ -9551,13 +9384,15 @@ final class ExportDirectiveImpl extends NamespaceDirectiveImpl
 ///      | [ConditionalExpression] cascadeSection*
 ///      | [ThrowExpression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class Expression implements CollectionElement {
+abstract final class Expression
+    implements Argument, CollectionElement, RecordLiteralField {
   /// Whether it would be valid for this expression to have a `const` keyword.
   ///
   /// Note that this method can cause constant evaluation to occur, which can be
   /// computationally expensive.
   bool get canBeConst;
 
+  @override
   /// The parameter element representing the parameter to which the value of
   /// this expression is bound.
   ///
@@ -9792,9 +9627,13 @@ final class ExpressionFunctionBodyImpl extends FunctionBodyImpl
   }
 }
 
-sealed class ExpressionImpl extends CollectionElementImpl
+sealed class ExpressionImpl extends AstNodeImpl
+    with ArgumentImpl, CollectionElementImpl, RecordLiteralFieldImpl
     implements Expression {
   TypeImpl? _staticType;
+
+  @override
+  ExpressionImpl get argumentExpression => this;
 
   @override
   bool get canBeConst => false;
@@ -9832,6 +9671,9 @@ sealed class ExpressionImpl extends CollectionElementImpl
     }
     return null;
   }
+
+  @override
+  ExpressionImpl get fieldExpression => this;
 
   @override
   bool get inConstantContext {
@@ -9949,6 +9791,8 @@ sealed class ExpressionImpl extends CollectionElementImpl
         case IfElement():
         case InterpolationExpression():
         case MapLiteralEntry():
+        case NamedArgument():
+        case RecordLiteralNamedField():
         case NullAwareElement():
         case SpreadElement():
         case VariableDeclaration():
@@ -10936,7 +10780,7 @@ final class ExtensionTypeDeclarationImpl extends CompilationUnitMemberImpl
 
   /// Usually, the only formal parameter of the primary constructor.
   /// But could be `null` in invalid code.
-  SimpleFormalParameterImpl? get representationFormalParameter {
+  RegularFormalParameterImpl? get representationFormalParameter {
     var formalParameters = primaryConstructor.formalParameters;
     return formalParameters.parameters.firstOrNull.tryCast();
   }
@@ -11227,75 +11071,44 @@ final class FieldDeclarationImpl extends ClassMemberImpl
 ///
 ///    fieldFormalParameter ::=
 ///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' |
-///        [TypeAnnotation])?
-///        'this' '.' name ([TypeParameterList]? [FormalParameterList])?
+///        [TypeAnnotation])? 'this' '.' name
+///        [FunctionTypedFormalParameterSuffix]? [FormalParameterDefaultClause]?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class FieldFormalParameter implements NormalFormalParameter {
+abstract final class FieldFormalParameter implements FormalParameter {
   @override
   FieldFormalParameterFragment? get declaredFragment;
-
-  /// The token representing either the `final`, `const` or `var` keyword, or
-  /// `null` if no keyword was used.
-  Token? get keyword;
 
   @override
   Token get name;
 
-  /// The parameters of the function-typed parameter, or `null` if this isn't a
-  /// function-typed field formal parameter.
-  FormalParameterList? get parameters;
-
   /// The token representing the period.
   Token get period;
 
-  /// The question mark indicating that the function type is nullable, or `null`
-  /// if there's no question mark, which will always be the case when the
-  /// parameter doesn't use the older style for denoting a function typed
-  /// parameter.
-  ///
-  /// If the parameter is function-typed, and has the question mark, then its
-  /// function type is nullable. Having a nullable function type means that the
-  /// parameter can be `null`.
-  Token? get question;
-
   /// The token representing the `this` keyword.
   Token get thisKeyword;
-
-  /// The declared type of the parameter, or `null` if the parameter doesn't
-  /// have a declared type.
-  ///
-  /// If this is a function-typed field formal parameter this is the return type
-  /// of the function.
-  TypeAnnotation? get type;
-
-  /// The type parameters associated with this method, or `null` if this method
-  /// isn't a generic method.
-  TypeParameterList? get typeParameters;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
+    GenerateNodeProperty(
+      'kind',
+      isSuper: true,
+      withOverride: false,
+      type: _TypeLiteral<ParameterKind>,
+    ),
     GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
-    GenerateNodeProperty('keyword'),
-    GenerateNodeProperty('type'),
+    GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
+    GenerateNodeProperty('type', isSuper: true),
     GenerateNodeProperty('thisKeyword'),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('name', isSuper: true, superNullAssertOverride: true),
-    GenerateNodeProperty('typeParameters'),
-    GenerateNodeProperty('parameters'),
-    GenerateNodeProperty('question'),
+    GenerateNodeProperty('functionTypedSuffix', isSuper: true),
+    GenerateNodeProperty('defaultClause', isSuper: true),
   ],
 )
-final class FieldFormalParameterImpl extends NormalFormalParameterImpl
+final class FieldFormalParameterImpl extends FormalParameterImpl
     implements FieldFormalParameter {
-  @generated
-  @override
-  final Token? keyword;
-
-  @generated
-  TypeAnnotationImpl? _type;
-
   @generated
   @override
   final Token thisKeyword;
@@ -11305,53 +11118,33 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
   final Token period;
 
   @generated
-  TypeParameterListImpl? _typeParameters;
-
-  @generated
-  FormalParameterListImpl? _parameters;
-
-  @generated
-  @override
-  final Token? question;
-
-  @generated
   FieldFormalParameterImpl({
     required super.comment,
     required super.metadata,
+    required super.kind,
     required super.covariantKeyword,
     required super.requiredKeyword,
-    required this.keyword,
-    required TypeAnnotationImpl? type,
+    required super.constFinalOrVarKeyword,
+    required super.type,
     required this.thisKeyword,
     required this.period,
     required super.name,
-    required TypeParameterListImpl? typeParameters,
-    required FormalParameterListImpl? parameters,
-    required this.question,
-  }) : _type = type,
-       _typeParameters = typeParameters,
-       _parameters = parameters {
-    _becomeParentOf(type);
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(parameters);
-  }
+    required super.functionTypedSuffix,
+    required super.defaultClause,
+  });
 
   @override
-  FieldFormalParameterFragmentImpl? get declaredFragment {
-    return super.declaredFragment as FieldFormalParameterFragmentImpl?;
-  }
+  FieldFormalParameterFragmentImpl? get declaredFragment =>
+      super.declaredFragment as FieldFormalParameterFragmentImpl?;
 
   @generated
   @override
   Token get endToken {
-    if (question case var question?) {
-      return question;
+    if (defaultClause case var defaultClause?) {
+      return defaultClause.endToken;
     }
-    if (parameters case var parameters?) {
-      return parameters.endToken;
-    }
-    if (typeParameters case var typeParameters?) {
-      return typeParameters.endToken;
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      return functionTypedSuffix.endToken;
     }
     return name;
   }
@@ -11365,8 +11158,8 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
     }
-    if (keyword case var keyword?) {
-      return keyword;
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
     }
     if (type case var type?) {
       return type.beginToken;
@@ -11374,59 +11167,22 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     return thisKeyword;
   }
 
-  @override
-  bool get isConst => keyword?.keyword == Keyword.CONST;
-
-  @override
-  bool get isExplicitlyTyped => _parameters != null || _type != null;
-
-  @override
-  bool get isFinal => keyword?.keyword == Keyword.FINAL;
-
   @generated
   @override
   Token get name => super.name!;
 
   @generated
   @override
-  FormalParameterListImpl? get parameters => _parameters;
-
-  @generated
-  set parameters(FormalParameterListImpl? parameters) {
-    _parameters = _becomeParentOf(parameters);
-  }
-
-  @generated
-  @override
-  TypeAnnotationImpl? get type => _type;
-
-  @generated
-  set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf(type);
-  }
-
-  @generated
-  @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
-
-  @generated
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
-  }
-
-  @generated
-  @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
-    ..addToken('keyword', keyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
     ..addNode('type', type)
     ..addToken('thisKeyword', thisKeyword)
     ..addToken('period', period)
     ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addToken('question', question);
+    ..addNode('functionTypedSuffix', functionTypedSuffix)
+    ..addNode('defaultClause', defaultClause);
 
   @generated
   @override
@@ -11440,13 +11196,10 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
     return false;
   }
 
-  @generated
   @override
+  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    type?.accept(visitor);
-    typeParameters?.accept(visitor);
-    parameters?.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -11454,14 +11207,15 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
   void visitChildrenWithHooks(
     AstVisitor visitor, {
     void Function(TypeAnnotationImpl)? visitType,
-    void Function(TypeParameterListImpl)? visitTypeParameters,
-    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(FunctionTypedFormalParameterSuffixImpl)?
+    visitFunctionTypedSuffix,
+    void Function(FormalParameterDefaultClauseImpl)? visitDefaultClause,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
@@ -11469,18 +11223,18 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
         type.accept(visitor);
       }
     }
-    if (typeParameters case var typeParameters?) {
-      if (visitTypeParameters != null) {
-        visitTypeParameters(typeParameters);
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (visitFunctionTypedSuffix != null) {
+        visitFunctionTypedSuffix(functionTypedSuffix);
       } else {
-        typeParameters.accept(visitor);
+        functionTypedSuffix.accept(visitor);
       }
     }
-    if (parameters case var parameters?) {
-      if (visitParameters != null) {
-        visitParameters(parameters);
+    if (defaultClause case var defaultClause?) {
+      if (visitDefaultClause != null) {
+        visitDefaultClause(defaultClause);
       } else {
-        parameters.accept(visitor);
+        defaultClause.accept(visitor);
       }
     }
   }
@@ -11496,14 +11250,14 @@ final class FieldFormalParameterImpl extends NormalFormalParameterImpl
         return type;
       }
     }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (functionTypedSuffix._containsOffset(rangeOffset, rangeEnd)) {
+        return functionTypedSuffix;
       }
     }
-    if (parameters case var parameters?) {
-      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
-        return parameters;
+    if (defaultClause case var defaultClause?) {
+      if (defaultClause._containsOffset(rangeOffset, rangeEnd)) {
+        return defaultClause;
       }
     }
     return null;
@@ -11982,8 +11736,8 @@ abstract final class ForElement
     GenerateNodeProperty('body', isInValueExpressionSlot: true),
   ],
 )
-final class ForElementImpl extends CollectionElementImpl
-    with AstNodeWithNameScopeMixin
+final class ForElementImpl extends AstNodeImpl
+    with CollectionElementImpl, AstNodeWithNameScopeMixin
     implements
         ForLoopImpl<CollectionElement, CollectionElementImpl>,
         ForElement {
@@ -12182,10 +11936,18 @@ sealed class ForLoopPartsImpl extends AstNodeImpl implements ForLoopParts {
 /// A node representing a parameter to a function.
 ///
 ///    formalParameter ::=
-///        [NormalFormalParameter]
-///      | [DefaultFormalParameter]
+///        [RegularFormalParameter]
+///      | [FieldFormalParameter]
+///      | [SuperFormalParameter]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class FormalParameter implements AstNode {
+sealed class FormalParameter implements AnnotatedNode {
+  /// The token representing either the `const`, `final` or `var` keyword, or
+  /// `null` if no keyword was used.
+  Token? get constFinalOrVarKeyword;
+
+  /// If [constFinalOrVarKeyword] is `const`, returns it.
+  Token? get constKeyword;
+
   /// The `covariant` keyword, or `null` if the keyword isn't used.
   Token? get covariantKeyword;
 
@@ -12193,6 +11955,17 @@ sealed class FormalParameter implements AstNode {
   ///
   /// Returns `null` if this parameter hasn't been resolved.
   FormalParameterFragment? get declaredFragment;
+
+  /// The default clause associated with this parameter, or `null` if this
+  /// parameter doesn't have a default value.
+  FormalParameterDefaultClause? get defaultClause;
+
+  /// If [constFinalOrVarKeyword] is `final`, returns it.
+  Token? get finalKeyword;
+
+  /// The function-typed suffix associated with this parameter, or `null` if
+  /// this parameter is not function-typed.
+  FunctionTypedFormalParameterSuffix? get functionTypedSuffix;
 
   /// Whether this parameter was declared with the 'const' modifier.
   bool get isConst;
@@ -12245,21 +12018,157 @@ sealed class FormalParameter implements AstNode {
   /// Whether this parameter is both a required and positional parameter.
   bool get isRequiredPositional;
 
-  /// The annotations associated with this parameter.
-  NodeList<Annotation> get metadata;
-
   /// The name of the parameter being declared, or `null` if the parameter
   /// doesn't have a name, such as when it's part of a generic function type.
   Token? get name;
 
   /// The `required` keyword, or `null` if the keyword isn't used.
   Token? get requiredKeyword;
+
+  /// The declared type of the parameter, or `null` if the parameter doesn't
+  /// have a declared type.
+  ///
+  /// If this parameter is function-typed, this is the return type of the
+  /// function.
+  TypeAnnotation? get type;
+
+  /// If [constFinalOrVarKeyword] is `var`, returns it.
+  Token? get varKeyword;
+}
+
+/// A default value clause for a formal parameter.
+///
+///    formalParameterDefaultClause ::=
+///        ('=' | ':') [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class FormalParameterDefaultClause implements AstNode {
+  /// The token separating the parameter from its default value.
+  Token get separator;
+
+  /// The default value expression.
+  Expression get value;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('separator'),
+    GenerateNodeProperty('value', isInValueExpressionSlot: true),
+  ],
+)
+final class FormalParameterDefaultClauseImpl extends AstNodeImpl
+    implements FormalParameterDefaultClause {
+  @generated
+  @override
+  final Token separator;
+
+  @generated
+  ExpressionImpl _value;
+
+  @generated
+  FormalParameterDefaultClauseImpl({
+    required this.separator,
+    required ExpressionImpl value,
+  }) : _value = value {
+    _becomeParentOf(value);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return separator;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return value.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get value => _value;
+
+  @generated
+  set value(ExpressionImpl value) {
+    _value = _becomeParentOf(value);
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('separator', separator)
+    ..addNode('value', value);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitFormalParameterDefaultClause(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    value.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitValue,
+  }) {
+    if (visitValue != null) {
+      visitValue(value);
+    } else {
+      value.accept(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (value._containsOffset(rangeOffset, rangeEnd)) {
+      return value;
+    }
+    return null;
+  }
 }
 
 sealed class FormalParameterImpl extends AstNodeImpl
+    with _AnnotatedNodeMixin
     implements FormalParameter {
   @override
   FormalParameterFragmentImpl? declaredFragment;
+
+  @override
+  final Token? covariantKeyword;
+
+  @override
+  final Token? requiredKeyword;
+
+  @override
+  final Token? constFinalOrVarKeyword;
+
+  TypeAnnotationImpl? _type;
+
+  @override
+  final Token? name;
+
+  FunctionTypedFormalParameterSuffixImpl? _functionTyped;
+
+  FormalParameterDefaultClauseImpl? _defaultClause;
+
+  final ParameterKind kind;
 
   /// The name scope, used for the type, and the default value.
   ///
@@ -12268,6 +12177,75 @@ sealed class FormalParameterImpl extends AstNodeImpl
   /// of the primary constructor for an extension type, when
   /// [Feature.primary_constructors] is not enabled.
   Scope? scope;
+
+  FormalParameterImpl({
+    required CommentImpl? comment,
+    required List<AnnotationImpl>? metadata,
+    required this.kind,
+    required this.covariantKeyword,
+    required this.requiredKeyword,
+    required this.constFinalOrVarKeyword,
+    required TypeAnnotationImpl? type,
+    required this.name,
+    required FunctionTypedFormalParameterSuffixImpl? functionTypedSuffix,
+    required FormalParameterDefaultClauseImpl? defaultClause,
+  }) : _type = type,
+       _functionTyped = functionTypedSuffix,
+       _defaultClause = defaultClause {
+    _initializeCommentAndAnnotations(comment, metadata);
+    _becomeParentOf(type);
+    _becomeParentOf(functionTypedSuffix);
+    _becomeParentOf(defaultClause);
+  }
+
+  @override
+  Token? get constKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.CONST) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @override
+  FormalParameterDefaultClauseImpl? get defaultClause => _defaultClause;
+
+  set defaultClause(FormalParameterDefaultClauseImpl? defaultClause) {
+    _defaultClause = _becomeParentOf(defaultClause);
+  }
+
+  @override
+  Token get endToken {
+    if (defaultClause case var defaultClause?) {
+      return defaultClause.endToken;
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      return functionTypedSuffix.endToken;
+    }
+    if (name case var name?) {
+      return name;
+    }
+    if (type case var type?) {
+      return type.endToken;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (requiredKeyword case var requiredKeyword?) {
+      return requiredKeyword;
+    }
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
+    }
+    throw StateError('Expected at least one non-null');
+  }
+
+  @override
+  Token? get finalKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.FINAL) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
 
   Token? get finalOrVarKeyword {
     Token? finalOrVarKeyword(Token? token) {
@@ -12280,17 +12258,27 @@ sealed class FormalParameterImpl extends AstNodeImpl
       return null;
     }
 
-    switch (this) {
-      case DefaultFormalParameterImpl self:
-        return self.parameter.finalOrVarKeyword;
-      case FunctionTypedFormalParameterImpl self:
-        return finalOrVarKeyword(self.keyword);
-      case SimpleFormalParameterImpl self:
-        return finalOrVarKeyword(self.keyword);
-      default:
-        return null;
-    }
+    return finalOrVarKeyword(constFinalOrVarKeyword);
   }
+
+  @override
+  FunctionTypedFormalParameterSuffixImpl? get functionTypedSuffix =>
+      _functionTyped;
+
+  set functionTypedSuffix(
+    FunctionTypedFormalParameterSuffixImpl? functionTypedSuffix,
+  ) {
+    _functionTyped = _becomeParentOf(functionTypedSuffix);
+  }
+
+  @override
+  bool get isConst => constFinalOrVarKeyword?.keyword == Keyword.CONST;
+
+  @override
+  bool get isExplicitlyTyped => _type != null || _functionTyped != null;
+
+  @override
+  bool get isFinal => constFinalOrVarKeyword?.keyword == Keyword.FINAL;
 
   @override
   bool get isNamed => kind.isNamed;
@@ -12316,11 +12304,58 @@ sealed class FormalParameterImpl extends AstNodeImpl
   @override
   bool get isRequiredPositional => kind.isRequiredPositional;
 
-  /// The kind of this parameter.
-  ParameterKind get kind;
+  @override
+  TypeAnnotationImpl? get type => _type;
+
+  set type(TypeAnnotationImpl? type) {
+    _type = _becomeParentOf(type);
+  }
 
   @override
-  NodeList<AnnotationImpl> get metadata;
+  Token? get varKeyword {
+    if (constFinalOrVarKeyword?.keyword == Keyword.VAR) {
+      return constFinalOrVarKeyword;
+    }
+    return null;
+  }
+
+  @override
+  @mustCallSuper
+  void visitChildren(AstVisitor visitor) {
+    _visitCommentAndAnnotations(visitor);
+    type?.accept(visitor);
+    functionTypedSuffix?.accept(visitor);
+    defaultClause?.accept(visitor);
+  }
+
+  @override
+  @mustCallSuper
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
+        false) {
+      return _documentationComment;
+    }
+    if (_metadata._elementContainingRange(rangeOffset, rangeEnd)
+        case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (functionTypedSuffix._containsOffset(rangeOffset, rangeEnd)) {
+        return functionTypedSuffix;
+      }
+    }
+    if (defaultClause case var defaultClause?) {
+      if (defaultClause._containsOffset(rangeOffset, rangeEnd)) {
+        return defaultClause;
+      }
+    }
+    return null;
+  }
 }
 
 /// The formal parameter list of a method declaration, function declaration, or
@@ -12338,17 +12373,17 @@ sealed class FormalParameterImpl extends AstNodeImpl
 ///      | '(' optionalFormalParameters ')'
 ///
 ///    normalFormalParameters ::=
-///        [NormalFormalParameter] (',' [NormalFormalParameter])*
+///        [FormalParameter] (',' [FormalParameter])*
 ///
 ///    optionalFormalParameters ::=
 ///        optionalPositionalFormalParameters
 ///      | namedFormalParameters
 ///
 ///    optionalPositionalFormalParameters ::=
-///        '[' [DefaultFormalParameter] (',' [DefaultFormalParameter])* ']'
+///        '[' [FormalParameter] (',' [FormalParameter])* ']'
 ///
 ///    namedFormalParameters ::=
-///        '{' [DefaultFormalParameter] (',' [DefaultFormalParameter])* '}'
+///        '{' [FormalParameter] (',' [FormalParameter])* '}'
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
 abstract final class FormalParameterList implements AstNode {
   /// The left square bracket ('[') or left curly brace ('{') introducing the
@@ -14310,88 +14345,61 @@ final class FunctionTypeAliasImpl extends TypeAliasImpl
   }
 }
 
-/// A function-typed formal parameter.
+/// The function-typed suffix of a formal parameter.
 ///
-///    functionSignature ::=
-///        [TypeAnnotation]? name [TypeParameterList]?
-///        [FormalParameterList] '?'?
+///    functionTypedFormalParameterSuffix ::=
+///        [TypeParameterList]? [FormalParameterList] '?'?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class FunctionTypedFormalParameter
-    implements NormalFormalParameter {
-  /// The token representing either the `final` or `var` keyword, or
-  /// `null` if no keyword was used.
-  Token? get keyword;
-
-  @override
-  Token get name;
-
-  /// The parameters of the function-typed parameter.
-  FormalParameterList get parameters;
+abstract final class FunctionTypedFormalParameterSuffix implements AstNode {
+  /// The formal parameters of the function-typed parameter.
+  FormalParameterList get formalParameters;
 
   /// The question mark indicating that the function type is nullable, or `null`
   /// if there's no question mark.
-  ///
-  /// Having a nullable function type means that the parameter can be null.
   Token? get question;
 
-  /// The return type of the function, or `null` if the function doesn't have a
-  /// return type.
-  TypeAnnotation? get returnType;
-
-  /// The type parameters associated with this function, or `null` if this
-  /// function isn't a generic function.
+  /// The type parameters associated with this suffix, or `null` if the
+  /// function isn't generic.
   TypeParameterList? get typeParameters;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('covariantKeyword', isSuper: true),
-    GenerateNodeProperty('requiredKeyword', isSuper: true),
-    GenerateNodeProperty('keyword'),
-    GenerateNodeProperty('returnType'),
-    GenerateNodeProperty('name', isSuper: true, superNullAssertOverride: true),
     GenerateNodeProperty('typeParameters'),
-    GenerateNodeProperty('parameters'),
+    GenerateNodeProperty('formalParameters'),
     GenerateNodeProperty('question'),
   ],
 )
-final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
-    implements FunctionTypedFormalParameter {
-  @generated
-  @override
-  final Token? keyword;
-
-  @generated
-  TypeAnnotationImpl? _returnType;
-
+final class FunctionTypedFormalParameterSuffixImpl extends AstNodeImpl
+    implements FunctionTypedFormalParameterSuffix {
   @generated
   TypeParameterListImpl? _typeParameters;
 
   @generated
-  FormalParameterListImpl _parameters;
+  FormalParameterListImpl _formalParameters;
 
   @generated
   @override
   final Token? question;
 
   @generated
-  FunctionTypedFormalParameterImpl({
-    required super.comment,
-    required super.metadata,
-    required super.covariantKeyword,
-    required super.requiredKeyword,
-    required this.keyword,
-    required TypeAnnotationImpl? returnType,
-    required super.name,
+  FunctionTypedFormalParameterSuffixImpl({
     required TypeParameterListImpl? typeParameters,
-    required FormalParameterListImpl parameters,
+    required FormalParameterListImpl formalParameters,
     required this.question,
-  }) : _returnType = returnType,
-       _typeParameters = typeParameters,
-       _parameters = parameters {
-    _becomeParentOf(returnType);
+  }) : _typeParameters = typeParameters,
+       _formalParameters = formalParameters {
     _becomeParentOf(typeParameters);
-    _becomeParentOf(parameters);
+    _becomeParentOf(formalParameters);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    if (typeParameters case var typeParameters?) {
+      return typeParameters.beginToken;
+    }
+    return formalParameters.beginToken;
   }
 
   @generated
@@ -14400,64 +14408,16 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     if (question case var question?) {
       return question;
     }
-    return parameters.endToken;
-  }
-
-  /// If [keyword] is `final`, returns it.
-  Token? get finalKeyword {
-    if (keyword?.keyword == Keyword.FINAL) {
-      return keyword;
-    }
-    return null;
+    return formalParameters.endToken;
   }
 
   @generated
   @override
-  Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
-    if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    }
-    if (keyword case var keyword?) {
-      return keyword;
-    }
-    if (returnType case var returnType?) {
-      return returnType.beginToken;
-    }
-    return name;
-  }
-
-  @override
-  bool get isConst => false;
-
-  @override
-  bool get isExplicitlyTyped => true;
-
-  @override
-  bool get isFinal => keyword?.keyword == Keyword.FINAL;
+  FormalParameterListImpl get formalParameters => _formalParameters;
 
   @generated
-  @override
-  Token get name => super.name!;
-
-  @generated
-  @override
-  FormalParameterListImpl get parameters => _parameters;
-
-  @generated
-  set parameters(FormalParameterListImpl parameters) {
-    _parameters = _becomeParentOf(parameters);
-  }
-
-  @generated
-  @override
-  TypeAnnotationImpl? get returnType => _returnType;
-
-  @generated
-  set returnType(TypeAnnotationImpl? returnType) {
-    _returnType = _becomeParentOf(returnType);
+  set formalParameters(FormalParameterListImpl formalParameters) {
+    _formalParameters = _becomeParentOf(formalParameters);
   }
 
   @generated
@@ -14469,30 +14429,17 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
     _typeParameters = _becomeParentOf(typeParameters);
   }
 
-  /// If [keyword] is `var`, returns it.
-  Token? get varKeyword {
-    if (keyword?.keyword == Keyword.VAR) {
-      return keyword;
-    }
-    return null;
-  }
-
   @generated
   @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('covariantKeyword', covariantKeyword)
-    ..addToken('requiredKeyword', requiredKeyword)
-    ..addToken('keyword', keyword)
-    ..addNode('returnType', returnType)
-    ..addToken('name', name)
+  ChildEntities get _childEntities => ChildEntities()
     ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
+    ..addNode('formalParameters', formalParameters)
     ..addToken('question', question);
 
   @generated
   @override
   E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitFunctionTypedFormalParameter(this);
+      visitor.visitFunctionTypedFormalParameterSuffix(this);
 
   @generated
   @override
@@ -14504,10 +14451,8 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    returnType?.accept(visitor);
     typeParameters?.accept(visitor);
-    parameters.accept(visitor);
+    formalParameters.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -14518,18 +14463,9 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(TypeAnnotationImpl)? visitReturnType,
     void Function(TypeParameterListImpl)? visitTypeParameters,
-    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(FormalParameterListImpl)? visitFormalParameters,
   }) {
-    super.visitChildren(visitor);
-    if (returnType case var returnType?) {
-      if (visitReturnType != null) {
-        visitReturnType(returnType);
-      } else {
-        returnType.accept(visitor);
-      }
-    }
     if (typeParameters case var typeParameters?) {
       if (visitTypeParameters != null) {
         visitTypeParameters(typeParameters);
@@ -14537,31 +14473,23 @@ final class FunctionTypedFormalParameterImpl extends NormalFormalParameterImpl
         typeParameters.accept(visitor);
       }
     }
-    if (visitParameters != null) {
-      visitParameters(parameters);
+    if (visitFormalParameters != null) {
+      visitFormalParameters(formalParameters);
     } else {
-      parameters.accept(visitor);
+      formalParameters.accept(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (returnType case var returnType?) {
-      if (returnType._containsOffset(rangeOffset, rangeEnd)) {
-        return returnType;
-      }
-    }
     if (typeParameters case var typeParameters?) {
       if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
         return typeParameters;
       }
     }
-    if (parameters._containsOffset(rangeOffset, rangeEnd)) {
-      return parameters;
+    if (formalParameters._containsOffset(rangeOffset, rangeEnd)) {
+      return formalParameters;
     }
     return null;
   }
@@ -15354,7 +15282,8 @@ abstract final class IfElement implements CollectionElement {
     GenerateNodeProperty('elseElement', isInValueExpressionSlot: true),
   ],
 )
-final class IfElementImpl extends CollectionElementImpl
+final class IfElementImpl extends AstNodeImpl
+    with CollectionElementImpl
     implements IfElementOrStatementImpl<CollectionElementImpl>, IfElement {
   @generated
   @override
@@ -17628,7 +17557,7 @@ final class IsExpressionImpl extends ExpressionImpl implements IsExpression {
   }
 }
 
-/// A label on either a [LabeledStatement] or a [NamedExpression].
+/// A label on a [LabeledStatement] or a switch member.
 ///
 ///    label ::=
 ///        [SimpleIdentifier] ':'
@@ -17642,8 +17571,8 @@ abstract final class Label implements AstNode {
   /// Returns `null` if the AST structure hasn't been resolved.
   LabelFragment? get declaredFragment;
 
-  /// The label being associated with the statement.
-  SimpleIdentifier get label;
+  /// The label name.
+  Token get name;
 }
 
 /// A statement that has a label associated with them.
@@ -17773,33 +17702,30 @@ final class LabeledStatementImpl extends StatementImpl
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
-    GenerateNodeProperty('label'),
+    GenerateNodeProperty('name'),
     GenerateNodeProperty('colon'),
   ],
 )
 final class LabelImpl extends AstNodeImpl implements Label {
   @generated
-  SimpleIdentifierImpl _label;
+  @override
+  final Token name;
 
   @generated
   @override
   final Token colon;
 
+  @override
+  LabelFragmentImpl? declaredFragment;
+
   @generated
-  LabelImpl({required SimpleIdentifierImpl label, required this.colon})
-    : _label = label {
-    _becomeParentOf(label);
-  }
+  LabelImpl({required this.name, required this.colon});
 
   @generated
   @override
   Token get beginToken {
-    return label.beginToken;
+    return name;
   }
-
-  @override
-  LabelFragmentImpl? get declaredFragment =>
-      (label.element as LabelElementImpl?)?.firstFragment;
 
   @generated
   @override
@@ -17809,17 +17735,8 @@ final class LabelImpl extends AstNodeImpl implements Label {
 
   @generated
   @override
-  SimpleIdentifierImpl get label => _label;
-
-  @generated
-  set label(SimpleIdentifierImpl label) {
-    _label = _becomeParentOf(label);
-  }
-
-  @generated
-  @override
   ChildEntities get _childEntities => ChildEntities()
-    ..addNode('label', label)
+    ..addToken('name', name)
     ..addToken('colon', colon);
 
   @generated
@@ -17835,33 +17752,80 @@ final class LabelImpl extends AstNodeImpl implements Label {
 
   @generated
   @override
-  void visitChildren(AstVisitor visitor) {
-    label.accept(visitor);
-  }
+  void visitChildren(AstVisitor visitor) {}
 
   /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
   @generated
-  void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(SimpleIdentifierImpl)? visitLabel,
-  }) {
-    if (visitLabel != null) {
-      visitLabel(label);
-    } else {
-      label.accept(visitor);
-    }
-  }
+  void visitChildrenWithHooks(AstVisitor visitor) {}
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (label._containsOffset(rangeOffset, rangeEnd)) {
-      return label;
-    }
+    return null;
+  }
+}
+
+/// A reference to a label.
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class LabelReference implements AstNode {
+  /// The element to which the label resolved, or `null` if the label isn't
+  /// resolved.
+  LabelElement? get element;
+
+  /// The label name.
+  Token get name;
+}
+
+@GenerateNodeImpl(childEntitiesOrder: [GenerateNodeProperty('name')])
+final class LabelReferenceImpl extends AstNodeImpl implements LabelReference {
+  @generated
+  @override
+  final Token name;
+
+  @override
+  LabelElement? element;
+
+  @generated
+  LabelReferenceImpl({required this.name});
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return name;
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()..addToken('name', name);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitLabelReference(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {}
+
+  /// Visits the children of this node.
+  @generated
+  void visitChildrenWithHooks(AstVisitor visitor) {}
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
     return null;
   }
 }
@@ -18738,7 +18702,8 @@ abstract final class MapLiteralEntry implements CollectionElement {
     GenerateNodeProperty('value', isInValueExpressionSlot: true),
   ],
 )
-final class MapLiteralEntryImpl extends CollectionElementImpl
+final class MapLiteralEntryImpl extends AstNodeImpl
+    with CollectionElementImpl
     implements MapLiteralEntry {
   @generated
   @override
@@ -20199,117 +20164,97 @@ final class MixinOnClauseImpl extends AstNodeImpl implements MixinOnClause {
   }
 }
 
-/// An expression that has a name associated with it.
+/// An argument that has a name associated with it.
 ///
 /// They are only used in method invocations when there are named parameters.
 ///
-///    namedExpression ::=
-///        [Label] [Expression]
+///    namedArgument ::=
+///        identifier ':' [Expression]
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class NamedExpression implements Expression {
-  /// The element representing the parameter being named by this expression.
-  ///
-  /// Returns `null` if the AST structure hasn't been resolved or if there's no
-  /// parameter with the same name as this expression.
-  FormalParameterElement? get element;
+abstract final class NamedArgument implements Argument {
+  @override
+  Expression get argumentExpression;
 
-  /// The expression with which the name is associated.
-  Expression get expression;
+  /// The colon separating the name from the expression.
+  Token get colon;
 
   /// The name associated with the expression.
-  Label get name;
+  Token get name;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
     GenerateNodeProperty('name'),
-    GenerateNodeProperty('expression', isInValueExpressionSlot: true),
+    GenerateNodeProperty('colon'),
+    GenerateNodeProperty('argumentExpression', isInValueExpressionSlot: true),
   ],
 )
-final class NamedExpressionImpl extends ExpressionImpl
-    implements NamedExpression {
+final class NamedArgumentImpl extends AstNodeImpl
+    with ArgumentImpl
+    implements NamedArgument {
   @generated
-  LabelImpl _name;
+  @override
+  final Token name;
 
   @generated
-  ExpressionImpl _expression;
+  @override
+  final Token colon;
 
   @generated
-  NamedExpressionImpl({
-    required LabelImpl name,
-    required ExpressionImpl expression,
-  }) : _name = name,
-       _expression = expression {
-    _becomeParentOf(name);
-    _becomeParentOf(expression);
+  ExpressionImpl _argumentExpression;
+
+  @generated
+  NamedArgumentImpl({
+    required this.name,
+    required this.colon,
+    required ExpressionImpl argumentExpression,
+  }) : _argumentExpression = argumentExpression {
+    _becomeParentOf(argumentExpression);
+  }
+
+  @generated
+  @override
+  ExpressionImpl get argumentExpression => _argumentExpression;
+
+  @generated
+  set argumentExpression(ExpressionImpl argumentExpression) {
+    _argumentExpression = _becomeParentOf(argumentExpression);
   }
 
   @generated
   @override
   Token get beginToken {
-    return name.beginToken;
-  }
-
-  @override
-  InternalFormalParameterElement? get element {
-    return _name.label.element?.tryCast();
+    return name;
   }
 
   @generated
   @override
   Token get endToken {
-    return expression.endToken;
+    return argumentExpression.endToken;
   }
-
-  @generated
-  @override
-  ExpressionImpl get expression => _expression;
-
-  @generated
-  set expression(ExpressionImpl expression) {
-    _expression = _becomeParentOf(expression);
-  }
-
-  @generated
-  @override
-  LabelImpl get name => _name;
-
-  @generated
-  set name(LabelImpl name) {
-    _name = _becomeParentOf(name);
-  }
-
-  @override
-  Precedence get precedence => Precedence.none;
 
   @generated
   @override
   ChildEntities get _childEntities => ChildEntities()
-    ..addNode('name', name)
-    ..addNode('expression', expression);
+    ..addToken('name', name)
+    ..addToken('colon', colon)
+    ..addNode('argumentExpression', argumentExpression);
 
   @generated
   @override
-  E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedExpression(this);
+  E? accept<E>(AstVisitor<E> visitor) => visitor.visitNamedArgument(this);
 
   @generated
   @override
   bool isInValueExpressionSlot(AstNode child) {
     assert(identical(child.parent, this));
-    return identical(expression, child);
-  }
-
-  @generated
-  @override
-  void resolveExpression(ResolverVisitor resolver, TypeImpl contextType) {
-    resolver.visitNamedExpression(this, contextType: contextType);
+    return true;
   }
 
   @generated
   @override
   void visitChildren(AstVisitor visitor) {
-    name.accept(visitor);
-    expression.accept(visitor);
+    argumentExpression.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -20320,29 +20265,20 @@ final class NamedExpressionImpl extends ExpressionImpl
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(LabelImpl)? visitName,
-    void Function(ExpressionImpl)? visitExpression,
+    void Function(ExpressionImpl)? visitArgumentExpression,
   }) {
-    if (visitName != null) {
-      visitName(name);
+    if (visitArgumentExpression != null) {
+      visitArgumentExpression(argumentExpression);
     } else {
-      name.accept(visitor);
-    }
-    if (visitExpression != null) {
-      visitExpression(expression);
-    } else {
-      expression.accept(visitor);
+      argumentExpression.accept(visitor);
     }
   }
 
   @generated
   @override
   AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (name._containsOffset(rangeOffset, rangeEnd)) {
-      return name;
-    }
-    if (expression._containsOffset(rangeOffset, rangeEnd)) {
-      return expression;
+    if (argumentExpression._containsOffset(rangeOffset, rangeEnd)) {
+      return argumentExpression;
     }
     return null;
   }
@@ -21139,69 +21075,6 @@ final class NodeListImpl<E extends AstNodeImpl>
   }
 }
 
-/// A formal parameter that is required (isn't optional).
-///
-///    normalFormalParameter ::=
-///        [FunctionTypedFormalParameter]
-///      | [FieldFormalParameter]
-///      | [SimpleFormalParameter]
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-sealed class NormalFormalParameter implements FormalParameter, AnnotatedNode {}
-
-sealed class NormalFormalParameterImpl extends FormalParameterImpl
-    with _AnnotatedNodeMixin
-    implements NormalFormalParameter {
-  @override
-  final Token? covariantKeyword;
-
-  @override
-  final Token? requiredKeyword;
-
-  @override
-  final Token? name;
-
-  /// Initializes a newly created formal parameter.
-  ///
-  /// Either or both of the [comment] and [metadata] can be `null` if the
-  /// parameter doesn't have the corresponding attribute.
-  NormalFormalParameterImpl({
-    required CommentImpl? comment,
-    required List<AnnotationImpl>? metadata,
-    required this.covariantKeyword,
-    required this.requiredKeyword,
-    required this.name,
-  }) {
-    _initializeCommentAndAnnotations(comment, metadata);
-  }
-
-  @override
-  ParameterKind get kind {
-    var parent = this.parent;
-    if (parent is DefaultFormalParameterImpl) {
-      return parent.kind;
-    }
-    return ParameterKind.REQUIRED;
-  }
-
-  @override
-  void visitChildren(AstVisitor visitor) {
-    //
-    // Note that subclasses are responsible for visiting the identifier because
-    // they often need to visit other nodes before visiting the identifier.
-    //
-    _visitCommentAndAnnotations(visitor);
-  }
-
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (_documentationComment?._containsOffset(rangeOffset, rangeEnd) ??
-        false) {
-      return _documentationComment;
-    }
-    return _metadata._elementContainingRange(rangeOffset, rangeEnd);
-  }
-}
-
 /// A null-assert pattern.
 ///
 ///    nullAssertPattern ::=
@@ -21356,7 +21229,8 @@ abstract final class NullAwareElement implements CollectionElement {
     GenerateNodeProperty('value', isInValueExpressionSlot: true),
   ],
 )
-final class NullAwareElementImpl extends CollectionElementImpl
+final class NullAwareElementImpl extends AstNodeImpl
+    with CollectionElementImpl
     implements NullAwareElement {
   @generated
   @override
@@ -24235,7 +24109,7 @@ abstract final class RecordLiteral implements Literal {
   Token? get constKeyword;
 
   /// The syntactic elements used to compute the fields of the record.
-  NodeList<Expression> get fields;
+  NodeList<RecordLiteralField> get fields;
 
   /// Whether this literal is a constant expression.
   ///
@@ -24249,6 +24123,18 @@ abstract final class RecordLiteral implements Literal {
 
   /// The right parenthesis.
   Token get rightParenthesis;
+}
+
+/// A node that can occur in a [RecordLiteral].
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class RecordLiteralField implements AstNode {
+  /// The expression that computes the value for this field.
+  Expression get fieldExpression;
+}
+
+base mixin RecordLiteralFieldImpl on AstNodeImpl implements RecordLiteralField {
+  @override
+  ExpressionImpl get fieldExpression;
 }
 
 @GenerateNodeImpl(
@@ -24270,7 +24156,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
 
   @generated
   @override
-  final NodeListImpl<ExpressionImpl> fields = NodeListImpl._();
+  final NodeListImpl<RecordLiteralFieldImpl> fields = NodeListImpl._();
 
   @generated
   @override
@@ -24280,7 +24166,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   RecordLiteralImpl({
     required this.constKeyword,
     required this.leftParenthesis,
-    required List<ExpressionImpl> fields,
+    required List<RecordLiteralFieldImpl> fields,
     required this.rightParenthesis,
   }) {
     this.fields._initialize(this, fields);
@@ -24343,7 +24229,7 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
   @generated
   void visitChildrenWithHooks(
     AstVisitor visitor, {
-    void Function(NodeListImpl<ExpressionImpl>)? visitFields,
+    void Function(NodeListImpl<RecordLiteralFieldImpl>)? visitFields,
   }) {
     if (visitFields != null) {
       visitFields(fields);
@@ -24358,6 +24244,124 @@ final class RecordLiteralImpl extends LiteralImpl implements RecordLiteral {
     if (fields._elementContainingRange(rangeOffset, rangeEnd)
         case var result?) {
       return result;
+    }
+    return null;
+  }
+}
+
+/// A named field in a [RecordLiteral].
+///
+///    recordField ::= identifier ':' [Expression]
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+sealed class RecordLiteralNamedField implements RecordLiteralField {
+  /// The colon separating the name from the expression.
+  Token get colon;
+
+  @override
+  Expression get fieldExpression;
+
+  /// The name associated with the expression.
+  Token get name;
+}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty('name'),
+    GenerateNodeProperty('colon'),
+    GenerateNodeProperty('fieldExpression', isInValueExpressionSlot: true),
+  ],
+)
+final class RecordLiteralNamedFieldImpl extends AstNodeImpl
+    with RecordLiteralFieldImpl
+    implements RecordLiteralNamedField {
+  @generated
+  @override
+  final Token name;
+
+  @generated
+  @override
+  final Token colon;
+
+  @generated
+  ExpressionImpl _fieldExpression;
+
+  @generated
+  RecordLiteralNamedFieldImpl({
+    required this.name,
+    required this.colon,
+    required ExpressionImpl fieldExpression,
+  }) : _fieldExpression = fieldExpression {
+    _becomeParentOf(fieldExpression);
+  }
+
+  @generated
+  @override
+  Token get beginToken {
+    return name;
+  }
+
+  @generated
+  @override
+  Token get endToken {
+    return fieldExpression.endToken;
+  }
+
+  @generated
+  @override
+  ExpressionImpl get fieldExpression => _fieldExpression;
+
+  @generated
+  set fieldExpression(ExpressionImpl fieldExpression) {
+    _fieldExpression = _becomeParentOf(fieldExpression);
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => ChildEntities()
+    ..addToken('name', name)
+    ..addToken('colon', colon)
+    ..addNode('fieldExpression', fieldExpression);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRecordLiteralNamedField(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return true;
+  }
+
+  @generated
+  @override
+  void visitChildren(AstVisitor visitor) {
+    fieldExpression.accept(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @generated
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(ExpressionImpl)? visitFieldExpression,
+  }) {
+    if (visitFieldExpression != null) {
+      visitFieldExpression(fieldExpression);
+    } else {
+      fieldExpression.accept(visitor);
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (fieldExpression._containsOffset(rangeOffset, rangeEnd)) {
+      return fieldExpression;
     }
     return null;
   }
@@ -25228,6 +25232,193 @@ final class RedirectingConstructorInvocationImpl
   }
 }
 
+/// A regular formal parameter.
+///
+///    regularFormalParameter ::=
+///        ('final' [TypeAnnotation] | 'const' [TypeAnnotation] | 'var' |
+///        [TypeAnnotation])? [SimpleIdentifier]
+///        [FunctionTypedFormalParameterSuffix]? [FormalParameterDefaultClause]?
+@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
+abstract final class RegularFormalParameter implements FormalParameter {}
+
+@GenerateNodeImpl(
+  childEntitiesOrder: [
+    GenerateNodeProperty(
+      'kind',
+      isSuper: true,
+      withOverride: false,
+      type: _TypeLiteral<ParameterKind>,
+    ),
+    GenerateNodeProperty('covariantKeyword', isSuper: true),
+    GenerateNodeProperty('requiredKeyword', isSuper: true),
+    GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
+    GenerateNodeProperty('type', isSuper: true),
+    GenerateNodeProperty('name', isSuper: true),
+    GenerateNodeProperty('functionTypedSuffix', isSuper: true),
+    GenerateNodeProperty('defaultClause', isSuper: true),
+  ],
+)
+final class RegularFormalParameterImpl extends FormalParameterImpl
+    implements RegularFormalParameter {
+  @generated
+  RegularFormalParameterImpl({
+    required super.comment,
+    required super.metadata,
+    required super.kind,
+    required super.covariantKeyword,
+    required super.requiredKeyword,
+    required super.constFinalOrVarKeyword,
+    required super.type,
+    required super.name,
+    required super.functionTypedSuffix,
+    required super.defaultClause,
+  });
+
+  @generated
+  @override
+  Token get endToken {
+    if (defaultClause case var defaultClause?) {
+      return defaultClause.endToken;
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      return functionTypedSuffix.endToken;
+    }
+    if (name case var name?) {
+      return name;
+    }
+    if (type case var type?) {
+      return type.endToken;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (requiredKeyword case var requiredKeyword?) {
+      return requiredKeyword;
+    }
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
+    }
+    throw StateError('Expected at least one non-null');
+  }
+
+  @generated
+  @override
+  Token get firstTokenAfterCommentAndMetadata {
+    if (covariantKeyword case var covariantKeyword?) {
+      return covariantKeyword;
+    }
+    if (requiredKeyword case var requiredKeyword?) {
+      return requiredKeyword;
+    }
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
+    }
+    if (type case var type?) {
+      return type.beginToken;
+    }
+    if (name case var name?) {
+      return name;
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      return functionTypedSuffix.beginToken;
+    }
+    if (defaultClause case var defaultClause?) {
+      return defaultClause.beginToken;
+    }
+    throw StateError('Expected at least one non-null');
+  }
+
+  @generated
+  @override
+  ChildEntities get _childEntities => super._childEntities
+    ..addToken('covariantKeyword', covariantKeyword)
+    ..addToken('requiredKeyword', requiredKeyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
+    ..addNode('type', type)
+    ..addToken('name', name)
+    ..addNode('functionTypedSuffix', functionTypedSuffix)
+    ..addNode('defaultClause', defaultClause);
+
+  @generated
+  @override
+  E? accept<E>(AstVisitor<E> visitor) =>
+      visitor.visitRegularFormalParameter(this);
+
+  @generated
+  @override
+  bool isInValueExpressionSlot(AstNode child) {
+    assert(identical(child.parent, this));
+    return false;
+  }
+
+  @override
+  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
+  void visitChildren(AstVisitor visitor) {
+    super.visitChildren(visitor);
+  }
+
+  /// Visits the children of this node.
+  ///
+  /// If a specific hook is provided for a child, it is called instead of
+  /// dispatching the [visitor] to the child. It is the responsibility of the
+  /// hook to visit the child.
+  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
+  void visitChildrenWithHooks(
+    AstVisitor visitor, {
+    void Function(TypeAnnotationImpl)? visitType,
+    void Function(FunctionTypedFormalParameterSuffixImpl)?
+    visitFunctionTypedSuffix,
+    void Function(FormalParameterDefaultClauseImpl)? visitDefaultClause,
+  }) {
+    _visitCommentAndAnnotations(visitor);
+    if (type case var type?) {
+      if (visitType != null) {
+        visitType(type);
+      } else {
+        type.accept(visitor);
+      }
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (visitFunctionTypedSuffix != null) {
+        visitFunctionTypedSuffix(functionTypedSuffix);
+      } else {
+        functionTypedSuffix.accept(visitor);
+      }
+    }
+    if (defaultClause case var defaultClause?) {
+      if (visitDefaultClause != null) {
+        visitDefaultClause(defaultClause);
+      } else {
+        defaultClause.accept(visitor);
+      }
+    }
+  }
+
+  @generated
+  @override
+  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
+    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
+      return result;
+    }
+    if (type case var type?) {
+      if (type._containsOffset(rangeOffset, rangeEnd)) {
+        return type;
+      }
+    }
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (functionTypedSuffix._containsOffset(rangeOffset, rangeEnd)) {
+        return functionTypedSuffix;
+      }
+    }
+    if (defaultClause case var defaultClause?) {
+      if (defaultClause._containsOffset(rangeOffset, rangeEnd)) {
+        return defaultClause;
+      }
+    }
+    return null;
+  }
+}
+
 /// A relational pattern.
 ///
 ///    relationalPattern ::=
@@ -26068,192 +26259,6 @@ final class ShowCombinatorImpl extends CombinatorImpl
   }
 }
 
-/// A simple formal parameter.
-///
-///    simpleFormalParameter ::=
-///        ('final' [TypeAnnotation] | 'var' | [TypeAnnotation])?
-///        [SimpleIdentifier]
-@AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class SimpleFormalParameter implements NormalFormalParameter {
-  /// The token representing either the `final`, `const` or `var` keyword, or
-  /// `null` if no keyword was used.
-  Token? get keyword;
-
-  /// The declared type of the parameter, or `null` if the parameter doesn't
-  /// have a declared type.
-  TypeAnnotation? get type;
-}
-
-@GenerateNodeImpl(
-  childEntitiesOrder: [
-    GenerateNodeProperty('covariantKeyword', isSuper: true),
-    GenerateNodeProperty('requiredKeyword', isSuper: true),
-    GenerateNodeProperty('keyword'),
-    GenerateNodeProperty('type'),
-    GenerateNodeProperty('name', isSuper: true),
-  ],
-)
-final class SimpleFormalParameterImpl extends NormalFormalParameterImpl
-    implements SimpleFormalParameter {
-  @generated
-  @override
-  final Token? keyword;
-
-  @generated
-  TypeAnnotationImpl? _type;
-
-  @generated
-  SimpleFormalParameterImpl({
-    required super.comment,
-    required super.metadata,
-    required super.covariantKeyword,
-    required super.requiredKeyword,
-    required this.keyword,
-    required TypeAnnotationImpl? type,
-    required super.name,
-  }) : _type = type {
-    _becomeParentOf(type);
-  }
-
-  @generated
-  @override
-  Token get endToken {
-    if (name case var name?) {
-      return name;
-    }
-    if (type case var type?) {
-      return type.endToken;
-    }
-    if (keyword case var keyword?) {
-      return keyword;
-    }
-    if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    }
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
-    throw StateError('Expected at least one non-null');
-  }
-
-  /// If [keyword] is `final`, returns it.
-  Token? get finalKeyword {
-    if (keyword?.keyword == Keyword.FINAL) {
-      return keyword;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  Token get firstTokenAfterCommentAndMetadata {
-    if (covariantKeyword case var covariantKeyword?) {
-      return covariantKeyword;
-    }
-    if (requiredKeyword case var requiredKeyword?) {
-      return requiredKeyword;
-    }
-    if (keyword case var keyword?) {
-      return keyword;
-    }
-    if (type case var type?) {
-      return type.beginToken;
-    }
-    if (name case var name?) {
-      return name;
-    }
-    throw StateError('Expected at least one non-null');
-  }
-
-  @override
-  bool get isConst => keyword?.keyword == Keyword.CONST;
-
-  @override
-  bool get isExplicitlyTyped => _type != null;
-
-  @override
-  bool get isFinal => keyword?.keyword == Keyword.FINAL;
-
-  @generated
-  @override
-  TypeAnnotationImpl? get type => _type;
-
-  @generated
-  set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf(type);
-  }
-
-  /// If [keyword] is `var`, returns it.
-  Token? get varKeyword {
-    if (keyword?.keyword == Keyword.VAR) {
-      return keyword;
-    }
-    return null;
-  }
-
-  @generated
-  @override
-  ChildEntities get _childEntities => super._childEntities
-    ..addToken('covariantKeyword', covariantKeyword)
-    ..addToken('requiredKeyword', requiredKeyword)
-    ..addToken('keyword', keyword)
-    ..addNode('type', type)
-    ..addToken('name', name);
-
-  @generated
-  @override
-  E? accept<E>(AstVisitor<E> visitor) =>
-      visitor.visitSimpleFormalParameter(this);
-
-  @generated
-  @override
-  bool isInValueExpressionSlot(AstNode child) {
-    assert(identical(child.parent, this));
-    return false;
-  }
-
-  @generated
-  @override
-  void visitChildren(AstVisitor visitor) {
-    super.visitChildren(visitor);
-    type?.accept(visitor);
-  }
-
-  /// Visits the children of this node.
-  ///
-  /// If a specific hook is provided for a child, it is called instead of
-  /// dispatching the [visitor] to the child. It is the responsibility of the
-  /// hook to visit the child.
-  @generated
-  void visitChildrenWithHooks(
-    AstVisitor visitor, {
-    void Function(TypeAnnotationImpl)? visitType,
-  }) {
-    super.visitChildren(visitor);
-    if (type case var type?) {
-      if (visitType != null) {
-        visitType(type);
-      } else {
-        type.accept(visitor);
-      }
-    }
-  }
-
-  @generated
-  @override
-  AstNodeImpl? _childContainingRange(int rangeOffset, int rangeEnd) {
-    if (super._childContainingRange(rangeOffset, rangeEnd) case var result?) {
-      return result;
-    }
-    if (type case var type?) {
-      if (type._containsOffset(rangeOffset, rangeEnd)) {
-        return type;
-      }
-    }
-    return null;
-  }
-}
-
 /// A simple identifier.
 ///
 ///    simpleIdentifier ::=
@@ -26676,7 +26681,8 @@ abstract final class SpreadElement implements CollectionElement {
     GenerateNodeProperty('expression', isInValueExpressionSlot: true),
   ],
 )
-final class SpreadElementImpl extends CollectionElementImpl
+final class SpreadElementImpl extends AstNodeImpl
+    with CollectionElementImpl
     implements SpreadElement {
   @generated
   @override
@@ -27332,73 +27338,42 @@ final class SuperExpressionImpl extends ExpressionImpl
 ///        [TypeAnnotation])?
 ///        'super' '.' name ([TypeParameterList]? [FormalParameterList])?
 @AnalyzerPublicApi(message: 'exported by lib/dart/ast/ast.dart')
-abstract final class SuperFormalParameter implements NormalFormalParameter {
+abstract final class SuperFormalParameter implements FormalParameter {
   @override
   SuperFormalParameterFragment? get declaredFragment;
-
-  /// The token representing either the `final`, `const` or `var` keyword, or
-  /// `null` if no keyword was used.
-  Token? get keyword;
 
   /// The name of the parameter being declared.
   @override
   Token get name;
 
-  /// The parameters of the function-typed parameter, or `null` if this isn't a
-  /// function-typed field formal parameter.
-  FormalParameterList? get parameters;
-
   /// The token representing the period.
   Token get period;
 
-  /// The question mark indicating that the function type is nullable, or `null`
-  /// if there's no question mark, which will always be the case when the
-  /// parameter doesn't use the older style for denoting a function typed
-  /// parameter.
-  ///
-  /// If the parameter is function-typed, and has the question mark, then its
-  /// function type is nullable. Having a nullable function type means that the
-  /// parameter can be `null`.
-  Token? get question;
-
   /// The token representing the `super` keyword.
   Token get superKeyword;
-
-  /// The declared type of the parameter, or `null` if the parameter doesn't
-  /// have a declared type.
-  ///
-  /// If this is a function-typed field formal parameter this is the return type
-  /// of the function.
-  TypeAnnotation? get type;
-
-  /// The type parameters associated with this method, or `null` if this method
-  /// isn't a generic method.
-  TypeParameterList? get typeParameters;
 }
 
 @GenerateNodeImpl(
   childEntitiesOrder: [
+    GenerateNodeProperty(
+      'kind',
+      isSuper: true,
+      withOverride: false,
+      type: _TypeLiteral<ParameterKind>,
+    ),
     GenerateNodeProperty('covariantKeyword', isSuper: true),
     GenerateNodeProperty('requiredKeyword', isSuper: true),
-    GenerateNodeProperty('keyword'),
-    GenerateNodeProperty('type'),
+    GenerateNodeProperty('constFinalOrVarKeyword', isSuper: true),
+    GenerateNodeProperty('type', isSuper: true),
     GenerateNodeProperty('superKeyword'),
     GenerateNodeProperty('period'),
     GenerateNodeProperty('name', isSuper: true, superNullAssertOverride: true),
-    GenerateNodeProperty('typeParameters'),
-    GenerateNodeProperty('parameters'),
-    GenerateNodeProperty('question'),
+    GenerateNodeProperty('functionTypedSuffix', isSuper: true),
+    GenerateNodeProperty('defaultClause', isSuper: true),
   ],
 )
-final class SuperFormalParameterImpl extends NormalFormalParameterImpl
+final class SuperFormalParameterImpl extends FormalParameterImpl
     implements SuperFormalParameter {
-  @generated
-  @override
-  final Token? keyword;
-
-  @generated
-  TypeAnnotationImpl? _type;
-
   @generated
   @override
   final Token superKeyword;
@@ -27408,38 +27383,21 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
   final Token period;
 
   @generated
-  TypeParameterListImpl? _typeParameters;
-
-  @generated
-  FormalParameterListImpl? _parameters;
-
-  @generated
-  @override
-  final Token? question;
-
-  @generated
   SuperFormalParameterImpl({
     required super.comment,
     required super.metadata,
+    required super.kind,
     required super.covariantKeyword,
     required super.requiredKeyword,
-    required this.keyword,
-    required TypeAnnotationImpl? type,
+    required super.constFinalOrVarKeyword,
+    required super.type,
     required this.superKeyword,
     required this.period,
     required super.name,
-    required TypeParameterListImpl? typeParameters,
-    required FormalParameterListImpl? parameters,
-    required this.question,
-  }) : _type = type,
-       _typeParameters = typeParameters,
-       _parameters = parameters {
-    _becomeParentOf(type);
-    _becomeParentOf(typeParameters);
-    _becomeParentOf(parameters);
-  }
+    required super.functionTypedSuffix,
+    required super.defaultClause,
+  });
 
-  @generated
   @override
   SuperFormalParameterFragmentImpl? get declaredFragment =>
       super.declaredFragment as SuperFormalParameterFragmentImpl?;
@@ -27447,14 +27405,11 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
   @generated
   @override
   Token get endToken {
-    if (question case var question?) {
-      return question;
+    if (defaultClause case var defaultClause?) {
+      return defaultClause.endToken;
     }
-    if (parameters case var parameters?) {
-      return parameters.endToken;
-    }
-    if (typeParameters case var typeParameters?) {
-      return typeParameters.endToken;
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      return functionTypedSuffix.endToken;
     }
     return name;
   }
@@ -27468,8 +27423,8 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     if (requiredKeyword case var requiredKeyword?) {
       return requiredKeyword;
     }
-    if (keyword case var keyword?) {
-      return keyword;
+    if (constFinalOrVarKeyword case var constFinalOrVarKeyword?) {
+      return constFinalOrVarKeyword;
     }
     if (type case var type?) {
       return type.beginToken;
@@ -27477,59 +27432,22 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     return superKeyword;
   }
 
-  @override
-  bool get isConst => keyword?.keyword == Keyword.CONST;
-
-  @override
-  bool get isExplicitlyTyped => _parameters != null || _type != null;
-
-  @override
-  bool get isFinal => keyword?.keyword == Keyword.FINAL;
-
   @generated
   @override
   Token get name => super.name!;
 
   @generated
   @override
-  FormalParameterListImpl? get parameters => _parameters;
-
-  @generated
-  set parameters(FormalParameterListImpl? parameters) {
-    _parameters = _becomeParentOf(parameters);
-  }
-
-  @generated
-  @override
-  TypeAnnotationImpl? get type => _type;
-
-  @generated
-  set type(TypeAnnotationImpl? type) {
-    _type = _becomeParentOf(type);
-  }
-
-  @generated
-  @override
-  TypeParameterListImpl? get typeParameters => _typeParameters;
-
-  @generated
-  set typeParameters(TypeParameterListImpl? typeParameters) {
-    _typeParameters = _becomeParentOf(typeParameters);
-  }
-
-  @generated
-  @override
   ChildEntities get _childEntities => super._childEntities
     ..addToken('covariantKeyword', covariantKeyword)
     ..addToken('requiredKeyword', requiredKeyword)
-    ..addToken('keyword', keyword)
+    ..addToken('constFinalOrVarKeyword', constFinalOrVarKeyword)
     ..addNode('type', type)
     ..addToken('superKeyword', superKeyword)
     ..addToken('period', period)
     ..addToken('name', name)
-    ..addNode('typeParameters', typeParameters)
-    ..addNode('parameters', parameters)
-    ..addToken('question', question);
+    ..addNode('functionTypedSuffix', functionTypedSuffix)
+    ..addNode('defaultClause', defaultClause);
 
   @generated
   @override
@@ -27543,13 +27461,10 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
     return false;
   }
 
-  @generated
   @override
+  @DoNotGenerate(reason: 'Inherited nodes are already visited by super.')
   void visitChildren(AstVisitor visitor) {
     super.visitChildren(visitor);
-    type?.accept(visitor);
-    typeParameters?.accept(visitor);
-    parameters?.accept(visitor);
   }
 
   /// Visits the children of this node.
@@ -27557,14 +27472,15 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
   /// If a specific hook is provided for a child, it is called instead of
   /// dispatching the [visitor] to the child. It is the responsibility of the
   /// hook to visit the child.
-  @generated
+  @DoNotGenerate(reason: 'Inherited nodes would otherwise be visited twice.')
   void visitChildrenWithHooks(
     AstVisitor visitor, {
     void Function(TypeAnnotationImpl)? visitType,
-    void Function(TypeParameterListImpl)? visitTypeParameters,
-    void Function(FormalParameterListImpl)? visitParameters,
+    void Function(FunctionTypedFormalParameterSuffixImpl)?
+    visitFunctionTypedSuffix,
+    void Function(FormalParameterDefaultClauseImpl)? visitDefaultClause,
   }) {
-    super.visitChildren(visitor);
+    _visitCommentAndAnnotations(visitor);
     if (type case var type?) {
       if (visitType != null) {
         visitType(type);
@@ -27572,18 +27488,18 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
         type.accept(visitor);
       }
     }
-    if (typeParameters case var typeParameters?) {
-      if (visitTypeParameters != null) {
-        visitTypeParameters(typeParameters);
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (visitFunctionTypedSuffix != null) {
+        visitFunctionTypedSuffix(functionTypedSuffix);
       } else {
-        typeParameters.accept(visitor);
+        functionTypedSuffix.accept(visitor);
       }
     }
-    if (parameters case var parameters?) {
-      if (visitParameters != null) {
-        visitParameters(parameters);
+    if (defaultClause case var defaultClause?) {
+      if (visitDefaultClause != null) {
+        visitDefaultClause(defaultClause);
       } else {
-        parameters.accept(visitor);
+        defaultClause.accept(visitor);
       }
     }
   }
@@ -27599,14 +27515,14 @@ final class SuperFormalParameterImpl extends NormalFormalParameterImpl
         return type;
       }
     }
-    if (typeParameters case var typeParameters?) {
-      if (typeParameters._containsOffset(rangeOffset, rangeEnd)) {
-        return typeParameters;
+    if (functionTypedSuffix case var functionTypedSuffix?) {
+      if (functionTypedSuffix._containsOffset(rangeOffset, rangeEnd)) {
+        return functionTypedSuffix;
       }
     }
-    if (parameters case var parameters?) {
-      if (parameters._containsOffset(rangeOffset, rangeEnd)) {
-        return parameters;
+    if (defaultClause case var defaultClause?) {
+      if (defaultClause._containsOffset(rangeOffset, rangeEnd)) {
+        return defaultClause;
       }
     }
     return null;

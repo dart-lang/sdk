@@ -8,7 +8,6 @@
 
 #include "vm/dart_api_state.h"
 #include "vm/dart_entry.h"
-#include "vm/json_stream.h"
 #include "vm/object.h"
 #include "vm/port.h"
 
@@ -62,25 +61,6 @@ Message::~Message() {
     auto isolate_group = IsolateGroup::Current();
     isolate_group->api_state()->FreePersistentHandle(
         payload_.persistent_handle_);
-  }
-}
-
-intptr_t Message::Id() const {
-  // Messages are allocated on the C heap. Use the raw address as the id.
-  return reinterpret_cast<intptr_t>(this);
-}
-
-const char* Message::PriorityAsString(Priority priority) {
-  switch (priority) {
-    case kNormalPriority:
-      return "Normal";
-      break;
-    case kOOBPriority:
-      return "OOB";
-      break;
-    default:
-      UNIMPLEMENTED();
-      return nullptr;
   }
 }
 
@@ -196,59 +176,6 @@ intptr_t MessageQueue::Length() const {
     length++;
   }
   return length;
-}
-
-Message* MessageQueue::FindMessageById(intptr_t id) {
-  MessageQueue::Iterator it(this);
-  while (it.HasNext()) {
-    Message* current = it.Next();
-    ASSERT(current != nullptr);
-    if (current->Id() == id) {
-      return current;
-    }
-  }
-  return nullptr;
-}
-
-void MessageQueue::PrintJSON(JSONStream* stream) {
-#ifndef PRODUCT
-  JSONArray messages(stream);
-
-  Object& msg_handler = Object::Handle();
-
-  MessageQueue::Iterator it(this);
-  intptr_t depth = 0;
-  while (it.HasNext()) {
-    Message* current = it.Next();
-    JSONObject message(&messages);
-    message.AddProperty("type", "Message");
-    message.AddPropertyF("name", "Isolate Message (%" Px ")", current->Id());
-    message.AddPropertyF("messageObjectId", "messages/%" Px "", current->Id());
-    message.AddProperty("size", current->Size());
-    message.AddProperty("index", depth++);
-    message.AddPropertyF("_destinationPort", "%" Pd64 "",
-                         static_cast<int64_t>(current->dest_port()));
-    message.AddProperty("_priority",
-                        Message::PriorityAsString(current->priority()));
-    // TODO(johnmccutchan): Move port -> handler map out of Dart and into the
-    // VM, that way we can lookup the handler without invoking Dart code.
-    msg_handler = DartLibraryCalls::LookupHandler(current->dest_port());
-    if (msg_handler.IsClosure()) {
-      // Grab function from closure.
-      msg_handler = Closure::Cast(msg_handler).function();
-    }
-    if (msg_handler.IsFunction()) {
-      const Function& function = Function::Cast(msg_handler);
-      message.AddProperty("handler", function);
-
-      const Script& script = Script::Handle(function.script());
-      if (!script.IsNull()) {
-        message.AddLocation(script, function.token_pos(),
-                            function.end_token_pos());
-      }
-    }
-  }
-#endif  // !PRODUCT
 }
 
 }  // namespace dart

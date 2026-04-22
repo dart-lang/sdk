@@ -7,7 +7,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/ast/invokes_super_self.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/element.dart';
@@ -65,8 +64,20 @@ class ElementBuilder {
 
     for (var instanceEntry in elementChildFragments.entries) {
       var instanceElement = instanceEntry.key;
-      var lastFragments = <String?, FragmentImpl>{};
+      var lastInstanceFragments = <String?, FragmentImpl>{};
+      var lastStaticFragments = <String?, FragmentImpl>{};
       for (var fragment in instanceEntry.value) {
+        var isInStaticNamespace = switch (fragment) {
+          ConstructorFragmentImpl() => true,
+          FieldFragmentImpl(:var isStatic) => isStatic,
+          GetterFragmentImpl(:var isStatic) => isStatic,
+          SetterFragmentImpl(:var isStatic) => isStatic,
+          MethodFragmentImpl(:var isStatic) => isStatic,
+          _ => false,
+        };
+        var lastFragments = isInStaticNamespace
+            ? lastStaticFragments
+            : lastInstanceFragments;
         var lastFragment = lastFragments[fragment.name];
         switch (fragment) {
           case FieldFragmentImpl():
@@ -192,7 +203,9 @@ class ElementBuilder {
   ) {
     libraryFragment.addClass(fragment);
 
-    if (fragment.isAugmentation && lastFragment is ClassFragmentImpl) {
+    if (fragment.isAugmentation &&
+        lastFragment is ClassFragmentImpl &&
+        !lastFragment.isMixinApplication) {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
@@ -208,9 +221,8 @@ class ElementBuilder {
       fragment,
     );
 
-    for (var typeParameterFragment in fragment.typeParameters) {
-      // Side effect: set element for the fragment.
-      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
     }
 
     libraryElement.addClass(element);
@@ -241,6 +253,10 @@ class ElementBuilder {
       fragment,
     );
 
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
     libraryElement.addEnum(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -268,6 +284,11 @@ class ElementBuilder {
       _addTopReference('@extension', fragment.name),
       fragment,
     );
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
     libraryElement.addExtension(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -295,6 +316,11 @@ class ElementBuilder {
       _addTopReference('@extensionType', fragment.name),
       fragment,
     );
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
     libraryElement.addExtensionType(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -333,6 +359,10 @@ class ElementBuilder {
       ),
       firstFragment: fragment,
     );
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
 
     interfaceElement.addConstructor(element);
   }
@@ -377,6 +407,9 @@ class ElementBuilder {
       ),
       firstFragment: fieldFragment,
     );
+    if (fieldFragment.isAugmentation && lastFragment != null) {
+      fieldElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     instanceElement.addField(fieldElement);
 
     {
@@ -450,6 +483,9 @@ class ElementBuilder {
       _addInstanceReference(instanceElement, '@getter', getterFragment.name),
       getterFragment,
     );
+    if (getterFragment.isAugmentation && lastFragment != null) {
+      getterElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     instanceElement.addGetter(getterElement);
 
     // `class Enum {}` in `dart:core` declares `int get index` as abstract.
@@ -517,22 +553,21 @@ class ElementBuilder {
       return;
     }
 
-    for (var typeParameterFragment in fragment.typeParameters) {
-      // Side effect: set element for the fragment.
-      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    var element = MethodElementImpl(
+      name: fragment.name,
+      reference: _addInstanceReference(
+        instanceElement,
+        '@method',
+        fragment.lookupName,
+      ),
+      firstFragment: fragment,
+    );
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
     }
 
-    instanceElement.addMethod(
-      MethodElementImpl(
-        name: fragment.name,
-        reference: _addInstanceReference(
-          instanceElement,
-          '@method',
-          fragment.lookupName,
-        ),
-        firstFragment: fragment,
-      ),
-    );
+    instanceElement.addMethod(element);
   }
 
   void _handleInstanceSetterFragment(
@@ -559,6 +594,9 @@ class ElementBuilder {
       _addInstanceReference(instanceElement, '@setter', setterFragment.name),
       setterFragment,
     );
+    if (setterFragment.isAugmentation && lastFragment != null) {
+      setterElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     instanceElement.addSetter(setterElement);
 
     // If `setter` is already set, this is a compile-time error.
@@ -613,9 +651,8 @@ class ElementBuilder {
       fragment,
     );
 
-    for (var typeParameterFragment in fragment.typeParameters) {
-      // Side effect: set element for the fragment.
-      TypeParameterElementImpl(firstFragment: typeParameterFragment);
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
     }
 
     libraryElement.addMixin(element);
@@ -650,6 +687,11 @@ class ElementBuilder {
       _addTopReference('@function', fragment.name),
       fragment,
     );
+
+    if (fragment.isAugmentation && lastFragment != null) {
+      element.previousFragmentOfDifferentKind = lastFragment;
+    }
+
     libraryElement.addTopLevelFunction(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -675,6 +717,9 @@ class ElementBuilder {
       _addTopReference('@getter', getterFragment.name),
       getterFragment,
     );
+    if (getterFragment.isAugmentation && lastFragment != null) {
+      getterElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     libraryElement.addGetter(getterElement);
     libraryBuilder.declare(getterElement, getterElement.reference);
 
@@ -725,6 +770,9 @@ class ElementBuilder {
       _addTopReference('@setter', setterFragment.name),
       setterFragment,
     );
+    if (setterFragment.isAugmentation && lastFragment != null) {
+      setterElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     libraryElement.addSetter(setterElement);
     libraryBuilder.declare(setterElement, setterElement.reference);
 
@@ -772,11 +820,17 @@ class ElementBuilder {
       _addTopReference('@topLevelVariable', variableFragment.name),
       variableFragment,
     );
+    if (variableFragment.isAugmentation && lastFragment != null) {
+      variableElement.previousFragmentOfDifferentKind = lastFragment;
+    }
     libraryElement.addTopLevelVariable(variableElement);
 
     {
       var getterFragment = GetterFragmentImpl(name: variableFragment.name)
         ..isOriginVariable = true
+        ..isAbstract = variableFragment.isAbstract
+        ..isCompleteDeclaration =
+            variableFragment.isExternal || !variableFragment.isAbstract
         ..isStatic = true;
       libraryFragment.addGetter(getterFragment);
 
@@ -794,6 +848,9 @@ class ElementBuilder {
     if (variableFragment.hasSetter) {
       var setterFragment = SetterFragmentImpl(name: variableFragment.name)
         ..isOriginVariable = true
+        ..isAbstract = variableFragment.isAbstract
+        ..isCompleteDeclaration =
+            variableFragment.isExternal || !variableFragment.isAbstract
         ..isStatic = true;
       libraryFragment.addSetter(setterFragment);
 
@@ -828,6 +885,7 @@ class ElementBuilder {
       _addTopReference('@typeAlias', fragment.name),
       fragment,
     );
+
     libraryElement.typeAliases.add(element);
     libraryBuilder.declare(element, element.reference);
   }
@@ -931,6 +989,11 @@ class ElementBuilder {
   }) {
     // Trim extra type parameters.
     if (lastFragments.length < fragments.length) {
+      // Recovery: phases that use AST, get fragment and expect element.
+      // TODO(scheglov): switch these phases to fragments
+      for (var i = lastFragments.length; i < fragments.length; i++) {
+        TypeParameterElementImpl(firstFragment: fragments[i]);
+      }
       fragments.length = lastFragments.length;
     }
 
@@ -1144,11 +1207,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       fragment: fragment,
       formalParameters: node.parameters,
     );
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    node.parameter.accept(this);
   }
 
   @override
@@ -1458,11 +1516,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
 
-    if (node.parent case DefaultFormalParameterImpl parent) {
-      fragment.constantInitializer = parent.defaultValue;
-    }
-
-    fragment.hasImplicitType = node.type == null && node.parameters == null;
+    fragment.constantInitializer = node.defaultClause?.value;
+    fragment.hasImplicitType =
+        node.type == null && node.functionTypedSuffix == null;
     fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -1471,13 +1527,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     // TODO(scheglov): check that we don't set reference for parameters
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      var formalParameters = node.parameters;
+      var formalParameters = node.functionTypedSuffix?.formalParameters;
       if (formalParameters != null) {
         formalParameters.accept(this);
         fragment.formalParameters = holder.formalParameters;
       }
 
-      var typeParameters = node.typeParameters;
+      var typeParameters = node.functionTypedSuffix?.typeParameters;
       if (typeParameters != null) {
         typeParameters.accept(this);
         fragment.typeParameters = holder.typeParameters;
@@ -1578,53 +1634,6 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
-  ) {
-    var nameToken = node.name;
-    var name2 = _getFragmentName(nameToken);
-
-    FormalParameterFragmentImpl fragment;
-    if (_linker.getDeclaringFormalInfo(node) case var declaring?) {
-      fragment = declaring.formalFragment;
-    } else {
-      fragment = FormalParameterFragmentImpl(
-        name: name2,
-        nameOffset: null,
-        parameterKind: node.kind,
-      );
-    }
-    _linker.elementNodes[fragment] = node;
-    _enclosingContext.addParameter(fragment);
-
-    if (node.parent case DefaultFormalParameterImpl parent) {
-      fragment.constantInitializer = parent.defaultValue;
-    }
-
-    fragment.isExplicitlyCovariant = node.covariantKeyword != null;
-    fragment.isFinal = node.isFinal;
-    fragment.isOriginDeclaration = true;
-    fragment.metadata = _buildMetadata(node.metadata);
-
-    node.declaredFragment = fragment;
-
-    var holder = _EnclosingContext(fragment: fragment);
-    _withEnclosing(holder, () {
-      var formalParameters = node.parameters;
-      formalParameters.accept(this);
-      fragment.formalParameters = holder.formalParameters;
-
-      var typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        fragment.typeParameters = holder.typeParameters;
-      }
-    });
-
-    node.returnType?.accept(this);
-  }
-
-  @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     var fragment = GenericFunctionTypeFragmentImpl();
     _libraryFragment.encloseElement(fragment);
@@ -1634,16 +1643,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      var formalParameters = node.parameters;
-      formalParameters.accept(this);
-      fragment.formalParameters = holder.formalParameters;
+      node.typeParameters?.accept(this);
+      fragment.typeParameters = holder.typeParameters;
 
-      var typeParameters = node.typeParameters;
-      if (typeParameters != null) {
-        typeParameters.accept(this);
-        fragment.typeParameters = holder.typeParameters;
-      }
+      node.parameters.accept(this);
+      fragment.formalParameters = holder.formalParameters;
     });
+    GenericFunctionTypeElementImpl(fragment);
 
     node.returnType?.accept(this);
   }
@@ -1839,10 +1845,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
     var isFirstFormalExtensionTypeRepresentation = false;
     if (parent is ExtensionTypeDeclarationImpl) {
-      var firstFormalParameter = formalParameters.firstOrNull?.notDefault;
+      var firstFormalParameter = formalParameters.firstOrNull;
       isFirstFormalExtensionTypeRepresentation =
-          firstFormalParameter is SimpleFormalParameterImpl ||
-          firstFormalParameter is FunctionTypedFormalParameterImpl;
+          firstFormalParameter is RegularFormalParameterImpl;
 
       if (!isFirstFormalExtensionTypeRepresentation) {
         var fieldFragment = FieldFragmentImpl(name: null);
@@ -1932,7 +1937,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
     var nameToken = node.name;
     var name2 = _getFragmentName(nameToken);
 
@@ -1949,19 +1954,30 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
 
-    if (_enclosingContext.hasDefaultFormalParameters) {
-      if (node.parent case DefaultFormalParameterImpl parent) {
-        fragment.constantInitializer = parent.defaultValue;
-      }
-    }
-
-    fragment.hasImplicitType = node.type == null;
+    fragment.constantInitializer = node.defaultClause?.value;
+    fragment.hasImplicitType =
+        node.type == null && node.functionTypedSuffix == null;
     fragment.isExplicitlyCovariant = node.covariantKeyword != null;
     fragment.isFinal = node.isFinal;
     fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;
+
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      var holder = _EnclosingContext(fragment: fragment);
+      _withEnclosing(holder, () {
+        var formalParameters = functionTypedSuffix.formalParameters;
+        formalParameters.accept(this);
+        fragment.formalParameters = holder.formalParameters;
+
+        var typeParameters = functionTypedSuffix.typeParameters;
+        if (typeParameters != null) {
+          typeParameters.accept(this);
+          fragment.typeParameters = holder.typeParameters;
+        }
+      });
+    }
 
     node.type?.accept(this);
   }
@@ -1979,11 +1995,9 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     _linker.elementNodes[fragment] = node;
     _enclosingContext.addParameter(fragment);
 
-    if (node.parent case DefaultFormalParameterImpl parent) {
-      fragment.constantInitializer = parent.defaultValue;
-    }
-
-    fragment.hasImplicitType = node.type == null && node.parameters == null;
+    fragment.constantInitializer = node.defaultClause?.value;
+    fragment.hasImplicitType =
+        node.type == null && node.functionTypedSuffix == null;
     fragment.isOriginDeclaration = true;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -1992,13 +2006,13 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     // TODO(scheglov): check that we don't set reference for parameters
     var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
-      var formalParameters = node.parameters;
+      var formalParameters = node.functionTypedSuffix?.formalParameters;
       if (formalParameters != null) {
         formalParameters.accept(this);
         fragment.formalParameters = holder.formalParameters;
       }
 
-      var typeParameters = node.typeParameters;
+      var typeParameters = node.functionTypedSuffix?.typeParameters;
       if (typeParameters != null) {
         typeParameters.accept(this);
         fragment.typeParameters = holder.typeParameters;
@@ -2020,6 +2034,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
       var fragment = TopLevelVariableFragmentImpl(name: name2);
 
       fragment.hasInitializer = variable.initializer != null;
+      fragment.isAbstract = node.abstractKeyword != null;
       fragment.isAugmentation = node.augmentKeyword != null;
       fragment.isConst = node.variables.isConst;
       fragment.isExternal = node.externalKeyword != null;
@@ -2083,10 +2098,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     FormalParameterList? formalParameters,
     TypeParameterList? typeParameters,
   }) {
-    var holder = _EnclosingContext(
-      fragment: fragment,
-      hasDefaultFormalParameters: true,
-    );
+    var holder = _EnclosingContext(fragment: fragment);
     _withEnclosing(holder, () {
       if (formalParameters != null) {
         formalParameters.accept(this);
@@ -2131,15 +2143,11 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
 
 class _EnclosingContext {
   final FragmentImpl fragment;
-  final bool hasDefaultFormalParameters;
 
   final List<FormalParameterFragmentImpl> formalParameters = [];
   final List<TypeParameterFragmentImpl> typeParameters = [];
 
-  _EnclosingContext({
-    required this.fragment,
-    this.hasDefaultFormalParameters = false,
-  });
+  _EnclosingContext({required this.fragment});
 
   void addParameter(FormalParameterFragmentImpl fragment) {
     formalParameters.add(fragment);
@@ -2165,16 +2173,9 @@ extension _ConstructorDeclarationImplExtension on ConstructorDeclarationImpl {
     }
 
     return parameters.parameters.any((parameter) {
-      var notDefault = parameter.notDefault;
-      return notDefault is FieldFormalParameterImpl ||
-          notDefault is SuperFormalParameterImpl;
+      return parameter is FieldFormalParameterImpl ||
+          parameter is SuperFormalParameterImpl;
     });
-  }
-}
-
-extension _FormalParameterImplExtension on FormalParameterImpl {
-  FormalParameterImpl get selfOrParentDefault {
-    return parent.tryCast<DefaultFormalParameterImpl>() ?? this;
   }
 }
 
@@ -2182,6 +2183,6 @@ extension _LinkerExtension on Linker {
   DeclaringFormalParameterInfo? getDeclaringFormalInfo(
     FormalParameterImpl node,
   ) {
-    return declaringFormalParameters[node.selfOrParentDefault];
+    return declaringFormalParameters[node];
   }
 }

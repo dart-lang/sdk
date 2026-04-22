@@ -112,9 +112,6 @@ class FindNode {
 
   FunctionTypeAlias get singleFunctionTypeAlias => _single();
 
-  FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
-      _single();
-
   GenericFunctionType get singleGenericFunctionType => _single();
 
   GenericTypeAlias get singleGenericTypeAlias => _single();
@@ -371,10 +368,6 @@ class FindNode {
     return _node(search, (n) => n is DeclaredVariablePattern);
   }
 
-  DefaultFormalParameter defaultParameter(String search) {
-    return _node(search, (n) => n is DefaultFormalParameter);
-  }
-
   DoStatement doStatement(String search) {
     return _node(search, (n) => n is DoStatement);
   }
@@ -532,10 +525,6 @@ class FindNode {
     return _node(search, (n) => n is FunctionTypeAlias);
   }
 
-  FunctionTypedFormalParameter functionTypedFormalParameter(String search) {
-    return _node(search, (n) => n is FunctionTypedFormalParameter);
-  }
-
   GenericFunctionType genericFunctionType(String search) {
     return _node(search, (n) => n is GenericFunctionType);
   }
@@ -652,8 +641,8 @@ class FindNode {
     return _node(search, (n) => n is MixinDeclaration);
   }
 
-  NamedExpression namedExpression(String search) {
-    return _node(search, (n) => n is NamedExpression);
+  NamedArgument namedArgument(String search) {
+    return _node(search, (n) => n is NamedArgument);
   }
 
   NamedType namedType(String search) {
@@ -769,6 +758,10 @@ class FindNode {
     return _node(search, (n) => n is RedirectingConstructorInvocation);
   }
 
+  RegularFormalParameter regularFormalParameter(String search) {
+    return _node(search, (n) => n is RegularFormalParameter);
+  }
+
   RelationalPattern relationalPattern(String search) {
     return _node(search, (n) => n is RelationalPattern);
   }
@@ -795,14 +788,6 @@ class FindNode {
 
   SimpleIdentifier simple(String search) {
     return _node(search, (_) => true);
-  }
-
-  SimpleFormalParameter simpleFormalParameter(String search) {
-    return _node(search, (n) => n is SimpleFormalParameter);
-  }
-
-  SimpleFormalParameter simpleParameter(String search) {
-    return _node(search, (n) => n is SimpleFormalParameter);
   }
 
   SimpleStringLiteral simpleStringLiteral(String search) {

@@ -46,6 +46,10 @@ callable:
   - library: 'dart:io'
   - library: 'dart:isolate'
   - library: 'dart:math'
+  # Explicitly add public members of _RectangleBase because they are inherited
+  # by Rectangle/MutableRectangle.
+  - library: 'dart:math'
+    class: '_RectangleBase'
   - library: 'dart:nativewrappers'
   - library: 'dart:typed_data'
   - library: 'dart:vmservice_io'

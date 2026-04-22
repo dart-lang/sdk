@@ -224,17 +224,11 @@ class AnnotationVerifier {
   void _checkDeprecatedOptional(Annotation node) {
     var parent = node.parent;
     if (parent is FormalParameter) {
-      FormalParameterList parameterList;
-      if (parent.parent case FormalParameterList parent2) {
-        parameterList = parent2;
-      } else if (parent.parent case DefaultFormalParameter(
-        parent: FormalParameterList parent2,
-      )) {
-        parameterList = parent2;
-      } else {
+      if (parent.parent is! FormalParameterList) {
         // We shouldn't get here; if we do, don't report the annotation.
         return;
       }
+      var parameterList = parent.parent as FormalParameterList;
 
       // This annotation is only valid on method declarations, constructor
       // declarations, and top-level function declarations.
@@ -357,11 +351,19 @@ class AnnotationVerifier {
       }
     } else if (parent is ConstructorDeclaration) {
       var element = parent.declaredFragment!.element;
-      var class_ = element.enclosingElement;
-      if (class_.isPrivate || parentElementIsPrivate) {
+      if (element.isPrivate || element.enclosingElement.isPrivate) {
         _diagnosticReporter.report(
           diag.invalidInternalAnnotation.at(node.name),
         );
+      }
+    } else if (parent is PrimaryConstructorBody) {
+      var element = parent.declaration?.declaredFragment?.element;
+      if (element != null) {
+        if (element.isPrivate || element.enclosingElement.isPrivate) {
+          _diagnosticReporter.report(
+            diag.invalidInternalAnnotation.at(node.name),
+          );
+        }
       }
     } else if (parentElementIsPrivate) {
       _diagnosticReporter.report(diag.invalidInternalAnnotation.at(node.name));
@@ -687,9 +689,8 @@ class AnnotationVerifier {
       }
 
       for (var arg in arguments) {
-        if (arg is NamedExpression &&
-            arg.name.label.name == 'parameterDefined') {
-          return arg.expression;
+        if (arg is NamedArgument && arg.name.lexeme == 'parameterDefined') {
+          return arg.argumentExpression;
         }
       }
 

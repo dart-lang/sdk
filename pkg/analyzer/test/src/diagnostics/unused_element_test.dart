@@ -1001,6 +1001,22 @@ extension<T> on List<T> {
 ''');
   }
 
+  test_extension_unnamed_operator_isUsed_generic() async {
+    await assertNoErrorsInCode(r'''
+extension<T> on T Function(T) {
+  T Function(T) operator*(T Function(T) other) {
+    return (value) => this(other(value));
+  }
+}
+
+void f() {
+  var g = (int i) => i + 1;
+  g *= (i) => i + 10;
+  print(g(0));
+}
+''');
+  }
+
   test_extension_unnamed_operator_isUsed_relationalPattern() async {
     await assertNoErrorsInCode(r'''
 void f(int? x) {

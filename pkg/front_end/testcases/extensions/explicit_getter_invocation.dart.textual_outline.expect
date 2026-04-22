@@ -1,5 +1,6 @@
 extension E on int {
-  int Function(int) get f => (x) => x;
+  int Function(int) get f =>
+      (x) => x;
   m() {}
 }
 

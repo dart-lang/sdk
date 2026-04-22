@@ -116,12 +116,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
-    node.scope = nameScope;
-    node.parameter.accept(this);
-  }
-
-  @override
   void visitEmptyClassBody(EmptyClassBody node) {}
 
   @override
@@ -183,9 +177,11 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
-    _scopeContext.visitFieldFormalParameter(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
+    _visitFormalParameter(node);
   }
+
+  @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {}
 
   @override
   void visitFormalParameterList(FormalParameterList node) {
@@ -201,14 +197,6 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   @override
   void visitFunctionTypeAlias(covariant FunctionTypeAliasImpl node) {
     _scopeContext.visitFunctionTypeAlias(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
-  ) {
-    _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
     nodesToBuildType.addDeclaration(node);
   }
 
@@ -352,15 +340,13 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    node.type?.accept(this);
-    nodesToBuildType.addDeclaration(node);
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
+    _visitFormalParameter(node);
   }
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
-    _scopeContext.visitSuperFormalParameter(node, visitor: this);
-    nodesToBuildType.addDeclaration(node);
+    _visitFormalParameter(node);
   }
 
   @override
@@ -415,5 +401,10 @@ class ReferenceResolver extends ThrowingAstVisitor<void> {
     } else {
       return NullabilitySuffix.none;
     }
+  }
+
+  void _visitFormalParameter(FormalParameterImpl node) {
+    _scopeContext.visitFormalParameter(node, visitor: this);
+    nodesToBuildType.addDeclaration(node);
   }
 }

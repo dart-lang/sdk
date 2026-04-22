@@ -110,7 +110,7 @@ void f() {
 
 Text createEmptyText() => Text('');
 ''');
-    var childExpression = findNode.namedExpression('child: ');
+    var childExpression = findNode.namedArgument('child: ');
     expect(childExpression.findWidgetExpression, isNull);
   }
 
@@ -521,7 +521,7 @@ Text createEmptyText() => new Text('');
     }
 
     {
-      var expression = findNode.namedExpression('child: ');
+      var expression = findNode.namedArgument('child: ');
       expect(expression.isWidgetExpression, isFalse);
     }
 

@@ -27,7 +27,6 @@
     (set 0 (ref.func $int.parse))
     (set 1 (ref.func $"mainImpl <noInline>")))
   (func $"mainImpl <noInline>" (param $var0 i32) (result (ref null $#Top))
-    (local $var1 (ref $MyConstClass))
     i64.const 0
     i32.const 2
     call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)

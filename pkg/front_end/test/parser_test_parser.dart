@@ -206,7 +206,6 @@ class TestParser extends Parser {
     Token beginToken,
     Token modifierStart,
     Token keyword,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -217,7 +216,6 @@ class TestParser extends Parser {
       '$beginToken, '
       '$modifierStart, '
       '$keyword, '
-      '$macroToken, '
       '$sealedToken, '
       '$baseToken, '
       '$interfaceToken, '
@@ -228,7 +226,6 @@ class TestParser extends Parser {
       beginToken,
       modifierStart,
       keyword,
-      macroToken,
       sealedToken,
       baseToken,
       interfaceToken,
@@ -881,7 +878,6 @@ class TestParser extends Parser {
   Token parseClassOrNamedMixinApplication(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -894,7 +890,6 @@ class TestParser extends Parser {
       'parseClassOrNamedMixinApplication('
       '$beginToken, '
       '$abstractToken, '
-      '$macroToken, '
       '$sealedToken, '
       '$baseToken, '
       '$interfaceToken, '
@@ -907,7 +902,6 @@ class TestParser extends Parser {
     var result = super.parseClassOrNamedMixinApplication(
       beginToken,
       abstractToken,
-      macroToken,
       sealedToken,
       baseToken,
       interfaceToken,

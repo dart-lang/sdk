@@ -9,8 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -54,9 +52,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (node.parent is GenericFunctionType) return;
 
     for (var param in node.parameters) {
-      if (!param.isFinal) continue;
-      if (param.notDefault case SimpleFormalParameter(:var keyword?)) {
-        rule.reportAtToken(keyword);
+      if (param.finalKeyword case var finalKeyword?) {
+        if (param.functionTypedSuffix != null) continue;
+        if (param is FieldFormalParameter) continue;
+        if (param is SuperFormalParameter) continue;
+        rule.reportAtToken(finalKeyword);
       }
     }
   }

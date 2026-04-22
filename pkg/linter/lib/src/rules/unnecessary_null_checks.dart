@@ -129,11 +129,11 @@ DartType? getExpectedType(
     }
   }
   // as parameter of function
-  if (parent is NamedExpression) {
+  if (parent is NamedArgument) {
     realNode = parent;
     parent = parent.parent;
   }
-  if (parent is ArgumentList && realNode is Expression) {
+  if (parent is ArgumentList && realNode is Argument) {
     var grandParent = parent.parent;
     if (grandParent is InstanceCreationExpression) {
       var constructor = grandParent.constructorName.element;

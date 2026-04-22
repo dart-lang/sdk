@@ -18,8 +18,6 @@ class Import {
 
   final PrefixFragment? prefixFragment;
 
-  final bool isAugmentationImport;
-
   final bool deferred;
 
   final String? prefix;
@@ -41,17 +39,16 @@ class Import {
   /// This set in [SourceLibraryBuilder._addDependencies].
   LibraryDependency? libraryDependency;
 
-  Import(
-    SourceCompilationUnit importer,
-    this.importedCompilationUnit,
-    this.isAugmentationImport,
-    this.deferred,
-    this.prefix,
-    this.combinators,
-    this.configurations,
-    Uri fileUri,
-    this.importOffset,
-    this.prefixOffset, {
+  Import({
+    required SourceCompilationUnit importer,
+    required this.importedCompilationUnit,
+    required this.deferred,
+    required this.prefix,
+    required this.combinators,
+    required this.configurations,
+    required Uri fileUri,
+    required this.importOffset,
+    required this.prefixOffset,
     this.nativeImportPath,
   }) : prefixFragment = createPrefixFragment(
          prefix,

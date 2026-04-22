@@ -114,9 +114,6 @@ class AstBuilder extends StackListener {
   /// Whether the 'enhanced_parts' feature is enabled.
   final bool enableEnhancedParts;
 
-  /// Whether the 'macros' feature is enabled.
-  final bool enableMacros;
-
   /// `true` if records are enabled
   final bool enableRecords;
 
@@ -171,7 +168,6 @@ class AstBuilder extends StackListener {
        enableSuperParameters = _featureSet.isEnabled(Feature.super_parameters),
        enableEnhancedEnums = _featureSet.isEnabled(Feature.enhanced_enums),
        enableEnhancedParts = _featureSet.isEnabled(Feature.enhanced_parts),
-       enableMacros = _featureSet.isEnabled(Feature.macros),
        enableRecords = _featureSet.isEnabled(Feature.records),
        enableUnnamedLibraries = _featureSet.isEnabled(Feature.unnamedLibraries),
        enableInlineClass = _featureSet.isEnabled(Feature.inline_class),
@@ -231,7 +227,6 @@ class AstBuilder extends StackListener {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -242,16 +237,6 @@ class AstBuilder extends StackListener {
   ) {
     assert(_classLikeBuilder == null);
     push(_Modifiers()..abstractKeyword = abstractToken);
-    if (!enableMacros) {
-      if (macroToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.macros,
-          startToken: macroToken,
-        );
-        // Pretend that 'macro' didn't occur while this feature is incomplete.
-        macroToken = null;
-      }
-    }
     if (!enableSealedClass) {
       if (sealedToken != null) {
         _reportFeatureNotEnabled(
@@ -298,7 +283,6 @@ class AstBuilder extends StackListener {
         mixinToken = null;
       }
     }
-    push(macroToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -514,7 +498,6 @@ class AstBuilder extends StackListener {
   void beginNamedMixinApplication(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -524,16 +507,6 @@ class AstBuilder extends StackListener {
     Token name,
   ) {
     push(_Modifiers()..abstractKeyword = abstractToken);
-    if (!enableMacros) {
-      if (macroToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.macros,
-          startToken: macroToken,
-        );
-        // Pretend that 'macro' didn't occur while this feature is incomplete.
-        macroToken = null;
-      }
-    }
     if (!enableSealedClass) {
       if (sealedToken != null) {
         _reportFeatureNotEnabled(
@@ -579,7 +552,6 @@ class AstBuilder extends StackListener {
         mixinToken = null;
       }
     }
-    push(macroToken ?? NullValues.Token);
     push(sealedToken ?? NullValues.Token);
     push(baseToken ?? NullValues.Token);
     push(interfaceToken ?? NullValues.Token);
@@ -827,7 +799,6 @@ class AstBuilder extends StackListener {
       comment: null,
       metadata: null,
       abstractKeyword: null,
-      macroKeyword: null,
       sealedKeyword: null,
       baseKeyword: null,
       interfaceKeyword: null,
@@ -983,9 +954,9 @@ class AstBuilder extends StackListener {
     assert(optional(')', rightParenthesis));
     debugEvent("Arguments");
 
-    var expressions = popTypedList2<ExpressionImpl>(count);
-    for (var expression in expressions) {
-      reportErrorIfSuper(expression);
+    var expressions = popTypedList2<ArgumentImpl>(count);
+    for (var argument in expressions) {
+      reportErrorIfSuper(argument.argumentExpression);
     }
 
     var argumentList = ArgumentListImpl(
@@ -997,7 +968,7 @@ class AstBuilder extends StackListener {
     if (!enableNamedArgumentsAnywhere) {
       bool hasSeenNamedArgument = false;
       for (var expression in expressions) {
-        if (expression is NamedExpressionImpl) {
+        if (expression is NamedArgumentImpl) {
           hasSeenNamedArgument = true;
         } else if (hasSeenNamedArgument) {
           // Positional argument after named argument.
@@ -1815,157 +1786,121 @@ class AstBuilder extends StackListener {
       );
     }
 
-    var defaultValue = pop() as _ParameterDefaultValue?;
+    var defaultClause = pop() as FormalParameterDefaultClauseImpl?;
     var name = pop() as SimpleIdentifierImpl?;
-    var typeOrFunctionTypedParameter = pop() as AstNodeImpl?;
+    var typeOrFunctionTypedParameter = pop();
     var modifiers = pop() as _Modifiers?;
     var keyword = modifiers?.finalConstOrVarKeyword;
     var covariantKeyword = modifiers?.covariantKeyword;
     var requiredKeyword = modifiers?.requiredToken;
+
+    Token? typeOrFunctionTypedBeginToken;
+    switch (typeOrFunctionTypedParameter) {
+      case AstNodeImpl self:
+        typeOrFunctionTypedBeginToken = self.beginToken;
+      case _FunctionTypedFormalParameterData(
+        :var returnType,
+        :var functionTypedSuffix,
+      ):
+        typeOrFunctionTypedBeginToken =
+            returnType?.beginToken ?? functionTypedSuffix.beginToken;
+    }
 
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(
       metadata,
       modifiers?.beginToken ??
           thisKeyword ??
-          typeOrFunctionTypedParameter?.beginToken ??
+          typeOrFunctionTypedBeginToken ??
           nameToken,
     );
 
-    NormalFormalParameterImpl node;
-    if (typeOrFunctionTypedParameter is FunctionTypedFormalParameterImpl) {
-      // This is a temporary AST node that was constructed in
-      // [endFunctionTypedFormalParameter]. We now deconstruct it and create
-      // the final AST node.
-      if (superKeyword != null) {
-        assert(
-          thisKeyword == null,
-          "Can't have both 'this' and 'super' in a parameter.",
-        );
-        node = SuperFormalParameterImpl(
-          name: name!.token,
-          comment: comment,
-          metadata: metadata,
-          covariantKeyword: covariantKeyword,
-          keyword: keyword,
-          requiredKeyword: requiredKeyword,
-          type: typeOrFunctionTypedParameter.returnType,
-          superKeyword: superKeyword,
-          period: periodAfterThisOrSuper!,
-          typeParameters: typeOrFunctionTypedParameter.typeParameters,
-          parameters: typeOrFunctionTypedParameter.parameters,
-          question: typeOrFunctionTypedParameter.question,
-        );
-      } else if (thisKeyword != null) {
-        assert(
-          superKeyword == null,
-          "Can't have both 'this' and 'super' in a parameter.",
-        );
-        node = FieldFormalParameterImpl(
-          name: name!.token,
-          comment: comment,
-          metadata: metadata,
-          covariantKeyword: covariantKeyword,
-          keyword: keyword,
-          requiredKeyword: requiredKeyword,
-          type: typeOrFunctionTypedParameter.returnType,
-          thisKeyword: thisKeyword,
-          period: periodAfterThisOrSuper!,
-          typeParameters: typeOrFunctionTypedParameter.typeParameters,
-          parameters: typeOrFunctionTypedParameter.parameters,
-          question: typeOrFunctionTypedParameter.question,
-        );
-      } else {
-        node = FunctionTypedFormalParameterImpl(
-          name: name!.token,
-          comment: comment,
-          metadata: metadata,
-          covariantKeyword: covariantKeyword,
-          requiredKeyword: requiredKeyword,
-          keyword: varOrFinal,
-          returnType: typeOrFunctionTypedParameter.returnType,
-          typeParameters: typeOrFunctionTypedParameter.typeParameters,
-          parameters: typeOrFunctionTypedParameter.parameters,
-          question: typeOrFunctionTypedParameter.question,
-        );
-      }
+    TypeAnnotationImpl? type;
+    FunctionTypedFormalParameterSuffixImpl? functionTypedSuffix;
+    if (typeOrFunctionTypedParameter is _FunctionTypedFormalParameterData) {
+      type = typeOrFunctionTypedParameter.returnType;
+      functionTypedSuffix = typeOrFunctionTypedParameter.functionTypedSuffix;
     } else {
-      var type = typeOrFunctionTypedParameter as TypeAnnotationImpl?;
-      if (superKeyword != null) {
-        assert(
-          thisKeyword == null,
-          "Can't have both 'this' and 'super' in a parameter.",
-        );
-        if (keyword is KeywordToken && keyword.keyword == Keyword.VAR) {
-          handleRecoverableError(
-            fe_diag.extraneousModifier.withArguments(lexeme: keyword),
-            keyword,
-            keyword,
-          );
-        }
-        node = SuperFormalParameterImpl(
-          comment: comment,
-          metadata: metadata,
-          covariantKeyword: covariantKeyword,
-          requiredKeyword: requiredKeyword,
-          keyword: keyword,
-          type: type,
-          superKeyword: superKeyword,
-          period: periodAfterThisOrSuper!,
-          name: name!.token,
-          typeParameters: null,
-          parameters: null,
-          question: null,
-        );
-      } else if (thisKeyword != null) {
-        assert(
-          superKeyword == null,
-          "Can't have both 'this' and 'super' in a parameter.",
-        );
-        node = FieldFormalParameterImpl(
-          comment: comment,
-          metadata: metadata,
-          covariantKeyword: covariantKeyword,
-          requiredKeyword: requiredKeyword,
-          keyword: keyword,
-          type: type,
-          thisKeyword: thisKeyword,
-          period: thisKeyword.next!,
-          name: name!.token,
-          typeParameters: null,
-          parameters: null,
-          question: null,
-        );
-      } else {
-        node = SimpleFormalParameterImpl(
-          comment: comment,
-          metadata: metadata,
-          covariantKeyword: covariantKeyword,
-          requiredKeyword: requiredKeyword,
-          keyword: keyword,
-          type: type,
-          name: name?.token,
+      type = typeOrFunctionTypedParameter as TypeAnnotationImpl?;
+    }
+
+    if (functionTypedSuffix != null &&
+        (thisKeyword != null || superKeyword != null) &&
+        keyword is KeywordToken) {
+      var keywordKind = keyword.keyword;
+      if (keywordKind == Keyword.CONST ||
+          keywordKind == Keyword.FINAL ||
+          keywordKind == Keyword.VAR) {
+        handleRecoverableError(
+          fe_diag.functionTypedParameterVar,
+          keyword,
+          keyword,
         );
       }
     }
 
     ParameterKind analyzerKind = _toAnalyzerParameterKind(kind);
-    FormalParameterImpl parameter = node;
-    if (analyzerKind != ParameterKind.REQUIRED) {
-      parameter = DefaultFormalParameterImpl(
-        parameter: node,
-        kind: analyzerKind,
-        separator: defaultValue?.separator,
-        defaultValue: defaultValue?.value,
+
+    FormalParameterImpl parameter;
+    if (superKeyword != null) {
+      assert(
+        thisKeyword == null,
+        "Can't have both 'this' and 'super' in a parameter.",
       );
-    } else if (defaultValue != null) {
-      // An error is reported if a required parameter has a default value.
-      // Record it as named parameter for recovery.
-      parameter = DefaultFormalParameterImpl(
-        parameter: node,
-        kind: ParameterKind.NAMED,
-        separator: defaultValue.separator,
-        defaultValue: defaultValue.value,
+      if (functionTypedSuffix == null &&
+          keyword is KeywordToken &&
+          keyword.keyword == Keyword.VAR) {
+        handleRecoverableError(
+          fe_diag.extraneousModifier.withArguments(lexeme: keyword),
+          keyword,
+          keyword,
+        );
+      }
+      parameter = SuperFormalParameterImpl(
+        comment: comment,
+        metadata: metadata,
+        kind: analyzerKind,
+        covariantKeyword: covariantKeyword,
+        requiredKeyword: requiredKeyword,
+        constFinalOrVarKeyword: keyword,
+        type: type,
+        superKeyword: superKeyword,
+        period: periodAfterThisOrSuper!,
+        name: name!.token,
+        functionTypedSuffix: functionTypedSuffix,
+        defaultClause: defaultClause,
+      );
+    } else if (thisKeyword != null) {
+      assert(
+        superKeyword == null,
+        "Can't have both 'this' and 'super' in a parameter.",
+      );
+      parameter = FieldFormalParameterImpl(
+        comment: comment,
+        metadata: metadata,
+        kind: analyzerKind,
+        covariantKeyword: covariantKeyword,
+        requiredKeyword: requiredKeyword,
+        constFinalOrVarKeyword: keyword,
+        type: type,
+        thisKeyword: thisKeyword,
+        period: periodAfterThisOrSuper!,
+        name: name!.token,
+        functionTypedSuffix: functionTypedSuffix,
+        defaultClause: defaultClause,
+      );
+    } else {
+      parameter = RegularFormalParameterImpl(
+        comment: comment,
+        metadata: metadata,
+        kind: analyzerKind,
+        covariantKeyword: covariantKeyword,
+        requiredKeyword: requiredKeyword,
+        constFinalOrVarKeyword: keyword,
+        type: type,
+        name: name?.token,
+        functionTypedSuffix: functionTypedSuffix,
+        defaultClause: defaultClause,
       );
     }
     push(parameter);
@@ -2092,20 +2027,16 @@ class AstBuilder extends StackListener {
     var returnType = pop() as TypeAnnotationImpl?;
     var typeParameters = pop() as TypeParameterListImpl?;
 
-    // Create a temporary formal parameter that will be dissected later in
+    // Create temporary data that will be attached to the concrete parameter in
     // [endFormalParameter].
     push(
-      FunctionTypedFormalParameterImpl(
-        comment: null,
-        metadata: null,
-        covariantKeyword: null,
-        requiredKeyword: null,
-        keyword: null,
-        name: StringToken(TokenType.IDENTIFIER, '', 0),
+      _FunctionTypedFormalParameterData(
         returnType: returnType,
-        typeParameters: typeParameters,
-        parameters: formalParameters,
-        question: question,
+        functionTypedSuffix: FunctionTypedFormalParameterSuffixImpl(
+          typeParameters: typeParameters,
+          formalParameters: formalParameters,
+          question: question,
+        ),
       ),
     );
   }
@@ -2189,7 +2120,7 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     assert(optional('import', importKeyword));
     assert(optionalOrNull(';', semicolon));
     debugEvent("Import");
@@ -2202,17 +2133,6 @@ class AstBuilder extends StackListener {
     var uri = pop() as StringLiteralImpl;
     var metadata = pop() as List<AnnotationImpl>?;
     var comment = _findComment(metadata, importKeyword);
-
-    if (!enableMacros) {
-      if (augmentToken != null) {
-        _reportFeatureNotEnabled(
-          feature: ExperimentalFeatures.macros,
-          startToken: augmentToken,
-        );
-        // Pretend that 'augment' didn't occur while this feature is incomplete.
-        augmentToken = null;
-      }
-    }
 
     directives.add(
       ImportDirectiveImpl(
@@ -2620,7 +2540,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    pop(NullValues.Token) as Token?; // macroKeyword
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -2771,6 +2690,7 @@ class AstBuilder extends StackListener {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
@@ -2839,7 +2759,7 @@ class AstBuilder extends StackListener {
   void endRecordLiteral(Token leftParenthesis, int count, Token? constKeyword) {
     debugEvent("RecordLiteral");
 
-    var fields = popTypedList<ExpressionImpl>(count) ?? const [];
+    var fields = popTypedList<RecordLiteralFieldImpl>(count) ?? const [];
     var rightParenthesis = leftParenthesis.endGroup!;
 
     if (enableRecords) {
@@ -2857,7 +2777,7 @@ class AstBuilder extends StackListener {
         startToken: leftParenthesis,
       );
 
-      var expression = fields.firstOrNull;
+      var expression = fields.firstOrNull?.fieldExpression;
       expression ??= SimpleIdentifierImpl(
         token: parser.rewriter.insertSyntheticIdentifier(leftParenthesis),
       );
@@ -3033,10 +2953,11 @@ class AstBuilder extends StackListener {
     Set<String> labels = <String>{};
     for (var member in members) {
       for (var label in member.labels) {
-        if (!labels.add(label.label.name)) {
+        var lexeme = label.name.lexeme;
+        if (!labels.add(lexeme)) {
           handleRecoverableError(
             fe_diag.duplicateLabelInSwitchStatement.withArguments(
-              labelName: label.label.name,
+              labelName: lexeme,
             ),
             label.beginToken,
             label.beginToken,
@@ -3747,11 +3668,14 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("BreakStatement");
 
-    var label = hasTarget ? pop() as SimpleIdentifierImpl : null;
+    var labelIdentifier = hasTarget ? pop() as Token : null;
+    var labelReference = labelIdentifier != null
+        ? LabelReferenceImpl(name: labelIdentifier)
+        : null;
     push(
       BreakStatementImpl(
         breakKeyword: breakKeyword,
-        label: label,
+        label: labelReference,
         semicolon: semicolon,
       ),
     );
@@ -3879,7 +3803,6 @@ class AstBuilder extends StackListener {
     var interfaceKeyword = pop(NullValues.Token) as Token?;
     var baseKeyword = pop(NullValues.Token) as Token?;
     var sealedKeyword = pop(NullValues.Token) as Token?;
-    var macroKeyword = pop(NullValues.Token) as Token?;
     var modifiers = pop() as _Modifiers?;
     var typeParameters = pop() as TypeParameterListImpl?;
     var name = pop() as SimpleIdentifierImpl;
@@ -3892,7 +3815,6 @@ class AstBuilder extends StackListener {
       comment: comment,
       metadata: metadata,
       abstractKeyword: abstractKeyword,
-      macroKeyword: macroKeyword,
       sealedKeyword: sealedKeyword,
       baseKeyword: baseKeyword,
       interfaceKeyword: interfaceKeyword,
@@ -3942,11 +3864,14 @@ class AstBuilder extends StackListener {
     assert(optional(';', semicolon));
     debugEvent("ContinueStatement");
 
-    var label = hasTarget ? pop() as SimpleIdentifierImpl : null;
+    var labelIdentifier = hasTarget ? pop() as Token : null;
+    var labelReference = labelIdentifier != null
+        ? LabelReferenceImpl(name: labelIdentifier)
+        : null;
     push(
       ContinueStatementImpl(
         continueKeyword: continueKeyword,
-        label: label,
+        label: labelReference,
         semicolon: semicolon,
       ),
     );
@@ -4456,7 +4381,9 @@ class AstBuilder extends StackListener {
 
     if (context.inSymbol ||
         context == IdentifierContext.dottedName ||
-        context == IdentifierContext.dottedNameContinuation) {
+        context == IdentifierContext.dottedNameContinuation ||
+        context == IdentifierContext.labelDeclaration ||
+        context == IdentifierContext.labelReference) {
       push(token);
       return;
     }
@@ -4684,8 +4611,8 @@ class AstBuilder extends StackListener {
     assert(optionalOrNull(':', colon));
     debugEvent("Label");
 
-    var name = pop() as SimpleIdentifierImpl;
-    push(LabelImpl(label: name, colon: colon));
+    var name = pop() as Token;
+    push(LabelImpl(name: name, colon: colon));
   }
 
   @override
@@ -4966,9 +4893,10 @@ class AstBuilder extends StackListener {
     var name = pop() as SimpleIdentifierImpl;
 
     push(
-      NamedExpressionImpl(
-        name: LabelImpl(label: name, colon: colon),
-        expression: expression,
+      NamedArgumentImpl(
+        name: name.token,
+        colon: colon,
+        argumentExpression: expression,
       ),
     );
   }
@@ -4983,7 +4911,20 @@ class AstBuilder extends StackListener {
   }
 
   @override
-  void handleNamedRecordField(Token colon) => handleNamedArgument(colon);
+  void handleNamedRecordField(Token colon) {
+    debugEvent("NamedRecordField");
+
+    var expression = pop() as ExpressionImpl;
+    var name = pop() as SimpleIdentifierImpl;
+
+    push(
+      RecordLiteralNamedFieldImpl(
+        name: name.token,
+        colon: colon,
+        fieldExpression: expression,
+      ),
+    );
+  }
 
   @override
   void handleNativeClause(Token nativeToken, bool hasName) {
@@ -5711,7 +5652,7 @@ class AstBuilder extends StackListener {
     debugEvent("ValuedFormalParameter");
 
     var value = pop() as ExpressionImpl;
-    push(_ParameterDefaultValue(equals, value));
+    push(FormalParameterDefaultClauseImpl(separator: equals, value: value));
   }
 
   @override
@@ -5941,11 +5882,10 @@ class AstBuilder extends StackListener {
 
     if (modifiers?.externalKeyword != null) {
       for (var formalParameter in parameters.parameters) {
-        var notDefault = formalParameter.notDefault;
-        if (notDefault is FieldFormalParameterImpl) {
+        if (formalParameter is FieldFormalParameterImpl) {
           diagnosticReporter.diagnosticReporter?.report(
             diag.externalConstructorWithFieldInitializers.at(
-              notDefault.thisKeyword,
+              formalParameter.thisKeyword,
             ),
           );
         }
@@ -6263,14 +6203,17 @@ class AstBuilder extends StackListener {
       return FormalParameterListImpl(
         leftParenthesis: formalParameters.leftParenthesis,
         parameters: [
-          SimpleFormalParameterImpl(
+          RegularFormalParameterImpl(
             comment: null,
             metadata: null,
+            kind: ParameterKind.REQUIRED,
             covariantKeyword: null,
             requiredKeyword: null,
-            keyword: null,
+            constFinalOrVarKeyword: null,
             type: null,
             name: valueNameToken,
+            functionTypedSuffix: null,
+            defaultClause: null,
           ),
         ],
         leftDelimiter: null,
@@ -6289,7 +6232,7 @@ class AstBuilder extends StackListener {
     );
     return FormalParameterListImpl(
       leftParenthesis: formalParameters.leftParenthesis,
-      parameters: [valueFormalParameter.notDefault],
+      parameters: [valueFormalParameter],
       leftDelimiter: null,
       rightDelimiter: null,
       rightParenthesis: formalParameters.rightParenthesis,
@@ -6420,7 +6363,6 @@ class AstBuilder extends StackListener {
 class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token? abstractKeyword;
-  final Token? macroKeyword;
   final Token? sealedKeyword;
   final Token? baseKeyword;
   final Token? interfaceKeyword;
@@ -6445,7 +6387,6 @@ class _ClassDeclarationBuilder extends _ClassLikeDeclarationBuilder {
     required super.rightBracket,
     required this.augmentKeyword,
     required this.abstractKeyword,
-    required this.macroKeyword,
     required this.sealedKeyword,
     required this.baseKeyword,
     required this.interfaceKeyword,
@@ -6695,6 +6636,18 @@ class _ExtensionTypeDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   }
 }
 
+/// Data structure placed on the stack to carry function-typed parameter parts
+/// until the concrete formal parameter node is built.
+class _FunctionTypedFormalParameterData {
+  final TypeAnnotationImpl? returnType;
+  final FunctionTypedFormalParameterSuffixImpl functionTypedSuffix;
+
+  _FunctionTypedFormalParameterData({
+    required this.returnType,
+    required this.functionTypedSuffix,
+  });
+}
+
 class _MixinDeclarationBuilder extends _ClassLikeDeclarationBuilder {
   final Token? augmentKeyword;
   final Token? baseKeyword;
@@ -6826,15 +6779,6 @@ class _OptionalFormalParameters {
     this.leftDelimiter,
     this.rightDelimiter,
   );
-}
-
-/// Data structure placed on the stack to represent the default parameter
-/// value with the separator token.
-class _ParameterDefaultValue {
-  final Token separator;
-  final ExpressionImpl value;
-
-  _ParameterDefaultValue(this.separator, this.value);
 }
 
 /// Data structure placed on the stack to represent the parenthesized condition

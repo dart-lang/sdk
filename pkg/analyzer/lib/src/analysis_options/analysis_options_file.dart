@@ -60,17 +60,25 @@ final class AnalysisOptionsFileKeys {
 
   // Plugins options.
   static const String diagnostics = 'diagnostics';
+  static const String git = 'git';
   static const String path = 'path';
+  static const String ref = 'ref';
+  static const String tagPattern = 'tag_pattern';
+  static const String url = 'url';
   static const String version = 'version';
   static const String hosted = 'hosted';
 
   /// Supported 'plugins' options.
   static const Set<String> pluginsOptions = {
     diagnostics,
+    git,
     path,
     version,
     hosted,
   };
+
+  /// Supported 'git' options.
+  static const Set<String> gitOptions = {url, ref, path, tagPattern};
 
   static const String propagateLinterExceptions = 'propagate-linter-exceptions';
 

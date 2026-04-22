@@ -28,9 +28,9 @@ class RemoveUnnecessaryFinal extends ResolvedCorrectionProducer {
     var node = this.node;
     Token? keyword;
     if (node is FieldFormalParameter) {
-      keyword = node.keyword;
+      keyword = node.constFinalOrVarKeyword;
     } else if (node is SuperFormalParameter) {
-      keyword = node.keyword;
+      keyword = node.constFinalOrVarKeyword;
     }
     if (keyword == null) return;
 

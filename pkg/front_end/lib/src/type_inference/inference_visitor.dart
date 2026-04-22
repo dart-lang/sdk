@@ -200,8 +200,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     this._constructorBuilder,
     this.operations,
     this.typeAnalyzerOptions,
-    super.expressionEvaluationHelper,
-  ) : _contextAllocationStrategy = new LoopDepthAllocationStrategy();
+    super.expressionEvaluationHelper, {
+    required ContextAllocationStrategy contextAllocationStrategy,
+  }) : _contextAllocationStrategy = contextAllocationStrategy;
 
   @override
   ThisVariable get internalThisVariable =>
@@ -539,7 +540,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (scopeProviderInfo != null) {
       // Coverage-ignore-block(suite): Not run.
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return new ExpressionInferenceResult(valueResult.inferredType, node);
   }
@@ -1288,7 +1289,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return statementInferenceResult;
   }
@@ -3575,7 +3576,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.body = body..parent = node;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return const StatementInferenceResult();
   }
@@ -3716,7 +3717,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.for_end();
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return const StatementInferenceResult();
   }
@@ -3787,13 +3788,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ScopeProviderInfo beginFunctionBodyInference(
     List<VariableDeclaration> parameters, {
     required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
-    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
-        .enterScopeProvider(
-          scopeProviderInfoKind: internalThisVariable == null
-              ? ScopeProviderInfoKind.FunctionNode
-              : ScopeProviderInfoKind.FunctionNodeWithThis,
-        );
+    scopeProviderInfo ??= _contextAllocationStrategy.enterScopeProvider(
+      scopeProviderInfoKind: internalThisVariable == null
+          ? ScopeProviderInfoKind.FunctionNode
+          : ScopeProviderInfoKind.FunctionNodeWithThis,
+    );
     if (internalThisVariable != null) {
       _contextAllocationStrategy.handleDeclarationOfVariable(
         internalThisVariable,
@@ -3860,7 +3861,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.function.scope = scopeProviderInfo.scope;
+      node.function.scope = scopeProviderInfo.scope?..parent = node.function;
     }
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -4734,7 +4735,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [element]
       // is desugared into.
-      element.scope = scopeProviderInfo.scope;
+      element.scope = scopeProviderInfo.scope?..parent = element;
     }
     return new ExpressionInferenceResult(bodyResult.inferredType, element);
   }
@@ -7912,7 +7913,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [entry]
       // is desugared into.
-      entry.scope = scopeProviderInfo.scope;
+      entry.scope = scopeProviderInfo.scope?..parent = entry;
     }
     return entry;
   }
@@ -12208,6 +12209,146 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, node);
   }
 
+  ExpressionInferenceResult visitAnonymousMethodExpression(
+    AnonymousMethodExpression node,
+    DartType typeContext,
+  ) {
+    DartType variableType = node.variable.type;
+    ExpressionInferenceResult initializerResult = inferExpression(
+      node.variable.initializer!,
+      const UnknownType(),
+      continueNullShorting: true,
+    );
+
+    Expression initializer = initializerResult.expression;
+    DartType initializerType = initializerResult.inferredType;
+
+    if (initializerType is VoidType) {
+      // Coverage-ignore-block(suite): Not run.
+      initializer = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: initializer,
+        message: diag.voidExpression,
+        fileUri: fileUri,
+        fileOffset: initializer.fileOffset,
+        length: noLength,
+      );
+    }
+
+    if (node.isImplicitlyTyped) {
+      // Coverage-ignore-block(suite): Not run.
+      node.variable.type = node.isNullAware
+          ? initializerType.toNonNull()
+          : initializerType;
+    } else {
+      DartType checkedType = node.isNullAware
+          ?
+            // Coverage-ignore(suite): Not run.
+            initializerType.toNonNull()
+          : initializerType;
+      if (!isAssignable(variableType, checkedType)) {
+        initializer = wrapUnassignableExpression(
+          initializer,
+          checkedType,
+          variableType,
+          diag.anonymousMethodWrongParameterTypeCfe.withArguments(
+            receiverType: checkedType,
+            parameterType: variableType,
+          ),
+          fileOffset: node.variable.fileOffset,
+        );
+      }
+    }
+    node.variable.initializer = initializer..parent = node.variable;
+
+    flowAnalysis.declare(
+      node.variable,
+      new SharedTypeView(node.variable.type),
+      initialized: true,
+    );
+    if (node.isNullAware) {
+      // Coverage-ignore-block(suite): Not run.
+      flow.nullAwareAccess_rightBegin(
+        flowAnalysis.getExpressionInfo(node.variable.initializer!),
+        new SharedTypeView(initializerType),
+        guardVariable: node.variable,
+      );
+    }
+
+    ExpressionInferenceResult bodyResult = inferExpression(
+      node.body,
+      typeContext,
+      isVoidAllowed: true,
+    );
+
+    if (node.isNullAware) {
+      // Coverage-ignore-block(suite): Not run.
+      flow.nullAwareAccess_end();
+    }
+
+    DartType inferredType;
+    Expression body;
+
+    if (node.isCascade) {
+      // Coverage-ignore-block(suite): Not run.
+      inferredType = initializerType;
+
+      VariableDeclaration tempVar = new VariableDeclaration(
+        null,
+        initializer: bodyResult.expression,
+        isSynthesized: true,
+      )..fileOffset = node.fileOffset;
+
+      body = new Let(tempVar, new VariableGet(node.variable))
+        ..fileOffset = node.fileOffset;
+    } else {
+      inferredType = bodyResult.inferredType;
+      body = bodyResult.expression;
+    }
+
+    Expression replacement;
+    if (node.isNullAware) {
+      // Coverage-ignore-block(suite): Not run.
+      VariableDeclaration tempVar =
+          new VariableDeclaration(
+              null,
+              initializer: node.variable.initializer!,
+              isSynthesized: true,
+            )
+            ..type = initializerType
+            ..fileOffset = node.fileOffset;
+
+      Expression condition = new EqualsNull(new VariableGet(tempVar));
+      Expression thenExpression = new NullLiteral();
+
+      node.variable.initializer = new AsExpression(
+        new VariableGet(tempVar),
+        node.variable.type,
+      )
+            ..fileOffset = node.fileOffset
+            ..parent = node.variable;
+
+      Expression elseExpression = new Let(node.variable, body)
+        ..fileOffset = node.fileOffset;
+
+      replacement = new Let(
+        tempVar,
+        new ConditionalExpression(
+          condition,
+          thenExpression,
+          elseExpression,
+          inferredType.withDeclaredNullability(Nullability.nullable),
+        ),
+      )..fileOffset = node.fileOffset;
+
+      inferredType = inferredType.withDeclaredNullability(Nullability.nullable);
+    } else {
+      replacement = new Let(node.variable, body)..fileOffset = node.fileOffset;
+    }
+
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
   ExpressionInferenceResult visitPropertySet(
     PropertySet node,
     DartType typeContext,
@@ -13484,7 +13625,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
   }
 
@@ -13703,7 +13844,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.whileStatement_end();
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope =
+          scopeProviderInfo
+              .scope // Coverage-ignore(suite): Not run.
+            ?..parent = node;
     }
     return const StatementInferenceResult();
   }
@@ -17233,6 +17377,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new StatementInferenceResult.multiple(node.fileOffset, result);
     }
     return const StatementInferenceResult();
+  }
+
+  @override
+  ScopeProviderInfo beginFieldInference({
+    required ThisVariable? internalThisVariable,
+  }) {
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(
+          scopeProviderInfoKind: internalThisVariable == null
+              ? ScopeProviderInfoKind.StaticField
+              : ScopeProviderInfoKind.InstanceField,
+        );
+    if (internalThisVariable != null) {
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        internalThisVariable,
+        captureKind: _captureKindForVariable(internalThisVariable),
+      );
+    }
+    return scopeProviderInfo;
+  }
+
+  @override
+  void endFieldInference(ScopeProviderInfo scopeProviderInfo) {
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
   }
 }
 

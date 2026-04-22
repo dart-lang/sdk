@@ -2969,19 +2969,15 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: x
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: x
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 1
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: y
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: y
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 2
     rightParenthesis: )
 ''');

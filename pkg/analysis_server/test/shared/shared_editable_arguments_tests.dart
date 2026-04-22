@@ -227,6 +227,16 @@ class MyWidget extends StatelessWidget {
     expect(result, hasArg(isArg('a', defaultValue: null)));
   }
 
+  Future<void> test_defaultValue_primaryConstructor() async {
+    var result = await getEditableArgumentsFor(r'''
+class MyWidget(int a, {int? b = 1}) extends StatelessWidget {
+  @override
+  Widget build(BuildContext context) => MyW^idget(1);
+}
+''');
+    expect(result, hasArg(isArg('b', defaultValue: 1)));
+  }
+
   Future<void> test_documentation_fieldParameter_literal() async {
     var result = await getEditableArgumentsFor('''
 class MyWidget extends StatelessWidget {
@@ -334,6 +344,32 @@ class MyWidget extends StatelessWidget {
     int? aNamedNotSupplied,
   });
 
+  @override
+  Widget build(BuildContext context) => MyW^idget(1, aNamedSupplied: 1);
+}
+''');
+    expect(
+      result,
+      hasArgs(
+        unorderedEquals([
+          isArg('aPositionalSupplied', hasArgument: true),
+          isArg('aPositionalNotSupplied', hasArgument: false),
+          isArg('aNamedSupplied', hasArgument: true),
+          isArg('aNamedNotSupplied', hasArgument: false),
+        ]),
+      ),
+    );
+  }
+
+  Future<void> test_hasArgument_primaryConstructor() async {
+    failTestOnErrorDiagnostic = false;
+    var result = await getEditableArgumentsFor('''
+class MyWidget(
+  int? aPositionalSupplied,
+  int? aPositionalNotSupplied, {
+  int? aNamedSupplied,
+  int? aNamedNotSupplied,
+}) extends StatelessWidget {
   @override
   Widget build(BuildContext context) => MyW^idget(1, aNamedSupplied: 1);
 }

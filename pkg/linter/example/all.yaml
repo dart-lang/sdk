@@ -187,6 +187,7 @@ linter:
     - unnecessary_brace_in_string_interps
     - unnecessary_breaks
     - unnecessary_const
+    - unnecessary_const_in_enum_constructor
     - unnecessary_constructor_name
     - unnecessary_final
     - unnecessary_getters_setters
@@ -209,6 +210,7 @@ linter:
     - unnecessary_string_interpolations
     - unnecessary_this
     - unnecessary_to_list_in_spreads
+    - unnecessary_type_name_in_constructor
     - unnecessary_unawaited
     - unnecessary_underscores
     - unreachable_from_main

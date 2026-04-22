@@ -8,10 +8,12 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/source.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,6 +28,20 @@ main() {
 
 @reflectiveTest
 class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
+  void buildLibrary({List<ClassSpec> classes = const []}) {
+    testLibrary = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: const ['dart:core'],
+        classes: classes,
+      ),
+    );
+  }
+
+  ClassElementImpl classElement(String name) {
+    return testLibrary.getClass(name)!;
+  }
+
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
     var tFrom = typeParameter('TFrom');
@@ -47,30 +63,37 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByOuterClass() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', supertype: 'A'),
+        ClassSpec(
+          name: 'C',
+          typeParameters: ['T'],
+          typeParameterBounds: {'T': 'A'},
+          methods: [
+            MethodSpec(
+              name: 'm',
+              typeParameters: ['S'],
+              typeParameterBounds: {'S': 'T'},
+              formalParameters: 'S _',
+              returnType: 'S',
+            ),
+          ],
+        ),
+      ],
+    );
+
     // class A {}
-    var A = class_2(name: 'A', superType: objectNone);
+    var A = classElement('A');
     var typeA = interfaceTypeNone(A);
 
     // class B extends A {}
-    var B = class_2(name: 'B', superType: typeA);
+    var B = classElement('B');
     var typeB = interfaceTypeNone(B);
 
-    // class C<T extends A> {
-    var CT = typeParameter('T', bound: typeA);
-    var C = class_2(name: 'C', superType: objectNone, typeParameters: [CT]);
-    //   S m<S extends T>(S);
-    var S = typeParameter('S', bound: typeParameterTypeNone(CT));
-    var m = method(
-      'm',
-      typeParameterTypeNone(S),
-      typeParameters: [S],
-      formalParameters: [
-        requiredParameter(name: '_', type: typeParameterTypeNone(S)),
-      ],
-    );
-    C.firstFragment.methods = [m];
-    C.methods = [m.element];
-    // }
+    // class C<T extends A> { S m<S extends T>(S); }
+    var C = classElement('C');
 
     // C<Object> cOfObject;
     var cOfObject = interfaceTypeNone(C, typeArguments: [objectNone]);
@@ -99,31 +122,37 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByOuterClassSubstituted() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
+    buildLibrary(
+      classes: [
+        ClassSpec(name: 'A'),
+        ClassSpec(name: 'B', supertype: 'A'),
+        ClassSpec(
+          name: 'C',
+          typeParameters: ['T'],
+          typeParameterBounds: {'T': 'A'},
+          methods: [
+            MethodSpec(
+              name: 'm',
+              typeParameters: ['S'],
+              typeParameterBounds: {'S': 'Iterable<T>'},
+              formalParameters: 'S _',
+              returnType: 'S',
+            ),
+          ],
+        ),
+      ],
+    );
+
     // class A {}
-    var A = class_2(name: 'A', superType: objectNone);
+    var A = classElement('A');
     var typeA = interfaceTypeNone(A);
 
     // class B extends A {}
-    var B = class_2(name: 'B', superType: typeA);
+    var B = classElement('B');
     var typeB = interfaceTypeNone(B);
 
-    // class C<T extends A> {
-    var CT = typeParameter('T', bound: typeA);
-    var C = class_2(name: 'C', superType: objectNone, typeParameters: [CT]);
-    //   S m<S extends Iterable<T>>(S);
-    var iterableOfT = iterableNone(typeParameterTypeNone(CT));
-    var S = typeParameter('S', bound: iterableOfT);
-    var m = method(
-      'm',
-      typeParameterTypeNone(S),
-      typeParameters: [S],
-      formalParameters: [
-        requiredParameter(name: '_', type: typeParameterTypeNone(S)),
-      ],
-    );
-    C.firstFragment.methods = [m];
-    C.methods = [m.element];
-    // }
+    // class C<T extends A> { S m<S extends Iterable<T>>(S); }
+    var C = classElement('C');
 
     // C<Object> cOfObject;
     var cOfObject = interfaceTypeNone(C, typeArguments: [objectNone]);
@@ -151,18 +180,22 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void test_boundedRecursively() {
-    // class A<T extends A<T>>
-    var T = typeParameter('T');
-    var A = class_2(
-      name: 'Cloneable',
-      superType: objectNone,
-      typeParameters: [T],
+    buildLibrary(
+      classes: [
+        ClassSpec(
+          name: 'Cloneable',
+          typeParameters: ['T'],
+          typeParameterBounds: {'T': 'Cloneable<T>'},
+        ),
+        ClassSpec(name: 'B', supertype: 'Cloneable<B>'),
+      ],
     );
-    T.bound = interfaceTypeNone(A, typeArguments: [typeParameterTypeNone(T)]);
+
+    // class A<T extends A<T>>
+    var A = classElement('Cloneable');
 
     // class B extends A<B> {}
-    var B = class_2(name: 'B');
-    B.supertype = interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
+    var B = classElement('B');
     var typeB = interfaceTypeNone(B);
 
     // <S extends A<S>>

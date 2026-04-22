@@ -622,7 +622,6 @@ class LibraryBuilder {
       nameOffset: unlinkedName?.nameOffset,
       isDeferred: isDeferred,
     )..offset = offset;
-    fragment.enclosingFragment = libraryFragment;
 
     var refName = getReferenceName(unlinkedName?.name);
     var reference = this.reference

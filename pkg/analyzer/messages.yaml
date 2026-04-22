@@ -1334,7 +1334,7 @@ CompileTimeErrorCode:
       Type receiverType: the name of the type of the receiver
       Type parameterType: the name of the declared parameter type
     experiment: anonymous-methods
-    problemMessage: The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' of an anonymous method.
+    problemMessage: The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' in an anonymous method.
     correctionMessage: Try removing the parameter type, or make it a supertype of the receiver type.
     hasPublishedDocs: false
   argumentTypeNotAssignable:
@@ -1868,6 +1868,13 @@ CompileTimeErrorCode:
     experiment: augmentations
     problemMessage: The declaration being augmented doesn't exist.
     correctionMessage: Try changing the augmentation to match an existing declaration.
+    hasPublishedDocs: false
+  augmentationOfMixinApplicationClass:
+    type: compileTimeError
+    parameters: none
+    experiment: augmentations
+    problemMessage: "Mixin application classes can't be augmented."
+    correctionMessage: Try removing the 'augment' keyword, or making the target a normal class.
     hasPublishedDocs: false
   augmentedExpressionIsNotSetter:
     type: compileTimeError
@@ -4527,8 +4534,8 @@ CompileTimeErrorCode:
   deferredImportOfExtension:
     type: compileTimeError
     parameters: none
-    problemMessage: Imports of deferred libraries must hide all extensions.
-    correctionMessage: Try adding either a show combinator listing the names you need to reference or a hide combinator listing all of the extensions.
+    problemMessage: Deferred library imports must hide all extension declarations.
+    correctionMessage: Try adding either a show combinator listing the names you need to reference or a hide combinator listing all of the extension declarations.
     hasPublishedDocs: true
     documentation: |-
       #### Description
@@ -8729,7 +8736,7 @@ CompileTimeErrorCode:
       ```dart
       class C {
         static int? a;
-        C([!this.a!]);
+        C([!this!].a);
       }
       ```
 

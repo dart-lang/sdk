@@ -459,6 +459,8 @@ typedef Dart_Handle (*Dart_CreateAppAOTSnapshotAndRelocatableObjectType)(
 typedef Dart_Handle (*Dart_CreateVMAOTSnapshotAsAssemblyType)(
     Dart_StreamingWriteCallback,
     void*);
+typedef Dart_Handle (*Dart_WriteCallbackStubType)(Dart_StreamingWriteCallback,
+                                                  void*);
 typedef Dart_Handle (*Dart_SortClassesType)();
 typedef Dart_Handle (*Dart_CreateAppJITSnapshotAsBlobsType)(uint8_t**,
                                                             intptr_t*,
@@ -772,6 +774,7 @@ static Dart_CreateAppAOTSnapshotAndRelocatableObjectType
     Dart_CreateAppAOTSnapshotAndRelocatableObjectFn = NULL;
 static Dart_CreateVMAOTSnapshotAsAssemblyType
     Dart_CreateVMAOTSnapshotAsAssemblyFn = NULL;
+static Dart_WriteCallbackStubType Dart_WriteCallbackStubFn = NULL;
 static Dart_SortClassesType Dart_SortClassesFn = NULL;
 static Dart_CreateAppJITSnapshotAsBlobsType Dart_CreateAppJITSnapshotAsBlobsFn =
     NULL;
@@ -1368,6 +1371,8 @@ BOOL WINAPI DllMain(HINSTANCE hinstDLL, DWORD fdwReason, LPVOID lpvReserved) {
     Dart_CreateVMAOTSnapshotAsAssemblyFn =
         (Dart_CreateVMAOTSnapshotAsAssemblyType)GetProcAddress(
             process, "Dart_CreateVMAOTSnapshotAsAssembly");
+    Dart_WriteCallbackStubFn = (Dart_WriteCallbackStubType)GetProcAddress(
+        process, "Dart_WriteCallbackStub");
     Dart_SortClassesFn =
         (Dart_SortClassesType)GetProcAddress(process, "Dart_SortClasses");
     Dart_CreateAppJITSnapshotAsBlobsFn =
@@ -2699,6 +2704,11 @@ Dart_Handle Dart_CreateVMAOTSnapshotAsAssembly(
     Dart_StreamingWriteCallback callback,
     void* callback_data) {
   return Dart_CreateVMAOTSnapshotAsAssemblyFn(callback, callback_data);
+}
+
+Dart_Handle Dart_WriteCallbackStub(Dart_StreamingWriteCallback callback,
+                                   void* callback_data) {
+  return Dart_WriteCallbackStubFn(callback, callback_data);
 }
 
 Dart_Handle Dart_SortClasses() {

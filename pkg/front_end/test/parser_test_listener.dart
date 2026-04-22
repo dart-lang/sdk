@@ -284,7 +284,6 @@ class ParserTestListener implements Listener {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -295,7 +294,6 @@ class ParserTestListener implements Listener {
   ) {
     seen(begin);
     seen(abstractToken);
-    seen(macroToken);
     seen(sealedToken);
     seen(baseToken);
     seen(interfaceToken);
@@ -307,7 +305,6 @@ class ParserTestListener implements Listener {
       'beginClassDeclaration('
       '$begin, '
       '$abstractToken, '
-      '$macroToken, '
       '$sealedToken, '
       '$baseToken, '
       '$interfaceToken, '
@@ -583,16 +580,19 @@ class ParserTestListener implements Listener {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
     indent--;
     seen(beginToken);
+    seen(endToken);
     seen(constKeyword);
     doPrint(
       'endPrimaryConstructor('
       '$kind, '
       '$beginToken, '
+      '$endToken, '
       '$constKeyword, '
       '$hasConstructorName)',
     );
@@ -1513,7 +1513,6 @@ class ParserTestListener implements Listener {
   void beginNamedMixinApplication(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1524,7 +1523,6 @@ class ParserTestListener implements Listener {
   ) {
     seen(beginToken);
     seen(abstractToken);
-    seen(macroToken);
     seen(sealedToken);
     seen(baseToken);
     seen(interfaceToken);
@@ -1536,7 +1534,6 @@ class ParserTestListener implements Listener {
       'beginNamedMixinApplication('
       '$beginToken, '
       '$abstractToken, '
-      '$macroToken, '
       '$sealedToken, '
       '$baseToken, '
       '$interfaceToken, '
@@ -1718,15 +1715,13 @@ class ParserTestListener implements Listener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     indent--;
     seen(importKeyword);
-    seen(augmentToken);
     seen(semicolon);
     doPrint(
       'endImport('
       '$importKeyword, '
-      '$augmentToken, '
       '$semicolon)',
     );
   }

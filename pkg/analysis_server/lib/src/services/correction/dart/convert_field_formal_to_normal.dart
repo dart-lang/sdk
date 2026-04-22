@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -24,10 +25,15 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var parameter = node;
-    if (parameter is! FieldFormalParameter || parameter.parameters != null) {
+    if (parameter is! FieldFormalParameter ||
+        parameter.functionTypedSuffix != null) {
       return;
     }
-    var field = parameter.declaredFragment?.element.field;
+    var element = parameter.declaredFragment?.element;
+    if (element is! FieldFormalParameterElement) {
+      return;
+    }
+    var field = element.field;
     if (field == null) {
       return;
     }

@@ -1,0 +1,12 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  constructor •(positional-parameter x) → self::A
+    ;
+}
+class B extends self::A {
+  constructor •(positional-parameter x) → self::B
+    ;
+}

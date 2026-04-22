@@ -706,7 +706,7 @@ PropertyAccess
 void f({a = b?..foo}) {}
 ''');
 
-    var node = findNode.defaultParameter('a =');
+    var node = findNode.singleFormalParameter;
     assertResolvedNodeText(node, r'''
 RegularFormalParameter
   name: a

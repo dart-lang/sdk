@@ -277,6 +277,8 @@ dependency_overrides:
     path: third_party/pkg/test/pkgs/test
   test_api:
     path: third_party/pkg/test/pkgs/test_api
+  test_case_selector:
+    path: third_party/pkg/native/pkgs/test_case_selector
   test_core:
     path: third_party/pkg/test/pkgs/test_core
   test_descriptor:

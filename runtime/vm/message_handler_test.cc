@@ -162,23 +162,15 @@ VM_UNIT_TEST_CASE(MessageHandler_HasOOBMessages) {
   std::unique_ptr<Message> message = BlankMessage(1, Message::kNormalPriority);
   handler_peer.PostMessage(std::move(message));
   EXPECT(!handler.HasOOBMessages());
-  {
-    // Acquire ownership of message handler queues, verify one regular message.
-    MessageHandler::AcquiredQueues aq(&handler);
-    EXPECT(aq.queue()->Length() == 1);
-  }
+  EXPECT_EQ(1, handler.GetMessageCounts().num_messages);
 
   // Post an oob message.
   message = BlankMessage(1, Message::kOOBPriority);
   handler_peer.PostMessage(std::move(message));
   EXPECT(handler.HasOOBMessages());
-  {
-    // Acquire ownership of message handler queues, verify one regular and one
-    // OOB message.
-    MessageHandler::AcquiredQueues aq(&handler);
-    EXPECT(aq.queue()->Length() == 1);
-    EXPECT(aq.oob_queue()->Length() == 1);
-  }
+  const auto count = handler.GetMessageCounts();
+  EXPECT_EQ(1, count.num_messages);
+  EXPECT_EQ(1, count.num_oob_messages);
 
   // Delete all pending messages.
   handler_peer.OnAllPortsClosed();
@@ -285,11 +277,7 @@ VM_UNIT_TEST_CASE(MessageHandler_HandleNextMessage_Shutdown) {
   Dart_Port* ports = handler.port_buffer();
   EXPECT_EQ(port2, ports[0]);  // oob_message1, ok
   EXPECT_EQ(port3, ports[1]);  // oob_message2, shutdown
-  {
-    // The oob queue has been cleared.  oob_message3 is gone.
-    MessageHandler::AcquiredQueues aq(&handler);
-    EXPECT(aq.oob_queue()->Length() == 0);
-  }
+  EXPECT(!handler.HasOOBMessages());
   handler_peer.OnAllPortsClosed();
 }
 

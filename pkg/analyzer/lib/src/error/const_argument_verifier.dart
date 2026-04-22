@@ -127,7 +127,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
   }
 
   void _check({
-    required List<Expression> arguments,
+    required List<Argument> arguments,
     required SyntacticEntity errorNode,
   }) {
     for (var argument in arguments) {
@@ -142,12 +142,7 @@ class ConstArgumentsVerifier extends SimpleAstVisitor<void> {
       }
 
       if (parameter.metadata.hasMustBeConst) {
-        Expression resolvedArgument;
-        if (parameter.isNamed) {
-          resolvedArgument = (argument as NamedExpression).expression;
-        } else {
-          resolvedArgument = argument;
-        }
+        var resolvedArgument = argument.argumentExpression;
         if (!_isConst(resolvedArgument)) {
           _diagnosticReporter.report(
             diag.nonConstArgumentForConstParameter

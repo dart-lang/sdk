@@ -38,6 +38,7 @@ import 'package:analysis_server/src/services/correction/dart/add_super_parameter
 import 'package:analysis_server/src/services/correction/dart/add_switch_case_break.dart';
 import 'package:analysis_server/src/services/correction/dart/add_trailing_comma.dart';
 import 'package:analysis_server/src/services/correction/dart/add_type_annotation.dart';
+import 'package:analysis_server/src/services/correction/dart/add_type_name.dart';
 import 'package:analysis_server/src/services/correction/dart/ambiguous_import_fix.dart';
 import 'package:analysis_server/src/services/correction/dart/change_argument_name.dart';
 import 'package:analysis_server/src/services/correction/dart/change_to.dart';
@@ -180,6 +181,7 @@ import 'package:analysis_server/src/services/correction/dart/remove_this_express
 import 'package:analysis_server/src/services/correction/dart/remove_to_list.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_annotation.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_type_arguments.dart';
+import 'package:analysis_server/src/services/correction/dart/remove_type_name.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unawaited.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unexpected_underscores.dart';
 import 'package:analysis_server/src/services/correction/dart/remove_unnecessary_cast.dart';
@@ -438,6 +440,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.unnecessaryBraceInStringInterps: [RemoveInterpolationBraces.new],
   diag.unnecessaryBreaks: [RemoveBreak.new],
   diag.unnecessaryConst: [RemoveUnnecessaryConst.new],
+  diag.unnecessaryConstInEnumConstructor: [RemoveUnnecessaryConst.new],
   diag.unnecessaryConstructorName: [RemoveConstructorName.new],
   diag.unnecessaryFinalWithType: [ReplaceFinalWithVar.new],
   diag.unnecessaryFinalWithoutType: [ReplaceFinalWithVar.new],
@@ -469,6 +472,7 @@ final _builtInLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   ],
   diag.unnecessaryToListInSpreads: [RemoveToList.new],
   diag.unnecessaryThis: [RemoveThisExpression.new],
+  diag.unnecessaryTypeNameInConstructor: [RemoveTypeName.new],
   diag.unnecessaryUnawaited: [RemoveUnawaited.new],
   diag.unnecessaryUnderscores: [ConvertToWildcardVariable.automatically],
   diag.unreachableFromMain: [RemoveUnusedElement.new],
@@ -553,6 +557,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
     ReplaceEmptyMapPattern.empty,
   ],
   diag.enumWithAbstractMember: [ConvertIntoBlockBody.missingBody],
+  diag.experimentNotEnabled: [AddTypeName.new],
   diag.extendsDisallowedClass: [RemoveNameFromDeclarationClause.new],
   diag.extendsNonClass: [
     ChangeTo.classOrMixin,

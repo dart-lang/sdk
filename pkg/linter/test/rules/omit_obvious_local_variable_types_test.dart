@@ -458,6 +458,25 @@ f(Object o) {
 ''');
   }
 
+  test_recordLiteral_namedFields() async {
+    await assertNoDiagnostics(r'''
+f() {
+  ({String path}) main = (path: 'main.dart');
+}
+''');
+  }
+
+  test_recordLiteral_positionalFields() async {
+    await assertDiagnostics(
+      r'''
+f() {
+  (int, String) main = (1, 'a');
+}
+''',
+      [lint(8, 13)],
+    );
+  }
+
   test_switch_pattern_object() async {
     await assertNoDiagnostics(r'''
 class A {

@@ -7,13 +7,15 @@ class A {
 }
 
 class B {
-  String Function() get call => () => "My name is B";
+  String Function() get call =>
+      () => "My name is B";
 }
 
 errors() {}
 
 extension on String {
-  String Function() get call => () => "My name is String";
+  String Function() get call =>
+      () => "My name is String";
 }
 
 extension on int {

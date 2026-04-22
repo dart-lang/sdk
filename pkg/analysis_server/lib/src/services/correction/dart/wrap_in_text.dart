@@ -55,9 +55,9 @@ class WrapInText extends ResolvedCorrectionProducer {
   static _Context? _extractContextInformation(AstNode node) {
     if (node is Expression) {
       var parent = node.parent;
-      if (parent is NamedExpression) {
+      if (parent is NamedArgument) {
         if (node.typeOrThrow.isDartCoreString) {
-          var parameterElement = parent.name.label.element;
+          var parameterElement = parent.correspondingParameter;
           if (parameterElement is FormalParameterElement) {
             return _Context(
               stringExpression: node,

@@ -9,652 +9,771 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(AugmentationOfDifferentDeclarationKindTest);
+    defineReflectiveTests(AugmentationOfDifferentDeclarationKindTest);
   });
 }
 
 @reflectiveTest
 class AugmentationOfDifferentDeclarationKindTest
     extends PubPackageResolutionTest {
-  test_class_augmentedBy_enum() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_augments_enum() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment enum A {}
+enum A {v}
+augment class A {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          11,
+          7,
+          contextMessages: [message(testFile, 5, 1)],
+        ),
+      ],
     );
   }
 
-  test_class_augmentedBy_extension() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_augments_extension() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment extension A {}
+extension A on int {}
+augment class A {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          22,
+          7,
+          contextMessages: [message(testFile, 10, 1)],
+        ),
+      ],
     );
   }
 
-  test_class_augmentedBy_extensionType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_augments_extensionType() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment extension type A(int it) {}
+extension type A(int it) {}
+augment class A {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          28,
+          7,
+          contextMessages: [message(testFile, 15, 1)],
+        ),
+      ],
     );
   }
 
-  test_class_augmentedBy_function() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_augments_function() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment void A() {}
+void foo() {}
+augment class foo {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          14,
+          7,
+          contextMessages: [message(testFile, 5, 3)],
+        ),
+      ],
     );
   }
 
-  test_class_augmentedBy_mixin() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_augments_getter() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment mixin A {}
+int get foo => 0;
+augment class foo {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          18,
+          7,
+          contextMessages: [message(testFile, 8, 3)],
+        ),
+      ],
     );
   }
 
-  test_class_augmentedBy_typedef() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_augments_mixin() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment typedef A = int;
+mixin A {}
+augment class A {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          11,
+          7,
+          contextMessages: [message(testFile, 6, 1)],
+        ),
+      ],
     );
   }
 
-  test_class_augmentedBy_variable() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_augments_setter() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment int A = 0;
+set foo(int _) {}
+augment class foo {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          18,
+          7,
+          contextMessages: [message(testFile, 4, 3)],
+        ),
+      ],
     );
   }
 
-  test_class_constructor_augmentedBy_constructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_class_augments_variable() async {
+    await assertErrorsInCode(
+      r'''
+int foo = 0;
+augment class foo {}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          13,
+          7,
+          contextMessages: [message(testFile, 4, 3)],
+        ),
+      ],
+    );
+  }
 
+  test_class_constructor_augments_constructor() async {
+    await assertNoErrorsInCode(r'''
 class A {
   A.foo();
 }
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
 augment class A {
   augment A.foo();
 }
 ''');
   }
 
-  test_class_constructor_augmentedBy_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  A.foo();
-}
-''');
-
+  test_class_constructor_augments_staticField() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment class A {
-  augment int foo = 0;
-}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
-    );
-  }
-
-  test_class_constructor_augmentedBy_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
 class A {
-  A.foo();
+  static int foo = 0;
 }
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment class A {
-  augment int get foo => 0;
-}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
-    );
-  }
-
-  test_class_constructor_augmentedBy_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  A.foo();
-}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment class A {
-  augment void foo() {}
-}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
-    );
-  }
-
-  test_class_constructor_augmentedBy_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  A.foo();
-}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment class A {
-  augment set foo(int _) {}
-}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
-    );
-  }
-
-  test_class_field_augmentedBy_constructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int foo = 0;
-}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment class A {
   augment A.foo();
 }
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          54,
+          7,
+          contextMessages: [message(testFile, 23, 3)],
+        ),
+      ],
     );
   }
 
-  test_class_field_augmentedBy_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_class_constructor_augments_staticMethod() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  static void foo() {}
+}
+augment class A {
+  augment A.foo();
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          55,
+          7,
+          contextMessages: [message(testFile, 24, 3)],
+        ),
+      ],
+    );
+  }
 
+  test_class_instanceField_augments_instanceField() async {
+    await assertNoErrorsInCode(r'''
 class A {
   int foo = 0;
 }
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
 augment class A {
   augment int foo = 1;
 }
 ''');
   }
 
-  test_class_field_augmentedBy_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int foo = 0;
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
-augment class A {
-  augment int get foo => 0;
-}
-''');
-  }
-
-  test_class_field_augmentedBy_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int foo = 0;
-}
-''');
-
+  test_class_instanceField_augments_instanceMethod() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment class A {
-  augment void foo() {}
-}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
-    );
-  }
-
-  test_class_field_augmentedBy_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int foo = 0;
-}
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
-augment class A {
-  augment set foo(int _) {}
-}
-''');
-  }
-
-  test_class_getter_augmentedBy_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  int get foo => 0;
-}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment class A {
-  augment void foo() {}
-}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
-    );
-  }
-
-  test_class_method_augmentedBy_constructor() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
 class A {
   void foo() {}
 }
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment class A {
-  augment A.foo();
-}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
-    );
-  }
-
-  test_class_method_augmentedBy_field() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {
-  void foo() {}
-}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment class A {
   augment int foo = 0;
 }
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          48,
+          7,
+          contextMessages: [message(testFile, 17, 3)],
+        ),
+        error(
+          diag.duplicateDefinition,
+          60,
+          3,
+          contextMessages: [message(testFile, 17, 3)],
+        ),
+      ],
     );
   }
 
-  test_class_method_augmentedBy_getter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_class_instanceGetter_augments_instanceField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo = 0;
+}
+augment class A {
+  augment int get foo => 0;
+}
+''');
+  }
 
+  test_class_instanceGetter_augments_instanceMethod() async {
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment class A {
   augment int get foo => 0;
 }
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          48,
+          7,
+          contextMessages: [message(testFile, 17, 3)],
+        ),
+      ],
     );
   }
 
-  test_class_method_augmentedBy_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_class_instanceMethod_augments_instanceField() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int foo = 0;
+}
+augment class A {
+  augment void foo() {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          47,
+          7,
+          contextMessages: [message(testFile, 16, 3)],
+        ),
+      ],
+    );
+  }
 
+  test_class_instanceMethod_augments_instanceGetter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  int get foo => 0;
+}
+augment class A {
+  augment void foo() {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          52,
+          7,
+          contextMessages: [message(testFile, 20, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_instanceMethod_augments_instanceMethod() async {
+    await assertNoErrorsInCode(r'''
 class A {
   void foo() {}
 }
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
 augment class A {
   augment void foo() {}
 }
 ''');
   }
 
-  test_class_method_augmentedBy_setter() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_class_instanceMethod_augments_instanceSetter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  set foo(int _) {}
+}
+augment class A {
+  augment void foo() {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          52,
+          7,
+          contextMessages: [message(testFile, 16, 3)],
+        ),
+      ],
+    );
+  }
 
+  test_class_instanceSetter_augments_instanceField() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  int foo = 0;
+}
+augment class A {
+  augment set foo(int _) {}
+}
+''');
+  }
+
+  test_class_instanceSetter_augments_instanceMethod() async {
+    await assertErrorsInCode(
+      r'''
 class A {
   void foo() {}
 }
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment class A {
   augment set foo(int _) {}
 }
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          48,
+          7,
+          contextMessages: [message(testFile, 17, 3)],
+        ),
+      ],
     );
   }
 
-  test_class_setter_augmentedBy_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+  test_class_staticField_augments_constructor() async {
+    await assertErrorsInCode(
+      r'''
 class A {
-  set foo(int _) {}
+  A.foo();
 }
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment class A {
-  augment void foo() {}
+  augment static int foo = 0;
 }
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
+      [
+        error(diag.conflictingConstructorAndStaticField, 14, 3),
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          43,
+          7,
+          contextMessages: [message(testFile, 14, 3)],
+        ),
+      ],
     );
   }
 
-  test_enum_augmentedBy_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-enum A {v}
-''');
-
+  test_class_staticField_augments_staticMethod() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment class A {}
+class A {
+  static void foo() {}
+}
+augment class A {
+  augment static int foo = 0;
+}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          55,
+          7,
+          contextMessages: [message(testFile, 24, 3)],
+        ),
+        error(
+          diag.duplicateDefinition,
+          74,
+          3,
+          contextMessages: [message(testFile, 24, 3)],
+        ),
+      ],
     );
   }
 
-  test_enum_constant_augmentedBy_constant() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_class_staticGetter_augments_constructor() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A.foo();
+}
+augment class A {
+  augment static int get foo => 0;
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          43,
+          7,
+          contextMessages: [message(testFile, 14, 3)],
+        ),
+      ],
+    );
+  }
 
+  test_class_staticGetter_augments_staticMethod() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  static void foo() {}
+}
+augment class A {
+  augment static int get foo => 0;
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          55,
+          7,
+          contextMessages: [message(testFile, 24, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_staticMethod_augments_constructor() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A.foo();
+}
+augment class A {
+  augment static void foo() {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          43,
+          7,
+          contextMessages: [message(testFile, 14, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_staticMethod_augments_staticField() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  static int foo = 0;
+}
+augment class A {
+  augment static void foo() {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          54,
+          7,
+          contextMessages: [message(testFile, 23, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_staticMethod_augments_staticGetter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  static int get foo => 0;
+}
+augment class A {
+  augment static void foo() {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          59,
+          7,
+          contextMessages: [message(testFile, 27, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_staticMethod_augments_staticSetter() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  static set foo(int _) {}
+}
+augment class A {
+  augment static void foo() {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          59,
+          7,
+          contextMessages: [message(testFile, 23, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_staticSetter_augments_constructor() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A.foo();
+}
+augment class A {
+  augment static set foo(int _) {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          43,
+          7,
+          contextMessages: [message(testFile, 14, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_class_staticSetter_augments_staticMethod() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  static void foo() {}
+}
+augment class A {
+  augment static set foo(int _) {}
+}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          55,
+          7,
+          contextMessages: [message(testFile, 24, 3)],
+        ),
+      ],
+    );
+  }
+
+  test_enum_augments_class() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+augment enum A {}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          11,
+          7,
+          contextMessages: [message(testFile, 6, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_enum_constant_augments_constant() async {
+    await assertNoErrorsInCode(r'''
 enum A {
   foo
 }
-''');
-
-    await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
 augment enum A {
   augment foo(),
 }
 ''');
   }
 
-  test_enum_constant_augmentedBy_method() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-enum A {
-  foo
-}
-''');
-
+  test_enum_constant_augments_instanceMethod() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment enum A {;
-  augment static void foo() {}
-}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 39, 7)],
-    );
-  }
-
-  test_enum_method_augmentedBy_constant() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
 enum A {
   v;
   void foo() {}
 }
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment enum A {
   augment foo(),
 }
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 38, 7)],
+      [
+        error(diag.augmentationWithoutDeclaration, 51, 7),
+        error(diag.conflictingStaticAndInstance, 59, 3),
+      ],
     );
   }
 
-  test_extension_augmentedBy_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-extension A on int {}
-''');
-
+  test_enum_staticMethod_augments_constant() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment class A {}
+enum A {
+  foo
+}
+augment enum A {;
+  augment static void foo() {}
+}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          37,
+          7,
+          contextMessages: [message(testFile, 11, 3)],
+        ),
+      ],
     );
   }
 
-  test_extensionType_augmentedBy_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-extension type A(int it) {}
-''');
-
+  test_extension_augments_class() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment class A {}
+class A {}
+augment extension A {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          11,
+          7,
+          contextMessages: [message(testFile, 6, 1)],
+        ),
+      ],
     );
   }
 
-  test_mixin_augmentedBy_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-mixin A {}
-''');
-
+  test_extensionType_augments_class() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment class A {}
+class A {}
+augment extension type A(int it) {}
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          11,
+          7,
+          contextMessages: [message(testFile, 6, 1)],
+        ),
+      ],
     );
   }
 
-  test_topFunction_augmentedBy_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_function_augments_class() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+augment void A() {}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          11,
+          7,
+          contextMessages: [message(testFile, 6, 1)],
+        ),
+      ],
+    );
+  }
 
+  test_mixin_augments_class() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+augment mixin A {}
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          11,
+          7,
+          contextMessages: [message(testFile, 6, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_typedef_augments_class() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+augment typedef A = int;
+''',
+      [error(diag.typedefAugmentation, 11, 7)],
+    );
+  }
+
+  test_variable_augments_class() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+augment int A = 0;
+''',
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          11,
+          7,
+          contextMessages: [message(testFile, 6, 1)],
+        ),
+      ],
+    );
+  }
+
+  test_variable_augments_function() async {
+    await assertErrorsInCode(
+      r'''
 void foo() {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment class foo {}
+augment int foo = 0;
 ''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
-    );
-  }
-
-  test_topGetter_augmentedBy_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-int get foo => 0;
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment class foo {}
-''',
-      [error(diag.augmentationOfDifferentDeclarationKind, 19, 7)],
-    );
-  }
-
-  test_topSetter_augmentedBy_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-set foo(int _) {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment class foo {}
-''',
-      [error(diag.augmentationWithoutDeclaration, 19, 7)],
+      [
+        error(
+          diag.augmentationOfDifferentDeclarationKind,
+          14,
+          7,
+          contextMessages: [message(testFile, 5, 3)],
+        ),
+      ],
     );
   }
 }

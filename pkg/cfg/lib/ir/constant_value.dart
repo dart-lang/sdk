@@ -56,6 +56,7 @@ extension type ConstantValue(ast.Constant constant) {
     ast.NullConstant() => const NullType(),
     ast.StringConstant() => const StringType(),
     TypeArgumentsConstant() => const TypeArgumentsType(),
+    SentinelConstant() => const LateValueType(),
     _ => StaticType(
       constant.getType(GlobalContext.instance.staticTypeContextForConstants),
     ),
@@ -301,9 +302,9 @@ class TypeArgumentsConstant extends ast.AuxiliaryConstant {
   ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
 }
 
-/// Synthetic sentinel value which can be used by certain back-ends to
-/// represent the uninitialized value of a late or static field, late variable or
-/// value of an optional parameter which was not passed.
+/// Synthetic sentinel value which is used represent the uninitialized
+/// value of a late local variable, late or static field or
+/// a value of an optional parameter which was not passed.
 class SentinelConstant extends ast.AuxiliaryConstant {
   SentinelConstant();
 

@@ -116,9 +116,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
       }
 
       var argument = parameterArguments[parameter];
-      var valueExpression = argument is NamedExpression
-          ? argument.expression
-          : argument;
+      var valueExpression = argument?.argumentExpression;
 
       // Determine whether a value for this parameter is editable.
       var notEditableReason = getNotEditableReason(
@@ -315,20 +313,20 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     );
   }
 
-  /// Returns whether [argument] is a [NamedExpression] with a name of
+  /// Returns whether [argument] is a [NamedArgument] with a name of
   /// 'child' or 'children'.
-  bool _isNamedChildOrChildren(Expression argument) {
-    if (argument is! NamedExpression) {
+  bool _isNamedChildOrChildren(Argument argument) {
+    if (argument is! NamedArgument) {
       return false;
     }
 
-    return argument.name.label.name == 'child' ||
-        argument.name.label.name == 'children';
+    return argument.name.lexeme == 'child' ||
+        argument.name.lexeme == 'children';
   }
 
-  /// Returns whether [argument] is _not_ a [NamedExpression] with a name of
+  /// Returns whether [argument] is _not_ a [NamedArgument] with a name of
   /// 'child' or 'children'.
-  bool _isNotNamedChildOrChildren(Expression argument) =>
+  bool _isNotNamedChildOrChildren(Argument argument) =>
       !_isNamedChildOrChildren(argument);
 
   /// Sends [workspaceEdit] to the client and returns `null` if applied
@@ -373,14 +371,10 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
   /// Writes a replacement for [argument] to [builder].
   void _writeChangedArgument(
     DartFileEditBuilder builder,
-    Expression argument,
+    Argument argument,
     String newValueCode,
   ) {
-    // Only replace the value, not the name.
-    var argumentValue = switch (argument) {
-      NamedExpression() => argument.expression,
-      _ => argument,
-    };
+    var argumentValue = argument.argumentExpression;
 
     builder.addSimpleReplacement(
       SourceRange(argumentValue.offset, argumentValue.length),
@@ -405,7 +399,7 @@ class EditArgumentHandler extends SharedMessageHandler<EditArgumentParams, Null>
     // any earlier positional parameters are present.
     if (parameter.isPositional) {
       var existingPositionalArguments = argumentList.arguments
-          .where((a) => a is! NamedExpression)
+          .where((a) => a is! NamedArgument)
           .length;
       var unspecifiedPositionals = parameters
           .where((p) => p.isPositional)

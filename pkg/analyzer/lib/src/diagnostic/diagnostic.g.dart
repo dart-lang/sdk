@@ -509,7 +509,7 @@ anonymousMethodWrongParameterType = DiagnosticWithArguments(
   name: 'anonymous_method_wrong_parameter_type',
   problemMessage:
       "The receiver type '{0}' must be assignable to the formal parameter type "
-      "'{1}' of an anonymous method.",
+      "'{1}' in an anonymous method.",
   correctionMessage:
       "Try removing the parameter type, or make it a supertype of the "
       "receiver type.",
@@ -942,6 +942,19 @@ augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
   withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
+
+/// No parameters.
+const DiagnosticWithoutArguments augmentationOfMixinApplicationClass =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'augmentation_of_mixin_application_class',
+      problemMessage: "Mixin application classes can't be augmented.",
+      correctionMessage:
+          "Try removing the 'augment' keyword, or making the target a normal "
+          "class.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'augmentation_of_mixin_application_class',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments augmentationTypeParameterBound =
@@ -3259,10 +3272,12 @@ deferredAfterPrefix = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments deferredImportOfExtension =
     DiagnosticWithoutArgumentsImpl(
       name: 'deferred_import_of_extension',
-      problemMessage: "Imports of deferred libraries must hide all extensions.",
+      problemMessage:
+          "Deferred library imports must hide all extension declarations.",
       correctionMessage:
           "Try adding either a show combinator listing the names you need to "
-          "reference or a hide combinator listing all of the extensions.",
+          "reference or a hide combinator listing all of the extension "
+          "declarations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName: 'deferred_import_of_extension',

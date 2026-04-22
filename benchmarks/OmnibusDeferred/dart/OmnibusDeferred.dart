@@ -24,6 +24,7 @@ import '../../RecordCollections/dart/RecordCollections.dart'
 import '../../RuntimeType/dart/RuntimeType.dart' deferred as lib_RuntimeType;
 import '../../SHA1/dart/sha1.dart' deferred as lib_SHA1;
 import '../../SHA256/dart/sha256.dart' deferred as lib_SHA256;
+import '../../SimdInt32x4/dart/SimdInt32x4.dart' deferred as lib_SimdInt32x4;
 import '../../SkeletalAnimation/dart/SkeletalAnimation.dart'
     deferred as lib_SkeletalAnimation;
 import '../../SkeletalAnimationSIMD/dart/SkeletalAnimationSIMD.dart'
@@ -61,6 +62,7 @@ final Map<String, Lib> benchmarks = {
   'RuntimeType': Lib(lib_RuntimeType.loadLibrary, () => lib_RuntimeType.main()),
   'SHA1': Lib(lib_SHA1.loadLibrary, () => lib_SHA1.main()),
   'SHA256': Lib(lib_SHA256.loadLibrary, () => lib_SHA256.main()),
+  'SimdInt32x4': Lib(lib_SimdInt32x4.loadLibrary, () => lib_SimdInt32x4.main()),
   'SkeletalAnimation': Lib(
     lib_SkeletalAnimation.loadLibrary,
     () => lib_SkeletalAnimation.main(),

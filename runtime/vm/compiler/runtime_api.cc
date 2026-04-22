@@ -1038,10 +1038,6 @@ word String::InstanceSize(word payload_size) {
   return RoundedAllocationSize(String::InstanceSize() + payload_size);
 }
 
-word LocalVarDescriptors::InstanceSize() {
-  return 0;
-}
-
 word Integer::NextFieldOffset() {
   return TranslateOffsetInWords(dart::Integer::NextFieldOffset());
 }

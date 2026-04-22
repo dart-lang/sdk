@@ -5,12 +5,11 @@
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/class_hierarchy.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../generated/elements_types_mixin.dart';
 import '../../../generated/type_system_base.dart';
 
 main() {
@@ -20,40 +19,32 @@ main() {
 }
 
 @reflectiveTest
-class ClassHierarchyTest extends AbstractTypeSystemTest
-    with _AbstractClassHierarchyMixin {
-  @override
-  void setUp() {
-    super.setUp();
-    _createSharedElements();
-  }
-
+class ClassHierarchyTest extends AbstractTypeSystemTest {
   test_invalid() {
     _checkA(
-      typeArguments: [intNone, doubleNone],
+      specifiedInterfaces: ['A<int>', 'A<double>'],
       interfaces: ['A<int>'],
       errors: ['A<int> vs. A<double>'],
     );
   }
 
   test_valid_equal() {
-    _checkA(typeArguments: [intNone, intNone], interfaces: ['A<int>']);
+    _checkA(specifiedInterfaces: ['A<int>', 'A<int>'], interfaces: ['A<int>']);
   }
 
   test_valid_equal_neverNone() {
-    _checkA(typeArguments: [neverNone, neverNone], interfaces: ['A<Never>']);
+    _checkA(
+      specifiedInterfaces: ['A<Never>', 'A<Never>'],
+      interfaces: ['A<Never>'],
+    );
   }
 
   test_valid_merge() {
     _checkA(
-      typeArguments: [objectQuestion, dynamicType],
+      specifiedInterfaces: ['A<Object?>', 'A<dynamic>'],
       interfaces: ['A<Object?>'],
     );
   }
-}
-
-mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
-  late ClassElementImpl A;
 
   void _assertErrors(List<ClassHierarchyError> errors, List<String> expected) {
     expect(
@@ -79,14 +70,25 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
   }
 
   void _checkA({
-    required List<TypeImpl> typeArguments,
+    required List<String> specifiedInterfaces,
     required List<String> interfaces,
     List<String> errors = const [],
   }) {
-    var specifiedInterfaces = typeArguments
-        .map((e) => interfaceTypeNone(A, typeArguments: [e]))
-        .toList();
-    var X = class_2(name: 'X', interfaces: specifiedInterfaces);
+    var library = buildTestLibrary(
+      LibrarySpec(
+        uri: 'package:test/test.dart',
+        imports: ['dart:core'],
+        classes: [
+          ClassSpec(name: 'A', typeParameters: ['T'], supertype: 'Object'),
+          ClassSpec(
+            name: 'X',
+            supertype: 'Object',
+            interfaces: specifiedInterfaces,
+          ),
+        ],
+      ),
+    );
+    var X = library.getClass('X')!;
 
     var classHierarchy = ClassHierarchy();
 
@@ -95,11 +97,6 @@ mixin _AbstractClassHierarchyMixin on ElementsTypesMixin {
 
     var actualErrors = classHierarchy.errors(X);
     _assertErrors(actualErrors, errors);
-  }
-
-  void _createSharedElements() {
-    var T = typeParameter('T');
-    A = class_2(name: 'A', typeParameters: [T]);
   }
 
   String _interfaceString(InterfaceType interface) {

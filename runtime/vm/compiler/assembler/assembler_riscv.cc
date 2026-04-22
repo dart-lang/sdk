@@ -4930,10 +4930,10 @@ void Assembler::TransitionGeneratedToNative(Register destination,
   Register tmp = new_exit_through_ffi;
 
 #if defined(DEBUG)
-  ASSERT(T2 != TMP2);
-  mv(T2, TMP2);  // BranchIf in VerifyInGenerated clobbers TMP2.
+  ASSERT(S8 != TMP2);
+  mv(S8, TMP2);  // BranchIf in VerifyInGenerated clobbers TMP2.
   VerifyInGenerated(tmp);
-  mv(TMP2, T2);
+  mv(TMP2, S8);
 #endif
   // Mark that the thread is executing native code.
   sx(destination, Address(THR, target::Thread::vm_tag_offset()));

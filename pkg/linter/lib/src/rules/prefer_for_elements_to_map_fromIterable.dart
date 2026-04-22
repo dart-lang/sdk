@@ -74,9 +74,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     rule.reportAtNode(creation);
   }
 
-  FunctionExpression? _extractClosure(String name, Expression argument) {
-    if (argument is NamedExpression && argument.name.label.name == name) {
-      var expression = argument.expression.unParenthesized;
+  FunctionExpression? _extractClosure(String name, Argument argument) {
+    if (argument is NamedArgument && argument.name.lexeme == name) {
+      var expression = argument.argumentExpression.unParenthesized;
       if (expression is FunctionExpression) {
         var parameters = expression.parameters?.parameters;
         if (parameters != null &&

@@ -253,7 +253,7 @@ class ExtensionMemberResolver {
       return;
     }
 
-    var receiverExpression = arguments[0];
+    var receiverExpression = arguments[0].argumentExpression;
     var receiverType = receiverExpression.typeOrThrow;
 
     if (node.isNullAware) {

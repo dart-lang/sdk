@@ -57,7 +57,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
         constantsAllowed = false;
         parametersAllowed = true;
       }
-      if (parametersAllowed && instr is! Parameter && instr is! ParallelMove) {
+      if (parametersAllowed && instr is! Parameter) {
         parametersAllowed = false;
       }
       if (phisAllowed && instr is! Phi) {
@@ -332,7 +332,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitTypeCast(TypeCast instr) {
-    assert(instr.testedType is! TopType);
+    assert(instr.testedType is! TopType || !instr.isChecked);
     assert(instr.testedType is! ExtendedType);
   }
 

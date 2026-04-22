@@ -131,27 +131,29 @@ class RenameClassMemberRefactoringImpl extends RenameRefactoringImpl {
     SourceReference reference,
     FieldFormalParameterElement element,
   ) async {
-    FieldFormalParameterFragment? fragment = element.firstFragment;
+    FormalParameterFragment? fragment = element.firstFragment;
     while (fragment != null) {
-      var result = await sessionHelper.getFragmentDeclaration(fragment);
-      var node = result?.node;
-      if (node is! DefaultFormalParameter) return;
-      var parameter = node.parameter as FieldFormalParameter;
+      if (fragment is FieldFormalParameterFragment) {
+        var result = await sessionHelper.getFragmentDeclaration(fragment);
+        var node = result?.node;
+        if (node is! FieldFormalParameter) return;
+        var parameter = node;
 
-      var start = parameter.thisKeyword.offset;
-      var type = element.type.getDisplayString();
-      var edit = SourceEdit(start, parameter.period.end - start, '$type ');
-      doSourceChange_addSourceEdit(change, reference.unitSource, edit);
-
-      var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
-      if (constructor != null) {
-        var previous = constructor.separator ?? constructor.parameters;
-        var replacement = '$newName = ${parameter.name.lexeme}';
-        replacement = constructor.initializers.isEmpty
-            ? ' : $replacement'
-            : ' $replacement,';
-        var edit = SourceEdit(previous.end, 0, replacement);
+        var start = parameter.thisKeyword.offset;
+        var type = element.type.getDisplayString();
+        var edit = SourceEdit(start, parameter.period.end - start, '$type ');
         doSourceChange_addSourceEdit(change, reference.unitSource, edit);
+
+        var constructor = node.thisOrAncestorOfType<ConstructorDeclaration>();
+        if (constructor != null) {
+          var previous = constructor.separator ?? constructor.parameters;
+          var replacement = '$newName = ${parameter.name.lexeme}';
+          replacement = constructor.initializers.isEmpty
+              ? ' : $replacement'
+              : ' $replacement,';
+          var edit = SourceEdit(previous.end, 0, replacement);
+          doSourceChange_addSourceEdit(change, reference.unitSource, edit);
+        }
       }
       fragment = fragment.nextFragment;
     }
@@ -338,6 +340,18 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
   _LocalElementsCollector(this.name);
 
   @override
+  void visitFormalParameter(FormalParameter node) {
+    if (node.name?.lexeme == name) {
+      var element = node.declaredFragment?.element;
+      if (element != null) {
+        elements.add(element);
+      }
+    }
+
+    super.visitFormalParameter(node);
+  }
+
+  @override
   void visitFunctionDeclaration(FunctionDeclaration node) {
     if (node.name.lexeme == name) {
       var element = node.declaredFragment?.element;
@@ -347,18 +361,6 @@ class _LocalElementsCollector extends GeneralizingAstVisitor<void> {
     }
 
     super.visitFunctionDeclaration(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    if (node.name?.lexeme == name) {
-      var element = node.declaredFragment?.element;
-      if (element != null) {
-        elements.add(element);
-      }
-    }
-
-    super.visitSimpleFormalParameter(node);
   }
 
   @override

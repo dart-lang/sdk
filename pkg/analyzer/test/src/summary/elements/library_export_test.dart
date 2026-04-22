@@ -170,7 +170,7 @@ library
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F1
       constructors
@@ -317,7 +317,7 @@ library
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F1
       constructors
@@ -529,14 +529,14 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -579,14 +579,14 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -629,14 +629,14 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -854,7 +854,7 @@ library
         package:test/b.dart
         package:test/c.dart
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F3
       constructors
@@ -923,7 +923,7 @@ library
           combinators
             hide: A2, A4
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F2
       constructors
@@ -987,7 +987,7 @@ library
           combinators
             show: A1, A3
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F2
       constructors
@@ -1169,21 +1169,21 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F5
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F6
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       constructors
@@ -1265,7 +1265,7 @@ library
       libraryExports
         package:test/b.dart
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F2
       constructors
@@ -1311,32 +1311,32 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F2 hasInitializer isOriginDeclaration a (nameOffset:25) (firstTokenOffset:25) (offset:25)
+        #F2 hasInitializer isOriginDeclaration isStatic a (nameOffset:25) (firstTokenOffset:25) (offset:25)
           element: <testLibrary>::@topLevelVariable::a
       getters
-        #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@getter::a
       setters
-        #F4 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F4 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::a
           formalParameters
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration a
+    hasInitializer isOriginDeclaration isStatic a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@setter::a
       firstFragment: #F4
       formalParameters
@@ -1382,17 +1382,17 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F2 hasInitializer isOriginDeclaration a (nameOffset:27) (firstTokenOffset:27) (offset:27)
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:27) (firstTokenOffset:27) (offset:27)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
               literal: 0 @31
               staticType: int
       getters
-        #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasImplicitType hasInitializer isOriginDeclaration a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
@@ -1401,7 +1401,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F3
       returnType: int

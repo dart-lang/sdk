@@ -187,6 +187,15 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitBinaryExpression(BinaryExpression node) {
+    var e = node.element;
+    if (e != null) {
+      _addDeclaration(e);
+    }
+    super.visitBinaryExpression(node);
+  }
+
+  @override
   void visitClassDeclaration(ClassDeclaration node) {
     _addNamedType(node.extendsClause?.superclass);
     _addNamedTypes(node.withClause?.mixinTypes);
@@ -272,6 +281,15 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitIndexExpression(IndexExpression node) {
+    var e = node.element;
+    if (e != null) {
+      _addDeclaration(e);
+    }
+    super.visitIndexExpression(node);
+  }
+
+  @override
   void visitMethodDeclaration(MethodDeclaration node) {
     if (node.name.lexeme == 'toJson' && !node.isStatic) {
       // The 'dart:convert' library uses dynamic invocation to call `toJson` on
@@ -338,12 +356,20 @@ class _ReferenceVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitPostfixExpression(PostfixExpression node) {
+    var e = node.element;
+    if (e != null) {
+      _addDeclaration(e);
+    }
     _visitCompoundAssignmentExpression(node);
     super.visitPostfixExpression(node);
   }
 
   @override
   void visitPrefixExpression(PrefixExpression node) {
+    var e = node.element;
+    if (e != null) {
+      _addDeclaration(e);
+    }
     _visitCompoundAssignmentExpression(node);
     super.visitPrefixExpression(node);
   }

@@ -126,6 +126,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     this.expressionEvaluationHelper,
   );
 
+  static ContextAllocationStrategy createContextAllocationStrategy() {
+    return new LoopDepthAllocationStrategy();
+  }
+
   ThisVariable get internalThisVariable;
 
   // TODO(cstefantsova): Replace this flag by implementing the default
@@ -566,7 +570,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         break;
       case AssignabilityKind.unassignable:
         // Error: not assignable.  Perform error recovery.
-        result = _wrapUnassignableExpression(
+        result = wrapUnassignableExpression(
           expression,
           expressionType,
           contextType,
@@ -614,7 +618,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           whyNotPromoted ??= flowAnalysis.whyNotPromoted(
             flowAnalysis.getExpressionInfo(expression),
           );
-          result = _wrapUnassignableExpression(
+          result = wrapUnassignableExpression(
             expression,
             expressionType,
             contextType,
@@ -630,7 +634,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             ),
           );
         } else {
-          result = _wrapUnassignableExpression(
+          result = wrapUnassignableExpression(
             expression,
             expressionType,
             contextType,
@@ -742,12 +746,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return errorNode;
   }
 
-  Expression _wrapUnassignableExpression(
+  Expression wrapUnassignableExpression(
     Expression expression,
     DartType expressionType,
     DartType contextType,
     Message message, {
     List<LocatedMessage>? context,
+    int? fileOffset,
   }) {
     Expression errorNode =
         new AsExpression(
@@ -762,7 +767,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 : contextType,
           )
           ..isTypeError = true
-          ..fileOffset = expression.fileOffset;
+          ..fileOffset = fileOffset ?? expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
@@ -5522,10 +5527,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ScopeProviderInfo beginFunctionBodyInference(
     List<VariableDeclaration> parameters, {
     required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
-  /// Performs finishing computations after inferring the body of a function.
+  /// Finishes computations after inferring the body of a function.
   void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo);
+
+  /// Performs preliminary computations before inferring the field initializer.
+  ScopeProviderInfo beginFieldInference({
+    required ThisVariable? internalThisVariable,
+  });
+
+  /// Finishes computations after inferring the field initializer.
+  void endFieldInference(ScopeProviderInfo scopeProviderInfo);
 }
 
 /// Describes assignability kind of one type to another.

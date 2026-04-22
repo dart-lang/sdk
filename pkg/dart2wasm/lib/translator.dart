@@ -20,6 +20,7 @@ import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'constants.dart';
+import 'constructor_info.dart';
 import 'dispatch_table.dart';
 import 'dynamic_dispatch_table.dart';
 import 'dynamic_dispatchers.dart';
@@ -255,6 +256,7 @@ class Translator with KernelNodes {
   final Set<Member> membersContainingInnerFunctions = {};
   final Set<Member> membersBeingGenerated = {};
   final Map<Reference, Closures> constructorClosures = {};
+  final Map<Reference, ConstructorInfo> constructorInfo = {};
   late final w.ValueType voidMarker = w.RefType.def(
     w.StructType("void"),
     nullable: true,
@@ -509,6 +511,9 @@ class Translator with KernelNodes {
           () => Closures(this, member, findCaptures: true),
         )
       : Closures(this, member, findCaptures: false);
+
+  ConstructorInfo getConstructorInfo(Constructor node) =>
+      constructorInfo[node.reference] ??= ConstructorInfo(node, this);
 
   Translator(
     this.component,

@@ -9,7 +9,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
@@ -118,7 +117,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
           );
         }
 
-      case SimpleFormalParameter parameter:
+      case RegularFormalParameter parameter:
         // A constructor parameter declaration.
         await _computeChangeFromParameter(
           builder,
@@ -164,7 +163,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     FormalParameterList parameterList,
     NodeList<ConstructorInitializer>? initializers,
     Comment? documentationComment,
-    NormalFormalParameter parameter,
+    FormalParameter parameter,
     FormalParameterElement parameterElement,
     VariableElement field, {
     ConstructorFieldInitializer? initializer,
@@ -204,25 +203,27 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
       if (parameter.declaredFragment!.element.type == field.type) {
         // The parameter type is the same as the field, so remove it and let it
         // be inferred from the field.
-        switch (parameter) {
-          case FieldFormalParameter(:var type):
-          case SimpleFormalParameter(:var type):
-          case SuperFormalParameter(:var type):
-            if (type != null) builder.addDeletion(range.deletionRange(type));
-          case FunctionTypedFormalParameter(
-            :var returnType,
-            :var typeParameters,
-            :var parameters,
-          ):
-            if (returnType != null) {
-              builder.addDeletion(range.deletionRange(returnType));
-            }
-            builder.addDeletion(
-              range.deletionRange(
-                typeParameters ?? parameters,
-                overrideEnd: parameters.endToken,
-              ),
-            );
+        if (parameter.functionTypedSuffix case var functionTypedSuffix?) {
+          var type = parameter.type;
+          if (type != null) {
+            builder.addDeletion(range.deletionRange(type));
+          }
+          builder.addDeletion(
+            range.deletionRange(
+              functionTypedSuffix.typeParameters ??
+                  functionTypedSuffix.formalParameters,
+              overrideEnd: functionTypedSuffix.endToken,
+            ),
+          );
+        } else {
+          switch (parameter) {
+            case FieldFormalParameter(:var type):
+            case RegularFormalParameter(:var type):
+            case SuperFormalParameter(:var type):
+              if (type != null) {
+                builder.addDeletion(range.deletionRange(type));
+              }
+          }
         }
       }
 
@@ -301,7 +302,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
     NodeList<ConstructorInitializer>? initializers,
     Comment? documentationComment,
     FunctionBody? body,
-    NormalFormalParameter parameter,
+    FormalParameter parameter,
     FormalParameterElement parameterElement,
   ) async {
     // If there happens to be both an initializer and an assignment, the
@@ -403,7 +404,7 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   /// If [expression] is an identifier that refers to a formal parameter in the
   /// [parameterList], then returns the corresponding parameter AST node.
-  (NormalFormalParameter, FormalParameterElement)? _findParameter(
+  (FormalParameter, FormalParameterElement)? _findParameter(
     FormalParameterList parameterList,
     Expression expression,
   ) {
@@ -420,13 +421,12 @@ class ConvertToInitializingFormal extends ResolvedCorrectionProducer {
 
   /// If [element] is an element for a formal parameter in the [parameterList],
   /// then returns the corresponding parameter AST node.
-  NormalFormalParameter? _findParameterForElement(
+  FormalParameter? _findParameterForElement(
     FormalParameterList parameterList,
     FormalParameterElement element,
   ) {
     for (var parameter in parameterList.parameters) {
-      if (parameter.notDefault case var parameter
-          when parameter.declaredFragment?.element == element) {
+      if (parameter.declaredFragment?.element == element) {
         return parameter;
       }
     }

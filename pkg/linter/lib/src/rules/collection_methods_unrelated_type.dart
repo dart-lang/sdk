@@ -234,7 +234,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var collectionType = methodDefinition.collectionTypeFor(targetType);
       if (collectionType != null) {
         _checkMethod(
-          node.argumentList.arguments.first,
+          node.argumentList.arguments.first.argumentExpression,
           methodDefinition,
           collectionType,
         );

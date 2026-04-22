@@ -333,6 +333,12 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedArgument(NamedArgument node) {
+    _addOccurrence(node.correspondingParameter, node.name);
+    node.argumentExpression.accept(this);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     _addOccurrence(node.element, node.name);
 

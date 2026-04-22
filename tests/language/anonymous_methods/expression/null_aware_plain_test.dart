@@ -84,7 +84,7 @@ void main() {
     v3.expectStaticType<Exactly<bool?>>;
     Expect.equals(buffer?.length, v1);
     Expect.equals('true', v2);
-    Expect.equals(false, v3);
+    Expect.equals(true, v3);
   }
 
   // Dependency on parameter.

@@ -44,6 +44,38 @@ final Uri _uriFramework = Uri.parse(
 final Uri _uriWidgetsIcon = Uri.parse('package:flutter/src/widgets/icon.dart');
 final Uri _uriWidgetsText = Uri.parse('package:flutter/src/widgets/text.dart');
 
+extension ArgumentExtension on Argument {
+  /// Whether this is the `builder` argument.
+  bool get isBuilderArgument {
+    var self = this;
+    return self is NamedArgument && self.name.lexeme == 'builder';
+  }
+
+  /// Whether this is the `child` argument.
+  bool get isChildArgument {
+    var self = this;
+    return self is NamedArgument && self.name.lexeme == 'child';
+  }
+
+  /// Whether this is the `children` argument.
+  bool get isChildrenArgument {
+    var self = this;
+    return self is NamedArgument && self.name.lexeme == 'children';
+  }
+
+  /// Whether this is the `sliver` argument.
+  bool get isSliverArgument {
+    var self = this;
+    return self is NamedArgument && self.name.lexeme == 'sliver';
+  }
+
+  /// Whether this is the `slivers` argument.
+  bool get isSliversArgument {
+    var self = this;
+    return self is NamedArgument && self.name.lexeme == 'slivers';
+  }
+}
+
 extension AstNodeExtension on AstNode? {
   /// Returns the instance creation expression that surrounds this node, if any,
   /// and otherwise `null`.
@@ -107,7 +139,7 @@ extension AstNodeExtension on AstNode? {
           parent is IfElement && parent.thenElement == node ||
           parent is IfElement && parent.elseElement == node ||
           parent is ListLiteral ||
-          parent is NamedExpression && parent.expression == node ||
+          parent is NamedArgument && parent.argumentExpression == node ||
           parent is Statement ||
           parent is SwitchExpressionCase && parent.expression == node ||
           parent is VariableDeclaration) {
@@ -124,7 +156,7 @@ extension AstNodeExtension on AstNode? {
       AstNode(parent: NamedType()) ||
       AstNode(parent: AstNode(parent: NamedType())) => false,
       AstNode(parent: ConstructorName()) => false,
-      NamedExpression() => false,
+      NamedArgument() => false,
       Expression(:var staticType) => staticType.isWidgetType,
       _ => false,
     };
@@ -133,28 +165,31 @@ extension AstNodeExtension on AstNode? {
   /// Finds the named expression whose name is the given [name] that is an
   /// argument to a Flutter instance creation expression.
   ///
-  /// Returns `null` if this is not a [SimpleIdentifier], or if any other
-  /// condition cannot be satisfied.
-  NamedExpression? findArgumentNamed(String name) {
+  /// Returns `null` if any condition cannot be satisfied.
+  NamedArgument? findArgumentNamed(String name) {
     var self = this;
-    if (self is! SimpleIdentifier) {
-      return null;
-    }
-    var parent = self.parent;
-    var grandParent = parent?.parent;
-    if (parent is Label && grandParent is NamedExpression) {
-      if (self.name != name) {
-        return null;
+    NamedArgument? argument;
+    if (self is NamedArgument) {
+      argument = self;
+    } else if (self?.parent case NamedArgument parent) {
+      argument = parent;
+    } else if (self is SimpleIdentifier) {
+      var parent = self.parent;
+      if (parent is Label && parent.parent is NamedArgument) {
+        argument = parent.parent as NamedArgument;
       }
-    } else {
+    }
+
+    if (argument == null || argument.name.lexeme != name) {
       return null;
     }
-    var invocation = grandParent.parent?.parent;
+
+    var invocation = argument.parent?.parent;
     if (invocation is! InstanceCreationExpression ||
         !invocation.isWidgetCreation) {
       return null;
     }
-    return grandParent;
+    return argument;
   }
 }
 
@@ -339,55 +374,23 @@ extension ElementAnnotationExtension on ElementAnnotation {
   }
 }
 
-extension ExpressionExtension on Expression {
-  /// Whether this is the `builder` argument.
-  bool get isBuilderArgument {
-    var self = this;
-    return self is NamedExpression && self.name.label.name == 'builder';
-  }
-
-  /// Whether this is the `child` argument.
-  bool get isChildArgument {
-    var self = this;
-    return self is NamedExpression && self.name.label.name == 'child';
-  }
-
-  /// Whether this is the `children` argument.
-  bool get isChildrenArgument {
-    var self = this;
-    return self is NamedExpression && self.name.label.name == 'children';
-  }
-
-  /// Whether this is the `sliver` argument.
-  bool get isSliverArgument {
-    var self = this;
-    return self is NamedExpression && self.name.label.name == 'sliver';
-  }
-
-  /// Whether this is the `slivers` argument.
-  bool get isSliversArgument {
-    var self = this;
-    return self is NamedExpression && self.name.label.name == 'slivers';
-  }
-}
-
 extension InstanceCreationExpressionExtension on InstanceCreationExpression {
   /// The named expression representing the `builder` argument, or `null` if
   /// there is none.
-  NamedExpression? get builderArgument => argumentList.arguments
-      .whereType<NamedExpression>()
+  NamedArgument? get builderArgument => argumentList.arguments
+      .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isBuilderArgument);
 
   /// The named expression representing the `child` argument, or `null` if there
   /// is none.
-  NamedExpression? get childArgument => argumentList.arguments
-      .whereType<NamedExpression>()
+  NamedArgument? get childArgument => argumentList.arguments
+      .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isChildArgument);
 
   /// The named expression representing the `children` argument, or `null` if
   /// there is none.
-  NamedExpression? get childrenArgument => argumentList.arguments
-      .whereType<NamedExpression>()
+  NamedArgument? get childrenArgument => argumentList.arguments
+      .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isChildrenArgument);
 
   bool get isExactlyAlignCreation => staticType.isExactWidgetTypeAlign;
@@ -405,14 +408,14 @@ extension InstanceCreationExpressionExtension on InstanceCreationExpression {
 
   /// The named expression representing the `sliver` argument, or `null` if there
   /// is none.
-  NamedExpression? get sliverArgument => argumentList.arguments
-      .whereType<NamedExpression>()
+  NamedArgument? get sliverArgument => argumentList.arguments
+      .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isSliverArgument);
 
   /// The named expression representing the `slivers` argument, or `null` if
   /// there is none.
-  NamedExpression? get sliversArgument => argumentList.arguments
-      .whereType<NamedExpression>()
+  NamedArgument? get sliversArgument => argumentList.arguments
+      .whereType<NamedArgument>()
       .firstWhereOrNull((argument) => argument.isSliversArgument);
 
   /// The presentation for this node.

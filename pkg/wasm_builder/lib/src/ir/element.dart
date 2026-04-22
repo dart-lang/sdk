@@ -20,9 +20,11 @@ sealed class ActiveElementSegment extends ElementSegment {
 final class ActiveFunctionElementSegment extends ActiveElementSegment {
   final List<BaseFunction> entries;
 
-  ActiveFunctionElementSegment(super.table, super.startIndex,
-      [List<BaseFunction>? entries])
-      : entries = entries ?? [];
+  ActiveFunctionElementSegment(
+    super.table,
+    super.startIndex, [
+    List<BaseFunction>? entries,
+  ]) : entries = entries ?? [];
 
   @override
   void serialize(Serializer s) {
@@ -131,8 +133,12 @@ final class ActiveExpressionElementSegment extends ActiveElementSegment {
     for (int i = 0; i < count; i++) {
       final instructions = <Instruction>[];
       while (true) {
-        final instruction =
-            Instruction.deserializeConst(d, types, functions, globals);
+        final instruction = Instruction.deserializeConst(
+          d,
+          types,
+          functions,
+          globals,
+        );
         instructions.add(instruction);
         if (instruction is End) break;
       }
@@ -160,7 +166,9 @@ final class DeclarativeElementSegment implements ElementSegment {
   }
 
   static DeclarativeElementSegment deserialize(
-      Deserializer d, Functions functions) {
+    Deserializer d,
+    Functions functions,
+  ) {
     if (d.readByte() != 0x03) {
       throw StateError('Expected declarative segment to start with 0x03.');
     }
@@ -188,13 +196,18 @@ extension on Serializer {
 
 extension on Deserializer {
   int deserializeTableOffset(
-      Types types, Functions functions, Globals globals) {
+    Types types,
+    Functions functions,
+    Globals globals,
+  ) {
     final i0 = Instruction.deserializeConst(this, types, functions, globals);
     final i1 = Instruction.deserializeConst(this, types, functions, globals);
     if (i0 is! I32Const || i1 is! End) {
-      throw StateError('Expected offset to be encoded as '
-          '`(i32.const <value>) (end)`. '
-          'Got instead: (${i0.name}) (${i1.name})');
+      throw StateError(
+        'Expected offset to be encoded as '
+        '`(i32.const <value>) (end)`. '
+        'Got instead: (${i0.name}) (${i1.name})',
+      );
     }
     return i0.value;
   }

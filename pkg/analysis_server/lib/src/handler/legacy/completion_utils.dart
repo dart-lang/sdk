@@ -225,7 +225,7 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
         false,
       );
     case LabelSuggestion():
-      var completion = candidate.label.label.name;
+      var completion = candidate.label.name.lexeme;
       var suggestion = CompletionSuggestion(
         CompletionSuggestionKind.IDENTIFIER,
         candidate.relevanceScore,
@@ -235,10 +235,10 @@ Future<CompletionSuggestion?> candidateToCompletionSuggestion(
         false,
         false,
       );
-      suggestion.element = createLocalElement(
+      suggestion.element = createLocalElementFromToken(
         request.source,
         ElementKind.LABEL,
-        candidate.label.label,
+        candidate.label.name,
       );
       return suggestion;
     case LoadLibraryFunctionSuggestion():

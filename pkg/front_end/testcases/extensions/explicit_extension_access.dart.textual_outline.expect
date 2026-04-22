@@ -19,12 +19,7 @@ extension Extension2 on Class {
 
 extension on int {
   method1() {}
-  method2<T>(
-    List<T> a,
-    List<int> b,
-    void Function(T) c,
-    void Function()? d,
-  ) {}
+  method2<T>(List<T> a, List<int> b, void Function(T) c, void Function()? d) {}
 }
 
 test(Class c) {}

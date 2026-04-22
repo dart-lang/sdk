@@ -4,6 +4,7 @@
 
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/line_info.dart';
@@ -1741,6 +1742,22 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLabelReference(LabelReference node) {
+    if (elements.contains(node.element)) {
+      _addResult(node, SearchResultKind.REFERENCE);
+    }
+  }
+
+  @override
+  void visitNamedArgument(NamedArgument node) {
+    var element = node.correspondingParameter?.baseElement;
+    if (elements.contains(element)) {
+      _addResultToken(node.name, SearchResultKind.REFERENCE_BY_NAMED_ARGUMENT);
+    }
+    super.visitNamedArgument(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     var element = node.element;
     if (elements.contains(element)) {
@@ -1767,11 +1784,7 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
       } else if (element is VariableElement) {
         bool isGet = node.inGetterContext();
         bool isSet = node.inSetterContext();
-        if (element is FormalParameterElement &&
-            parent is Label &&
-            parent.parent is NamedExpression) {
-          kind = SearchResultKind.REFERENCE_BY_NAMED_ARGUMENT;
-        } else if (isGet && isSet) {
+        if (isGet && isSet) {
           kind = SearchResultKind.READ_WRITE;
         } else if (isGet) {
           if (parent is MethodInvocation && parent.methodName == node) {
@@ -1789,6 +1802,14 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
 
   void _addResult(SyntacticEntity entity, SearchResultKind kind) {
     bool isQualified = entity is AstNode && entity.parent is Label;
+    _addResultImpl(entity, kind, isQualified: isQualified);
+  }
+
+  void _addResultImpl(
+    SyntacticEntity entity,
+    SearchResultKind kind, {
+    required bool isQualified,
+  }) {
     var enclosingFragment = _getEnclosingFragment(
       enclosingLibraryFragment,
       entity.offset,
@@ -1803,6 +1824,10 @@ class _LocalReferencesVisitor extends RecursiveAstVisitor<void> {
         isQualified,
       ),
     );
+  }
+
+  void _addResultToken(Token token, SearchResultKind kind) {
+    _addResultImpl(token, kind, isQualified: true);
   }
 }
 
