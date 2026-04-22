@@ -25,6 +25,7 @@ import '../../SHA1/dart/sha1.dart' as lib_SHA1;
 import '../../SHA256/dart/sha256.dart' as lib_SHA256;
 import '../../SkeletalAnimation/dart/SkeletalAnimation.dart'
     as lib_SkeletalAnimation;
+import '../../SimdInt32x4/dart/SimdInt32x4.dart' as lib_SimdInt32x4;
 import '../../SkeletalAnimationSIMD/dart/SkeletalAnimationSIMD.dart'
     as lib_SkeletalAnimationSIMD;
 import '../../SwitchFSM/dart/SwitchFSM.dart' as lib_SwitchFSM;
@@ -45,6 +46,7 @@ final Map<String, Function()> benchmarks = {
   'RuntimeType': lib_RuntimeType.main,
   'SHA1': lib_SHA1.main,
   'SHA256': lib_SHA256.main,
+  'SimdInt32x4': lib_SimdInt32x4.main,
   'SkeletalAnimation': lib_SkeletalAnimation.main,
   'SkeletalAnimationSIMD': lib_SkeletalAnimationSIMD.main,
   'SwitchFSM': lib_SwitchFSM.main,
