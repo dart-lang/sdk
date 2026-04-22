@@ -62,6 +62,29 @@ class C {
 ''');
   }
 
+  test_primaryConstructor_private() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+class C._() {
+  @visibleForTesting
+  this;
+}
+''',
+      [error(diag.invalidVisibilityAnnotation, 50, 17)],
+    );
+  }
+
+  test_primaryConstructor_public() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class C.named() {
+  @visibleForTesting
+  this;
+}
+''');
+  }
+
   test_privateClass() async {
     await assertErrorsInCode(
       r'''
@@ -72,18 +95,6 @@ import 'package:meta/meta.dart';
         error(diag.invalidVisibilityAnnotation, 34, 17),
         error(diag.unusedElement, 58, 2),
       ],
-    );
-  }
-
-  test_privateConstructor() async {
-    await assertErrorsInCode(
-      r'''
-import 'package:meta/meta.dart';
-class C {
-  @visibleForTesting C._() {}
-}
-''',
-      [error(diag.invalidVisibilityAnnotation, 46, 17)],
     );
   }
 
@@ -191,6 +202,29 @@ import 'package:meta/meta.dart';
         error(diag.unusedElement, 60, 2),
       ],
     );
+  }
+
+  test_secondaryConstructor_private() async {
+    await assertErrorsInCode(
+      r'''
+import 'package:meta/meta.dart';
+class C {
+  @visibleForTesting
+  C._() {}
+}
+''',
+      [error(diag.invalidVisibilityAnnotation, 46, 17)],
+    );
+  }
+
+  test_secondaryConstructor_public() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+class C {
+  @visibleForTesting
+  C.named() {}
+}
+''');
   }
 
   test_topLevelVariable_multipleMixed() async {

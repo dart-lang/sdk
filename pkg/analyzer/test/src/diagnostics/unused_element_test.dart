@@ -333,6 +333,1092 @@ class A {
 ''');
   }
 
+  test_classPrivate_primaryConstructor_namedPrivate_fieldFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A._named({this.f}) {
+  final int? f;
+}
+f() => _A._named(f: 0);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_fieldFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A._named({this.f}) {
+  final int? f;
+}
+f() => _A._named();
+''',
+      [error(diag.unusedElementParameter, 22, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_fieldFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A._named([this.f]) {
+  final int? f;
+}
+f() => _A._named(0);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_fieldFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A._named([this.f]) {
+  final int? f;
+}
+f() => _A._named();
+''',
+      [error(diag.unusedElementParameter, 22, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_regularFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A._named({int? a});
+f() => _A._named(a: 0);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_regularFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A._named({int? a});
+f() => _A._named();
+''',
+      [error(diag.unusedElementParameter, 22, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_regularFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A._named([int? a]);
+f() => _A._named(0);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_regularFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A._named([int? a]);
+f() => _A._named();
+''',
+      [error(diag.unusedElementParameter, 22, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_superFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A({int? a});
+class _B._named({super.a}) extends A;
+var b = _B._named(a: 1);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_superFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A({int? a});
+class _B._named({super.a}) extends A;
+var b = _B._named();
+''',
+      [error(diag.unusedElementParameter, 42, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_superFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A([int? a]);
+class _B._named([super.a]) extends A;
+var b = _B._named(1);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_namedPrivate_superFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A([int? a]);
+class _B._named([super.a]) extends A;
+var b = _B._named();
+''',
+      [error(diag.unusedElementParameter, 42, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPublic_fieldFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A.named({this.f}) {
+  final int? f;
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 21, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPublic_fieldFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A.named([this.f]) {
+  final int? f;
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 21, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPublic_regularFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A.named({int? a});
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 21, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPublic_regularFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A.named([int? a]);
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 21, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPublic_superFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A({int? a});
+class _B.named({super.a}) extends A;
+var b = _B.named(a: 1);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_namedPublic_superFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A({int? a});
+class _B.named({super.a}) extends A;
+var b = _B.named();
+''',
+      [error(diag.unusedElementParameter, 41, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_namedPublic_superFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A([int? a]);
+class _B.named([super.a]) extends A;
+var b = _B.named(1);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_namedPublic_superFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A([int? a]);
+class _B.named([super.a]) extends A;
+var b = _B.named();
+''',
+      [error(diag.unusedElementParameter, 41, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_fieldFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A({this.f}) {
+  final int? f;
+}
+f() => _A(f: 0);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_fieldFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A({this.f}) {
+  final int? f;
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 15, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_fieldFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A([this.f]) {
+  final int? f;
+}
+f() => _A(0);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_fieldFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A([this.f]) {
+  final int? f;
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 15, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_regularFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A({int? a});
+f() => _A(a: 0);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_regularFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A({int? a});
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 15, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_regularFormal_optionalPositional_body_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A([int? a]) {}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 15, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_regularFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A([int? a]);
+f() => _A(0);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_regularFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A([int? a]);
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 15, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_superFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A({int? a});
+class _B({super.a}) extends A;
+var b = _B(a: 1);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_superFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A({int? a});
+class _B({super.a}) extends A;
+var b = _B();
+''',
+      [error(diag.unusedElementParameter, 35, 1)],
+    );
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_superFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A([int? a]);
+class _B([super.a]) extends A;
+var b = _B(1);
+''');
+  }
+
+  test_classPrivate_primaryConstructor_unnamed_superFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A([int? a]);
+class _B([super.a]) extends A;
+var b = _B();
+''',
+      [error(diag.unusedElementParameter, 35, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_fieldFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A._named({this.f});
+}
+f() => _A._named(f: 0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_fieldFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A._named({this.f});
+}
+f() => _A._named();
+''',
+      [error(diag.unusedElementParameter, 45, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_fieldFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A._named([this.f]);
+}
+f() => _A._named(0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_fieldFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A._named([this.f]);
+}
+f() => _A._named();
+''',
+      [error(diag.unusedElementParameter, 45, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_regularFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A._named({int? a});
+}
+f() => _A._named(a: 0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_regularFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A._named({int? a});
+}
+f() => _A._named();
+''',
+      [error(diag.unusedElementParameter, 29, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_regularFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A._named([int? a]);
+}
+f() => _A._named(0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_regularFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A._named([int? a]);
+}
+f() => _A._named();
+''',
+      [error(diag.unusedElementParameter, 29, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_superFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A({int? a});
+}
+
+class _B extends _A {
+  _B._named({super.a});
+}
+
+var b = _B._named(a: 0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_superFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A({int? a});
+}
+
+class _B extends _A {
+  _B._named({super.a});
+}
+
+var b = _B._named();
+''',
+      [error(diag.unusedElementParameter, 71, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_superFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int? a]);
+}
+
+class _B extends _A {
+  _B._named([super.a]);
+}
+
+var b = _B._named(0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_namedPrivate_superFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A([int? a]);
+}
+
+class _B extends _A {
+  _B._named([super.a]);
+}
+
+var b = _B._named();
+''',
+      [error(diag.unusedElementParameter, 71, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPublic_fieldFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A.named({this.f});
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 44, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPublic_fieldFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A.named([this.f]);
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 44, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPublic_regularFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A.named({int? a});
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 28, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_namedPublic_regularFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A.named([int? a]);
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 28, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalNamed_constructorInvocation_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalNamed_factoryRedirect_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named({int? f}) = _A;
+}
+f() => _A.named(f: 0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalNamed_factoryRedirect_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A({this.f});
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A(f: 1);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A({this.f});
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalNamed_superInvocation_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A({this.e});
+}
+
+class _B extends _A {
+  _B([int? e]) : super(e: 1);
+}
+
+var b = _B(1);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalNamed_superParameter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A({this.e});
+}
+
+class _B extends _A {
+  _B({super.e});
+}
+
+var b = _B(e: 2);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalPositional_constructorInvocation_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A(0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalPositional_factoryRedirect_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named([int? a]) = _A;
+}
+f() => _A.named(0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalPositional_factoryRedirect_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+  factory _A.named() = _A;
+}
+f() => _A.named();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  final int? f;
+  _A([this.f]);
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalPositional_superInvocation_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A([this.e]);
+}
+
+class _B extends _A {
+  _B(int e) : super(e);
+}
+
+var b = _B(1);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_fieldFormal_optionalPositional_superParameter_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  final int? e;
+  _A([this.e]);
+}
+
+class _B extends _A {
+  _B(super.e);
+}
+
+var b = _B(2);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_regularFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A({int? a});
+}
+f() => _A(a: 0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_regularFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A({int? a});
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 22, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_regularFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int a = 0]);
+}
+f() => _A(0);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_regularFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A([int? a]);
+}
+f() => _A();
+''',
+      [error(diag.unusedElementParameter, 22, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_superFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A({int? a});
+}
+
+class _B extends _A {
+  _B({super.a});
+}
+
+var b = _B();
+''',
+      [error(diag.unusedElementParameter, 64, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_superFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int? a]);
+}
+
+class _B extends _A {
+  _B([super.a]);
+}
+
+var b = _B(1);
+''');
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_superFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class _A {
+  _A([int? a]);
+}
+
+class _B extends _A {
+  _B([super.a]);
+}
+
+var b = _B();
+''',
+      [error(diag.unusedElementParameter, 64, 1)],
+    );
+  }
+
+  test_classPrivate_secondaryConstructor_unnamed_superFormal_requiredNamed_optionalNamed_overrideRequired_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A({required this.a, required this.b});
+  final String a;
+  final String b;
+}
+
+class _B extends A {
+  _B({required super.a, super.b = 'b'});
+}
+
+var foo = _B(a: 'a');
+''');
+  }
+
+  test_classPublic_primaryConstructor_namedPublic_fieldFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A.named({this.f}) {
+  final int? f;
+}
+''');
+  }
+
+  test_classPublic_primaryConstructor_namedPublic_fieldFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A.named([this.f]) {
+  final int? f;
+}
+''');
+  }
+
+  test_classPublic_primaryConstructor_namedPublic_regularFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A.named({int? a});
+''');
+  }
+
+  test_classPublic_primaryConstructor_namedPublic_regularFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A.named([int? a]);
+''');
+  }
+
+  test_classPublic_primaryConstructor_namedPublic_superFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A({int? a});
+class B.named({super.a}) extends A;
+''');
+  }
+
+  test_classPublic_primaryConstructor_namedPublic_superFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A([int? a]);
+class B.named([super.a]) extends A;
+''');
+  }
+
+  test_classPublic_primaryConstructor_unnamed_fieldFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A({this.f}) {
+  final int? f;
+}
+''');
+  }
+
+  test_classPublic_primaryConstructor_unnamed_fieldFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A([this.f]) {
+  final int? f;
+}
+''');
+  }
+
+  test_classPublic_primaryConstructor_unnamed_regularFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A({int? a});
+''');
+  }
+
+  test_classPublic_primaryConstructor_unnamed_regularFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A([int? a]);
+''');
+  }
+
+  test_classPublic_primaryConstructor_unnamed_superFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A({int? a});
+class B({super.a}) extends A;
+''');
+  }
+
+  test_classPublic_primaryConstructor_unnamed_superFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A([int? a]);
+class B([super.a]) extends A;
+''');
+  }
+
+  test_classPublic_secondaryConstructor_namedPrivate_fieldFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  final int? f;
+  A._({this.f});
+}
+f() => A._();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_classPublic_secondaryConstructor_namedPrivate_fieldFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  final int? f;
+  A._([this.f]);
+}
+f() => A._();
+''',
+      [error(diag.unusedElementParameter, 38, 1)],
+    );
+  }
+
+  test_classPublic_secondaryConstructor_namedPrivate_regularFormal_optionalNamed_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._({int? a});
+}
+f() => A._(a: 0);
+''');
+  }
+
+  test_classPublic_secondaryConstructor_namedPrivate_regularFormal_optionalNamed_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A._({int? a});
+}
+f() => A._();
+''',
+      [error(diag.unusedElementParameter, 22, 1)],
+    );
+  }
+
+  test_classPublic_secondaryConstructor_namedPrivate_regularFormal_optionalPositional_generic_isUsed() async {
+    await assertNoErrorsInCode('''
+class C<T> {
+  C._([int? x]);
+}
+void foo() {
+  C._(7);
+}
+''');
+  }
+
+  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
+  test_classPublic_secondaryConstructor_namedPrivate_regularFormal_optionalPositional_generic_notUsed() async {
+    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
+    addTestFile('''
+class C<T> {
+  C._([int? x]);
+}
+void foo() {
+  C._();
+}
+''');
+    await resolveTestFile();
+    expect(result.diagnostics, isNotEmpty);
+  }
+
+  test_classPublic_secondaryConstructor_namedPrivate_regularFormal_optionalPositional_isUsed() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A._([int? a]);
+}
+f() => A._(0);
+''');
+  }
+
+  test_classPublic_secondaryConstructor_namedPrivate_regularFormal_optionalPositional_notUsed() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  A._([int? a]);
+}
+f() => A._();
+''',
+      [error(diag.unusedElementParameter, 22, 1)],
+    );
+  }
+
+  test_classPublic_secondaryConstructor_namedPublic_fieldFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int? f;
+  A.named({this.f});
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_namedPublic_fieldFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int? f;
+  A.named([this.f]);
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_namedPublic_regularFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named({int? a});
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_namedPublic_regularFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A.named([int? a]);
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_namedPublic_superFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A({int? a});
+}
+
+class B extends A {
+  B.named({super.a});
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_namedPublic_superFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A([int? a]);
+}
+
+class B extends A {
+  B.named([super.a]);
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_unnamed_fieldFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int? f;
+  A({this.f});
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_unnamed_fieldFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  final int? f;
+  A([this.f]);
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_unnamed_regularFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A({int? a});
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_unnamed_regularFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  A([int? a]);
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_unnamed_superFormal_optionalNamed_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A({int? a});
+}
+
+class B extends _A {
+  B({super.a});
+}
+''');
+  }
+
+  test_classPublic_secondaryConstructor_unnamed_superFormal_optionalPositional_noDiagnostic() async {
+    await assertNoErrorsInCode(r'''
+class _A {
+  _A([int? a]);
+}
+
+class B extends _A {
+  B([super.a]);
+}
+''');
+  }
+
   test_constructor_isUsed_asRedirectee() async {
     await assertNoErrorsInCode(r'''
 class A {
@@ -2076,82 +3162,11 @@ mixin _M {}
     );
   }
 
-  test_parameter_isUsed_constructor() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  _A([int a = 0]);
-}
-f() => _A(0);
-''');
-  }
-
-  test_parameter_isUsed_fieldFormal_constructorInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-}
-f() => _A(0);
-''');
-  }
-
-  test_parameter_isUsed_fieldFormal_factoryRedirect() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-  factory _A.named([int? a]) = _A;
-}
-f() => _A.named(0);
-''');
-  }
-
-  test_parameter_isUsed_fieldFormal_superInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? e;
-  _A([this.e]);
-}
-
-class _B extends _A {
-  _B(int e) : super(e);
-}
-
-var b = _B(1);
-''');
-  }
-
-  test_parameter_isUsed_fieldFormal_superParameter() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? e;
-  _A([this.e]);
-}
-
-class _B extends _A {
-  _B(super.e);
-}
-
-var b = _B(2);
-''');
-  }
-
   test_parameter_isUsed_functionTearoff() async {
     await assertNoErrorsInCode(r'''
 f() {
   void _m([int? a]) {}
   _m;
-}
-''');
-  }
-
-  test_parameter_isUsed_genericConstructor() async {
-    await assertNoErrorsInCode('''
-class C<T> {
-  C._([int? x]);
-}
-void foo() {
-  C._(7);
 }
 ''');
   }
@@ -2200,79 +3215,6 @@ class A {
   void _m({int a = 0}) {}
 }
 f() => A()._m(a: 0);
-''');
-  }
-
-  test_parameter_isUsed_named_fieldFormal() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A(f: 1);
-''');
-  }
-
-  test_parameter_isUsed_named_fieldFormal_constructorInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A(f: 0);
-''');
-  }
-
-  test_parameter_isUsed_named_fieldFormal_factoryRedirect() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? f;
-  _A({this.f});
-  factory _A.named({int? f}) = _A;
-}
-f() => _A.named(f: 0);
-''');
-  }
-
-  test_parameter_isUsed_named_fieldFormal_superInvocation() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? e;
-  _A({this.e});
-}
-
-class _B extends _A {
-  _B([int? e]) : super(e: 1);
-}
-
-var b = _B(1);
-''');
-  }
-
-  test_parameter_isUsed_named_fieldFormal_superParameter() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  final int? e;
-  _A({this.e});
-}
-
-class _B extends _A {
-  _B({super.e});
-}
-
-var b = _B(e: 2);
-''');
-  }
-
-  test_parameter_isUsed_named_superFormal() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  _A({int? a});
-}
-
-class B extends _A {
-  B({super.a});
-}
 ''');
   }
 
@@ -2407,18 +3349,6 @@ f() => A()._m(0);
 ''');
   }
 
-  test_parameter_isUsed_superFormal() async {
-    await assertNoErrorsInCode(r'''
-class _A {
-  _A([int? a]);
-}
-
-class B extends _A {
-  B([super.a]);
-}
-''');
-  }
-
   test_parameter_isUsed_topLevel() async {
     await assertNoErrorsInCode(r'''
 void _m([int? a]) {}
@@ -2463,30 +3393,6 @@ class C {
     );
   }
 
-  test_parameter_notUsed_constructor_named() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  A._([int? a]);
-}
-f() => A._();
-''',
-      [error(diag.unusedElementParameter, 22, 1)],
-    );
-  }
-
-  test_parameter_notUsed_constructor_unnamed() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  _A([int? a]);
-}
-f() => _A();
-''',
-      [error(diag.unusedElementParameter, 22, 1)],
-    );
-  }
-
   test_parameter_notUsed_extension() async {
     await assertErrorsInCode(
       r'''
@@ -2497,48 +3403,6 @@ f() => "hello"._m();
 ''',
       [error(diag.unusedElementParameter, 40, 1)],
     );
-  }
-
-  test_parameter_notUsed_fieldFormal() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-}
-f() => _A();
-''',
-      [error(diag.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_notUsed_fieldFormal_factoryRedirect() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A([this.f]);
-  factory _A.named() = _A;
-}
-f() => _A.named();
-''',
-      [error(diag.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
-  test_parameter_notUsed_genericConstructor() async {
-    // TODO(srawlins): Change to assertErrorsInCode when this is fixed.
-    addTestFile('''
-class C<T> {
-  C._([int? x]);
-}
-void foo() {
-  C._();
-}
-''');
-    await resolveTestFile();
-    expect(result.diagnostics, isNotEmpty);
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/sdk/issues/47839')
@@ -2581,33 +3445,6 @@ f() => A()._m();
     );
   }
 
-  test_parameter_notUsed_named_fieldFormal() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A({this.f});
-}
-f() => _A();
-''',
-      [error(diag.unusedElementParameter, 38, 1)],
-    );
-  }
-
-  test_parameter_notUsed_named_fieldFormal_factoryRedirect() async {
-    await assertErrorsInCode(
-      r'''
-class _A {
-  final int? f;
-  _A({this.f});
-  factory _A.named() = _A;
-}
-f() => _A.named();
-''',
-      [error(diag.unusedElementParameter, 38, 1)],
-    );
-  }
-
   test_parameter_notUsed_override_added() async {
     await assertErrorsInCode(
       r'''
@@ -2621,22 +3458,6 @@ f() => A()._m();
 ''',
       [error(diag.unusedElementParameter, 66, 1)],
     );
-  }
-
-  test_parameter_notUsed_overrideRequired() async {
-    await assertNoErrorsInCode(r'''
-class A {
-  A({required this.a, required this.b});
-  final String a;
-  final String b;
-}
-
-class _B extends A {
-  _B({required super.a, super.b = 'b'});
-}
-
-var foo = _B(a: 'a');
-''');
   }
 
   test_parameter_notUsed_positional() async {
