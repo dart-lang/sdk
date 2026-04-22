@@ -392,7 +392,11 @@ Future<ComputeKernelResult> computeKernel(
       previousState,
       {
         "target=$targetName",
+        // trackWidgetCreation is in TargetFlags.
         "trackWidgetCreation=$trackWidgetCreation",
+        // includeUnsupportedPlatformLibraryStubs is in TargetFlags.
+        "includeUnsupportedPlatformLibraryStubs="
+            "$includeUnsupportedPlatformLibraryStubs",
         "multiRootScheme=${mrfs.markerScheme}",
         "multiRootRoots=${mrfs.roots}",
       },
@@ -483,7 +487,6 @@ Future<ComputeKernelResult> computeKernel(
         incrementalComponent.uriToSource.clear();
         incrementalComponent.problemsAsJson = null;
         incrementalComponent.setMainMethodAndMode(null, true);
-        target.performOutlineTransformations(incrementalComponent);
         makeStable(incrementalComponent);
         return new Future.value(
           fe.serializeComponent(
@@ -615,6 +618,20 @@ class DevCompilerSummaryTarget extends DevCompilerTarget with SummaryMixin {
     this.excludeNonSources,
     TargetFlags targetFlags,
   ) : super(targetFlags);
+
+  @override
+  bool isModularlyCompatibleWith(Target other) {
+    if (other is! DevCompilerSummaryTarget) return false;
+    if (excludeNonSources != other.excludeNonSources) return false;
+    return true;
+  }
+
+  @override
+  void updateModularCompatibilityAs(Target other) {
+    assert(other is DevCompilerSummaryTarget);
+    sources.clear();
+    sources.addAll((other as DevCompilerSummaryTarget).sources);
+  }
 }
 
 Uri? toUriNullable(String? uriString) {
