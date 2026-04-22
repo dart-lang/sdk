@@ -118,7 +118,8 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     help: 'Run a kernel transformer to track creation locations for widgets.',
     defaultsTo: false,
     aliases: [
-      // TODO(schultek): Remove this once flutter is migrated to new flag.
+      // TODO(http://dartbug.com/63225): Remove this once flutter is migrated
+      // to the new flag.
       'track-widget-creation',
     ],
   )
