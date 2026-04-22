@@ -36,7 +36,6 @@ enum TypeParametersStyle {
 ///  - captured variables;
 ///  - stack overflow/interrupt checks;
 ///  - assert statements;
-///  - async/async*/sync*/await/yield/yield*;
 ///  - record access and literals;
 ///  - deferred libraries.
 ///
@@ -85,27 +84,7 @@ class AstToIr extends ast.RecursiveVisitor {
 
   /// Create [FlowGraph] for the body of the [function].
   FlowGraph buildFlowGraph() {
-    for (final param in localVarIndexer.parameters) {
-      builder.addParameter(param);
-    }
-    if (function.hasFunctionTypeParameters || function.hasClassTypeParameters) {
-      _hasTypeParametersInScope = true;
-      switch (typeParametersStyle) {
-        case .separateFunctionAndClassTypeParameters:
-          if (function.hasFunctionTypeParameters) {
-            builder.addLoadLocal(localVarIndexer.functionTypeParameters);
-            functionTypeParameters = builder.addTypeParameters(
-              .functionTypeParameters,
-            );
-          }
-          if (function.hasClassTypeParameters) {
-            builder.addLoadLocal(localVarIndexer.receiver);
-            classTypeParameters = builder.addTypeParameters(
-              .classTypeParameters,
-            );
-          }
-      }
-    }
+    _buildPrologue();
     final member = function.member;
     switch (function) {
       case ImplicitFieldGetter():
@@ -127,9 +106,47 @@ class AstToIr extends ast.RecursiveVisitor {
     }
     if (builder.hasOpenBlock) {
       builder.addNullConstant();
-      builder.addReturn();
+      _buildReturn();
     }
     return builder.done();
+  }
+
+  void _buildPrologue() {
+    for (final param in localVarIndexer.parameters) {
+      builder.addParameter(param);
+    }
+    if (function.hasFunctionTypeParameters || function.hasClassTypeParameters) {
+      _hasTypeParametersInScope = true;
+      switch (typeParametersStyle) {
+        case .separateFunctionAndClassTypeParameters:
+          if (function.hasFunctionTypeParameters) {
+            builder.addLoadLocal(localVarIndexer.functionTypeParameters);
+            functionTypeParameters = builder.addTypeParameters(
+              .functionTypeParameters,
+            );
+          }
+          if (function.hasClassTypeParameters) {
+            builder.addLoadLocal(localVarIndexer.receiver);
+            classTypeParameters = builder.addTypeParameters(
+              .classTypeParameters,
+            );
+          }
+      }
+    }
+    if (function.isSuspendable) {
+      final emittedValueType = function.functionNode!.emittedValueType!;
+      builder.addTypeArguments([
+        emittedValueType,
+      ], typeParameters: _typeParametersForType(emittedValueType));
+      builder.addEnterSuspendableFunction();
+    }
+  }
+
+  void _buildReturn() {
+    if (function.isSuspendable) {
+      builder.addLeaveSuspendableFunction(function.returnType);
+    }
+    builder.addReturn();
   }
 
   void _buildImplicitGetter(ast.Field node) {
@@ -479,7 +496,7 @@ class AstToIr extends ast.RecursiveVisitor {
     final value = builder.pop();
     _generateNonLocalControlTransfer(node, null, () {
       builder.push(value);
-      builder.addReturn();
+      _buildReturn();
     });
   }
 
@@ -1763,6 +1780,41 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitLogicalExpression(ast.LogicalExpression node) {
     _translateConditionForValue(node);
+  }
+
+  @override
+  void visitAwaitExpression(ast.AwaitExpression node) {
+    _translateNode(node.operand);
+    if (_handleUnreachableExpression(1)) return;
+
+    final runtimeCheckType = node.runtimeCheckType;
+    if (runtimeCheckType != null) {
+      assert(
+        (runtimeCheckType as ast.InterfaceType).classNode ==
+            coreTypes.futureClass,
+      );
+      final valueType =
+          (runtimeCheckType as ast.InterfaceType).typeArguments.single;
+      if (_typeTranslator.translate(valueType) is! TopType) {
+        builder.addTypeArguments([
+          valueType,
+        ], typeParameters: _typeParametersForType(valueType));
+        builder.addSuspend(.awaitWithTypeCheck, _staticType(node));
+        return;
+      }
+    }
+
+    builder.addSuspend(.await, _staticType(node));
+  }
+
+  @override
+  void visitYieldStatement(ast.YieldStatement node) {
+    _translateNode(node.expression);
+    if (!builder.hasOpenBlock) {
+      builder.pop();
+      return;
+    }
+    builder.addSuspend(node.isYieldStar ? .yieldStar : .yield, const TopType());
   }
 }
 

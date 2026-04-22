@@ -1612,6 +1612,25 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {
+    _asm.unimplemented(
+      'Unimplemented: code generation for EnterSuspendableFunction',
+    );
+  }
+
+  @override
+  void visitLeaveSuspendableFunction(LeaveSuspendableFunction instr) {
+    _asm.unimplemented(
+      'Unimplemented: code generation for LeaveSuspendableFunction',
+    );
+  }
+
+  @override
+  void visitSuspend(Suspend instr) {
+    _asm.unimplemented('Unimplemented: code generation for Suspend');
+  }
+
+  @override
   Location getMoveTempRegister(RegisterClass registerClass) =>
       switch (registerClass) {
         .cpu => tempReg,

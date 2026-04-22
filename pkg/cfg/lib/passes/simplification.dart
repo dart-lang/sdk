@@ -274,6 +274,17 @@ final class Simplification extends Pass
   }
 
   @override
+  Instruction visitEnterSuspendableFunction(EnterSuspendableFunction instr) =>
+      instr;
+
+  @override
+  Instruction visitLeaveSuspendableFunction(LeaveSuspendableFunction instr) =>
+      instr;
+
+  @override
+  Instruction visitSuspend(Suspend instr) => instr;
+
+  @override
   Instruction visitAllocateList(AllocateList instr) => instr;
 
   @override

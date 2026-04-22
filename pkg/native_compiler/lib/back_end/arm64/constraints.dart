@@ -400,4 +400,18 @@ final class Arm64Constraints extends Constraints {
   @override
   InstructionConstraints? visitUnaryBoolOp(UnaryBoolOp instr) =>
       const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitEnterSuspendableFunction(
+    EnterSuspendableFunction instr,
+  ) => const InstructionConstraints(null, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitLeaveSuspendableFunction(
+    LeaveSuspendableFunction instr,
+  ) => const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
+
+  @override
+  InstructionConstraints? visitSuspend(Suspend instr) =>
+      const InstructionConstraints(anyCpuRegister, [anyCpuRegister]);
 }

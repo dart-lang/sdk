@@ -437,6 +437,19 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {}
+
+  @override
+  void visitLeaveSuspendableFunction(LeaveSuspendableFunction instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
+  void visitSuspend(Suspend instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitComparison(Comparison instr) {
     switch (instr.op) {
       case ComparisonOpcode.equal:

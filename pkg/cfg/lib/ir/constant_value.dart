@@ -48,6 +48,7 @@ extension type ConstantValue(ast.Constant constant) {
   bool get isNull => constant is ast.NullConstant;
   bool get isString => constant is ast.StringConstant;
   bool get isUnboxed => constant is UnboxedConstant;
+  bool get isTypeArgumentsConstant => constant is TypeArgumentsConstant;
 
   CType get type => switch (constant) {
     ast.IntConstant() || UnboxedIntConstant() => const IntType(),
