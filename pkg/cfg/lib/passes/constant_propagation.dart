@@ -272,6 +272,9 @@ final class ConstantPropagation extends Pass
   void visitReturn(Return instr) {}
 
   @override
+  void visitUnreachable(Unreachable instr) {}
+
+  @override
   void visitConstant(Constant instr) {
     // There is no need to flood _constantValues map with Constant
     // instructions as they are handled in _getConstantValue directly
@@ -686,7 +689,7 @@ final class ConstantPropagation extends Pass
           return last.tryBody;
         }
         return null;
-      case Return() || Throw():
+      case Return() || Throw() || Unreachable():
         return null;
       default:
         throw 'Unexpected block end ${last.runtimeType}';

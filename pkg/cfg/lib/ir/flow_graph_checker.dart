@@ -271,6 +271,12 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitUnreachable(Unreachable instr) {
+    assert(instr.next == null);
+    assert(instr.block!.successors.isEmpty);
+  }
+
+  @override
   void visitConstant(Constant instr) {
     assert(constantsAllowed);
     assert(instr.block is EntryBlock);

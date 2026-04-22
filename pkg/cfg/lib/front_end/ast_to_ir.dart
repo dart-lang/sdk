@@ -86,6 +86,16 @@ class AstToIr extends ast.RecursiveVisitor {
   FlowGraph buildFlowGraph() {
     _buildPrologue();
     final member = function.member;
+    if (member.isInstanceMember && member.enclosingClass!.isMixinDeclaration) {
+      // After mixin transformation, original members of mixins should not be called.
+      // Only their clones in the mixin application classes can be called.
+      // By removing their bodies we can reduce code size and avoid any
+      // complexity dealing with super-invocations of abstract members.
+      builder.addUnreachable(
+        'Original instance members of mixins should not be called.',
+      );
+      return builder.done();
+    }
     switch (function) {
       case ImplicitFieldGetter():
         _buildImplicitGetter(member as ast.Field);

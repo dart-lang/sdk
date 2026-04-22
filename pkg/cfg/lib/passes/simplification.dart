@@ -98,6 +98,9 @@ final class Simplification extends Pass
   Instruction visitReturn(Return instr) => instr;
 
   @override
+  Instruction visitUnreachable(Unreachable instr) => instr;
+
+  @override
   Instruction visitComparison(Comparison instr) {
     Definition left = instr.left;
     Definition right = instr.right;

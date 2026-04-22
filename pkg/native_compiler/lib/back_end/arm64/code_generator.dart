@@ -430,6 +430,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitUnreachable(Unreachable instr) {
+    _asm.unimplemented('Unreachable: ${instr.message}');
+  }
+
+  @override
   void visitComparison(Comparison instr) {
     _asm.unimplemented('Unimplemented: code generation for Comparison');
   }

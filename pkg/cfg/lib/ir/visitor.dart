@@ -17,6 +17,7 @@ abstract interface class InstructionVisitor<R> {
   R visitTryEntry(TryEntry instr);
   R visitPhi(Phi instr);
   R visitReturn(Return instr);
+  R visitUnreachable(Unreachable instr);
   R visitComparison(Comparison instr);
   R visitConstant(Constant instr);
   R visitDirectCall(DirectCall instr);
@@ -86,6 +87,7 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitTryEntry(TryEntry instr) => defaultInstruction(instr);
   R visitPhi(Phi instr) => defaultInstruction(instr);
   R visitReturn(Return instr) => defaultInstruction(instr);
+  R visitUnreachable(Unreachable instr) => defaultInstruction(instr);
   R visitComparison(Comparison instr) => defaultInstruction(instr);
   R visitConstant(Constant instr) => defaultInstruction(instr);
   R visitDirectCall(DirectCall instr) => defaultInstruction(instr);

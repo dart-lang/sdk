@@ -163,6 +163,13 @@ class FlowGraphBuilder {
     endBlock();
   }
 
+  /// Append [Unreachable] to the graph. Ends current block.
+  void addUnreachable(String message) {
+    final instr = Unreachable(graph, currentSourcePosition, message);
+    appendInstruction(instr);
+    endBlock();
+  }
+
   /// Append [Comparison] to the graph.
   Comparison addComparison(ComparisonOpcode op) {
     final right = pop();

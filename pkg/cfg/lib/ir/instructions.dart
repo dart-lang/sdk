@@ -609,6 +609,19 @@ final class Return extends Instruction
   R accept<R>(InstructionVisitor<R> v) => v.visitReturn(this);
 }
 
+/// A point in the control flow which should not be reachable at runtime.
+final class Unreachable extends Instruction
+    with NoThrow, Pure
+    implements ControlFlowInstruction {
+  /// Message which could be displayed if this instruction is reached.
+  final String message;
+  Unreachable(super.graph, super.sourcePosition, this.message)
+    : super(inputCount: 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnreachable(this);
+}
+
 enum ComparisonOpcode {
   // Simple object pointer equality.
   equal('=='),
