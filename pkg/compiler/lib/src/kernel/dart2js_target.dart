@@ -361,6 +361,20 @@ class Dart2jsSummaryTarget extends Dart2jsTarget with SummaryMixin {
     this.excludeNonSources,
     TargetFlags targetFlags,
   ) : super(name, targetFlags);
+
+  @override
+  bool isModularlyCompatibleWith(Target other) {
+    if (other is! Dart2jsSummaryTarget) return false;
+    if (excludeNonSources != other.excludeNonSources) return false;
+    return true;
+  }
+
+  @override
+  void updateModularCompatibilityAs(Target other) {
+    assert(other is Dart2jsSummaryTarget);
+    sources.clear();
+    sources.addAll((other as Dart2jsSummaryTarget).sources);
+  }
 }
 
 class Dart2jsConstantsBackend extends ConstantsBackend {
