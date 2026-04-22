@@ -36,7 +36,6 @@ enum TypeParametersStyle {
 ///  - captured variables;
 ///  - stack overflow/interrupt checks;
 ///  - assert statements;
-///  - async/async*/sync*/await/yield/yield*;
 ///  - record access and literals;
 ///  - deferred libraries.
 ///
@@ -85,6 +84,44 @@ class AstToIr extends ast.RecursiveVisitor {
 
   /// Create [FlowGraph] for the body of the [function].
   FlowGraph buildFlowGraph() {
+    _buildPrologue();
+    final member = function.member;
+    if (member.isInstanceMember && member.enclosingClass!.isMixinDeclaration) {
+      // After mixin transformation, original members of mixins should not be called.
+      // Only their clones in the mixin application classes can be called.
+      // By removing their bodies we can reduce code size and avoid any
+      // complexity dealing with super-invocations of abstract members.
+      builder.addUnreachable(
+        'Original instance members of mixins should not be called.',
+      );
+      return builder.done();
+    }
+    switch (function) {
+      case ImplicitFieldGetter():
+        _buildImplicitGetter(member as ast.Field);
+      case ImplicitFieldSetter():
+        _buildImplicitSetter(member as ast.Field);
+      case FieldInitializerFunction():
+        _translateNode((member as ast.Field).initializer!);
+        if (builder.hasOpenBlock) {
+          builder.addReturn();
+        }
+      case RegularFunction() || GetterFunction() || SetterFunction():
+        _translateNode(member.function?.body);
+      case GenerativeConstructor():
+        _translateConstructorInitializers(member as ast.Constructor);
+        _translateNode(member.function.body);
+      case LocalFunction() || TearOffFunction():
+        throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
+    }
+    if (builder.hasOpenBlock) {
+      builder.addNullConstant();
+      _buildReturn();
+    }
+    return builder.done();
+  }
+
+  void _buildPrologue() {
     for (final param in localVarIndexer.parameters) {
       builder.addParameter(param);
     }
@@ -106,30 +143,20 @@ class AstToIr extends ast.RecursiveVisitor {
           }
       }
     }
-    final member = function.member;
-    switch (function) {
-      case ImplicitFieldGetter():
-        _buildImplicitGetter(member as ast.Field);
-      case ImplicitFieldSetter():
-        _buildImplicitSetter(member as ast.Field);
-      case FieldInitializerFunction():
-        _translateNode((member as ast.Field).initializer!);
-        if (builder.hasOpenBlock) {
-          builder.addReturn();
-        }
-      case RegularFunction() || GetterFunction() || SetterFunction():
-        _translateNode(member.function?.body);
-      case GenerativeConstructor():
-        _translateConstructorInitializers(member as ast.Constructor);
-        _translateNode(member.function.body);
-      case LocalFunction() || TearOffFunction():
-        throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
+    if (function.isSuspendable) {
+      final emittedValueType = function.functionNode!.emittedValueType!;
+      builder.addTypeArguments([
+        emittedValueType,
+      ], typeParameters: _typeParametersForType(emittedValueType));
+      builder.addEnterSuspendableFunction();
     }
-    if (builder.hasOpenBlock) {
-      builder.addNullConstant();
-      builder.addReturn();
+  }
+
+  void _buildReturn() {
+    if (function.isSuspendable) {
+      builder.addLeaveSuspendableFunction(function.returnType);
     }
-    return builder.done();
+    builder.addReturn();
   }
 
   void _buildImplicitGetter(ast.Field node) {
@@ -479,7 +506,7 @@ class AstToIr extends ast.RecursiveVisitor {
     final value = builder.pop();
     _generateNonLocalControlTransfer(node, null, () {
       builder.push(value);
-      builder.addReturn();
+      _buildReturn();
     });
   }
 
@@ -1763,6 +1790,41 @@ class AstToIr extends ast.RecursiveVisitor {
   @override
   void visitLogicalExpression(ast.LogicalExpression node) {
     _translateConditionForValue(node);
+  }
+
+  @override
+  void visitAwaitExpression(ast.AwaitExpression node) {
+    _translateNode(node.operand);
+    if (_handleUnreachableExpression(1)) return;
+
+    final runtimeCheckType = node.runtimeCheckType;
+    if (runtimeCheckType != null) {
+      assert(
+        (runtimeCheckType as ast.InterfaceType).classNode ==
+            coreTypes.futureClass,
+      );
+      final valueType =
+          (runtimeCheckType as ast.InterfaceType).typeArguments.single;
+      if (_typeTranslator.translate(valueType) is! TopType) {
+        builder.addTypeArguments([
+          valueType,
+        ], typeParameters: _typeParametersForType(valueType));
+        builder.addSuspend(.awaitWithTypeCheck, _staticType(node));
+        return;
+      }
+    }
+
+    builder.addSuspend(.await, _staticType(node));
+  }
+
+  @override
+  void visitYieldStatement(ast.YieldStatement node) {
+    _translateNode(node.expression);
+    if (!builder.hasOpenBlock) {
+      builder.pop();
+      return;
+    }
+    builder.addSuspend(node.isYieldStar ? .yieldStar : .yield, const TopType());
   }
 }
 

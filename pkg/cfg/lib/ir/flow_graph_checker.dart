@@ -115,7 +115,8 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
     }
   }
 
-  void verifyTypeArguments(Definition typeArguments, Definition user) {
+  /// Verify type arguments input of the [user].
+  void verifyTypeArgumentsInput(Definition typeArguments, Instruction user) {
     switch (typeArguments) {
       case TypeArguments():
       case Constant(value: ConstantValue(constant: TypeArgumentsConstant())):
@@ -126,9 +127,33 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
     }
   }
 
+  // Verify uses of type arguments definition.
+  void verifyUsesOfTypeArguments(Definition def) {
+    for (final use in def.inputUses) {
+      final user = use.getInstruction(graph);
+      switch (user) {
+        case CallInstruction():
+          assert(user.hasTypeArguments);
+          assert(user.typeArguments == def);
+        case AllocateObject():
+          assert(user.typeArguments == def);
+        case AllocateListLiteral():
+          assert(user.typeArguments == def);
+        case AllocateMapLiteral():
+          assert(user.typeArguments == def);
+        case EnterSuspendableFunction():
+          assert(user.typeArguments == def);
+        case Suspend(op: .awaitWithTypeCheck):
+          assert(user.typeArguments == def);
+        default:
+          throw 'Unexpected user ${IrToText.instruction(user)} of type arguments ${IrToText.instruction(def)}';
+      }
+    }
+  }
+
   void verifyCall(CallInstruction instr) {
     if (instr.hasTypeArguments) {
-      verifyTypeArguments(instr.typeArguments!, instr);
+      verifyTypeArgumentsInput(instr.typeArguments!, instr);
     }
   }
 
@@ -246,10 +271,19 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   }
 
   @override
+  void visitUnreachable(Unreachable instr) {
+    assert(instr.next == null);
+    assert(instr.block!.successors.isEmpty);
+  }
+
+  @override
   void visitConstant(Constant instr) {
     assert(constantsAllowed);
     assert(instr.block is EntryBlock);
     assert(graph.getConstant(instr.value) == instr);
+    if (instr.value.isTypeArgumentsConstant) {
+      verifyUsesOfTypeArguments(instr);
+    }
   }
 
   @override
@@ -344,23 +378,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitTypeArguments(TypeArguments instr) {
-    // TypeArguments can only be used as the first input in a call or AllocateObject.
-    for (final use in instr.inputUses) {
-      final user = use.getInstruction(graph);
-      switch (user) {
-        case CallInstruction():
-          assert(user.hasTypeArguments);
-          assert(user.typeArguments == instr);
-        case AllocateObject():
-          assert(user.typeArguments == instr);
-        case AllocateListLiteral():
-          assert(user.typeArguments == instr);
-        case AllocateMapLiteral():
-          assert(user.typeArguments == instr);
-        default:
-          throw 'Unexpected user ${IrToText.instruction(user)} of TypeArguments';
-      }
-    }
+    verifyUsesOfTypeArguments(instr);
   }
 
   @override
@@ -369,7 +387,7 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   @override
   void visitAllocateObject(AllocateObject instr) {
     if (instr.hasTypeArguments) {
-      verifyTypeArguments(instr.typeArguments!, instr);
+      verifyTypeArgumentsInput(instr.typeArguments!, instr);
     }
   }
 
@@ -378,16 +396,46 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
 
   @override
   void visitAllocateListLiteral(AllocateListLiteral instr) {
-    verifyTypeArguments(instr.typeArguments, instr);
+    verifyTypeArgumentsInput(instr.typeArguments, instr);
   }
 
   @override
   void visitAllocateMapLiteral(AllocateMapLiteral instr) {
-    verifyTypeArguments(instr.typeArguments, instr);
+    verifyTypeArgumentsInput(instr.typeArguments, instr);
   }
 
   @override
   void visitStringInterpolation(StringInterpolation instr) {}
+
+  @override
+  void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {
+    assert(graph.function.isSuspendable);
+    verifyTypeArgumentsInput(instr.typeArguments, instr);
+  }
+
+  @override
+  void visitLeaveSuspendableFunction(LeaveSuspendableFunction instr) {
+    assert(graph.function.isSuspendable);
+  }
+
+  @override
+  void visitSuspend(Suspend instr) {
+    assert(graph.function.isSuspendable);
+    final asyncMarker = graph.function.asyncMarker;
+    switch (instr.op) {
+      case .await || .awaitWithTypeCheck:
+        assert(asyncMarker == .Async || asyncMarker == .AsyncStar);
+        break;
+      case .yield || .yieldStar:
+        assert(asyncMarker == .AsyncStar || asyncMarker == .SyncStar);
+        break;
+    }
+    if (instr.op == .awaitWithTypeCheck) {
+      verifyTypeArgumentsInput(instr.typeArguments!, instr);
+    } else {
+      assert(instr.typeArguments == null);
+    }
+  }
 
   @override
   void visitComparison(Comparison instr) {

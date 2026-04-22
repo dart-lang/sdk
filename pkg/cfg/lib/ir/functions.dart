@@ -99,6 +99,13 @@ sealed class CFunction {
   /// Return type of this function.
   CType get returnType;
 
+  /// Async marker of this function.
+  ast.AsyncMarker get asyncMarker =>
+      functionNode?.asyncMarker ?? ast.AsyncMarker.Sync;
+
+  /// Whether this function is suspendable (i.e. async, async* or sync*).
+  bool get isSuspendable => asyncMarker != ast.AsyncMarker.Sync;
+
   /// Source position of the beginning of this function.
   SourcePosition get sourcePosition => SourcePosition(member.fileOffset);
 }
