@@ -1784,6 +1784,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
@@ -1989,9 +1990,9 @@ class OutlineBuilder extends StackListenerImpl {
       beginToken: beginToken,
       name: name,
       startOffset: startOffset,
+      endOffset: endToken.charOffset,
       nameOffset: nameOffset,
       formalsOffset: formalsOffset,
-      // TODO(johnniwinther): Provide `endOffset`.
       formals: formals,
       isConst: constKeyword != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,

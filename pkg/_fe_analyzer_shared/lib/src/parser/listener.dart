@@ -352,6 +352,7 @@ abstract class Listener implements UnescapeErrorListener {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {

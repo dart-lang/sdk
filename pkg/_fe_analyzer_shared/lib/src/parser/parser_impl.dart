@@ -3720,6 +3720,7 @@ class Parser {
       listener.endPrimaryConstructor(
         kind,
         beginPrimaryConstructor,
+        token,
         constKeyword,
         hasConstructorName,
       );

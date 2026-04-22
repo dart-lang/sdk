@@ -12,7 +12,7 @@ import "dart:core" as core;
   constructor _ = self::Foo|constructor#_;
   constructor tearoff _ = self::Foo|constructor#_#_#tearOff;
 }
-[263]static extension-type-member method [264] [264] Foo|constructor#_([274] wildcard initializing-formal js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */ {
+[263]static extension-type-member method [264] [275] Foo|constructor#_([274] wildcard initializing-formal js_::JSObject /* erasure=dart._interceptors::JSObject */ _#wc0#formal) → self::Foo /* erasure=dart._interceptors::JSObject */ {
 [274]  [274] lowered final self::Foo /* erasure=dart._interceptors::JSObject */ #this = [274] [274] _#wc0#formal;
 [-1]  return [-1] [-1] #this;
 }

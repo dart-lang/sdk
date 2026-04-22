@@ -536,6 +536,7 @@ abstract class AbstractParserAstListener implements Listener {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
@@ -543,6 +544,7 @@ abstract class AbstractParserAstListener implements Listener {
       ParserAstType.END,
       kind: kind,
       beginToken: beginToken,
+      endToken: endToken,
       constKeyword: constKeyword,
       hasConstructorName: hasConstructorName,
     );
@@ -4861,9 +4863,13 @@ class PrimaryConstructorBegin extends ParserAstNode {
   R accept<R>(ParserAstVisitor<R> v) => v.visitPrimaryConstructorBegin(this);
 }
 
-class PrimaryConstructorEnd extends ParserAstNode {
+class PrimaryConstructorEnd extends ParserAstNode
+    implements BeginAndEndTokenParserAstNode {
   final DeclarationKind kind;
+  @override
   final Token beginToken;
+  @override
+  final Token endToken;
   final Token? constKeyword;
   final bool hasConstructorName;
 
@@ -4871,6 +4877,7 @@ class PrimaryConstructorEnd extends ParserAstNode {
     ParserAstType type, {
     required this.kind,
     required this.beginToken,
+    required this.endToken,
     this.constKeyword,
     required this.hasConstructorName,
   }) : super("PrimaryConstructor", type);
@@ -4879,6 +4886,7 @@ class PrimaryConstructorEnd extends ParserAstNode {
   Map<String, Object?> get deprecatedArguments => {
     "kind": kind,
     "beginToken": beginToken,
+    "endToken": endToken,
     "constKeyword": constKeyword,
     "hasConstructorName": hasConstructorName,
   };

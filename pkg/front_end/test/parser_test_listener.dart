@@ -580,16 +580,19 @@ class ParserTestListener implements Listener {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
     indent--;
     seen(beginToken);
+    seen(endToken);
     seen(constKeyword);
     doPrint(
       'endPrimaryConstructor('
       '$kind, '
       '$beginToken, '
+      '$endToken, '
       '$constKeyword, '
       '$hasConstructorName)',
     );

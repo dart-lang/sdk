@@ -9,7 +9,7 @@ import "dart:core" as core;
   constructor _ = self::Foo|constructor#_;
   constructor tearoff _ = self::Foo|constructor#_#_#tearOff;
 }
-[236]static extension-type-member method [237] [237] Foo|constructor#_([247] wildcard initializing-formal core::Duration _#wc0#formal) → self::Foo /* erasure=core::Duration */ {
+[236]static extension-type-member method [237] [248] Foo|constructor#_([247] wildcard initializing-formal core::Duration _#wc0#formal) → self::Foo /* erasure=core::Duration */ {
 [247]  [247] lowered final self::Foo /* erasure=core::Duration */ #this = [247] [247] _#wc0#formal;
 [-1]  return [-1] [-1] #this;
 }
