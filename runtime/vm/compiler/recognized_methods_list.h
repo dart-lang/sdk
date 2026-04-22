@@ -664,6 +664,11 @@ namespace dart {
   V(TypedDataLibrary, _Float32x4, /, Float32x4Div, 0xc08217a2)                 \
   V(TypedDataLibrary, _Float32x4, -, Float32x4Sub, 0xdd15548a)                 \
   V(TypedDataLibrary, _Float32x4, +, Float32x4Add, 0xb7dc8a19)                 \
+  V(TypedDataLibrary, _Int32x4, +, Int32x4Add, 0xe9107b19)                     \
+  V(TypedDataLibrary, _Int32x4, -, Int32x4Sub, 0x0e49458a)                     \
+  V(TypedDataLibrary, _Int32x4, |, Int32x4BitOr, 0xf30a0ef5)                   \
+  V(TypedDataLibrary, _Int32x4, &, Int32x4BitAnd, 0x0da1c43d)                  \
+  V(TypedDataLibrary, _Int32x4, ^, Int32x4BitXor, 0x0c49417c)                  \
   V(TypedDataLibrary, _Float64x2, *, Float64x2Mul, 0x37439ec6)                 \
   V(TypedDataLibrary, _Float64x2, /, Float64x2Div, 0x12925562)                 \
   V(TypedDataLibrary, _Float64x2, -, Float64x2Sub, 0x2f258e89)                 \

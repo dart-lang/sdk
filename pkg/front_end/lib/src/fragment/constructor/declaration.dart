@@ -1389,8 +1389,7 @@ class PrimaryConstructorDeclaration
       fileOffset: _fragment.fileOffset,
       startOffset: _fragment.startOffset,
       formalsOffset: _fragment.formalsOffset,
-      // TODO(johnniwinther): Provide `endOffset`.
-      endOffset: _fragment.formalsOffset,
+      endOffset: _fragment.endOffset,
       forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       isConst: _fragment.modifiers.isConst,
       isSynthetic: false,

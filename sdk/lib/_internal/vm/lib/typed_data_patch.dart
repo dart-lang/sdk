@@ -3996,14 +3996,24 @@ class Int32x4 {
 @pragma('vm:deeply-immutable')
 @pragma("vm:entry-point")
 final class _Int32x4 implements Int32x4 {
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_or")
   external Int32x4 operator |(Int32x4 other);
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_and")
   external Int32x4 operator &(Int32x4 other);
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_xor")
   external Int32x4 operator ^(Int32x4 other);
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_add")
   external Int32x4 operator +(Int32x4 other);
+  @pragma("vm:recognized", "graph-intrinsic")
+  @pragma("vm:exact-result-type", _Int32x4)
   @pragma("vm:external-name", "Int32x4_sub")
   external Int32x4 operator -(Int32x4 other);
   @pragma("vm:external-name", "Int32x4_getX")

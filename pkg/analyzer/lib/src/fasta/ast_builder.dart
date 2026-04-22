@@ -2690,6 +2690,7 @@ class AstBuilder extends StackListener {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {

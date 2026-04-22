@@ -2423,12 +2423,14 @@ class ForwardingListener implements Listener {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
     listener?.endPrimaryConstructor(
       kind,
       beginToken,
+      endToken,
       constKeyword,
       hasConstructorName,
     );

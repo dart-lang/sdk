@@ -1167,6 +1167,7 @@ class DietListener extends StackListenerImpl {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {

@@ -355,6 +355,7 @@ abstract class FragmentFactory {
     required String? name,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,
+    required int endOffset,
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
