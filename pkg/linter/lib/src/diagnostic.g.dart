@@ -3429,6 +3429,16 @@ const LinterLintWithoutArguments unnecessaryToListInSpreads =
     );
 
 /// No parameters.
+const LinterLintWithoutArguments unnecessaryTypeNameInConstructor =
+    LinterLintWithoutArguments(
+      name: 'unnecessary_type_name_in_constructor',
+      problemMessage: "Unnecessary type name in a constructor.",
+      correctionMessage: "Try removing the type name.",
+      uniqueName: 'unnecessary_type_name_in_constructor',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments unnecessaryUnawaited =
     LinterLintWithoutArguments(
       name: 'unnecessary_unawaited',

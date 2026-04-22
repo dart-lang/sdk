@@ -507,6 +507,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     Roots::set_null_obj(static_cast<InstancePtr>(address + kHeapObjectTag));
     InitializeObjectVariant<Instance>(address, kNullCid);
     Roots::null_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::null_obj(), kNullIdentityHash);
+#endif
   }
 
   // Allocate and initialize the bool instances.
@@ -526,6 +529,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     InitializeObject<Bool>(address);
     Roots::true_obj()->untag()->value_ = true;
     Roots::true_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::true_obj(), kTrueIdentityHash);
+#endif
   }
   {
     // Allocate false.
@@ -534,6 +540,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     InitializeObject<Bool>(address);
     Roots::false_obj()->untag()->value_ = false;
     Roots::false_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::false_obj(), kFalseIdentityHash);
+#endif
   }
 
   // Check that the objects have been allocated at appropriate addresses.
@@ -987,7 +996,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     InstantiationsCacheTable table(Roots::empty_instantiations_cache_array());
     table.At(0).Set<TypeArguments::Cache::kSentinelIndex>(smi);
     // The other contents of the array are immaterial.
-    Roots::empty_instantiations_cache_array().SetCanonical();
   }
 
   // Allocate and initialize the empty subtype test cache array instance,
@@ -1010,7 +1018,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     table.At(0).Set<SubtypeTestCache::kInstanceCidOrSignature>(
         Object::null_object());
     // The other contents of the array are immaterial.
-    Roots::empty_subtype_test_cache_array().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty context scope object.
@@ -1024,7 +1031,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         &Roots::empty_context_scope().untag()->num_variables_, 0);
     Roots::empty_context_scope().StoreNonPointer(
         &Roots::empty_context_scope().untag()->is_implicit_, true);
-    Roots::empty_context_scope().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty object pool object.
@@ -1036,7 +1042,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<ObjectPoolPtr>(address + kHeapObjectTag));
     Roots::empty_object_pool().StoreNonPointer(
         &Roots::empty_object_pool().untag()->length_, 0);
-    Roots::empty_object_pool().SetCanonical();
   }
 
   // Allocate and initialize the empty_compressed_stackmaps instance.
@@ -1048,7 +1053,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
     Roots::empty_compressed_stackmaps().untag()->payload()->set_flags_and_size(
         0);
-    Roots::empty_compressed_stackmaps().SetCanonical();
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -1060,7 +1064,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<PcDescriptorsPtr>(address + kHeapObjectTag));
     Roots::empty_descriptors().StoreNonPointer(
         &Roots::empty_descriptors().untag()->length_, 0);
-    Roots::empty_descriptors().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty variable descriptor object.
@@ -1072,7 +1075,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<LocalVarDescriptorsPtr>(address + kHeapObjectTag));
     Roots::empty_var_descriptors().StoreNonPointer(
         &Roots::empty_var_descriptors().untag()->num_entries_, 0);
-    Roots::empty_var_descriptors().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty exception handler info object.
@@ -1086,7 +1088,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
     Roots::empty_exception_handlers().StoreNonPointer(
         &Roots::empty_exception_handlers().untag()->packed_fields_, 0);
-    Roots::empty_exception_handlers().SetCanonical();
   }
 
   // Empty exception handlers for async/async* functions.
@@ -1099,7 +1100,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     Roots::empty_async_exception_handlers().StoreNonPointer(
         &Roots::empty_async_exception_handlers().untag()->packed_fields_,
         UntaggedExceptionHandlers::AsyncHandlerBit::update(true, 0));
-    Roots::empty_async_exception_handlers().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty type arguments object.
@@ -1434,13 +1434,7 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
         // Some classes have identity hash codes that depend on their contents,
         // not per object.
         ASSERT(!obj->IsStringInstance());
-        if (obj == Object::null()) {
-          Object::SetCachedHashIfNotSet(obj, kNullIdentityHash);
-        } else if (obj == Object::bool_true().ptr()) {
-          Object::SetCachedHashIfNotSet(obj, kTrueIdentityHash);
-        } else if (obj == Object::bool_false().ptr()) {
-          Object::SetCachedHashIfNotSet(obj, kFalseIdentityHash);
-        } else if (!obj->IsMint() && !obj->IsDouble()) {
+        if (!obj->IsMint() && !obj->IsDouble()) {
           counter_ += 2011;  // The year Dart was announced and a prime.
           counter_ &= 0x3fffffff;
           if (counter_ == 0) counter_++;

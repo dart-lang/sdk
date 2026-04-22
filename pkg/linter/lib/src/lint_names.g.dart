@@ -585,6 +585,9 @@ abstract final class LintNames {
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';
 
+  static const String unnecessary_type_name_in_constructor =
+      'unnecessary_type_name_in_constructor';
+
   static const String unnecessary_unawaited = 'unnecessary_unawaited';
 
   static const String unnecessary_underscores = 'unnecessary_underscores';

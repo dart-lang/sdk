@@ -351,11 +351,19 @@ class AnnotationVerifier {
       }
     } else if (parent is ConstructorDeclaration) {
       var element = parent.declaredFragment!.element;
-      var class_ = element.enclosingElement;
-      if (class_.isPrivate || parentElementIsPrivate) {
+      if (element.isPrivate || element.enclosingElement.isPrivate) {
         _diagnosticReporter.report(
           diag.invalidInternalAnnotation.at(node.name),
         );
+      }
+    } else if (parent is PrimaryConstructorBody) {
+      var element = parent.declaration?.declaredFragment?.element;
+      if (element != null) {
+        if (element.isPrivate || element.enclosingElement.isPrivate) {
+          _diagnosticReporter.report(
+            diag.invalidInternalAnnotation.at(node.name),
+          );
+        }
       }
     } else if (parentElementIsPrivate) {
       _diagnosticReporter.report(diag.invalidInternalAnnotation.at(node.name));

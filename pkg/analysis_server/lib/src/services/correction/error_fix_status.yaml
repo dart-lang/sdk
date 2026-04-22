@@ -2525,6 +2525,8 @@ unnecessary_this:
   status: hasFix
 unnecessary_to_list_in_spreads:
   status: hasFix
+unnecessary_type_name_in_constructor:
+  status: hasFix
 unnecessary_unawaited:
   status: hasFix
 unnecessary_underscores:

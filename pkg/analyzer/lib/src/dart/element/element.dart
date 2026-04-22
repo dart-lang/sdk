@@ -9058,11 +9058,6 @@ class MixinFragmentImpl extends InterfaceFragmentImpl implements MixinFragment {
   MixinFragmentImpl? get previousFragment =>
       super.previousFragment as MixinFragmentImpl?;
 
-  @override
-  List<InterfaceTypeImpl> get superclassConstraints {
-    return element.superclassConstraints;
-  }
-
   void addFragment(MixinFragmentImpl fragment) {
     fragment.element = element;
     fragment.previousFragment = this;

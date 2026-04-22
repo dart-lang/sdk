@@ -1,5 +1,6 @@
 ## 13.0.0-dev
 
+* **Breaking Change:** `MixinFragment.superclassConstraints` has been removed. Use `fragment.element.superclassConstraints` instead.
 * **Breaking Change:** `DefaultFormalParameter` has been removed. Default values for parameters are now represented compositionally via a `defaultClause` property on all `FormalParameter` nodes.
 * **Breaking Change:** `SimpleFormalParameter` and `FunctionTypedFormalParameter` have been removed and replaced by `RegularFormalParameter`.
 * **Breaking Change:** Function-typed parameters are now represented compositionally via a `functionTypedSuffix` property on `FormalParameter`.

@@ -15260,6 +15260,86 @@ LinterLintCode:
         ...['foo', 'bar', 'baz'].map((String s) => Text(s)),
       ]
       ```
+  unnecessaryTypeNameInConstructor:
+    type: lint
+    parameters: none
+    problemMessage: "Unnecessary type name in a constructor."
+    correctionMessage: "Try removing the type name."
+    state:
+      stable: "3.13"
+    categories: [brevity, style]
+    hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a secondary constructor
+      declaration includes a type name.
+
+      #### Examples
+
+      The following code produces this diagnostic because the generative
+      constructor declaration includes the type name:
+
+      ```dart
+      %experiments=primary-constructors
+      class C {
+        [!C!]();
+      }
+      ```
+
+      The following code produces this diagnostic because the factory
+      constructor declaration includes the type name:
+
+      ```dart
+      %experiments=primary-constructors
+      class C {
+        factory [!C!]() => C._();
+
+        new _() {}
+      }
+      ```
+
+      #### Common fixes
+
+      Remove the type name from the constructor, and if the constructor is
+      named, then also remove the period before the name:
+
+      ```dart
+      %experiments=primary-constructors
+      class C {
+        new ();
+      }
+      ```
+
+      or
+
+      ```dart
+      %experiments=primary-constructors
+      class C {
+        factory () => C._();
+
+        new _() {}
+      }
+      ```
+    deprecatedDetails: |-
+      Don't include the type name in a constructor declaration. It isn't
+      necessary, and the code is shorter and cleaner without it.
+
+      **BAD:**
+      ```dart
+      class C {
+        C();
+        C.name();
+      }
+      ```
+
+      **GOOD:**
+      ```dart
+      class C {
+        new ();
+        new name();
+      }
+      ```
   unnecessaryUnawaited:
     type: lint
     parameters: none

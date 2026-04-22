@@ -1657,6 +1657,16 @@ abstract final class DartFixKind {
     DartFixKindPriority.inFile,
     'Remove type check everywhere in file',
   );
+  static const removeTypeName = FixKind(
+    'dart.fix.remove.typeName',
+    DartFixKindPriority.standard,
+    'Remove the type name',
+  );
+  static const removeTypeNameMulti = FixKind(
+    'dart.fix.remove.typeName.multi',
+    DartFixKindPriority.standard,
+    'Remove unnecessary type names in file',
+  );
   static const removeUnawaited = FixKind(
     'dart.fix.remove.unawaited',
     DartFixKindPriority.standard,

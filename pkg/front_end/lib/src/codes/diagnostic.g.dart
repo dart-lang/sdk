@@ -5372,6 +5372,13 @@ Message _withArgumentsImplicitSuperInitializerMissingArguments({
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode implicitlyConstEnumConstructorWithBody = const MessageCode(
+  "ImplicitlyConstEnumConstructorWithBody",
+  problemMessage: """A generative enum constructor can't have a body.""",
+  correctionMessage: """Try removing the constructor body.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<
   Message Function({
     required Uri uri,

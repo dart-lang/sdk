@@ -12,6 +12,11 @@ library;
 //   set E6(_) {}
 //       ^^
 //
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:56:8: Error: A generative enum constructor can't have a body.
+// Try removing the constructor body.
+//   E7() {}
+//        ^
+//
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:10:6: Error: Conflicts with type variable 'values'.
 // enum E2<values> {
 //      ^^^^^^
@@ -34,10 +39,6 @@ library;
 // Try renaming the member.
 //   E4
 //   ^^
-//
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:56:3: Error: Generative enum constructors must be marked as 'const'.
-//   E7() {}
-//   ^
 //
 // pkg/front_end/testcases/enhanced_enums/missed_checks.dart:61:11: Error: The factory conflicts with member 'values'.
 //   factory E8.values() => a;
@@ -74,8 +75,8 @@ library;
 // abstract class A3 extends SuperclassWithValues implements Enum {} // Error.
 //                ^
 //
-// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
+// pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
 //   a;
 //   ^
 //
@@ -185,15 +186,9 @@ class E6 extends core::_Enum /*isEnum*/  {
   set E6(wildcard dynamic _#wc0#formal) → void {}
 }
 class E7 extends core::_Enum /*isEnum*/  {
-  enum-element static const field invalid-type a = invalid-expression "pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  a;
-  ^";
-  static const field core::List<self::E7> values = invalid-expression "pkg/front_end/testcases/enhanced_enums/missed_checks.dart:55:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-  a;
-  ^";
-  constructor •(core::int #index, core::String #name) → self::E7
+  enum-element static const field self::E7 a = invalid-expression "A const constructor can't have a body.";
+  static const field core::List<self::E7> values = invalid-expression "A const constructor can't have a body.";
+  const constructor •(core::int #index, core::String #name) → self::E7
     : super core::_Enum::•(#index, #name) {}
   method core::_enumToString() → core::String
     return "E7.${this.{core::_Enum::_name}{core::String}}";
