@@ -2,6 +2,15 @@
 
 **Released on:** Unreleased
 
+### Libraries
+
+#### `dart:io`
+
+- The cookie-date parser now uses the correct algorithm again.
+  A change to the parsing made it only accept the formats that
+  cookie-dates _should_ have, but the RFC specifies a very
+  permissive algorithm for what should be accepted.
+
 ## 3.12.0
 
 **Released on:** Unreleased

@@ -34,6 +34,7 @@ class _Const {
 }
 
 // Frequently used character codes.
+// TODO(lrn): Make lower case, move into separate library, import with prefix.
 class _CharCode {
   static const int NONE = -1;
   static const int HT = 0x09;
@@ -56,6 +57,26 @@ class _CharCode {
   static const int LETTER_a = 0x61;
   static const int LETTER_z = 0x7A;
   static const int DEL = 0x7F;
+  // For month name abbreviations.
+  static const int a = 0x61; // apr
+  static const int b = 0x62; // feb
+  static const int c = 0x63; // oct
+  static const int d = 0x64; // dec
+  static const int e = 0x65; // dec
+  static const int f = 0x66; // feb
+  static const int g = 0x67; // aug
+  static const int j = 0x6A; // jan
+  static const int l = 0x6C; // jul
+  static const int m = 0x6D; // mar
+  static const int n = 0x6E; // jan
+  static const int o = 0x6F; // nov
+  static const int p = 0x70; // sep
+  static const int r = 0x72; // apr
+  static const int s = 0x73; // sep
+  static const int t = 0x74; // oct
+  static const int u = 0x75; // aug
+  static const int v = 0x76; // nov
+  static const int y = 0x79; // apr
 }
 
 // States of the HTTP parser state machine.
