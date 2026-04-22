@@ -91,6 +91,11 @@ final List<Option> options = [
     negatable: true,
   ),
   Flag(
+    "minify-interop-names",
+    (o, value) => o.translatorOptions.minifyInteropNames = value,
+    defaultsTo: false,
+  ),
+  Flag(
     "verify-type-checks",
     (o, value) => o.translatorOptions.verifyTypeChecks = value,
     defaultsTo: _d.translatorOptions.verifyTypeChecks,

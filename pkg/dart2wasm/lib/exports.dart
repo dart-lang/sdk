@@ -3,47 +3,17 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:kernel/ast.dart';
-import 'package:wasm_builder/wasm_builder.dart';
+import 'package:kernel/core_types.dart';
+import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import 'dynamic_module_kernel_metadata.dart'
-    show DynamicModuleConstants, MainModuleMetadata;
-import 'util.dart';
+import 'dynamic_module_kernel_metadata.dart';
+import 'namer.dart';
 
-/// A generator for export names (when minification is enabled).
+/// Manages exporting entities for dynamic modules.
 ///
-/// For simplicity and readability of generated names, we just use the base64
-/// encoding of an integer counter.
-class _ExportNamer {
-  final bool minify;
-
-  _ExportNamer(this.minify);
-
-  final Set<String> _reservedNames = {};
-
-  /// Mark a name as reserved by the `wasm:export` or `wasm:weak-export`
-  /// annotations so that it will not be generated as a minified export name.
-  void reserveName(String name) {
-    if (!minify) return;
-    final added = _reservedNames.add(name);
-    assert(added, "Name '$name' is already reserved");
-  }
-
-  int _nameCounter = 0;
-
-  String _getExportName(String name) {
-    if (!minify) return name;
-    do {
-      name = intToMinString(_nameCounter++);
-    } while (_reservedNames.contains(name));
-    return name;
-  }
-}
-
-/// Manages exporting entities in a minification-aware way.
-///
-/// The [Exporter] records mappings between entities exported from a dynamic
-/// main module and their export names so that dynamic submodule compilation can
-/// discover the right names to import those entities.
+/// The [DynamicModuleExporter] records mappings between entities exported from a
+/// dynamic main module and their export names so that dynamic submodule
+/// compilation can discover the right names to import those entities.
 /// - The callable reference mapping is stored in [_mainModuleMetadata], since
 ///   the [DataSerializer] is capable of correctly serializing [Reference]s (but
 ///   not [Constant]s).
@@ -56,15 +26,19 @@ class _ExportNamer {
 /// The `exportDynamic___` methods add relevant associations to the above
 /// mappings and add the given exportable to the Wasm exports of the specified
 /// module under the computed export name.
-///
-/// For deferred imports, the [export] method is sufficient.
-class Exporter {
-  final _ExportNamer _namer;
+class DynamicModuleExporter {
+  final Namer _exportNamer;
   final MainModuleMetadata _mainModuleMetadata;
   final DynamicModuleConstants? _dynamicModuleConstants;
 
-  Exporter(bool minify, this._mainModuleMetadata, this._dynamicModuleConstants)
-    : _namer = _ExportNamer(minify);
+  final CoreTypes coreTypes;
+
+  DynamicModuleExporter(
+    this.coreTypes,
+    this._mainModuleMetadata,
+    this._dynamicModuleConstants,
+    this._exportNamer,
+  );
 
   int get _nextDynamicCallableId =>
       _mainModuleMetadata.callableReferenceNames.length;
@@ -76,23 +50,23 @@ class Exporter {
   static String _dynamicConstantInitializerName(int id) =>
       '#constantInitializer$id';
 
-  void exportDynamicCallable(
-    ModuleBuilder module,
-    BaseFunction function,
+  void exportDynamicModuleCallable(
+    w.ModuleBuilder module,
+    w.BaseFunction function,
     Reference callableReference,
   ) {
-    _mainModuleMetadata.callableReferenceNames[callableReference] = export(
+    _mainModuleMetadata.callableReferenceNames[callableReference] = _export(
       module,
       _dynamicCallableName(_nextDynamicCallableId),
       function,
     );
   }
 
-  void exportDynamicConstant(
-    ModuleBuilder module,
+  void exportDynamicModuleConstant(
+    w.ModuleBuilder module,
     Constant constant,
-    Global global, {
-    BaseFunction? initializer,
+    w.Global global, {
+    w.BaseFunction? initializer,
   }) {
     final id = _nextDynamicConstantId;
     _exportConstant(module, constant, global, id);
@@ -102,12 +76,12 @@ class Exporter {
   }
 
   void _exportConstant(
-    ModuleBuilder module,
+    w.ModuleBuilder module,
     Constant constant,
-    Global global,
+    w.Global global,
     int id,
   ) {
-    _dynamicModuleConstants!.constantNames[constant] = export(
+    _dynamicModuleConstants!.constantNames[constant] = _export(
       module,
       _dynamicConstantName(id),
       global,
@@ -115,27 +89,21 @@ class Exporter {
   }
 
   void _exportConstantInitializer(
-    ModuleBuilder module,
+    w.ModuleBuilder module,
     Constant constant,
-    BaseFunction initializer,
+    w.BaseFunction initializer,
     int id,
   ) {
-    _dynamicModuleConstants!.constantInitializerNames[constant] = export(
+    _dynamicModuleConstants!.constantInitializerNames[constant] = _export(
       module,
       _dynamicConstantInitializerName(id),
       initializer,
     );
   }
 
-  String export(ModuleBuilder module, String name, Exportable exportable) {
-    final exportName = _namer._getExportName(name);
+  String _export(w.ModuleBuilder module, String name, w.Exportable exportable) {
+    final exportName = _exportNamer.getName(name);
     module.exports.export(exportName, exportable);
     return exportName;
-  }
-
-  /// Mark a name as reserved by the `wasm:export` or `wasm:weak-export`
-  /// annotations so that it will not be generated as a minified export name.
-  void reserveName(String name) {
-    _namer.reserveName(name);
   }
 }

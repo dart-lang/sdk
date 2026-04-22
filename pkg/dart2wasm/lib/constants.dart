@@ -2164,7 +2164,7 @@ class _ConstantAccessor {
       // Current dynamic module implementation requires main module to be
       // monolitic.
       definition as GlobalBasedConstantDefinition;
-      translator.exporter.exportDynamicConstant(
+      translator.dynamicModuleExporter.exportDynamicModuleConstant(
         targetModule!,
         constant,
         definition.global,

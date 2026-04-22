@@ -5,7 +5,6 @@
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import 'method_collector.dart';
 import 'util.dart';
 
 /// Expands inline JS calls to trampolines that call functions in the JS
@@ -13,11 +12,10 @@ import 'util.dart';
 class InlineExpander {
   final StatefulStaticTypeContext _staticTypeContext;
   final CoreTypesUtil _util;
-  final MethodCollector _methodCollector;
-  late String _inlineJSImportName;
   bool _replaceProcedureWithInlineJS = false;
+  static int _counter = 0;
 
-  InlineExpander(this._staticTypeContext, this._util, this._methodCollector);
+  InlineExpander(this._staticTypeContext, this._util);
 
   void enterProcedure() {
     // Under very restricted circumstances, we will make a procedure
@@ -31,7 +29,6 @@ class InlineExpander {
       node.isStatic = true;
       node.isExternal = true;
       node.function.body = null;
-      _util.annotateProcedure(node, _inlineJSImportName, AnnotationType.import);
       _replaceProcedureWithInlineJS = false;
     }
   }
@@ -117,8 +114,6 @@ class InlineExpander {
       constant as StringConstant;
       codeTemplate = constant.value;
     }
-    String jsMethodName = _methodCollector.generateMethodName();
-    _inlineJSImportName = 'dart2wasm.$jsMethodName';
     _replaceProcedureWithInlineJS =
         allArgumentsAreGet && _shouldReplaceEnclosingProcedure(node);
     Procedure dartProcedure;
@@ -127,21 +122,20 @@ class InlineExpander {
       dartProcedure = _tryGetEnclosingProcedure(node)!;
       result = InvalidExpression("Unreachable");
     } else {
-      dartProcedure = _methodCollector.addInteropProcedure(
-        '|$jsMethodName',
-        _inlineJSImportName,
+      dartProcedure = makeInteropProcedure(
+        _staticTypeContext.enclosingLibrary,
+        '_JS_Inline_${_counter++}',
+        node.location!.file,
         FunctionNode(
           null,
           positionalParameters: dartPositionalParameters,
           returnType: arguments.types.single,
         ),
-        _util.inlineJSTarget.fileUri,
-        AnnotationType.import,
         isExternal: true,
       );
       result = StaticInvocation(dartProcedure, Arguments(originalArguments));
     }
-    _methodCollector.addMethod(dartProcedure, jsMethodName, codeTemplate);
+    JsCodeData(codeTemplate).applyToMember(dartProcedure, _util.coreTypes);
     return result;
   }
 

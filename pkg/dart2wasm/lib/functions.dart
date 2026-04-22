@@ -11,6 +11,7 @@ import 'code_generator.dart';
 import 'dispatch_table.dart';
 import 'dynamic_dispatch_table.dart';
 import 'dynamic_modules.dart';
+import 'namer.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
 import 'util.dart' as util;
@@ -43,6 +44,8 @@ class FunctionCollector {
 
   FunctionCollector(this.translator);
 
+  InteropMemberNamer get interopNamer => translator.interopMemberNamer;
+
   void _collectImportsAndExports() {
     final isDynamicSubmodule = translator.isDynamicSubmodule;
     for (Library library in translator.libraries) {
@@ -50,56 +53,26 @@ class FunctionCollector {
           library.isFromMainModule(translator.coreTypes)) {
         continue;
       }
-      library.procedures.forEach(_importOrExport);
+      library.procedures.forEach(_handleExports);
       for (Class cls in library.classes) {
-        cls.procedures.forEach(_importOrExport);
+        cls.procedures.forEach(_handleExports);
       }
     }
   }
 
-  void _importOrExport(Procedure member) {
-    final importName = util.getWasmImportPragma(translator.coreTypes, member);
-    if (importName != null) {
-      final isPure = util.hasWasmPureFunctionPragma(
-        translator.coreTypes,
-        member,
-      );
-      final ftype = _makeFunctionType(
-        translator,
-        member.reference,
-        null,
-        isImportOrExport: true,
-      );
-      _functions[member.reference] =
-          translator
-              .moduleForReference(member.reference)
-              .functions
-              .import(
-                importName.moduleName,
-                importName.itemName,
-                ftype,
-                "$importName (import)",
-              )
-            ..isPure = isPure;
-    }
-
-    // Ensure any procedures marked as exported are enqueued.
-    String? exportName = util.getWasmExportPragma(translator.coreTypes, member);
-    if (exportName != null) {
+  void _handleExports(Procedure member) {
+    // Register the names of any members that are exported from the program.
+    final isStrongExport = interopNamer.registerExternalExportName(member);
+    if (isStrongExport) {
+      // Ensure any strong exports are enqueued for compilation.
       getFunction(member.reference);
-    }
-
-    // Whether a procedure is strongly or weakly exported, we must not use its
-    // name as the export name of a different function.
-    exportName ??= util.getWasmWeakExportPragma(translator.coreTypes, member);
-    if (exportName != null) {
-      translator.exporter.reserveName(exportName);
     }
   }
 
   /// If the member with the reference [target] is exported, get the export
   /// name.
-  String? getExportName(Reference target) => translator.getExportName(target);
+  String? getExportName(Reference target) =>
+      interopNamer.getExportName(target.asMember);
 
   void initialize() {
     _collectImportsAndExports();
@@ -131,10 +104,7 @@ class FunctionCollector {
       // If this function is a `@pragma('wasm:import', '<module>.<name>')` we
       // import the function and return it.
       if (member.reference == target && member.annotations.isNotEmpty) {
-        final importName = util.getWasmImportPragma(
-          translator.coreTypes,
-          member,
-        );
+        final importName = interopNamer.getImportName(member);
 
         if (importName != null) {
           final ftype = _makeFunctionType(
@@ -167,10 +137,8 @@ class FunctionCollector {
       //   * `@pragma('wasm:weak-export', '<name>')`
       // we export it under the given `<name>`
       String? exportName;
-      if (member.reference == target && member.annotations.isNotEmpty) {
-        exportName =
-            util.getWasmExportPragma(translator.coreTypes, member) ??
-            util.getWasmWeakExportPragma(translator.coreTypes, member);
+      if (member.reference == target) {
+        exportName = interopNamer.getExportName(member);
         assert(exportName == null || member is Procedure && member.isStatic);
       }
 
@@ -180,7 +148,11 @@ class FunctionCollector {
 
       final function = module.functions.define(ftype, getFunctionName(target))
         ..isPure = hasPureAnnotation && !target.isCheckedEntryReference;
-      if (exportName != null) module.exports.export(exportName, function);
+      if (exportName != null) {
+        // Add weak exports to the module as we now know they're used. Strong
+        // exports have already been added.
+        module.exports.export(exportName, function);
+      }
 
       // Export the function from the main module if it is callable from
       // dynamic submodules.
@@ -188,7 +160,7 @@ class FunctionCollector {
           !translator.isDynamicSubmodule &&
           (member.isDynamicSubmoduleCallable(translator.coreTypes) ||
               member.isDynamicSubmoduleInheritable(translator.coreTypes))) {
-        translator.exporter.exportDynamicCallable(
+        translator.dynamicModuleExporter.exportDynamicModuleCallable(
           translator.mainModule,
           function,
           target,

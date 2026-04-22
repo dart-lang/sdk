@@ -11,6 +11,7 @@ import 'class_info.dart';
 import 'code_generator.dart';
 import 'dynamic_dispatchers.dart';
 import 'dynamic_modules.dart';
+import 'js/util.dart';
 import 'translator.dart';
 import 'types.dart';
 import 'util.dart';
@@ -1464,7 +1465,12 @@ class Intrinsifier {
         final constant = argument.constant;
         if (constant is! StaticTearOffConstant) throw error;
         final target = constant.target;
-        if (translator.getPragma(target, 'wasm:weak-export', '') == null) {
+        if (!hasWasmWeakExportPragma(codeGen.translator.coreTypes, target) &&
+            !(JsInteropMemberData.fromMember(
+                  target,
+                  codeGen.translator.coreTypes,
+                )?.isWeakExport ??
+                true)) {
           throw error;
         }
 

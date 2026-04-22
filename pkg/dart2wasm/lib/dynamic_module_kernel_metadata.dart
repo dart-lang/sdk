@@ -10,14 +10,12 @@ import 'package:kernel/binary/ast_from_binary.dart'
     show BinaryBuilderWithMetadata;
 import 'package:kernel/core_types.dart';
 import 'package:kernel/kernel.dart' show writeComponentToBytes;
-import 'package:kernel/library_index.dart';
 
 import 'class_info.dart';
 import 'compiler_options.dart';
 import 'dispatch_table.dart';
 import 'dynamic_modules.dart';
 import 'io_util.dart';
-import 'js/method_collector.dart' show JSMethods;
 import 'serialization.dart';
 import 'translator.dart';
 import 'util.dart';
@@ -250,6 +248,9 @@ class MainModuleMetadata {
   /// Classes in dfs order.
   final List<Class> dfsOrderClassIds;
 
+  /// The name of the setThisModule function.
+  String? thisModuleSetterExportName;
+
   /// Saved flags from the main module to verify that settings have not changed
   /// between main module invocation and submodule invocation.
   final TranslatorOptions mainModuleTranslatorOptions;
@@ -262,6 +263,7 @@ class MainModuleMetadata {
     this.invokedOverridableReferences,
     this.keyInvocationToIndex,
     this.dfsOrderClassIds,
+    this.thisModuleSetterExportName,
     this.mainModuleTranslatorOptions,
     this.mainModuleEnvironment,
   );
@@ -316,6 +318,8 @@ class MainModuleMetadata {
   void serialize(DataSerializer sink, Translator translator) {
     finalize(translator);
 
+    sink.writeString(thisModuleSetterExportName!);
+
     sink.writeMap(classMetadata, sink.writeClass, (m) => m.serialize(sink));
 
     sink.writeMap(
@@ -337,6 +341,8 @@ class MainModuleMetadata {
   }
 
   static MainModuleMetadata deserialize(DataDeserializer source) {
+    final thisModuleSetterExportName = source.readString();
+
     final classMetadata = source.readMap(
       source.readClass,
       () => ClassMetadata.deserialize(source),
@@ -368,6 +374,7 @@ class MainModuleMetadata {
       invokedReferences,
       keyInvocationToIndex,
       dfsOrderClasses,
+      thisModuleSetterExportName,
       mainModuleTranslatorOptions,
       mainModuleEnvironment,
     );
@@ -499,11 +506,10 @@ Future<void> serializeMainModuleComponent(
   );
 }
 
-Future<(Component, JSMethods)> generateDynamicSubmoduleComponent(
+Future<Component> generateDynamicSubmoduleComponent(
   Component component,
   CoreTypes coreTypes,
   Uri dynamicModuleMainUri,
-  JSMethods jsInteropMethods,
 ) async {
   final submoduleComponentBytes = writeComponentToBytes(
     Component(libraries: component.getDynamicSubmoduleLibraries(coreTypes)),
@@ -526,18 +532,7 @@ Future<(Component, JSMethods)> generateDynamicSubmoduleComponent(
     concatenatedComponentBytes,
   ).readComponent(newComponent);
 
-  // Remap js interop methods into the new component.
-  final index = LibraryIndex.all(component);
-  final JSMethods newJsMethods = {};
-  jsInteropMethods.forEach((method, info) {
-    newJsMethods[index.getProcedure(
-          method.enclosingLibrary.importUri.path,
-          method.enclosingClass?.name ?? LibraryIndex.topLevel,
-          method.name.text,
-        )] =
-        info;
-  });
-  return (newComponent, newJsMethods);
+  return newComponent;
 }
 
 Future<MainModuleMetadata> deserializeMainModuleMetadata(

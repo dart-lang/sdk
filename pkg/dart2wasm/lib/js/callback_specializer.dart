@@ -6,20 +6,15 @@ import 'package:kernel/ast.dart';
 import 'package:kernel/type_algebra.dart';
 import 'package:kernel/type_environment.dart';
 
-import 'method_collector.dart';
 import 'util.dart';
 
 /// Specializes Dart callbacks so they can be called from JS.
 class CallbackSpecializer {
   final StatefulStaticTypeContext _staticTypeContext;
-  final MethodCollector _methodCollector;
   final CoreTypesUtil _util;
+  static int _trampolineCounter = 0;
 
-  CallbackSpecializer(
-    this._staticTypeContext,
-    this._util,
-    this._methodCollector,
-  );
+  CallbackSpecializer(this._staticTypeContext, this._util);
 
   Statement _generateDispatchCase(
     FunctionType function,
@@ -94,6 +89,7 @@ class CallbackSpecializer {
     Procedure node,
     FunctionType function, {
     required bool boxExternRef,
+    required int trampolineIndex,
   }) {
     // Create arguments for each positional parameter in the function. These
     // arguments will be JS objects. The generated wrapper will cast each
@@ -246,10 +242,10 @@ class CallbackSpecializer {
     // be exported from Wasm to JS so it can be called from JS. The argument
     // returned from the supplied callback will be converted with `jsifyRaw` to
     // a native JS value before being returned to JS.
-    final functionTrampolineName = _methodCollector.generateMethodName();
-    return _methodCollector.addInteropProcedure(
-      functionTrampolineName,
-      functionTrampolineName,
+    final dartProcedure = makeInteropProcedure(
+      _staticTypeContext.enclosingLibrary,
+      '_JS_Trampoline_${node.name.text}_$trampolineIndex',
+      node.fileUri,
       FunctionNode(
         functionTrampolineBody,
         positionalParameters: [
@@ -260,10 +256,10 @@ class CallbackSpecializer {
         ],
         returnType: _util.nullableWasmExternRefType,
       )..fileOffset = node.fileOffset,
-      node.fileUri,
-      AnnotationType.weakExport,
       isExternal: false,
     );
+    JsTrampolineData().applyToMember(dartProcedure, _util.coreTypes);
+    return dartProcedure;
   }
 
   /// Create a [Procedure] that will wrap a Dart callback in a JS wrapper.
@@ -290,40 +286,22 @@ class CallbackSpecializer {
     required bool needsCastClosure,
     required bool captureThis,
   }) {
+    final trampolineIndex = _trampolineCounter++;
     final functionTrampoline = _createFunctionTrampoline(
       node,
       type,
       boxExternRef: boxExternRef,
+      trampolineIndex: trampolineIndex,
     );
-    List<String> jsParameters = [];
     var jsParametersLength = type.positionalParameters.length;
     if (captureThis) jsParametersLength--;
-    for (int i = 0; i < jsParametersLength; i++) {
-      jsParameters.add('x$i');
-    }
-    String jsWrapperParams = jsParameters.join(',');
-    // We could avoid incrementing the arguments length in the case of
-    // `captureThis` and have the function trampoline account for the extra
-    // argument, but there's no benefit in doing that.
-    String argumentsLength = captureThis
-        ? 'arguments.length + 1'
-        : 'arguments.length';
-    String dartArguments = 'f,$argumentsLength';
-    String jsMethodParams = '(module,f)';
-    if (needsCastClosure) {
-      dartArguments = '$dartArguments,castClosure';
-      jsMethodParams = '(module,f,castClosure)';
-    }
-    if (captureThis) dartArguments = '$dartArguments,this';
-    if (jsParameters.isNotEmpty) {
-      dartArguments = '$dartArguments,$jsWrapperParams';
-    }
 
     // Create Dart procedure stub.
     final jsMethodName = functionTrampoline.name.text;
-    Procedure dartProcedure = _methodCollector.addInteropProcedure(
-      '|$jsMethodName',
-      'dart2wasm.$jsMethodName',
+    final dartProcedure = makeInteropProcedure(
+      _staticTypeContext.enclosingLibrary,
+      '_JS_Wrapper_$jsMethodName',
+      node.fileUri,
       FunctionNode(
         null,
         positionalParameters: [
@@ -346,21 +324,15 @@ class CallbackSpecializer {
         ],
         returnType: _util.nonNullableWasmExternRefType,
       ),
-      node.fileUri,
-      AnnotationType.import,
       isExternal: true,
     );
 
-    // Create JS method.
-    // Note: We have to use a regular function for the inner closure in some
-    // cases because we need access to `arguments`.
-    _methodCollector.addMethod(
-      dartProcedure,
-      jsMethodName,
-      "$jsMethodParams => finalizeWrapper(f, function($jsWrapperParams) {"
-      " return module.exports.${functionTrampoline.name.text}($dartArguments) "
-      "})",
-    );
+    JsTrampolineWrapperData(
+      numJsParameters: jsParametersLength,
+      captureThis: captureThis,
+      needsCastClosure: needsCastClosure,
+      trampoline: functionTrampoline,
+    ).applyToMember(dartProcedure, _util.coreTypes);
 
     return (dartProcedure, functionTrampoline);
   }

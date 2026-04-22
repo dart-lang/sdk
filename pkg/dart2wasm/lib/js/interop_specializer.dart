@@ -13,7 +13,6 @@ import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 
-import 'method_collector.dart';
 import 'util.dart';
 
 /// A general config class for an interop method.
@@ -27,13 +26,13 @@ abstract class _Specializer {
   final String jsString;
   late final bool isInstanceMember = factory._extensionIndex
       .isInstanceInteropMember(interopMethod);
+  static int _specializerCounter = 0;
 
   _Specializer(this.factory, this.interopMethod, this.jsString);
 
   StatefulStaticTypeContext get _staticTypeContext =>
       factory._staticTypeContext;
   CoreTypesUtil get _util => factory._util;
-  MethodCollector get _methodCollector => factory._methodCollector;
   Map<Procedure, Map<int, Procedure>> get _overloadedProcedures =>
       factory._overloadedProcedures;
   Map<Procedure, Map<String, Procedure>> get _jsObjectLiteralMethods =>
@@ -115,10 +114,10 @@ abstract class _Specializer {
     }
 
     // Create Dart procedure stub for JS method.
-    String jsMethodName = _methodCollector.generateMethodName();
-    final dartProcedure = _methodCollector.addInteropProcedure(
-      '|$jsMethodName',
-      'dart2wasm.$jsMethodName',
+    final dartProcedure = makeInteropProcedure(
+      interopMethod.enclosingLibrary,
+      '_JS_Specializer_${interopMethod.name.text}_${_specializerCounter++}',
+      fileUri,
       FunctionNode(
         null,
         positionalParameters: dartPositionalParameters,
@@ -126,16 +125,11 @@ abstract class _Specializer {
             ? VoidType()
             : _util.nullableWasmExternRefType,
       ),
-      fileUri,
-      AnnotationType.import,
-      library: interopMethod.enclosingLibrary,
       isExternal: true,
     );
-    _methodCollector.addMethod(
-      dartProcedure,
-      jsMethodName,
+    JsCodeData(
       generateJS(jsParameterStrings),
-    );
+    ).applyToMember(dartProcedure, _util.coreTypes);
     return dartProcedure;
   }
 
@@ -562,7 +556,6 @@ class _ObjectLiteralSpecializer extends _InvocationSpecializer {
 class InteropSpecializerFactory {
   final StatefulStaticTypeContext _staticTypeContext;
   final CoreTypesUtil _util;
-  final MethodCollector _methodCollector;
 
   /// Maps an interop procedure to the trampolines based on number of arguments
   /// they take.
@@ -596,7 +589,6 @@ class InteropSpecializerFactory {
   InteropSpecializerFactory(
     this._staticTypeContext,
     this._util,
-    this._methodCollector,
     this._extensionIndex,
   );
 

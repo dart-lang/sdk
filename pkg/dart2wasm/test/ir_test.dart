@@ -69,6 +69,9 @@ void main(List<String> args) async {
         for (final option in compilerOptions) '--extra-compiler-option=$option',
         '--extra-compiler-option=--no-unique-constant-names',
         '--extra-compiler-option=--enable-experimental-wasm-interop',
+        // Minify interop names so that the names of these entities are more
+        // stable against SDK and compiler changes.
+        '--extra-compiler-option=--minify-interop-names',
         if (runFromSource) '--src',
         '--no-strip-wasm',
         '-o',
