@@ -688,9 +688,9 @@ uword ImageWriter::GetMarkedTags(classid_t cid,
 }
 
 uword ImageWriter::GetMarkedTags(const Object& obj) {
-  uword tags =
-      GetMarkedTags(obj.ptr()->untag()->GetClassId(), SizeInSnapshot(obj),
-                    obj.IsCanonical(), obj.IsImmutable());
+  uword tags = GetMarkedTags(obj.ptr()->untag()->GetClassId(),
+                             SizeInSnapshot(obj), obj.IsCanonical(),
+                             obj.IsShallowImmutable(), obj.IsDeeplyImmutable());
 #if defined(HASH_IN_OBJECT_HEADER)
   tags = UntaggedObject::HashTag::update(obj.ptr()->untag()->GetHeaderHash(),
                                          tags);
