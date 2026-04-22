@@ -28,9 +28,10 @@ Future<String> summarizePackage(
   ApiSummaryCustomizer Function()? createCustomizer,
 }) async {
   var provider = PhysicalResourceProvider.INSTANCE;
+  var libPath = provider.pathContext.join(packagePath, 'lib');
   var collection = AnalysisContextCollection(
-    includedPaths: [packagePath],
     resourceProvider: provider,
+    includedPaths: [libPath],
   );
   // Use `.single` to make sure that `collection` just contains a single
   // context. This ensures that `publicApi.build` will see all the files in
