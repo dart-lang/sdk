@@ -92,15 +92,7 @@ class ObjectLayout {
     } else if (cls.typeParameters.isNotEmpty) {
       // This class is generic but superclass is not, so
       // introduce a new implicit type arguments field.
-      final typeArgs = CField(
-        ast.Field.immutable(
-          _typeArgumentsFieldName,
-          isFinal: true,
-          isStatic: false,
-          fileUri: ast.dummyUri,
-        )..parent = cls,
-      );
-      _typeArgumentsField[cls] = typeArgs;
+      final typeArgs = _createTypeArgumentsField(cls);
       _fieldOffset[typeArgs] = nextOffset;
       nextOffset += compressedWordSize;
     }
@@ -115,24 +107,49 @@ class ObjectLayout {
     _instanceSize[cls] = nextOffset;
   }
 
-  late final Map<String, int> _dartCoreInstanceSize = {
+  CField _createTypeArgumentsField(ast.Class cls) {
+    final field = CField(
+      ast.Field.immutable(
+        _typeArgumentsFieldName,
+        isFinal: true,
+        isStatic: false,
+        fileUri: ast.dummyUri,
+      )..parent = cls,
+    );
+    _typeArgumentsField[cls] = field;
+    return field;
+  }
+
+  // Layout of built-in instances is specified either as
+  // 'int size' or '(int size, int typeArgsOffset)' if class is generic.
+
+  late final Map<String, Object> _dartCoreInstanceLayout = {
     '_Double': vmOffsets.Double_InstanceSize,
-    '_GrowableList': vmOffsets.GrowableObjectArray_InstanceSize,
+    '_GrowableList': (
+      vmOffsets.GrowableObjectArray_InstanceSize,
+      vmOffsets.GrowableObjectArray_type_arguments_offset,
+    ),
     '_Mint': vmOffsets.Mint_InstanceSize,
     '_WeakProperty': vmOffsets.WeakProperty_InstanceSize,
-    '_WeakReference': vmOffsets.WeakReference_InstanceSize,
+    '_WeakReference': (
+      vmOffsets.WeakReference_InstanceSize,
+      vmOffsets.WeakReference_type_arguments_offset,
+    ),
     'Object': vmOffsets.Instance_InstanceSize,
   };
 
-  late final Map<String, int> _dartTypedDataInstanceSize = {
+  late final Map<String, Object> _dartTypedDataInstanceLayout = {
     '_Int32x4': vmOffsets.Int32x4_InstanceSize,
     '_Float32x4': vmOffsets.Float32x4_InstanceSize,
     '_Float64x2': vmOffsets.Float64x2_InstanceSize,
     // TODO: add other built-in classes from dart:typed_data
   };
 
-  late final Map<String, int> _dartCompactHashInstanceSize = {
-    '_LinkedHashBase': vmOffsets.LinkedHashBase_InstanceSize,
+  late final Map<String, Object> _dartCompactHashInstanceLayout = {
+    '_LinkedHashBase': (
+      vmOffsets.LinkedHashBase_InstanceSize,
+      vmOffsets.LinkedHashBase_type_arguments_offset,
+    ),
   };
 
   late final ast.Library _typedDataLibrary = GlobalContext
@@ -151,17 +168,27 @@ class ObjectLayout {
     if (!library.importUri.isScheme('dart')) {
       return false;
     }
-    int? size;
+    Object? layout;
     if (library == GlobalContext.instance.coreTypes.coreLibrary) {
-      size = _dartCoreInstanceSize[cls.name];
+      layout = _dartCoreInstanceLayout[cls.name];
     } else if (library == _typedDataLibrary) {
-      size = _dartTypedDataInstanceSize[cls.name];
+      layout = _dartTypedDataInstanceLayout[cls.name];
     } else if (library == _compactHashLibrary) {
-      size = _dartCompactHashInstanceSize[cls.name];
+      layout = _dartCompactHashInstanceLayout[cls.name];
     }
     // TODO: add built-in classes from dart:ffi
-    if (size != null) {
-      _instanceSize[cls] = size;
+    if (layout != null) {
+      switch (layout) {
+        case int():
+          _instanceSize[cls] = layout;
+          break;
+        case (int size, int typeArgsOffset):
+          _instanceSize[cls] = size;
+          _fieldOffset[_createTypeArgumentsField(cls)] = typeArgsOffset;
+          break;
+        default:
+          throw 'Unexpected built-in class layout ${layout.runtimeType} $layout';
+      }
       return true;
     }
     return false;
