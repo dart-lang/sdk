@@ -26,9 +26,10 @@ class IsValidExtensionTypeSuperinterfaceTest extends AbstractTypeSystemTest {
   }
 
   test_interfaceType_extensionType() {
-    var element = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'int'),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
+    var element = extensionTypeElement('A');
     _assertValid(interfaceTypeNone(element));
   }
 

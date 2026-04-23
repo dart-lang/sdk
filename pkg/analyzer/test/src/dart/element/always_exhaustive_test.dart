@@ -40,55 +40,34 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
   }
 
   test_class_sealed() {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core'],
-        classes: [ClassSpec(name: 'A', isSealed: true)],
-      ),
-    );
-    var A = testLibrary.getClass('A')!;
+    buildTestLibrary(classes: [ClassSpec('sealed class A')]);
+    var A = classElement('A');
     isAlwaysExhaustive(interfaceTypeNone(A));
     isAlwaysExhaustive(interfaceTypeQuestion(A));
   }
 
   test_enum() {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core'],
-        enums: [EnumSpec(name: 'E')],
-      ),
-    );
-    var E = testLibrary.getEnum('E')!;
+    buildTestLibrary(enums: [EnumSpec('enum E')]);
+    var E = enumElement('E');
     isAlwaysExhaustive(interfaceTypeNone(E));
     isAlwaysExhaustive(interfaceTypeQuestion(E));
   }
 
   test_extensionType() {
-    isAlwaysExhaustive(
-      interfaceTypeNone(
-        buildExtensionType(
-          const ExtensionTypeSpec(name: 'A', representationType: 'bool'),
-        ),
-      ),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(bool it)')],
     );
+    isAlwaysExhaustive(interfaceTypeNone(extensionTypeElement('A')));
 
-    isAlwaysExhaustive(
-      interfaceTypeNone(
-        buildExtensionType(
-          const ExtensionTypeSpec(name: 'A', representationType: 'bool?'),
-        ),
-      ),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(bool? it)')],
     );
+    isAlwaysExhaustive(interfaceTypeNone(extensionTypeElement('A')));
 
-    isNotAlwaysExhaustive(
-      interfaceTypeNone(
-        buildExtensionType(
-          const ExtensionTypeSpec(name: 'A', representationType: 'int'),
-        ),
-      ),
+    buildTestLibrary(
+      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
+    isNotAlwaysExhaustive(interfaceTypeNone(extensionTypeElement('A')));
   }
 
   test_futureOr() {

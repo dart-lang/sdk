@@ -24,20 +24,6 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   late final TypeParameterTypeImpl T_none;
   late final TypeParameterTypeImpl T_question;
 
-  void buildLibrary({List<ClassSpec> classes = const []}) {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core'],
-        classes: classes,
-      ),
-    );
-  }
-
-  ClassElementImpl classElement(String name) {
-    return testLibrary.getClass(name)!;
-  }
-
   @override
   void setUp() {
     super.setUp();
@@ -612,14 +598,13 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
       String implementsTypeArgument,
       String expectedConstraint,
     ) {
-      buildLibrary(
+      buildTestLibrary(
         classes: [
-          ClassSpec(name: 'A', typeParameters: ['T']),
-          ClassSpec(name: 'B', typeParameters: ['T'], supertype: 'A<T>'),
+          ClassSpec('class A<T>'),
+          ClassSpec('class B<T> extends A<T>'),
           ClassSpec(
-            name: 'C$testClassIndex',
-            supertype: 'A<$extendsTypeArgument>',
-            interfaces: ['B<$implementsTypeArgument>'],
+            'class ${'C$testClassIndex'} extends ${'A<$extendsTypeArgument>'} '
+            'implements ${'B<$implementsTypeArgument>'}',
           ),
         ],
       );

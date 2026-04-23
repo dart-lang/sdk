@@ -593,14 +593,8 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
 
   InterfaceTypeImpl _classType(String name) {
     return _classTypes.putIfAbsent(name, () {
-      testLibrary = buildTestLibrary(
-        LibrarySpec(
-          uri: 'package:test/test.dart',
-          imports: const ['dart:core'],
-          classes: [ClassSpec(name: name)],
-        ),
-      );
-      return testLibrary.getClass(name)!.thisType;
+      buildTestLibrary(classes: [ClassSpec('class $name')]);
+      return classElement(name).thisType;
     });
   }
 

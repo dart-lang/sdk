@@ -132,16 +132,11 @@ class FutureTypeTest extends AbstractTypeSystemTest {
   }
 
   test_implements_Future() {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core', 'dart:async'],
-        classes: [
-          ClassSpec(name: 'A', interfaces: ['Future<int>']),
-        ],
-      ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      classes: [ClassSpec('class A implements Future<int>')],
     );
-    var A = testLibrary.getClass('A')!;
+    var A = classElement('A');
 
     _check(interfaceTypeNone(A), 'Future<int>');
     _check(interfaceTypeQuestion(A), null);

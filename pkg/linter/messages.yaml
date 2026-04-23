@@ -271,6 +271,95 @@ LinterLintCode:
       stable: "2.0"
     categories: [style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when
+      an explicit type annotation is missing.
+
+      This includes in the following cases:
+
+      - A variable declaration that uses `var`, `final`, or `const`
+        without a specific type.
+      - A function parameter lacks a type annotation.
+      - A collection literal lacks explicit type arguments.
+      - A reference to a generic class, mixin, or enum lacks type arguments.
+
+      Types annotated with `@optionalTypeArgs` from `package:meta` are
+      exempt from requiring type arguments.
+
+      #### Examples
+
+      The following code produces this diagnostic because
+      the top-level variable uses `var` without an explicit type:
+
+      ```dart
+      [!var!] x = 1;
+      ```
+
+      The following code produces this diagnostic because
+      the parameter `p` lacks a type annotation:
+
+      ```dart
+      void f([!p!]) {}
+      ```
+
+      The following code produces this diagnostic because
+      the set literal lacks an explicit type argument:
+
+      ```dart
+      Set<int> items = [!{!]1, 2};
+      ```
+
+      The following code produces this diagnostic because
+      the generic type `C` is used without specifying its type argument:
+
+      ```dart
+      class C<T> {}
+
+      [!C!] c = C<int>();
+      ```
+
+      #### Common fixes
+
+      Add an explicit type annotation to variable declarations:
+
+      ```dart
+      int x = 1;
+      ```
+
+      Add a type annotation to parameters:
+
+      ```dart
+      void f(int p) {}
+      ```
+
+      Add explicit type arguments to collection literals:
+
+      ```dart
+      Set<int> items = <int>{1, 2};
+      ```
+
+      Add type arguments to generic type references:
+
+      ```dart
+      class C<T> {}
+
+      C<int> c = C<int>();
+      ```
+
+      If a type argument is meant to be optional,
+      annotate the declaration with `@optionalTypeArgs` from
+      `package:meta` to exempt it from this lint:
+
+      ```dart
+      import 'package:meta/meta.dart';
+
+      @optionalTypeArgs
+      class C<T> {}
+
+      C c = C();
+      ```
     deprecatedDetails: |-
       From the [style guide for the flutter repo](https://flutter.dev/style-guide/):
 
@@ -655,7 +744,7 @@ LinterLintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when an extension type member redeclares 
+      The analyzer produces this diagnostic when an extension type member redeclares
       a member from an implemented interface without the `@redeclare` annotation.
 
       #### Example
@@ -890,7 +979,7 @@ LinterLintCode:
       !condition || boolExpression
       condition && boolExpression
       ```
-      
+
   avoidCatchesWithoutOnClauses:
     type: lint
     parameters: none

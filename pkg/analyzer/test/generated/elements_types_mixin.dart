@@ -3,17 +3,11 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/analysis/session.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
-import 'package:analyzer/src/dart/element/type_system.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/utilities_dart.dart';
 
 mixin ElementsTypesMixin {
@@ -233,37 +227,6 @@ mixin ElementsTypesMixin {
     );
   }
 
-  LibraryElementImpl library_({
-    required String uriStr,
-    required TypeSystemImpl typeSystem,
-    required AnalysisContext analysisContext,
-    required AnalysisSessionImpl analysisSession,
-  }) {
-    var uri = Uri.parse(uriStr);
-    var source = _MockSource(uri);
-
-    var library = LibraryElementImpl(
-      analysisContext,
-      analysisSession,
-      uriStr,
-      -1,
-      0,
-      FeatureSet.latestLanguageVersion(),
-    );
-
-    var definingUnit = LibraryFragmentImpl(
-      library: library,
-      source: source,
-      lineInfo: LineInfo([0]),
-    );
-
-    library.firstFragment = definingUnit;
-    library.typeProvider = typeSystem.typeProvider;
-    library.typeSystem = typeSystem;
-
-    return library;
-  }
-
   InterfaceTypeImpl listNone(TypeImpl type) {
     return typeProvider.listElement.instantiateImpl(
       typeArguments: <TypeImpl>[type],
@@ -476,14 +439,4 @@ mixin ElementsTypesMixin {
       promotedBound: promotedBound,
     );
   }
-}
-
-class _MockSource implements Source {
-  @override
-  final Uri uri;
-
-  _MockSource(this.uri);
-
-  @override
-  noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

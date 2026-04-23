@@ -75,18 +75,12 @@ class ClassHierarchyTest extends AbstractTypeSystemTest {
     List<String> errors = const [],
   }) {
     var library = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: ['dart:core'],
-        classes: [
-          ClassSpec(name: 'A', typeParameters: ['T'], supertype: 'Object'),
-          ClassSpec(
-            name: 'X',
-            supertype: 'Object',
-            interfaces: specifiedInterfaces,
-          ),
-        ],
-      ),
+      classes: [
+        ClassSpec('class A<T> extends Object'),
+        ClassSpec(
+          'class X extends Object implements ${specifiedInterfaces.join(', ')}',
+        ),
+      ],
     );
     var X = library.getClass('X')!;
 

@@ -19,14 +19,11 @@ main() {
 }
 
 @reflectiveTest
-class PathToObjectTest extends _Base {
+class PathToObjectTest extends AbstractTypeSystemTest {
   void test_class_mixins1() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'X', supertype: 'A', mixins: ['M1']),
-      ],
-      mixins: [MixinSpec(name: 'M1')],
+    buildTestLibrary(
+      classes: [ClassSpec('class A'), ClassSpec('class X extends A with M1')],
+      mixins: [MixinSpec('mixin M1')],
     );
     var M1 = mixinElement('M1');
     expect(_toElement(M1), 2);
@@ -43,15 +40,12 @@ class PathToObjectTest extends _Base {
   }
 
   void test_class_mixins2() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'X', supertype: 'A', mixins: ['M1', 'M2']),
+        ClassSpec('class A'),
+        ClassSpec('class X extends A with M1, M2'),
       ],
-      mixins: [
-        MixinSpec(name: 'M1'),
-        MixinSpec(name: 'M2'),
-      ],
+      mixins: [MixinSpec('mixin M1'), MixinSpec('mixin M2')],
     );
     var M1 = mixinElement('M1');
     var M2 = mixinElement('M2');
@@ -72,18 +66,15 @@ class PathToObjectTest extends _Base {
   }
 
   void test_class_mixins_longerViaSecondMixin() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'I1'),
-        ClassSpec(name: 'I2', supertype: 'I1'),
-        ClassSpec(name: 'I3', supertype: 'I2'),
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'X', supertype: 'A', mixins: ['M1', 'M2']),
+        ClassSpec('class I1'),
+        ClassSpec('class I2 extends I1'),
+        ClassSpec('class I3 extends I2'),
+        ClassSpec('class A'),
+        ClassSpec('class X extends A with M1, M2'),
       ],
-      mixins: [
-        MixinSpec(name: 'M1'),
-        MixinSpec(name: 'M2', interfaces: ['I3']),
-      ],
+      mixins: [MixinSpec('mixin M1'), MixinSpec('mixin M2 implements I3')],
     );
     var I1 = classElement('I1');
     var I2 = classElement('I2');
@@ -125,13 +116,13 @@ class PathToObjectTest extends _Base {
     //    \ /
     //     E
     //
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['A']),
-        ClassSpec(name: 'D', interfaces: ['C']),
-        ClassSpec(name: 'E', interfaces: ['B', 'D']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements A'),
+        ClassSpec('class D implements C'),
+        ClassSpec('class E implements B, D'),
       ],
     );
     var classB = classElement('B');
@@ -157,13 +148,13 @@ class PathToObjectTest extends _Base {
     //    \ /
     //     E
     //
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'A'),
-        ClassSpec(name: 'D', supertype: 'C'),
-        ClassSpec(name: 'E', supertype: 'B', interfaces: ['D']),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends A'),
+        ClassSpec('class D extends C'),
+        ClassSpec('class E extends B implements D'),
       ],
     );
     var classB = classElement('B');
@@ -185,11 +176,8 @@ class PathToObjectTest extends _Base {
   }
 
   void test_class_recursion() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-      ],
+    buildTestLibrary(
+      classes: [ClassSpec('class A'), ClassSpec('class B extends A')],
     );
     var classA = classElement('A');
     var classB = classElement('B');
@@ -209,11 +197,11 @@ class PathToObjectTest extends _Base {
     //     |
     //     C
     //
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['B']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements B'),
       ],
     );
     var classA = classElement('A');
@@ -236,11 +224,11 @@ class PathToObjectTest extends _Base {
     //     |
     //     C
     //
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'B'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends B'),
       ],
     );
     var classA = classElement('A');
@@ -252,16 +240,14 @@ class PathToObjectTest extends _Base {
   }
 
   void test_mixin_constraints_interfaces_allSame() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B'),
-        ClassSpec(name: 'I'),
-        ClassSpec(name: 'J'),
+        ClassSpec('class A'),
+        ClassSpec('class B'),
+        ClassSpec('class I'),
+        ClassSpec('class J'),
       ],
-      mixins: [
-        MixinSpec(name: 'M', constraints: ['A', 'B'], interfaces: ['I', 'J']),
-      ],
+      mixins: [MixinSpec('mixin M on A, B implements I, J')],
     );
     var A = classElement('A');
     var B = classElement('B');
@@ -278,17 +264,15 @@ class PathToObjectTest extends _Base {
   }
 
   void test_mixin_longerConstraint_1() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A1'),
-        ClassSpec(name: 'A', supertype: 'A1'),
-        ClassSpec(name: 'B'),
-        ClassSpec(name: 'I'),
-        ClassSpec(name: 'J'),
+        ClassSpec('class A1'),
+        ClassSpec('class A extends A1'),
+        ClassSpec('class B'),
+        ClassSpec('class I'),
+        ClassSpec('class J'),
       ],
-      mixins: [
-        MixinSpec(name: 'M', constraints: ['A', 'B'], interfaces: ['I', 'J']),
-      ],
+      mixins: [MixinSpec('mixin M on A, B implements I, J')],
     );
     var A = classElement('A');
     var B = classElement('B');
@@ -305,17 +289,15 @@ class PathToObjectTest extends _Base {
   }
 
   void test_mixin_longerConstraint_2() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B1'),
-        ClassSpec(name: 'B', interfaces: ['B1']),
-        ClassSpec(name: 'I'),
-        ClassSpec(name: 'J'),
+        ClassSpec('class A'),
+        ClassSpec('class B1'),
+        ClassSpec('class B implements B1'),
+        ClassSpec('class I'),
+        ClassSpec('class J'),
       ],
-      mixins: [
-        MixinSpec(name: 'M', constraints: ['A', 'B'], interfaces: ['I', 'J']),
-      ],
+      mixins: [MixinSpec('mixin M on A, B implements I, J')],
     );
     var A = classElement('A');
     var B = classElement('B');
@@ -332,17 +314,15 @@ class PathToObjectTest extends _Base {
   }
 
   void test_mixin_longerInterface_1() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B'),
-        ClassSpec(name: 'I1'),
-        ClassSpec(name: 'I', interfaces: ['I1']),
-        ClassSpec(name: 'J'),
+        ClassSpec('class A'),
+        ClassSpec('class B'),
+        ClassSpec('class I1'),
+        ClassSpec('class I implements I1'),
+        ClassSpec('class J'),
       ],
-      mixins: [
-        MixinSpec(name: 'M', constraints: ['A', 'B'], interfaces: ['I', 'J']),
-      ],
+      mixins: [MixinSpec('mixin M on A, B implements I, J')],
     );
     var A = classElement('A');
     var B = classElement('B');
@@ -371,7 +351,7 @@ class PathToObjectTest extends _Base {
 }
 
 @reflectiveTest
-class SuperinterfaceSetTest extends _Base {
+class SuperinterfaceSetTest extends AbstractTypeSystemTest {
   void test_genericInterfacePath() {
     //
     //  A
@@ -383,12 +363,12 @@ class SuperinterfaceSetTest extends _Base {
     //  D
     //
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', typeParameters: ['T'], interfaces: ['A']),
-        ClassSpec(name: 'C', typeParameters: ['T'], interfaces: ['B<T>']),
-        ClassSpec(name: 'D'),
+        ClassSpec('class A'),
+        ClassSpec('class B<T> implements A'),
+        ClassSpec('class C<T> implements B<T>'),
+        ClassSpec('class D'),
       ],
     );
     var classA = classElement('A');
@@ -436,12 +416,12 @@ class SuperinterfaceSetTest extends _Base {
     //  D
     //
 
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', typeParameters: ['T'], supertype: 'A'),
-        ClassSpec(name: 'C', typeParameters: ['T'], supertype: 'B<T>'),
-        ClassSpec(name: 'D'),
+        ClassSpec('class A'),
+        ClassSpec('class B<T> extends A'),
+        ClassSpec('class C<T> extends B<T>'),
+        ClassSpec('class D'),
       ],
     );
     var classA = classElement('A');
@@ -479,15 +459,13 @@ class SuperinterfaceSetTest extends _Base {
   }
 
   void test_mixin_constraints() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C'),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C'),
       ],
-      mixins: [
-        MixinSpec(name: 'M', constraints: ['B', 'C']),
-      ],
+      mixins: [MixinSpec('mixin M on B, C')],
     );
     var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
@@ -505,7 +483,7 @@ class SuperinterfaceSetTest extends _Base {
   }
 
   void test_mixin_constraints_object() {
-    buildLibrary(mixins: [MixinSpec(name: 'M')]);
+    buildTestLibrary(mixins: [MixinSpec('mixin M')]);
     var mixinM = mixinElement('M');
     var instM = interfaceTypeNone(mixinM);
 
@@ -516,15 +494,13 @@ class SuperinterfaceSetTest extends _Base {
   }
 
   void test_mixin_interfaces() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C'),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C'),
       ],
-      mixins: [
-        MixinSpec(name: 'M', interfaces: ['B', 'C']),
-      ],
+      mixins: [MixinSpec('mixin M implements B, C')],
     );
     var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
@@ -542,13 +518,13 @@ class SuperinterfaceSetTest extends _Base {
   }
 
   void test_multipleInterfacePaths() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['A']),
-        ClassSpec(name: 'D', interfaces: ['C']),
-        ClassSpec(name: 'E', interfaces: ['B', 'D']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements A'),
+        ClassSpec('class D implements C'),
+        ClassSpec('class E implements B, D'),
       ],
     );
     var classA = classElement('A');
@@ -576,13 +552,13 @@ class SuperinterfaceSetTest extends _Base {
   }
 
   void test_multipleSuperclassPaths() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'A'),
-        ClassSpec(name: 'D', supertype: 'C'),
-        ClassSpec(name: 'E', supertype: 'B', interfaces: ['D']),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends A'),
+        ClassSpec('class D extends C'),
+        ClassSpec('class E extends B implements D'),
       ],
     );
     var classA = classElement('A');
@@ -610,11 +586,8 @@ class SuperinterfaceSetTest extends _Base {
   }
 
   void test_recursion() {
-    buildLibrary(
-      classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-      ],
+    buildTestLibrary(
+      classes: [ClassSpec('class A'), ClassSpec('class B extends A')],
     );
     var classA = classElement('A');
     var instA = interfaceTypeNone(classA);
@@ -629,11 +602,11 @@ class SuperinterfaceSetTest extends _Base {
   }
 
   void test_singleInterfacePath() {
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', interfaces: ['A']),
-        ClassSpec(name: 'C', interfaces: ['B']),
+        ClassSpec('class A'),
+        ClassSpec('class B implements A'),
+        ClassSpec('class C implements B'),
       ],
     );
     var classA = classElement('A');
@@ -670,11 +643,11 @@ class SuperinterfaceSetTest extends _Base {
     //  |
     //  C
     //
-    buildLibrary(
+    buildTestLibrary(
       classes: [
-        ClassSpec(name: 'A'),
-        ClassSpec(name: 'B', supertype: 'A'),
-        ClassSpec(name: 'C', supertype: 'B'),
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec('class C extends B'),
       ],
     );
     var classA = classElement('A');
@@ -706,29 +679,5 @@ class SuperinterfaceSetTest extends _Base {
   Set<InterfaceType> _superInterfaces(InterfaceType type) {
     var helper = InterfaceLeastUpperBoundHelper(typeSystem);
     return helper.computeSuperinterfaceSet(type);
-  }
-}
-
-abstract class _Base extends AbstractTypeSystemTest {
-  void buildLibrary({
-    List<ClassSpec> classes = const [],
-    List<MixinSpec> mixins = const [],
-  }) {
-    testLibrary = buildTestLibrary(
-      LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: const ['dart:core'],
-        classes: classes,
-        mixins: mixins,
-      ),
-    );
-  }
-
-  ClassElementImpl classElement(String name) {
-    return testLibrary.getClass(name)!;
-  }
-
-  MixinElementImpl mixinElement(String name) {
-    return testLibrary.getMixin(name)!;
   }
 }

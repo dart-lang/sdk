@@ -31,27 +31,23 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_extensionType_implementsFuture() {
-    isNotIncompatible(
-      interfaceTypeNone(
-        buildExtensionType(
-          const ExtensionTypeSpec(
-            name: 'A',
-            representationType: 'Future<int>',
-            interfaces: ['Future<int>'],
-          ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [
+        ExtensionTypeSpec(
+          'extension type A(Future<int> it) implements Future<int>',
         ),
-      ),
+      ],
     );
+    isNotIncompatible(interfaceTypeNone(extensionTypeElement('A')));
   }
 
   test_extensionType_notImplementsFuture() {
-    isIncompatible(
-      interfaceTypeNone(
-        buildExtensionType(
-          const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
-        ),
-      ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [ExtensionTypeSpec('extension type A(Future<int> it)')],
     );
+    isIncompatible(interfaceTypeNone(extensionTypeElement('A')));
   }
 
   test_futureInt() {
@@ -63,13 +59,15 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_extensionType_implementsFuture() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(
-        name: 'A',
-        representationType: 'Future<int>',
-        interfaces: ['Future<int>'],
-      ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [
+        ExtensionTypeSpec(
+          'extension type A(Future<int> it) implements Future<int>',
+        ),
+      ],
     );
+    var A = extensionTypeElement('A');
 
     isNotIncompatible(
       typeParameterTypeNone(typeParameter('T', bound: interfaceTypeNone(A))),
@@ -77,9 +75,11 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_bound_extensionType_notImplementsFuture() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [ExtensionTypeSpec('extension type A(Future<int> it)')],
     );
+    var A = extensionTypeElement('A');
 
     isIncompatible(
       typeParameterTypeNone(typeParameter('T', bound: interfaceTypeNone(A))),
@@ -95,22 +95,17 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   test_typeParameter_promotedBound_extensionType_implementsFuture() {
     // Incompatible with `await`, used as a bound.
     // Does not matter, `T` is promoted to not incompatible.
-    testLibrary = buildTestLibrary(
-      const LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: ['dart:core', 'dart:async'],
-        extensionTypes: [
-          ExtensionTypeSpec(name: 'N', representationType: 'Future<int>'),
-          ExtensionTypeSpec(
-            name: 'F',
-            representationType: 'Future<int>',
-            interfaces: ['Future<int>'],
-          ),
-        ],
-      ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [
+        ExtensionTypeSpec('extension type N(Future<int> it)'),
+        ExtensionTypeSpec(
+          'extension type F(Future<int> it) implements Future<int>',
+        ),
+      ],
     );
-    var N = testLibrary.getExtensionType('N')!;
-    var F = testLibrary.getExtensionType('F')!;
+    var N = extensionTypeElement('N');
+    var F = extensionTypeElement('F');
 
     isNotIncompatible(
       typeParameterTypeNone(
@@ -121,9 +116,11 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_typeParameter_promotedBound_extensionType_notImplementsFuture() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [ExtensionTypeSpec('extension type A(Future<int> it)')],
     );
+    var A = extensionTypeElement('A');
 
     isIncompatible(
       typeParameterTypeNone(

@@ -13,127 +13,64 @@ const _sdkSpec = {
     uri: 'dart:core',
     classes: [
       ClassSpec(
-        name: 'bool',
-        supertype: 'Object',
+        'class bool extends Object',
         constructors: [
           ConstructorSpec(
-            name: 'fromEnvironment',
-            formalParameters: 'String name, {bool defaultValue}',
-            isConst: true,
-            isFactory: true,
+            'const factory fromEnvironment(String name, {bool defaultValue})',
           ),
         ],
       ),
-      ClassSpec(name: 'double', supertype: 'num'),
+      ClassSpec('class double extends num'),
       ClassSpec(
-        name: 'int',
-        supertype: 'num',
+        'class int extends num',
         constructors: [
           ConstructorSpec(
-            name: 'fromEnvironment',
-            formalParameters: 'String name, {int defaultValue}',
-            isConst: true,
-            isFactory: true,
+            'const factory fromEnvironment(String name, {int defaultValue})',
           ),
         ],
       ),
+      ClassSpec('class num extends Object implements Comparable<num>'),
+      ClassSpec('abstract class Comparable<T>'),
+      ClassSpec('abstract class Function extends Object'),
+      ClassSpec('abstract class Iterable<E> extends Object'),
+      ClassSpec('abstract class Iterator<E> extends Object'),
+      ClassSpec('abstract class List<E> extends Object implements Iterable<E>'),
+      ClassSpec('abstract class Map<K, V> extends Object'),
+      ClassSpec('class Null extends Object'),
       ClassSpec(
-        name: 'num',
-        supertype: 'Object',
-        interfaces: ['Comparable<num>'],
-      ),
-      ClassSpec(name: 'Comparable', typeParameters: ['T'], isAbstract: true),
-      ClassSpec(name: 'Function', isAbstract: true, supertype: 'Object'),
-      ClassSpec(
-        name: 'Iterable',
-        typeParameters: ['E'],
-        isAbstract: true,
-        supertype: 'Object',
-      ),
-      ClassSpec(
-        name: 'Iterator',
-        typeParameters: ['E'],
-        isAbstract: true,
-        supertype: 'Object',
-      ),
-      ClassSpec(
-        name: 'List',
-        typeParameters: ['E'],
-        isAbstract: true,
-        supertype: 'Object',
-        interfaces: ['Iterable<E>'],
-      ),
-      ClassSpec(
-        name: 'Map',
-        typeParameters: ['K', 'V'],
-        isAbstract: true,
-        supertype: 'Object',
-      ),
-      ClassSpec(name: 'Null', supertype: 'Object'),
-      ClassSpec(
-        name: 'Object',
+        'class Object',
         methods: [
-          MethodSpec(name: 'toString', returnType: 'String'),
-          MethodSpec(
-            name: '==',
-            returnType: 'bool',
-            formalParameters: 'Object other',
-          ),
+          MethodSpec('String toString()'),
+          MethodSpec('bool operator ==(Object other)'),
         ],
       ),
-      ClassSpec(name: 'Record', isAbstract: true, supertype: 'Object'),
+      ClassSpec('abstract class Record extends Object'),
+      ClassSpec('abstract class Set<E> extends Object implements Iterable<E>'),
       ClassSpec(
-        name: 'Set',
-        typeParameters: ['E'],
-        isAbstract: true,
-        supertype: 'Object',
-        interfaces: ['Iterable<E>'],
-      ),
-      ClassSpec(
-        name: 'String',
-        supertype: 'Object',
+        'class String extends Object',
         constructors: [
           ConstructorSpec(
-            name: 'fromEnvironment',
-            formalParameters: 'String name, {String defaultValue}',
-            isConst: true,
-            isFactory: true,
+            'const factory fromEnvironment(String name, {String defaultValue})',
           ),
         ],
         methods: [
-          MethodSpec(name: 'toLowerCase', returnType: 'String'),
-          MethodSpec(
-            name: '+',
-            returnType: 'String',
-            formalParameters: 'String other',
-          ),
+          MethodSpec('String toLowerCase()'),
+          MethodSpec('String operator +(String other)'),
         ],
       ),
       ClassSpec(
-        name: 'Symbol',
-        isAbstract: true,
-        supertype: 'Object',
-        constructors: [
-          ConstructorSpec(
-            isConst: true,
-            isFactory: true,
-            formalParameters: 'String name',
-          ),
-        ],
+        'abstract class Symbol extends Object',
+        constructors: [ConstructorSpec('const factory new(String name)')],
       ),
-      ClassSpec(name: 'Type', isAbstract: true, supertype: 'Object'),
+      ClassSpec('abstract class Type extends Object'),
     ],
   ),
   'dart:async': LibrarySpec(
     uri: 'dart:async',
+    imports: ['dart:core'],
     classes: [
-      ClassSpec(
-        name: 'Future',
-        typeParameters: ['T'],
-        isAbstract: true,
-        supertype: 'Object',
-      ),
-      ClassSpec(name: 'FutureOr', typeParameters: ['T'], supertype: 'Object'),
+      ClassSpec('abstract class Future<T> extends Object'),
+      ClassSpec('class FutureOr<T> extends Object'),
     ],
   ),
 };
@@ -148,10 +85,10 @@ class MockSdkElements {
     AnalysisSessionImpl analysisSession,
   ) {
     var libraries = buildLibrariesFromSpec(
-      analysisContext,
-      rootReference,
-      analysisSession,
-      _sdkSpec,
+      analysisContext: analysisContext,
+      rootReference: rootReference,
+      analysisSession: analysisSession,
+      specs: _sdkSpec,
     );
     return MockSdkElements._(
       coreLibrary: libraries['dart:core']!,
