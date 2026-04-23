@@ -1,0 +1,14 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let core::int p = 1 in p;
+  let core::int #t1 = 1 in #t1 == null ?{core::int?} null : let core::int p = #t1 as core::int in p;
+  let final core::int #t2 = 1 in block {
+    let core::int p = #t2 in let dynamic #t3 = p in p;
+  } =>#t2;
+  let final core::int #t4 = 1 in #t4 == null ?{core::int} #t4 : block {
+    let core::int #t5 = #t4 in #t5 == null ?{core::int?} null : let core::int p = #t5 as core::int in let dynamic #t6 = p in p;
+  } =>#t4;
+}

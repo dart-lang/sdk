@@ -7988,7 +7988,6 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void handleImplicitFormalParameters(Token punctuation) {
     debugEvent("handleImplicitFormalParameters");
     Token token = punctuation; // fallback offset
@@ -8032,12 +8031,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
     Object? body = pop();
     Object? formals = pop(NullValues.FormalParameters);
-    VariableDeclaration? syntheticThisVariable;
-    if (formals == null) {
-      // Coverage-ignore-block(suite): Not run.
-      syntheticThisVariable = _thisVariables.pop();
-      _parameterlessAnonymousMethodDepth--;
-    } else if (_localScope.kind == LocalScopeKind.formals) {
+    if (formals != null && _localScope.kind == LocalScopeKind.formals) {
       exitLocalScope(expectedScopeKinds: const [LocalScopeKind.formals]);
     }
 
@@ -8062,10 +8056,10 @@ class BodyBuilderImpl extends StackListenerImpl
           isImplicitlyTyped = (variable as InternalVariable).isImplicitlyTyped;
         }
       } else if (formals == null) {
-        // Coverage-ignore-block(suite): Not run.
         bodyExpr = toValue(body);
+        variable = _thisVariables.pop();
+        _parameterlessAnonymousMethodDepth--;
         receiver = popForValue();
-        variable = syntheticThisVariable!;
         isImplicitlyTyped = true;
       } else {
         FormalParameters formalParameters = formals as FormalParameters;

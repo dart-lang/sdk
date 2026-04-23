@@ -4,6 +4,7 @@
 
 # Status file for the modular_suite.dart test suite.
 
+coverage/anonymous_methods/expression_explicitly_wrongly_typed: TypeCheckError
 constructor_tearoffs/call_instantiation: TypeCheckError
 enhanced_enums/declared_hashcode: TypeCheckError
 enhanced_enums/declared_index: TypeCheckError

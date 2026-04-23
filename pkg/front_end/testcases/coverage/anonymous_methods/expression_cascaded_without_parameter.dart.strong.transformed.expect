@@ -1,0 +1,34 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let final core::int #t1 = 1 in block {
+    let final core::int #t2 = #t1 in let dynamic #t3 = 1 in #t2;
+  } =>#t1;
+  let final core::int #t4 = 1 in block {
+    let final core::int #t5 = #t4 in let dynamic #t6 = #t5 in #t5;
+  } =>#t4;
+  let final core::int #t7 = 1 in block {
+    let final core::int #t8 = #t7 in let dynamic #t9 = #t8.{core::int::isEven}{core::bool} in #t8;
+  } =>#t7;
+  let final core::int #t10 = 1 in block {
+    let final core::int #t11 = #t10 in let dynamic #t12 = #t11.{core::int::isEven}{core::bool} in #t11;
+  } =>#t10;
+}
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:6:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:6:3 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:7:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:7:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:8:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:8:9 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:8:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:8:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:9:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:9:9 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:9:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_without_parameter.dart:9:3 -> IntConstant(1)
+Extra constant evaluation: evaluated: 26, effectively constant: 12

@@ -1,0 +1,6 @@
+library;
+import self as self;
+
+static field void v;
+static method test() → void
+  ;

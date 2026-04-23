@@ -1,0 +1,27 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let final core::int #t1 = 1 in block {
+    let core::int p = #t1 in let dynamic #t2 = 1 in p;
+  } =>#t1;
+  let final core::int #t3 = 1 in block {
+    let core::int p = #t3 in let dynamic #t4 = p in p;
+  } =>#t3;
+  let final core::int #t5 = 1 in block {
+    let core::int p = #t5 in let dynamic #t6 = p.{core::int::isEven}{core::bool} in p;
+  } =>#t5;
+}
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:6:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:6:3 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:7:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:7:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:8:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:8:13 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:8:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_cascaded_with_parameter.dart:8:3 -> IntConstant(1)
+Extra constant evaluation: evaluated: 17, effectively constant: 8
