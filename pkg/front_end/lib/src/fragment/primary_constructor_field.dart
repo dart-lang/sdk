@@ -402,8 +402,10 @@ class PrimaryConstructorFieldDeclaration
   ) {
     if (getterOverrideDependencies != null ||
         setterOverrideDependencies != null) {
+      SourceClassBuilder classBuilder =
+          builder.declarationBuilder as SourceClassBuilder;
       membersBuilder.inferFieldType(
-        builder.declarationBuilder as SourceClassBuilder,
+        classBuilder,
         type,
         [...?getterOverrideDependencies, ...?setterOverrideDependencies],
         name: _fragment.name,
@@ -411,6 +413,13 @@ class PrimaryConstructorFieldDeclaration
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
         isAssignable: hasSetter,
+        isClosureContextLoweringEnabled: classBuilder
+            .libraryBuilder
+            .loader
+            .target
+            .backendTarget
+            .flags
+            .isClosureContextLoweringEnabled,
       );
     } else {
       type.build(

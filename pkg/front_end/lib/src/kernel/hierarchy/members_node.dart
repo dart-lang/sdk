@@ -115,8 +115,13 @@ abstract class MembersNodeBuilder {
 class ClassMembersNodeBuilder extends MembersNodeBuilder {
   final ClassHierarchyNode _hierarchyNode;
   final ClassMembersBuilder _membersBuilder;
+  final bool _isClosureContextLoweringEnabled;
 
-  ClassMembersNodeBuilder(this._membersBuilder, this._hierarchyNode);
+  ClassMembersNodeBuilder(
+    this._membersBuilder,
+    this._hierarchyNode, {
+    required bool isClosureContextLoweringEnabled,
+  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
 
   ClassHierarchyBuilder get hierarchy => _membersBuilder.hierarchyBuilder;
 
@@ -142,6 +147,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     required Uri fileUri,
     required int nameOffset,
     required int nameLength,
+    required bool isClosureContextLoweringEnabled,
   }) {
     if (declaredReturnType is InferableTypeBuilder ||
         formals != null &&
@@ -169,6 +175,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
             classBuilder,
             overriddenMemberSet.toList(),
             forSetter: false,
+            isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
           );
       FunctionType? combinedMemberSignatureType =
           combinedMemberSignature.getCombinedSignatureTypeInContext(
@@ -324,6 +331,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     required Uri fileUri,
     required int nameOffset,
     required int nameLength,
+    required bool isClosureContextLoweringEnabled,
   }) {
     if (declaredTypeBuilder is InferableTypeBuilder) {
       DartType? inferredType;
@@ -346,6 +354,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
               classBuilder,
               members,
               forSetter: forSetter,
+              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             );
         DartType? combinedMemberSignatureType =
             combinedMemberSignature.combinedMemberSignatureType;
@@ -399,6 +408,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     required Uri fileUri,
     required int nameOffset,
     required int nameLength,
+    required bool isClosureContextLoweringEnabled,
   }) {
     if (formals == null) {
       // Erroneous case.
@@ -440,6 +450,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
               classBuilder,
               members,
               forSetter: forSetter,
+              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             );
         DartType? combinedMemberSignatureType =
             combinedMemberSignature.combinedMemberSignatureType;
@@ -493,6 +504,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
     required int nameOffset,
     required int nameLength,
     required bool isAssignable,
+    required bool isClosureContextLoweringEnabled,
   }) {
     if (declaredFieldType is InferableTypeBuilder) {
       DartType? inferredType;
@@ -518,6 +530,7 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
               classBuilder,
               members,
               forSetter: forSetter,
+              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             );
         return combinedMemberSignature.combinedMemberSignatureType;
       }
@@ -873,7 +886,10 @@ class ClassMembersNodeBuilder extends MembersNodeBuilder {
       ///
       /// Conflicts between the getable and setable are reported afterwards.
       var (_SanitizedMember? getable, _SanitizedMember? setable) = tuple
-          .sanitize(this);
+          .sanitize(
+            this,
+            isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
+          );
 
       _Overrides overrides = new _Overrides(
         classBuilder: classBuilder,
@@ -1533,8 +1549,9 @@ class _Tuple {
   /// Conflicts between [definingGetable] and [definingSetable] are reported
   /// afterwards.
   (_SanitizedMember?, _SanitizedMember?) sanitize(
-    ClassMembersNodeBuilder builder,
-  ) {
+    ClassMembersNodeBuilder builder, {
+    required bool isClosureContextLoweringEnabled,
+  }) {
     ClassMember? definingGetable;
     ClassMember? definingSetable;
 
@@ -1945,6 +1962,7 @@ class _Tuple {
               mixedInGetable,
               extendedGetable,
               implementedGetables,
+              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             )
           : null,
       definingSetable != null
@@ -1955,6 +1973,7 @@ class _Tuple {
               mixedInSetable,
               extendedSetable,
               implementedSetables,
+              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             )
           : null,
     );
@@ -1990,14 +2009,17 @@ class _SanitizedMember {
   /// The members inherited from the super interfaces, if none this is `null`.
   final List<ClassMember>? _implementedMembers;
 
+  final bool _isClosureContextLoweringEnabled;
+
   _SanitizedMember(
     this.name,
     this._definingMember,
     this._declaredMember,
     this._mixedInMember,
     this._extendedMember,
-    this._implementedMembers,
-  );
+    this._implementedMembers, {
+    required bool isClosureContextLoweringEnabled,
+  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
 
   /// Computes the class and interface members for this [_SanitizedMember].
   ///
@@ -2099,6 +2121,7 @@ class _SanitizedMember {
           noSuchMethodTarget: noSuchMethodTarget,
           memberKind: _definingMember.memberKind,
           shouldModifyKernel: builder.shouldModifyKernel,
+          isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
         );
         builder._membersBuilder.registerMemberComputation(interfaceMember);
 
@@ -2234,6 +2257,7 @@ class _SanitizedMember {
           mixedInMember: _mixedInMember,
           memberKind: _definingMember.memberKind,
           shouldModifyKernel: builder.shouldModifyKernel,
+          isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
         );
         builder._membersBuilder.registerMemberComputation(interfaceMember);
 
@@ -2362,6 +2386,7 @@ class _SanitizedMember {
             noSuchMethodTarget: noSuchMethodTarget,
             memberKind: _definingMember.memberKind,
             shouldModifyKernel: builder.shouldModifyKernel,
+            isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
           );
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }
@@ -2584,6 +2609,7 @@ class _SanitizedMember {
             noSuchMethodTarget: noSuchMethodTarget,
             memberKind: _definingMember.memberKind,
             shouldModifyKernel: builder.shouldModifyKernel,
+            isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
           );
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }
@@ -2701,6 +2727,7 @@ class _SanitizedMember {
             noSuchMethodTarget: noSuchMethodTarget,
             memberKind: _definingMember.memberKind,
             shouldModifyKernel: builder.shouldModifyKernel,
+            isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
           );
           builder._membersBuilder.registerMemberComputation(interfaceMember);
         }

@@ -12321,10 +12321,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       Expression condition = new EqualsNull(new VariableGet(tempVar));
       Expression thenExpression = new NullLiteral();
 
-      node.variable.initializer = new AsExpression(
-        new VariableGet(tempVar),
-        node.variable.type,
-      )
+      node.variable.initializer =
+          new AsExpression(new VariableGet(tempVar), node.variable.type)
             ..fileOffset = node.fileOffset
             ..parent = node.variable;
 
