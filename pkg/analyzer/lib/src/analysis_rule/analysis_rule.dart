@@ -49,6 +49,12 @@ sealed class AbstractAnalysisRule {
     this.state = const RuleState.stable(),
   });
 
+  /// Rule-specific configuration options from the analysis options file.
+  ///
+  /// Set by the framework before [registerNodeProcessors] is called.
+  /// Rules should validate and cast values themselves.
+  Map<String, Object> options = const {};
+
   /// Indicates whether this analysis rule can work with just the parsed
   /// information or if it requires a resolved unit.
   bool get canUseParsedResult => false;

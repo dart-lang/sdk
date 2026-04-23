@@ -431,7 +431,12 @@ class LibraryAnalyzer {
       workspacePackage,
     );
 
+    var lintRuleConfigs = _analysisOptions.lintRuleConfigs;
     for (var linter in _analysisOptions.lintRules) {
+      var config = lintRuleConfigs[linter.name.toLowerCase()];
+      if (config != null) {
+        linter.options = config.options;
+      }
       var timer = _enableLintRuleTiming
           ? analysisRuleTimers.getTimer(linter)
           : null;
