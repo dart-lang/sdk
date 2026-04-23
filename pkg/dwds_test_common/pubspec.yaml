@@ -1,0 +1,18 @@
+name: dwds_test_common
+publish_to: none
+description: >-
+  Common test functionality.
+environment:
+  sdk: ^3.10.0-0.0.dev
+
+dependencies:
+  dwds: any
+  file: ">=6.0.0 <8.0.0"
+  logging: ^1.0.1
+  path: ^1.8.1
+  pub_semver: ^2.1.1
+  test: ^1.21.1
+
+dev_dependencies:
+  dart_flutter_team_lints: ^3.5.2
+  yaml: ^3.1.2

@@ -1,0 +1,17 @@
+name: _test_hot_restart2
+version: 1.0.0
+description: >-
+  A fake package used for testing hot restart.
+publish_to: none
+environment:
+  sdk: ^3.10.0-0.0.dev
+
+dependencies:
+  intl: ^0.17.0
+  path: ^1.6.1
+  _test_hot_restart1:
+    path: ../_test_hot_restart1
+
+dev_dependencies:
+  build_runner: ^2.5.0
+  build_web_compilers: ^4.4.12

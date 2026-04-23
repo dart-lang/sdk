@@ -1,0 +1,65 @@
+# See https://pub.dev/packages/mono_repo for details
+stages:
+  - analyzer_and_format:
+    - group:
+      - format
+      - analyze: --fatal-infos .
+      - test: test/build/ensure_version_test.dart
+      sdk: dev
+  - unit_test:
+    # Linux extension tests:
+    # Note: `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &` must be
+    # run first for Linux.
+    - group:
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: --tags=extension
+      sdk:
+        - dev
+        - main
+      os:
+        - linux
+     # Windows extension tests:
+    - group:
+      - test: --tags=extension
+      sdk:
+        - dev
+        - main
+      os:
+        - windows
+    # First test shard:
+    - group:
+      - test: --total-shards 3 --shard-index 0 --exclude-tags=extension
+      sdk:
+        - dev
+        - main
+      os:
+        - linux
+        - windows
+    # Second test shard:
+    - group:
+      - test: --total-shards 3 --shard-index 1 --exclude-tags=extension
+      sdk:
+        - dev
+        - main
+      os:
+        - linux
+        - windows
+    # Third test shard:
+    - group:
+      - test: --total-shards 3 --shard-index 2 --exclude-tags=extension
+      sdk:
+        - dev
+        - main
+      os:
+        - linux
+        - windows
+  - beta_cron:
+    - analyze: .
+      sdk: beta
+    - group:
+      - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+      - test: -j 1
+      sdk: beta
+    - test: -j 1
+      os: windows
+      sdk: beta

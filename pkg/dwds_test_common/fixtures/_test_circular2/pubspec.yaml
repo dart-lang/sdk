@@ -1,0 +1,15 @@
+name: _test_circular2
+version: 1.0.0
+description: >-
+  A fake package used for testing imports with circular dependency.
+publish_to: none
+environment:
+  sdk: ^3.10.0-0.0.dev
+
+dependencies:
+  _test_circular1:
+    path: ../_test_circular1
+
+dev_dependencies:
+  build_runner: ^2.5.0
+  build_web_compilers: ^4.4.12

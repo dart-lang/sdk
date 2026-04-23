@@ -1,0 +1,12 @@
+include: package:dart_flutter_team_lints/analysis_options.yaml
+
+analyzer:
+  exclude:
+    # Ignore generated files
+    - "lib/data/*"
+    - "lib/src/handlers/injected_client_js.dart"
+
+linter:
+  rules:
+    always_use_package_imports: true
+    prefer_relative_imports: false
