@@ -87,6 +87,8 @@ abstract class CombinedMemberSignatureBase {
 
   bool _isCombinedMemberSignatureCovarianceComputed = false;
 
+  final bool _isClosureContextLoweringEnabled;
+
   Covariance? _combinedMemberSignatureCovariance;
 
   /// Creates a [CombinedMemberSignatureBase] whose canonical member is already
@@ -96,7 +98,8 @@ abstract class CombinedMemberSignatureBase {
     this._canonicalMemberIndex,
     this.members, {
     required this.forSetter,
-  });
+    required bool isClosureContextLoweringEnabled,
+  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
 
   /// Creates a [CombinedMemberSignatureBase] for [members] inherited into
   /// [extensionTypeDeclarationBuilder].
@@ -108,7 +111,8 @@ abstract class CombinedMemberSignatureBase {
     this.membersBuilder,
     this.members, {
     required this.forSetter,
-  }) {
+    required bool isClosureContextLoweringEnabled,
+  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled {
     int? bestSoFarIndex;
     if (members.length == 1) {
       bestSoFarIndex = 0;
@@ -546,25 +550,40 @@ abstract class CombinedMemberSignatureBase {
       fileUri = declarationNode.fileUri;
       fileOffset = startFileOffset = declarationNode.fileOffset;
     }
+    VariableDeclaration setterParameter;
+    if (_isClosureContextLoweringEnabled) {
+      // Coverage-ignore-block(suite): Not run.
+      setterParameter =
+          new PositionalParameter(
+              cosmeticName: parameter?.name ?? 'value',
+              type: type,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+            )
+            ..isCovariantByClass = isCovariantByClass
+            ..fileOffset = copyLocation
+                ? parameter?.fileOffset ?? fileOffset
+                : fileOffset;
+    } else {
+      setterParameter =
+          new VariableDeclaration(
+              parameter?.name ?? 'value',
+              type: type,
+              isCovariantByDeclaration: isCovariantByDeclaration,
+            )
+            ..isCovariantByClass = isCovariantByClass
+            ..fileOffset = copyLocation
+                ?
+                  // Coverage-ignore(suite): Not run.
+                  parameter?.fileOffset ?? fileOffset
+                : fileOffset;
+    }
     return new Procedure(
         member.name,
         ProcedureKind.Setter,
         new FunctionNode(
           null,
           returnType: const VoidType(),
-          positionalParameters: [
-            new VariableDeclaration(
-                parameter?.name ?? 'value',
-                type: type,
-                isCovariantByDeclaration: isCovariantByDeclaration,
-              )
-              ..isCovariantByClass = isCovariantByClass
-              ..fileOffset = copyLocation
-                  ?
-                    // Coverage-ignore(suite): Not run.
-                    parameter?.fileOffset ?? fileOffset
-                  : fileOffset,
-          ],
+          positionalParameters: [setterParameter],
         ),
         isAbstract: true,
         fileUri: fileUri,
@@ -612,29 +631,56 @@ abstract class CombinedMemberSignatureBase {
       DartType parameterType = freshTypeParameters.substitute(
         functionType.positionalParameters[i],
       );
-      positionalParameters.add(
-        new VariableDeclaration(
-            parameter.name,
-            type: parameterType,
+      VariableDeclaration positionalParameter;
+      if (_isClosureContextLoweringEnabled) {
+        // Coverage-ignore-block(suite): Not run.
+        positionalParameter =
+            new PositionalParameter(
+                cosmeticName: parameter.name,
+                type: parameterType,
+                isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+                defaultValue: cloner.cloneOptional(parameter.initializer),
+              )
+              ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
+              ..isCovariantByClass = parameter.isCovariantByClass
+              ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset;
+      } else {
+        positionalParameter =
+            new VariableDeclaration(
+                parameter.name,
+                type: parameterType,
+                isCovariantByDeclaration: parameter.isCovariantByDeclaration,
+                initializer: cloner.cloneOptional(parameter.initializer),
+              )
+              ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
+              ..isCovariantByClass = parameter.isCovariantByClass
+              ..fileOffset = copyLocation
+                  ?
+                    // Coverage-ignore(suite): Not run.
+                    parameter.fileOffset
+                  : fileOffset;
+      }
+      positionalParameters.add(positionalParameter);
+    }
+
+    VariableDeclaration cloneNamedParameter(
+      VariableDeclaration parameter,
+      NamedType namedType,
+    ) {
+      if (_isClosureContextLoweringEnabled) {
+        // Coverage-ignore-block(suite): Not run.
+        return new NamedParameter(
+            parameterName: parameter.name!,
+            type: freshTypeParameters.substitute(namedType.type),
+            isRequired: namedType.isRequired,
             isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-            initializer: cloner.cloneOptional(parameter.initializer),
+            defaultValue: cloner.cloneOptional(parameter.initializer),
           )
           ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
           ..isCovariantByClass = parameter.isCovariantByClass
-          ..fileOffset = copyLocation
-              ?
-                // Coverage-ignore(suite): Not run.
-                parameter.fileOffset
-              : fileOffset,
-      );
-    }
-    List<VariableDeclaration> namedParameters = [];
-    int namedParameterCount = function.namedParameters.length;
-    if (namedParameterCount == 1) {
-      NamedType namedType = functionType.namedParameters.first;
-      VariableDeclaration parameter = function.namedParameters.first;
-      namedParameters.add(
-        new VariableDeclaration(
+          ..fileOffset = copyLocation ? parameter.fileOffset : fileOffset;
+      } else {
+        return new VariableDeclaration(
             parameter.name,
             type: freshTypeParameters.substitute(namedType.type),
             isRequired: namedType.isRequired,
@@ -647,8 +693,16 @@ abstract class CombinedMemberSignatureBase {
               ?
                 // Coverage-ignore(suite): Not run.
                 parameter.fileOffset
-              : fileOffset,
-      );
+              : fileOffset;
+      }
+    }
+
+    List<VariableDeclaration> namedParameters = [];
+    int namedParameterCount = function.namedParameters.length;
+    if (namedParameterCount == 1) {
+      NamedType namedType = functionType.namedParameters.first;
+      VariableDeclaration parameter = function.namedParameters.first;
+      namedParameters.add(cloneNamedParameter(parameter, namedType));
     } else if (namedParameterCount > 1) {
       Map<String, NamedType> namedTypes = {};
       for (NamedType namedType in functionType.namedParameters) {
@@ -657,22 +711,7 @@ abstract class CombinedMemberSignatureBase {
       for (int i = 0; i < namedParameterCount; i++) {
         VariableDeclaration parameter = function.namedParameters[i];
         NamedType namedParameterType = namedTypes[parameter.name]!;
-        namedParameters.add(
-          new VariableDeclaration(
-              parameter.name,
-              type: freshTypeParameters.substitute(namedParameterType.type),
-              isRequired: namedParameterType.isRequired,
-              isCovariantByDeclaration: parameter.isCovariantByDeclaration,
-              initializer: cloner.cloneOptional(parameter.initializer),
-            )
-            ..hasDeclaredInitializer = parameter.hasDeclaredInitializer
-            ..isCovariantByClass = parameter.isCovariantByClass
-            ..fileOffset = copyLocation
-                ?
-                  // Coverage-ignore(suite): Not run.
-                  parameter.fileOffset
-                : fileOffset,
-        );
+        namedParameters.add(cloneNamedParameter(parameter, namedParameterType));
       }
     }
     return new Procedure(
@@ -754,11 +793,13 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
     int? canonicalMemberIndex,
     List<ClassMember> members, {
     required bool forSetter,
+    required bool isClosureContextLoweringEnabled,
   }) : super.internal(
          membersBuilder,
          canonicalMemberIndex,
          members,
          forSetter: forSetter,
+         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
        );
 
   /// Creates a [CombinedClassMemberSignature] for [members] inherited into
@@ -772,7 +813,13 @@ class CombinedClassMemberSignature extends CombinedMemberSignatureBase {
     this.classBuilder,
     List<ClassMember> members, {
     required bool forSetter,
-  }) : super(membersBuilder, members, forSetter: forSetter);
+    required bool isClosureContextLoweringEnabled,
+  }) : super(
+         membersBuilder,
+         members,
+         forSetter: forSetter,
+         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+       );
 
   @override
   DeclarationBuilder get declarationBuilder => classBuilder;
@@ -812,7 +859,13 @@ class CombinedExtensionTypeMemberSignature extends CombinedMemberSignatureBase {
     this.extensionTypeDeclarationBuilder,
     List<ClassMember> members, {
     required bool forSetter,
-  }) : super(membersBuilder, members, forSetter: forSetter);
+    required bool isClosureContextLoweringEnabled,
+  }) : super(
+         membersBuilder,
+         members,
+         forSetter: forSetter,
+         isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+       );
 
   @override
   DeclarationBuilder get declarationBuilder => extensionTypeDeclarationBuilder;

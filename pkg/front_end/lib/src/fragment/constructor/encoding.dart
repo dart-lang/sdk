@@ -626,13 +626,28 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       }
 
       _thisVariable =
-          new VariableDeclarationImpl(
-              syntheticThisName,
-              isFinal: true,
+          libraryBuilder
+              .loader
+              .target
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled
+          ?
+            // Coverage-ignore(suite): Not run.
+            (new PositionalParameter(
+              cosmeticName: syntheticThisName,
               type: _computeThisType(declarationBuilder, typeArguments),
-            )
-            ..fileOffset = fileOffset
-            ..isLowered = true;
+
+              isFinal: true,
+              isLowered: true,
+            )..fileOffset = fileOffset)
+          : (new VariableDeclarationImpl(
+                syntheticThisName,
+                isFinal: true,
+                type: _computeThisType(declarationBuilder, typeArguments),
+              )
+              ..fileOffset = fileOffset
+              ..isLowered = true);
 
       List<DartType> typeParameterTypes = <DartType>[];
       for (int i = 0; i < _constructor.function.typeParameters.length; i++) {

@@ -19,8 +19,13 @@ import 'members_node.dart';
 class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
   final ExtensionTypeHierarchyNode _hierarchyNode;
   final ClassMembersBuilder _membersBuilder;
+  final bool _isClosureContextLoweringEnabled;
 
-  ExtensionTypeMembersNodeBuilder(this._membersBuilder, this._hierarchyNode);
+  ExtensionTypeMembersNodeBuilder(
+    this._membersBuilder,
+    this._hierarchyNode, {
+    required bool isClosureContextLoweringEnabled,
+  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
 
   ExtensionTypeDeclarationBuilder get extensionTypeDeclarationBuilder =>
       _hierarchyNode.extensionTypeDeclarationBuilder;
@@ -183,7 +188,10 @@ class ExtensionTypeMembersNodeBuilder extends MembersNodeBuilder {
       ///
       /// Conflicts between the getable and setable are reported afterwards.
       var (_SanitizedMember? getable, _SanitizedMember? setable) = tuple
-          .sanitize(this);
+          .sanitize(
+            this,
+            isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
+          );
 
       ClassMember? getableMember;
       if (getable != null) {
@@ -559,8 +567,9 @@ class _Tuple {
   /// Conflicts between [definingGetable] and [definingSetable] are reported
   /// afterwards.
   (_SanitizedMember?, _SanitizedMember?) sanitize(
-    ExtensionTypeMembersNodeBuilder builder,
-  ) {
+    ExtensionTypeMembersNodeBuilder builder, {
+    required bool isClosureContextLoweringEnabled,
+  }) {
     ClassMember? definingGetable;
     ClassMember? definingSetable;
 
@@ -943,6 +952,7 @@ class _Tuple {
               declaredNonExtensionTypeGetable,
               implementedNonExtensionTypeGetables,
               implementedExtensionTypeGetables,
+              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             )
           : null,
       definingSetable != null
@@ -953,6 +963,7 @@ class _Tuple {
               declaredNonExtensionTypeSetable,
               implementedNonExtensionTypeSetables,
               implementedExtensionTypeSetables,
+              isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
             )
           : null,
     );
@@ -990,14 +1001,17 @@ class _SanitizedMember {
   /// `null`.
   final List<ClassMember>? _implementedExtensionTypeMembers;
 
+  final bool _isClosureContextLoweringEnabled;
+
   _SanitizedMember(
     this.name,
     this._definingMember,
     this._declaredExtensionTypeMember,
     this._declaredNonExtensionTypeMember,
     this._implementedNonExtensionTypeMembers,
-    this._implementedExtensionTypeMembers,
-  );
+    this._implementedExtensionTypeMembers, {
+    required bool isClosureContextLoweringEnabled,
+  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
 
   /// Computes the class and interface members for this [_SanitizedMember].
   ///
@@ -1086,6 +1100,7 @@ class _SanitizedMember {
           _implementedNonExtensionTypeMembers,
           memberKind: _definingMember.memberKind,
           shouldModifyKernel: builder.shouldModifyKernel,
+          isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
         );
         builder._membersBuilder.registerMemberComputation(classMember);
         return nonExtensionTypeMemberMap[name] = classMember;

@@ -2971,6 +2971,8 @@ severity: $severity
           hierarchyBuilder,
           sourceClasses,
           sourceExtensionTypes,
+          isClosureContextLoweringEnabled:
+              target.backendTarget.flags.isClosureContextLoweringEnabled,
         );
     typeInferenceEngine.membersBuilder = membersBuilder;
     ticker.logMs("Built class hierarchy members");
