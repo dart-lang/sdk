@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library hot_reload_response;
-
 /// A response to a hot reload request.
 class HotReloadResponse {
   /// The unique identifier matching the request.
@@ -50,5 +48,6 @@ class HotReloadResponse {
 
   @override
   String toString() =>
-      'HotReloadResponse(id: $id, success: $success, errorMessage: $errorMessage)';
+      'HotReloadResponse(id: $id, success: $success, '
+      'errorMessage: $errorMessage)';
 }

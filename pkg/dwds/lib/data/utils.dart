@@ -23,7 +23,8 @@ Map<String, dynamic> listToMap(List<dynamic> list, {String? type}) {
 
   if ((list.length - startIndex).isOdd) {
     throw FormatException(
-      'Expected an even number of elements${type != null ? " after $type" : ""}',
+      'Expected an even number of elements'
+      '${type != null ? " after $type" : ""}',
       list,
     );
   }

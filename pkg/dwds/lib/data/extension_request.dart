@@ -49,7 +49,8 @@ class ExtensionRequest {
 
   @override
   String toString() =>
-      'ExtensionRequest { id=$id, command=$command, commandParams=$commandParams }';
+      'ExtensionRequest { id=$id, command=$command, '
+      'commandParams=$commandParams }';
 
   @override
   bool operator ==(Object other) =>
@@ -111,7 +112,8 @@ class ExtensionResponse {
 
   @override
   String toString() =>
-      'ExtensionResponse { id=$id, success=$success, result=$result, error=$error }';
+      'ExtensionResponse { id=$id, success=$success, '
+      'result=$result, error=$error }';
 
   @override
   bool operator ==(Object other) =>
@@ -195,7 +197,7 @@ class BatchedEvents {
       identical(this, other) ||
       other is BatchedEvents &&
           runtimeType == other.runtimeType &&
-          const ListEquality().equals(events, other.events);
+          const ListEquality<ExtensionEvent>().equals(events, other.events);
 
   @override
   int get hashCode => Object.hashAll(events);

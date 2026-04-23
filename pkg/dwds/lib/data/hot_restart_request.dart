@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-library hot_restart_request;
-
 /// A request to hot restart the application.
 class HotRestartRequest {
   /// A unique identifier for this request.

@@ -139,8 +139,8 @@ class RequireStrategy extends LoadStrategy {
     this._moduleInfoForProvider,
     AssetReader assetReader,
     this._buildSettings, {
-    String? packageConfigPath,
-  }) : super(assetReader, packageConfigPath: packageConfigPath);
+    super.packageConfigPath,
+  }) : super(assetReader);
 
   @override
   Handler get handler => (request) async {

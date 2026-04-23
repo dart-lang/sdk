@@ -146,8 +146,8 @@ class DdcStrategy extends LoadStrategy {
     AssetReader assetReader,
     this._buildSettings,
     this._g3RelativePath, {
-    String? packageConfigPath,
-  }) : super(assetReader, packageConfigPath: packageConfigPath);
+    super.packageConfigPath,
+  }) : super(assetReader);
 
   @override
   Handler get handler => (request) async {

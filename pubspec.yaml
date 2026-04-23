@@ -46,6 +46,8 @@ workspace:
   - pkg/dev_compiler
   - pkg/dtd
   - pkg/dtd_impl
+  - pkg/dwds
+  - pkg/dwds_test_common
   - pkg/dynamic_modules
   - pkg/expect
   - pkg/_fe_analyzer_shared

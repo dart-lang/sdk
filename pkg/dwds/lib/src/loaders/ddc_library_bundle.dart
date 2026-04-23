@@ -146,10 +146,10 @@ class DdcLibraryBundleStrategy extends LoadStrategy {
     AssetReader assetReader,
     this._buildSettings,
     this._g3RelativePath, {
-    String? packageConfigPath,
+    super.packageConfigPath,
     this.reloadedSourcesUri,
     this.injectScriptLoad = true,
-  }) : super(assetReader, packageConfigPath: packageConfigPath);
+  }) : super(assetReader);
 
   @override
   Handler get handler => (request) async {

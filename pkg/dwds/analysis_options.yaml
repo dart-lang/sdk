@@ -3,8 +3,11 @@ include: package:dart_flutter_team_lints/analysis_options.yaml
 analyzer:
   exclude:
     # Ignore generated files
-    - "lib/data/*"
     - "lib/src/handlers/injected_client_js.dart"
+    # Ignore integration fixtures to avoid analysis errors from "package:build_daemon".
+    - "test/integration/fixtures/context.dart"
+    - "test/integration/fixtures/server.dart"
+    - "test/integration/fixtures/utilities.dart"
 
 linter:
   rules:

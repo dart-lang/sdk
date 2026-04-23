@@ -12,9 +12,12 @@ import 'package:pub_semver/pub_semver.dart';
 import 'package:test/test.dart';
 import 'package:yaml/yaml.dart';
 
+import 'test_path_utils.dart';
+
 void main() {
-  test('dwds lib/src/version.dart matches the pubspec version', () {
-    final pubspec = loadYaml(File('pubspec.yaml').readAsStringSync()) as Map;
+  test('dwds lib/src/version.dart matches the pubspec version', () async {
+    final pubspecPath = await dwdsPath('pubspec.yaml');
+    final pubspec = loadYaml(File(pubspecPath).readAsStringSync()) as Map;
     expect(
       Version.parse(packageVersion),
       Version.parse(pubspec['version'] as String),
