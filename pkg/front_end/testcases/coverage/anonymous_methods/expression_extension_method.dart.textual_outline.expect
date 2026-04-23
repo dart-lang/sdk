@@ -1,0 +1,5 @@
+extension E on int {
+  void foo() {}
+}
+
+void main() {}

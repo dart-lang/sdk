@@ -1,0 +1,38 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A extends core::Object {
+  final field core::int x;
+  constructor n1() → self::A
+    : self::A::x = let final core::int #t1 = 42 in #t1, super core::Object::•()
+    ;
+  constructor n2() → self::A
+    : self::A::x = let final core::String #t2 = "abc" in #t2.{core::String::length}{core::int}, super core::Object::•()
+    ;
+  constructor n3() → self::A
+    : self::A::x = let final () → core::int #t3 = #C1 in #t3(){() → core::int}, super core::Object::•()
+    ;
+  constructor n4() → self::A
+    : self::A::x = let final core::String #t4 = "def" in #t4.{core::Object::toString}(){() → core::String}.{core::String::length}{core::int}, super core::Object::•()
+    ;
+}
+static method f() → core::int
+  return 5;
+static method main() → void {
+  new self::A::n1();
+  new self::A::n2();
+  new self::A::n3();
+  new self::A::n4();
+}
+
+constants  {
+  #C1 = static-tearoff self::f
+}
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///expression_this_in_initializer.dart:9:16 -> IntConstant(42)
+Evaluated: Let @ org-dartlang-testcase:///expression_this_in_initializer.dart:10:16 -> IntConstant(3)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_this_in_initializer.dart:11:21 -> StaticTearOffConstant(f)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_this_in_initializer.dart:12:25 -> StringConstant("def")
+Extra constant evaluation: evaluated: 13, effectively constant: 4

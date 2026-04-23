@@ -12224,7 +12224,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType initializerType = initializerResult.inferredType;
 
     if (initializerType is VoidType) {
-      // Coverage-ignore-block(suite): Not run.
       initializer = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
         expression: initializer,
@@ -12236,15 +12235,12 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
 
     if (node.isImplicitlyTyped) {
-      // Coverage-ignore-block(suite): Not run.
       node.variable.type = node.isNullAware
           ? initializerType.toNonNull()
           : initializerType;
     } else {
       DartType checkedType = node.isNullAware
-          ?
-            // Coverage-ignore(suite): Not run.
-            initializerType.toNonNull()
+          ? initializerType.toNonNull()
           : initializerType;
       if (!isAssignable(variableType, checkedType)) {
         initializer = wrapUnassignableExpression(
@@ -12267,7 +12263,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       initialized: true,
     );
     if (node.isNullAware) {
-      // Coverage-ignore-block(suite): Not run.
       flow.nullAwareAccess_rightBegin(
         flowAnalysis.getExpressionInfo(node.variable.initializer!),
         new SharedTypeView(initializerType),
@@ -12282,7 +12277,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
 
     if (node.isNullAware) {
-      // Coverage-ignore-block(suite): Not run.
       flow.nullAwareAccess_end();
     }
 
@@ -12290,7 +12284,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     Expression body;
 
     if (node.isCascade) {
-      // Coverage-ignore-block(suite): Not run.
       inferredType = initializerType;
 
       VariableDeclaration tempVar = new VariableDeclaration(
@@ -12308,7 +12301,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Expression replacement;
     if (node.isNullAware) {
-      // Coverage-ignore-block(suite): Not run.
       VariableDeclaration tempVar =
           new VariableDeclaration(
               null,

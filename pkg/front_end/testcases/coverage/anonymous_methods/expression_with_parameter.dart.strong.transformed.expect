@@ -1,0 +1,16 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let core::int p = 1 in 1;
+  let core::int p = 1 in p;
+  let core::int p = 1 in p.{core::int::isEven}{core::bool};
+}
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///expression_with_parameter.dart:6:3 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_with_parameter.dart:7:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_with_parameter.dart:8:12 -> IntConstant(1)
+Extra constant evaluation: evaluated: 5, effectively constant: 3

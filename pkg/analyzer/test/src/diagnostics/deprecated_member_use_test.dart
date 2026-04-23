@@ -1165,6 +1165,26 @@ void f() {
     );
   }
 
+  test_instanceCreation_undeprecatedClass_deprecatedConstructor_primary() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A() {
+  @deprecated
+  this;
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''',
+      [error(diag.deprecatedMemberUse, 43, 1)],
+    );
+  }
+
   test_instanceCreation_unnamedConstructor() async {
     await assertErrorsInCode2(
       externalCode: r'''

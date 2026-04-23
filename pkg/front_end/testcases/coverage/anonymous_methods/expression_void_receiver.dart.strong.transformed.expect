@@ -1,0 +1,74 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:8:3: Error: This expression has type 'void' and can't be used.
+//   v. => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:9:3: Error: This expression has type 'void' and can't be used.
+//   v.(p) => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:10:3: Error: This expression has type 'void' and can't be used.
+//   v?. => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:11:3: Error: This expression has type 'void' and can't be used.
+//   v?.(p) => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:12:3: Error: This expression has type 'void' and can't be used.
+//   v.. => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:13:3: Error: This expression has type 'void' and can't be used.
+//   v..(p) => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:14:3: Error: This expression has type 'void' and can't be used.
+//   v?.. => 1; // Error
+//   ^
+//
+// pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:15:3: Error: This expression has type 'void' and can't be used.
+//   v?..(p) => 1; // Error
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+static field void v = null;
+static method test() → void {
+  let final void #t1 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:8:3: Error: This expression has type 'void' and can't be used.
+  v. => 1; // Error
+  ^" in self::v in 1;
+  let void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:9:3: Error: This expression has type 'void' and can't be used.
+  v.(p) => 1; // Error
+  ^" in self::v in 1;
+  let void #t2 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:10:3: Error: This expression has type 'void' and can't be used.
+  v?. => 1; // Error
+  ^" in self::v in #t2 == null ?{core::int?} null : let final void #t3 = #t2 as{Unchecked} void in 1;
+  let void #t4 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:11:3: Error: This expression has type 'void' and can't be used.
+  v?.(p) => 1; // Error
+  ^" in self::v in #t4 == null ?{core::int?} null : let void p = #t4 as{Unchecked} void in 1;
+  let final void #t5 = self::v in block {
+    let final void #t6 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:12:3: Error: This expression has type 'void' and can't be used.
+  v.. => 1; // Error
+  ^" in #t5 in let dynamic #t7 = 1 in #t6;
+  } =>#t5;
+  let final void #t8 = self::v in block {
+    let void p = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:13:3: Error: This expression has type 'void' and can't be used.
+  v..(p) => 1; // Error
+  ^" in #t8 in let dynamic #t9 = 1 in p;
+  } =>#t8;
+  let final void #t10 = self::v in #t10 == null ?{void} null : block {
+    let void #t11 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:14:3: Error: This expression has type 'void' and can't be used.
+  v?.. => 1; // Error
+  ^" in #t10 in #t11 == null ?{void} null : let final void #t12 = #t11 as{Unchecked} void in let dynamic #t13 = 1 in #t12;
+  } =>#t10;
+  let final void #t14 = self::v in #t14 == null ?{void} null : block {
+    let void #t15 = invalid-expression "pkg/front_end/testcases/coverage/anonymous_methods/expression_void_receiver.dart:15:3: Error: This expression has type 'void' and can't be used.
+  v?..(p) => 1; // Error
+  ^" in #t14 in #t15 == null ?{void} null : let void p = #t15 as{Unchecked} void in let dynamic #t16 = 1 in p;
+  } =>#t14;
+}

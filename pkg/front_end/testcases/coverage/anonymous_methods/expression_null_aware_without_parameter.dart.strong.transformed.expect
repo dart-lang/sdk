@@ -1,0 +1,11 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static field core::int? i = null;
+static method main() → void {
+  let core::int? #t1 = self::i in #t1 == null ?{core::int?} null : let final core::int #t2 = let core::int? #t3 = #t1 in #t3 == null ?{core::int} #t3 as core::int : #t3{core::int} in 1;
+  let core::int? #t4 = self::i in #t4 == null ?{core::int?} null : let final core::int #t5 = let core::int? #t6 = #t4 in #t6 == null ?{core::int} #t6 as core::int : #t6{core::int} in #t5{core::int};
+  let core::int? #t7 = self::i in #t7 == null ?{core::bool?} null : let final core::int #t8 = let core::int? #t9 = #t7 in #t9 == null ?{core::int} #t9 as core::int : #t9{core::int} in #t8{core::int}.{core::int::isEven}{core::bool};
+  let core::int? #t10 = self::i in #t10 == null ?{core::bool?} null : let final core::int #t11 = let core::int? #t12 = #t10 in #t12 == null ?{core::int} #t12 as core::int : #t12{core::int} in #t11{core::int}.{core::int::isEven}{core::bool};
+}
