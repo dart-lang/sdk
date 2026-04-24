@@ -3,6 +3,7 @@ library;
 import self as self;
 import "dart:js_interop" as js_;
 import "dart:core" as core;
+import "dart:js_interop_unsafe" as js_2;
 
 import "dart:js_interop";
 
@@ -74,14 +75,12 @@ static method test(js_::JSAny /* erasure=core::Object */ any, js_::JSAny? /* era
   js_::_isNullableJSObject(obj);
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "Array");
   obj == null || js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceOfString(obj as js_::JSAny? /* erasure=core::Object? */, "Array");
-  js_::_isJSTypedArray(any);
+  !(any == null) && js_::JSAnyUtilityExtension|instanceof(any, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=_interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as js_::JSObject /* erasure=_interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as js_::JSObject /* erasure=_interceptors::JSObject */]));
   js_::_isJSBoxedDartObject(any);
-  js_::_isJSExportedDartFunction<core::Function>(any);
-  js_::_isJSExportedDartFunction<(core::int, [core::String?]) → js_::JSArray<js_::JSString /* erasure=core::String */> /* erasure=_interceptors::JSArray<core::Object?> */>(any);
-  js_::_isJSTypedArray(obj);
+  js_::_isJSExportedDartFunction(any);
+  !(obj == null) && (js_::_isJSAny(obj) && js_::JSAnyUtilityExtension|instanceof(obj as js_::JSAny? /* erasure=core::Object? */, js_2::JSObjectUnsafeUtilExtension|callMethodVarArgs<js_::JSFunction /* erasure=_interceptors::JavaScriptFunction */>(js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Object") as js_::JSObject /* erasure=_interceptors::JSObject */, js_::StringToJSString|get#toJS("getPrototypeOf"), <js_::JSAny? /* erasure=core::Object? */>[js_2::JSObjectUnsafeUtilExtension|[](js_::globalContext, "Int8Array") as js_::JSObject /* erasure=_interceptors::JSObject */])));
   js_::_isJSBoxedDartObject(obj);
-  js_::_isJSExportedDartFunction<core::Function>(obj);
-  js_::_isNullableJSExportedDartFunction<(core::int, [core::String?]) → js_::JSArray<js_::JSString /* erasure=core::String */> /* erasure=_interceptors::JSArray<core::Object?> */>(obj);
+  js_::_isJSExportedDartFunction(obj);
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSAny");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomJSObject");
   !(any == null) && js_::JSAnyUtilityExtension|instanceOfString(any, "library1.CustomTypedArray");

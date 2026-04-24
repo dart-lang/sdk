@@ -42,11 +42,7 @@ external JSFunction fun;
 external JSString doFun(JSString a, JSString b);
 
 @JS()
-external JSExportedDartFunction<JSString Function(JSString, JSString)> edf;
-
-@JS()
-external JSExportedDartFunction<JSString Function(JSObject, JSString, JSString)>
-edfWithThis;
+external JSExportedDartFunction edf;
 
 @JS()
 external JSArray arr;
@@ -200,20 +196,17 @@ void syncTests() {
     return (a.toDart + b.toDart).toJS;
   };
   edf = dartFunction.toJS;
-  // Should be able to assign to `JSFunction<T>`.
-  JSFunction<JSString Function(JSString, JSString)> _ = edf;
   Expect.equals('foobar', doFun('foo'.toJS, 'bar'.toJS).toDart);
-  Expect.equals('foobar', edf.toDart('foo'.toJS, 'bar'.toJS).toDart);
-  Expect.identical(edf.toDart, dartFunction);
-  // `toDart` with just `Function` should succeed.
-  Expect.identical(
-    (edf as JSExportedDartFunction<Function>).toDart,
-    dartFunction,
+  Expect.equals(
+    'foobar',
+    (edf.toDart as JSString Function(JSString, JSString))(
+      'foo'.toJS,
+      'bar'.toJS,
+    ).toDart,
   );
+  Expect.identical(edf.toDart, dartFunction);
   // Two wrappers should not be the same.
   Expect.notEquals(edf, dartFunction.toJS);
-  // If the wrong function type, `toDart` should throw.
-  Expect.throws(() => (edf as JSExportedDartFunction<void Function()>).toDart);
   // Converting a non-function should throw.
   Expect.throws(() => ('foo'.toJS as JSExportedDartFunction).toDart);
   // `this` should be captured correctly in `toJSCaptureThis`.
@@ -222,22 +215,13 @@ void syncTests() {
     Expect.equals(this_, this__);
     return (a.toDart + b.toDart).toJS;
   };
-  edfWithThis = dartFunctionThis.toJSCaptureThis;
+  edf = dartFunctionThis.toJSCaptureThis;
   Expect.equals(
-    (edfWithThis.callAsFunction(this_, 'foo'.toJS, 'bar'.toJS) as JSString)
-        .toDart,
+    (edf.callAsFunction(this_, 'foo'.toJS, 'bar'.toJS) as JSString).toDart,
     'foobar',
   );
-  Expect.identical(edfWithThis.toDart, dartFunctionThis);
-  Expect.identical(
-    (edfWithThis as JSExportedDartFunction).toDart,
-    dartFunctionThis,
-  );
-  Expect.throws(
-    () =>
-        (edfWithThis as JSExportedDartFunction<int Function(JSString)>).toDart,
-  );
-  Expect.notEquals(edfWithThis, dartFunctionThis.toJSCaptureThis);
+  Expect.identical(edf.toDart, dartFunctionThis);
+  Expect.notEquals(edf, dartFunctionThis.toJSCaptureThis);
 
   // [JSIterable]
   final iterable = JSSet([1.toJS, 2.toJS].toJS);

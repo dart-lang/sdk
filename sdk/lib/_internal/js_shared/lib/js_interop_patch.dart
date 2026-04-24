@@ -13,7 +13,6 @@ import 'dart:_internal' show patch;
 import 'dart:_js_helper' show createObjectLiteral, staticInteropGlobalContext;
 import 'dart:_js_types';
 import 'dart:js_interop';
-import 'dart:js_interop_unsafe';
 import 'dart:js_util' as js_util;
 import 'dart:typed_data';
 
@@ -70,25 +69,24 @@ extension NullableObjectUtilExtension on Object? {
 // -----------------------------------------------------------------------------
 // JSExportedDartFunction <-> Function
 @patch
-extension JSExportedDartFunctionToFunction<T extends Function>
-    on JSExportedDartFunction<T> {
+extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   @patch
-  T get toDart => throw UnimplementedError(
+  Function get toDart => throw UnimplementedError(
     "'toDart' should never directly be called. Calls to 'toDart' should have "
     'been transformed by the interop transformer.',
   );
 }
 
 @patch
-extension FunctionToJSExportedDartFunction<T extends Function> on T {
+extension FunctionToJSExportedDartFunction on Function {
   @patch
-  JSExportedDartFunction<T> get toJS => throw UnimplementedError(
+  JSExportedDartFunction get toJS => throw UnimplementedError(
     "'toJS' should never directly be called. Calls to 'toJS' should have "
     'been transformed by the interop transformer.',
   );
 
   @patch
-  JSExportedDartFunction<T> get toJSCaptureThis => throw UnimplementedError(
+  JSExportedDartFunction get toJSCaptureThis => throw UnimplementedError(
     "'toJSCaptureThis' should never directly be called. Calls to "
     "'toJSCaptureThis' should have been transformed by the interop "
     'transformer.',
@@ -138,32 +136,12 @@ bool _isJSObject(Object? any) =>
 bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
 
 @pragma('dart2js:prefer-inline')
-bool _isJSExportedDartFunction<T extends Function>(Object? any) =>
-    any is JavaScriptFunction && isJSExportedDartFunction<T>(any);
+bool _isJSExportedDartFunction(Object? any) =>
+    any is JavaScriptFunction && isJSExportedDartFunction(any);
 
 @pragma('dart2js:prefer-inline')
-bool _isNullableJSExportedDartFunction<T extends Function>(Object? any) =>
-    any == null || _isJSExportedDartFunction<T>(any);
-
-// `TypedArray` doesn't exist as a property in JS, but rather as a superclass of
-// all typed arrays. In order to do the most sensible thing here, we can use the
-// prototype of some typed array type, and check that the receiver is an
-// `instanceof` that prototype. See
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#description
-// for more details.
-
-@JS('Object.getPrototypeOf')
-external JSFunction _getPrototypeOf(JSAny o);
-
-@pragma('dart2js:prefer-inline')
-bool _isJSTypedArray(Object? any) {
-  final typedArrayProto = _getPrototypeOf(globalContext['Int8Array']!);
-  return _isJSAny(any) && (any as JSAny).instanceof(typedArrayProto);
-}
-
-@pragma('dart2js:prefer-inline')
-bool _isNullableJSTypedArray(Object? any) =>
-    any == null || _isJSTypedArray(any);
+bool _isNullableJSExportedDartFunction(Object? any) =>
+    any == null || _isJSExportedDartFunction(any);
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object
