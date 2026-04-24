@@ -1,4 +1,4 @@
 Errors: {
 }
-static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::_GrowableList<main::A> list) → dynamic
-  return list.{dart.core::_GrowableList::first}{main::A}.{dynamic}lib::_value = 41;
+static method /* from org-dartlang-debug:synthetic_debug_expression */ debugExpr(dart.core::List<main::A> list) → dynamic
+  return list.{dart.core::Iterable::first}{main::A}.{dynamic}lib::_value = 41;
