@@ -15,7 +15,6 @@ import 'package:wasm_builder/wasm_builder.dart' as w;
 import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
-import 'dynamic_modules.dart';
 import 'param_info.dart';
 import 'translator.dart';
 import 'types.dart';
@@ -76,13 +75,18 @@ final class TableBasedConstantDefinition extends ConstantDefinition {
 
 class ConstantInfo {
   static const int canBeEagerBit = 1 << 0;
-  static const int needsRuntimeCanonicalizationBit = 1 << 1;
-  static const int exportByMainAppBit = 1 << 2;
 
   final Constant constant;
   final List<ConstantInfo> children;
   final ConstantCodeGeneratorLazy _forceLazy;
-  final int _bits;
+
+  /// Whether the [constant] can be made eager (i.e. non lazy).
+  ///
+  /// If `true` then it will depend on into which modules the constant and it's
+  /// transitive closure are placed in. If they are all e.g. placed in the main
+  /// module then the constant will be non-lazy. If they are placed across
+  /// modules the constant may still become lazy.
+  final bool canBeEager;
   final w.RefType type;
   final ConstantCodeGenerator _codeGen;
   ConstantDefinition? _definition;
@@ -91,32 +95,10 @@ class ConstantInfo {
     this.constant,
     this.children,
     this._forceLazy,
-    bool canBeEager,
-    bool needsRuntimeCanonicalization,
-    bool exportByMainApp,
+    this.canBeEager,
     this.type,
     this._codeGen,
-  ) : _bits =
-          (canBeEager ? canBeEagerBit : 0) |
-          (needsRuntimeCanonicalization ? needsRuntimeCanonicalizationBit : 0) |
-          (exportByMainApp ? exportByMainAppBit : 0);
-
-  /// Whether the [constant] can be made eager (i.e. non lazy).
-  ///
-  /// If `true` then it will depend on into which modules the constant and it's
-  /// transitive closure are placed in. If they are all e.g. placed in the main
-  /// module then the constant will be non-lazy. If they are placed across
-  /// modules the constant may still become lazy.
-  bool get canBeEager => (_bits & canBeEagerBit) != 0;
-
-  /// Whether this constant needs runtime canonicalization. If it does, the
-  /// constant definition will be lazy.
-  bool get needsRuntimeCanonicalization =>
-      (_bits & needsRuntimeCanonicalizationBit) != 0;
-
-  /// Whether the main app was compiled with dynamic module support and exposes
-  /// this constant via an export.
-  bool get exportByMainApp => (_bits & exportByMainAppBit) != 0;
+  );
 
   void printInitializer(
     void Function(w.BaseFunction) printFunction,
@@ -231,13 +213,6 @@ class Constants {
     });
   }
 
-  // Used as an indicator for interface types that the enclosed class ID must be
-  // globalized on instantiation. Resolves to a normal _InterfaceType.
-  static final Class _relativeInterfaceTypeIndicator = Class(
-    name: '',
-    fileUri: Uri(),
-  );
-
   /// Makes a `WasmArray<_Type>` [InstanceConstant].
   InstanceConstant makeTypeArray(Iterable<DartType> types) {
     return makeArrayOf(
@@ -340,9 +315,7 @@ class Constants {
     final info = ensureConstant(constant);
     if (info == null) return false;
 
-    final baseModule = translator.isDynamicSubmodule
-        ? translator.dynamicSubmodule
-        : translator.mainModule;
+    final baseModule = translator.mainModule;
 
     var definition = info._definition;
     if (definition == null && info.canBeEager && usingModule == baseModule) {
@@ -366,56 +339,6 @@ class Constants {
     }
 
     return false;
-  }
-
-  /// Defines the constants from main application in the fake main application
-  /// module.
-  ///
-  /// NOTE: We do not recurse into the DAG of the given [constant]:
-  ///
-  ///   * a sub-constant (directly or indirectly) referred to by [constant] may
-  ///     also be exported, in which case the caller will call
-  ///     [defineMainAppConstant] for it.
-  ///
-  ///   * if the dynamic module creates a constant that is structurally equal to
-  ///     a non-exported constant from the main app, then it's going to be
-  ///     runtime canonicalized.
-  ///
-  void defineMainAppConstant(
-    Constant constant,
-    String globalName,
-    String? initializerName,
-  ) {
-    assert(translator.isDynamicSubmodule);
-    final type = constant.accept(TypeOfConstantVisitor(translator));
-    final children = const <ConstantInfo>[];
-    final guaranteedNonLazy = initializerName == null;
-    final needsRuntimeCanonicalization = false;
-    final exportByMainApp = true;
-    final info = ConstantInfo(
-      constant,
-      children,
-      (_, _) {
-        throw StateError(
-          'Should not try to generate code for imported constant',
-        );
-      },
-      guaranteedNonLazy,
-      needsRuntimeCanonicalization,
-      exportByMainApp,
-      type,
-      (_, _, _) {
-        throw StateError(
-          'Should not try to generate code for imported constant',
-        );
-      },
-    );
-    constantInfo[constant] = info;
-    _constantAccessor.defineMainAppDefinition(
-      info,
-      globalName,
-      initializerName,
-    );
   }
 
   /// Emit code to push a constant onto the stack.
@@ -504,21 +427,9 @@ class Constants {
   }
 
   InstanceConstant _makeInterfaceTypeConstant(InterfaceType type) {
-    final wrappedClassId =
-        translator.classIdNumbering.classIds[type.classNode]!;
-    final (typeClass, classId) = switch (wrappedClassId) {
-      RelativeClassId() => (
-        _relativeInterfaceTypeIndicator,
-        wrappedClassId.relativeValue,
-      ),
-      AbsoluteClassId() => (
-        translator.interfaceTypeClass,
-        wrappedClassId.value,
-      ),
-    };
-    // If the class ID is relative we will detect that when the constant is
-    // emitted and adjust it accordingly.
-    return _makeTypeConstant(typeClass, type.nullability, {
+    final classId = translator.classIdNumbering.classIds[type.classNode]!;
+
+    return _makeTypeConstant(translator.interfaceTypeClass, type.nullability, {
       translator.interfaceTypeClassIdField.fieldReference: makeWasmI32(classId),
       translator.interfaceTypeTypeArguments.fieldReference: makeTypeArray(
         type.typeArguments,
@@ -796,44 +707,13 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   }) {
     assert(!type.nullable);
 
-    bool exportByMainApp = false;
-    // Dummy values always use runtime canonicalization.
-    bool needsRuntimeCanonicalization = constant is DummyValueConstant;
-    if (translator.dynamicModuleSupportEnabled) {
-      if (!translator.isDynamicSubmodule) {
-        // This is main app compilation which allows loading dynamic modules at
-        // runtime. We may have to export the constant.
-        exportByMainApp =
-            constant.accept(_ConstantDynamicModuleSharedChecker(translator)) &&
-            constant is! DummyValueConstant;
-      } else {
-        // This is a dynamic module compilation.
-        //
-        // If the constant isn't module specific, we need to canonicalize it at
-        // runtime.
-        assert(
-          !(translator.dynamicModuleConstants?.constantNames.containsKey(
-                constant,
-              ) ??
-              false),
-        );
-        needsRuntimeCanonicalization |= constant.accept(
-          _ConstantDynamicModuleSharedChecker(translator),
-        );
-      }
-    }
-    canBeEager =
-        canBeEager &&
-        !needsRuntimeCanonicalization &&
-        childConstants.every((c) => c.canBeEager);
+    canBeEager = canBeEager && childConstants.every((c) => c.canBeEager);
 
     return ConstantInfo(
       constant,
       childConstants,
       forceLazyConstant ?? (_, _) => false,
       canBeEager,
-      needsRuntimeCanonicalization,
-      exportByMainApp,
       type,
       generator,
     );
@@ -851,7 +731,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       info.nonNullableType,
       canBeEager: true,
       (_, b, _) {
-        b.i32_const((info.classId as AbsoluteClassId).value);
+        b.i32_const(info.classId);
         b.i32_const(constant.value ? 1 : 0);
         b.struct_new(info.struct);
       },
@@ -867,7 +747,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       info.nonNullableType,
       canBeEager: true,
       (_, b, _) {
-        b.i32_const((info.classId as AbsoluteClassId).value);
+        b.i32_const(info.classId);
         b.i64_const(constant.value);
         b.struct_new(info.struct);
       },
@@ -883,7 +763,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       info.nonNullableType,
       canBeEager: true,
       (_, b, _) {
-        b.i32_const((info.classId as AbsoluteClassId).value);
+        b.i32_const(info.classId);
         b.f64_const(constant.value);
         b.struct_new(info.struct);
       },
@@ -929,7 +809,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitInstanceConstant(InstanceConstant constant) {
     Class cls = constant.classNode;
-    bool isRelativeInterfaceType = false;
     if (cls == translator.wasmArrayClass) {
       return _makeWasmArrayLiteral(constant, mutable: true);
     }
@@ -940,16 +819,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       return null;
     }
 
-    if (cls == Constants._relativeInterfaceTypeIndicator) {
-      cls = translator.interfaceTypeClass;
-      constant = InstanceConstant(
-        cls.reference,
-        constant.typeArguments,
-        constant.fieldValues,
-      );
-      isRelativeInterfaceType = true;
-    }
-
     ClassInfo info = translator.classInfo[cls]!;
     translator.functions.recordClassAllocation(info.classId);
     w.RefType type = info.nonNullableType;
@@ -957,10 +826,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     // Collect sub-constants for field values.
     int fieldCount = info.struct.fields.length;
     List<Constant?> subConstants = List.filled(fieldCount, null);
-    // Relative class IDs will get adjusted at runtime based on the local
-    // class ID base for the enclosing module. This must be done lazily
-    // since the global is not const.
-    bool lazy = isRelativeInterfaceType;
     final childConstants = <ConstantInfo>[];
     constant.fieldValues.forEach((reference, subConstant) {
       final field = reference.asField;
@@ -995,11 +860,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
       args = supertype.typeArguments;
     }
 
-    // If the class ID is relative then it needs to be globalized when
-    // initializing the object which is a non-const operation.
-    lazy |= info.classId is RelativeClassId;
-
-    return createConstant(constant, childConstants, type, canBeEager: !lazy, (
+    return createConstant(constant, childConstants, type, canBeEager: true, (
       _,
       b,
       _,
@@ -1012,11 +873,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           subConstant,
           info.struct.fields[i].type.unpacked,
         );
-        if (isRelativeInterfaceType && i == FieldIndex.interfaceTypeClassId) {
-          assert(translator.isDynamicSubmodule);
-          translator.pushModuleId(b);
-          translator.callReference(translator.globalizeClassId.reference, b);
-        }
       }
       b.struct_new(info.struct);
     });
@@ -1285,9 +1141,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     // Once we define the constant in a certain module we may be in link phase
     // and have passed the codegen phase and we cannot codegen arbitrary
     // functions in link phase anymore.
-    final owningModule = translator.isDynamicSubmodule
-        ? translator.dynamicSubmodule
-        : translator.moduleForReference(constant.targetReference);
+    final owningModule = translator.moduleForReference(
+      constant.targetReference,
+    );
     final closure = translator.getTearOffClosure(member, owningModule);
     final closureClassInfo = translator.closureInfo;
     translator.functions.recordClassAllocation(closureClassInfo.classId);
@@ -1305,9 +1161,8 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     // main module instantiation time.
     //
     // So currently we only can guarantee it to be eager if the module owning
-    // the vtable is the main module - or we compile a dynamic module.
-    final canBeEager =
-        owningModule == translator.mainModule || translator.isDynamicSubmodule;
+    // the vtable is the main module.
+    final canBeEager = owningModule == translator.mainModule;
 
     final closureType = w.RefType.def(
       closure.representation.closureStruct,
@@ -1374,9 +1229,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
     // Once we define the constant in a certain module we may be in link phase
     // and have passed the codegen phase and we cannot codegen arbitrary
     // functions in link phase anymore.
-    final owningModule = translator.isDynamicSubmodule
-        ? translator.dynamicSubmodule
-        : translator.moduleForReference(tearOffProcedure.reference);
+    final owningModule = translator.moduleForReference(
+      tearOffProcedure.reference,
+    );
     final tearOffClosure = translator.getTearOffClosure(
       tearOffProcedure,
       owningModule,
@@ -1530,12 +1385,6 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           }
           assert(!instantiationOfTearOffRepresentation.isGeneric);
 
-          if (translator.dynamicModuleSupportEnabled) {
-            // Dynamic modules only use the dynamic call entry.
-            b.struct_new(instantiationOfTearOffRepresentation.vtableStruct);
-            return;
-          }
-
           for (
             int posArgCount = 0;
             posArgCount <= positionalCount;
@@ -1570,10 +1419,7 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
         b.struct_new(tearOffRepresentation.instantiationContextStruct!);
 
         makeVtable(
-          (translator.dynamicModuleSupportEnabled ||
-                  translator
-                      .closureLayouter
-                      .usesFunctionApplyWithNamedArguments)
+          (translator.closureLayouter.usesFunctionApplyWithNamedArguments)
               ? makeDynamicCallEntry()
               : null,
         );
@@ -1844,41 +1690,6 @@ class TypeOfConstantVisitor extends ConstantVisitor<w.RefType>
       translator.classInfo[klass]!.nonNullableType;
 }
 
-/// Resolves to true if the visited Constant is accessible from dynamic
-/// submodules.
-///
-/// Constants that are accessible from dynamic submodules should be:
-/// (1) Exported from the main module if they exist there and then imported
-/// into dynamic submodules.
-/// (2) Runtime canonicalized by dynamic submodules if they are not in the main
-/// module.
-class _ConstantDynamicModuleSharedChecker extends ConstantVisitor<bool>
-    with ConstantVisitorDefaultMixin<bool> {
-  final Translator translator;
-
-  _ConstantDynamicModuleSharedChecker(this.translator);
-
-  // TODO(natebiggs): Make this more precise by handling more specific
-  // constants.
-  @override
-  bool defaultConstant(Constant constant) => true;
-
-  @override
-  bool visitInstanceConstant(InstanceConstant constant) {
-    final cls = constant.classNode;
-    if (!cls.enclosingLibrary.isFromMainModule(translator.coreTypes)) {
-      return false;
-    }
-    if (cls == translator.wasmArrayClass ||
-        cls == translator.immutableWasmArrayClass) {
-      return true;
-    }
-    return constant.classNode.constructors.any(
-      (c) => c.isConst && c.isDynamicSubmoduleCallable(translator.coreTypes),
-    );
-  }
-}
-
 /// Responsible for reading constants and defining them.
 class _ConstantAccessor {
   final Translator translator;
@@ -1894,10 +1705,6 @@ class _ConstantAccessor {
   /// null initializer.
   final Map<w.RefType, w.TableBuilder> lazySlotTables = {};
   late final tableImporter = WasmTableImporter(translator, 'constant-table');
-
-  final Map<w.HeapType, w.Global> _dummyValueCanonicalizationCheckers = {};
-  late final w.FunctionType _dummyValueCheckerType = translator.typesBuilder
-      .defineFunction([const w.RefType.any(nullable: false)], [w.NumType.i32]);
 
   _ConstantAccessor(this.translator);
 
@@ -2089,8 +1896,6 @@ class _ConstantAccessor {
               !deferredUses.contains(translator.mainModule),
     );
 
-    final constant = info.constant;
-
     // The constant itself may be forced to be lazy (e.g. array size too large).
     bool lazy = !info.canBeEager;
 
@@ -2116,12 +1921,8 @@ class _ConstantAccessor {
         // If we place the constant in a module that may be loaded before the
         // constants of children, it must get initialized lazily.
         final childModule = definition.global.enclosingModule;
-        final baseModule = translator.isDynamicSubmodule
-            ? translator.dynamicSubmodule
-            : translator.mainModule;
         if (childModule != targetModule?.module &&
-            childModule != translator.mainModule.module &&
-            childModule != baseModule.module) {
+            childModule != translator.mainModule.module) {
           lazy = true;
           break;
         }
@@ -2172,67 +1973,7 @@ class _ConstantAccessor {
       definition = GlobalBasedConstantDefinition(global, null);
     }
     info.setDefinition(definition);
-
-    if (info.exportByMainApp) {
-      assert(
-        translator.dynamicModuleSupportEnabled &&
-            !translator.isDynamicSubmodule,
-      );
-      // Current dynamic module implementation requires main module to be
-      // monolitic.
-      definition as GlobalBasedConstantDefinition;
-      translator.dynamicModuleExporter.exportDynamicModuleConstant(
-        targetModule!,
-        constant,
-        definition.global,
-        initializer: definition._initFunction,
-      );
-    }
     return definition;
-  }
-
-  void defineMainAppDefinition(
-    ConstantInfo info,
-    String globalName,
-    String? initializeName,
-  ) {
-    assert(translator.isDynamicSubmodule);
-    final type = info.type;
-
-    final fakeMainApp = translator.mainModule;
-
-    // Make fake global in the fake main module.
-    final globalType = w.GlobalType(
-      initializeName != null ? type.withNullability(true) : type,
-      mutable: false,
-    );
-    final fakeGlobal = fakeMainApp.globals.define(
-      globalType,
-      _constantName(info.constant),
-    );
-    translator.globals.declareMainAppGlobalExportWithName(
-      globalName,
-      fakeGlobal,
-    );
-
-    // Make fake initializer function in the fake main module.
-    w.BaseFunction? fakeInitializer;
-    if (initializeName != null) {
-      final initFunctionType = translator.typesBuilder.defineFunction(
-        const [],
-        [info.type],
-      );
-      fakeInitializer = fakeMainApp.functions.define(initFunctionType);
-      translator.declareMainAppFunctionExportWithName(
-        globalName,
-        fakeInitializer,
-      );
-    }
-
-    info._definition = GlobalBasedConstantDefinition(
-      fakeGlobal,
-      fakeInitializer,
-    );
   }
 
   (w.GlobalBuilder, w.FunctionBuilder) _createLazyConstant(
@@ -2280,18 +2021,6 @@ class _ConstantAccessor {
     );
     final b = initFunction.body;
     info._codeGen(info, b, true);
-    if (info.needsRuntimeCanonicalization) {
-      final valueLocal = b.addLocal(type);
-      info.constant.accept(
-        ConstantCanonicalizer(
-          translator,
-          b,
-          valueLocal,
-          _dummyValueCanonicalizationCheckers,
-          _dummyValueCheckerType,
-        ),
-      );
-    }
     w.Local temp = b.addLocal(type);
     b.local_tee(temp);
     translator.globals.writeGlobal(b, definedGlobal);
@@ -2319,18 +2048,6 @@ class _ConstantAccessor {
     final b = initFunction.body;
     b.i32_const(tableIndex);
     info._codeGen(info, b, true);
-    if (info.needsRuntimeCanonicalization) {
-      final valueLocal = b.addLocal(type);
-      info.constant.accept(
-        ConstantCanonicalizer(
-          translator,
-          b,
-          valueLocal,
-          _dummyValueCanonicalizationCheckers,
-          _dummyValueCheckerType,
-        ),
-      );
-    }
     w.Local temp = b.addLocal(type);
     b.local_tee(temp);
     b.table_set(tableImporter.get(table, module));

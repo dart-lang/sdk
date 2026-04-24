@@ -10,7 +10,6 @@ import 'abi.dart' show kWasmAbiEnumIndex;
 import 'class_info.dart';
 import 'code_generator.dart';
 import 'dynamic_dispatchers.dart';
-import 'dynamic_modules.dart';
 import 'js/util.dart';
 import 'translator.dart';
 import 'types.dart';
@@ -979,10 +978,6 @@ class Intrinsifier {
 
     // ClassID getters
     if (cls?.name == 'ClassID') {
-      if (target.name.text == 'maxClassId') {
-        codeGen.b.i32_const(translator.classIdNumbering.maxClassId);
-        return w.NumType.i32;
-      }
       final libAndClassName = translator.getPragma(target, "wasm:class-id");
       if (libAndClassName != null) {
         List<String> libAndClassNameParts = libAndClassName.split("#");
@@ -1000,8 +995,8 @@ class Intrinsifier {
                   throw 'Class $className not found in library $lib '
                       '(${target.location})',
             );
-        ClassId classId = translator.classInfo[cls]!.classId;
-        b.pushClassIdToStack(translator, classId);
+        int classId = translator.classInfo[cls]!.classId;
+        b.i32_const(classId);
         return w.NumType.i32;
       }
 
@@ -1010,13 +1005,6 @@ class Intrinsifier {
           translator.classIdNumbering.firstNonMasqueradedInterfaceClassCid,
         );
         return w.NumType.i32;
-      }
-    }
-
-    if (target.enclosingLibrary.name == 'dart._internal') {
-      if (target.name.text == '_numClassesForConstCaches') {
-        b.i64_const(translator.classIdNumbering.maxClassId);
-        return w.NumType.i64;
       }
     }
 
@@ -1031,16 +1019,70 @@ class Intrinsifier {
         case "_noSubstitutionIndex":
           b.i32_const(RuntimeTypeInformation.noSubstitutionIndex);
           return w.NumType.i32;
-        case "_mainModuleRtt":
-          final moduleRttType = translator.translateType(
-            InterfaceType(translator.moduleRtt, Nullability.nonNullable),
+        case "_typeRowDisplacementOffsets":
+          final type = w.RefType(
+            translator.wasmArrayType(w.NumType.i32, 'i32'),
+            nullable: false,
           );
           translator.constants.instantiateConstant(
             b,
-            translator.types.rtt.mainModuleRtt,
-            moduleRttType,
+            translator.types.rtt.typeRowDisplacementOffsets,
+            type,
           );
-          return moduleRttType;
+          return type;
+        case "_typeRowDisplacementTable":
+          final type = w.RefType(
+            translator.wasmArrayType(w.NumType.i32, 'i32'),
+            nullable: false,
+          );
+          translator.constants.instantiateConstant(
+            b,
+            translator.types.rtt.typeRowDisplacementTable,
+            type,
+          );
+          return type;
+        case "_typeRowDisplacementSubstTable":
+          final type = w.RefType(
+            translator.wasmArrayType(w.PackedType.i16, 'i16'),
+            nullable: false,
+          );
+          translator.constants.instantiateConstant(
+            b,
+            translator.types.rtt.typeRowDisplacementSubstTable,
+            type,
+          );
+          return type;
+        case "_canonicalSubstitutionTable":
+          final type = w.RefType(
+            translator.wasmArrayType(
+              w.RefType(
+                translator.arrayTypeForDartType(
+                  translator.typeType,
+                  mutable: true,
+                ),
+                nullable: false,
+              ),
+              '_TypeArray',
+            ),
+            nullable: false,
+          );
+          translator.constants.instantiateConstant(
+            b,
+            translator.types.rtt.canonicalSubstitutionTable,
+            type,
+          );
+          return type;
+        case "_typeNames":
+          final type = w.RefType(
+            translator.wasmArrayType(translator.stringType, 'String'),
+            nullable: true,
+          );
+          translator.constants.instantiateConstant(
+            b,
+            translator.types.rtt.typeNames,
+            type,
+          );
+          return type;
       }
     }
 
@@ -1342,12 +1384,9 @@ class Intrinsifier {
       case StaticIntrinsic.isObjectClassId:
         final classId = node.arguments.positional.single;
 
-        final objectClassId =
-            (translator.classIdNumbering.classIds[translator
-                        .coreTypes
-                        .objectClass]
-                    as AbsoluteClassId)
-                .value;
+        final objectClassId = translator
+            .classIdNumbering
+            .classIds[translator.coreTypes.objectClass]!;
 
         codeGen.translateExpression(classId, w.NumType.i32);
         b.emitClassIdRangeCheck([Range(objectClassId, objectClassId)]);
@@ -1355,10 +1394,9 @@ class Intrinsifier {
       case StaticIntrinsic.isClosureClassId:
         final classId = node.arguments.positional.single;
 
-        final ranges = translator.classIdNumbering
-            .getConcreteClassIdRangeForMainModule(
-              translator.coreTypes.functionClass,
-            );
+        final ranges = translator.classIdNumbering.getConcreteClassIdRange(
+          translator.coreTypes.functionClass,
+        );
         assert(ranges.length <= 1);
 
         codeGen.translateExpression(classId, w.NumType.i32);
@@ -1367,30 +1405,14 @@ class Intrinsifier {
         return w.NumType.i32;
       case StaticIntrinsic.isRecordClassId:
         final classId = node.arguments.positional.single;
-        final ranges = translator.classIdNumbering
-            .getConcreteClassIdRangeForMainModule(
-              translator.coreTypes.recordClass,
-            );
+        final ranges = translator.classIdNumbering.getConcreteClassIdRange(
+          translator.coreTypes.recordClass,
+        );
         assert(ranges.length <= 1);
 
-        if (translator.dynamicModuleSupportEnabled) {
-          final submoduleRanges = translator.classIdNumbering
-              .getConcreteClassIdRangeForDynamicSubmodule(
-                translator.coreTypes.recordClass,
-              );
-          final classIdLocal = b.addLocal(w.NumType.i32);
-          codeGen.translateExpression(classId, w.NumType.i32);
-          b.local_tee(classIdLocal);
-          b.local_get(classIdLocal);
-          translator.dynamicModuleInfo!.callClassIdBranchBuiltIn(
-            BuiltinUpdatableFunctions.recordId,
-            b,
-            skipSubmodule: submoduleRanges.isEmpty,
-          );
-        } else {
-          codeGen.translateExpression(classId, w.NumType.i32);
-          b.emitClassIdRangeCheck(ranges);
-        }
+        codeGen.translateExpression(classId, w.NumType.i32);
+        b.emitClassIdRangeCheck(ranges);
+
         return w.NumType.i32;
 
       // dart:_object_helper static functions.
@@ -2788,7 +2810,7 @@ class Intrinsifier {
 
         // Both int?
         b.local_get(cid);
-        b.i32_const((intInfo.classId as AbsoluteClassId).value);
+        b.i32_const(intInfo.classId);
         b.i32_eq();
         b.if_();
         b.local_get(first);
@@ -2803,7 +2825,7 @@ class Intrinsifier {
 
         // Both double?
         b.local_get(cid);
-        b.i32_const((doubleInfo.classId as AbsoluteClassId).value);
+        b.i32_const(doubleInfo.classId);
         b.i32_eq();
         b.if_();
         b.local_get(first);
@@ -2835,11 +2857,7 @@ class Intrinsifier {
         final w.Local nonNullArg = b.addLocal(translator.topTypeNonNullable);
         final List<int> classIds =
             translator.valueClasses.keys
-                .map(
-                  (cls) =>
-                      (translator.classInfo[cls]!.classId as AbsoluteClassId)
-                          .value,
-                )
+                .map((cls) => translator.classInfo[cls]!.classId)
                 .toList()
               ..sort();
 
@@ -3188,8 +3206,7 @@ class Intrinsifier {
           namedArgsListLocal,
           noSuchMethodBlock,
         );
-        if (translator.dynamicModuleSupportEnabled ||
-            translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
+        if (translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
           generateDynamicClosureCallViaDynamicEntry(
             translator,
             b,

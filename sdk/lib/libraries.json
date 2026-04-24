@@ -348,7 +348,6 @@
         "patches": [
           "_internal/wasm/lib/internal_patch.dart",
           "_internal/wasm/lib/deferred_patch.dart",
-          "_internal/wasm/lib/dynamic_module_patch.dart",
           "_internal/wasm/lib/internal_json_encode_patch.dart",
           "_internal/wasm/lib/invoke_main_patch.dart",
           "_internal/wasm/lib/print_patch.dart"
@@ -385,7 +384,6 @@
         "patches": [
           "_internal/wasm/lib/internal_patch.dart",
           "_internal/wasm/lib/deferred_patch.dart",
-          "_internal/wasm/lib/dynamic_module_patch.dart",
           "_internal/wasm/lib/internal_json_encode_patch.dart",
           "_internal/wasm/lib/invoke_main_patch.dart",
           "_internal/wasm/lib/print_patch.dart"

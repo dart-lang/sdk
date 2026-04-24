@@ -339,10 +339,8 @@ class _InterfaceType extends _Type {
   @override
   String toString() {
     StringBuffer s = StringBuffer();
-    final int index = scopeClassId(classId).toIntSigned();
-    s.write(
-      _moduleRttForClassId(classId).typeNames?[index] ?? 'minified:Class$index',
-    );
+    final int index = classId.toIntSigned();
+    s.write(_typeNames?[index] ?? 'minified:Class$index');
     if (typeArguments.isNotEmpty) {
       s.write("<");
       for (int i = 0; i < typeArguments.length; i++) {
@@ -661,90 +659,57 @@ class _RecordType extends _Type {
       identical(names, other.names);
 }
 
-/// The non-negative index into [_ModuleRtt.canonicalSubstitutionTable] that
+/// The non-negative index into [_canonicalSubstitutionTable] that
 /// represents that no substitution is needed.
+@pragma("wasm:entry-point")
 external WasmI32 get _noSubstitutionIndex;
 
-external _ModuleRtt get _mainModuleRtt;
+/// Maps each class id representing a type to the offset of that type-checker
+/// row in [_typeRowDisplacementTable].
+@pragma("wasm:entry-point")
+external WasmArray<WasmI32> get _typeRowDisplacementOffsets;
 
-WasmArray<_ModuleRtt> _rttInfoForModule = WasmArray.filled(1, _mainModuleRtt);
+/// Tells whether a class `Sub` is a subclass of another class `Base.
+///
+/// Used via
+/// ```
+///    baseOffset = typeRowDisplacementOffsets[Base.classId]`
+///    index = baseOffset + Sub.classId
+///    value = typeRowDisplacementTable[index]
+///    if (value == Base.classId) {
+///      // => Sub.classId is a subclass of Base.classId
+///      // => Can find how to translate Sub's type parameters to Base's type
+///      //    parameters via substitution:
+///      substIndex = typeRowDisplacementSubstTable[index];
+///      substitution = canonicalSubstitutionTable[substIndex]
+///    }
+@pragma("wasm:entry-point")
+external WasmArray<WasmI32> get _typeRowDisplacementTable;
 
-@pragma('wasm:entry-point')
-void _registerModuleRtt(int moduleId, _ModuleRtt moduleRtt) {
-  if (moduleId >= _rttInfoForModule.length) {
-    final oldArray = _rttInfoForModule;
-    final newArray = WasmArray.filled(moduleId + 1, moduleRtt);
-    newArray.copy(0, oldArray, 0, oldArray.length);
-    _rttInfoForModule = newArray;
-  }
-  _rttInfoForModule[moduleId] = moduleRtt;
-}
+/// Same entries and indexing scheme as [_typeRowDisplacementTable] but stores
+/// the index into [_canonicalSubstitutionTable].
+///
+/// We use WasmI16 as we don't expect there to be more than 64k type
+/// substitutions.
+@pragma("wasm:entry-point")
+external WasmArray<WasmI16> get _typeRowDisplacementSubstTable;
 
-_ModuleRtt _moduleRttForClassId(WasmI32 classId) {
-  if (!hasDynamicModuleSupport) {
-    assert(classId <= ClassID.maxClassId);
-    return _mainModuleRtt;
-  }
-  return _rttInfoForModule[classIdToModuleId(classId)];
-}
+/// Holds the canonical type argument substitutions.
+///
+/// The entries can be used to translate type arguments from a subclass to the
+/// type arguments of a super class.
+///
+/// This array is indexed by values stores in the
+/// [_typeRowDisplacementSubstTable].
+///
+/// (See [_typeRowDisplacementTable] above for more information).
+@pragma("wasm:entry-point")
+external WasmArray<WasmArray<_Type>> get _canonicalSubstitutionTable;
 
-class _ModuleRtt {
-  /// Maps each class id representing a type to the offset of that type-checker
-  /// row in [typeRowDisplacementTable].
-  final WasmArray<WasmI32> typeRowDisplacementOffsets;
-
-  /// Tells whether a class `Sub` is a subclass of another class `Base.
-  ///
-  /// Used via
-  /// ```
-  ///    baseOffset = typeRowDisplacementOffsets[Base.classId]`
-  ///    index = baseOffset + Sub.classId
-  ///    value = typeRowDisplacementTable[index]
-  ///    if (value == Base.classId) {
-  ///      // => Sub.classId is a subclass of Base.classId
-  ///      // => Can find how to translate Sub's type parameters to Base's type
-  ///      //    parameters via substitution:
-  ///      substIndex = typeRowDisplacementSubstTable[index];
-  ///      substitution = canonicalSubstitutionTable[substIndex]
-  ///    }
-  ///```
-  ///
-  /// Takes two class IDs of classes to be queried. For dynamic modules this will
-  /// allow the compiler to scope the query to a specific module. The class IDs
-  /// are ignored for all other compilations.
-  final WasmArray<WasmI32> typeRowDisplacementTable;
-
-  /// Same entries and indexing scheme as [typeRowDisplacementTable] but stores
-  /// the index into [canonicalSubstitutionTable].
-  ///
-  /// We use WasmI16 as we don't expect there to be more than 64k type
-  /// substitutions.
-  final WasmArray<WasmI16> typeRowDisplacementSubstTable;
-
-  /// Holds the canonical type argument substitutions.
-  ///
-  /// The entries can be used to translate type arguments from a subclass to the
-  /// type arguments of a super class.
-  ///
-  /// This array is indexed by values stores in the
-  /// [typeRowDisplacementSubstTable].
-  ///
-  /// (See [typeRowDisplacementTable] above for more information).
-  final WasmArray<WasmArray<_Type>> canonicalSubstitutionTable;
-
-  /// The names of all classes (indexed by class id) or null (if `--minify` was
-  /// used)
-  final WasmArray<String>? typeNames;
-
-  @pragma("wasm:entry-point")
-  const _ModuleRtt(
-    this.typeRowDisplacementOffsets,
-    this.typeRowDisplacementTable,
-    this.typeRowDisplacementSubstTable,
-    this.canonicalSubstitutionTable,
-    this.typeNames,
-  );
-}
+/// The names of all classes (indexed by class id) or null (if `--minify` was
+/// used)
+@pragma("wasm:entry-point")
+external WasmArray<String>? get _typeNames;
 
 /// Type parameter environment used while comparing function types.
 ///
@@ -1033,7 +998,7 @@ abstract class _TypeUniverse {
       substitutionIndex,
       // Since these are already proved to be subclasses, sId and tId are in the
       // same module or sId's module contains info for both.
-      _moduleRttForClassId(sId).canonicalSubstitutionTable,
+      _canonicalSubstitutionTable,
     );
   }
 
@@ -1061,7 +1026,7 @@ abstract class _TypeUniverse {
       substitutionIndex,
       // Since these are already proved to be subclasses, sId and tId are in the
       // same module or sId's module contains info for both.
-      _moduleRttForClassId(sId).canonicalSubstitutionTable,
+      _canonicalSubstitutionTable,
     );
   }
 
@@ -1086,7 +1051,7 @@ abstract class _TypeUniverse {
       substitutionIndex,
       // Since these are already proved to be subclasses, sId and tId are in the
       // same module or sId's module contains info for both.
-      _moduleRttForClassId(sId).canonicalSubstitutionTable,
+      _canonicalSubstitutionTable,
     );
   }
 
@@ -1115,7 +1080,7 @@ abstract class _TypeUniverse {
       substitutionIndex,
       // Since these are already proved to be subclasses, sId and tId are in the
       // same module or sId's module contains info for both.
-      _moduleRttForClassId(sId).canonicalSubstitutionTable,
+      _canonicalSubstitutionTable,
     );
   }
 
@@ -1215,7 +1180,7 @@ abstract class _TypeUniverse {
   ///     arguments have to be translated (either classes are not generic or
   ///     their type arguments are identical and don't have to be translated)
   ///   * otherwise returns an index that can be used to index
-  ///     [_ModuleRtt.canonicalSubstitutionTable]
+  ///     [_canonicalSubstitutionTable]
   @pragma('wasm:prefer-inline')
   static WasmI32 _checkSubclassRelationship(WasmI32 sId, WasmI32 tId) {
     // Caller should ensure that the target cannot be a top type (which is
@@ -1229,24 +1194,15 @@ abstract class _TypeUniverse {
   }
 
   static WasmI32 _checkSubclassRelationshipViaTable(WasmI32 sId, WasmI32 tId) {
-    final sModuleId = classIdToModuleId(sId);
-    final tModuleId = classIdToModuleId(tId);
-    if (tModuleId != mainModuleId) {
-      if (sModuleId != tModuleId) return -1.toWasmI32();
-    }
-
-    final rtt = _rttInfoForModule[sModuleId];
-    final offset = rtt.typeRowDisplacementOffsets;
-    final table = rtt.typeRowDisplacementTable;
-    sId = localizeClassId(sId);
-    tId = localizeClassId(tId);
+    final offset = _typeRowDisplacementOffsets;
+    final table = _typeRowDisplacementTable;
 
     final WasmI32 index = offset[tId.toIntSigned()] + sId;
     if (index.geU(table.length.toWasmI32())) return (-1).toWasmI32();
     final value = table[index.toIntSigned()];
     if (value == tId) {
       // Match: The [sId] is a subtype of [tId].
-      return rtt.typeRowDisplacementSubstTable
+      return _typeRowDisplacementSubstTable
           .readUnsigned(index.toIntSigned())
           .toWasmI32();
     }

@@ -291,7 +291,6 @@ wasm_standalone:
       patches:
       - _internal/wasm/lib/internal_patch.dart
       - _internal/wasm/lib/deferred_patch.dart # TODO(53884): Rewrite without JS interop in _internal/wasm_standalone
-      - _internal/wasm/lib/dynamic_module_patch.dart # TODO(53884): Rewrite without JS interop in _internal/wasm_standalone
       - _internal/wasm/lib/internal_json_encode_patch.dart # Needs to be migrated
       - _internal/wasm/lib/invoke_main_patch.dart # TODO(53884): Rewrite without JS interop in _internal/wasm_standalone
       - _internal/wasm/lib/print_patch.dart # TODO(53884): Rewrite without JS interop in _internal/wasm_standalone
@@ -317,7 +316,6 @@ wasm_js_common:
       patches:
       - _internal/wasm/lib/internal_patch.dart
       - _internal/wasm/lib/deferred_patch.dart
-      - _internal/wasm/lib/dynamic_module_patch.dart
       - _internal/wasm/lib/internal_json_encode_patch.dart
       - _internal/wasm/lib/invoke_main_patch.dart
       - _internal/wasm/lib/print_patch.dart

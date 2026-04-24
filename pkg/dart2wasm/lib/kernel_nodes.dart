@@ -220,37 +220,6 @@ mixin KernelNodes {
     "_RecordType",
     "names",
   );
-  late final Class moduleRtt = index.getClass("dart:core", "_ModuleRtt");
-  late final Field moduleRttOffsets = index.getField(
-    "dart:core",
-    "_ModuleRtt",
-    "typeRowDisplacementOffsets",
-  );
-  late final Field moduleRttDisplacementTable = index.getField(
-    "dart:core",
-    "_ModuleRtt",
-    "typeRowDisplacementTable",
-  );
-  late final Field moduleRttDisplacementSubstTable = index.getField(
-    "dart:core",
-    "_ModuleRtt",
-    "typeRowDisplacementSubstTable",
-  );
-  late final Field moduleRttSubstTable = index.getField(
-    "dart:core",
-    "_ModuleRtt",
-    "canonicalSubstitutionTable",
-  );
-  late final Field moduleRttTypeNames = index.getField(
-    "dart:core",
-    "_ModuleRtt",
-    "typeNames",
-  );
-  late final Procedure registerModuleRtt = index.getTopLevelProcedure(
-    "dart:core",
-    "_registerModuleRtt",
-  );
-
   // dart:core sync* support classes
   late final Class suspendStateClass = index.getClass(
     "dart:core",
@@ -790,108 +759,6 @@ mixin KernelNodes {
     "combine",
   );
 
-  // Dynamic module helpers
-  late final Class constCacheClass = index.getClass(
-    'dart:_internal',
-    'WasmConstCache',
-  );
-  late final Constructor constCacheInit = index.getConstructor(
-    'dart:_internal',
-    'WasmConstCache',
-    '',
-  );
-  late final Procedure constCacheCanonicalize = index.getProcedure(
-    'dart:_internal',
-    'WasmConstCache',
-    'canonicalizeValue',
-  );
-  late final Procedure constCacheArrayCanonicalize = index.getProcedure(
-    'dart:_internal',
-    'WasmArrayConstCache',
-    'canonicalizeArrayValue',
-  );
-  late final Procedure dummyValueConstCanonicalize = index.getProcedure(
-    'dart:_internal',
-    'DummyValueConstCache',
-    'canonicalizeDummyValue',
-  );
-  late final Procedure registerUpdateableFuncRefs = index.getTopLevelProcedure(
-    'dart:_internal',
-    'registerUpdateableFuncRefs',
-  );
-  late final Procedure getUpdateableFuncRef = index.getTopLevelProcedure(
-    'dart:_internal',
-    'getUpdateableFuncRef',
-  );
-  late final Procedure classIdToModuleId = index.getTopLevelProcedure(
-    'dart:_internal',
-    'classIdToModuleId',
-  );
-  late final Procedure localizeClassId = index.getTopLevelProcedure(
-    'dart:_internal',
-    'localizeClassId',
-  );
-  late final Procedure scopeClassId = index.getTopLevelProcedure(
-    'dart:_internal',
-    'scopeClassId',
-  );
-  late final Procedure globalizeClassId = index.getTopLevelProcedure(
-    'dart:_internal',
-    'globalizeClassId',
-  );
-  late final Procedure registerModuleClassRange = index.getTopLevelProcedure(
-    'dart:_internal',
-    'registerModuleClassRange',
-  );
-  late final Procedure constCacheGetter = index.getTopLevelProcedure(
-    'dart:_internal',
-    'getConstCache',
-  );
-  late final Field objectConstArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'objectConstArray',
-  );
-  late final Field stringConstArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'stringConstArray',
-  );
-  late final Field stringConstImmutableArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'stringConstImmutableArray',
-  );
-  late final Field typeConstArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'typeConstArray',
-  );
-  late final Field typeArrayConstArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'typeArrayConstArray',
-  );
-  late final Field namedParameterConstArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'nameParameterConstArray',
-  );
-  late final Field i8ConstImmutableArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'i8ConstImmutableArray',
-  );
-  late final Field i32ConstArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'i32ConstArray',
-  );
-  late final Field i16ConstArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'i16ConstArray',
-  );
-  late final Field i64ConstImmutableArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'i64ConstImmutableArray',
-  );
-  late final Field boxedIntImmutableArrayCache = index.getTopLevelField(
-    'dart:_internal',
-    'boxedIntImmutableArray',
-  );
-
   // Deferred loading.
   late final Procedure? checkLibraryIsLoadedFromLoadId = index.tryGetProcedure(
     'dart:_internal',
@@ -924,36 +791,6 @@ mixin KernelNodes {
 
   late final Map<Member, (Extension, ExtensionMemberDescriptor)>
   _extensionCache = {};
-
-  late final Map<InterfaceType, Field> wasmArrayConstCache = {
-    _makeElementType(coreTypes.objectClass, nullable: true):
-        objectConstArrayCache,
-    _makeElementType(typeClass): typeConstArrayCache,
-    _makeElementType(namedParameterClass): namedParameterConstArrayCache,
-    _makeElementType(coreTypes.stringClass): stringConstArrayCache,
-    _makeElementType(wasmI32Class): i32ConstArrayCache,
-    _makeElementType(wasmI16Class): i16ConstArrayCache,
-    _makeElementType(
-      wasmArrayClass,
-      typeArguments: [_makeElementType(typeClass)],
-    ): typeArrayConstArrayCache,
-  };
-  late final Map<InterfaceType, Field> immutableWasmArrayConstCache = {
-    _makeElementType(coreTypes.stringClass): stringConstImmutableArrayCache,
-    _makeElementType(wasmI8Class): i8ConstImmutableArrayCache,
-    _makeElementType(wasmI64Class): i64ConstImmutableArrayCache,
-    _makeElementType(boxedIntClass): boxedIntImmutableArrayCache,
-  };
-
-  InterfaceType _makeElementType(
-    Class c, {
-    bool nullable = false,
-    List<InterfaceType>? typeArguments,
-  }) => InterfaceType(
-    c,
-    nullable ? Nullability.nullable : Nullability.nonNullable,
-    typeArguments,
-  );
 
   (Extension, ExtensionMemberDescriptor) extensionOfMember(Member member) {
     return _extensionCache.putIfAbsent(member, () {

@@ -31,10 +31,6 @@ class Globals {
   Globals(this.translator)
     : _globalsModuleMap = WasmGlobalImporter(translator, 'global');
 
-  void declareMainAppGlobalExportWithName(String name, w.Global exportable) {
-    _globalsModuleMap.exportDefinitionWithName(name, exportable);
-  }
-
   /// Reads the value of [w.Global] onto the stack in [b].
   ///
   /// Takes into account the calling module and the module the global belongs
