@@ -1,6 +1,9 @@
 ## 15.2.0
 - Update to version `4.22` of the spec.
 - Deprecate `Message` type and `messages` field of `Stack` type.
+- Fix an issue introduced in 15.1.0 that could cause `parse()` methods (such as
+  `VM.parse()`) to leave collections as `null` instead of empty lists when they
+  were not present in the JSON.
 
 ## 15.1.0
 - Update to version `4.21` of the spec.
