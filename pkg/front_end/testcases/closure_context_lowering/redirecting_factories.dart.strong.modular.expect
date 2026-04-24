@@ -1,0 +1,48 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class A<X extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::A<self::A::X%>
+    : super core::Object::•()/* scope=[
+    #ctx1: not-captured VariableContext([
+      this-variable final this-variable;
+    ]),
+  ] */
+    ;
+  static factory foo<X extends core::Object? = dynamic>(positional-parameter x) → self::A<self::A::foo::X%> /* redirection-target: self::B::•<self::A::foo::X%>*/
+    return new self::B::•<self::A::foo::X%>(x);
+}
+class B<X extends core::Object? = dynamic> extends self::A<self::B::X%> {
+  constructor •(positional-parameter x) → self::B<self::B::X%>
+    : super self::A::•()/* scope=[
+    #ctx2: not-captured VariableContext([
+      this-variable final this-variable;
+    ]),
+  ] */
+    ;
+}
+class C<Y extends core::Object? = dynamic> extends core::Object {
+  constructor •() → self::C<self::C::Y%>
+    : super core::Object::•()/* scope=[
+    #ctx3: not-captured VariableContext([
+      this-variable final this-variable;
+    ]),
+  ] */
+    ;
+  static factory bar<Y extends core::Object? = dynamic>({named-parameter required y}) → self::C<self::C::bar::Y%> /* redirection-target: self::D::•<self::C::bar::Y%>*/
+    return new self::D::•<self::C::bar::Y%>(y: y);
+}
+class D<Y extends core::Object? = dynamic> extends self::C<self::D::Y%> {
+  constructor •({named-parameter required y}) → self::D<self::D::Y%>
+    : super self::C::•()/* scope=[
+    #ctx4: not-captured VariableContext([
+      this-variable final this-variable;
+    ]),
+  ] */
+    ;
+}
+static method test() → dynamic {
+  new self::B::•<core::int>(0);
+  new self::D::•<core::bool>(y: false);
+}

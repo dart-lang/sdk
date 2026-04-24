@@ -338,7 +338,17 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      Expression variableGet = new VariableGet(parameter);
+      Expression variableGet;
+      if (isClosureContextLoweringEnabled) {
+        variableGet = new VariableGet(
+          new InternalPositionalParameter(
+            astVariable: parameter as PositionalParameter,
+            isImplicitlyTyped: false,
+          ),
+        )..fileOffset = parameter.fileOffset;
+      } else {
+        variableGet = new VariableGet(parameter);
+      }
       arguments.add(new PositionalArgument(variableGet));
       positionalCount++;
     }
@@ -349,10 +359,23 @@ class TypeInferrerImpl implements TypeInferrer {
         new SharedTypeView(parameter.type),
         initialized: true,
       );
-      NamedExpression namedExpression = new NamedExpression(
-        parameter.name!,
-        new VariableGet(parameter),
-      );
+      NamedExpression namedExpression;
+      if (isClosureContextLoweringEnabled) {
+        namedExpression = new NamedExpression(
+          parameter.name!,
+          new VariableGet(
+            new InternalNamedParameter(
+              astVariable: parameter as NamedParameter,
+              isImplicitlyTyped: false,
+            )..fileOffset = parameter.fileOffset,
+          ),
+        );
+      } else {
+        namedExpression = new NamedExpression(
+          parameter.name!,
+          new VariableGet(parameter),
+        );
+      }
       arguments.add(new NamedArgument(namedExpression));
     }
     // If arguments are created using [ArgumentsImpl], and the
