@@ -1,0 +1,19 @@
+class A<X> {
+  A();
+  factory A.foo(X x) = B;
+}
+
+class B<X> extends A<X> {
+  B(X x);
+}
+
+class C<Y> {
+  C();
+  factory C.bar({required Y y}) = D;
+}
+
+class D<Y> extends C<Y> {
+  D({required Y y});
+}
+
+test() {}
