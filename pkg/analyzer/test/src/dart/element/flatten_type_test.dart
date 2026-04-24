@@ -20,94 +20,81 @@ main() {
 @reflectiveTest
 class FlattenTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _check(dynamicType, 'dynamic');
+    _check(parseType('dynamic'), 'dynamic');
   }
 
   test_interfaceType() {
-    _check(intNone, 'int');
-    _check(intQuestion, 'int?');
+    _check(parseType('int'), 'int');
+    _check(parseType('int?'), 'int?');
   }
 
   test_interfaceType_none_hasFutureType() {
-    _check(futureNone(intNone), 'int');
-    _check(futureNone(intQuestion), 'int?');
+    _check(parseType('Future<int>'), 'int');
+    _check(parseType('Future<int?>'), 'int?');
 
-    _check(futureQuestion(intNone), 'int?');
-    _check(futureQuestion(intQuestion), 'int?');
+    _check(parseType('Future<int>?'), 'int?');
+    _check(parseType('Future<int?>?'), 'int?');
 
-    _check(futureOrNone(intNone), 'int');
-    _check(futureOrNone(intQuestion), 'int?');
+    _check(parseType('FutureOr<int>'), 'int');
+    _check(parseType('FutureOr<int?>'), 'int?');
 
-    _check(futureOrQuestion(intNone), 'int?');
-    _check(futureOrQuestion(intQuestion), 'int?');
+    _check(parseType('FutureOr<int>?'), 'int?');
+    _check(parseType('FutureOr<int?>?'), 'int?');
 
-    _check(futureOrNone(futureNone(intNone)), 'Future<int>');
-    _check(futureOrNone(futureNone(intQuestion)), 'Future<int?>');
+    _check(parseType('FutureOr<Future<int>>'), 'Future<int>');
+    _check(parseType('FutureOr<Future<int?>>'), 'Future<int?>');
 
-    _check(futureOrQuestion(futureNone(intNone)), 'Future<int>?');
-    _check(futureOrQuestion(futureNone(intQuestion)), 'Future<int?>?');
+    _check(parseType('FutureOr<Future<int>>?'), 'Future<int>?');
+    _check(parseType('FutureOr<Future<int?>>?'), 'Future<int?>?');
   }
 
   test_interfaceType_question() {
-    _check(futureQuestion(intNone), 'int?');
-    _check(futureQuestion(intQuestion), 'int?');
+    _check(parseType('Future<int>?'), 'int?');
+    _check(parseType('Future<int?>?'), 'int?');
   }
 
   test_typeParameterType_none() {
     // T extends Future<int>
-    _check(
-      typeParameterTypeNone(typeParameter('T', bound: futureNone(intNone))),
-      'int',
-    );
+    withTypeParameterScope('T extends Future<int>', (scope) {
+      _check(scope.parseType('T'), 'int');
+    });
 
     // T extends FutureOr<int>
-    _check(
-      typeParameterTypeNone(typeParameter('T', bound: futureOrNone(intNone))),
-      'int',
-    );
+    withTypeParameterScope('T extends FutureOr<int>', (scope) {
+      _check(scope.parseType('T'), 'int');
+    });
 
     // T & Future<int>
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: futureNone(intNone),
-      ),
-      'int',
-    );
+    withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T & Future<int>'), 'int');
+    });
 
     // T & FutureOr<int>
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: futureOrNone(intNone),
-      ),
-      'int',
-    );
+    withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T & FutureOr<int>'), 'int');
+    });
 
     // T extends int
-    _check(typeParameterTypeNone(typeParameter('T', bound: intNone)), 'T');
+    withTypeParameterScope('T extends int', (scope) {
+      _check(scope.parseType('T'), 'T');
+    });
 
     // T & int
-    _check(
-      typeParameterTypeNone(typeParameter('T'), promotedBound: intNone),
-      'T',
-    );
+    withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T & int'), 'T');
+    });
   }
 
   test_typeParameterType_question() {
     // T extends Future<int>
-    _check(
-      typeParameterTypeQuestion(typeParameter('T', bound: futureNone(intNone))),
-      'int?',
-    );
+    withTypeParameterScope('T extends Future<int>', (scope) {
+      _check(scope.parseType('T?'), 'int?');
+    });
 
     // T extends FutureOr<int>
-    _check(
-      typeParameterTypeQuestion(
-        typeParameter('T', bound: futureOrNone(intNone)),
-      ),
-      'int?',
-    );
+    withTypeParameterScope('T extends FutureOr<int>', (scope) {
+      _check(scope.parseType('T?'), 'int?');
+    });
   }
 
   test_unknownInferredType() {
@@ -124,11 +111,11 @@ class FlattenTypeTest extends AbstractTypeSystemTest {
 @reflectiveTest
 class FutureTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _check(dynamicType, null);
+    _check(parseType('dynamic'), null);
   }
 
   test_functionType() {
-    _check(functionTypeNone(returnType: voidNone), null);
+    _check(parseType('void Function()'), null);
   }
 
   test_implements_Future() {
@@ -136,82 +123,71 @@ class FutureTypeTest extends AbstractTypeSystemTest {
       imports: ['dart:core', 'dart:async'],
       classes: [ClassSpec('class A implements Future<int>')],
     );
-    var A = classElement('A');
-
-    _check(interfaceTypeNone(A), 'Future<int>');
-    _check(interfaceTypeQuestion(A), null);
+    _check(parseType('A'), 'Future<int>');
+    _check(parseType('A?'), null);
   }
 
   test_interfaceType() {
-    _check(objectNone, null);
-    _check(objectQuestion, null);
+    _check(parseType('Object'), null);
+    _check(parseType('Object?'), null);
 
-    _check(intNone, null);
-    _check(intQuestion, null);
+    _check(parseType('int'), null);
+    _check(parseType('int?'), null);
 
-    _check(listNone(intNone), null);
-    _check(listNone(intQuestion), null);
+    _check(parseType('List<int>'), null);
+    _check(parseType('List<int?>'), null);
 
-    _check(listQuestion(intNone), null);
-    _check(listQuestion(intQuestion), null);
+    _check(parseType('List<int>?'), null);
+    _check(parseType('List<int?>?'), null);
 
-    _check(futureNone(intNone), 'Future<int>');
-    _check(futureNone(intQuestion), 'Future<int?>');
+    _check(parseType('Future<int>'), 'Future<int>');
+    _check(parseType('Future<int?>'), 'Future<int?>');
 
-    _check(futureQuestion(intNone), 'Future<int>?');
-    _check(futureQuestion(intQuestion), 'Future<int?>?');
+    _check(parseType('Future<int>?'), 'Future<int>?');
+    _check(parseType('Future<int?>?'), 'Future<int?>?');
 
-    _check(futureOrNone(intNone), 'FutureOr<int>');
-    _check(futureOrNone(intQuestion), 'FutureOr<int?>');
+    _check(parseType('FutureOr<int>'), 'FutureOr<int>');
+    _check(parseType('FutureOr<int?>'), 'FutureOr<int?>');
 
-    _check(futureOrQuestion(intNone), 'FutureOr<int>?');
-    _check(futureOrQuestion(intQuestion), 'FutureOr<int?>?');
+    _check(parseType('FutureOr<int>?'), 'FutureOr<int>?');
+    _check(parseType('FutureOr<int?>?'), 'FutureOr<int?>?');
 
-    _check(futureNone(futureNone(intNone)), 'Future<Future<int>>');
-    _check(futureNone(futureOrNone(intNone)), 'Future<FutureOr<int>>');
-    _check(futureOrNone(futureNone(intNone)), 'FutureOr<Future<int>>');
-    _check(futureOrNone(futureOrNone(intNone)), 'FutureOr<FutureOr<int>>');
+    _check(parseType('Future<Future<int>>'), 'Future<Future<int>>');
+    _check(parseType('Future<FutureOr<int>>'), 'Future<FutureOr<int>>');
+    _check(parseType('FutureOr<Future<int>>'), 'FutureOr<Future<int>>');
+    _check(parseType('FutureOr<FutureOr<int>>'), 'FutureOr<FutureOr<int>>');
   }
 
   test_typeParameterType_none() {
     // T extends Future<int>
-    _check(
-      typeParameterTypeNone(typeParameter('T', bound: futureNone(intNone))),
-      'Future<int>',
-    );
+    withTypeParameterScope('T extends Future<int>', (scope) {
+      _check(scope.parseType('T'), 'Future<int>');
+    });
 
     // T extends FutureOr<int>
-    _check(
-      typeParameterTypeNone(typeParameter('T', bound: futureOrNone(intNone))),
-      'FutureOr<int>',
-    );
+    withTypeParameterScope('T extends FutureOr<int>', (scope) {
+      _check(scope.parseType('T'), 'FutureOr<int>');
+    });
 
     // T & Future<int>
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: futureNone(intNone),
-      ),
-      'Future<int>',
-    );
+    withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T & Future<int>'), 'Future<int>');
+    });
 
     // T & FutureOr<int>
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: futureOrNone(intNone),
-      ),
-      'FutureOr<int>',
-    );
+    withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T & FutureOr<int>'), 'FutureOr<int>');
+    });
 
     // T extends int
-    _check(typeParameterTypeNone(typeParameter('T', bound: intNone)), null);
+    withTypeParameterScope('T extends int', (scope) {
+      _check(scope.parseType('T'), null);
+    });
 
     // T & int
-    _check(
-      typeParameterTypeNone(typeParameter('T'), promotedBound: intNone),
-      null,
-    );
+    withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T & int'), null);
+    });
   }
 
   test_unknownInferredType() {

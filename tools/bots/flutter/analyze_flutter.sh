@@ -63,15 +63,15 @@ analyze_flutter_packages() {
   pushd packages
 
   echo "Validating the tool's source"
-  (cd script/tool; dart pub --suppress-analytics get)
-  (cd script/tool; dart analyze --suppress-analytics --fatal-infos)
+  (cd script/tool; $dart pub --suppress-analytics get)
+  (cd script/tool; $dart analyze --suppress-analytics --fatal-infos)
 
   echo Analyzing flutter/packages...
   # Invoke the repo's analysis script.
   # Use --downgrade to avoid potential breakage from transitive
   # dependency publishing. See
   # https://github.com/flutter/flutter/issues/129633
-  dart run script/tool/bin/flutter_plugin_tools.dart analyze \
+  $dart run script/tool/bin/flutter_plugin_tools.dart analyze \
     --downgrade \
     --analysis-sdk $sdk \
     --custom-analysis=script/configs/custom_analysis.yaml \

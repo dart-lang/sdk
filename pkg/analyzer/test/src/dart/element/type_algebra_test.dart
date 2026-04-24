@@ -47,31 +47,36 @@ DartType substitute(
 @reflectiveTest
 class MapSubstitutionTest extends _Base {
   test_andThen_empty_andThenNotEmpty() {
-    var T = typeParameter('T');
-    var after = Substitution.fromMap({T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var after = Substitution.fromMap({T: scope.parseType('int')});
 
-    var combined = Substitution.empty.andThen(after);
-    expect(combined, same(Substitution.empty));
+      var combined = Substitution.empty.andThen(after);
+      expect(combined, same(Substitution.empty));
+    });
   }
 
   test_andThen_notEmpty_andThenEmpty() {
-    var T = typeParameter('T');
-    var inner = Substitution.fromMap({T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var inner = Substitution.fromMap({T: scope.parseType('int')});
 
-    var combined = inner.andThen(Substitution.empty);
-    expect(combined, same(inner));
+      var combined = inner.andThen(Substitution.empty);
+      expect(combined, same(inner));
+    });
   }
 
   test_andThen_notEmpty_andThenNotEmpty() {
-    var T = typeParameter('T');
-    var G = typeParameter('G');
+    withTypeParameterScope('T, G', (scope) {
+      var T = scope.typeParameter('T');
+      var G = scope.typeParameter('G');
+      var inner = Substitution.fromMap({T: scope.parseType('List<G>')});
+      var after = Substitution.fromMap({G: parseType('String')});
 
-    var inner = Substitution.fromMap({T: listNone(typeParameterTypeNone(G))});
-    var after = Substitution.fromMap({G: stringNone});
-
-    var combined = inner.andThen(after);
-    var result = combined.substituteType(typeParameterTypeNone(T));
-    assertType(result, 'List<String>');
+      var combined = inner.andThen(after);
+      var result = combined.substituteType(scope.parseType('T'));
+      assertType(result, 'List<String>');
+    });
   }
 }
 
@@ -80,9 +85,8 @@ class SubstituteEmptyTest extends _Base {
   test_interface() async {
     // class A<T> {}
     buildTestLibrary(classes: [ClassSpec('class A<T>')]);
-    var A = classElement('A');
 
-    var type = interfaceTypeNone(A, typeArguments: [intNone]);
+    var type = parseType('A<int>');
 
     var result = Substitution.empty.substituteType(type);
     expect(result, same(type));
@@ -91,61 +95,66 @@ class SubstituteEmptyTest extends _Base {
 
 @reflectiveTest
 class SubstituteFromInterfaceTypeTest extends _Base {
-  test_interface() async {
-    // class A<T> {}
+  test_methodReturnType() async {
     buildTestLibrary(
-      classes: [ClassSpec('class A<T>'), ClassSpec('class B<U>')],
+      classes: [
+        ClassSpec('class A<T>', methods: [MethodSpec('List<T> foo()')]),
+      ],
     );
-    var A = classElement('A');
 
-    // class B<U>  {}
-    var B = classElement('B');
-    var U = B.typeParameters.single;
+    var substitution = Substitution.fromInterfaceType(
+      parseInterfaceType('A<int>'),
+    );
 
-    var BofInt = interfaceTypeNone(B, typeArguments: [intNone]);
-    var substitution = Substitution.fromInterfaceType(BofInt);
-
-    // A<U>
-    var type = interfaceTypeNone(A, typeArguments: [typeParameterTypeNone(U)]);
-    assertType(type, 'A<U>');
+    var type = classElement('A').getMethod('foo')!.returnType;
+    assertType(type, 'List<T>');
 
     var result = substitution.substituteType(type);
-    assertType(result, 'A<int>');
+    assertType(result, 'List<int>');
   }
 }
 
 @reflectiveTest
 class SubstituteFromPairsTest extends _Base {
-  test_interface() async {
-    // class A<T, U> {}
-    buildTestLibrary(classes: [ClassSpec('class A<T, U>')]);
+  test_methodReturnType() async {
+    buildTestLibrary(
+      classes: [
+        ClassSpec('class A<T, U>', methods: [MethodSpec('Map<T, U> foo()')]),
+      ],
+    );
     var A = classElement('A');
     var T = A.typeParameters[0];
     var U = A.typeParameters[1];
 
-    var type = interfaceTypeNone(
-      A,
-      typeArguments: [typeParameterTypeNone(T), typeParameterTypeNone(U)],
-    );
+    var type = A.getMethod('foo')!.returnType;
+    assertType(type, 'Map<T, U>');
 
     var result = Substitution.fromPairs2(
       [T, U],
-      [intNone, doubleNone],
+      [parseType('int'), parseType('double')],
     ).substituteType(type);
-    assertType(result, 'A<int, double>');
+    assertType(result, 'Map<int, double>');
   }
 }
 
 @reflectiveTest
 class SubstituteTest extends _Base {
   test_bottom() async {
-    var T = typeParameter('T');
-    _assertIdenticalType(typeProvider.bottomType, {T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _assertIdenticalType(typeProvider.bottomType, {
+        T: scope.parseType('int'),
+      });
+    });
   }
 
   test_dynamic() async {
-    var T = typeParameter('T');
-    _assertIdenticalType(typeProvider.dynamicType, {T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _assertIdenticalType(typeProvider.dynamicType, {
+        T: scope.parseType('int'),
+      });
+    });
   }
 
   test_function_fromAlias_hasRef() async {
@@ -153,15 +162,15 @@ class SubstituteTest extends _Base {
     buildTestLibrary(
       typeAliases: [TypeAliasSpec('typedef Alias<T> = void Function()')],
     );
-    var Alias = typeAliasElement('Alias');
 
-    var U = typeParameter('U');
-    var type = typeAliasTypeNone(
-      Alias,
-      typeArguments: [typeParameterTypeNone(U)],
-    );
-    assertType(type, 'void Function() via Alias<U>');
-    _assertSubstitution(type, {U: intNone}, 'void Function() via Alias<int>');
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      var type = scope.parseType('Alias<U>');
+      assertType(type, 'void Function() via Alias<U>');
+      _assertSubstitution(type, {
+        U: parseType('int'),
+      }, 'void Function() via Alias<int>');
+    });
   }
 
   test_function_fromAlias_noRef() async {
@@ -169,13 +178,14 @@ class SubstituteTest extends _Base {
     buildTestLibrary(
       typeAliases: [TypeAliasSpec('typedef Alias<T> = void Function()')],
     );
-    var Alias = typeAliasElement('Alias');
 
-    var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
+    var type = parseType('Alias<double>');
     assertType(type, 'void Function() via Alias<double>');
 
-    var U = typeParameter('U');
-    _assertIdenticalType(type, {U: intNone});
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      _assertIdenticalType(type, {U: scope.parseType('int')});
+    });
   }
 
   test_function_fromAlias_noTypeParameters() async {
@@ -183,141 +193,123 @@ class SubstituteTest extends _Base {
     buildTestLibrary(
       typeAliases: [TypeAliasSpec('typedef Alias<T> = void Function()')],
     );
-    var Alias = typeAliasElement('Alias');
 
-    var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
+    var type = parseType('Alias<int>');
     assertType(type, 'void Function() via Alias<int>');
 
-    var U = typeParameter('U');
-    _assertIdenticalType(type, {U: intNone});
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      _assertIdenticalType(type, {U: scope.parseType('int')});
+    });
   }
 
   test_function_noSubstitutions() async {
-    var type = functionTypeNone(
-      formalParameters: [requiredParameter(type: intNone)],
-      returnType: boolNone,
-    );
+    var type = parseType('bool Function(int)');
 
-    var T = typeParameter('T');
-    _assertIdenticalType(type, {T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _assertIdenticalType(type, {T: scope.parseType('int')});
+    });
   }
 
   test_function_parameters_returnType() async {
     // typedef F<T, U> = T Function(U u, bool);
-    var T = typeParameter('T');
-    var U = typeParameter('U');
-    var type = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: typeParameterTypeNone(U)),
-        requiredParameter(type: boolNone),
-      ],
-      returnType: typeParameterTypeNone(T),
-    );
+    withTypeParameterScope('T, U', (scope) {
+      var T = scope.typeParameter('T');
+      var U = scope.typeParameter('U');
+      var type = scope.parseType('T Function(U, bool)');
 
-    assertType(type, 'T Function(U, bool)');
-    _assertSubstitution(type, {T: intNone}, 'int Function(U, bool)');
-    _assertSubstitution(type, {
-      T: intNone,
-      U: doubleNone,
-    }, 'int Function(double, bool)');
+      assertType(type, 'T Function(U, bool)');
+      _assertSubstitution(type, {T: parseType('int')}, 'int Function(U, bool)');
+      _assertSubstitution(type, {
+        T: parseType('int'),
+        U: parseType('double'),
+      }, 'int Function(double, bool)');
+    });
   }
 
   test_function_typeFormals() async {
     // typedef F<T> = T Function<U extends T>(U);
-    var T = typeParameter('T');
-    var U = typeParameter('U', bound: typeParameterTypeNone(T));
-    var type = functionTypeNone(
-      typeParameters: [U],
-      formalParameters: [requiredParameter(type: typeParameterTypeNone(U))],
-      returnType: typeParameterTypeNone(T),
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var type = scope.parseType('T Function<U extends T>(U)');
 
-    assertType(type, 'T Function<U extends T>(U)');
-    _assertSubstitution(type, {T: intNone}, 'int Function<U extends int>(U)');
+      assertType(type, 'T Function<U extends T>(U)');
+      _assertSubstitution(type, {
+        T: parseType('int'),
+      }, 'int Function<U extends int>(U)');
+    });
   }
 
   test_function_typeFormals_bounds() async {
     // class Triple<X, Y, Z> {}
     // typedef F<V> = bool Function<T extends Triple<T, U, V>, U>();
     buildTestLibrary(classes: [ClassSpec('class Triple<X, Y, Z>')]);
-    var classTriple = classElement('Triple');
 
-    var T = typeParameter('T');
-    var U = typeParameter('U');
-    var V = typeParameter('V');
+    withTypeParameterScope('V', (scope) {
+      var V = scope.typeParameter('V');
+      var type = scope.parseType(
+        'bool Function<T extends Triple<T, U, V>, U>()',
+      );
 
-    T.bound = interfaceTypeNone(
-      classTriple,
-      typeArguments: [
-        typeParameterTypeNone(T),
-        typeParameterTypeNone(U),
-        typeParameterTypeNone(V),
-      ],
-    );
+      assertType(type, 'bool Function<T extends Triple<T, U, V>, U>()');
 
-    var type = functionTypeNone(typeParameters: [T, U], returnType: boolNone);
-
-    assertType(type, 'bool Function<T extends Triple<T, U, V>, U>()');
-
-    var result = substitute(type, {V: intNone}) as FunctionType;
-    assertType(result, 'bool Function<T extends Triple<T, U, int>, U>()');
-    var T2 = result.typeParameters[0];
-    var U2 = result.typeParameters[1];
-    var T2boundArgs = (T2.bound as InterfaceType).typeArguments;
-    expect((T2boundArgs[0] as TypeParameterType).element, same(T2));
-    expect((T2boundArgs[1] as TypeParameterType).element, same(U2));
+      var result = substitute(type, {V: parseType('int')}) as FunctionType;
+      assertType(result, 'bool Function<T extends Triple<T, U, int>, U>()');
+      var T2 = result.typeParameters[0];
+      var U2 = result.typeParameters[1];
+      var T2boundArgs = (T2.bound as InterfaceType).typeArguments;
+      expect((T2boundArgs[0] as TypeParameterType).element, same(T2));
+      expect((T2boundArgs[1] as TypeParameterType).element, same(U2));
+    });
   }
 
   test_interface_arguments() async {
     // class A<T> {}
     buildTestLibrary(classes: [ClassSpec('class A<T>')]);
-    var A = classElement('A');
 
-    var U = typeParameter('U');
-    var type = interfaceTypeNone(A, typeArguments: [typeParameterTypeNone(U)]);
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      var type = scope.parseType('A<U>');
 
-    assertType(type, 'A<U>');
-    _assertSubstitution(type, {U: intNone}, 'A<int>');
+      assertType(type, 'A<U>');
+      _assertSubstitution(type, {U: parseType('int')}, 'A<int>');
+    });
   }
 
   test_interface_arguments_deep() async {
     buildTestLibrary(classes: [ClassSpec('class A<T>')]);
-    var A = classElement('A');
 
-    var U = typeParameter('U');
-    var type = interfaceTypeNone(
-      A,
-      typeArguments: [
-        interfaceTypeNone(
-          typeProvider.listElement,
-          typeArguments: [typeParameterTypeNone(U)],
-        ),
-      ],
-    );
-    assertType(type, 'A<List<U>>');
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      var type = scope.parseType('A<List<U>>');
+      assertType(type, 'A<List<U>>');
 
-    _assertSubstitution(type, {U: intNone}, 'A<List<int>>');
+      _assertSubstitution(type, {U: parseType('int')}, 'A<List<int>>');
+    });
   }
 
   test_interface_noArguments() async {
     // class A {}
     buildTestLibrary(classes: [ClassSpec('class A')]);
-    var A = classElement('A');
 
-    var type = interfaceTypeNone(A);
-    var T = typeParameter('T');
-    _assertIdenticalType(type, {T: intNone});
+    var type = parseInterfaceType('A');
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _assertIdenticalType(type, {T: scope.parseType('int')});
+    });
   }
 
   test_interface_noArguments_inArguments() async {
     // class A<T> {}
     buildTestLibrary(classes: [ClassSpec('class A<T>')]);
-    var A = classElement('A');
 
-    var type = interfaceTypeNone(A, typeArguments: [intNone]);
+    var type = parseInterfaceType('A<int>');
 
-    var U = typeParameter('U');
-    _assertIdenticalType(type, {U: doubleNone});
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      _assertIdenticalType(type, {U: scope.parseType('double')});
+    });
   }
 
   test_interface_noTypeParameters_fromAlias_hasRef() async {
@@ -326,15 +318,13 @@ class SubstituteTest extends _Base {
       classes: [ClassSpec('class A')],
       typeAliases: [TypeAliasSpec('typedef Alias<T> = A')],
     );
-    var Alias = typeAliasElement('Alias');
 
-    var U = typeParameter('U');
-    var type = typeAliasTypeNone(
-      Alias,
-      typeArguments: [typeParameterTypeNone(U)],
-    );
-    assertType(type, 'A via Alias<U>');
-    _assertSubstitution(type, {U: intNone}, 'A via Alias<int>');
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      var type = scope.parseType('Alias<U>');
+      assertType(type, 'A via Alias<U>');
+      _assertSubstitution(type, {U: parseType('int')}, 'A via Alias<int>');
+    });
   }
 
   test_interface_noTypeParameters_fromAlias_noRef() async {
@@ -343,13 +333,14 @@ class SubstituteTest extends _Base {
       classes: [ClassSpec('class A')],
       typeAliases: [TypeAliasSpec('typedef Alias<T> = A')],
     );
-    var Alias = typeAliasElement('Alias');
 
-    var type = typeAliasTypeNone(Alias, typeArguments: [doubleNone]);
+    var type = parseType('Alias<double>');
     assertType(type, 'A via Alias<double>');
 
-    var U = typeParameter('U');
-    _assertIdenticalType(type, {U: intNone});
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      _assertIdenticalType(type, {U: scope.parseType('int')});
+    });
   }
 
   test_interface_noTypeParameters_fromAlias_noTypeParameters() async {
@@ -358,27 +349,34 @@ class SubstituteTest extends _Base {
       classes: [ClassSpec('class A')],
       typeAliases: [TypeAliasSpec('typedef Alias = A')],
     );
-    var Alias = typeAliasElement('Alias');
 
-    var type = typeAliasTypeNone(Alias);
+    var type = parseType('Alias');
     assertType(type, 'A via Alias');
 
-    var T = typeParameter('T');
-    _assertIdenticalType(type, {T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _assertIdenticalType(type, {T: scope.parseType('int')});
+    });
   }
 
   test_invalid() async {
-    var T = typeParameter('T');
-    _assertIdenticalType(InvalidTypeImpl.instance, {T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _assertIdenticalType(InvalidTypeImpl.instance, {
+        T: scope.parseType('int'),
+      });
+    });
   }
 
   test_record_doesNotUseTypeParameter2() async {
-    var T = typeParameter('T');
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    var type = recordTypeNone(positionalTypes: [intNone]);
+      var type = parseRecordType('(int,)');
+      assertType(type, '(int,)');
 
-    assertType(type, '(int,)');
-    _assertIdenticalType(type, {T: intNone});
+      _assertIdenticalType(type, {T: scope.parseType('int')});
+    });
   }
 
   test_record_fromAlias() async {
@@ -386,15 +384,15 @@ class SubstituteTest extends _Base {
     buildTestLibrary(
       typeAliases: [TypeAliasSpec('typedef Alias<T> = (int, String)')],
     );
-    var Alias = typeAliasElement('Alias');
 
-    var U = typeParameter('U');
-    var type = typeAliasTypeNone(
-      Alias,
-      typeArguments: [typeParameterTypeNone(U)],
-    );
-    assertType(type, '(int, String) via Alias<U>');
-    _assertSubstitution(type, {U: intNone}, '(int, String) via Alias<int>');
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      var type = scope.parseType('Alias<U>');
+      assertType(type, '(int, String) via Alias<U>');
+      _assertSubstitution(type, {
+        U: parseType('int'),
+      }, '(int, String) via Alias<int>');
+    });
   }
 
   test_record_fromAlias2() async {
@@ -402,68 +400,70 @@ class SubstituteTest extends _Base {
     buildTestLibrary(
       typeAliases: [TypeAliasSpec('typedef Alias<T> = (T, List<T>)')],
     );
-    var Alias = typeAliasElement('Alias');
 
-    var type = typeAliasTypeNone(Alias, typeArguments: [intNone]);
+    var type = parseType('Alias<int>');
     assertType(type, '(int, List<int>) via Alias<int>');
   }
 
   test_record_named() async {
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var type = scope.parseType('({T f1, List<T> f2})');
 
-    var type = recordTypeNone(
-      namedTypes: {'f1': T_none, 'f2': listNone(T_none)},
-    );
-
-    assertType(type, '({T f1, List<T> f2})');
-    _assertSubstitution(type, {T: intNone}, '({int f1, List<int> f2})');
+      assertType(type, '({T f1, List<T> f2})');
+      _assertSubstitution(type, {
+        T: parseType('int'),
+      }, '({int f1, List<int> f2})');
+    });
   }
 
   test_record_positional() async {
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var type = scope.parseType('(T, List<T>)');
 
-    var type = recordTypeNone(positionalTypes: [T_none, listNone(T_none)]);
-
-    assertType(type, '(T, List<T>)');
-    _assertSubstitution(type, {T: intNone}, '(int, List<int>)');
+      assertType(type, '(T, List<T>)');
+      _assertSubstitution(type, {T: parseType('int')}, '(int, List<int>)');
+    });
   }
 
   test_typeParameter_nullability() async {
-    var tElement = typeParameter('T');
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    void check(
-      NullabilitySuffix typeParameterNullability,
-      InterfaceType typeArgument,
-      InterfaceType expectedType,
-    ) {
-      var result = Substitution.fromMap({tElement: typeArgument})
-          .substituteType(
-            tElement.instantiate(nullabilitySuffix: typeParameterNullability),
-          );
-      expect(result, expectedType);
-    }
+      void check(String type, DartType typeArgument, DartType expectedType) {
+        var result = Substitution.fromMap({
+          T: typeArgument,
+        }).substituteType(scope.parseType(type));
+        expect(result, expectedType);
+      }
 
-    check(NullabilitySuffix.none, intNone, intNone);
-    check(NullabilitySuffix.none, intQuestion, intQuestion);
+      check('T', parseType('int'), parseType('int'));
+      check('T', parseType('int?'), parseType('int?'));
 
-    check(NullabilitySuffix.question, intNone, intQuestion);
-    check(NullabilitySuffix.question, intQuestion, intQuestion);
+      check('T?', parseType('int'), parseType('int?'));
+      check('T?', parseType('int?'), parseType('int?'));
+    });
   }
 
   test_unknownInferredType() async {
-    var T = typeParameter('T');
-    _assertIdenticalType(UnknownInferredType.instance, {T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _assertIdenticalType(UnknownInferredType.instance, {
+        T: scope.parseType('int'),
+      });
+    });
   }
 
   test_void() async {
-    var T = typeParameter('T');
-    _assertIdenticalType(typeProvider.voidType, {T: intNone});
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _assertIdenticalType(typeProvider.voidType, {T: scope.parseType('int')});
+    });
   }
 
   test_void_emptyMap() async {
-    _assertIdenticalType(intNone, {});
+    _assertIdenticalType(parseType('int'), {});
   }
 
   void _assertIdenticalType(
@@ -482,27 +482,23 @@ class SubstituteWithNullabilityTest extends _Base {
   test_interface_none() async {
     // class A<T> {}
     buildTestLibrary(classes: [ClassSpec('class A<T>')]);
-    var A = classElement('A');
 
-    var U = typeParameter('U');
-    var type = A.instantiateImpl(
-      typeArguments: [U.instantiate(nullabilitySuffix: NullabilitySuffix.none)],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-    _assertSubstitution(type, {U: intNone}, 'A<int>');
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      var type = scope.parseType('A<U>');
+      _assertSubstitution(type, {U: parseType('int')}, 'A<int>');
+    });
   }
 
   test_interface_question() async {
     // class A<T> {}
     buildTestLibrary(classes: [ClassSpec('class A<T>')]);
-    var A = classElement('A');
 
-    var U = typeParameter('U');
-    var type = A.instantiateImpl(
-      typeArguments: [U.instantiate(nullabilitySuffix: NullabilitySuffix.none)],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
-    _assertSubstitution(type, {U: intNone}, 'A<int>?');
+    withTypeParameterScope('U', (scope) {
+      var U = scope.typeParameter('U');
+      var type = scope.parseType('A<U>?');
+      _assertSubstitution(type, {U: parseType('int')}, 'A<int>?');
+    });
   }
 
   test_withNullability_updatesAlias_function() {
@@ -550,15 +546,16 @@ class SubstituteWithNullabilityTest extends _Base {
     buildTestLibrary(typeAliases: [TypeAliasSpec('typedef A<T> = T')]);
     var alias = typeAliasElement('A');
 
-    var U = typeParameter('U');
-    var type = alias.instantiateImpl(
-      typeArguments: [typeParameterTypeNone(U)],
-      nullabilitySuffix: NullabilitySuffix.question,
-    );
+    withTypeParameterScope('U', (scope) {
+      var type = alias.instantiateImpl(
+        typeArguments: [scope.parseType('U')],
+        nullabilitySuffix: NullabilitySuffix.question,
+      );
 
-    var result = type.withNullability(NullabilitySuffix.none);
-    expect(result.alias, isNotNull);
-    expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+      var result = type.withNullability(NullabilitySuffix.none);
+      expect(result.alias, isNotNull);
+      expect(result.alias?.nullabilitySuffix, NullabilitySuffix.none);
+    });
   }
 }
 

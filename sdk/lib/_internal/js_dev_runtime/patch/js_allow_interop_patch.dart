@@ -353,6 +353,6 @@ _callDartFunctionFast5(callback, arg1, arg2, arg3, arg4, arg5, int length) {
   }
 }
 
-T _jsFunctionToDart<T extends Function>(JavaScriptFunction f) {
-  return JS<dynamic>('', '#[#]', f, functionToJSProperty);
+Function _jsFunctionToDart(JavaScriptFunction f) {
+  return JS('Function', '#[#]', f, functionToJSProperty);
 }

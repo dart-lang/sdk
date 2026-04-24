@@ -3,23 +3,23 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_provider.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
 import 'package:analyzer/src/dart/resolver/flow_analysis_visitor.dart';
 import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 
-import 'elements_types_mixin.dart';
 import 'test_analysis_context.dart';
 
-abstract class AbstractTypeSystemTest with ElementsTypesMixin {
+abstract class AbstractTypeSystemTest {
   static const _testLibraryUri = 'package:test/test.dart';
+
+  bool _hasTestLibrary = false;
 
   late TestAnalysisContext analysisContext;
 
-  @override
   late LibraryElementImpl testLibrary;
 
-  @override
   late TypeProviderImpl typeProvider;
 
   late TypeSystemImpl typeSystem;
@@ -73,6 +73,7 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
         typeAliases: typeAliases,
       ),
     }, externalLibraries: externalLibraries)[_testLibraryUri]!;
+    _hasTestLibrary = true;
     return testLibrary;
   }
 
@@ -92,8 +93,43 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
     return testLibrary.getMixin(name)!;
   }
 
+  FunctionTypeImpl parseFunctionType(
+    String input, {
+    List<LibraryElementImpl>? libraries,
+  }) {
+    return _typeParsingScope(libraries: libraries).parseFunctionType(input);
+  }
+
+  InterfaceTypeImpl parseInterfaceType(
+    String input, {
+    List<LibraryElementImpl>? libraries,
+  }) {
+    return _typeParsingScope(libraries: libraries).parseInterfaceType(input);
+  }
+
+  RecordTypeImpl parseRecordType(
+    String input, {
+    List<LibraryElementImpl>? libraries,
+  }) {
+    return _typeParsingScope(libraries: libraries).parseRecordType(input);
+  }
+
+  TypeImpl parseType(String input, {List<LibraryElementImpl>? libraries}) {
+    return _typeParsingScope(libraries: libraries).parseType(input);
+  }
+
+  TypeParameterTypeImpl parseTypeParameterType(
+    String input, {
+    List<LibraryElementImpl>? libraries,
+  }) {
+    return _typeParsingScope(
+      libraries: libraries,
+    ).parseTypeParameterType(input);
+  }
+
   void setUp() {
     analysisContext = TestAnalysisContext();
+    _hasTestLibrary = false;
     typeProvider = analysisContext.typeProvider;
     typeSystem = analysisContext.typeSystem;
     typeSystemOperations = TypeSystemOperations(
@@ -104,5 +140,100 @@ abstract class AbstractTypeSystemTest with ElementsTypesMixin {
 
   TypeAliasElementImpl typeAliasElement(String name) {
     return testLibrary.getTypeAlias(name)! as TypeAliasElementImpl;
+  }
+
+  R withTypeParameterScope<R>(
+    String spec,
+    R Function(TypeParsingScope scope) operation, {
+    List<LibraryElementImpl>? libraries,
+    List<TypeParameterElementImpl> typeParameters = const [],
+  }) {
+    return _typeParsingScope(
+      libraries: libraries,
+      typeParameters: typeParameters,
+    ).withTypeParameterScope(spec, operation);
+  }
+
+  TypeParsingScope _typeParsingScope({
+    List<LibraryElementImpl>? libraries,
+    List<TypeParameterElementImpl> typeParameters = const [],
+  }) {
+    return TypeParsingScope(
+      libraries:
+          libraries ??
+          [
+            analysisContext.coreLibrary,
+            analysisContext.asyncLibrary,
+            if (_hasTestLibrary) testLibrary,
+          ],
+      typeParameters: typeParameters,
+    );
+  }
+}
+
+/// Parses test type specs against a fixed library and type-parameter scope.
+class TypeParsingScope {
+  final List<LibraryElementImpl> _libraries;
+  final List<TypeParameterElementImpl> _typeParameters;
+
+  TypeParsingScope({
+    required List<LibraryElementImpl> libraries,
+    required List<TypeParameterElementImpl> typeParameters,
+  }) : _libraries = List.unmodifiable(libraries),
+       _typeParameters = List.unmodifiable(typeParameters);
+
+  FunctionTypeImpl parseFunctionType(String input) {
+    return parseType(input);
+  }
+
+  InterfaceTypeImpl parseInterfaceType(String input) {
+    return parseType(input);
+  }
+
+  RecordTypeImpl parseRecordType(String input) {
+    return parseType(input);
+  }
+
+  T parseType<T extends TypeImpl>(String input) {
+    var type = TypeSpecParser(
+      libraries: _libraries,
+      typeParameters: _typeParameters,
+    ).parse(input);
+
+    if (type is T) {
+      return type;
+    }
+    throw StateError('Expected $T for "$input", got: $type');
+  }
+
+  TypeParameterTypeImpl parseTypeParameterType(String input) {
+    return parseType(input);
+  }
+
+  TypeParameterElementImpl typeParameter(String name) {
+    for (var i = _typeParameters.length - 1; i >= 0; i--) {
+      var element = _typeParameters[i];
+      if (element.name == name) {
+        return element;
+      }
+    }
+    throw StateError('Unknown type parameter: $name');
+  }
+
+  R withTypeParameterScope<R>(
+    String spec,
+    R Function(TypeParsingScope scope) operation,
+  ) {
+    var newTypeParameters = TypeSpecParser(
+      libraries: _libraries,
+      typeParameters: _typeParameters,
+    ).parseTypeParameters(spec);
+
+    return operation(
+      TypeParsingScope(
+        libraries: _libraries,
+        typeParameters: [..._typeParameters, ...newTypeParameters],
+      ),
+    );
   }
 }

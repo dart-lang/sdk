@@ -43,21 +43,13 @@ void test(JSAny any, JSAny? nullableAny, Object obj, Object? nullableObj) {
   obj.isA<JSObject>();
   obj.isA<JSObject?>();
 
-  any.isA<JSArray<JSString>>();
+  any.isA<JSArray>();
   obj.isA<JSArray?>();
-
-  // Check that there's a specific lowering for some JS types.
+  // JSTypedArray and JSBoxedDartObject handled differently.
   any.isA<JSTypedArray>();
   any.isA<JSBoxedDartObject>();
-  any.isA<JSExportedDartFunction>();
-  any.isA<JSExportedDartFunction<JSArray<JSString> Function(int, [String?])>>();
   obj.isA<JSTypedArray>();
   obj.isA<JSBoxedDartObject>();
-  obj.isA<JSExportedDartFunction>();
-  obj
-      .isA<
-        JSExportedDartFunction<JSArray<JSString> Function(int, [String?])>?
-      >();
 
   // User-defined types.
   any.isA<CustomJSAny>();

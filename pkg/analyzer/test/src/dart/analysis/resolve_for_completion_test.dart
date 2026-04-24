@@ -205,7 +205,7 @@ void f() {
     // produce anything different with code completion that requires this
     // recovered AST, but it would be nice to avoid the extra wrapping around
     // the constructor.
-    result.assertResolvedNodes(['void f() {C c = const .()();}']);
+    result.assertResolvedNodes(['void f() {C c = const .(); ();}']);
   }
 
   test_dotShorthand_const_constructor_prefix() async {

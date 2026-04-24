@@ -197,29 +197,28 @@ extension NullableObjectUtilExtension on Object? {
 // -----------------------------------------------------------------------------
 // JSExportedDartFunction <-> Function
 @patch
-extension JSExportedDartFunctionToFunction<T extends Function>
-    on JSExportedDartFunction<T> {
+extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
   @patch
-  T get toDart {
+  Function get toDart {
     final ref = toExternRef;
     if (!js_helper.isJSWrappedDartFunction(ref)) {
       throw 'Expected JS wrapped function, but got type '
           '${js_helper.typeof(ref)}.';
     }
-    return unwrapJSWrappedDartFunction(ref) as T;
+    return unwrapJSWrappedDartFunction(ref);
   }
 }
 
 @patch
-extension FunctionToJSExportedDartFunction<T extends Function> on T {
+extension FunctionToJSExportedDartFunction on Function {
   @patch
-  JSExportedDartFunction<T> get toJS => throw UnimplementedError(
+  JSExportedDartFunction get toJS => throw UnimplementedError(
     "This should never be called. Calls to 'toJS' should have been "
     'transformed by the interop transformer.',
   );
 
   @patch
-  JSExportedDartFunction<T> get toJSCaptureThis => throw UnimplementedError(
+  JSExportedDartFunction get toJSCaptureThis => throw UnimplementedError(
     "'toJSCaptureThis' should never directly be called. Calls to "
     "'toJSCaptureThis' should have been transformed by the interop "
     'transformer.',
@@ -267,33 +266,12 @@ bool _isJSObject(Object? any) =>
 
 bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
 
-bool _isJSExportedDartFunction<T extends Function>(Object? any) {
-  if (!_isJSAny(any)) return false;
-  final ref = unsafeCast<JSAny>(any).toExternRef;
-  if (!js_helper.isJSWrappedDartFunction(ref)) return false;
-  if (T == Function) return true;
-  final function = js_helper.unwrapJSWrappedDartFunction(ref);
-  return function is T;
-}
+bool _isJSExportedDartFunction(Object? any) =>
+    _isJSAny(any) &&
+    js_helper.isJSWrappedDartFunction(unsafeCast<JSAny>(any).toExternRef);
 
-bool _isNullableJSExportedDartFunction<T extends Function>(Object? any) =>
-    any == null || _isJSExportedDartFunction<T>(any);
-
-// `TypedArray` doesn't exist as a property in JS, but rather as a superclass of
-// all typed arrays. In order to do the most sensible thing here, we can use the
-// prototype of some typed array type, and check that the receiver is an
-// `instanceof` that prototype. See
-// https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#description
-// for more details.
-bool _isJSTypedArray(Object? any) {
-  return _isJSAny(any) &&
-      js_helper.JS<WasmI32>("""(o) => {
-          return o instanceof Object.getPrototypeOf(Int8Array);
-        }""", unsafeCast<JSAny>(any).toExternRef).toBool();
-}
-
-bool _isNullableJSTypedArray(Object? any) =>
-    any == null || _isJSTypedArray(any);
+bool _isNullableJSExportedDartFunction(Object? any) =>
+    any == null || _isJSExportedDartFunction(any);
 
 // -----------------------------------------------------------------------------
 // JSBoxedDartObject <-> Object

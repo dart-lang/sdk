@@ -140,23 +140,26 @@ class CFECompileTimeErrors extends CompilationError {
   CFECompileTimeErrors(this.component);
 }
 
-const List<String> _librariesToIndex = [
-  "dart:_boxed_bool",
-  "dart:_boxed_double",
-  "dart:_boxed_int",
-  "dart:_compact_hash",
-  "dart:_internal",
-  "dart:_js_helper",
-  "dart:_js_types",
-  "dart:_list",
-  "dart:_string",
-  "dart:_wasm",
-  "dart:async",
-  "dart:collection",
-  "dart:core",
-  "dart:ffi",
-  "dart:typed_data",
-];
+List<String> librariesToIndex(wasm.Mode mode) {
+  return [
+    "dart:_boxed_bool",
+    "dart:_boxed_double",
+    "dart:_boxed_int",
+    "dart:_compact_hash",
+    "dart:_internal",
+    "dart:_js_helper",
+    "dart:_js_types",
+    "dart:_list",
+    "dart:_string",
+    "dart:_wasm",
+    "dart:async",
+    "dart:collection",
+    "dart:core",
+    "dart:ffi",
+    "dart:typed_data",
+    if (mode == .standalone) "dart:_embedder",
+  ];
+}
 
 const List<String> _binaryenFlags = [
   '--enable-gc',
@@ -415,7 +418,7 @@ Future<TfaResult> _loadTfaResult(
   await ioManager.readComponent(options.mainUri, component);
 
   final coreTypes = CoreTypes(component);
-  final libraryIndex = LibraryIndex(component, _librariesToIndex);
+  final libraryIndex = LibraryIndex(component, librariesToIndex(target.mode));
   final classHierarchy = ClassHierarchy(component, coreTypes);
   final dynamicMainModuleUri = await ioManager.resolveUri(
     options.dynamicMainModuleUri,
@@ -479,7 +482,10 @@ Future<CompilationResult> _runTfaPhase(
 
   ClosedWorldClassHierarchy classHierarchy =
       ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
-  LibraryIndex libraryIndex = LibraryIndex(component, _librariesToIndex);
+  LibraryIndex libraryIndex = LibraryIndex(
+    component,
+    librariesToIndex(target.mode),
+  );
 
   if (options.deleteToStringPackageUri.isNotEmpty) {
     to_string_transformer.transformComponent(
@@ -517,7 +523,7 @@ Future<CompilationResult> _runTfaPhase(
     coreTypes = CoreTypes(component);
     classHierarchy =
         ClassHierarchy(component, coreTypes) as ClosedWorldClassHierarchy;
-    libraryIndex = LibraryIndex(component, _librariesToIndex);
+    libraryIndex = LibraryIndex(component, librariesToIndex(target.mode));
   }
 
   final librariesToTransform = isDynamicSubmodule
@@ -632,7 +638,7 @@ Future<CompilationResult> _runTfaPhase(
 
     // TFA may have tree shaken members that are in the library index cache.
     // To avoid having dangling references in the index, we create a new one.
-    libraryIndex = LibraryIndex(component, _librariesToIndex);
+    libraryIndex = LibraryIndex(component, librariesToIndex(target.mode));
   }
 
   if (options.emitTfa) {

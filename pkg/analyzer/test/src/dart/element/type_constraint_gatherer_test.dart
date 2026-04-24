@@ -20,505 +20,393 @@ main() {
 
 @reflectiveTest
 class TypeConstraintGathererTest extends AbstractTypeSystemTest {
-  late final TypeParameterElementImpl T;
-  late final TypeParameterTypeImpl T_none;
-  late final TypeParameterTypeImpl T_question;
-
-  @override
-  void setUp() {
-    super.setUp();
-    T = typeParameter('T');
-    T_none = typeParameterTypeNone(T);
-    T_question = typeParameterTypeQuestion(T);
-  }
-
   /// If `P` and `Q` are identical types, then the subtype match holds
   /// under no constraints.
   test_equal_left_right() {
-    _checkMatch([T], intNone, intNone, true, ['_ <: T <: _']);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone)],
-      ),
-      true,
-      ['_ <: T <: _'],
-    );
+      _checkMatch(
+        [T],
+        parseType('int'),
+        parseType('int'),
+        true,
+        ['_ <: T <: _'],
+      );
 
-    var T1 = typeParameter('T1');
-    var T2 = typeParameter('T2');
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: typeParameterTypeNone(T1),
-        typeParameters: [T1],
-      ),
-      functionTypeNone(
-        returnType: typeParameterTypeNone(T2),
-        typeParameters: [T2],
-      ),
-      true,
-      ['_ <: T <: _'],
-    );
+      _checkMatch(
+        [T],
+        parseFunctionType('void Function(int)'),
+        parseFunctionType('void Function(int)'),
+        true,
+        ['_ <: T <: _'],
+      );
+
+      _checkMatch(
+        [T],
+        parseFunctionType('T1 Function<T1>()'),
+        parseFunctionType('T2 Function<T2>()'),
+        true,
+        ['_ <: T <: _'],
+      );
+    });
   }
 
   test_functionType_hasTypeFormals() {
-    var T1 = typeParameter('T1');
-    var S1 = typeParameter('S1');
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    var T1_none = typeParameterTypeNone(T1);
-    var S1_none = typeParameterTypeNone(S1);
+      _checkMatch(
+        [T],
+        scope.parseType('T Function<T1>(T1)'),
+        parseFunctionType('int Function<S1>(S1)'),
+        false,
+        ['_ <: T <: int'],
+      );
 
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: T_none,
-        typeParameters: [T1],
-        formalParameters: [requiredParameter(type: T1_none)],
-      ),
-      functionTypeNone(
-        returnType: intNone,
-        typeParameters: [S1],
-        formalParameters: [requiredParameter(type: S1_none)],
-      ),
-      false,
-      ['_ <: T <: int'],
-    );
+      _checkMatch(
+        [T],
+        parseFunctionType('int Function<T1>(T1)'),
+        scope.parseType('T Function<S1>(S1)'),
+        true,
+        ['int <: T <: _'],
+      );
 
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: intNone,
-        typeParameters: [T1],
-        formalParameters: [requiredParameter(type: T1_none)],
-      ),
-      functionTypeNone(
-        returnType: T_none,
-        typeParameters: [S1],
-        formalParameters: [requiredParameter(type: S1_none)],
-      ),
-      true,
-      ['int <: T <: _'],
-    );
-
-    // We unified type formals, but still not match because return types.
-    _checkNotMatch(
-      [T],
-      functionTypeNone(
-        returnType: intNone,
-        typeParameters: [T1],
-        formalParameters: [requiredParameter(type: T1_none)],
-      ),
-      functionTypeNone(
-        returnType: stringNone,
-        typeParameters: [S1],
-        formalParameters: [requiredParameter(type: S1_none)],
-      ),
-      false,
-    );
+      // We unified type formals, but still not match because return types.
+      _checkNotMatch(
+        [T],
+        parseFunctionType('int Function<T1>(T1)'),
+        parseFunctionType('String Function<S1>(S1)'),
+        false,
+      );
+    });
   }
 
   test_functionType_hasTypeFormals_bounds_different_subtype() {
-    var T1 = typeParameter('T1', bound: intNone);
-    var S1 = typeParameter('S1', bound: numNone);
-    _checkNotMatch(
-      [T],
-      functionTypeNone(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone(returnType: intNone, typeParameters: [S1]),
-      false,
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkNotMatch(
+        [T],
+        scope.parseType('T Function<T1>()'),
+        parseFunctionType('int Function<S1 extends num>()'),
+        false,
+      );
+    });
   }
 
   test_functionType_hasTypeFormals_bounds_different_top() {
-    var T1 = typeParameter('T1', bound: voidNone);
-    var S1 = typeParameter('S1', bound: dynamicType);
-    _checkMatch(
-      [T],
-      functionTypeNone(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone(returnType: intNone, typeParameters: [S1]),
-      false,
-      ['_ <: T <: int'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        scope.parseType('T Function<T1 extends void>()'),
+        parseFunctionType('int Function<S1 extends dynamic>()'),
+        false,
+        ['_ <: T <: int'],
+      );
+    });
   }
 
   test_functionType_hasTypeFormals_bounds_different_unrelated() {
-    var T1 = typeParameter('T1', bound: intNone);
-    var S1 = typeParameter('S1', bound: stringNone);
-    _checkNotMatch(
-      [T],
-      functionTypeNone(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone(returnType: intNone, typeParameters: [S1]),
-      false,
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkNotMatch(
+        [T],
+        scope.parseType('T Function<T1 extends int>()'),
+        parseFunctionType('int Function<S1 extends String>()'),
+        false,
+      );
+    });
   }
 
   test_functionType_hasTypeFormals_bounds_same_leftDefault_rightDefault() {
-    var T1 = typeParameter('T1');
-    var S1 = typeParameter('S1');
-    _checkMatch(
-      [T],
-      functionTypeNone(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone(returnType: intNone, typeParameters: [S1]),
-      false,
-      ['_ <: T <: int'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        scope.parseType('T Function<T1>()'),
+        parseFunctionType('int Function<S1>()'),
+        false,
+        ['_ <: T <: int'],
+      );
+    });
   }
 
   test_functionType_hasTypeFormals_bounds_same_leftDefault_rightObjectQ() {
-    var T1 = typeParameter('T1');
-    var S1 = typeParameter('S1', bound: objectQuestion);
-    _checkMatch(
-      [T],
-      functionTypeNone(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone(returnType: intNone, typeParameters: [S1]),
-      false,
-      ['_ <: T <: int'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        scope.parseType('T Function<T1>()'),
+        parseFunctionType('int Function<S1 extends Object?>()'),
+        false,
+        ['_ <: T <: int'],
+      );
+    });
   }
 
   @FailingTest(reason: 'Closure of type constraints is not implemented yet')
   test_functionType_hasTypeFormals_closure() {
-    var T = typeParameter('T');
-    var X = typeParameter('X');
-    var Y = typeParameter('Y');
-
-    var T_none = typeParameterTypeNone(T);
-    var X_none = typeParameterTypeNone(X);
-    var Y_none = typeParameterTypeNone(Y);
-
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        typeParameters: [X],
-        returnType: T_none,
-        formalParameters: [requiredParameter(type: X_none)],
-      ),
-      functionTypeNone(
-        typeParameters: [Y],
-        returnType: listNone(Y_none),
-        formalParameters: [requiredParameter(type: Y_none)],
-      ),
-      true,
-      ['_ <: T <: List<Object?>'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        scope.parseType('T Function<X>(X)'),
+        parseFunctionType('List<Y> Function<Y>(Y)'),
+        true,
+        ['_ <: T <: List<Object?>'],
+      );
+    });
   }
 
   test_functionType_hasTypeFormals_differentCount() {
-    var T1 = typeParameter('T1');
-    var S1 = typeParameter('S1');
-    var S2 = typeParameter('S2');
-    _checkNotMatch(
-      [T],
-      functionTypeNone(returnType: T_none, typeParameters: [T1]),
-      functionTypeNone(returnType: intNone, typeParameters: [S1, S2]),
-      false,
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkNotMatch(
+        [T],
+        scope.parseType('T Function<T1>()'),
+        parseFunctionType('int Function<S1, S2>()'),
+        false,
+      );
+    });
   }
 
   test_functionType_noTypeFormals_parameters_extraOptionalLeft() {
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: intNone)],
-      ),
-      functionTypeNone(returnType: voidNone, formalParameters: []),
-      true,
-      ['_ <: T <: _'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(returnType: voidNone, formalParameters: []),
-      true,
-      ['_ <: T <: _'],
-    );
+      _checkMatch(
+        [T],
+        parseFunctionType('void Function([int])'),
+        parseFunctionType('void Function()'),
+        true,
+        ['_ <: T <: _'],
+      );
+
+      _checkMatch(
+        [T],
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function()'),
+        true,
+        ['_ <: T <: _'],
+      );
+    });
   }
 
   test_functionType_noTypeFormals_parameters_extraRequiredLeft() {
-    _checkNotMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: intNone)],
-      ),
-      functionTypeNone(returnType: voidNone, formalParameters: []),
-      true,
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkNotMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(returnType: voidNone, formalParameters: []),
-      true,
-    );
+      _checkNotMatch(
+        [T],
+        parseFunctionType('void Function(int)'),
+        parseFunctionType('void Function()'),
+        true,
+      );
+
+      _checkNotMatch(
+        [T],
+        parseFunctionType('void Function({required int a})'),
+        parseFunctionType('void Function()'),
+        true,
+      );
+    });
   }
 
   test_functionType_noTypeFormals_parameters_extraRight() {
-    _checkNotMatch(
-      [T],
-      functionTypeNone(returnType: voidNone),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: T_none)],
-      ),
-      true,
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkNotMatch(
+        [T],
+        parseFunctionType('void Function()'),
+        scope.parseType('void Function(T)'),
+        true,
+      );
+    });
   }
 
   test_functionType_noTypeFormals_parameters_leftOptionalNamed() {
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: T_none)],
-      ),
-      true,
-      ['_ <: T <: int'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: T_none)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: intNone)],
-      ),
-      false,
-      ['int <: T <: _'],
-    );
+      _checkMatch(
+        [T],
+        parseFunctionType('void Function({int a})'),
+        scope.parseType('void Function({T a})'),
+        true,
+        ['_ <: T <: int'],
+      );
 
-    // int vs. String
-    _checkNotMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: stringNone)],
-      ),
-      true,
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('void Function({T a})'),
+        parseFunctionType('void Function({int a})'),
+        false,
+        ['int <: T <: _'],
+      );
 
-    // Skip left non-required named.
-    _checkMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          namedParameter(name: 'a', type: intNone),
-          namedParameter(name: 'b', type: intNone),
-          namedParameter(name: 'c', type: intNone),
-        ],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'b', type: T_none)],
-      ),
-      true,
-      ['_ <: T <: int'],
-    );
+      // int vs. String
+      _checkNotMatch(
+        [T],
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function({String a})'),
+        true,
+      );
 
-    // Not match if skip left required named.
-    _checkNotMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          namedRequiredParameter(name: 'a', type: intNone),
-          namedParameter(name: 'b', type: intNone),
-        ],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'b', type: T_none)],
-      ),
-      true,
-    );
+      // Skip left non-required named.
+      _checkMatch(
+        [T],
+        parseFunctionType('void Function({int a, int b, int c})'),
+        scope.parseType('void Function({T b})'),
+        true,
+        ['_ <: T <: int'],
+      );
 
-    // Not match if skip right named.
-    _checkNotMatch(
-      [T],
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'b', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          namedParameter(name: 'a', type: intNone),
-          namedParameter(name: 'b', type: T_none),
-        ],
-      ),
-      true,
-    );
+      // Not match if skip left required named.
+      _checkNotMatch(
+        [T],
+        parseFunctionType('void Function({required int a, int b})'),
+        scope.parseType('void Function({T b})'),
+        true,
+      );
+
+      // Not match if skip right named.
+      _checkNotMatch(
+        [T],
+        parseFunctionType('void Function({int b})'),
+        scope.parseType('void Function({int a, T b})'),
+        true,
+      );
+    });
   }
 
   test_functionType_noTypeFormals_parameters_leftOptionalPositional() {
-    void check({
-      required TypeImpl left,
-      required FormalParameterElementImpl right,
-      required bool leftSchema,
-      required String? expected,
-    }) {
-      var P = functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: left)],
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+
+      _checkMatch(
+        [T],
+        scope.parseType('void Function([int])'),
+        scope.parseType('void Function(T)'),
+        true,
+        ['_ <: T <: int'],
       );
-      var Q = functionTypeNone(returnType: voidNone, formalParameters: [right]);
 
-      if (expected != null) {
-        _checkMatch([T], P, Q, leftSchema, [expected]);
-      } else {
-        _checkNotMatch([T], P, Q, leftSchema);
-      }
-    }
+      _checkMatch(
+        [T],
+        scope.parseType('void Function([T])'),
+        scope.parseType('void Function(int)'),
+        false,
+        ['int <: T <: _'],
+      );
+      _checkMatch(
+        [T],
+        scope.parseType('void Function([int])'),
+        scope.parseType('void Function([T])'),
+        true,
+        ['_ <: T <: int'],
+      );
 
-    check(
-      left: intNone,
-      right: requiredParameter(type: T_none),
-      leftSchema: true,
-      expected: '_ <: T <: int',
-    );
-    check(
-      left: T_none,
-      right: requiredParameter(type: intNone),
-      leftSchema: false,
-      expected: 'int <: T <: _',
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('void Function([T])'),
+        scope.parseType('void Function([int])'),
+        false,
+        ['int <: T <: _'],
+      );
 
-    check(
-      left: intNone,
-      right: positionalParameter(type: T_none),
-      leftSchema: true,
-      expected: '_ <: T <: int',
-    );
-    check(
-      left: T_none,
-      right: positionalParameter(type: intNone),
-      leftSchema: false,
-      expected: 'int <: T <: _',
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('void Function([int])'),
+        scope.parseType('void Function(String)'),
+        true,
+      );
 
-    check(
-      left: intNone,
-      right: requiredParameter(type: stringNone),
-      leftSchema: true,
-      expected: null,
-    );
-    check(
-      left: intNone,
-      right: positionalParameter(type: stringNone),
-      leftSchema: true,
-      expected: null,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('void Function([int])'),
+        scope.parseType('void Function([String])'),
+        true,
+      );
 
-    check(
-      left: intNone,
-      right: namedParameter(type: intNone, name: 'a'),
-      leftSchema: true,
-      expected: null,
-    );
-    check(
-      left: intNone,
-      right: namedParameter(type: intNone, name: 'a'),
-      leftSchema: false,
-      expected: null,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('void Function([int])'),
+        scope.parseType('void Function({int a})'),
+        true,
+      );
+
+      _checkNotMatch(
+        [T],
+        scope.parseType('void Function([int])'),
+        scope.parseType('void Function({int a})'),
+        false,
+      );
+    });
   }
 
   test_functionType_noTypeFormals_parameters_leftRequiredPositional() {
-    void check({
-      required TypeImpl left,
-      required FormalParameterElementImpl right,
-      required bool leftSchema,
-      required String? expected,
-    }) {
-      var P = functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: left)],
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+
+      _checkMatch(
+        [T],
+        scope.parseType('void Function(int)'),
+        scope.parseType('void Function(T)'),
+        true,
+        ['_ <: T <: int'],
       );
-      var Q = functionTypeNone(returnType: voidNone, formalParameters: [right]);
 
-      if (expected != null) {
-        _checkMatch([T], P, Q, leftSchema, [expected]);
-      } else {
-        _checkNotMatch([T], P, Q, leftSchema);
-      }
-    }
+      _checkMatch(
+        [T],
+        scope.parseType('void Function(T)'),
+        scope.parseType('void Function(int)'),
+        false,
+        ['int <: T <: _'],
+      );
 
-    check(
-      left: intNone,
-      right: requiredParameter(type: T_none),
-      leftSchema: true,
-      expected: '_ <: T <: int',
-    );
-    check(
-      left: T_none,
-      right: requiredParameter(type: intNone),
-      leftSchema: false,
-      expected: 'int <: T <: _',
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('void Function(int)'),
+        scope.parseType('void Function(String)'),
+        true,
+      );
 
-    check(
-      left: intNone,
-      right: requiredParameter(type: stringNone),
-      leftSchema: true,
-      expected: null,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('void Function(int)'),
+        scope.parseType('void Function([T])'),
+        true,
+      );
 
-    check(
-      left: intNone,
-      right: positionalParameter(type: T_none),
-      leftSchema: true,
-      expected: null,
-    );
-
-    check(
-      left: intNone,
-      right: namedParameter(type: T_none, name: 'a'),
-      leftSchema: true,
-      expected: null,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('void Function(int)'),
+        scope.parseType('void Function({T a})'),
+        true,
+      );
+    });
   }
 
   test_functionType_noTypeFormals_returnType() {
-    _checkMatch(
-      [T],
-      functionTypeNone(returnType: T_none),
-      functionTypeNone(returnType: intNone),
-      false,
-      ['_ <: T <: int'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkNotMatch(
-      [T],
-      functionTypeNone(returnType: stringNone),
-      functionTypeNone(returnType: intNone),
-      false,
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('T Function()'),
+        parseFunctionType('int Function()'),
+        false,
+        ['_ <: T <: int'],
+      );
+
+      _checkNotMatch(
+        [T],
+        parseFunctionType('String Function()'),
+        parseFunctionType('int Function()'),
+        false,
+      );
+    });
   }
 
   /// If `P` is `C<M0, ..., Mk>` and `Q` is `C<N0, ..., Nk>`, then the match
@@ -526,44 +414,53 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   ///   If `Mi` is a subtype match for `Ni` with respect to L under
   ///   constraints `Ci`.
   test_interfaceType_same() {
-    _checkMatch(
-      [T],
-      listNone(T_none),
-      listNone(numNone),
-      false,
-      ['_ <: T <: num'],
-    );
-    _checkMatch(
-      [T],
-      listNone(intNone),
-      listNone(T_none),
-      true,
-      ['int <: T <: _'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkNotMatch([T], listNone(intNone), listNone(stringNone), false);
+      _checkMatch(
+        [T],
+        scope.parseType('List<T>'),
+        parseType('List<num>'),
+        false,
+        ['_ <: T <: num'],
+      );
+      _checkMatch(
+        [T],
+        parseType('List<int>'),
+        scope.parseType('List<T>'),
+        true,
+        ['int <: T <: _'],
+      );
 
-    _checkMatch(
-      [T],
-      mapNone(intNone, listNone(T_none)),
-      mapNone(numNone, listNone(stringNone)),
-      false,
-      ['_ <: T <: String'],
-    );
-    _checkMatch(
-      [T],
-      mapNone(intNone, listNone(stringNone)),
-      mapNone(numNone, listNone(T_none)),
-      true,
-      ['String <: T <: _'],
-    );
+      _checkNotMatch(
+        [T],
+        parseType('List<int>'),
+        parseType('List<String>'),
+        false,
+      );
 
-    _checkNotMatch(
-      [T],
-      mapNone(T_none, listNone(intNone)),
-      mapNone(numNone, listNone(stringNone)),
-      false,
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('Map<int, List<T>>'),
+        parseType('Map<num, List<String>>'),
+        false,
+        ['_ <: T <: String'],
+      );
+      _checkMatch(
+        [T],
+        parseType('Map<int, List<String>>'),
+        scope.parseType('Map<num, List<T>>'),
+        true,
+        ['String <: T <: _'],
+      );
+
+      _checkNotMatch(
+        [T],
+        scope.parseType('Map<T, List<int>>'),
+        parseType('Map<num, List<String>>'),
+        false,
+      );
+    });
   }
 
   /// If `P` is `C0<M0, ..., Mk>` and `Q` is `C1<N0, ..., Nj>` then the match
@@ -572,22 +469,31 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   ///   `C1<B0, ..., Bj>` is a subtype match for `C1<N0, ..., Nj>` with
   ///   respect to `L` under constraints `C`.
   test_interfaceType_superInterface() {
-    _checkMatch(
-      [T],
-      listNone(T_none),
-      iterableNone(numNone),
-      false,
-      ['_ <: T <: num'],
-    );
-    _checkMatch(
-      [T],
-      listNone(intNone),
-      iterableNone(T_none),
-      true,
-      ['int <: T <: _'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkNotMatch([T], listNone(intNone), iterableNone(stringNone), true);
+      _checkMatch(
+        [T],
+        scope.parseType('List<T>'),
+        parseType('Iterable<num>'),
+        false,
+        ['_ <: T <: num'],
+      );
+      _checkMatch(
+        [T],
+        parseType('List<int>'),
+        scope.parseType('Iterable<T>'),
+        true,
+        ['int <: T <: _'],
+      );
+
+      _checkNotMatch(
+        [T],
+        parseType('List<int>'),
+        parseType('Iterable<String>'),
+        true,
+      );
+    });
   }
 
   void test_interfaceType_topMerge() {
@@ -609,19 +515,21 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
         ],
       );
       testClassIndex++;
-      var A = classElement('A');
 
       // class B<T> extends A<T> {}
       // class Cx extends A<> implements B<> {}
       var C = classElement('C${testClassIndex - 1}');
 
-      _checkMatch(
-        [T],
-        interfaceTypeNone(C),
-        interfaceTypeNone(A, typeArguments: [T_none]),
-        true,
-        [expectedConstraint],
-      );
+      withTypeParameterScope('T', (scope) {
+        var T = scope.typeParameter('T');
+        _checkMatch(
+          [T],
+          parseType(C.name!),
+          scope.parseType('A<T>'),
+          true,
+          [expectedConstraint],
+        );
+      });
     }
 
     void check(
@@ -641,83 +549,145 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   ///   If `Future<P0>` is a subtype match for `Q` under constraint set `C1`.
   ///   And if `P0` is a subtype match for `Q` under constraint set `C2`.
   test_left_futureOr() {
-    _checkMatch(
-      [T],
-      futureOrNone(T_none),
-      futureOrNone(intNone),
-      false,
-      ['_ <: T <: int'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    // This is 'T <: int' and 'T <: Future<int>'.
-    _checkMatch(
-      [T],
-      futureOrNone(T_none),
-      futureNone(intNone),
-      false,
-      ['_ <: T <: Never'],
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('FutureOr<T>'),
+        parseType('FutureOr<int>'),
+        false,
+        ['_ <: T <: int'],
+      );
 
-    _checkNotMatch([T], futureOrNone(T_none), intNone, false);
+      // This is 'T <: int' and 'T <: Future<int>'.
+      _checkMatch(
+        [T],
+        scope.parseType('FutureOr<T>'),
+        parseType('Future<int>'),
+        false,
+        ['_ <: T <: Never'],
+      );
+
+      _checkNotMatch(
+        [T],
+        scope.parseType('FutureOr<T>'),
+        parseType('int'),
+        false,
+      );
+    });
   }
 
   /// If `P` is `Never` then the match holds under no constraints.
   test_left_never() {
-    _checkMatch([T], neverNone, intNone, false, ['_ <: T <: _']);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        parseType('Never'),
+        parseType('int'),
+        false,
+        ['_ <: T <: _'],
+      );
+    });
   }
 
   /// If `P` is `Null`, then the match holds under no constraints:
   ///  Only if `Q` is nullable.
   test_left_null() {
-    _checkNotMatch([T], nullNone, intNone, true);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkMatch([T], nullNone, T_none, true, ['Null <: T <: _']);
+      _checkNotMatch([T], parseType('Null'), parseType('int'), true);
 
-    _checkMatch([T], nullNone, futureOrNone(T_none), true, ['Null <: T <: _']);
+      _checkMatch(
+        [T],
+        parseType('Null'),
+        scope.parseType('T'),
+        true,
+        ['Null <: T <: _'],
+      );
 
-    void matchNoConstraints(TypeImpl Q) {
-      _checkMatch([T], nullNone, Q, true, ['_ <: T <: _']);
-    }
+      _checkMatch(
+        [T],
+        parseType('Null'),
+        scope.parseType('FutureOr<T>'),
+        true,
+        ['Null <: T <: _'],
+      );
 
-    matchNoConstraints(listQuestion(T_none));
-    matchNoConstraints(stringQuestion);
-    matchNoConstraints(voidNone);
-    matchNoConstraints(dynamicType);
-    matchNoConstraints(objectQuestion);
-    matchNoConstraints(nullNone);
-    matchNoConstraints(functionTypeQuestion(returnType: voidNone));
+      void matchNoConstraints(TypeImpl Q) {
+        _checkMatch([T], parseType('Null'), Q, true, ['_ <: T <: _']);
+      }
+
+      matchNoConstraints(scope.parseType('List<T>?'));
+      matchNoConstraints(parseType('String?'));
+      matchNoConstraints(parseType('void'));
+      matchNoConstraints(parseType('dynamic'));
+      matchNoConstraints(parseType('Object?'));
+      matchNoConstraints(parseType('Null'));
+      matchNoConstraints(parseFunctionType('void Function()?'));
+    });
   }
 
   /// If `P` is `P0?` the match holds under constraint set `C1 + C2`:
   ///   If `P0` is a subtype match for `Q` under constraint set `C1`.
   ///   And if `Null` is a subtype match for `Q` under constraint set `C2`.
   test_left_suffixQuestion() {
-    // TODO(scheglov): any better test case?
-    _checkMatch([T], numQuestion, dynamicType, true, ['_ <: T <: _']);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkNotMatch([T], T_question, intNone, true);
+      // TODO(scheglov): any better test case?
+      _checkMatch(
+        [T],
+        parseType('num?'),
+        parseType('dynamic'),
+        true,
+        ['_ <: T <: _'],
+      );
+
+      _checkNotMatch([T], scope.parseType('T?'), parseType('int'), true);
+    });
   }
 
   /// If `Q` is `Q0?` the match holds under constraint set `C`:
   ///   Or if `P` is `dynamic` or `void` and `Object` is a subtype match
   ///   for `Q0` under constraint set `C`.
   test_left_top_right_nullable() {
-    var U = typeParameter('U', bound: objectNone);
-    var U_question = typeParameterTypeQuestion(U);
+    withTypeParameterScope('U extends Object', (scope) {
+      var U = scope.typeParameter('U');
+      var U_question = scope.parseType('U?');
 
-    _checkMatch([U], dynamicType, U_question, false, ['Object <: U <: _']);
-    _checkMatch([U], voidNone, U_question, false, ['Object <: U <: _']);
+      _checkMatch(
+        [U],
+        parseType('dynamic'),
+        U_question,
+        false,
+        ['Object <: U <: _'],
+      );
+      _checkMatch(
+        [U],
+        parseType('void'),
+        U_question,
+        false,
+        ['Object <: U <: _'],
+      );
+    });
   }
 
   /// If `P` is a type variable `X` in `L`, then the match holds:
   ///   Under constraint `_ <: X <: Q`.
   test_left_typeParameter2() {
-    void checkMatch(TypeImpl right, String expected) {
-      _checkMatch([T], T_none, right, false, [expected]);
-    }
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    checkMatch(numNone, '_ <: T <: num');
-    checkMatch(numQuestion, '_ <: T <: num?');
+      void checkMatch(TypeImpl right, String expected) {
+        _checkMatch([T], scope.parseType('T'), right, false, [expected]);
+      }
+
+      checkMatch(parseType('num'), '_ <: T <: num');
+      checkMatch(parseType('num?'), '_ <: T <: num?');
+    });
   }
 
   /// If `P` is a type variable `X` with bound `B` (or a promoted type
@@ -725,332 +695,444 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   ///   If `B` is a subtype match for `Q` with constraint set `C`.
   /// Note: we have already eliminated the case that `X` is a variable in `L`.
   test_left_typeParameterOther() {
-    _checkMatch(
-      [T],
-      typeParameterTypeNone(typeParameter('U', bound: intNone)),
-      numNone,
-      false,
-      ['_ <: T <: _'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkMatch(
-      [T],
-      promotedTypeParameterTypeNone(typeParameter('U'), intNone),
-      numNone,
-      false,
-      ['_ <: T <: _'],
-    );
+      scope.withTypeParameterScope('U extends int', (scope) {
+        _checkMatch(
+          [T],
+          scope.parseType('U'),
+          parseType('num'),
+          false,
+          ['_ <: T <: _'],
+        );
+      });
 
-    _checkNotMatch(
-      [T],
-      typeParameterTypeNone(typeParameter('U')),
-      numNone,
-      false,
-    );
+      scope.withTypeParameterScope('U', (scope) {
+        _checkMatch(
+          [T],
+          scope.parseType('U & int'),
+          parseType('num'),
+          false,
+          ['_ <: T <: _'],
+        );
+
+        _checkNotMatch([T], scope.parseType('U'), parseType('num'), false);
+      });
+    });
   }
 
   /// If `P` is `_` then the match holds with no constraints.
   test_left_unknown() {
-    _checkMatch([T], unknownInferredType, numNone, true, ['_ <: T <: _']);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        parseType('UnknownInferredType'),
+        parseType('num'),
+        true,
+        ['_ <: T <: _'],
+      );
+    });
   }
 
   test_recordType_differentShape() {
-    _checkNotMatch(
-      [T],
-      recordTypeNone(positionalTypes: [T_none, intNone]),
-      recordTypeNone(positionalTypes: [intNone]),
-      true,
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(positionalTypes: [T_none]),
-      recordTypeNone(positionalTypes: [intNone, intNone]),
-      true,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('(T, int)'),
+        scope.parseType('(int,)'),
+        true,
+      );
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(namedTypes: {'f1': T_none}),
-      recordTypeNone(namedTypes: {'f2': intNone}),
-      true,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('(T,)'),
+        scope.parseType('(int, int)'),
+        true,
+      );
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(namedTypes: {'f1': T_none, 'f2': intNone}),
-      recordTypeNone(namedTypes: {'f1': intNone}),
-      true,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('({T f1})'),
+        scope.parseType('({int f2})'),
+        true,
+      );
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(namedTypes: {'f1': T_none}),
-      recordTypeNone(namedTypes: {'f1': intNone, 'f2': intNone}),
-      true,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('({T f1, int f2})'),
+        scope.parseType('({int f1})'),
+        true,
+      );
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(positionalTypes: [intNone], namedTypes: {'f2': T_none}),
-      recordTypeNone(namedTypes: {'f1': intNone, 'f2': intNone}),
-      true,
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('({T f1})'),
+        scope.parseType('({int f1, int f2})'),
+        true,
+      );
+
+      _checkNotMatch(
+        [T],
+        scope.parseType('(int, {T f2})'),
+        scope.parseType('({int f1, int f2})'),
+        true,
+      );
+    });
   }
 
   test_recordType_recordClass() {
-    _checkMatch(
-      [T],
-      recordTypeNone(positionalTypes: [T_none]),
-      recordNone,
-      true,
-      ['_ <: T <: _'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        scope.parseType('(T,)'),
+        parseType('Record'),
+        true,
+        ['_ <: T <: _'],
+      );
+    });
   }
 
   test_recordType_sameShape_named() {
-    _checkMatch(
-      [T],
-      recordTypeNone(namedTypes: {'f1': T_none}),
-      recordTypeNone(namedTypes: {'f1': intNone}),
-      true,
-      ['_ <: T <: int'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkMatch(
-      [T],
-      recordTypeNone(namedTypes: {'f1': intNone}),
-      recordTypeNone(namedTypes: {'f1': T_none}),
-      false,
-      ['int <: T <: _'],
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('({T f1})'),
+        scope.parseType('({int f1})'),
+        true,
+        ['_ <: T <: int'],
+      );
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(namedTypes: {'f1': intNone}),
-      recordTypeNone(namedTypes: {'f1': stringNone}),
-      false,
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('({int f1})'),
+        scope.parseType('({T f1})'),
+        false,
+        ['int <: T <: _'],
+      );
 
-    _checkMatch(
-      [T],
-      recordTypeNone(namedTypes: {'f1': intNone, 'f2': T_none}),
-      recordTypeNone(namedTypes: {'f1': numNone, 'f2': stringNone}),
-      true,
-      ['_ <: T <: String'],
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('({int f1})'),
+        scope.parseType('({String f1})'),
+        false,
+      );
 
-    _checkMatch(
-      [T],
-      recordTypeNone(namedTypes: {'f1': intNone, 'f2': stringNone}),
-      recordTypeNone(namedTypes: {'f1': numNone, 'f2': T_none}),
-      false,
-      ['String <: T <: _'],
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('({int f1, T f2})'),
+        scope.parseType('({num f1, String f2})'),
+        true,
+        ['_ <: T <: String'],
+      );
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(
-        namedTypes: {'f1': T_none, 'f2': intNone},
-        positionalTypes: [T_none, intNone],
-      ),
-      recordTypeNone(namedTypes: {'f1': intNone, 'f2': stringNone}),
-      true,
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('({int f1, String f2})'),
+        scope.parseType('({num f1, T f2})'),
+        false,
+        ['String <: T <: _'],
+      );
+
+      _checkNotMatch(
+        [T],
+        scope.parseType('(T, int, {T f1, int f2})'),
+        scope.parseType('({int f1, String f2})'),
+        true,
+      );
+    });
   }
 
   test_recordType_sameShape_positional() {
-    _checkMatch(
-      [T],
-      recordTypeNone(positionalTypes: [T_none]),
-      recordTypeNone(positionalTypes: [numNone]),
-      true,
-      ['_ <: T <: num'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkMatch(
-      [T],
-      recordTypeNone(positionalTypes: [intNone]),
-      recordTypeNone(positionalTypes: [T_none]),
-      false,
-      ['int <: T <: _'],
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('(T,)'),
+        scope.parseType('(num,)'),
+        true,
+        ['_ <: T <: num'],
+      );
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(positionalTypes: [intNone]),
-      recordTypeNone(positionalTypes: [stringNone]),
-      false,
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('(int,)'),
+        scope.parseType('(T,)'),
+        false,
+        ['int <: T <: _'],
+      );
 
-    _checkMatch(
-      [T],
-      recordTypeNone(positionalTypes: [intNone, T_none]),
-      recordTypeNone(positionalTypes: [numNone, stringNone]),
-      true,
-      ['_ <: T <: String'],
-    );
+      _checkNotMatch(
+        [T],
+        scope.parseType('(int,)'),
+        scope.parseType('(String,)'),
+        false,
+      );
 
-    _checkMatch(
-      [T],
-      recordTypeNone(positionalTypes: [intNone, stringNone]),
-      recordTypeNone(positionalTypes: [numNone, T_none]),
-      false,
-      ['String <: T <: _'],
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('(int, T)'),
+        scope.parseType('(num, String)'),
+        true,
+        ['_ <: T <: String'],
+      );
 
-    _checkNotMatch(
-      [T],
-      recordTypeNone(positionalTypes: [T_none, intNone]),
-      recordTypeNone(positionalTypes: [numNone, stringNone]),
-      true,
-    );
+      _checkMatch(
+        [T],
+        scope.parseType('(int, String)'),
+        scope.parseType('(num, T)'),
+        false,
+        ['String <: T <: _'],
+      );
+
+      _checkNotMatch(
+        [T],
+        scope.parseType('(T, int)'),
+        scope.parseType('(num, String)'),
+        true,
+      );
+    });
   }
 
   test_right_functionClass() {
-    _checkMatch(
-      [T],
-      functionTypeNone(returnType: voidNone),
-      functionNone,
-      true,
-      ['_ <: T <: _'],
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        parseFunctionType('void Function()'),
+        parseType('Function'),
+        true,
+        ['_ <: T <: _'],
+      );
+    });
   }
 
   /// If `Q` is `FutureOr<Q0>` the match holds under constraint set `C`:
   test_right_futureOr() {
-    // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
-    // constraint set `C`.
-    _checkMatch(
-      [T],
-      futureOrNone(T_none),
-      futureOrNone(numNone),
-      false,
-      ['_ <: T <: num'],
-    );
-    _checkMatch(
-      [T],
-      futureOrNone(numNone),
-      futureOrNone(T_none),
-      true,
-      ['num <: T <: _'],
-    );
-    _checkNotMatch([T], futureOrNone(stringNone), futureOrNone(intNone), true);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    // Or if `P` is a subtype match for `Future<Q0>` under non-empty
-    // constraint set `C`.
-    _checkMatch(
-      [T],
-      futureNone(T_none),
-      futureOrNone(numNone),
-      false,
-      ['_ <: T <: num'],
-    );
-    _checkMatch(
-      [T],
-      futureNone(intNone),
-      futureOrNone(T_none),
-      true,
-      ['int <: T <: _'],
-    );
-    _checkMatch(
-      [T],
-      futureNone(intNone),
-      futureOrNone(objectNone),
-      true,
-      ['_ <: T <: _'],
-    );
-    _checkNotMatch([T], futureNone(stringNone), futureOrNone(intNone), true);
+      // If `P` is `FutureOr<P0>` and `P0` is a subtype match for `Q0` under
+      // constraint set `C`.
+      _checkMatch(
+        [T],
+        scope.parseType('FutureOr<T>'),
+        parseType('FutureOr<num>'),
+        false,
+        ['_ <: T <: num'],
+      );
+      _checkMatch(
+        [T],
+        parseType('FutureOr<num>'),
+        scope.parseType('FutureOr<T>'),
+        true,
+        ['num <: T <: _'],
+      );
+      _checkNotMatch(
+        [T],
+        parseType('FutureOr<String>'),
+        parseType('FutureOr<int>'),
+        true,
+      );
 
-    // Or if `P` is a subtype match for `Q0` under constraint set `C`.
-    _checkMatch(
-      [T],
-      listNone(T_none),
-      futureOrNone(listNone(intNone)),
-      false,
-      ['_ <: T <: int'],
-    );
-    _checkMatch(
-      [T],
-      neverNone,
-      futureOrNone(T_none),
-      true,
-      ['Never <: T <: _'],
-    );
+      // Or if `P` is a subtype match for `Future<Q0>` under non-empty
+      // constraint set `C`.
+      _checkMatch(
+        [T],
+        scope.parseType('Future<T>'),
+        parseType('FutureOr<num>'),
+        false,
+        ['_ <: T <: num'],
+      );
+      _checkMatch(
+        [T],
+        parseType('Future<int>'),
+        scope.parseType('FutureOr<T>'),
+        true,
+        ['int <: T <: _'],
+      );
+      _checkMatch(
+        [T],
+        parseType('Future<int>'),
+        parseType('FutureOr<Object>'),
+        true,
+        ['_ <: T <: _'],
+      );
+      _checkNotMatch(
+        [T],
+        parseType('Future<String>'),
+        parseType('FutureOr<int>'),
+        true,
+      );
 
-    // Or if `P` is a subtype match for `Future<Q0>` under empty
-    // constraint set `C`.
-    _checkMatch(
-      [T],
-      futureNone(intNone),
-      futureOrNone(numNone),
-      false,
-      ['_ <: T <: _'],
-    );
+      // Or if `P` is a subtype match for `Q0` under constraint set `C`.
+      _checkMatch(
+        [T],
+        scope.parseType('List<T>'),
+        parseType('FutureOr<List<int>>'),
+        false,
+        ['_ <: T <: int'],
+      );
+      _checkMatch(
+        [T],
+        parseType('Never'),
+        scope.parseType('FutureOr<T>'),
+        true,
+        ['Never <: T <: _'],
+      );
 
-    // Otherwise.
-    _checkNotMatch([T], listNone(T_none), futureOrNone(intNone), false);
+      // Or if `P` is a subtype match for `Future<Q0>` under empty
+      // constraint set `C`.
+      _checkMatch(
+        [T],
+        parseType('Future<int>'),
+        parseType('FutureOr<num>'),
+        false,
+        ['_ <: T <: _'],
+      );
+
+      // Otherwise.
+      _checkNotMatch(
+        [T],
+        scope.parseType('List<T>'),
+        parseType('FutureOr<int>'),
+        false,
+      );
+    });
   }
 
   /// If `Q` is `Object`, then the match holds under no constraints:
   ///  Only if `P` is non-nullable.
   test_right_object() {
-    _checkMatch([T], intNone, objectNone, false, ['_ <: T <: _']);
-    _checkNotMatch([T], intQuestion, objectNone, false);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _checkNotMatch([T], dynamicType, objectNone, false);
+      _checkMatch(
+        [T],
+        parseType('int'),
+        parseType('Object'),
+        false,
+        ['_ <: T <: _'],
+      );
+      _checkNotMatch([T], parseType('int?'), parseType('Object'), false);
 
-    {
-      var U = typeParameter('U', bound: numQuestion);
-      _checkNotMatch([T], typeParameterTypeNone(U), objectNone, false);
-    }
+      _checkNotMatch([T], parseType('dynamic'), parseType('Object'), false);
+
+      scope.withTypeParameterScope('U extends num?', (scope) {
+        _checkNotMatch([T], scope.parseType('U'), parseType('Object'), false);
+      });
+    });
   }
 
   /// If `Q` is `Q0?` the match holds under constraint set `C`:
   test_right_suffixQuestion() {
-    // If `P` is `P0?` and `P0` is a subtype match for `Q0` under
-    // constraint set `C`.
-    _checkMatch([T], T_question, numQuestion, false, ['_ <: T <: num']);
-    _checkMatch([T], intQuestion, T_question, true, ['int <: T <: _']);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var T_question = scope.parseType('T?');
 
-    // Or if `P` is a subtype match for `Q0` under non-empty
-    // constraint set `C`.
-    _checkMatch([T], intNone, T_question, false, ['int <: T <: _']);
+      // If `P` is `P0?` and `P0` is a subtype match for `Q0` under
+      // constraint set `C`.
+      _checkMatch([T], T_question, parseType('num?'), false, ['_ <: T <: num']);
+      _checkMatch([T], parseType('int?'), T_question, true, ['int <: T <: _']);
 
-    // Or if `P` is a subtype match for `Null` under constraint set `C`.
-    _checkMatch([T], nullNone, intQuestion, true, ['_ <: T <: _']);
+      // Or if `P` is a subtype match for `Q0` under non-empty
+      // constraint set `C`.
+      _checkMatch([T], parseType('int'), T_question, false, ['int <: T <: _']);
 
-    // Or if `P` is a subtype match for `Q0` under empty
-    // constraint set `C`.
-    _checkMatch([T], intNone, intQuestion, true, ['_ <: T <: _']);
+      // Or if `P` is a subtype match for `Null` under constraint set `C`.
+      _checkMatch(
+        [T],
+        parseType('Null'),
+        parseType('int?'),
+        true,
+        ['_ <: T <: _'],
+      );
 
-    _checkNotMatch([T], intNone, stringQuestion, true);
-    _checkNotMatch([T], intQuestion, stringQuestion, true);
+      // Or if `P` is a subtype match for `Q0` under empty
+      // constraint set `C`.
+      _checkMatch(
+        [T],
+        parseType('int'),
+        parseType('int?'),
+        true,
+        ['_ <: T <: _'],
+      );
+
+      _checkNotMatch([T], parseType('int'), parseType('String?'), true);
+      _checkNotMatch([T], parseType('int?'), parseType('String?'), true);
+    });
   }
 
   /// If `Q` is `dynamic`, `Object?`, or `void` then the match holds under
   /// no constraints.
   test_right_top() {
-    _checkMatch([T], intNone, dynamicType, false, ['_ <: T <: _']);
-    _checkMatch([T], intNone, objectQuestion, false, ['_ <: T <: _']);
-    _checkMatch([T], intNone, voidNone, false, ['_ <: T <: _']);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        parseType('int'),
+        parseType('dynamic'),
+        false,
+        ['_ <: T <: _'],
+      );
+      _checkMatch(
+        [T],
+        parseType('int'),
+        parseType('Object?'),
+        false,
+        ['_ <: T <: _'],
+      );
+      _checkMatch(
+        [T],
+        parseType('int'),
+        parseType('void'),
+        false,
+        ['_ <: T <: _'],
+      );
+    });
   }
 
   /// If `Q` is a type variable `X` in `L`, then the match holds:
   ///   Under constraint `P <: X <: _`.
   test_right_typeParameter2() {
-    void checkMatch(TypeImpl left, String expected) {
-      _checkMatch([T], left, T_none, true, [expected]);
-    }
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    checkMatch(numNone, 'num <: T <: _');
-    checkMatch(numQuestion, 'num? <: T <: _');
+      void checkMatch(TypeImpl left, String expected) {
+        _checkMatch([T], left, scope.parseType('T'), true, [expected]);
+      }
+
+      checkMatch(parseType('num'), 'num <: T <: _');
+      checkMatch(parseType('num?'), 'num? <: T <: _');
+    });
   }
 
   /// If `Q` is `_` then the match holds with no constraints.
   test_right_unknown() {
-    _checkMatch([T], numNone, unknownInferredType, true, ['_ <: T <: _']);
-    _checkMatch([T], numNone, unknownInferredType, true, ['_ <: T <: _']);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      _checkMatch(
+        [T],
+        parseType('num'),
+        parseType('UnknownInferredType'),
+        true,
+        ['_ <: T <: _'],
+      );
+      _checkMatch(
+        [T],
+        parseType('num'),
+        parseType('UnknownInferredType'),
+        true,
+        ['_ <: T <: _'],
+      );
+    });
   }
 
   void _checkMatch(

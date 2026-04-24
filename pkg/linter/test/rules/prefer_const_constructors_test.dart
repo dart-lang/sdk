@@ -87,6 +87,21 @@ A a = .new();
     );
   }
 
+  test_canBeConst_dotShorthand_methodCall() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  const A.tightFor({int? height});
+  A copyWith({int? minWidth}) => this;
+}
+void f() {
+  A a = .tightFor(height: 400).copyWith(minWidth: 400);
+}
+''',
+      [lint(105, 22)],
+    );
+  }
+
   test_canBeConst_explicitTypeArgument_dynamic() async {
     await assertDiagnostics(
       r'''
@@ -455,6 +470,29 @@ import 'a.dart' deferred as a;
 
 void f() {
   var aa = a.A();
+}
+''');
+  }
+
+  test_dotShorthand_withConst() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A.tightFor({int? height});
+}
+void f() {
+  A a = const .tightFor(height: 400);
+}
+''');
+  }
+
+  test_dotShorthand_withConst_methodCall() async {
+    await assertNoDiagnostics(r'''
+class A {
+  const A.tightFor({int? height});
+  A copyWith({int? minWidth}) => this;
+}
+void f() {
+  A a = const .tightFor(height: 400).copyWith(minWidth: 400);
 }
 ''');
   }

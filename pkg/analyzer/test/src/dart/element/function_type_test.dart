@@ -5,7 +5,6 @@
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
@@ -25,8 +24,6 @@ DynamicTypeImpl get dynamicType => DynamicTypeImpl.instance;
 class FunctionTypeTest extends AbstractTypeSystemTest {
   final Map<String, InterfaceTypeImpl> _classTypes = {};
 
-  InterfaceType get intType => typeProvider.intType;
-
   ClassElement get listElement => typeProvider.listElement;
 
   ClassElement get mapElement => typeProvider.mapElement;
@@ -36,7 +33,7 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   void basicChecks(
     FunctionType f, {
     displayName = 'dynamic Function()',
-    returnType,
+    returnType = 'dynamic',
     namedParameterTypes = isEmpty,
     normalParameterNames = isEmpty,
     normalParameterTypes = isEmpty,
@@ -44,28 +41,45 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     optionalParameterTypes = isEmpty,
     parameters = isEmpty,
     typeFormals = isEmpty,
-    typeParameters = isEmpty,
   }) {
     // DartType properties
     expect(f.getDisplayString(), displayName, reason: 'displayName');
     // FunctionType properties
     expect(
-      f.namedParameterTypes,
+      f.namedParameterTypes.map((name, type) {
+        return MapEntry(name, _typeStr(type));
+      }),
       namedParameterTypes,
       reason: 'namedParameterTypes',
     );
     expect(
-      f.normalParameterTypes,
+      f.formalParameters
+          .where((parameter) => parameter.isRequiredPositional)
+          .map((parameter) => parameter.name)
+          .toList(),
+      normalParameterNames,
+      reason: 'normalParameterNames',
+    );
+    expect(
+      f.normalParameterTypes.map(_typeStr).toList(),
       normalParameterTypes,
       reason: 'normalParameterTypes',
     );
     expect(
-      f.optionalParameterTypes,
+      f.formalParameters
+          .where((parameter) => parameter.isOptionalPositional)
+          .map((parameter) => parameter.name)
+          .toList(),
+      optionalParameterNames,
+      reason: 'optionalParameterNames',
+    );
+    expect(
+      f.optionalParameterTypes.map(_typeStr).toList(),
       optionalParameterTypes,
       reason: 'optionalParameterTypes',
     );
     expect(f.formalParameters, parameters, reason: 'parameters');
-    expect(f.returnType, returnType ?? same(dynamicType), reason: 'returnType');
+    expect(_typeStr(f.returnType), returnType, reason: 'returnType');
     expect(f.typeParameters, typeFormals, reason: 'typeFormals');
   }
 
@@ -81,367 +95,160 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
       );
 
   test_equality_leftRequired_rightPositional() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        requiredParameter(name: 'a', type: typeProvider.intType),
-      ],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        positionalParameter(name: 'a', type: typeProvider.intType),
-      ],
-    );
+    var f1 = parseFunctionType('void Function(int a)');
+    var f2 = parseFunctionType('void Function([int a])');
     expect(f1, isNot(equals(f2)));
   }
 
   test_equality_namedParameters_differentName() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [namedParameter(name: 'a', type: typeProvider.intType)],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [namedParameter(name: 'b', type: typeProvider.intType)],
-    );
+    var f1 = parseFunctionType('void Function({int a})');
+    var f2 = parseFunctionType('void Function({int b})');
     expect(f1, isNot(equals(f2)));
   }
 
   test_equality_namedParameters_differentType() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [namedParameter(name: 'a', type: typeProvider.intType)],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        namedParameter(name: 'a', type: typeProvider.doubleType),
-      ],
-    );
+    var f1 = parseFunctionType('void Function({int a})');
+    var f2 = parseFunctionType('void Function({double a})');
     expect(f1, isNot(equals(f2)));
   }
 
   test_equality_namedParameters_equal() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        namedParameter(name: 'a', type: typeProvider.intType),
-        namedParameter(name: 'b', type: typeProvider.doubleType),
-      ],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        namedParameter(name: 'a', type: typeProvider.intType),
-        namedParameter(name: 'b', type: typeProvider.doubleType),
-      ],
-    );
+    var f1 = parseFunctionType('void Function({int a, double b})');
+    var f2 = parseFunctionType('void Function({int a, double b})');
     expect(f1, f2);
   }
 
   test_equality_namedParameters_extraLeft() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        namedParameter(name: 'a', type: typeProvider.intType),
-        namedParameter(name: 'b', type: typeProvider.doubleType),
-      ],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [namedParameter(name: 'a', type: typeProvider.intType)],
-    );
+    var f1 = parseFunctionType('void Function({int a, double b})');
+    var f2 = parseFunctionType('void Function({int a})');
     expect(f1, isNot(equals(f2)));
   }
 
   test_equality_namedParameters_extraRight() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [namedParameter(name: 'a', type: typeProvider.intType)],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        namedParameter(name: 'a', type: typeProvider.intType),
-        namedParameter(name: 'b', type: typeProvider.doubleType),
-      ],
-    );
+    var f1 = parseFunctionType('void Function({int a})');
+    var f2 = parseFunctionType('void Function({int a, double b})');
     expect(f1, isNot(equals(f2)));
   }
 
   test_equality_namedParameters_required_left() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        namedRequiredParameter(name: 'a', type: typeProvider.intType),
-      ],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [namedParameter(name: 'a', type: typeProvider.intType)],
-    );
+    var f1 = parseFunctionType('void Function({required int a})');
+    var f2 = parseFunctionType('void Function({int a})');
     expect(f1, isNot(equals(f2)));
   }
 
   test_equality_namedParameters_required_right() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [namedParameter(name: 'a', type: typeProvider.intType)],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        namedRequiredParameter(name: 'a', type: typeProvider.intType),
-      ],
-    );
+    var f1 = parseFunctionType('void Function({int a})');
+    var f2 = parseFunctionType('void Function({required int a})');
     expect(f1, isNot(equals(f2)));
   }
 
   test_equality_requiredParameters_extraLeft() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        requiredParameter(name: 'a', type: typeProvider.intType),
-        requiredParameter(name: 'b', type: typeProvider.doubleType),
-      ],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        requiredParameter(name: 'a', type: typeProvider.intType),
-      ],
-    );
+    var f1 = parseFunctionType('void Function(int a, double b)');
+    var f2 = parseFunctionType('void Function(int a)');
     expect(f1, isNot(equals(f2)));
   }
 
   test_equality_requiredParameters_extraRight() {
-    var f1 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        requiredParameter(name: 'a', type: typeProvider.intType),
-      ],
-    );
-    var f2 = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        requiredParameter(name: 'a', type: typeProvider.intType),
-        requiredParameter(name: 'b', type: typeProvider.doubleType),
-      ],
-    );
+    var f1 = parseFunctionType('void Function(int a)');
+    var f2 = parseFunctionType('void Function(int a, double b)');
     expect(f1, isNot(equals(f2)));
   }
 
   test_hash_namedParameterOptionality() {
     _testHashesSometimesDifferPairwise(
       (i) => (
-        FunctionTypeImpl(
-          typeParameters: const [],
-          parameters: [namedParameter(name: 'p$i', type: typeProvider.intType)],
-          returnType: typeProvider.voidType,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-        FunctionTypeImpl(
-          typeParameters: const [],
-          parameters: [
-            namedRequiredParameter(name: 'p$i', type: typeProvider.intType),
-          ],
-          returnType: typeProvider.voidType,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
+        parseFunctionType('void Function({int p$i})'),
+        parseFunctionType('void Function({required int p$i})'),
       ),
     );
   }
 
   test_hash_nullabilitySuffix() {
     _testHashesSometimesDifferPairwise((i) {
-      var cType = _classType('C$i');
+      _classType('C$i');
       return (
-        FunctionTypeImpl(
-          typeParameters: const [],
-          parameters: [requiredParameter(name: 'x', type: cType)],
-          returnType: typeProvider.voidType,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-        FunctionTypeImpl(
-          typeParameters: const [],
-          parameters: [requiredParameter(name: 'x', type: cType)],
-          returnType: typeProvider.voidType,
-          nullabilitySuffix: NullabilitySuffix.question,
-        ),
+        parseFunctionType('void Function(C$i x)'),
+        parseFunctionType('void Function(C$i x)?'),
       );
     });
   }
 
   test_hash_optionalNamedParameterName() {
     _testHashesSometimesDiffer(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: [namedParameter(name: 'p$i', type: typeProvider.intType)],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
+      (i) => parseFunctionType('void Function({int p$i})'),
     );
   }
 
   test_hash_optionalNamedParameterType() {
-    _testHashesSometimesDiffer(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: [namedParameter(name: 'x', type: _classType('C$i'))],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    );
+    _testHashesSometimesDiffer((i) {
+      _classType('C$i');
+      return parseFunctionType('void Function({C$i x})');
+    });
   }
 
   test_hash_optionalPositionalParameterName() {
     // Optional parameter names are irrelevant
     _testHashesAlwaysEqual(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: [
-          positionalParameter(name: 'p$i', type: typeProvider.intType),
-        ],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
+      (i) => parseFunctionType('void Function([int p$i])'),
     );
   }
 
   test_hash_optionalPositionalParameterType() {
-    _testHashesAlwaysEqual(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: [positionalParameter(name: 'x', type: _classType('C$i'))],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    );
+    _testHashesAlwaysEqual((i) {
+      _classType('C$i');
+      return parseFunctionType('void Function([C$i x])');
+    });
   }
 
   test_hash_positionalParameterOptionality() {
     _testHashesSometimesDifferPairwise(
       (i) => (
-        FunctionTypeImpl(
-          typeParameters: const [],
-          parameters: [
-            requiredParameter(name: 'p$i', type: typeProvider.intType),
-          ],
-          returnType: typeProvider.voidType,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-        FunctionTypeImpl(
-          typeParameters: const [],
-          parameters: [
-            positionalParameter(name: 'p$i', type: typeProvider.intType),
-          ],
-          returnType: typeProvider.voidType,
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
+        parseFunctionType('void Function(int p$i)'),
+        parseFunctionType('void Function([int p$i])'),
       ),
     );
   }
 
   test_hash_requiredNamedParameterName() {
     _testHashesSometimesDiffer(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: [
-          namedRequiredParameter(name: 'p$i', type: typeProvider.intType),
-        ],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
+      (i) => parseFunctionType('void Function({required int p$i})'),
     );
   }
 
   test_hash_requiredNamedParameterType() {
-    _testHashesSometimesDiffer(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: [
-          namedRequiredParameter(name: 'x', type: _classType('C$i')),
-        ],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    );
+    _testHashesSometimesDiffer((i) {
+      _classType('C$i');
+      return parseFunctionType('void Function({required C$i x})');
+    });
   }
 
   test_hash_requiredPositionalParameterName() {
     // Required parameter names are irrelevant
-    _testHashesAlwaysEqual(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: [
-          requiredParameter(name: 'p$i', type: typeProvider.intType),
-        ],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    );
+    _testHashesAlwaysEqual((i) => parseFunctionType('void Function(int p$i)'));
   }
 
   test_hash_requiredPositionalParameterType() {
-    _testHashesAlwaysEqual(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: [requiredParameter(name: 'x', type: _classType('C$i'))],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    );
-  }
-
-  test_hash_returnType() {
-    _testHashesSometimesDiffer(
-      (i) => FunctionTypeImpl(
-        typeParameters: const [],
-        parameters: const [],
-        returnType: _classType('C$i'),
-        nullabilitySuffix: NullabilitySuffix.none,
-      ),
-    );
-  }
-
-  test_hash_typeFormalNames() {
     _testHashesAlwaysEqual((i) {
-      var t = TypeParameterElementImpl.synthetic(name: 'T$i');
-      var u = TypeParameterElementImpl.synthetic(name: 'U$i');
-      return FunctionTypeImpl(
-        typeParameters: [t, u],
-        parameters: [
-          requiredParameter(
-            name: 'x',
-            type: TypeParameterTypeImpl(
-              element: t,
-              nullabilitySuffix: NullabilitySuffix.none,
-            ),
-          ),
-          requiredParameter(
-            name: 'y',
-            type: TypeParameterTypeImpl(
-              element: t,
-              nullabilitySuffix: NullabilitySuffix.none,
-            ),
-          ),
-        ],
-        returnType: typeProvider.voidType,
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
+      _classType('C$i');
+      return parseFunctionType('void Function(C$i x)');
     });
   }
 
-  test_new_sortsNamedParameters() {
-    var f = functionTypeNone(
-      returnType: typeProvider.voidType,
-      formalParameters: [
-        requiredParameter(name: 'a', type: typeProvider.intType),
-        namedParameter(name: 'c', type: typeProvider.intType),
-        namedParameter(name: 'b', type: typeProvider.intType),
-      ],
+  test_hash_returnType() {
+    _testHashesSometimesDiffer((i) {
+      _classType('C$i');
+      return parseFunctionType('C$i Function()');
+    });
+  }
+
+  test_hash_typeFormalNames() {
+    _testHashesAlwaysEqual(
+      (i) => parseFunctionType('void Function<T$i, U$i>(T$i x, T$i y)'),
     );
+  }
+
+  test_new_sortsNamedParameters() {
+    var f = parseFunctionType('void Function(int a, {int c, int b})');
     var parameters = f.formalParameters;
     expect(parameters, hasLength(3));
     expect(parameters[0].name, 'a');
@@ -450,145 +257,91 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
   }
 
   test_synthetic() {
-    FunctionType f = FunctionTypeImpl(
-      typeParameters: const [],
-      parameters: const [],
-      returnType: dynamicType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    FunctionType f = parseFunctionType('dynamic Function()');
     basicChecks(f);
   }
 
   test_synthetic_instantiate() {
     // T Function<T>(T x)
-    var t = typeParameter('T');
-    var x = requiredParameter(name: 'x', type: typeParameterTypeNone(t));
-    FunctionType f = FunctionTypeImpl(
-      typeParameters: [t],
-      parameters: [x],
-      returnType: typeParameterTypeNone(t),
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    FunctionType f = parseFunctionType('T Function<T>(T x)');
     FunctionType instantiated = f.instantiate([objectType]);
     basicChecks(
       instantiated,
       displayName: 'Object Function(Object)',
-      returnType: same(objectType),
+      returnType: 'Object',
       normalParameterNames: ['x'],
-      normalParameterTypes: [same(objectType)],
+      normalParameterTypes: ['Object'],
       parameters: hasLength(1),
     );
   }
 
   test_synthetic_instantiate_argument_length_mismatch() {
     // dynamic Function<T>()
-    var t = typeParameter('T');
-    FunctionType f = FunctionTypeImpl(
-      typeParameters: [t],
-      parameters: const [],
-      returnType: dynamicType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    FunctionType f = parseFunctionType('dynamic Function<T>()');
     expect(() => f.instantiate([]), throwsA(TypeMatcher<ArgumentError>()));
   }
 
   test_synthetic_instantiate_no_type_formals() {
-    FunctionType f = FunctionTypeImpl(
-      typeParameters: const [],
-      parameters: const [],
-      returnType: dynamicType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    FunctionType f = parseFunctionType('dynamic Function()');
     expect(f.instantiate([]), same(f));
   }
 
   test_synthetic_namedParameter() {
-    var p = namedParameter(name: 'x', type: objectType);
-    FunctionType f = FunctionTypeImpl(
-      typeParameters: const [],
-      parameters: [p],
-      returnType: dynamicType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    FunctionType f = parseFunctionType('dynamic Function({Object x})');
     basicChecks(
       f,
       displayName: 'dynamic Function({Object x})',
-      namedParameterTypes: {'x': same(objectType)},
+      namedParameterTypes: {'x': 'Object'},
       parameters: hasLength(1),
     );
     expect(f.formalParameters[0].isNamed, isTrue);
     expect(f.formalParameters[0].name, 'x');
-    expect(f.formalParameters[0].type, same(objectType));
+    expect(_typeStr(f.formalParameters[0].type), 'Object');
   }
 
   test_synthetic_normalParameter() {
-    var p = requiredParameter(name: 'x', type: objectType);
-    FunctionType f = FunctionTypeImpl(
-      typeParameters: const [],
-      parameters: [p],
-      returnType: dynamicType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    FunctionType f = parseFunctionType('dynamic Function(Object x)');
     basicChecks(
       f,
       displayName: 'dynamic Function(Object)',
       normalParameterNames: ['x'],
-      normalParameterTypes: [same(objectType)],
+      normalParameterTypes: ['Object'],
       parameters: hasLength(1),
     );
     expect(f.formalParameters[0].isRequiredPositional, isTrue);
     expect(f.formalParameters[0].name, 'x');
-    expect(f.formalParameters[0].type, same(objectType));
+    expect(_typeStr(f.formalParameters[0].type), 'Object');
   }
 
   test_synthetic_optionalParameter() {
-    var p = positionalParameter(name: 'x', type: objectType);
-    FunctionType f = FunctionTypeImpl(
-      typeParameters: const [],
-      parameters: [p],
-      returnType: dynamicType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    FunctionType f = parseFunctionType('dynamic Function([Object x])');
     basicChecks(
       f,
       displayName: 'dynamic Function([Object])',
       optionalParameterNames: ['x'],
-      optionalParameterTypes: [same(objectType)],
+      optionalParameterTypes: ['Object'],
       parameters: hasLength(1),
     );
     expect(f.formalParameters[0].isOptionalPositional, isTrue);
     expect(f.formalParameters[0].name, 'x');
-    expect(f.formalParameters[0].type, same(objectType));
+    expect(_typeStr(f.formalParameters[0].type), 'Object');
   }
 
   test_synthetic_returnType() {
-    FunctionType f = FunctionTypeImpl(
-      typeParameters: const [],
-      parameters: const [],
-      returnType: objectType,
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-    basicChecks(
-      f,
-      displayName: 'Object Function()',
-      returnType: same(objectType),
-    );
+    FunctionType f = parseFunctionType('Object Function()');
+    basicChecks(f, displayName: 'Object Function()', returnType: 'Object');
   }
 
   test_synthetic_typeFormals() {
-    var t = typeParameter('T');
-    FunctionType f = FunctionTypeImpl.v2(
-      typeParameters: [t],
-      formalParameters: const [],
-      returnType: typeParameterTypeNone(t),
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    FunctionType f = parseFunctionType('T Function<T>()');
+    var t = f.typeParameters.single;
     basicChecks(
       f,
       displayName: 'T Function<T>()',
-      returnType: typeParameterTypeNone(t),
+      returnType: 'T',
       typeFormals: [same(t)],
     );
+    expect((f.returnType as TypeParameterType).element, same(t));
   }
 
   InterfaceTypeImpl _classType(String name) {
@@ -650,8 +403,9 @@ class FunctionTypeTest extends AbstractTypeSystemTest {
     for (var i = 1; i < 10; i++) {
       var (x, y) = generate(i);
       if (x.hashCode != y.hashCode) return;
-      x = y;
     }
     fail('Hashes never differed');
   }
+
+  String _typeStr(DartType type) => type.getDisplayString();
 }

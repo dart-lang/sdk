@@ -170,7 +170,7 @@ typedef ConstantCodeGeneratorLazy =
 class Constants {
   final Translator translator;
   final Map<Constant, ConstantInfo> constantInfo = {};
-  w.DataSegmentBuilder? byteSegment;
+  final Map<w.ModuleBuilder, w.DataSegmentBuilder> _byteSegments = {};
   late final ClassInfo typeInfo = translator.classInfo[translator.typeClass]!;
 
   late final _constantAccessor = _ConstantAccessor(translator);
@@ -220,6 +220,10 @@ class Constants {
   // All constant constructs should go in the main module.
   Types get types => translator.types;
   CoreTypes get coreTypes => translator.coreTypes;
+
+  w.DataSegmentBuilder byteSegment(w.ModuleBuilder module) {
+    return _byteSegments.putIfAbsent(module, module.dataSegments.define);
+  }
 
   Constant makeWasmI32(int value) {
     return InstanceConstant(translator.wasmI32Class.reference, const [], {
@@ -889,20 +893,34 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
   @override
   ConstantInfo? visitStringConstant(StringConstant constant) {
     ClassInfo info = translator.classInfo[translator.jsStringClass]!;
+    final standalone = translator.options.standalone;
+
     return createConstant(
       constant,
       const [],
       info.nonNullableType,
-      canBeEager: true,
+      // The standalone build doesn't use js-string imports, so we have to call
+      // an imported function to turn a character array into a string. That call
+      // is not a WebAssembly const expression, so the constant can't be eager.
+      canBeEager: !standalone,
       (_, b, _) {
         b.pushObjectHeaderFields(translator, info);
-        translator.globals.readGlobal(
-          b,
-          translator.getInternalizedStringGlobal(
-            b.moduleBuilder,
+        if (standalone) {
+          translator.pushStandaloneStringConstant(
+            b,
+            constants.byteSegment(b.moduleBuilder),
             constant.value,
-          ),
-        );
+          );
+        } else {
+          translator.globals.readGlobal(
+            b,
+            translator.getInternalizedStringGlobal(
+              b.moduleBuilder,
+              constant.value,
+            ),
+          );
+        }
+
         b.struct_new(info.struct);
       },
     );
@@ -1053,10 +1071,9 @@ class ConstantCreator extends ConstantVisitor<ConstantInfo?>
           final isI16 = fieldType == w.PackedType.i16;
           if (isI32 || isI16) {
             // Initialize array contents from passive data segment.
-            final w.DataSegmentBuilder segment = constants.byteSegment ??= b
-                .moduleBuilder
-                .dataSegments
-                .define();
+            final w.DataSegmentBuilder segment = constants.byteSegment(
+              b.moduleBuilder,
+            );
             final field = translator.wasmI32Value.fieldReference;
 
             Uint8List bytes;

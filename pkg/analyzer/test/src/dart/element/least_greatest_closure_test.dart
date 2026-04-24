@@ -17,115 +17,108 @@ main() {
 
 @reflectiveTest
 class GreatestClosureTest extends AbstractTypeSystemTest {
-  late final TypeParameterElementImpl T;
-  late final TypeParameterTypeImpl T_none;
-  late final TypeParameterTypeImpl T_question;
-
-  @override
-  void setUp() {
-    super.setUp();
-
-    T = typeParameter('T');
-    T_none = typeParameterTypeNone(T);
-    T_question = typeParameterTypeQuestion(T);
-  }
-
   test_contravariant() {
-    _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: T_none)],
-      ),
-      greatest: 'void Function(Never)',
-      least: 'void Function(Object?)',
-    );
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _check(
-      functionTypeNone(
-        returnType: functionTypeNone(
-          returnType: voidNone,
-          formalParameters: [requiredParameter(type: T_none)],
-        ),
-      ),
-      greatest: 'void Function(Never) Function()',
-      least: 'void Function(Object?) Function()',
-    );
+      _check(
+        scope.parseType('void Function(T)'),
+        typeParameters: [T],
+        greatest: 'void Function(Never)',
+        least: 'void Function(Object?)',
+      );
+
+      _check(
+        scope.parseType('void Function(T) Function()'),
+        typeParameters: [T],
+        greatest: 'void Function(Never) Function()',
+        least: 'void Function(Object?) Function()',
+      );
+    });
   }
 
   test_covariant() {
-    _check(T_none, greatest: 'Object?', least: 'Never');
-    _check(T_question, greatest: 'Object?', least: 'Never?');
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
 
-    _check(listNone(T_none), greatest: 'List<Object?>', least: 'List<Never>');
+      _check(
+        scope.parseTypeParameterType('T'),
+        typeParameters: [T],
+        greatest: 'Object?',
+        least: 'Never',
+      );
+      _check(
+        scope.parseTypeParameterType('T?'),
+        typeParameters: [T],
+        greatest: 'Object?',
+        least: 'Never?',
+      );
 
-    _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          requiredParameter(
-            type: functionTypeNone(
-              returnType: intNone,
-              formalParameters: [requiredParameter(type: T_none)],
-            ),
-          ),
-        ],
-      ),
-      greatest: 'void Function(int Function(Object?))',
-      least: 'void Function(int Function(Never))',
-    );
+      _check(
+        scope.parseType('List<T>'),
+        typeParameters: [T],
+        greatest: 'List<Object?>',
+        least: 'List<Never>',
+      );
+
+      _check(
+        scope.parseType('void Function(int Function(T))'),
+        typeParameters: [T],
+        greatest: 'void Function(int Function(Object?))',
+        least: 'void Function(int Function(Never))',
+      );
+    });
   }
 
   test_function() {
     // void Function<U extends T>()
-    _check(
-      functionTypeNone(
-        typeParameters: [typeParameter('U', bound: T_none)],
-        returnType: voidNone,
-      ),
-      greatest: 'Function',
-      least: 'Never',
-    );
+    withTypeParameterScope('T', (scope) {
+      _check(
+        scope.parseType('void Function<U extends T>()'),
+        typeParameters: [scope.typeParameter('T')],
+        greatest: 'Function',
+        least: 'Never',
+      );
+    });
   }
 
   test_unrelated() {
-    _check1(intNone, 'int');
-    _check1(intQuestion, 'int?');
+    withTypeParameterScope('T, U', (scope) {
+      void checkUnchanged(TypeImpl type, String expected) {
+        var T = scope.typeParameter('T');
+        _check(type, typeParameters: [T], greatest: expected, least: expected);
+      }
 
-    _check1(listNone(intNone), 'List<int>');
-    _check1(listQuestion(intNone), 'List<int>?');
+      checkUnchanged(parseType('int'), 'int');
+      checkUnchanged(parseType('int?'), 'int?');
 
-    _check1(objectNone, 'Object');
-    _check1(objectQuestion, 'Object?');
+      checkUnchanged(parseType('List<int>'), 'List<int>');
+      checkUnchanged(parseType('List<int>?'), 'List<int>?');
 
-    _check1(neverNone, 'Never');
-    _check1(neverQuestion, 'Never?');
+      checkUnchanged(parseType('Object'), 'Object');
+      checkUnchanged(parseType('Object?'), 'Object?');
 
-    _check1(dynamicType, 'dynamic');
+      checkUnchanged(parseType('Never'), 'Never');
+      checkUnchanged(parseType('Never?'), 'Never?');
 
-    _check1(
-      functionTypeNone(
-        returnType: stringNone,
-        formalParameters: [requiredParameter(type: intNone)],
-      ),
-      'String Function(int)',
-    );
+      checkUnchanged(parseType('dynamic'), 'dynamic');
 
-    _check1(typeParameterTypeNone(typeParameter('U')), 'U');
+      checkUnchanged(parseType('String Function(int)'), 'String Function(int)');
+
+      checkUnchanged(scope.parseType('U'), 'U');
+    });
   }
 
   void _check(
     TypeImpl type, {
+    required List<TypeParameterElementImpl> typeParameters,
     required String greatest,
     required String least,
   }) {
-    var greatestResult = typeSystem.greatestClosure(type, [T]);
+    var greatestResult = typeSystem.greatestClosure(type, typeParameters);
     expect(greatestResult.getDisplayString(), greatest);
 
-    var leastResult = typeSystem.leastClosure(type, [T]);
+    var leastResult = typeSystem.leastClosure(type, typeParameters);
     expect(leastResult.getDisplayString(), least);
-  }
-
-  void _check1(TypeImpl type, String expected) {
-    _check(type, greatest: expected, least: expected);
   }
 }

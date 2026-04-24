@@ -18,54 +18,54 @@ main() {
 @reflectiveTest
 class IsValidExtensionTypeSuperinterfaceTest extends AbstractTypeSystemTest {
   test_functionType() {
-    _assertNotValid(functionTypeNone(returnType: voidNone));
+    _assertNotValid(parseType('void Function()'));
   }
 
   test_interfaceType() {
-    _assertValid(numNone);
+    _assertValid(parseType('num'));
   }
 
   test_interfaceType_extensionType() {
     buildTestLibrary(
       extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
     );
-    var element = extensionTypeElement('A');
-    _assertValid(interfaceTypeNone(element));
+    _assertValid(parseType('A'));
   }
 
   test_interfaceType_function() {
-    _assertNotValid(functionNone);
+    _assertNotValid(parseType('Function'));
   }
 
   test_interfaceType_futureOr() {
-    _assertNotValid(futureOrNone(intNone));
+    _assertNotValid(parseType('FutureOr<int>'));
   }
 
   test_interfaceType_null() {
-    _assertNotValid(nullNone);
+    _assertNotValid(parseType('Null'));
   }
 
   test_interfaceType_nullable() {
-    _assertNotValid(numQuestion);
+    _assertNotValid(parseType('num?'));
   }
 
   test_interfaceType_record() {
-    _assertNotValid(recordNone);
+    _assertNotValid(parseType('Record'));
   }
 
   test_recordType() {
-    _assertNotValid(recordTypeNone(positionalTypes: [intNone, stringNone]));
+    _assertNotValid(parseType('(int, String)'));
   }
 
   test_topType() {
-    _assertNotValid(dynamicType);
-    _assertNotValid(voidNone);
-    _assertNotValid(objectQuestion);
+    _assertNotValid(parseType('dynamic'));
+    _assertNotValid(parseType('void'));
+    _assertNotValid(parseType('Object?'));
   }
 
   test_typeParameterType() {
-    var T = typeParameter('T');
-    _assertNotValid(typeParameterTypeNone(T));
+    withTypeParameterScope('T', (scope) {
+      _assertNotValid(scope.parseType('T'));
+    });
   }
 
   void _assertNotValid(DartType type) {

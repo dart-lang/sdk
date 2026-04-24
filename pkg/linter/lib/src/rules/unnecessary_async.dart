@@ -176,6 +176,16 @@ class _Visitor extends SimpleAstVisitor<void> {
       return;
     }
 
+    if (returnType is DynamicType) {
+      rule.reportAtToken(asyncKeyword);
+      return;
+    }
+
+    if (returnType is InterfaceType && returnType.isDartCoreObject) {
+      rule.reportAtToken(asyncKeyword);
+      return;
+    }
+
     // We handle only `Future<T>` below.
     if (!returnType.isDartAsyncFuture) {
       return;

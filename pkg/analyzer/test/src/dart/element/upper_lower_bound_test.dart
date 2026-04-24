@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/dart/element/type_system.dart';
@@ -103,270 +102,273 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   }
 
   test_isBottom() {
-    TypeParameterElementImpl T;
-
     // BOTTOM(Never) is true
-    isBottom(neverNone);
-    isNotBottom(neverQuestion);
+    isBottom(parseType('Never'));
+    isNotBottom(parseType('Never?'));
 
     // BOTTOM(X&T) is true iff BOTTOM(T)
-    T = typeParameter('T', bound: objectQuestion);
-
-    isBottom(promotedTypeParameterTypeNone(T, neverNone));
-    isNotBottom(promotedTypeParameterTypeQuestion(T, neverNone));
-
-    isNotBottom(promotedTypeParameterTypeNone(T, neverQuestion));
-    isNotBottom(promotedTypeParameterTypeQuestion(T, neverQuestion));
+    withTypeParameterScope('T extends Object?', (scope) {
+      isBottom(scope.parseType('T & Never'));
+      isNotBottom(scope.parseType('(T & Never)?'));
+      isNotBottom(scope.parseType('T & Never?'));
+      isNotBottom(scope.parseType('(T & Never?)?'));
+    });
 
     // BOTTOM(X extends T) is true iff BOTTOM(T)
-    T = typeParameter('T', bound: neverNone);
-    isBottom(typeParameterTypeNone(T));
-    isNotBottom(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T extends Never', (scope) {
+      isBottom(scope.parseType('T'));
+      isNotBottom(scope.parseType('T?'));
+    });
 
-    T = typeParameter('T', bound: neverQuestion);
-    isNotBottom(typeParameterTypeNone(T));
-    isNotBottom(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T extends Never?', (scope) {
+      isNotBottom(scope.parseType('T'));
+      isNotBottom(scope.parseType('T?'));
+    });
 
     // BOTTOM(T) is false otherwise
-    isNotBottom(dynamicType);
-    isNotBottom(invalidType);
-    isNotBottom(voidNone);
+    isNotBottom(parseType('dynamic'));
+    isNotBottom(parseType('InvalidType'));
+    isNotBottom(parseType('void'));
 
-    isNotBottom(objectNone);
-    isNotBottom(objectQuestion);
+    isNotBottom(parseType('Object'));
+    isNotBottom(parseType('Object?'));
 
-    isNotBottom(intNone);
-    isNotBottom(intQuestion);
+    isNotBottom(parseType('int'));
+    isNotBottom(parseType('int?'));
 
-    T = typeParameter('T', bound: numNone);
-    isNotBottom(typeParameterTypeNone(T));
-    isNotBottom(typeParameterTypeQuestion(T));
-
-    isNotBottom(promotedTypeParameterTypeNone(T, intNone));
-    isNotBottom(promotedTypeParameterTypeQuestion(T, intNone));
+    withTypeParameterScope('T extends num', (scope) {
+      isNotBottom(scope.parseType('T'));
+      isNotBottom(scope.parseType('T?'));
+      isNotBottom(scope.parseType('T & int'));
+      isNotBottom(scope.parseType('(T & int)?'));
+    });
   }
 
   test_isMoreBottom() {
     // MOREBOTTOM(Never, T) = true
-    isMoreBottom(neverNone, neverNone);
-    isMoreBottom(neverNone, neverQuestion);
+    isMoreBottom(parseType('Never'), parseType('Never'));
+    isMoreBottom(parseType('Never'), parseType('Never?'));
 
-    isMoreBottom(neverNone, nullNone);
+    isMoreBottom(parseType('Never'), parseType('Null'));
 
     // MOREBOTTOM(T, Never) = false
-    isNotMoreBottom(neverQuestion, neverNone);
+    isNotMoreBottom(parseType('Never?'), parseType('Never'));
 
-    isNotMoreBottom(nullNone, neverNone);
+    isNotMoreBottom(parseType('Null'), parseType('Never'));
 
     // MOREBOTTOM(Null, T) = true
-    isMoreBottom(nullNone, neverQuestion);
+    isMoreBottom(parseType('Null'), parseType('Never?'));
 
-    isMoreBottom(nullNone, nullNone);
+    isMoreBottom(parseType('Null'), parseType('Null'));
 
     // MOREBOTTOM(T, Null) = false
-    isNotMoreBottom(neverQuestion, nullNone);
+    isNotMoreBottom(parseType('Never?'), parseType('Null'));
 
     // MOREBOTTOM(X&T, Y&S) = MOREBOTTOM(T, S)
-    isMoreBottom(
-      promotedTypeParameterTypeNone(
-        typeParameter('T', bound: objectQuestion),
-        neverNone,
-      ),
-      promotedTypeParameterTypeQuestion(
-        typeParameter('S', bound: objectQuestion),
-        neverNone,
-      ),
-    );
+    withTypeParameterScope('T extends Object?, S extends Object?', (scope) {
+      isMoreBottom(
+        scope.parseType('T & Never'),
+        scope.parseType('(S & Never)?'),
+      );
+    });
 
     // MOREBOTTOM(X&T, S) = true
-    isMoreBottom(
-      promotedTypeParameterTypeNone(
-        typeParameter('T', bound: objectQuestion),
-        neverNone,
-      ),
-      typeParameterTypeNone(typeParameter('S', bound: neverNone)),
-    );
+    withTypeParameterScope('T extends Object?, S extends Never', (scope) {
+      isMoreBottom(scope.parseType('T & Never'), scope.parseType('S'));
+    });
 
     // MOREBOTTOM(T, X&S) = false
-    isNotMoreBottom(
-      typeParameterTypeNone(typeParameter('T', bound: neverNone)),
-      promotedTypeParameterTypeNone(
-        typeParameter('S', bound: objectQuestion),
-        neverNone,
-      ),
-    );
+    withTypeParameterScope('T extends Never, S extends Object?', (scope) {
+      isNotMoreBottom(scope.parseType('T'), scope.parseType('S & Never'));
+    });
 
     // MOREBOTTOM(X extends T, Y extends S) = MOREBOTTOM(T, S)
-    isMoreBottom(
-      typeParameterTypeNone(typeParameter('T', bound: neverNone)),
-      typeParameterTypeQuestion(typeParameter('S', bound: neverNone)),
-    );
+    withTypeParameterScope('T extends Never, S extends Never', (scope) {
+      isMoreBottom(scope.parseType('T'), scope.parseType('S?'));
+    });
   }
 
   test_isMoreTop() {
     // MORETOP(void, T) = true
-    isMoreTop(voidNone, voidNone);
-    isMoreTop(voidNone, dynamicType);
-    isMoreTop(voidNone, invalidType);
-    isMoreTop(voidNone, objectNone);
-    isMoreTop(voidNone, objectQuestion);
-    isMoreTop(voidNone, futureOrNone(objectNone));
-    isMoreTop(voidNone, futureOrNone(objectQuestion));
+    isMoreTop(parseType('void'), parseType('void'));
+    isMoreTop(parseType('void'), parseType('dynamic'));
+    isMoreTop(parseType('void'), parseType('InvalidType'));
+    isMoreTop(parseType('void'), parseType('Object'));
+    isMoreTop(parseType('void'), parseType('Object?'));
+    isMoreTop(parseType('void'), parseType('FutureOr<Object>'));
+    isMoreTop(parseType('void'), parseType('FutureOr<Object?>'));
 
     // MORETOP(T, void) = false
-    isNotMoreTop(dynamicType, voidNone);
-    isNotMoreTop(invalidType, voidNone);
-    isNotMoreTop(objectNone, voidNone);
-    isNotMoreTop(objectQuestion, voidNone);
-    isNotMoreTop(futureOrNone(objectNone), voidNone);
-    isNotMoreTop(futureOrNone(objectQuestion), voidNone);
+    isNotMoreTop(parseType('dynamic'), parseType('void'));
+    isNotMoreTop(parseType('InvalidType'), parseType('void'));
+    isNotMoreTop(parseType('Object'), parseType('void'));
+    isNotMoreTop(parseType('Object?'), parseType('void'));
+    isNotMoreTop(parseType('FutureOr<Object>'), parseType('void'));
+    isNotMoreTop(parseType('FutureOr<Object?>'), parseType('void'));
 
     // MORETOP(dynamic, T) = true
-    isMoreTop(dynamicType, dynamicType);
-    isMoreTop(dynamicType, objectNone);
-    isMoreTop(dynamicType, objectQuestion);
-    isMoreTop(dynamicType, futureOrNone(objectNone));
-    isMoreTop(dynamicType, futureOrNone(objectQuestion));
+    isMoreTop(parseType('dynamic'), parseType('dynamic'));
+    isMoreTop(parseType('dynamic'), parseType('Object'));
+    isMoreTop(parseType('dynamic'), parseType('Object?'));
+    isMoreTop(parseType('dynamic'), parseType('FutureOr<Object>'));
+    isMoreTop(parseType('dynamic'), parseType('FutureOr<Object?>'));
 
-    // MORETOP(invalidType, T) = true
-    isMoreTop(invalidType, dynamicType);
-    isMoreTop(invalidType, objectNone);
-    isMoreTop(invalidType, objectQuestion);
-    isMoreTop(invalidType, futureOrNone(objectNone));
-    isMoreTop(invalidType, futureOrNone(objectQuestion));
+    // MORETOP(parseType('InvalidType'), T) = true
+    isMoreTop(parseType('InvalidType'), parseType('dynamic'));
+    isMoreTop(parseType('InvalidType'), parseType('Object'));
+    isMoreTop(parseType('InvalidType'), parseType('Object?'));
+    isMoreTop(parseType('InvalidType'), parseType('FutureOr<Object>'));
+    isMoreTop(parseType('InvalidType'), parseType('FutureOr<Object?>'));
 
     // MORETOP(T, dynamic) = false
-    isNotMoreTop(objectNone, dynamicType);
-    isNotMoreTop(objectQuestion, dynamicType);
-    isNotMoreTop(futureOrNone(objectNone), dynamicType);
-    isNotMoreTop(futureOrNone(objectQuestion), dynamicType);
+    isNotMoreTop(parseType('Object'), parseType('dynamic'));
+    isNotMoreTop(parseType('Object?'), parseType('dynamic'));
+    isNotMoreTop(parseType('FutureOr<Object>'), parseType('dynamic'));
+    isNotMoreTop(parseType('FutureOr<Object?>'), parseType('dynamic'));
 
-    // MORETOP(T, invalidType) = false
-    isNotMoreTop(objectNone, invalidType);
-    isNotMoreTop(objectQuestion, invalidType);
-    isNotMoreTop(futureOrNone(objectNone), invalidType);
-    isNotMoreTop(futureOrNone(objectQuestion), invalidType);
+    // MORETOP(T, parseType('InvalidType')) = false
+    isNotMoreTop(parseType('Object'), parseType('InvalidType'));
+    isNotMoreTop(parseType('Object?'), parseType('InvalidType'));
+    isNotMoreTop(parseType('FutureOr<Object>'), parseType('InvalidType'));
+    isNotMoreTop(parseType('FutureOr<Object?>'), parseType('InvalidType'));
 
     // MORETOP(Object, T) = true
-    isMoreTop(objectNone, objectNone);
-    isMoreTop(objectNone, objectQuestion);
-    isMoreTop(objectNone, futureOrNone(objectNone));
-    isMoreTop(objectNone, futureOrQuestion(objectNone));
+    isMoreTop(parseType('Object'), parseType('Object'));
+    isMoreTop(parseType('Object'), parseType('Object?'));
+    isMoreTop(parseType('Object'), parseType('FutureOr<Object>'));
+    isMoreTop(parseType('Object'), parseType('FutureOr<Object>?'));
 
     // MORETOP(T, Object) = false
-    isNotMoreTop(objectQuestion, objectNone);
-    isNotMoreTop(futureOrNone(objectNone), objectNone);
-    isNotMoreTop(futureOrQuestion(objectNone), objectNone);
+    isNotMoreTop(parseType('Object?'), parseType('Object'));
+    isNotMoreTop(parseType('FutureOr<Object>'), parseType('Object'));
+    isNotMoreTop(parseType('FutureOr<Object>?'), parseType('Object'));
 
     // MORETOP(T?, S?) = MORETOP(T, S)
-    isMoreTop(objectQuestion, objectQuestion);
-    isMoreTop(futureOrQuestion(voidNone), futureOrQuestion(voidNone));
-    isMoreTop(futureOrQuestion(voidNone), futureOrQuestion(dynamicType));
-    isMoreTop(futureOrQuestion(voidNone), futureOrQuestion(invalidType));
-    isMoreTop(futureOrQuestion(voidNone), futureOrQuestion(objectNone));
+    isMoreTop(parseType('Object?'), parseType('Object?'));
+    isMoreTop(parseType('FutureOr<void>?'), parseType('FutureOr<void>?'));
+    isMoreTop(parseType('FutureOr<void>?'), parseType('FutureOr<dynamic>?'));
+    isMoreTop(
+      parseType('FutureOr<void>?'),
+      parseType('FutureOr<InvalidType>?'),
+    );
+    isMoreTop(parseType('FutureOr<void>?'), parseType('FutureOr<Object>?'));
 
     // MORETOP(T, S?) = true
-    isMoreTop(futureOrNone(objectNone), futureOrQuestion(voidNone));
-    isMoreTop(futureOrNone(objectNone), futureOrQuestion(dynamicType));
-    isMoreTop(futureOrNone(objectNone), futureOrQuestion(invalidType));
-    isMoreTop(futureOrNone(objectNone), futureOrQuestion(objectNone));
+    isMoreTop(parseType('FutureOr<Object>'), parseType('FutureOr<void>?'));
+    isMoreTop(parseType('FutureOr<Object>'), parseType('FutureOr<dynamic>?'));
+    isMoreTop(
+      parseType('FutureOr<Object>'),
+      parseType('FutureOr<InvalidType>?'),
+    );
+    isMoreTop(parseType('FutureOr<Object>'), parseType('FutureOr<Object>?'));
 
     // MORETOP(T?, S) = false
-    isNotMoreTop(futureOrQuestion(voidNone), futureOrNone(objectNone));
-    isNotMoreTop(futureOrQuestion(dynamicType), futureOrNone(objectNone));
-    isNotMoreTop(futureOrQuestion(invalidType), futureOrNone(objectNone));
-    isNotMoreTop(futureOrQuestion(objectNone), futureOrNone(objectNone));
+    isNotMoreTop(parseType('FutureOr<void>?'), parseType('FutureOr<Object>'));
+    isNotMoreTop(
+      parseType('FutureOr<dynamic>?'),
+      parseType('FutureOr<Object>'),
+    );
+    isNotMoreTop(
+      parseType('FutureOr<InvalidType>?'),
+      parseType('FutureOr<Object>'),
+    );
+    isNotMoreTop(parseType('FutureOr<Object>?'), parseType('FutureOr<Object>'));
 
     // MORETOP(FutureOr<T>, FutureOr<S>) = MORETOP(T, S)
-    isMoreTop(futureOrNone(voidNone), futureOrNone(voidNone));
-    isMoreTop(futureOrNone(voidNone), futureOrNone(dynamicType));
-    isMoreTop(futureOrNone(voidNone), futureOrNone(invalidType));
-    isMoreTop(futureOrNone(voidNone), futureOrNone(objectNone));
-    isNotMoreTop(futureOrNone(dynamicType), futureOrNone(voidNone));
-    isNotMoreTop(futureOrNone(invalidType), futureOrNone(voidNone));
-    isNotMoreTop(futureOrNone(objectNone), futureOrNone(voidNone));
+    isMoreTop(parseType('FutureOr<void>'), parseType('FutureOr<void>'));
+    isMoreTop(parseType('FutureOr<void>'), parseType('FutureOr<dynamic>'));
+    isMoreTop(parseType('FutureOr<void>'), parseType('FutureOr<InvalidType>'));
+    isMoreTop(parseType('FutureOr<void>'), parseType('FutureOr<Object>'));
+    isNotMoreTop(parseType('FutureOr<dynamic>'), parseType('FutureOr<void>'));
+    isNotMoreTop(
+      parseType('FutureOr<InvalidType>'),
+      parseType('FutureOr<void>'),
+    );
+    isNotMoreTop(parseType('FutureOr<Object>'), parseType('FutureOr<void>'));
   }
 
   test_isNull() {
     // NULL(Null) is true
-    isNull(nullNone);
+    isNull(parseType('Null'));
 
     // NULL(T?) is true iff NULL(T) or BOTTOM(T)
-    isNull(neverQuestion);
-    isNull(typeParameterTypeQuestion(typeParameter('T', bound: neverNone)));
+    isNull(parseType('Never?'));
+    withTypeParameterScope('T extends Never', (scope) {
+      isNull(scope.parseType('T?'));
+    });
 
     // NULL(T) is false otherwise
-    isNotNull(dynamicType);
-    isNotNull(invalidType);
-    isNotNull(voidNone);
+    isNotNull(parseType('dynamic'));
+    isNotNull(parseType('InvalidType'));
+    isNotNull(parseType('void'));
 
-    isNotNull(objectNone);
-    isNotNull(objectQuestion);
+    isNotNull(parseType('Object'));
+    isNotNull(parseType('Object?'));
 
-    isNotNull(intNone);
-    isNotNull(intQuestion);
+    isNotNull(parseType('int'));
+    isNotNull(parseType('int?'));
 
-    isNotNull(futureOrNone(nullNone));
+    isNotNull(parseType('FutureOr<Null>'));
 
-    isNotNull(futureOrQuestion(nullNone));
+    isNotNull(parseType('FutureOr<Null>?'));
   }
 
   test_isObject() {
     // OBJECT(Object) is true
-    isObject(objectNone);
-    isNotObject(objectQuestion);
+    isObject(parseType('Object'));
+    isNotObject(parseType('Object?'));
 
     // OBJECT(FutureOr<T>) is OBJECT(T)
-    isObject(futureOrNone(objectNone));
-    isNotObject(futureOrNone(objectQuestion));
+    isObject(parseType('FutureOr<Object>'));
+    isNotObject(parseType('FutureOr<Object?>'));
 
-    isNotObject(futureOrQuestion(objectNone));
-    isNotObject(futureOrQuestion(objectQuestion));
+    isNotObject(parseType('FutureOr<Object>?'));
+    isNotObject(parseType('FutureOr<Object?>?'));
 
     // OBJECT(T) is false otherwise
-    isNotObject(dynamicType);
-    isNotObject(invalidType);
-    isNotObject(voidNone);
-    isNotObject(intNone);
+    isNotObject(parseType('dynamic'));
+    isNotObject(parseType('InvalidType'));
+    isNotObject(parseType('void'));
+    isNotObject(parseType('int'));
   }
 
   test_isTop() {
     // TOP(T?) is true iff TOP(T) or OBJECT(T)
-    isTop(objectQuestion);
-    isTop(futureOrQuestion(dynamicType));
-    isTop(futureOrQuestion(invalidType));
-    isTop(futureOrQuestion(voidNone));
+    isTop(parseType('Object?'));
+    isTop(parseType('FutureOr<dynamic>?'));
+    isTop(parseType('FutureOr<InvalidType>?'));
+    isTop(parseType('FutureOr<void>?'));
 
-    isTop(futureOrQuestion(objectNone));
-    isTop(futureOrQuestion(objectQuestion));
+    isTop(parseType('FutureOr<Object>?'));
+    isTop(parseType('FutureOr<Object?>?'));
 
-    isNotTop(futureOrQuestion(intNone));
-    isNotTop(futureOrQuestion(intQuestion));
+    isNotTop(parseType('FutureOr<int>?'));
+    isNotTop(parseType('FutureOr<int?>?'));
 
     // TOP(dynamic) is true
-    isTop(dynamicType);
-    isTop(invalidType);
+    isTop(parseType('dynamic'));
+    isTop(parseType('InvalidType'));
     expect(typeSystem.isTop(UnknownInferredType.instance), isTrue);
 
     // TOP(void) is true
-    isTop(voidNone);
+    isTop(parseType('void'));
 
     // TOP(FutureOr<T>) is TOP(T)
-    isTop(futureOrNone(dynamicType));
-    isTop(futureOrNone(invalidType));
-    isTop(futureOrNone(voidNone));
+    isTop(parseType('FutureOr<dynamic>'));
+    isTop(parseType('FutureOr<InvalidType>'));
+    isTop(parseType('FutureOr<void>'));
 
-    isNotTop(futureOrNone(objectNone));
-    isTop(futureOrNone(objectQuestion));
+    isNotTop(parseType('FutureOr<Object>'));
+    isTop(parseType('FutureOr<Object?>'));
 
     // TOP(T) is false otherwise
-    isNotTop(objectNone);
+    isNotTop(parseType('Object'));
 
-    isNotTop(intNone);
-    isNotTop(intQuestion);
+    isNotTop(parseType('int'));
+    isNotTop(parseType('int?'));
 
-    isNotTop(neverNone);
-    isNotTop(neverQuestion);
+    isNotTop(parseType('Never'));
+    isNotTop(parseType('Never?'));
   }
 
   /// [TypeSystemImpl.isMoreBottom] can be used only for `BOTTOM` or `NULL`
@@ -408,32 +410,29 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, T1);
     }
 
-    check(neverNone, objectNone);
-    check(neverNone, objectQuestion);
+    check(parseType('Never'), parseType('Object'));
+    check(parseType('Never'), parseType('Object?'));
 
-    check(neverNone, intNone);
-    check(neverNone, intQuestion);
+    check(parseType('Never'), parseType('int'));
+    check(parseType('Never'), parseType('int?'));
 
-    check(neverNone, listNone(intNone));
-    check(neverNone, listQuestion(intNone));
+    check(parseType('Never'), parseType('List<int>'));
+    check(parseType('Never'), parseType('List<int>?'));
 
-    check(neverNone, futureOrNone(intNone));
-    check(neverNone, futureOrQuestion(intNone));
+    check(parseType('Never'), parseType('FutureOr<int>'));
+    check(parseType('Never'), parseType('FutureOr<int>?'));
 
-    {
-      var T = typeParameterTypeNone(typeParameter('T', bound: neverNone));
-      check(T, intNone);
-      check(T, intQuestion);
-    }
+    withTypeParameterScope('T extends Never', (scope) {
+      var T = scope.parseType('T');
+      check(T, parseType('int'));
+      check(T, parseType('int?'));
+    });
 
-    {
-      var T = promotedTypeParameterTypeNone(
-        typeParameter('T', bound: objectQuestion),
-        neverNone,
-      );
-      check(T, intNone);
-      check(T, intQuestion);
-    }
+    withTypeParameterScope('T extends Object?', (scope) {
+      var T = scope.parseType('T & Never');
+      check(T, parseType('int'));
+      check(T, parseType('int?'));
+    });
   }
 
   test_bottom_bottom() {
@@ -443,209 +442,185 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, T1);
     }
 
-    check(
-      neverNone,
-      typeParameterTypeNone(typeParameter('T', bound: neverNone)),
-    );
+    withTypeParameterScope('T extends Never', (scope) {
+      check(parseType('Never'), scope.parseType('T'));
+    });
 
-    check(
-      neverNone,
-      promotedTypeParameterTypeNone(
-        typeParameter('T', bound: objectQuestion),
-        neverNone,
-      ),
-    );
+    withTypeParameterScope('T extends Object?', (scope) {
+      check(parseType('Never'), scope.parseType('T & Never'));
+    });
   }
 
   test_functionType2_parameters_conflicts() {
     _checkGreatestLowerBound(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: intNone)],
-      ),
-      neverNone,
+      parseFunctionType('void Function(int a)'),
+      parseFunctionType('void Function({int a})'),
+      parseType('Never'),
     );
 
     _checkGreatestLowerBound(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: intNone)],
-      ),
-      neverNone,
+      parseFunctionType('void Function([int a])'),
+      parseFunctionType('void Function({int a})'),
+      parseType('Never'),
     );
   }
 
   test_functionType2_parameters_named() {
-    FunctionTypeImpl build(
-      List<TypeImpl> requiredTypes,
-      Map<String, TypeImpl> namedMap,
-      Map<String, TypeImpl> namedRequiredMap,
-    ) {
-      var formalParameters = <FormalParameterElementImpl>[];
-
-      for (var requiredType in requiredTypes) {
-        formalParameters.add(requiredParameter(type: requiredType));
-      }
-
-      for (var entry in namedMap.entries) {
-        formalParameters.add(
-          namedParameter(name: entry.key, type: entry.value),
-        );
-      }
-
-      for (var entry in namedRequiredMap.entries) {
-        formalParameters.add(
-          namedRequiredParameter(name: entry.key, type: entry.value),
-        );
-      }
-
-      return functionTypeNone(
-        returnType: voidNone,
-        formalParameters: formalParameters,
-      );
-    }
-
-    void check(FunctionTypeImpl T1, FunctionTypeImpl T2, TypeImpl expected) {
-      _checkGreatestLowerBound(T1, T2, expected);
-    }
-
-    check(build([], {}, {}), build([], {}, {}), build([], {}, {}));
+    _checkGreatestLowerBound(
+      parseFunctionType('void Function()'),
+      parseFunctionType('void Function()'),
+      parseFunctionType('void Function()'),
+    );
 
     {
-      check(
-        build([], {'a': intNone}, {}),
-        build([], {'a': intNone}, {}),
-        build([], {'a': intNone}, {}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function({int a})'),
       );
 
-      check(
-        build([], {'a': intNone}, {}),
-        build([], {}, {'a': intNone}),
-        build([], {'a': intNone}, {}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function({required int a})'),
+        parseFunctionType('void Function({int a})'),
       );
 
-      check(
-        build([], {}, {'a': intNone}),
-        build([], {}, {'a': intNone}),
-        build([], {}, {'a': intNone}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({required int a})'),
+        parseFunctionType('void Function({required int a})'),
+        parseFunctionType('void Function({required int a})'),
       );
     }
 
     {
-      check(
-        build([], {'a': intNone, 'b': intNone}, {}),
-        build([], {'a': intNone, 'c': intNone}, {}),
-        build([], {'a': intNone, 'b': intNone, 'c': intNone}, {}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({int a, int b})'),
+        parseFunctionType('void Function({int a, int c})'),
+        parseFunctionType('void Function({int a, int b, int c})'),
       );
 
-      check(
-        build([], {'a': intNone}, {'b': intNone}),
-        build([], {'a': intNone}, {'c': intNone}),
-        build([], {'a': intNone, 'b': intNone, 'c': intNone}, {}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({int a, required int b})'),
+        parseFunctionType('void Function({int a, required int c})'),
+        parseFunctionType('void Function({int a, int b, int c})'),
       );
     }
 
     {
-      check(
-        build([], {'a': intNone}, {}),
-        build([], {'a': numNone}, {}),
-        build([], {'a': numNone}, {}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function({num a})'),
+        parseFunctionType('void Function({num a})'),
       );
 
-      check(
-        build([], {'a': intNone}, {}),
-        build([], {'a': doubleNone}, {}),
-        build([], {'a': numNone}, {}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function({double a})'),
+        parseFunctionType('void Function({num a})'),
       );
 
-      check(
-        build([], {'a': intNone}, {}),
-        build([], {'a': doubleQuestion}, {}),
-        build([], {'a': numQuestion}, {}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function({double? a})'),
+        parseFunctionType('void Function({num? a})'),
       );
 
-      check(
-        build([], {'a': intNone}, {}),
-        build([], {'a': doubleNone}, {}),
-        build([], {'a': numNone}, {}),
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function({int a})'),
+        parseFunctionType('void Function({double a})'),
+        parseFunctionType('void Function({num a})'),
       );
     }
   }
 
   test_functionType2_parameters_positional() {
-    FunctionTypeImpl build(
-      List<TypeImpl> requiredTypes,
-      List<TypeImpl> positionalTypes,
-    ) {
-      var formalParameters = <FormalParameterElementImpl>[];
-
-      for (var requiredType in requiredTypes) {
-        formalParameters.add(requiredParameter(type: requiredType));
-      }
-
-      for (var positionalType in positionalTypes) {
-        formalParameters.add(positionalParameter(type: positionalType));
-      }
-
-      return functionTypeNone(
-        returnType: voidNone,
-        formalParameters: formalParameters,
-      );
-    }
-
-    void check(FunctionTypeImpl T1, FunctionTypeImpl T2, TypeImpl expected) {
-      _checkGreatestLowerBound(T1, T2, expected);
-    }
-
-    check(build([], []), build([], []), build([], []));
-
-    check(build([intNone], []), build([intNone], []), build([intNone], []));
-
-    check(build([intNone], []), build([numNone], []), build([numNone], []));
-
-    check(build([intNone], []), build([doubleNone], []), build([numNone], []));
-
-    check(
-      build([intNone], []),
-      build([doubleQuestion], []),
-      build([numQuestion], []),
+    _checkGreatestLowerBound(
+      parseFunctionType('void Function()'),
+      parseFunctionType('void Function()'),
+      parseFunctionType('void Function()'),
     );
 
-    check(build([intNone], []), build([doubleNone], []), build([numNone], []));
+    _checkGreatestLowerBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(int)'),
+    );
+
+    _checkGreatestLowerBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(num)'),
+      parseFunctionType('void Function(num)'),
+    );
+
+    _checkGreatestLowerBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(double)'),
+      parseFunctionType('void Function(num)'),
+    );
+
+    _checkGreatestLowerBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(double?)'),
+      parseFunctionType('void Function(num?)'),
+    );
+
+    _checkGreatestLowerBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(double)'),
+      parseFunctionType('void Function(num)'),
+    );
 
     {
-      check(build([intNone], []), build([], [intNone]), build([], [intNone]));
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function(int)'),
+        parseFunctionType('void Function([int])'),
+        parseFunctionType('void Function([int])'),
+      );
 
-      check(build([intNone], []), build([], []), build([], [intNone]));
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function(int)'),
+        parseFunctionType('void Function()'),
+        parseFunctionType('void Function([int])'),
+      );
 
-      check(build([], [intNone]), build([], [intNone]), build([], [intNone]));
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function([int])'),
+        parseFunctionType('void Function([int])'),
+        parseFunctionType('void Function([int])'),
+      );
 
-      check(build([], [intNone]), build([], []), build([], [intNone]));
+      _checkGreatestLowerBound(
+        parseFunctionType('void Function([int])'),
+        parseFunctionType('void Function()'),
+        parseFunctionType('void Function([int])'),
+      );
     }
   }
 
   test_functionType2_returnType() {
-    void check(TypeImpl T1_ret, TypeImpl T2_ret, TypeImpl expected_ret) {
-      _checkGreatestLowerBound(
-        functionTypeNone(returnType: T1_ret),
-        functionTypeNone(returnType: T2_ret),
-        functionTypeNone(returnType: expected_ret),
-      );
-    }
+    _checkGreatestLowerBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('int Function()'),
+      parseFunctionType('int Function()'),
+    );
 
-    check(intNone, intNone, intNone);
-    check(intNone, numNone, intNone);
+    _checkGreatestLowerBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('num Function()'),
+      parseFunctionType('int Function()'),
+    );
 
-    check(intNone, voidNone, intNone);
-    check(intNone, neverNone, neverNone);
+    _checkGreatestLowerBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('void Function()'),
+      parseFunctionType('int Function()'),
+    );
+
+    _checkGreatestLowerBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('Never Function()'),
+      parseFunctionType('Never Function()'),
+    );
   }
 
   test_functionType2_typeParameters() {
@@ -657,112 +632,91 @@ class LowerBoundTest extends _BoundsTestBase {
     }
 
     check(
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('T')],
-      ),
-      functionTypeNone(returnType: voidNone),
-      neverNone,
+      parseFunctionType('void Function<T>()'),
+      parseFunctionType('void Function()'),
+      parseType('Never'),
     );
 
     check(
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('T', bound: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('T', bound: numNone)],
-      ),
-      neverNone,
+      parseFunctionType('void Function<T extends int>()'),
+      parseFunctionType('void Function<T extends num>()'),
+      parseType('Never'),
     );
 
-    {
-      var T = typeParameter('T', bound: numNone);
-      var U = typeParameter('U', bound: numNone);
-      var R = typeParameter('R', bound: numNone);
-      check(
-        functionTypeNone(
-          returnType: typeParameterTypeNone(T),
-          typeParameters: [T],
-        ),
-        functionTypeNone(
-          returnType: typeParameterTypeNone(U),
-          typeParameters: [U],
-        ),
-        functionTypeNone(
-          returnType: typeParameterTypeNone(R),
-          typeParameters: [R],
-        ),
-      );
-    }
+    check(
+      parseFunctionType('T Function<T extends num>()'),
+      parseFunctionType('U Function<U extends num>()'),
+      parseFunctionType('R Function<R extends num>()'),
+    );
   }
 
   test_functionType_interfaceType() {
-    void check(FunctionTypeImpl T1, InterfaceTypeImpl T2, TypeImpl expected) {
+    void check(FunctionTypeImpl T1, TypeImpl T2, TypeImpl expected) {
       _checkGreatestLowerBound(T1, T2, expected);
     }
 
-    check(functionTypeNone(returnType: voidNone), intNone, neverNone);
+    check(
+      parseFunctionType('void Function()'),
+      parseType('int'),
+      parseType('Never'),
+    );
   }
 
   test_functionType_interfaceType_Function() {
     void check(FunctionTypeImpl T1) {
       _assertNullabilityNone(T1);
-      _checkGreatestLowerBound(T1, functionNone, T1);
+      _checkGreatestLowerBound(T1, parseType('Function'), T1);
     }
 
-    check(functionTypeNone(returnType: voidNone));
+    check(parseFunctionType('void Function()'));
 
-    check(
-      functionTypeNone(
-        returnType: intNone,
-        formalParameters: [requiredParameter(type: numQuestion)],
-      ),
-    );
+    check(parseFunctionType('int Function(num?)'));
   }
 
   test_futureOr() {
-    InterfaceTypeImpl futureOrFunction(TypeImpl T, String str) {
-      var result = futureOrNone(
-        functionTypeNone(
-          returnType: voidNone,
-          formalParameters: [requiredParameter(type: T)],
-        ),
-      );
+    InterfaceTypeImpl futureOrFunction(String str) {
+      var result = parseInterfaceType(str);
       expect(result.getDisplayString(), str);
       return result;
     }
 
     // DOWN(FutureOr<T1>, FutureOr<T2>) = FutureOr<S>, S = DOWN(T1, T2)
     _checkGreatestLowerBound(
-      futureOrNone(intNone),
-      futureOrNone(numNone),
-      futureOrNone(intNone),
+      parseType('FutureOr<int>'),
+      parseType('FutureOr<num>'),
+      parseType('FutureOr<int>'),
     );
     _checkGreatestLowerBound(
-      futureOrFunction(intNone, 'FutureOr<void Function(int)>'),
-      futureOrFunction(doubleNone, 'FutureOr<void Function(double)>'),
-      futureOrFunction(numNone, 'FutureOr<void Function(num)>'),
+      futureOrFunction('FutureOr<void Function(int)>'),
+      futureOrFunction('FutureOr<void Function(double)>'),
+      futureOrFunction('FutureOr<void Function(num)>'),
     );
 
     // DOWN(FutureOr<T1>, Future<T2>) = Future<S>, S = DOWN(T1, T2)
     // DOWN(Future<T1>, FutureOr<T2>) = Future<S>, S = DOWN(T1, T2)
     _checkGreatestLowerBound(
-      futureOrNone(numNone),
-      futureNone(intNone),
-      futureNone(intNone),
+      parseType('FutureOr<num>'),
+      parseType('Future<int>'),
+      parseType('Future<int>'),
     );
     _checkGreatestLowerBound(
-      futureOrNone(intNone),
-      futureNone(numNone),
-      futureNone(intNone),
+      parseType('FutureOr<int>'),
+      parseType('Future<num>'),
+      parseType('Future<int>'),
     );
 
     // DOWN(FutureOr<T1>, T2) = S, S = DOWN(T1, T2)
     // DOWN(T1, FutureOr<T2>) = S, S = DOWN(T1, T2)
-    _checkGreatestLowerBound(futureOrNone(numNone), intNone, intNone);
-    _checkGreatestLowerBound(futureOrNone(intNone), numNone, intNone);
+    _checkGreatestLowerBound(
+      parseType('FutureOr<num>'),
+      parseType('int'),
+      parseType('int'),
+    );
+    _checkGreatestLowerBound(
+      parseType('FutureOr<int>'),
+      parseType('num'),
+      parseType('int'),
+    );
   }
 
   test_identical() {
@@ -770,26 +724,38 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(type, type, type);
     }
 
-    check(intNone);
-    check(intQuestion);
-    check(listNone(intNone));
+    check(parseType('int'));
+    check(parseType('int?'));
+    check(parseType('List<int>'));
   }
 
   test_interfaceType2() {
-    void check(InterfaceTypeImpl T1, InterfaceTypeImpl T2, TypeImpl expected) {
+    void check(TypeImpl T1, TypeImpl T2, TypeImpl expected) {
       _assertNullabilityNone(T1);
       _assertNullabilityNone(T2);
 
       _checkGreatestLowerBound(T1, T2, expected);
     }
 
-    check(intNone, intNone, intNone);
-    check(numNone, intNone, intNone);
-    check(doubleNone, intNone, neverNone);
+    check(parseType('int'), parseType('int'), parseType('int'));
+    check(parseType('num'), parseType('int'), parseType('int'));
+    check(parseType('double'), parseType('int'), parseType('Never'));
 
-    check(listNone(intNone), listNone(intNone), listNone(intNone));
-    check(listNone(numNone), listNone(intNone), listNone(intNone));
-    check(listNone(doubleNone), listNone(intNone), neverNone);
+    check(
+      parseType('List<int>'),
+      parseType('List<int>'),
+      parseType('List<int>'),
+    );
+    check(
+      parseType('List<num>'),
+      parseType('List<int>'),
+      parseType('List<int>'),
+    );
+    check(
+      parseType('List<double>'),
+      parseType('List<int>'),
+      parseType('Never'),
+    );
   }
 
   void test_interfaceType2_interfaces() {
@@ -803,12 +769,10 @@ class LowerBoundTest extends _BoundsTestBase {
         ClassSpec('class C implements B'),
       ],
     );
-    var A = classElement('A');
-    var C = classElement('C');
     _checkGreatestLowerBound(
-      interfaceTypeNone(A),
-      interfaceTypeNone(C),
-      interfaceTypeNone(C),
+      parseInterfaceType('A'),
+      parseInterfaceType('C'),
+      parseInterfaceType('C'),
     );
   }
 
@@ -825,21 +789,21 @@ class LowerBoundTest extends _BoundsTestBase {
         ClassSpec('class D extends A with B, C'),
       ],
     );
-    var A = classElement('A');
-    var typeA = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var typeB = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var typeC = interfaceTypeNone(C);
-
-    var D = classElement('D');
-    var typeD = interfaceTypeNone(D);
-
-    _checkGreatestLowerBound(typeA, typeD, typeD);
-    _checkGreatestLowerBound(typeB, typeD, typeD);
-    _checkGreatestLowerBound(typeC, typeD, typeD);
+    _checkGreatestLowerBound(
+      parseInterfaceType('A'),
+      parseInterfaceType('D'),
+      parseInterfaceType('D'),
+    );
+    _checkGreatestLowerBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('D'),
+      parseInterfaceType('D'),
+    );
+    _checkGreatestLowerBound(
+      parseInterfaceType('C'),
+      parseInterfaceType('D'),
+      parseInterfaceType('D'),
+    );
   }
 
   void test_interfaceType2_superType() {
@@ -853,12 +817,10 @@ class LowerBoundTest extends _BoundsTestBase {
         ClassSpec('class C extends B'),
       ],
     );
-    var A = classElement('A');
-    var C = classElement('C');
     _checkGreatestLowerBound(
-      interfaceTypeNone(A),
-      interfaceTypeNone(C),
-      interfaceTypeNone(C),
+      parseInterfaceType('A'),
+      parseInterfaceType('C'),
+      parseInterfaceType('C'),
     );
   }
 
@@ -873,13 +835,13 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, expected);
     }
 
-    check(intNone, intQuestion, intNone);
+    check(parseType('int'), parseType('int?'), parseType('int'));
 
-    check(numNone, intQuestion, intNone);
-    check(intNone, numQuestion, intNone);
+    check(parseType('num'), parseType('int?'), parseType('int'));
+    check(parseType('int'), parseType('num?'), parseType('int'));
 
-    check(doubleNone, intQuestion, neverNone);
-    check(intNone, doubleQuestion, neverNone);
+    check(parseType('double'), parseType('int?'), parseType('Never'));
+    check(parseType('int'), parseType('double?'), parseType('Never'));
   }
 
   test_null_any() {
@@ -888,31 +850,31 @@ class LowerBoundTest extends _BoundsTestBase {
       _assertNotNull(T2);
       _assertNotTop(T2);
 
-      _checkGreatestLowerBound(nullNone, T2, expected);
+      _checkGreatestLowerBound(parseType('Null'), T2, expected);
     }
 
     void checkNull(TypeImpl T2) {
-      check(T2, nullNone);
+      check(T2, parseType('Null'));
     }
 
     void checkNever(TypeImpl T2) {
-      check(T2, neverNone);
+      check(T2, parseType('Never'));
     }
 
-    checkNull(futureOrNone(nullNone));
+    checkNull(parseType('FutureOr<Null>'));
 
-    checkNull(futureOrQuestion(nullNone));
+    checkNull(parseType('FutureOr<Null>?'));
 
-    checkNever(objectNone);
+    checkNever(parseType('Object'));
 
-    checkNever(intNone);
-    checkNull(intQuestion);
+    checkNever(parseType('int'));
+    checkNull(parseType('int?'));
 
-    checkNever(listNone(intNone));
-    checkNull(listQuestion(intNone));
+    checkNever(parseType('List<int>'));
+    checkNull(parseType('List<int>?'));
 
-    checkNever(listNone(intQuestion));
-    checkNull(listQuestion(intQuestion));
+    checkNever(parseType('List<int?>'));
+    checkNull(parseType('List<int?>?'));
   }
 
   test_null_null() {
@@ -926,54 +888,45 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, T1);
     }
 
-    check(nullNone, nullNone);
+    check(parseType('Null'), parseType('Null'));
   }
 
   test_object_any() {
     void check(TypeImpl T2, TypeImpl expected) {
       _assertNotObject(T2);
 
-      _checkGreatestLowerBound(objectNone, T2, expected);
+      _checkGreatestLowerBound(parseType('Object'), T2, expected);
     }
 
     void checkNever(TypeImpl T2) {
-      check(T2, neverNone);
+      check(T2, parseType('Never'));
     }
 
-    check(intNone, intNone);
-    check(intQuestion, intNone);
+    check(parseType('int'), parseType('int'));
+    check(parseType('int?'), parseType('int'));
 
-    check(futureOrNone(intNone), futureOrNone(intNone));
-    check(futureOrQuestion(intNone), futureOrNone(intNone));
-    check(futureOrNone(intNone), futureOrNone(intNone));
+    check(parseType('FutureOr<int>'), parseType('FutureOr<int>'));
+    check(parseType('FutureOr<int>?'), parseType('FutureOr<int>'));
+    check(parseType('FutureOr<int>'), parseType('FutureOr<int>'));
 
-    checkNever(futureOrNone(intQuestion));
-    checkNever(futureOrQuestion(intQuestion));
-    checkNever(futureOrNone(intQuestion));
+    checkNever(parseType('FutureOr<int?>'));
+    checkNever(parseType('FutureOr<int?>?'));
+    checkNever(parseType('FutureOr<int?>'));
 
-    {
-      var T = typeParameter('T', bound: objectNone);
-      check(typeParameterTypeNone(T), typeParameterTypeNone(T));
-      check(typeParameterTypeQuestion(T), typeParameterTypeNone(T));
-    }
+    withTypeParameterScope('T extends Object', (scope) {
+      check(scope.parseType('T'), scope.parseType('T'));
+      check(scope.parseType('T?'), scope.parseType('T'));
+    });
 
-    {
-      var T = typeParameter('T', bound: objectQuestion);
-      check(
-        typeParameterTypeNone(T),
-        promotedTypeParameterTypeNone(T, objectNone),
-      );
-      check(
-        typeParameterTypeQuestion(T),
-        promotedTypeParameterTypeNone(T, objectNone),
-      );
-    }
+    withTypeParameterScope('T extends Object?', (scope) {
+      check(scope.parseType('T'), scope.parseType('T & Object'));
+      check(scope.parseType('T?'), scope.parseType('T & Object'));
+    });
 
-    {
-      var T = typeParameter('T', bound: futureOrNone(objectQuestion));
-      checkNever(typeParameterTypeNone(T));
-      checkNever(typeParameterTypeQuestion(T));
-    }
+    withTypeParameterScope('T extends FutureOr<Object?>', (scope) {
+      checkNever(scope.parseType('T'));
+      checkNever(scope.parseType('T?'));
+    });
   }
 
   test_object_object() {
@@ -984,9 +937,12 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, T1);
     }
 
-    check(futureOrNone(objectNone), objectNone);
+    check(parseType('FutureOr<Object>'), parseType('Object'));
 
-    check(futureOrNone(futureOrNone(objectNone)), futureOrNone(objectNone));
+    check(
+      parseType('FutureOr<FutureOr<Object>>'),
+      parseType('FutureOr<Object>'),
+    );
   }
 
   test_question_question() {
@@ -1000,13 +956,13 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, expected);
     }
 
-    check(intQuestion, intQuestion, intQuestion);
+    check(parseType('int?'), parseType('int?'), parseType('int?'));
 
-    check(numQuestion, intQuestion, intQuestion);
-    check(intQuestion, numQuestion, intQuestion);
+    check(parseType('num?'), parseType('int?'), parseType('int?'));
+    check(parseType('int?'), parseType('num?'), parseType('int?'));
 
-    check(doubleQuestion, intQuestion, neverQuestion);
-    check(intQuestion, doubleQuestion, neverQuestion);
+    check(parseType('double?'), parseType('int?'), parseType('Never?'));
+    check(parseType('int?'), parseType('double?'), parseType('Never?'));
   }
 
   test_recordType2_differentShape() {
@@ -1068,21 +1024,21 @@ class LowerBoundTest extends _BoundsTestBase {
   }
 
   test_self() {
-    var T = typeParameter('T');
+    withTypeParameterScope('T', (scope) {
+      List<TypeImpl> types = [
+        parseType('dynamic'),
+        parseType('InvalidType'),
+        parseType('void'),
+        parseType('Never'),
+        scope.parseType('T'),
+        parseType('int'),
+        parseFunctionType('void Function()'),
+      ];
 
-    List<TypeImpl> types = [
-      dynamicType,
-      invalidType,
-      voidNone,
-      neverNone,
-      typeParameterTypeNone(T),
-      intNone,
-      functionTypeNone(returnType: voidNone),
-    ];
-
-    for (var type in types) {
-      _checkGreatestLowerBound(type, type, type);
-    }
+      for (var type in types) {
+        _checkGreatestLowerBound(type, type, type);
+      }
+    });
   }
 
   test_top_any() {
@@ -1092,44 +1048,44 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, T2);
     }
 
-    check(voidNone, objectNone);
-    check(voidNone, intNone);
-    check(voidNone, intQuestion);
-    check(voidNone, listNone(intNone));
-    check(voidNone, futureOrNone(intNone));
-    check(voidNone, neverNone);
-    check(voidNone, functionTypeNone(returnType: voidNone));
-    check(voidNone, typeOfString('(int, int)'));
+    check(parseType('void'), parseType('Object'));
+    check(parseType('void'), parseType('int'));
+    check(parseType('void'), parseType('int?'));
+    check(parseType('void'), parseType('List<int>'));
+    check(parseType('void'), parseType('FutureOr<int>'));
+    check(parseType('void'), parseType('Never'));
+    check(parseType('void'), parseFunctionType('void Function()'));
+    check(parseType('void'), typeOfString('(int, int)'));
 
-    check(dynamicType, objectNone);
-    check(dynamicType, intNone);
-    check(dynamicType, intQuestion);
-    check(dynamicType, listNone(intNone));
-    check(dynamicType, futureOrNone(intNone));
-    check(dynamicType, neverNone);
-    check(dynamicType, functionTypeNone(returnType: voidNone));
-    check(dynamicType, typeOfString('(int, int)'));
+    check(parseType('dynamic'), parseType('Object'));
+    check(parseType('dynamic'), parseType('int'));
+    check(parseType('dynamic'), parseType('int?'));
+    check(parseType('dynamic'), parseType('List<int>'));
+    check(parseType('dynamic'), parseType('FutureOr<int>'));
+    check(parseType('dynamic'), parseType('Never'));
+    check(parseType('dynamic'), parseFunctionType('void Function()'));
+    check(parseType('dynamic'), typeOfString('(int, int)'));
 
-    check(invalidType, objectNone);
-    check(invalidType, intNone);
-    check(invalidType, intQuestion);
-    check(invalidType, listNone(intNone));
-    check(invalidType, futureOrNone(intNone));
-    check(invalidType, neverNone);
-    check(invalidType, functionTypeNone(returnType: voidNone));
-    check(invalidType, typeOfString('(int, int)'));
+    check(parseType('InvalidType'), parseType('Object'));
+    check(parseType('InvalidType'), parseType('int'));
+    check(parseType('InvalidType'), parseType('int?'));
+    check(parseType('InvalidType'), parseType('List<int>'));
+    check(parseType('InvalidType'), parseType('FutureOr<int>'));
+    check(parseType('InvalidType'), parseType('Never'));
+    check(parseType('InvalidType'), parseFunctionType('void Function()'));
+    check(parseType('InvalidType'), typeOfString('(int, int)'));
 
-    check(objectQuestion, objectNone);
-    check(objectQuestion, intNone);
-    check(objectQuestion, intQuestion);
-    check(objectQuestion, listNone(intNone));
-    check(objectQuestion, futureOrNone(intNone));
-    check(objectQuestion, neverNone);
-    check(objectQuestion, functionTypeNone(returnType: voidNone));
-    check(objectQuestion, typeOfString('(int, int)'));
+    check(parseType('Object?'), parseType('Object'));
+    check(parseType('Object?'), parseType('int'));
+    check(parseType('Object?'), parseType('int?'));
+    check(parseType('Object?'), parseType('List<int>'));
+    check(parseType('Object?'), parseType('FutureOr<int>'));
+    check(parseType('Object?'), parseType('Never'));
+    check(parseType('Object?'), parseFunctionType('void Function()'));
+    check(parseType('Object?'), typeOfString('(int, int)'));
 
-    check(futureOrNone(voidNone), intNone);
-    check(futureOrQuestion(voidNone), intNone);
+    check(parseType('FutureOr<void>'), parseType('int'));
+    check(parseType('FutureOr<void>?'), parseType('int'));
   }
 
   test_top_top() {
@@ -1139,51 +1095,52 @@ class LowerBoundTest extends _BoundsTestBase {
       _checkGreatestLowerBound(T1, T2, T2);
     }
 
-    check(voidNone, dynamicType);
-    check(voidNone, invalidType);
-    check(voidNone, objectQuestion);
-    check(voidNone, futureOrNone(voidNone));
-    check(voidNone, futureOrNone(dynamicType));
-    check(voidNone, futureOrNone(invalidType));
-    check(voidNone, futureOrNone(objectQuestion));
+    check(parseType('void'), parseType('dynamic'));
+    check(parseType('void'), parseType('InvalidType'));
+    check(parseType('void'), parseType('Object?'));
+    check(parseType('void'), parseType('FutureOr<void>'));
+    check(parseType('void'), parseType('FutureOr<dynamic>'));
+    check(parseType('void'), parseType('FutureOr<InvalidType>'));
+    check(parseType('void'), parseType('FutureOr<Object?>'));
 
-    check(dynamicType, objectQuestion);
-    check(dynamicType, futureOrNone(voidNone));
-    check(dynamicType, futureOrNone(dynamicType));
-    check(dynamicType, futureOrNone(objectQuestion));
+    check(parseType('dynamic'), parseType('Object?'));
+    check(parseType('dynamic'), parseType('FutureOr<void>'));
+    check(parseType('dynamic'), parseType('FutureOr<dynamic>'));
+    check(parseType('dynamic'), parseType('FutureOr<Object?>'));
 
-    check(invalidType, objectQuestion);
-    check(invalidType, futureOrNone(voidNone));
-    check(invalidType, futureOrNone(dynamicType));
-    check(invalidType, futureOrNone(objectQuestion));
+    check(parseType('InvalidType'), parseType('Object?'));
+    check(parseType('InvalidType'), parseType('FutureOr<void>'));
+    check(parseType('InvalidType'), parseType('FutureOr<dynamic>'));
+    check(parseType('InvalidType'), parseType('FutureOr<Object?>'));
 
-    check(objectQuestion, futureOrQuestion(voidNone));
-    check(objectQuestion, futureOrQuestion(dynamicType));
-    check(objectQuestion, futureOrQuestion(invalidType));
-    check(objectQuestion, futureOrQuestion(objectNone));
-    check(objectQuestion, futureOrQuestion(objectQuestion));
+    check(parseType('Object?'), parseType('FutureOr<void>?'));
+    check(parseType('Object?'), parseType('FutureOr<dynamic>?'));
+    check(parseType('Object?'), parseType('FutureOr<InvalidType>?'));
+    check(parseType('Object?'), parseType('FutureOr<Object>?'));
+    check(parseType('Object?'), parseType('FutureOr<Object?>?'));
 
-    check(futureOrNone(voidNone), objectQuestion);
-    check(futureOrNone(dynamicType), objectQuestion);
-    check(futureOrNone(invalidType), objectQuestion);
-    check(futureOrNone(objectQuestion), objectQuestion);
+    check(parseType('FutureOr<void>'), parseType('Object?'));
+    check(parseType('FutureOr<dynamic>'), parseType('Object?'));
+    check(parseType('FutureOr<InvalidType>'), parseType('Object?'));
+    check(parseType('FutureOr<Object?>'), parseType('Object?'));
 
-    check(futureOrNone(voidNone), futureOrNone(dynamicType));
-    check(futureOrNone(voidNone), futureOrNone(invalidType));
-    check(futureOrNone(voidNone), futureOrNone(objectQuestion));
-    check(futureOrNone(dynamicType), futureOrNone(objectQuestion));
-    check(futureOrNone(invalidType), futureOrNone(objectQuestion));
+    check(parseType('FutureOr<void>'), parseType('FutureOr<dynamic>'));
+    check(parseType('FutureOr<void>'), parseType('FutureOr<InvalidType>'));
+    check(parseType('FutureOr<void>'), parseType('FutureOr<Object?>'));
+    check(parseType('FutureOr<dynamic>'), parseType('FutureOr<Object?>'));
+    check(parseType('FutureOr<InvalidType>'), parseType('FutureOr<Object?>'));
   }
 
   test_typeParameter() {
-    void check({TypeImpl? bound, required TypeImpl T2}) {
-      var T1 = typeParameterTypeNone(typeParameter('T', bound: bound));
-      _checkGreatestLowerBound(T1, T2, neverNone);
+    void check({String? bound, required TypeImpl T2}) {
+      withTypeParameterScope(bound == null ? 'T' : 'T extends $bound', (scope) {
+        _checkGreatestLowerBound(scope.parseType('T'), T2, parseType('Never'));
+      });
     }
 
-    check(T2: functionTypeNone(returnType: voidNone));
-    check(T2: intNone);
-    check(bound: numNone, T2: intNone);
+    check(T2: parseFunctionType('void Function()'));
+    check(T2: parseType('int'));
+    check(bound: 'num', T2: parseType('int'));
   }
 
   void _checkGreatestLowerBound(
@@ -1238,54 +1195,18 @@ actual: $resultStr
 @reflectiveTest
 class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   void test_nested2_upParameterType() {
-    var T1 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: stringNone),
-              requiredParameter(type: intNone),
-              requiredParameter(type: intNone),
-            ],
-            returnType: voidNone,
-          ),
-        ),
-      ],
-      returnType: voidNone,
+    var T1 = parseFunctionType(
+      'void Function(void Function(String, int, int))',
     );
     expect(typeString(T1), 'void Function(void Function(String, int, int))');
 
-    var T2 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: intNone),
-              requiredParameter(type: doubleNone),
-              requiredParameter(type: numNone),
-            ],
-            returnType: voidNone,
-          ),
-        ),
-      ],
-      returnType: voidNone,
+    var T2 = parseFunctionType(
+      'void Function(void Function(int, double, num))',
     );
     expect(typeString(T2), 'void Function(void Function(int, double, num))');
 
-    var expected = functionTypeNone(
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: objectNone),
-              requiredParameter(type: numNone),
-              requiredParameter(type: numNone),
-            ],
-            returnType: voidNone,
-          ),
-        ),
-      ],
-      returnType: voidNone,
+    var expected = parseFunctionType(
+      'void Function(void Function(Object, num, num))',
     );
     expect(
       typeString(expected),
@@ -1296,81 +1217,24 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   void test_nested3_downParameterTypes() {
-    var T1 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(
-                type: functionTypeNone(
-                  formalParameters: [
-                    requiredParameter(type: stringNone),
-                    requiredParameter(type: intNone),
-                    requiredParameter(type: intNone),
-                  ],
-                  returnType: voidNone,
-                ),
-              ),
-            ],
-            returnType: voidNone,
-          ),
-        ),
-      ],
-      returnType: voidNone,
+    var T1 = parseFunctionType(
+      'void Function(void Function(void Function(String, int, int)))',
     );
     expect(
       typeString(T1),
       'void Function(void Function(void Function(String, int, int)))',
     );
 
-    var T2 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(
-                type: functionTypeNone(
-                  formalParameters: [
-                    requiredParameter(type: intNone),
-                    requiredParameter(type: doubleNone),
-                    requiredParameter(type: numNone),
-                  ],
-                  returnType: voidNone,
-                ),
-              ),
-            ],
-            returnType: voidNone,
-          ),
-        ),
-      ],
-      returnType: voidNone,
+    var T2 = parseFunctionType(
+      'void Function(void Function(void Function(int, double, num)))',
     );
     expect(
       typeString(T2),
       'void Function(void Function(void Function(int, double, num)))',
     );
 
-    var expected = functionTypeNone(
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(
-                type: functionTypeNone(
-                  formalParameters: [
-                    requiredParameter(type: neverNone),
-                    requiredParameter(type: neverNone),
-                    requiredParameter(type: intNone),
-                  ],
-                  returnType: voidNone,
-                ),
-              ),
-            ],
-            returnType: voidNone,
-          ),
-        ),
-      ],
-      returnType: voidNone,
+    var expected = parseFunctionType(
+      'void Function(void Function(void Function(Never, Never, int)))',
     );
     expect(
       typeString(expected),
@@ -1381,317 +1245,232 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   void test_parameters_fuzzyArrows() {
-    var T1 = functionTypeNone(
-      formalParameters: [requiredParameter(type: dynamicType)],
-      returnType: voidNone,
-    );
+    var T1 = parseFunctionType('void Function(dynamic)');
 
-    var T2 = functionTypeNone(
-      formalParameters: [requiredParameter(type: intNone)],
-      returnType: voidNone,
-    );
+    var T2 = parseFunctionType('void Function(int)');
 
-    var expected = functionTypeNone(
-      formalParameters: [requiredParameter(type: intNone)],
-      returnType: voidNone,
-    );
+    var expected = parseFunctionType('void Function(int)');
 
     _checkLeastUpperBound(T1, T2, expected);
   }
 
   test_parameters_optionalNamed() {
-    FunctionTypeImpl build(Map<String, TypeImpl> namedTypes) {
-      return functionTypeNone(
-        returnType: voidNone,
-        formalParameters: namedTypes.entries.map((entry) {
-          return namedParameter(name: entry.key, type: entry.value);
-        }).toList(),
-      );
-    }
+    _checkLeastUpperBound(
+      parseFunctionType('void Function({int a})'),
+      parseFunctionType('void Function()'),
+      parseFunctionType('void Function()'),
+    );
 
-    void check(
-      Map<String, TypeImpl> T1_named,
-      Map<String, TypeImpl> T2_named,
-      Map<String, TypeImpl> expected_named,
-    ) {
-      var T1 = build(T1_named);
-      var T2 = build(T2_named);
-      var expected = build(expected_named);
-      _checkLeastUpperBound(T1, T2, expected);
-    }
+    _checkLeastUpperBound(
+      parseFunctionType('void Function({int a})'),
+      parseFunctionType('void Function({int b})'),
+      parseFunctionType('void Function()'),
+    );
 
-    check({'a': intNone}, {}, {});
-    check({'a': intNone}, {'b': intNone}, {});
+    _checkLeastUpperBound(
+      parseFunctionType('void Function({int a})'),
+      parseFunctionType('void Function({int a})'),
+      parseFunctionType('void Function({int a})'),
+    );
 
-    check({'a': intNone}, {'a': intNone}, {'a': intNone});
-    check({'a': intNone}, {'a': intQuestion}, {'a': intNone});
+    _checkLeastUpperBound(
+      parseFunctionType('void Function({int a})'),
+      parseFunctionType('void Function({int? a})'),
+      parseFunctionType('void Function({int a})'),
+    );
 
-    check({'a': intNone, 'b': doubleNone}, {'a': intNone}, {'a': intNone});
+    _checkLeastUpperBound(
+      parseFunctionType('void Function({int a, double b})'),
+      parseFunctionType('void Function({int a})'),
+      parseFunctionType('void Function({int a})'),
+    );
   }
 
   test_parameters_optionalPositional() {
-    FunctionTypeImpl build(List<TypeImpl> positionalTypes) {
-      return functionTypeNone(
-        returnType: voidNone,
-        formalParameters: positionalTypes.map((type) {
-          return positionalParameter(type: type);
-        }).toList(),
-      );
-    }
+    _checkLeastUpperBound(
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function()'),
+      parseFunctionType('void Function()'),
+    );
 
-    void check(
-      List<TypeImpl> T1_positional,
-      List<TypeImpl> T2_positional,
-      TypeImpl expected,
-    ) {
-      var T1 = build(T1_positional);
-      var T2 = build(T2_positional);
-      _checkLeastUpperBound(T1, T2, expected);
-    }
+    _checkLeastUpperBound(
+      parseFunctionType('void Function([int, double])'),
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function([int])'),
+    );
 
-    check([intNone], [], build([]));
-    check([intNone, doubleNone], [intNone], build([intNone]));
+    _checkLeastUpperBound(
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function([int])'),
+    );
 
-    check([intNone], [intNone], build([intNone]));
-    check([intNone], [intQuestion], build([intNone]));
+    _checkLeastUpperBound(
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function([int?])'),
+      parseFunctionType('void Function([int])'),
+    );
 
-    check([intNone], [doubleNone], build([neverNone]));
+    _checkLeastUpperBound(
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function([double])'),
+      parseFunctionType('void Function([Never])'),
+    );
 
-    check([intNone], [numNone], build([intNone]));
+    _checkLeastUpperBound(
+      parseFunctionType('void Function([int])'),
+      parseFunctionType('void Function([num])'),
+      parseFunctionType('void Function([int])'),
+    );
 
-    check(
-      [doubleNone, numNone],
-      [numNone, intNone],
-      build([doubleNone, intNone]),
+    _checkLeastUpperBound(
+      parseFunctionType('void Function([double, num])'),
+      parseFunctionType('void Function([num, int])'),
+      parseFunctionType('void Function([double, int])'),
     );
   }
 
   test_parameters_requiredNamed() {
     _checkLeastUpperBound(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: intNone)],
-      ),
-      functionNone,
+      parseFunctionType('void Function(int a)'),
+      parseFunctionType('void Function({required int a})'),
+      parseType('Function'),
     );
 
     _checkLeastUpperBound(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: intNone)],
-      ),
-      functionNone,
+      parseFunctionType('void Function([int a])'),
+      parseFunctionType('void Function({required int a})'),
+      parseType('Function'),
     );
 
     _checkLeastUpperBound(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'b', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: intNone)],
-      ),
-      functionNone,
+      parseFunctionType('void Function({int b})'),
+      parseFunctionType('void Function({required int a})'),
+      parseType('Function'),
     );
 
     _checkLeastUpperBound(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: intNone)],
-      ),
+      parseFunctionType('void Function({int a})'),
+      parseFunctionType('void Function({required int a})'),
+      parseFunctionType('void Function({required int a})'),
     );
 
     _checkLeastUpperBound(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          namedParameter(name: 'a', type: intNone),
-          namedRequiredParameter(name: 'b', type: intNone),
-        ],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'b', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'b', type: intNone)],
-      ),
+      parseFunctionType('void Function({int a, required int b})'),
+      parseFunctionType('void Function({required int b})'),
+      parseFunctionType('void Function({required int b})'),
     );
 
     _checkLeastUpperBound(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: numNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: intNone)],
-      ),
+      parseFunctionType('void Function({required int a})'),
+      parseFunctionType('void Function({required num a})'),
+      parseFunctionType('void Function({required int a})'),
     );
   }
 
   test_parameters_requiredPositional() {
-    FunctionTypeImpl build(List<TypeImpl> requiredTypes) {
-      return functionTypeNone(
-        returnType: voidNone,
-        formalParameters: requiredTypes.map((type) {
-          return requiredParameter(type: type);
-        }).toList(),
-      );
-    }
+    _checkLeastUpperBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function()'),
+      parseType('Function'),
+    );
 
-    void check(
-      List<TypeImpl> T1_required,
-      List<TypeImpl> T2_required,
-      TypeImpl expected,
-    ) {
-      var T1 = build(T1_required);
-      var T2 = build(T2_required);
-      _checkLeastUpperBound(T1, T2, expected);
-    }
+    _checkLeastUpperBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(int)'),
+    );
 
-    check([intNone], [], functionNone);
+    _checkLeastUpperBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(int?)'),
+      parseFunctionType('void Function(int)'),
+    );
 
-    check([intNone], [intNone], build([intNone]));
-    check([intNone], [intQuestion], build([intNone]));
+    _checkLeastUpperBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(double)'),
+      parseFunctionType('void Function(Never)'),
+    );
 
-    check([intNone], [doubleNone], build([neverNone]));
+    _checkLeastUpperBound(
+      parseFunctionType('void Function(int)'),
+      parseFunctionType('void Function(num)'),
+      parseFunctionType('void Function(int)'),
+    );
 
-    check([intNone], [numNone], build([intNone]));
-
-    check(
-      [doubleNone, numNone],
-      [numNone, intNone],
-      build([doubleNone, intNone]),
+    _checkLeastUpperBound(
+      parseFunctionType('void Function(double, num)'),
+      parseFunctionType('void Function(num, int)'),
+      parseFunctionType('void Function(double, int)'),
     );
   }
 
   void test_parameters_requiredPositional_differentArity() {
-    var T1 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: intNone),
-        requiredParameter(type: intNone),
-      ],
-      returnType: voidNone,
-    );
+    var T1 = parseFunctionType('void Function(int, int)');
 
-    var T2 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: intNone),
-        requiredParameter(type: intNone),
-        requiredParameter(type: intNone),
-      ],
-      returnType: voidNone,
-    );
+    var T2 = parseFunctionType('void Function(int, int, int)');
 
     _checkLeastUpperBound(T1, T2, typeProvider.functionType);
   }
 
   test_returnType() {
-    void check(TypeImpl T1_ret, TypeImpl T2_ret, TypeImpl expected_ret) {
-      _checkLeastUpperBound(
-        functionTypeNone(returnType: T1_ret),
-        functionTypeNone(returnType: T2_ret),
-        functionTypeNone(returnType: expected_ret),
-      );
-    }
+    _checkLeastUpperBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('int Function()'),
+      parseFunctionType('int Function()'),
+    );
+    _checkLeastUpperBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('int? Function()'),
+      parseFunctionType('int? Function()'),
+    );
 
-    check(intNone, intNone, intNone);
-    check(intNone, intQuestion, intQuestion);
+    _checkLeastUpperBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('num Function()'),
+      parseFunctionType('num Function()'),
+    );
+    _checkLeastUpperBound(
+      parseFunctionType('int? Function()'),
+      parseFunctionType('num Function()'),
+      parseFunctionType('num? Function()'),
+    );
 
-    check(intNone, numNone, numNone);
-    check(intQuestion, numNone, numQuestion);
-
-    check(intNone, dynamicType, dynamicType);
-    check(intNone, invalidType, invalidType);
-    check(intNone, neverNone, intNone);
+    _checkLeastUpperBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('dynamic Function()'),
+      parseFunctionType('dynamic Function()'),
+    );
+    _checkLeastUpperBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('InvalidType Function()'),
+      parseFunctionType('InvalidType Function()'),
+    );
+    _checkLeastUpperBound(
+      parseFunctionType('int Function()'),
+      parseFunctionType('Never Function()'),
+      parseFunctionType('int Function()'),
+    );
   }
 
   void test_sameType_withNamed() {
-    var T1 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: stringNone),
-        requiredParameter(type: intNone),
-        requiredParameter(type: numNone),
-        namedParameter(name: 'n', type: numNone),
-      ],
-      returnType: intNone,
-    );
+    var T1 = parseFunctionType('int Function(String, int, num, {num n})');
 
-    var T2 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: stringNone),
-        requiredParameter(type: intNone),
-        requiredParameter(type: numNone),
-        namedParameter(name: 'n', type: numNone),
-      ],
-      returnType: intNone,
-    );
+    var T2 = parseFunctionType('int Function(String, int, num, {num n})');
 
-    var expected = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: stringNone),
-        requiredParameter(type: intNone),
-        requiredParameter(type: numNone),
-        namedParameter(name: 'n', type: numNone),
-      ],
-      returnType: intNone,
-    );
+    var expected = parseFunctionType('int Function(String, int, num, {num n})');
 
     _checkLeastUpperBound(T1, T2, expected);
   }
 
   void test_sameType_withOptional() {
-    var T1 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: stringNone),
-        requiredParameter(type: intNone),
-        requiredParameter(type: numNone),
-        positionalParameter(type: doubleNone),
-      ],
-      returnType: intNone,
-    );
+    var T1 = parseFunctionType('int Function(String, int, num, [double])');
 
-    var T2 = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: stringNone),
-        requiredParameter(type: intNone),
-        requiredParameter(type: numNone),
-        positionalParameter(type: doubleNone),
-      ],
-      returnType: intNone,
-    );
+    var T2 = parseFunctionType('int Function(String, int, num, [double])');
 
-    var expected = functionTypeNone(
-      formalParameters: [
-        requiredParameter(type: stringNone),
-        requiredParameter(type: intNone),
-        requiredParameter(type: numNone),
-        positionalParameter(type: doubleNone),
-      ],
-      returnType: intNone,
+    var expected = parseFunctionType(
+      'int Function(String, int, num, [double])',
     );
 
     _checkLeastUpperBound(T1, T2, expected);
@@ -1706,37 +1485,20 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     }
 
     check(
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('T')],
-      ),
-      functionTypeNone(returnType: voidNone),
-      functionNone,
+      parseFunctionType('void Function<T>()'),
+      parseFunctionType('void Function()'),
+      parseType('Function'),
     );
 
     check(
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('T', bound: intNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('T', bound: numNone)],
-      ),
-      functionNone,
+      parseFunctionType('void Function<T extends int>()'),
+      parseFunctionType('void Function<T extends num>()'),
+      parseType('Function'),
     );
 
     {
-      var T = typeParameter('T', bound: numNone);
-      var U = typeParameter('U', bound: numNone);
-      var T1 = functionTypeNone(
-        returnType: typeParameterTypeNone(T),
-        typeParameters: [T],
-      );
-      var T2 = functionTypeNone(
-        returnType: typeParameterTypeNone(U),
-        typeParameters: [U],
-      );
+      var T1 = parseFunctionType('T Function<T extends num>()');
+      var T2 = parseFunctionType('U Function<U extends num>()');
       {
         var result = typeSystem.leastUpperBound(T1, T2);
         var resultStr = typeString(result);
@@ -1751,12 +1513,16 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
   }
 
   test_unrelated() {
-    var T1 = functionTypeNone(returnType: intNone);
+    var T1 = parseFunctionType('int Function()');
 
-    _checkLeastUpperBound(T1, intNone, objectNone);
-    _checkLeastUpperBound(T1, intQuestion, objectQuestion);
+    _checkLeastUpperBound(T1, parseType('int'), parseType('Object'));
+    _checkLeastUpperBound(T1, parseType('int?'), parseType('Object?'));
 
-    _checkLeastUpperBound(T1, futureOrNone(functionQuestion), objectQuestion);
+    _checkLeastUpperBound(
+      T1,
+      parseType('FutureOr<Function?>'),
+      parseType('Object?'),
+    );
   }
 }
 
@@ -1774,13 +1540,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class C implements B'),
       ],
     );
-    var B = classElement('B');
-    var typeB = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var typeC = interfaceTypeNone(C);
-
-    _checkLeastUpperBound(typeB, typeC, typeB);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('C'),
+      parseInterfaceType('B'),
+    );
   }
 
   test_directSuperclass() {
@@ -1795,28 +1559,21 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class C extends B'),
       ],
     );
-    var B = classElement('B');
-    var typeB = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var typeC = interfaceTypeNone(C);
-
-    _checkLeastUpperBound(typeB, typeC, typeB);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('C'),
+      parseInterfaceType('B'),
+    );
   }
 
   void test_directSuperclass_nullability() {
     buildTestLibrary(
       classes: [ClassSpec('class A'), ClassSpec('class B extends A')],
     );
-    var aElement = classElement('A');
-    var aQuestion = interfaceTypeQuestion(aElement);
-    var aNone = interfaceTypeNone(aElement);
-
-    var bElementNone = classElement('B');
-
-    var bNoneQuestion = interfaceTypeQuestion(bElementNone);
-
-    var bNoneNone = interfaceTypeNone(bElementNone);
+    var aQuestion = parseInterfaceType('A?');
+    var aNone = parseInterfaceType('A');
+    var bNoneQuestion = parseInterfaceType('B?');
+    var bNoneNone = parseInterfaceType('B');
 
     void assertLUB(TypeImpl type1, TypeImpl type2, TypeImpl expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
@@ -1831,7 +1588,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
   }
 
   void test_implementationsOfComparable() {
-    _checkLeastUpperBound(stringNone, numNone, objectNone);
+    _checkLeastUpperBound(
+      parseType('String'),
+      parseType('num'),
+      parseType('Object'),
+    );
   }
 
   void test_mixinAndClass_constraintAndInterface() {
@@ -1839,13 +1600,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
       classes: [ClassSpec('class A'), ClassSpec('class B implements A')],
       mixins: [MixinSpec('mixin M on A')],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var M = mixinElement('M');
-
-    _checkLeastUpperBound(interfaceTypeNone(B), interfaceTypeNone(M), A_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('M'),
+      parseInterfaceType('A'),
+    );
   }
 
   void test_mixinAndClass_object() {
@@ -1853,13 +1612,10 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
       classes: [ClassSpec('class A')],
       mixins: [MixinSpec('mixin M')],
     );
-    var A = classElement('A');
-    var M = mixinElement('M');
-
     _checkLeastUpperBound(
-      interfaceTypeNone(A),
-      interfaceTypeNone(M),
-      objectNone,
+      parseInterfaceType('A'),
+      parseInterfaceType('M'),
+      parseType('Object'),
     );
   }
 
@@ -1868,21 +1624,17 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
       classes: [ClassSpec('class A'), ClassSpec('class B implements A')],
       mixins: [MixinSpec('mixin M implements A')],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var M = mixinElement('M');
-
-    _checkLeastUpperBound(interfaceTypeNone(B), interfaceTypeNone(M), A_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('M'),
+      parseInterfaceType('A'),
+    );
   }
 
   void test_sameElement_nullability() {
     buildTestLibrary(classes: [ClassSpec('class A')]);
-    var aElement = classElement('A');
-
-    var aQuestion = interfaceTypeQuestion(aElement);
-    var aNone = interfaceTypeNone(aElement);
+    var aQuestion = parseInterfaceType('A?');
+    var aNone = parseInterfaceType('A');
 
     void assertLUB(TypeImpl type1, TypeImpl type2, TypeImpl expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
@@ -1905,16 +1657,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
       classes: [ClassSpec('class B with M'), ClassSpec('class C with M')],
       mixins: [MixinSpec('mixin M')],
     );
-    var M = mixinElement('M');
-    var M_none = interfaceTypeNone(M);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var C_none = interfaceTypeNone(C);
-
-    _checkLeastUpperBound(B_none, C_none, M_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('C'),
+      parseInterfaceType('M'),
+    );
   }
 
   void test_sharedMixin2() {
@@ -1935,16 +1682,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         MixinSpec('mixin M3'),
       ],
     );
-    var M1 = mixinElement('M1');
-    var M1_none = interfaceTypeNone(M1);
-
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    _checkLeastUpperBound(A_none, B_none, M1_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('A'),
+      parseInterfaceType('B'),
+      parseInterfaceType('M1'),
+    );
   }
 
   void test_sharedMixin3() {
@@ -1965,16 +1707,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         MixinSpec('mixin M3'),
       ],
     );
-    var M1 = mixinElement('M1');
-    var M1_none = interfaceTypeNone(M1);
-
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    _checkLeastUpperBound(A_none, B_none, M1_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('A'),
+      parseInterfaceType('B'),
+      parseInterfaceType('M1'),
+    );
   }
 
   void test_sharedSuperclass1() {
@@ -1989,16 +1726,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class C extends A'),
       ],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var C_none = interfaceTypeNone(C);
-
-    _checkLeastUpperBound(B_none, C_none, A_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('C'),
+      parseInterfaceType('A'),
+    );
   }
 
   void test_sharedSuperclass1_nullability() {
@@ -2009,18 +1741,12 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class C extends A'),
       ],
     );
-    var aElement = classElement('A');
-    var aQuestion = interfaceTypeQuestion(aElement);
-    var aNone = interfaceTypeNone(aElement);
-
-    var bElementNone = classElement('B');
-    var cElementNone = classElement('C');
-
-    var bNoneQuestion = interfaceTypeQuestion(bElementNone);
-    var bNoneNone = interfaceTypeNone(bElementNone);
-
-    var cNoneQuestion = interfaceTypeQuestion(cElementNone);
-    var cNoneNone = interfaceTypeNone(cElementNone);
+    var aQuestion = parseInterfaceType('A?');
+    var aNone = parseInterfaceType('A');
+    var bNoneQuestion = parseInterfaceType('B?');
+    var bNoneNone = parseInterfaceType('B');
+    var cNoneQuestion = parseInterfaceType('C?');
+    var cNoneNone = parseInterfaceType('C');
 
     void assertLUB(TypeImpl type1, TypeImpl type2, TypeImpl expected) {
       expect(typeSystem.leastUpperBound(type1, type2), expected);
@@ -2048,16 +1774,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class D extends C'),
       ],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var D = classElement('D');
-    var D_none = interfaceTypeNone(D);
-
-    _checkLeastUpperBound(B_none, D_none, A_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('D'),
+      parseInterfaceType('A'),
+    );
   }
 
   void test_sharedSuperclass3() {
@@ -2074,16 +1795,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class D extends B'),
       ],
     );
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var C_none = interfaceTypeNone(C);
-
-    var D = classElement('D');
-    var D_none = interfaceTypeNone(D);
-
-    _checkLeastUpperBound(C_none, D_none, B_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('C'),
+      parseInterfaceType('D'),
+      parseInterfaceType('B'),
+    );
   }
 
   void test_sharedSuperclass4() {
@@ -2102,16 +1818,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class C extends A implements A3'),
       ],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var C_none = interfaceTypeNone(C);
-
-    _checkLeastUpperBound(B_none, C_none, A_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('C'),
+      parseInterfaceType('A'),
+    );
   }
 
   void test_sharedSuperinterface1() {
@@ -2126,16 +1837,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class C implements A'),
       ],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var C_none = interfaceTypeNone(C);
-
-    _checkLeastUpperBound(B_none, C_none, A_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('C'),
+      parseInterfaceType('A'),
+    );
   }
 
   void test_sharedSuperinterface2() {
@@ -2152,16 +1858,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class D implements C'),
       ],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var D = classElement('D');
-    var D_none = interfaceTypeNone(D);
-
-    _checkLeastUpperBound(B_none, D_none, A_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('D'),
+      parseInterfaceType('A'),
+    );
   }
 
   void test_sharedSuperinterface3() {
@@ -2178,16 +1879,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class D implements B'),
       ],
     );
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var C_none = interfaceTypeNone(C);
-
-    var D = classElement('D');
-    var D_none = interfaceTypeNone(D);
-
-    _checkLeastUpperBound(C_none, D_none, B_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('C'),
+      parseInterfaceType('D'),
+      parseInterfaceType('B'),
+    );
   }
 
   void test_sharedSuperinterface4() {
@@ -2206,16 +1902,11 @@ class UpperBound_InterfaceTypes_Test extends _BoundsTestBase {
         ClassSpec('class C implements A, A3'),
       ],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var C_none = interfaceTypeNone(C);
-
-    _checkLeastUpperBound(B_none, C_none, A_none);
+    _checkLeastUpperBound(
+      parseInterfaceType('B'),
+      parseInterfaceType('C'),
+      parseInterfaceType('A'),
+    );
   }
 }
 
@@ -2290,43 +1981,45 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, T2);
     }
 
-    check(neverNone, dynamicType);
-    check(neverNone, invalidType);
+    check(parseType('Never'), parseType('dynamic'));
+    check(parseType('Never'), parseType('InvalidType'));
 
-    check(neverNone, objectNone);
-    check(neverNone, objectQuestion);
+    check(parseType('Never'), parseType('Object'));
+    check(parseType('Never'), parseType('Object?'));
 
-    check(neverNone, intNone);
-    check(neverNone, intQuestion);
+    check(parseType('Never'), parseType('int'));
+    check(parseType('Never'), parseType('int?'));
 
-    check(neverNone, listNone(intNone));
-    check(neverNone, listQuestion(intNone));
+    check(parseType('Never'), parseType('List<int>'));
+    check(parseType('Never'), parseType('List<int>?'));
 
-    check(neverNone, futureOrNone(intNone));
-    check(neverNone, futureOrQuestion(intNone));
+    check(parseType('Never'), parseType('FutureOr<int>'));
+    check(parseType('Never'), parseType('FutureOr<int>?'));
 
-    check(neverNone, functionTypeNone(returnType: voidNone));
-    check(neverNone, functionTypeQuestion(returnType: voidNone));
+    check(parseType('Never'), parseFunctionType('void Function()'));
+    check(parseType('Never'), parseFunctionType('void Function()?'));
 
     {
-      var T = typeParameter('T');
-      check(neverNone, typeParameterTypeNone(T));
-      check(neverNone, typeParameterTypeQuestion(T));
+      withTypeParameterScope('T', (scope) {
+        check(parseType('Never'), scope.parseType('T'));
+        check(parseType('Never'), scope.parseType('T?'));
+      });
     }
 
     {
-      var T = typeParameterTypeNone(typeParameter('T', bound: neverNone));
-      check(T, intNone);
-      check(T, intQuestion);
+      withTypeParameterScope('T extends Never', (scope) {
+        var T = scope.parseType('T');
+        check(T, parseType('int'));
+        check(T, parseType('int?'));
+      });
     }
 
     {
-      var T = promotedTypeParameterTypeNone(
-        typeParameter('T', bound: objectQuestion),
-        neverNone,
-      );
-      check(T, intNone);
-      check(T, intQuestion);
+      withTypeParameterScope('T extends Object?', (scope) {
+        var T = scope.parseType('T & Never');
+        check(T, parseType('int'));
+        check(T, parseType('int?'));
+      });
     }
   }
 
@@ -2337,18 +2030,13 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, T2);
     }
 
-    check(
-      neverNone,
-      typeParameterTypeNone(typeParameter('T', bound: neverNone)),
-    );
+    withTypeParameterScope('T extends Never', (scope) {
+      check(parseType('Never'), scope.parseType('T'));
+    });
 
-    check(
-      neverNone,
-      promotedTypeParameterTypeNone(
-        typeParameter('T', bound: objectQuestion),
-        neverNone,
-      ),
-    );
+    withTypeParameterScope('T extends Object?', (scope) {
+      check(parseType('Never'), scope.parseType('T & Never'));
+    });
   }
 
   void test_extensionType_implementExtensionType_implicitObjectQuestion() {
@@ -2363,12 +2051,10 @@ class UpperBoundTest extends _BoundsTestBase {
         ExtensionTypeSpec('extension type C(Object? it) implements A'),
       ],
     );
-    var A_none = interfaceTypeNone(extensionTypeElement('A'));
-
     _checkLeastUpperBound(
-      interfaceTypeNone(extensionTypeElement('B')),
-      interfaceTypeNone(extensionTypeElement('C')),
-      A_none,
+      parseInterfaceType('B'),
+      parseInterfaceType('C'),
+      parseInterfaceType('A'),
     );
   }
 
@@ -2383,9 +2069,9 @@ class UpperBoundTest extends _BoundsTestBase {
       ],
     );
     _checkLeastUpperBound(
-      interfaceTypeNone(extensionTypeElement('A')),
-      interfaceTypeNone(extensionTypeElement('B')),
-      numNone,
+      parseInterfaceType('A'),
+      parseInterfaceType('B'),
+      parseType('num'),
     );
   }
 
@@ -2400,9 +2086,9 @@ class UpperBoundTest extends _BoundsTestBase {
       ],
     );
     _checkLeastUpperBound(
-      interfaceTypeNone(extensionTypeElement('A')),
-      interfaceTypeNone(extensionTypeElement('B')),
-      objectQuestion,
+      parseInterfaceType('A'),
+      parseInterfaceType('B'),
+      parseType('Object?'),
     );
   }
 
@@ -2413,13 +2099,10 @@ class UpperBoundTest extends _BoundsTestBase {
         ExtensionTypeSpec('extension type B<T>(T it) implements Object?'),
       ],
     );
-    var A = extensionTypeElement('A');
-    var B = extensionTypeElement('B');
-
     _checkLeastUpperBound(
-      interfaceTypeNone(A, typeArguments: [stringNone]),
-      interfaceTypeNone(B, typeArguments: [numNone]),
-      objectNone,
+      parseInterfaceType('A<String>'),
+      parseInterfaceType('B<num>'),
+      parseType('Object'),
     );
   }
 
@@ -2435,98 +2118,93 @@ class UpperBoundTest extends _BoundsTestBase {
         ),
       ],
     );
-    var A = extensionTypeElement('A');
-    var B = extensionTypeElement('B');
-
     // A<T1> implements E<T1>, String
     // B<T2> implements E<T2?>, num
     _checkLeastUpperBound(
-      interfaceTypeNone(A, typeArguments: [stringNone]),
-      interfaceTypeNone(B, typeArguments: [numNone]),
-      objectNone,
+      parseInterfaceType('A<String>'),
+      parseInterfaceType('B<num>'),
+      parseType('Object'),
     );
   }
 
   test_functionType_interfaceType() {
-    void check(
-      FunctionTypeImpl T1,
-      InterfaceTypeImpl T2,
-      InterfaceTypeImpl expected,
-    ) {
+    void check(FunctionTypeImpl T1, TypeImpl T2, TypeImpl expected) {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
-    check(functionTypeNone(returnType: voidNone), intNone, objectNone);
+    check(
+      parseFunctionType('void Function()'),
+      parseType('int'),
+      parseType('Object'),
+    );
   }
 
   test_functionType_interfaceType_Function() {
-    void check(
-      FunctionTypeImpl T1,
-      InterfaceTypeImpl T2,
-      InterfaceTypeImpl expected,
-    ) {
+    void check(FunctionTypeImpl T1, TypeImpl T2, TypeImpl expected) {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
     void checkNone(FunctionTypeImpl T1) {
       _assertNullabilityNone(T1);
-      check(T1, functionNone, functionNone);
+      check(T1, parseType('Function'), parseType('Function'));
     }
 
-    checkNone(functionTypeNone(returnType: voidNone));
+    checkNone(parseFunctionType('void Function()'));
 
-    checkNone(
-      functionTypeNone(
-        returnType: intNone,
-        formalParameters: [requiredParameter(type: numQuestion)],
-      ),
-    );
+    checkNone(parseFunctionType('int Function(num?)'));
 
     check(
-      functionTypeQuestion(returnType: voidNone),
-      functionNone,
-      functionQuestion,
+      parseFunctionType('void Function()?'),
+      parseType('Function'),
+      parseType('Function?'),
     );
   }
 
   /// `UP(Future<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
   /// `UP(FutureOr<T1>, Future<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
   test_futureOr_future() {
-    void check(TypeImpl T1, TypeImpl T2, TypeImpl expected) {
-      _checkLeastUpperBound(
-        futureNone(T1),
-        futureOrNone(T2),
-        futureOrNone(expected),
-      );
-    }
+    _checkLeastUpperBound(
+      parseType('Future<int>'),
+      parseType('FutureOr<double>'),
+      parseType('FutureOr<num>'),
+    );
 
-    check(intNone, doubleNone, numNone);
-    check(intNone, stringNone, objectNone);
+    _checkLeastUpperBound(
+      parseType('Future<int>'),
+      parseType('FutureOr<String>'),
+      parseType('FutureOr<Object>'),
+    );
   }
 
   /// `UP(FutureOr<T1>, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
   test_futureOr_futureOr() {
-    void check(TypeImpl T1, TypeImpl T2, TypeImpl expected) {
-      _checkLeastUpperBound(
-        futureOrNone(T1),
-        futureOrNone(T2),
-        futureOrNone(expected),
-      );
-    }
+    _checkLeastUpperBound(
+      parseType('FutureOr<int>'),
+      parseType('FutureOr<double>'),
+      parseType('FutureOr<num>'),
+    );
 
-    check(intNone, doubleNone, numNone);
-    check(intNone, stringNone, objectNone);
+    _checkLeastUpperBound(
+      parseType('FutureOr<int>'),
+      parseType('FutureOr<String>'),
+      parseType('FutureOr<Object>'),
+    );
   }
 
   /// `UP(T1, FutureOr<T2>) = FutureOr<T3> where T3 = UP(T1, T2)`
   /// `UP(FutureOr<T1>, T2) = FutureOr<T3> where T3 = UP(T1, T2)`
   test_futureOr_other() {
-    void check(TypeImpl T1, TypeImpl T2, TypeImpl expected) {
-      _checkLeastUpperBound(futureOrNone(T1), T2, futureOrNone(expected));
-    }
+    _checkLeastUpperBound(
+      parseType('FutureOr<int>'),
+      parseType('double'),
+      parseType('FutureOr<num>'),
+    );
 
-    check(intNone, doubleNone, numNone);
-    check(intNone, stringNone, objectNone);
+    _checkLeastUpperBound(
+      parseType('FutureOr<int>'),
+      parseType('String'),
+      parseType('FutureOr<Object>'),
+    );
   }
 
   test_identical() {
@@ -2534,19 +2212,17 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(type, type, type);
     }
 
-    check(intNone);
-    check(intQuestion);
-    check(listNone(intNone));
+    check(parseType('int'));
+    check(parseType('int?'));
+    check(parseType('List<int>'));
   }
 
   void test_interfaceType_functionType() {
     buildTestLibrary(classes: [ClassSpec('class A')]);
-    var A = classElement('A');
-
     _checkLeastUpperBound(
-      interfaceTypeNone(A),
-      functionTypeNone(returnType: voidNone),
-      objectNone,
+      parseInterfaceType('A'),
+      parseFunctionType('void Function()'),
+      parseType('Object'),
     );
   }
 
@@ -2561,9 +2237,9 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
-    check(doubleNone, intQuestion, numQuestion);
-    check(numNone, doubleQuestion, numQuestion);
-    check(numNone, intQuestion, numQuestion);
+    check(parseType('double'), parseType('int?'), parseType('num?'));
+    check(parseType('num'), parseType('double?'), parseType('num?'));
+    check(parseType('num'), parseType('int?'), parseType('num?'));
   }
 
   test_null_any() {
@@ -2580,28 +2256,40 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
-    check(nullNone, objectNone, objectQuestion);
+    check(parseType('Null'), parseType('Object'), parseType('Object?'));
 
-    check(nullNone, intNone, intQuestion);
-    check(nullNone, intQuestion, intQuestion);
+    check(parseType('Null'), parseType('int'), parseType('int?'));
+    check(parseType('Null'), parseType('int?'), parseType('int?'));
 
-    check(nullNone, listNone(intNone), listQuestion(intNone));
-    check(nullNone, listQuestion(intNone), listQuestion(intNone));
+    check(parseType('Null'), parseType('List<int>'), parseType('List<int>?'));
+    check(parseType('Null'), parseType('List<int>?'), parseType('List<int>?'));
 
-    check(nullNone, futureOrNone(intNone), futureOrQuestion(intNone));
-    check(nullNone, futureOrQuestion(intNone), futureOrQuestion(intNone));
-
-    check(nullNone, futureOrNone(intQuestion), futureOrNone(intQuestion));
     check(
-      nullNone,
-      futureOrQuestion(intQuestion),
-      futureOrQuestion(intQuestion),
+      parseType('Null'),
+      parseType('FutureOr<int>'),
+      parseType('FutureOr<int>?'),
+    );
+    check(
+      parseType('Null'),
+      parseType('FutureOr<int>?'),
+      parseType('FutureOr<int>?'),
     );
 
     check(
-      nullNone,
-      functionTypeNone(returnType: intNone),
-      functionTypeQuestion(returnType: intNone),
+      parseType('Null'),
+      parseType('FutureOr<int?>'),
+      parseType('FutureOr<int?>'),
+    );
+    check(
+      parseType('Null'),
+      parseType('FutureOr<int?>?'),
+      parseType('FutureOr<int?>?'),
+    );
+
+    check(
+      parseType('Null'),
+      parseFunctionType('int Function()'),
+      parseFunctionType('int Function()?'),
     );
   }
 
@@ -2616,7 +2304,7 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, T2);
     }
 
-    check(nullNone, nullNone);
+    check(parseType('Null'), parseType('Null'));
   }
 
   test_object_any() {
@@ -2627,13 +2315,25 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
-    check(objectNone, intNone, objectNone);
-    check(objectNone, intQuestion, objectQuestion);
+    check(parseType('Object'), parseType('int'), parseType('Object'));
+    check(parseType('Object'), parseType('int?'), parseType('Object?'));
 
-    check(objectNone, futureOrNone(intQuestion), objectQuestion);
+    check(
+      parseType('Object'),
+      parseType('FutureOr<int?>'),
+      parseType('Object?'),
+    );
 
-    check(futureOrNone(objectNone), intNone, futureOrNone(objectNone));
-    check(futureOrNone(objectNone), intQuestion, futureOrQuestion(objectNone));
+    check(
+      parseType('FutureOr<Object>'),
+      parseType('int'),
+      parseType('FutureOr<Object>'),
+    );
+    check(
+      parseType('FutureOr<Object>'),
+      parseType('int?'),
+      parseType('FutureOr<Object>?'),
+    );
   }
 
   test_object_object() {
@@ -2644,9 +2344,12 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, T2);
     }
 
-    check(futureOrNone(objectNone), objectNone);
+    check(parseType('FutureOr<Object>'), parseType('Object'));
 
-    check(futureOrNone(futureOrNone(objectNone)), futureOrNone(objectNone));
+    check(
+      parseType('FutureOr<FutureOr<Object>>'),
+      parseType('FutureOr<Object>'),
+    );
   }
 
   test_question_question() {
@@ -2660,9 +2363,9 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
-    check(doubleQuestion, intQuestion, numQuestion);
-    check(numQuestion, doubleQuestion, numQuestion);
-    check(numQuestion, intQuestion, numQuestion);
+    check(parseType('double?'), parseType('int?'), parseType('num?'));
+    check(parseType('num?'), parseType('double?'), parseType('num?'));
+    check(parseType('num?'), parseType('int?'), parseType('num?'));
   }
 
   test_top_any() {
@@ -2673,27 +2376,26 @@ class UpperBoundTest extends _BoundsTestBase {
     }
 
     void check2(TypeImpl T1) {
-      check(T1, objectNone);
-      check(T1, intNone);
-      check(T1, intQuestion);
-      check(T1, listNone(intNone));
-      check(T1, futureOrNone(intNone));
-      check(T1, functionTypeNone(returnType: voidNone));
+      check(T1, parseType('Object'));
+      check(T1, parseType('int'));
+      check(T1, parseType('int?'));
+      check(T1, parseType('List<int>'));
+      check(T1, parseType('FutureOr<int>'));
+      check(T1, parseFunctionType('void Function()'));
 
-      {
-        var T = typeParameter('T');
-        check(T1, typeParameterTypeNone(T));
-        check(T1, typeParameterTypeQuestion(T));
-      }
+      withTypeParameterScope('T', (scope) {
+        check(T1, scope.parseType('T'));
+        check(T1, scope.parseType('T?'));
+      });
     }
 
-    check2(voidNone);
-    check2(dynamicType);
-    check2(invalidType);
-    check2(objectQuestion);
+    check2(parseType('void'));
+    check2(parseType('dynamic'));
+    check2(parseType('InvalidType'));
+    check2(parseType('Object?'));
 
-    check2(futureOrNone(voidNone));
-    check2(futureOrQuestion(voidNone));
+    check2(parseType('FutureOr<void>'));
+    check2(parseType('FutureOr<void>?'));
   }
 
   test_top_top() {
@@ -2703,40 +2405,40 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, T1);
     }
 
-    check(voidNone, dynamicType);
-    check(voidNone, invalidType);
-    check(voidNone, objectQuestion);
-    check(voidNone, futureOrNone(voidNone));
-    check(voidNone, futureOrNone(dynamicType));
-    check(voidNone, futureOrNone(invalidType));
-    check(voidNone, futureOrNone(objectQuestion));
+    check(parseType('void'), parseType('dynamic'));
+    check(parseType('void'), parseType('InvalidType'));
+    check(parseType('void'), parseType('Object?'));
+    check(parseType('void'), parseType('FutureOr<void>'));
+    check(parseType('void'), parseType('FutureOr<dynamic>'));
+    check(parseType('void'), parseType('FutureOr<InvalidType>'));
+    check(parseType('void'), parseType('FutureOr<Object?>'));
 
-    check(dynamicType, objectQuestion);
-    check(dynamicType, futureOrNone(voidNone));
-    check(dynamicType, futureOrNone(dynamicType));
-    check(dynamicType, futureOrNone(objectQuestion));
+    check(parseType('dynamic'), parseType('Object?'));
+    check(parseType('dynamic'), parseType('FutureOr<void>'));
+    check(parseType('dynamic'), parseType('FutureOr<dynamic>'));
+    check(parseType('dynamic'), parseType('FutureOr<Object?>'));
 
-    check(invalidType, objectQuestion);
-    check(invalidType, futureOrNone(voidNone));
-    check(invalidType, futureOrNone(dynamicType));
-    check(invalidType, futureOrNone(objectQuestion));
+    check(parseType('InvalidType'), parseType('Object?'));
+    check(parseType('InvalidType'), parseType('FutureOr<void>'));
+    check(parseType('InvalidType'), parseType('FutureOr<dynamic>'));
+    check(parseType('InvalidType'), parseType('FutureOr<Object?>'));
 
-    check(objectQuestion, futureOrQuestion(voidNone));
-    check(objectQuestion, futureOrQuestion(dynamicType));
-    check(objectQuestion, futureOrQuestion(invalidType));
-    check(objectQuestion, futureOrQuestion(objectNone));
-    check(objectQuestion, futureOrQuestion(objectQuestion));
+    check(parseType('Object?'), parseType('FutureOr<void>?'));
+    check(parseType('Object?'), parseType('FutureOr<dynamic>?'));
+    check(parseType('Object?'), parseType('FutureOr<InvalidType>?'));
+    check(parseType('Object?'), parseType('FutureOr<Object>?'));
+    check(parseType('Object?'), parseType('FutureOr<Object?>?'));
 
-    check(futureOrNone(voidNone), objectQuestion);
-    check(futureOrNone(dynamicType), objectQuestion);
-    check(futureOrNone(invalidType), objectQuestion);
-    check(futureOrNone(objectQuestion), objectQuestion);
+    check(parseType('FutureOr<void>'), parseType('Object?'));
+    check(parseType('FutureOr<dynamic>'), parseType('Object?'));
+    check(parseType('FutureOr<InvalidType>'), parseType('Object?'));
+    check(parseType('FutureOr<Object?>'), parseType('Object?'));
 
-    check(futureOrNone(voidNone), futureOrNone(dynamicType));
-    check(futureOrNone(voidNone), futureOrNone(invalidType));
-    check(futureOrNone(voidNone), futureOrNone(objectQuestion));
-    check(futureOrNone(dynamicType), futureOrNone(objectQuestion));
-    check(futureOrNone(invalidType), futureOrNone(objectQuestion));
+    check(parseType('FutureOr<void>'), parseType('FutureOr<dynamic>'));
+    check(parseType('FutureOr<void>'), parseType('FutureOr<InvalidType>'));
+    check(parseType('FutureOr<void>'), parseType('FutureOr<Object?>'));
+    check(parseType('FutureOr<dynamic>'), parseType('FutureOr<Object?>'));
+    check(parseType('FutureOr<InvalidType>'), parseType('FutureOr<Object?>'));
   }
 
   test_typeParameter_bound() {
@@ -2750,122 +2452,101 @@ class UpperBoundTest extends _BoundsTestBase {
       _checkLeastUpperBound(T1, T2, expected);
     }
 
-    {
-      var T = typeParameter('T', bound: intNone);
-      check(typeParameterTypeNone(T), numNone, numNone);
-    }
+    withTypeParameterScope('T extends int', (scope) {
+      check(
+        scope.parseTypeParameterType('T'),
+        parseType('num'),
+        parseType('num'),
+      );
+    });
 
-    {
-      var T = typeParameter('T', bound: intNone);
-      var U = typeParameter('U', bound: numNone);
-      check(typeParameterTypeNone(T), typeParameterTypeNone(U), numNone);
-    }
+    withTypeParameterScope('T extends int, U extends num', (scope) {
+      check(
+        scope.parseTypeParameterType('T'),
+        scope.parseTypeParameterType('U'),
+        parseType('num'),
+      );
+    });
 
-    {
-      var T = typeParameter('T', bound: intNone);
-      var U = typeParameter('U', bound: numQuestion);
-      check(typeParameterTypeNone(T), typeParameterTypeNone(U), numQuestion);
-    }
+    withTypeParameterScope('T extends int, U extends num?', (scope) {
+      check(
+        scope.parseTypeParameterType('T'),
+        scope.parseTypeParameterType('U'),
+        parseType('num?'),
+      );
+    });
 
-    {
-      var T = typeParameter('T', bound: intQuestion);
-      var U = typeParameter('U', bound: numNone);
-      check(typeParameterTypeNone(T), typeParameterTypeNone(U), numQuestion);
-    }
+    withTypeParameterScope('T extends int?, U extends num', (scope) {
+      check(
+        scope.parseTypeParameterType('T'),
+        scope.parseTypeParameterType('U'),
+        parseType('num?'),
+      );
+    });
 
-    {
-      var T = typeParameter('T', bound: numNone);
-      var T_none = typeParameterTypeNone(T);
-      var U = typeParameter('U', bound: T_none);
-      check(T_none, typeParameterTypeNone(U), T_none);
-    }
+    withTypeParameterScope('T extends num, U extends T', (scope) {
+      var T = scope.parseTypeParameterType('T');
+      check(T, scope.parseTypeParameterType('U'), T);
+    });
   }
 
   void test_typeParameter_fBounded() {
     // class A<T> {}
     buildTestLibrary(classes: [ClassSpec('class A<T>')]);
-    var A = classElement('A');
 
-    // <S extends A<S>>
-    var S = typeParameter('S');
-    var S_none = typeParameterTypeNone(S);
-    S.bound = interfaceTypeNone(A, typeArguments: [S_none]);
+    withTypeParameterScope('S, U', (scope) {
+      var S = scope.typeParameter('S');
+      S.bound = scope.parseType('A<S>');
 
-    // <U extends A<U>>
-    var U = typeParameter('U');
-    var U_none = typeParameterTypeNone(U);
-    U.bound = interfaceTypeNone(A, typeArguments: [U_none]);
+      var U = scope.typeParameter('U');
+      U.bound = scope.parseType('A<U>');
 
-    _checkLeastUpperBound(
-      S_none,
-      typeParameterTypeNone(U),
-      interfaceTypeNone(A, typeArguments: [objectQuestion]),
-    );
+      _checkLeastUpperBound(
+        scope.parseType('S'),
+        scope.parseType('U'),
+        parseType('A<Object?>'),
+      );
+    });
   }
 
   void test_typeParameter_function_bounded() {
-    var T = typeParameter('T', bound: typeProvider.functionType);
-
-    _checkLeastUpperBound(
-      typeParameterTypeNone(T),
-      functionTypeNone(returnType: voidNone),
-      typeProvider.functionType,
-    );
+    withTypeParameterScope('T extends Function', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('T'),
+        parseFunctionType('void Function()'),
+        typeProvider.functionType,
+      );
+    });
   }
 
   void test_typeParameter_function_noBound() {
-    var T = typeParameter('T', bound: objectQuestion);
-
-    _checkLeastUpperBound(
-      typeParameterTypeNone(T),
-      functionTypeNone(returnType: voidNone),
-      objectQuestion,
-    );
+    withTypeParameterScope('T extends Object?', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('T'),
+        parseFunctionType('void Function()'),
+        parseType('Object?'),
+      );
+    });
   }
 
   void test_typeParameter_greatestClosure_functionBounded() {
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
-    T.bound = functionTypeNone(
-      returnType: voidNone,
-      formalParameters: [requiredParameter(type: T_none)],
-    );
-
-    _checkLeastUpperBound(
-      T_none,
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: nullNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: neverNone)],
-      ),
-    );
+    withTypeParameterScope('T extends void Function(T)', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('T'),
+        parseFunctionType('void Function(Null)'),
+        parseFunctionType('void Function(Never)'),
+      );
+    });
   }
 
   void test_typeParameter_greatestClosure_functionPromoted() {
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
-    var T_none_promoted = typeParameterTypeNone(
-      T,
-      promotedBound: functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: T_none)],
-      ),
-    );
-
-    _checkLeastUpperBound(
-      T_none_promoted,
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: nullNone)],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: neverNone)],
-      ),
-    );
+    withTypeParameterScope('T', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('T & void Function(T)'),
+        parseFunctionType('void Function(Null)'),
+        parseFunctionType('void Function(Never)'),
+      );
+    });
   }
 
   void test_typeParameter_interface_bounded() {
@@ -2876,240 +2557,195 @@ class UpperBoundTest extends _BoundsTestBase {
         ClassSpec('class C extends A'),
       ],
     );
-    var A = classElement('A');
-    var A_none = interfaceTypeNone(A);
-
-    var B = classElement('B');
-    var B_none = interfaceTypeNone(B);
-
-    var C = classElement('C');
-    var C_none = interfaceTypeNone(C);
-
-    var T = typeParameter('T', bound: B_none);
-    var typeT = typeParameterTypeNone(T);
-
-    _checkLeastUpperBound(typeT, C_none, A_none);
+    withTypeParameterScope('T extends B', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('T'),
+        parseInterfaceType('C'),
+        parseInterfaceType('A'),
+      );
+    });
   }
 
   void test_typeParameter_interface_bounded_objectQuestion() {
-    var T = typeParameter('T', bound: objectQuestion);
-
-    _checkLeastUpperBound(typeParameterTypeNone(T), intNone, objectQuestion);
+    withTypeParameterScope('T extends Object?', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('T'),
+        parseType('int'),
+        parseType('Object?'),
+      );
+    });
   }
 
   void test_typeParameter_interface_noBound() {
-    var T = typeParameter('T');
-
-    _checkLeastUpperBound(typeParameterTypeNone(T), intNone, objectQuestion);
+    withTypeParameterScope('T', (scope) {
+      _checkLeastUpperBound(
+        scope.parseType('T'),
+        parseType('int'),
+        parseType('Object?'),
+      );
+    });
   }
 
   void test_typeParameter_intersection_basic() {
-    // `X extends num?`, `Y extends X`, `X & num`.
-    var X = typeParameter('X', bound: numQuestion);
-    var X_none = typeParameterTypeNone(X);
-    var Y = typeParameter('Y', bound: X_none);
-    var Y_none = typeParameterTypeNone(Y);
-    var X_none_promoted = typeParameterTypeNone(X, promotedBound: numNone);
+    withTypeParameterScope('X extends num?, Y extends X', (scope) {
+      var X_none = scope.parseType('X');
+      var Y_none = scope.parseType('Y');
+      var X_none_promoted = scope.parseType('X & num');
 
-    // `UP(X & num, Y) == X`, because `Y <: X`.
-    _checkLeastUpperBound(X_none_promoted, Y_none, X_none);
+      // `UP(X & num, Y) == X`, because `Y <: X`.
+      _checkLeastUpperBound(X_none_promoted, Y_none, X_none);
 
-    // `UP(X & num, num?) == num?`, because `X <: num?`.
-    _checkLeastUpperBound(X_none_promoted, numQuestion, numQuestion);
+      // `UP(X & num, num?) == num?`, because `X <: num?`.
+      _checkLeastUpperBound(
+        X_none_promoted,
+        parseType('num?'),
+        parseType('num?'),
+      );
 
-    // `UP(X & num, String) == Object`.
-    _checkLeastUpperBound(X_none_promoted, stringNone, objectNone);
+      // `UP(X & num, String) == Object`.
+      _checkLeastUpperBound(
+        X_none_promoted,
+        parseType('String'),
+        parseType('Object'),
+      );
+    });
   }
 
   void test_typeParameter_intersection_fbounded() {
     // `X`, `class C<X> {}`, `Y extends C<Y>?`, `Y & C<Y>`.
     buildTestLibrary(classes: [ClassSpec('class C<X>')]);
-    var C = classElement('C');
-    var Y = typeParameter('Y');
-    var Y_none = typeParameterTypeNone(Y);
-    Y.bound = interfaceTypeQuestion(C, typeArguments: [Y_none]);
-    var C_Y_none = interfaceTypeNone(C, typeArguments: [Y_none]);
-    var Y_none_promoted = typeParameterTypeNone(Y, promotedBound: C_Y_none);
-    var C_Never_none = interfaceTypeNone(C, typeArguments: [neverNone]);
-    var C_ObjectQuestion_none = interfaceTypeNone(
-      C,
-      typeArguments: [objectQuestion],
-    );
+    withTypeParameterScope('Y', (scope) {
+      var Y = scope.typeParameter('Y');
+      Y.bound = scope.parseType('C<Y>?');
 
-    // `UP(Y & C<Y>, C<Never>) == C<Object?>`.
-    _checkLeastUpperBound(Y_none_promoted, C_Never_none, C_ObjectQuestion_none);
+      // `UP(Y & C<Y>, C<Never>) == C<Object?>`.
+      _checkLeastUpperBound(
+        scope.parseType('Y & C<Y>'),
+        parseInterfaceType('C<Never>'),
+        parseInterfaceType('C<Object?>'),
+      );
+    });
   }
 
   void test_typeParameter_intersection_null() {
-    var X = typeParameter('X');
-    var X_none_promoted_nullable = typeParameterTypeNone(
-      X,
-      promotedBound: numQuestion,
-    );
-    var X_none_promoted_nonnullable = typeParameterTypeNone(
-      X,
-      promotedBound: numNone,
-    );
+    withTypeParameterScope('X', (scope) {
+      // UP(X & num?, Null) == num?
+      _checkLeastUpperBound(
+        scope.parseType('X & num?'),
+        parseType('Null'),
+        parseType('num?'),
+      );
 
-    // UP(X & num?, Null) == num?
-    _checkLeastUpperBound(X_none_promoted_nullable, nullNone, numQuestion);
-
-    // UP(X & num, Null) == num?
-    _checkLeastUpperBound(X_none_promoted_nonnullable, nullNone, numQuestion);
+      // UP(X & num, Null) == num?
+      _checkLeastUpperBound(
+        scope.parseType('X & num'),
+        parseType('Null'),
+        parseType('num?'),
+      );
+    });
   }
 
   void test_typeParameters_contravariant_different() {
     // class A<in T>
     buildTestLibrary(classes: [ClassSpec('class A<in T>')]);
-    var A = classElement('A');
-
-    // A<num>
-    // A<int>
-    var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
-    var A_int = interfaceTypeNone(A, typeArguments: [intNone]);
-
-    _checkLeastUpperBound(A_int, A_num, A_int);
+    _checkLeastUpperBound(
+      parseInterfaceType('A<int>'),
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<int>'),
+    );
   }
 
   void test_typeParameters_contravariant_same() {
     // class A<in T>
     buildTestLibrary(classes: [ClassSpec('class A<in T>')]);
-    var A = classElement('A');
-
-    // A<num>
-    var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
-
-    _checkLeastUpperBound(A_num, A_num, A_num);
+    _checkLeastUpperBound(
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<num>'),
+    );
   }
 
   void test_typeParameters_covariant_different() {
     // class A<out T>
     buildTestLibrary(classes: [ClassSpec('class A<out T>')]);
-    var A = classElement('A');
-
-    // A<num>
-    // A<int>
-    var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
-    var A_int = interfaceTypeNone(A, typeArguments: [intNone]);
-
-    _checkLeastUpperBound(A_int, A_num, A_num);
+    _checkLeastUpperBound(
+      parseInterfaceType('A<int>'),
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<num>'),
+    );
   }
 
   void test_typeParameters_covariant_same() {
     // class A<out T>
     buildTestLibrary(classes: [ClassSpec('class A<out T>')]);
-    var A = classElement('A');
-
-    // A<num>
-    var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
-
-    _checkLeastUpperBound(A_num, A_num, A_num);
+    _checkLeastUpperBound(
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<num>'),
+    );
   }
 
   void test_typeParameters_invariant_object() {
     // class A<inout T>
     buildTestLibrary(classes: [ClassSpec('class A<inout T>')]);
-    var A = classElement('A');
-
-    // A<num>
-    // A<int>
-    var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
-    var A_int = interfaceTypeNone(A, typeArguments: [intNone]);
-
-    _checkLeastUpperBound(A_num, A_int, objectNone);
+    _checkLeastUpperBound(
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<int>'),
+      parseType('Object'),
+    );
   }
 
   void test_typeParameters_invariant_same() {
     // class A<inout T>
     buildTestLibrary(classes: [ClassSpec('class A<inout T>')]);
-    var A = classElement('A');
-
-    // A<num>
-    var A_num = interfaceTypeNone(A, typeArguments: [numNone]);
-
-    _checkLeastUpperBound(A_num, A_num, A_num);
+    _checkLeastUpperBound(
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<num>'),
+      parseInterfaceType('A<num>'),
+    );
   }
 
   void test_typeParameters_multi_basic() {
     // class A<out T, inout U, in V>
     buildTestLibrary(classes: [ClassSpec('class A<out T, inout U, in V>')]);
-    var A = classElement('A');
-
-    // A<num, num, num>
-    // A<int, num, int>
-    var A_num_num_num = interfaceTypeNone(
-      A,
-      typeArguments: [numNone, numNone, numNone],
+    _checkLeastUpperBound(
+      parseInterfaceType('A<num, num, num>'),
+      parseInterfaceType('A<int, num, int>'),
+      parseInterfaceType('A<num, num, int>'),
     );
-    var A_int_num_int = interfaceTypeNone(
-      A,
-      typeArguments: [intNone, numNone, intNone],
-    );
-
-    // We expect A<num, num, int>
-    var A_num_num_int = interfaceTypeNone(
-      A,
-      typeArguments: [numNone, numNone, intNone],
-    );
-
-    _checkLeastUpperBound(A_num_num_num, A_int_num_int, A_num_num_int);
   }
 
   void test_typeParameters_multi_objectInterface() {
     // class A<out T, inout U, in V>
     buildTestLibrary(classes: [ClassSpec('class A<out T, inout U, in V>')]);
-    var A = classElement('A');
-
-    // A<num, String, num>
-    // A<int, num, int>
-    var A_num_String_num = interfaceTypeNone(
-      A,
-      typeArguments: [numNone, stringNone, numNone],
+    _checkLeastUpperBound(
+      parseInterfaceType('A<num, String, num>'),
+      parseInterfaceType('A<int, num, int>'),
+      parseType('Object'),
     );
-    var A_int_num_int = interfaceTypeNone(
-      A,
-      typeArguments: [intNone, numNone, intNone],
-    );
-
-    _checkLeastUpperBound(A_num_String_num, A_int_num_int, objectNone);
   }
 
   void test_typeParameters_multi_objectType() {
     // class A<out T, inout U, in V>
     buildTestLibrary(classes: [ClassSpec('class A<out T, inout U, in V>')]);
-    var A = classElement('A');
-
-    // A<String, num, num>
-    // A<int, num, int>
-    var A_String_num_num = interfaceTypeNone(
-      A,
-      typeArguments: [stringNone, numNone, numNone],
+    _checkLeastUpperBound(
+      parseInterfaceType('A<String, num, num>'),
+      parseInterfaceType('A<int, num, int>'),
+      parseInterfaceType('A<Object, num, int>'),
     );
-    var A_int_num_int = interfaceTypeNone(
-      A,
-      typeArguments: [intNone, numNone, intNone],
-    );
-
-    // We expect A<Object, num, int>
-    var A_Object_num_int = interfaceTypeNone(
-      A,
-      typeArguments: [objectNone, numNone, intNone],
-    );
-
-    _checkLeastUpperBound(A_String_num_num, A_int_num_int, A_Object_num_int);
   }
 
   /// Check least upper bound of the same class with different type parameters.
   void test_typeParameters_noVariance_different() {
     _checkLeastUpperBound(
-      listNone(intNone),
-      listNone(doubleNone),
-      listNone(numNone),
+      parseType('List<int>'),
+      parseType('List<double>'),
+      parseType('List<num>'),
     );
   }
 
   void test_typeParameters_noVariance_same() {
-    var listOfInt = listNone(intNone);
+    var listOfInt = parseType('List<int>');
     _checkLeastUpperBound(listOfInt, listOfInt, listOfInt);
   }
 }

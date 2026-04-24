@@ -4264,6 +4264,41 @@ main() {
 ''');
   }
 
+  test_setter_isUsed_subclass_viaExtension() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set _value(int v) {}
+}
+
+extension E on A {
+  set value(int v) => _value = v;
+}
+
+class B extends A {
+  @override
+  set _value(int v) {}
+}
+
+
+void main() {
+  A().value = 1;
+  B().value = 1;
+}
+''');
+  }
+
+  test_setter_isUsed_topLevelFunction() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  set _value(int v) {}
+}
+
+void f() {
+  A()._value = 1;
+}
+''');
+  }
+
   test_setter_notUsed_noReference() async {
     await assertErrorsInCode(
       r'''

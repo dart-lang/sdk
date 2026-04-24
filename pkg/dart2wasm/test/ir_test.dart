@@ -66,7 +66,11 @@ void main(List<String> args) async {
       final result = await Process.run('/usr/bin/env', [
         'bash',
         'pkg/dart2wasm/tool/compile_benchmark',
-        for (final option in compilerOptions) '--extra-compiler-option=$option',
+        for (final option in compilerOptions)
+          if (option == '--standalone')
+            '--standalone'
+          else
+            '--extra-compiler-option=$option',
         '--extra-compiler-option=--no-unique-constant-names',
         '--extra-compiler-option=--enable-experimental-wasm-interop',
         // Minify interop names so that the names of these entities are more

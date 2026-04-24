@@ -86,6 +86,9 @@ class CascadeInvocations extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addBlock(this, visitor);
+    registry.addSwitchCase(this, visitor);
+    registry.addSwitchDefault(this, visitor);
+    registry.addSwitchPatternCase(this, visitor);
   }
 }
 
@@ -336,11 +339,30 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitBlock(Block node) {
-    if (node.statements.length < 2) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchCase(SwitchCase node) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchDefault(SwitchDefault node) {
+    _checkStatements(node.statements);
+  }
+
+  @override
+  void visitSwitchPatternCase(SwitchPatternCase node) {
+    _checkStatements(node.statements);
+  }
+
+  void _checkStatements(List<Statement> statements) {
+    if (statements.length < 2) {
       return;
     }
     var previousExpressionBox = _CascadableExpression.nullCascadableExpression;
-    for (var statement in node.statements) {
+    for (var statement in statements) {
       var currentExpressionBox = _CascadableExpression.nullCascadableExpression;
       if (statement is VariableDeclarationStatement) {
         currentExpressionBox =

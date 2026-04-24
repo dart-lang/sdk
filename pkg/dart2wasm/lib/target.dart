@@ -172,6 +172,7 @@ class WasmTarget extends Target {
     'dart:js_interop_unsafe',
     'dart:nativewrappers',
     'dart:typed_data',
+    if (mode == .standalone) 'dart:_embedder',
   ];
 
   @override
@@ -190,6 +191,7 @@ class WasmTarget extends Target {
     'dart:js_interop',
     'dart:js_interop_unsafe',
     'dart:typed_data',
+    if (mode == .standalone) 'dart:_embedder',
   ];
 
   @override

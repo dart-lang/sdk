@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:typed_data';
+
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart'
     show ClassHierarchy, ClassHierarchySubtypes, ClosedWorldClassHierarchy;
@@ -711,7 +713,7 @@ class Translator with KernelNodes {
     // runtime code will then be pruned to call out to embedder instead of
     // consulting the load mapping bundled in the app.
     final loadingMapGetter = dartInternalLoadingMapGetter;
-    if (loadingMapGetter != null) {
+    if (loadingMapGetter != null && !options.standalone) {
       // This function will be null if we didn't pass `--load-ids=<uri>` but we
       // ended up not having any actual deferred code (e.g. `await
       // foo.loadLibrary()` is never called anywhere).
@@ -725,7 +727,7 @@ class Translator with KernelNodes {
 
     // If original program uses deferred loading this will be non-null.
     final loadingMapNamesGetter = dartInternalLoadingMapNamesGetter;
-    if (loadingMapNamesGetter != null) {
+    if (loadingMapNamesGetter != null && !options.standalone) {
       // If the actual emitted code accesses the names (i.e. --no-minify and
       // code emits a deferred library load)
       assert(!options.minify);
@@ -2399,6 +2401,8 @@ class Translator with KernelNodes {
       classInfo[recordClasses[RecordShape.fromType(recordType)]!]!;
 
   w.Global getInternalizedStringGlobal(w.ModuleBuilder module, String s) {
+    assert(!options.standalone, "Standalone mode doesn't have string globals");
+
     w.Global? internalizedString = _internalizedStringGlobals[(module, s)];
     if (internalizedString != null) {
       return internalizedString;
@@ -2441,6 +2445,47 @@ class Translator with KernelNodes {
     }
     _internalizedStringGlobals[(module, s)] = internalizedString;
     return internalizedString;
+  }
+
+  void pushStandaloneStringConstant(
+    w.InstructionsBuilder instructions,
+    w.DataSegmentBuilder data,
+    String s,
+  ) {
+    assert(options.standalone);
+
+    Uint8List byteContents;
+    bool isAscii;
+    if (s.codeUnits.every((c) => c <= 127)) {
+      byteContents = Uint8List.fromList(s.codeUnits);
+      isAscii = true;
+    } else {
+      final list = ByteData(s.length * 2);
+      for (var i = 0; i < s.length; i++) {
+        list.setUint16(2 * i, s.codeUnitAt(i), .little);
+      }
+      byteContents = list.buffer.asUint8List();
+      isAscii = false;
+    }
+
+    final kernelFunction = isAscii
+        ? embedderStringFromAsciiBytes
+        : embedderStringFromCharCodeArray;
+    final importedFunction =
+        functions.getFunction(kernelFunction.reference) as w.ImportedFunction;
+    // The signature is (WasmArray<i8 | i16> data, i32 offset, i32 length)
+    final arrayRefType =
+        (importedFunction.type.inputs[0] as w.RefType).heapType as w.ArrayType;
+
+    instructions
+      ..i32_const(data.length)
+      ..i32_const(s.length)
+      ..array_new_data(arrayRefType, data)
+      ..i32_const(0)
+      ..i32_const(s.length)
+      ..call(importedFunction);
+
+    data.content.add(byteContents);
   }
 
   w.Memory findMemory(

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -26,225 +26,168 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_dynamic() {
-    _equal(dynamicType, dynamicType);
-    _notEqual(dynamicType, voidNone);
-    _notEqual(dynamicType, intNone);
+    _equal(parseType('dynamic'), parseType('dynamic'));
+    _notEqual(parseType('dynamic'), parseType('void'));
+    _notEqual(parseType('dynamic'), parseType('int'));
 
-    _notEqual(dynamicType, neverNone);
-    _notEqual(dynamicType, neverQuestion);
+    _notEqual(parseType('dynamic'), parseType('Never'));
+    _notEqual(parseType('dynamic'), parseType('Never?'));
   }
 
   test_functionType_parameters() {
-    void check(
-      FormalParameterElementImpl T1_parameter,
-      FormalParameterElementImpl T2_parameter,
-      bool expected,
-    ) {
-      var T1 = functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [T1_parameter],
-      );
-      var T2 = functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [T2_parameter],
-      );
-      _check(T1, T2, expected);
+    void check(String T1, String T2, bool expected) {
+      _check(parseFunctionType(T1), parseFunctionType(T2), expected);
     }
 
     {
-      void checkRequiredParameter(
-        TypeImpl T1_type,
-        TypeImpl T2_type,
-        bool expected,
-      ) {
-        check(
-          requiredParameter(type: T1_type),
-          requiredParameter(type: T2_type),
-          expected,
-        );
+      void checkRequiredParameter(String T1, String T2, bool expected) {
+        check('void Function($T1)', 'void Function($T2)', expected);
       }
 
-      checkRequiredParameter(intNone, intNone, true);
-      checkRequiredParameter(intNone, intQuestion, false);
+      checkRequiredParameter('int', 'int', true);
+      checkRequiredParameter('int', 'int?', false);
 
-      checkRequiredParameter(intQuestion, intNone, false);
-      checkRequiredParameter(intQuestion, intQuestion, true);
+      checkRequiredParameter('int?', 'int', false);
+      checkRequiredParameter('int?', 'int?', true);
 
-      check(
-        requiredParameter(type: intNone, name: 'a'),
-        requiredParameter(type: intNone, name: 'b'),
-        true,
-      );
+      check('void Function(int a)', 'void Function(int b)', true);
 
-      check(
-        requiredParameter(type: intNone),
-        positionalParameter(type: intNone),
-        false,
-      );
+      check('void Function(int)', 'void Function([int])', false);
 
-      check(
-        requiredParameter(type: intNone),
-        namedParameter(type: intNone, name: 'a'),
-        false,
-      );
+      check('void Function(int)', 'void Function({int a})', false);
 
-      check(
-        requiredParameter(type: intNone),
-        namedRequiredParameter(type: intNone, name: 'a'),
-        false,
-      );
+      check('void Function(int)', 'void Function({required int a})', false);
+    }
+
+    {
+      check('void Function({int a})', 'void Function({int a})', true);
+
+      check('void Function({int a})', 'void Function({bool a})', false);
+
+      check('void Function({int a})', 'void Function({int b})', false);
+
+      check('void Function({int a})', 'void Function({required int a})', false);
     }
 
     {
       check(
-        namedParameter(type: intNone, name: 'a'),
-        namedParameter(type: intNone, name: 'a'),
+        'void Function({required int a})',
+        'void Function({required int a})',
         true,
       );
 
       check(
-        namedParameter(type: intNone, name: 'a'),
-        namedParameter(type: boolNone, name: 'a'),
+        'void Function({required int a})',
+        'void Function({required bool a})',
         false,
       );
 
       check(
-        namedParameter(type: intNone, name: 'a'),
-        namedParameter(type: intNone, name: 'b'),
+        'void Function({required int a})',
+        'void Function({required int b})',
         false,
       );
 
-      check(
-        namedParameter(type: intNone, name: 'a'),
-        namedRequiredParameter(type: intNone, name: 'a'),
-        false,
-      );
-    }
-
-    {
-      check(
-        namedRequiredParameter(type: intNone, name: 'a'),
-        namedRequiredParameter(type: intNone, name: 'a'),
-        true,
-      );
-
-      check(
-        namedRequiredParameter(type: intNone, name: 'a'),
-        namedRequiredParameter(type: boolNone, name: 'a'),
-        false,
-      );
-
-      check(
-        namedRequiredParameter(type: intNone, name: 'a'),
-        namedRequiredParameter(type: intNone, name: 'b'),
-        false,
-      );
-
-      check(
-        namedRequiredParameter(type: intNone, name: 'a'),
-        namedParameter(type: intNone, name: 'a'),
-        false,
-      );
+      check('void Function({required int a})', 'void Function({int a})', false);
     }
   }
 
   test_functionType_returnType() {
-    void check(TypeImpl T1_returnType, TypeImpl T2_returnType, bool expected) {
-      var T1 = functionTypeNone(returnType: T1_returnType);
-      var T2 = functionTypeNone(returnType: T2_returnType);
-      _check(T1, T2, expected);
+    void check(String T1, String T2, bool expected) {
+      _check(parseFunctionType(T1), parseFunctionType(T2), expected);
     }
 
-    check(intNone, intNone, true);
-    check(intNone, intQuestion, false);
+    check('int Function()', 'int Function()', true);
+    check('int Function()', 'int? Function()', false);
   }
 
   test_functionType_typeParameters() {
     {
-      var T1_T = typeParameter('T', bound: numNone);
       _check(
-        functionTypeNone(typeParameters: [T1_T], returnType: voidNone),
-        functionTypeNone(returnType: voidNone),
+        parseType('void Function<T extends num>()'),
+        parseType('void Function()'),
         false,
       );
     }
 
     {
-      var T1_T = typeParameter('T', bound: numNone);
-      var T2_U = typeParameter('U');
       _check(
-        functionTypeNone(typeParameters: [T1_T], returnType: voidNone),
-        functionTypeNone(typeParameters: [T2_U], returnType: voidNone),
+        parseType('void Function<T extends num>()'),
+        parseType('void Function<U>()'),
         false,
       );
     }
 
     {
-      var T1_T = typeParameter('T');
-      var T2_U = typeParameter('U');
       _check(
-        functionTypeNone(
-          typeParameters: [T1_T],
-          returnType: typeParameterTypeNone(T1_T),
-          formalParameters: [
-            requiredParameter(type: typeParameterTypeNone(T1_T)),
-          ],
-        ),
-        functionTypeNone(
-          typeParameters: [T2_U],
-          returnType: typeParameterTypeNone(T2_U),
-          formalParameters: [
-            requiredParameter(type: typeParameterTypeNone(T2_U)),
-          ],
-        ),
+        parseType('T Function<T>(T)'),
+        parseType('U Function<U>(U)'),
         true,
       );
     }
   }
 
   test_interfaceType() {
-    _notEqual(intNone, boolNone);
+    _notEqual(parseType('int'), parseType('bool'));
 
-    _equal(intNone, intNone);
-    _notEqual(intNone, intQuestion);
+    _equal(parseType('int'), parseType('int'));
+    _notEqual(parseType('int'), parseType('int?'));
 
-    _notEqual(intQuestion, intNone);
-    _equal(intQuestion, intQuestion);
+    _notEqual(parseType('int?'), parseType('int'));
+    _equal(parseType('int?'), parseType('int?'));
   }
 
   test_interfaceType_typeArguments() {
     void equal(TypeImpl T1, TypeImpl T2) {
-      _equal(listNone(T1), listNone(T2));
+      _equal(
+        typeProvider.listElement.instantiateImpl(
+          typeArguments: [T1],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        typeProvider.listElement.instantiateImpl(
+          typeArguments: [T2],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      );
     }
 
     void notEqual(TypeImpl T1, TypeImpl T2) {
-      _notEqual(listNone(T1), listNone(T2));
+      _notEqual(
+        typeProvider.listElement.instantiateImpl(
+          typeArguments: [T1],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+        typeProvider.listElement.instantiateImpl(
+          typeArguments: [T2],
+          nullabilitySuffix: NullabilitySuffix.none,
+        ),
+      );
     }
 
-    notEqual(intNone, boolNone);
+    notEqual(parseType('int'), parseType('bool'));
 
-    equal(intNone, intNone);
-    notEqual(intNone, intQuestion);
+    equal(parseType('int'), parseType('int'));
+    notEqual(parseType('int'), parseType('int?'));
 
-    notEqual(intQuestion, intNone);
-    equal(intQuestion, intQuestion);
+    notEqual(parseType('int?'), parseType('int'));
+    equal(parseType('int?'), parseType('int?'));
   }
 
   test_never() {
-    _equal(neverNone, neverNone);
-    _notEqual(neverNone, neverQuestion);
-    _notEqual(neverNone, intNone);
+    _equal(parseType('Never'), parseType('Never'));
+    _notEqual(parseType('Never'), parseType('Never?'));
+    _notEqual(parseType('Never'), parseType('int'));
 
-    _notEqual(neverQuestion, neverNone);
-    _equal(neverQuestion, neverQuestion);
-    _notEqual(neverQuestion, intNone);
-    _equal(neverQuestion, nullNone);
+    _notEqual(parseType('Never?'), parseType('Never'));
+    _equal(parseType('Never?'), parseType('Never?'));
+    _notEqual(parseType('Never?'), parseType('int'));
+    _equal(parseType('Never?'), parseType('Null'));
   }
 
   test_norm() {
-    _equal(futureOrNone(objectNone), objectNone);
-    _equal(futureOrNone(neverNone), futureNone(neverNone));
-    _equal(neverQuestion, nullNone);
+    _equal(parseType('FutureOr<Object>'), parseType('Object'));
+    _equal(parseType('FutureOr<Never>'), parseType('Future<Never>'));
+    _equal(parseType('Never?'), parseType('Null'));
   }
 
   test_recordType_andNot() {
@@ -275,12 +218,12 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_void() {
-    _equal(voidNone, voidNone);
-    _notEqual(voidNone, dynamicType);
-    _notEqual(voidNone, intNone);
+    _equal(parseType('void'), parseType('void'));
+    _notEqual(parseType('void'), parseType('dynamic'));
+    _notEqual(parseType('void'), parseType('int'));
 
-    _notEqual(voidNone, neverNone);
-    _notEqual(voidNone, neverQuestion);
+    _notEqual(parseType('void'), parseType('Never'));
+    _notEqual(parseType('void'), parseType('Never?'));
   }
 
   void _check(TypeImpl T1, TypeImpl T2, bool expected) {

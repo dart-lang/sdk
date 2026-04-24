@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,183 +20,76 @@ main() {
 class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   test_functionType_parameter() {
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: futureOrNone(objectNone))],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: objectNone)],
-      ),
+      parseType('void Function(FutureOr<Object>)'),
+      parseType('void Function(Object)'),
     );
 
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          namedParameter(name: 'a', type: futureOrNone(objectNone)),
-        ],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedParameter(name: 'a', type: objectNone)],
-      ),
+      parseType('void Function({FutureOr<Object> a})'),
+      parseType('void Function({Object a})'),
     );
 
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          namedRequiredParameter(name: 'a', type: futureOrNone(objectNone)),
-        ],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [namedRequiredParameter(name: 'a', type: objectNone)],
-      ),
+      parseType('void Function({required FutureOr<Object> a})'),
+      parseType('void Function({required Object a})'),
     );
 
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: futureOrNone(objectNone))],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [positionalParameter(type: objectNone)],
-      ),
+      parseType('void Function([FutureOr<Object>])'),
+      parseType('void Function([Object])'),
     );
   }
 
   test_functionType_parameter_covariant() {
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          requiredParameter(type: futureOrNone(objectNone), isCovariant: true),
-        ],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [
-          requiredParameter(type: objectNone, isCovariant: true),
-        ],
-      ),
+      parseType('void Function(covariant FutureOr<Object>)'),
+      parseType('void Function(covariant Object)'),
     );
   }
 
   test_functionType_parameter_typeParameter() {
-    TypeParameterElementImpl T;
-    TypeParameterElementImpl T2;
-
-    T = typeParameter('T', bound: neverNone);
-    T2 = typeParameter('T2', bound: neverNone);
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [T],
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [T2],
-        formalParameters: [requiredParameter(type: neverNone)],
-      ),
+      parseType('void Function<T extends Never>(T)'),
+      parseType('void Function<T2 extends Never>(Never)'),
     );
 
-    T = typeParameter('T', bound: iterableNone(futureOrNone(dynamicType)));
-    T2 = typeParameter('T2', bound: iterableNone(dynamicType));
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [T],
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [T2],
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T2))],
-      ),
+      parseType('void Function<T extends Iterable<FutureOr<dynamic>>>(T)'),
+      parseType('void Function<T2 extends Iterable<dynamic>>(T2)'),
     );
   }
 
   test_functionType_returnType() {
     _check(
-      functionTypeNone(returnType: futureOrNone(objectNone)),
-      functionTypeNone(returnType: objectNone),
+      parseType('FutureOr<Object> Function()'),
+      parseType('Object Function()'),
     );
 
-    _check(
-      functionTypeNone(returnType: intNone),
-      functionTypeNone(returnType: intNone),
-    );
+    _check(parseType('int Function()'), parseType('int Function()'));
   }
 
   test_functionType_typeParameter_bound_normalized() {
     _check(
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('T', bound: futureOrNone(objectNone))],
-      ),
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('T', bound: objectNone)],
-      ),
+      parseType('void Function<T extends FutureOr<Object>>()'),
+      parseType('void Function<T extends Object>()'),
     );
   }
 
   test_functionType_typeParameter_bound_unchanged() {
     _check(
-      functionTypeNone(
-        returnType: intNone,
-        typeParameters: [typeParameter('T', bound: numNone)],
-      ),
-      functionTypeNone(
-        returnType: intNone,
-        typeParameters: [typeParameter('T', bound: numNone)],
-      ),
+      parseType('int Function<T extends num>()'),
+      parseType('int Function<T extends num>()'),
     );
   }
 
   test_functionType_typeParameter_fresh() {
-    var T = typeParameter('T');
-    var T2 = typeParameter('T');
-    _check(
-      functionTypeNone(
-        returnType: typeParameterTypeNone(T),
-        typeParameters: [T],
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-      ),
-      functionTypeNone(
-        returnType: typeParameterTypeNone(T2),
-        typeParameters: [T2],
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T2))],
-      ),
-    );
+    _check(parseType('T Function<T>(T)'), parseType('U Function<U>(U)'));
   }
 
   test_functionType_typeParameter_fresh_bound() {
-    var T = typeParameter('T');
-    var S = typeParameter('S', bound: typeParameterTypeNone(T));
-    var T2 = typeParameter('T');
-    var S2 = typeParameter('S', bound: typeParameterTypeNone(T2));
     _check(
-      functionTypeNone(
-        returnType: typeParameterTypeNone(T),
-        typeParameters: [T, S],
-        formalParameters: [
-          requiredParameter(type: typeParameterTypeNone(T)),
-          requiredParameter(type: typeParameterTypeNone(S)),
-        ],
-      ),
-      functionTypeNone(
-        returnType: typeParameterTypeNone(T2),
-        typeParameters: [T2, S2],
-        formalParameters: [
-          requiredParameter(type: typeParameterTypeNone(T2)),
-          requiredParameter(type: typeParameterTypeNone(S2)),
-        ],
-      ),
+      parseType('T Function<T, S extends T>(T, S)'),
+      parseType('U Function<U, V extends U>(U, V)'),
     );
   }
 
@@ -205,40 +97,43 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   /// * let S be NORM(T)
   test_futureOr() {
     void check(TypeImpl T, TypeImpl expected) {
-      var input = futureOrNone(T);
+      var input = typeProvider.futureOrElement.instantiateImpl(
+        typeArguments: [T],
+        nullabilitySuffix: NullabilitySuffix.none,
+      );
       _check(input, expected);
     }
 
     // * if S is a top type then S
-    check(dynamicType, dynamicType);
-    check(invalidType, invalidType);
-    check(voidNone, voidNone);
-    check(objectQuestion, objectQuestion);
+    check(parseType('dynamic'), parseType('dynamic'));
+    check(parseType('InvalidType'), parseType('InvalidType'));
+    check(parseType('void'), parseType('void'));
+    check(parseType('Object?'), parseType('Object?'));
 
     // * if S is Object then S
-    check(objectNone, objectNone);
+    check(parseType('Object'), parseType('Object'));
 
     // * if S is Never then Future<Never>
-    check(neverNone, futureNone(neverNone));
+    check(parseType('Never'), parseType('Future<Never>'));
 
     // * if S is Null then Future<Null>?
-    check(nullNone, futureQuestion(nullNone));
+    check(parseType('Null'), parseType('Future<Null>?'));
 
     // * else FutureOr<S>
-    check(intNone, futureOrNone(intNone));
+    check(parseType('int'), parseType('FutureOr<int>'));
   }
 
   test_interfaceType() {
-    _check(listNone(intNone), listNone(intNone));
+    _check(parseType('List<int>'), parseType('List<int>'));
 
-    _check(listNone(futureOrNone(objectNone)), listNone(objectNone));
+    _check(parseType('List<FutureOr<Object>>'), parseType('List<Object>'));
   }
 
   test_primitive() {
-    _check(dynamicType, dynamicType);
-    _check(neverNone, neverNone);
-    _check(voidNone, voidNone);
-    _check(intNone, intNone);
+    _check(parseType('dynamic'), parseType('dynamic'));
+    _check(parseType('Never'), parseType('Never'));
+    _check(parseType('void'), parseType('void'));
+    _check(parseType('int'), parseType('int'));
   }
 
   /// NORM(T?)
@@ -250,12 +145,12 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     }
 
     // * if S is a top type then S
-    check(futureOrQuestion(dynamicType), dynamicType);
-    check(futureOrQuestion(voidNone), voidNone);
-    check(futureOrQuestion(objectQuestion), objectQuestion);
+    check(parseType('FutureOr<dynamic>?'), parseType('dynamic'));
+    check(parseType('FutureOr<void>?'), parseType('void'));
+    check(parseType('FutureOr<Object?>?'), parseType('Object?'));
 
     // * if S is Never then Null
-    check(neverQuestion, nullNone);
+    check(parseType('Never?'), parseType('Null'));
 
     // * if S is Never* then Null
     // Analyzer: impossible, we have only one suffix
@@ -264,7 +159,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     // Analyzer: impossible; `Null?` is always represented as `Null`.
 
     // * if S is FutureOr<R> and R is nullable then S
-    check(futureOrQuestion(intQuestion), futureOrNone(intQuestion));
+    check(parseType('FutureOr<int?>?'), parseType('FutureOr<int?>'));
 
     // * if S is FutureOr<R>* and R is nullable then FutureOr<R>
     // Analyzer: impossible, we have only one suffix
@@ -272,95 +167,73 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
     // * if S is R? then R?
     // * if S is R* then R?
     // * else S?
-    check(intQuestion, intQuestion);
-    check(objectQuestion, objectQuestion);
-    check(futureOrQuestion(objectNone), objectQuestion);
+    check(parseType('int?'), parseType('int?'));
+    check(parseType('Object?'), parseType('Object?'));
+    check(parseType('FutureOr<Object>?'), parseType('Object?'));
   }
 
   test_recordType() {
+    _check(parseRecordType('(int,)'), parseRecordType('(int,)'));
+
     _check(
-      recordTypeNone(positionalTypes: [intNone]),
-      recordTypeNone(positionalTypes: [intNone]),
+      parseRecordType('(FutureOr<Object>,)'),
+      parseRecordType('(Object,)'),
     );
 
     _check(
-      recordTypeNone(positionalTypes: [futureOrNone(objectNone)]),
-      recordTypeNone(positionalTypes: [objectNone]),
-    );
-
-    _check(
-      recordTypeNone(namedTypes: {'foo': futureOrNone(objectNone)}),
-      recordTypeNone(namedTypes: {'foo': objectNone}),
+      parseRecordType('({FutureOr<Object> foo})'),
+      parseRecordType('({Object foo})'),
     );
   }
 
   /// NORM(X & T)
   /// * let S be NORM(T)
   test_typeParameter_bound() {
-    TypeParameterElementImpl T;
-
     // * if S is Never then Never
-    T = typeParameter('T', bound: neverNone);
-    _check(typeParameterTypeNone(T), neverNone);
+    withTypeParameterScope('T extends Never', (scope) {
+      _check(scope.parseType('T'), parseType('Never'));
+    });
 
     // * else X
-    T = typeParameter('T');
-    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
+    withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T'), scope.parseType('T'));
+    });
 
     // * else X
-    T = typeParameter('T', bound: futureOrNone(objectNone));
-    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
+    withTypeParameterScope('T extends FutureOr<Object>', (scope) {
+      _check(scope.parseType('T'), scope.parseType('T'));
+    });
   }
 
   test_typeParameter_bound_recursive() {
-    var T = typeParameter('T');
-    T.bound = iterableNone(typeParameterTypeNone(T));
-    _check(typeParameterTypeNone(T), typeParameterTypeNone(T));
+    withTypeParameterScope('T extends Iterable<T>', (scope) {
+      _check(scope.parseType('T'), scope.parseType('T'));
+    });
   }
 
   test_typeParameter_promoted() {
-    var T = typeParameter('T');
+    withTypeParameterScope('T', (scope) {
+      // * if S is Never then Never
+      _check(scope.parseType('T & Never'), parseType('Never'));
 
-    // * if S is Never then Never
-    _check(promotedTypeParameterTypeNone(T, neverNone), neverNone);
+      // * if S is a top type then X
+      _check(scope.parseType('T & Object?'), scope.parseType('T'));
+      _check(scope.parseType('T & FutureOr<Object>?'), scope.parseType('T'));
 
-    // * if S is a top type then X
-    _check(
-      promotedTypeParameterTypeNone(T, objectQuestion),
-      typeParameterTypeNone(T),
-    );
-    _check(
-      promotedTypeParameterTypeNone(T, futureOrQuestion(objectNone)),
-      typeParameterTypeNone(T),
-    );
+      // * if S is X then X
+      _check(scope.parseType('T & T'), scope.parseType('T'));
 
-    // * if S is X then X
-    _check(
-      promotedTypeParameterTypeNone(T, typeParameterTypeNone(T)),
-      typeParameterTypeNone(T),
-    );
+      // else X & S
+      _check(
+        scope.parseType('T & FutureOr<Never>'),
+        scope.parseType('T & Future<Never>'),
+      );
+    });
 
     // * if S is Object and NORM(B) is Object where B is the bound of X then X
-    T = typeParameter('T', bound: objectNone);
-    _check(
-      promotedTypeParameterTypeNone(T, futureOrNone(objectNone)),
-      typeParameterTypeNone(T),
-    );
-
-    // else X & S
-    T = typeParameter('T');
-    _check(
-      promotedTypeParameterType(
-        element: T,
-        nullabilitySuffix: NullabilitySuffix.none,
-        promotedBound: futureOrNone(neverNone),
-      ),
-      promotedTypeParameterType(
-        element: T,
-        nullabilitySuffix: NullabilitySuffix.none,
-        promotedBound: futureNone(neverNone),
-      ),
-    );
+    withTypeParameterScope('T extends Object', (scope) {
+      _check(scope.parseType('T & FutureOr<Object>'), scope.parseType('T'));
+    });
   }
 
   void _assertNullability(TypeImpl type, NullabilitySuffix expected) {

@@ -1,0 +1,32 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  constructor •(initializing-formal core::int x) → self::C
+    : self::C::x = x, super core::Object::•()
+    ;
+  const constructor constNamed(initializing-formal core::int x) → self::C
+    : self::C::x = x, super core::Object::•()
+    ;
+  get field() → self::C
+    return new self::C::•(1);
+  method method() → self::C
+    return new self::C::•(1);
+}
+static method main() → void {
+  self::C field = #C2.{self::C::field}{self::C};
+  self::C method = #C2.{self::C::method}(){() → self::C};
+}
+
+constants  {
+  #C1 = 1
+  #C2 = self::C {x:#C1}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///const_chain.dart:
+- C.constNamed (from org-dartlang-testcase:///const_chain.dart:9:9)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

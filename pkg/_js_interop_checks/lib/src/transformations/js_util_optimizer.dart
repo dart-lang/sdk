@@ -1043,14 +1043,12 @@ class JsUtilOptimizer extends Transformer {
 
   /// For the given `dart:js_interop` `JSExportedDartFunction.toDart` invocation
   /// [node], returns an invocation of `_jsFunctionToDart` with the given
-  /// `JSExportedDartFunction` and type arguments.
+  /// `JSExportedDartFunction` argument.
   StaticInvocation _lowerJSExportedDartFunctionToDart(StaticInvocation node) =>
       StaticInvocation(
           _jsFunctionToDart,
-          Arguments(
-            [node.arguments.positional.first],
-            types: [node.arguments.types.first],
-          )..fileOffset = node.arguments.fileOffset,
+          Arguments([node.arguments.positional[0]])
+            ..fileOffset = node.arguments.fileOffset,
         )
         ..fileOffset = node.fileOffset
         ..parent = node.parent;
