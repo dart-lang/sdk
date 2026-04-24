@@ -226,23 +226,81 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandConstructorInvocation;
-    assertResolvedNodeText(identifier, r'''
-DotShorthandConstructorInvocation
-  period: .
-  constructorName: SimpleIdentifier
-    token: new
-    element: <testLibrary>::@class::C::@constructor::new
-    staticType: null
+    var method = findNode.methodInvocation('method();');
+    assertResolvedNodeText(method, r'''
+MethodInvocation
+  target: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          staticType: int
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: method
+    element: <testLibrary>::@class::C::@method::method
+    staticType: C Function()
   argumentList: ArgumentList
     leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 1
-        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-        staticType: int
     rightParenthesis: )
-  isDotShorthand: false
+  staticInvokeType: C Function()
+  staticType: C
+''');
+  }
+
+  test_chain_method_const() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  final int x;
+  const C(this.x);
+  C method() => C(1);
+}
+
+void main() {
+  C c = const .new(1).method();
+  print(c);
+}
+''');
+
+    var method = findNode.methodInvocation('method();');
+    assertResolvedNodeText(method, r'''
+MethodInvocation
+  target: DotShorthandConstructorInvocation
+    constKeyword: const
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          staticType: int
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  operator: .
+  methodName: SimpleIdentifier
+    token: method
+    element: <testLibrary>::@class::C::@method::method
+    staticType: C Function()
+  argumentList: ArgumentList
+    leftParenthesis: (
+    rightParenthesis: )
+  staticInvokeType: C Function()
   staticType: C
 ''');
   }
@@ -261,23 +319,73 @@ void main() {
 }
 ''');
 
-    var identifier = findNode.singleDotShorthandConstructorInvocation;
-    assertResolvedNodeText(identifier, r'''
-DotShorthandConstructorInvocation
-  period: .
-  constructorName: SimpleIdentifier
-    token: new
-    element: <testLibrary>::@class::C::@constructor::new
-    staticType: null
-  argumentList: ArgumentList
-    leftParenthesis: (
-    arguments
-      IntegerLiteral
-        literal: 1
-        correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
-        staticType: int
-    rightParenthesis: )
-  isDotShorthand: false
+    var propertyAccess = findNode.singlePropertyAccess;
+    assertResolvedNodeText(propertyAccess, r'''
+PropertyAccess
+  target: DotShorthandConstructorInvocation
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          staticType: int
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: property
+    element: <testLibrary>::@class::C::@getter::property
+    staticType: C
+  staticType: C
+''');
+  }
+
+  test_chain_property_const() async {
+    await assertNoErrorsInCode(r'''
+class C {
+  final int x;
+  const C(this.x);
+  C get property => C(1);
+}
+
+void main() {
+  C c = const .new(1).property;
+  print(c);
+}
+''');
+
+    var propertyAccess = findNode.singlePropertyAccess;
+    assertResolvedNodeText(propertyAccess, r'''
+PropertyAccess
+  target: DotShorthandConstructorInvocation
+    constKeyword: const
+    period: .
+    constructorName: SimpleIdentifier
+      token: new
+      element: <testLibrary>::@class::C::@constructor::new
+      staticType: null
+    argumentList: ArgumentList
+      leftParenthesis: (
+      arguments
+        IntegerLiteral
+          literal: 1
+          correspondingParameter: <testLibrary>::@class::C::@constructor::new::@formalParameter::x
+          staticType: int
+      rightParenthesis: )
+    isDotShorthand: false
+    staticType: C
+  operator: .
+  propertyName: SimpleIdentifier
+    token: property
+    element: <testLibrary>::@class::C::@getter::property
+    staticType: C
   staticType: C
 ''');
   }

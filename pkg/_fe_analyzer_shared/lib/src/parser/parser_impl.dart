@@ -6871,14 +6871,22 @@ class Parser {
     return token;
   }
 
-  /// Returns `true` if [period] is a `.` and the next token after is an
-  /// identifier or the `new` keyword.
+  /// Returns `true` if [token] is a `.` and the next token after is an
+  /// identifier or the `new` keyword, or if [token] is `const` followed by a
+  /// `.` and an identifier or the `new` keyword after.
   ///
-  /// This indicates the parsing of a dot shorthand e.g. `.parse(42)`.
-  bool _isDotShorthand(Token period) {
-    if (period.isA(TokenType.PERIOD) &&
-        (period.next!.isIdentifier || period.next!.isA(Keyword.NEW))) {
+  /// This indicates the parsing of a dot shorthand e.g. `.parse(42)` or
+  /// `const .parse(42)`.
+  bool _isDotShorthand(Token token) {
+    if (token.isA(TokenType.PERIOD) &&
+        (token.next!.isIdentifier || token.next!.isA(Keyword.NEW))) {
       return true;
+    }
+    if (token.isA(Keyword.CONST) && token.next!.isA(TokenType.PERIOD)) {
+      Token period = token.next!;
+      if (period.next!.isIdentifier || period.next!.isA(Keyword.NEW)) {
+        return true;
+      }
     }
     return false;
   }
@@ -6895,6 +6903,21 @@ class Parser {
     Token nextToken = token.next!;
     bool isDotShorthand = _isDotShorthand(nextToken);
     if (!isDotShorthand) {
+      if (nextToken.isA(Keyword.CONST) &&
+          nextToken.next!.isA(TokenType.PERIOD)) {
+        // Recovery.
+        // This is an incomplete dot shorthand like `C c = const .`.
+        // This allows for better code completion, assuming the user wanted to
+        // write a dot shorthand.
+        Token constKeyword = nextToken;
+        Token dot = nextToken.next!;
+        listener.beginConstDotShorthand(constKeyword);
+        token = ensureIdentifier(dot, IdentifierContext.expressionContinuation);
+        listener.handleDotShorthandHead(dot);
+        listener.endConstDotShorthand(constKeyword);
+        listener.handleDotShorthandContext(dot);
+        return token;
+      }
       if (nextToken.isA(TokenType.PERIOD)) {
         // Recovery.
         // This is an incomplete dot shorthand like `var x = .`.
@@ -6940,7 +6963,56 @@ class Parser {
       }
     }
 
-    if (isDotShorthand) {
+    token = _parseDotShorthand(
+      token,
+      nextToken,
+      isDotShorthand,
+      allowCascades,
+      typeArg,
+      constantPatternContext,
+    );
+
+    return _parsePrecedenceExpressionLoop(
+      precedence,
+      allowCascades,
+      typeArg,
+      token,
+      constantPatternContext,
+    );
+  }
+
+  Token _parseDotShorthand(
+    Token token,
+    Token nextToken,
+    bool isDotShorthand,
+    bool allowCascades,
+    TypeParamOrArgInfo typeArg,
+    ConstantPatternContext constantPatternContext,
+  ) {
+    if (!isDotShorthand) return token;
+
+    if (nextToken.isA(Keyword.CONST)) {
+      Token dot = nextToken.next!;
+      listener.beginConstDotShorthand(nextToken);
+      token = parsePrimary(
+        dot,
+        IdentifierContext.expressionContinuation,
+        constantPatternContext,
+      );
+
+      listener.handleDotShorthandHead(dot);
+      listener.endConstDotShorthand(nextToken);
+
+      token = _parsePrecedenceExpressionLoop(
+        SELECTOR_PRECEDENCE,
+        allowCascades,
+        typeArg,
+        token,
+        constantPatternContext,
+      );
+
+      listener.handleDotShorthandContext(dot);
+    } else {
       Token dot = token.next!;
       token = _parsePrecedenceExpressionLoop(
         SELECTOR_PRECEDENCE,
@@ -6963,14 +7035,7 @@ class Parser {
       // The entire shorthand is parsed at this point.
       listener.handleDotShorthandContext(dot);
     }
-
-    return _parsePrecedenceExpressionLoop(
-      precedence,
-      allowCascades,
-      typeArg,
-      token,
-      constantPatternContext,
-    );
+    return token;
   }
 
   Token _parsePrecedenceExpressionLoop(
@@ -8895,33 +8960,6 @@ class Parser {
         }
         assert(false, "Expected either [, [] or < but found neither.");
       }
-    }
-
-    // Handling const dot shorthands.
-    if (next.isA(TokenType.PERIOD)) {
-      listener.beginConstDotShorthand(constKeyword);
-
-      if (_isDotShorthand(next)) {
-        token = parsePrimary(
-          next,
-          IdentifierContext.expressionContinuation,
-          ConstantPatternContext.explicit,
-        );
-      } else {
-        // Recovery.
-        // This is an incomplete dot shorthand like `C c = const .`.
-        // This allows for better code completion, assuming the user wanted to
-        // write a dot shorthand.
-        token = ensureIdentifier(
-          next,
-          IdentifierContext.expressionContinuation,
-        );
-      }
-
-      listener.handleDotShorthandHead(next);
-      listener.handleDotShorthandContext(next);
-      listener.endConstDotShorthand(constKeyword);
-      return token;
     }
 
     listener.beginConstExpression(constKeyword);

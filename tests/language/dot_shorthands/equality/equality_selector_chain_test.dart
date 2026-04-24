@@ -50,4 +50,28 @@ void main() {
   if (ctor != .new(1).method()) print('ok');
   if (ctor != .new(1).method().field) print('ok');
   if (ctor != .new(1).field.method()) print('ok');
+
+  ConstructorWithNonFinal constCtor = const ConstructorWithNonFinal.constNamed(
+    1,
+  );
+
+  bool eqConstCtorField = constCtor == const .constNamed(1).field;
+  bool eqConstCtorMethod = constCtor == const .constNamed(1).method();
+  bool eqConstCtorMixed = constCtor == const .constNamed(1).method().field;
+  bool eqConstCtorMixed2 = constCtor == const .constNamed(1).field.method();
+
+  bool neqConstCtorField = constCtor != const .constNamed(1).field;
+  bool neqConstCtorMethod = constCtor != const .constNamed(1).method();
+  bool neqConstCtorMixed = constCtor != const .constNamed(1).method().field;
+  bool neqConstCtorMixed2 = constCtor != const .constNamed(1).field.method();
+
+  if (constCtor == const .constNamed(1).field) print('ok');
+  if (constCtor == const .constNamed(1).method()) print('ok');
+  if (constCtor == const .constNamed(1).method().field) print('ok');
+  if (constCtor == const .constNamed(1).field.method()) print('ok');
+
+  if (constCtor != const .constNamed(1).field) print('ok');
+  if (constCtor != const .constNamed(1).method()) print('ok');
+  if (constCtor != const .constNamed(1).method().field) print('ok');
+  if (constCtor != const .constNamed(1).field.method()) print('ok');
 }

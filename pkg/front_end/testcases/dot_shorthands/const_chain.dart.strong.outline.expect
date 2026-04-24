@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object /*hasConstConstructor*/  {
+  final field core::int x;
+  constructor •(initializing-formal core::int x) → self::C
+    ;
+  const constructor constNamed(initializing-formal core::int x) → self::C
+    : self::C::x = x, super core::Object::•()
+    ;
+  get field() → self::C
+    ;
+  method method() → self::C
+    ;
+}
+static method main() → void
+  ;
