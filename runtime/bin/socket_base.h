@@ -135,21 +135,25 @@ class InterfaceSocketAddress {
  public:
   InterfaceSocketAddress(const RawAddr& addr,
                          const char* interface_name,
-                         intptr_t interface_index)
+                         intptr_t interface_index,
+                         intptr_t prefix_length)
       : socket_address_(new SocketAddress(addr)),
         interface_name_(interface_name),
-        interface_index_(interface_index) {}
+        interface_index_(interface_index),
+        prefix_length_(prefix_length) {}
 
   ~InterfaceSocketAddress() { delete socket_address_; }
 
   SocketAddress* socket_address() const { return socket_address_; }
   const char* interface_name() const { return interface_name_; }
-  int interface_index() const { return interface_index_; }
+  intptr_t interface_index() const { return interface_index_; }
+  intptr_t prefix_length() const { return prefix_length_; }
 
  private:
   SocketAddress* socket_address_;
   const char* interface_name_;
   intptr_t interface_index_;
+  intptr_t prefix_length_;
 
   DISALLOW_COPY_AND_ASSIGN(InterfaceSocketAddress);
 };

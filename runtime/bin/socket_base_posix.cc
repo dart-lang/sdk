@@ -339,6 +339,26 @@ static bool ShouldIncludeIfaAddrs(struct ifaddrs* ifa, int lookup_family) {
            ((family == AF_INET) || (family == AF_INET6))));
 }
 
+static intptr_t PrefixLengthFromNetmask(const struct sockaddr* netmask) {
+  if (netmask == nullptr) return 0;
+
+  if (netmask->sa_family == AF_INET6) {
+    auto* mask = reinterpret_cast<const struct sockaddr_in6*>(netmask);
+    intptr_t prefix = 0;
+    for (int i = 0; i < 16; i++) {
+      uint8_t byte = mask->sin6_addr.s6_addr[i];
+      prefix += Utils::CountLeadingOnes(byte);
+      if (byte != 0xFF) {
+        break;
+      }
+    }
+    return prefix;
+  }
+
+  auto* mask = reinterpret_cast<const struct sockaddr_in*>(netmask);
+  return Utils::CountOneBits32(ntohl(mask->sin_addr.s_addr));
+}
+
 AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
     int type,
     OSError** os_error) {
@@ -369,7 +389,8 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
       char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
       addresses->SetAt(i, new InterfaceSocketAddress(
                               RawAddr::FromInet4or6(ifa->ifa_addr), ifa_name,
-                              if_nametoindex(ifa->ifa_name)));
+                              if_nametoindex(ifa->ifa_name),
+                              PrefixLengthFromNetmask(ifa->ifa_netmask)));
       i++;
     }
   }

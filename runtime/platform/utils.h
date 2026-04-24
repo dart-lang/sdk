@@ -189,6 +189,11 @@ class Utils {
   static int CountTrailingZeros64(uint64_t x) { return std::countr_zero(x); }
   static int CountTrailingZerosWord(uword x) { return std::countr_zero(x); }
 
+  template <typename T>
+  static constexpr int CountLeadingOnes(T x) {
+    return std::countl_one(x);
+  }
+
   static uint64_t ReverseBits64(uint64_t x);
   static uint32_t ReverseBits32(uint32_t x);
 

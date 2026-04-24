@@ -432,10 +432,36 @@ class _InternetAddress implements InternetAddress {
   external static Uint8List? _parse(String address);
 }
 
+class _InterfaceAddress extends _InternetAddress implements InterfaceAddress {
+  final int prefixLength;
+
+  _InterfaceAddress(
+    super.type,
+    super.address,
+    super.host,
+    super.rawAddress,
+    this.prefixLength,
+  );
+
+  InternetAddress? get broadcast {
+    if (type != InternetAddressType.IPv4) return null;
+    // `mask` contains 1s in the host portion of the address.
+    final mask = (1 << (32 - prefixLength)) - 1;
+    final raw = rawAddress;
+    final bytes = Uint8List(4);
+    int currentMask = mask;
+    for (var i = 3; i >= 0; i--) {
+      bytes[i] = raw[i] | (currentMask & 0xFF);
+      currentMask >>= 8;
+    }
+    return InternetAddress.fromRawAddress(bytes);
+  }
+}
+
 class _NetworkInterface implements NetworkInterface {
   final String name;
   final int index;
-  final List<InternetAddress> addresses = [];
+  final List<InterfaceAddress> addresses = [];
 
   _NetworkInterface(this.name, this.index);
 
@@ -632,11 +658,13 @@ base class _NativeSocket extends _NativeSocketNativeWrapper
             var type = InternetAddressType._from(resultList[0] as int);
             var name = resultList[3] as String;
             var index = resultList[4] as int;
-            var address = _InternetAddress(
+            var prefixLength = resultList[5] as int;
+            var address = _InterfaceAddress(
               type,
               resultList[1] as String,
               "",
               resultList[2] as Uint8List,
+              prefixLength,
             );
             if (!includeLinkLocal && address.isLinkLocal) return map;
             if (!includeLoopback && address.isLoopback) return map;
