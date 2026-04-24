@@ -13861,7 +13861,7 @@ LinterLintCode:
       #### Description
 
       The analyzer produces this diagnostic when the keyword `const` is used in
-      a generative enum constructor. Generative num constructors are implicitly
+      a generative enum constructor. Generative enum constructors are implicitly
       `const`.
 
       #### Examples
@@ -15390,8 +15390,8 @@ LinterLintCode:
 
       #### Common fixes
 
-      Remove the type name from the constructor, and if the constructor is
-      named, then also remove the period before the name:
+      Remove the type name from the constructor. If the constructor is named,
+      also remove the period before the name:
 
       ```dart
       %experiments=primary-constructors

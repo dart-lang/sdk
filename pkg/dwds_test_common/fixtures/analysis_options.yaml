@@ -1,0 +1,6 @@
+# This file prevents sub-packages from picking up the parent's analysis options,
+# which eliminates package resolution errors during 'dart format'.
+
+analyzer:
+  exclude:
+    - "**"

@@ -1,0 +1,12 @@
+# See https://pub.dev/packages/mono_repo for details
+stages:
+  - analyzer_and_format:
+    - group:
+      - format
+      - analyze: --fatal-infos .
+      sdk: dev
+
+cache:
+  directories:
+    - .dart_tool/build
+    - .dart_tool/pub

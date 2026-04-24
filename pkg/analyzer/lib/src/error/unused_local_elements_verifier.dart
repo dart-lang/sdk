@@ -40,6 +40,15 @@ class GatherUsedLocalElementsVisitor extends RecursiveAstVisitor<void> {
   GatherUsedLocalElementsVisitor(this._enclosingLibrary);
 
   @override
+  void visitAnnotation(Annotation node) {
+    var arguments = node.arguments;
+    if (arguments != null) {
+      _addParametersForArguments(arguments);
+    }
+    super.visitAnnotation(node);
+  }
+
+  @override
   void visitAssignmentExpression(AssignmentExpression node) {
     var element = node.element;
     usedElements.addMember(element);

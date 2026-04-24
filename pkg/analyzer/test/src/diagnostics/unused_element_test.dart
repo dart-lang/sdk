@@ -3191,6 +3191,18 @@ void foo() {
 ''');
   }
 
+  test_parameter_isUsed_inAnnotation() async {
+    await assertNoErrorsInCode(r'''
+class _MyAnnotation {
+  const _MyAnnotation({this.value});
+  final int? value;
+}
+
+@_MyAnnotation(value: 42)
+void fn() {}
+''');
+  }
+
   test_parameter_isUsed_local() async {
     await assertNoErrorsInCode(r'''
 f() {
