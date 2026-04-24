@@ -106,23 +106,27 @@ void testNull() {
   Expect.isTrue(nil.isA<JSObject?>());
   Expect.isTrue(nil.isA<JSAny?>());
   Expect.isTrue(nil.isA<JSBoxedDartObject?>());
-  Expect.isTrue(nil.isA<JSExportedDartFunction?>());
+  Expect.isTrue(nil.isA<JSExportedDartFunction<void Function()>?>());
+  Expect.isTrue(nil.isA<JSTypedArray?>());
   Expect.isFalse(nil.isA<JSString>());
   Expect.isFalse(nil.isA<JSObject>());
   Expect.isFalse(nil.isA<JSAny>());
   Expect.isFalse(nil.isA<JSBoxedDartObject>());
-  Expect.isFalse(nil.isA<JSExportedDartFunction>());
+  Expect.isFalse(nil.isA<JSExportedDartFunction<void Function()>>());
+  Expect.isFalse(nil.isA<JSTypedArray>());
   Object? nilObj = null;
   Expect.isTrue(nilObj.isA<JSString?>());
   Expect.isTrue(nilObj.isA<JSObject?>());
   Expect.isTrue(nilObj.isA<JSAny?>());
   Expect.isTrue(nilObj.isA<JSBoxedDartObject?>());
   Expect.isTrue(nilObj.isA<JSExportedDartFunction?>());
+  Expect.isTrue(nilObj.isA<JSTypedArray?>());
   Expect.isFalse(nilObj.isA<JSString>());
   Expect.isFalse(nilObj.isA<JSObject>());
   Expect.isFalse(nilObj.isA<JSAny>());
   Expect.isFalse(nilObj.isA<JSBoxedDartObject>());
   Expect.isFalse(nilObj.isA<JSExportedDartFunction>());
+  Expect.isFalse(nilObj.isA<JSTypedArray>());
   // JS nullish values should behave no differently.
   eval('''
     globalThis.nullable = null;
@@ -132,11 +136,13 @@ void testNull() {
   Expect.isTrue(nullable.isA<JSAny?>());
   Expect.isTrue(nullable.isA<JSBoxedDartObject?>());
   Expect.isTrue(nullable.isA<JSExportedDartFunction?>());
+  Expect.isTrue(nullable.isA<JSTypedArray?>());
   Expect.isFalse(nullable.isA<JSString>());
   Expect.isFalse(nullable.isA<JSObject>());
   Expect.isFalse(nullable.isA<JSAny>());
   Expect.isFalse(nullable.isA<JSBoxedDartObject>());
   Expect.isFalse(nullable.isA<JSExportedDartFunction>());
+  Expect.isFalse(nullable.isA<JSTypedArray>());
   eval('''
     globalThis.nullable = undefined;
   ''');
@@ -145,11 +151,13 @@ void testNull() {
   Expect.isTrue(nullable.isA<JSAny?>());
   Expect.isTrue(nullable.isA<JSBoxedDartObject?>());
   Expect.isTrue(nullable.isA<JSExportedDartFunction?>());
+  Expect.isTrue(nullable.isA<JSTypedArray?>());
   Expect.isFalse(nullable.isA<JSString>());
   Expect.isFalse(nullable.isA<JSObject>());
   Expect.isFalse(nullable.isA<JSAny>());
   Expect.isFalse(nullable.isA<JSBoxedDartObject>());
   Expect.isFalse(nullable.isA<JSExportedDartFunction>());
+  Expect.isFalse(nullable.isA<JSTypedArray>());
 }
 
 void testPrimitives() {
@@ -310,19 +318,39 @@ void testJSObjects() {
 
   Object jsFunctionObj = jsFunction;
   Expect.isTrue(jsFunctionObj.isA<JSFunction>());
+  // The type argument is ignored.
+  Expect.isTrue(jsFunctionObj.isA<JSFunction<void Function()>>());
   Expect.isFalse(jsFunctionObj.isA<JSBoxedDartObject>());
   Expect.isFalse(jsFunctionObj.isA<JSExportedDartFunction>());
 
   // JSExportedDartFunction.
   final jsExportedDartFunction = () {}.toJS;
   Expect.isTrue(jsExportedDartFunction.isA<JSExportedDartFunction>());
+  Expect.isTrue(
+    jsExportedDartFunction.isA<JSExportedDartFunction<void Function()>>(),
+  );
   Expect.isTrue(jsExportedDartFunction.isA<JSExportedDartFunction?>());
+  Expect.isTrue(
+    jsExportedDartFunction.isA<JSExportedDartFunction<void Function()>?>(),
+  );
+  Expect.isFalse(
+    jsExportedDartFunction.isA<JSExportedDartFunction<int Function(String)>>(),
+  );
+  Expect.isFalse(
+    jsExportedDartFunction.isA<JSExportedDartFunction<int Function(String)>?>(),
+  );
   Expect.isTrue(jsExportedDartFunction.isA<JSFunction>());
   testIsJSObject(jsExportedDartFunction);
   Expect.isFalse(jsExportedDartFunction.isA<JSSymbol>());
 
   Object? jsExportedDartFunctionObj = jsExportedDartFunction;
   Expect.isTrue(jsExportedDartFunctionObj.isA<JSExportedDartFunction>());
+  Expect.isTrue(
+    jsExportedDartFunctionObj.isA<JSExportedDartFunction<void Function()>>(),
+  );
+  Expect.isFalse(
+    jsExportedDartFunction.isA<JSExportedDartFunction<int Function(String)>?>(),
+  );
   Expect.isTrue(jsExportedDartFunctionObj.isA<JSFunction>());
   Expect.isFalse(jsExportedDartFunctionObj.isA<JSString>());
 }

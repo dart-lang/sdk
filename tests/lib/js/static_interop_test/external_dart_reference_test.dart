@@ -177,7 +177,12 @@ extension type WritableSignal<T>(JSFunction _) {
 
   void set(T value) => _set(value.toExternalReference);
 
-  void _update(JSExportedDartFunction update) {}
+  void _update(
+    JSExportedDartFunction<
+      ExternalDartReference<T> Function(ExternalDartReference<T>)
+    >
+    update,
+  ) {}
 
   void update(T Function(T) function) {
     // Because `ExternalDartReference<T>`s are `T` on the JS backends, we can

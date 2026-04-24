@@ -29,7 +29,6 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _getProperty;
   final Procedure _globalContext;
   late bool _inIsATearoff;
-  final Procedure _instanceof;
   final Procedure _instanceOfString;
   late StaticInvocation? _invocation;
   final Procedure _isA;
@@ -38,12 +37,13 @@ class SharedInteropTransformer extends Transformer {
   final Procedure _isJSBoxedDartObject;
   final Procedure _isJSExportedDartFunction;
   final Procedure _isJSObject;
+  final Procedure _isJSTypedArray;
   final Procedure _isNullableJSAny;
   final Procedure _isNullableJSBoxedDartObject;
   final Procedure _isNullableJSExportedDartFunction;
   final Procedure _isNullableJSObject;
+  final Procedure _isNullableJSTypedArray;
   final ExtensionTypeDeclaration _jsAny;
-  final ExtensionTypeDeclaration _jsFunction;
   final ExtensionTypeDeclaration _jsObject;
   final Procedure _setProperty;
   final Procedure _stringToJS;
@@ -83,10 +83,6 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         'get:globalContext',
       ),
-      _instanceof = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
-        'dart:js_interop',
-        'JSAnyUtilityExtension|instanceof',
-      ),
       _instanceOfString = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         'JSAnyUtilityExtension|instanceOfString',
@@ -111,6 +107,10 @@ class SharedInteropTransformer extends Transformer {
         'dart:js_interop',
         '_isJSObject',
       ),
+      _isJSTypedArray = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
+        'dart:js_interop',
+        '_isJSTypedArray',
+      ),
       _isNullableJSAny = _typeEnvironment.coreTypes.index.getTopLevelProcedure(
         'dart:js_interop',
         '_isNullableJSAny',
@@ -127,13 +127,11 @@ class SharedInteropTransformer extends Transformer {
           ),
       _isNullableJSObject = _typeEnvironment.coreTypes.index
           .getTopLevelProcedure('dart:js_interop', '_isNullableJSObject'),
+      _isNullableJSTypedArray = _typeEnvironment.coreTypes.index
+          .getTopLevelProcedure('dart:js_interop', '_isNullableJSTypedArray'),
       _jsAny = _typeEnvironment.coreTypes.index.getExtensionType(
         'dart:js_interop',
         'JSAny',
-      ),
-      _jsFunction = _typeEnvironment.coreTypes.index.getExtensionType(
-        'dart:js_interop',
-        'JSFunction',
       ),
       _jsObject = _typeEnvironment.coreTypes.index.getExtensionType(
         'dart:js_interop',
@@ -409,16 +407,20 @@ class SharedInteropTransformer extends Transformer {
             exportName,
             StaticInvocation(
               _functionToJS,
-              Arguments([
-                InstanceTearOff(
-                  InstanceAccessKind.Instance,
-                  VariableGet(dartInstance),
-                  firstExport.name,
-                  interfaceTarget: firstExport,
-                  resultType: _staticInteropMockValidator.typeParameterResolver
-                      .resolve(firstExport.getterType),
-                ),
-              ]),
+              Arguments(
+                [
+                  InstanceTearOff(
+                    InstanceAccessKind.Instance,
+                    VariableGet(dartInstance),
+                    firstExport.name,
+                    interfaceTarget: firstExport,
+                    resultType: _staticInteropMockValidator
+                        .typeParameterResolver
+                        .resolve(firstExport.getterType),
+                  ),
+                ],
+                types: [_typeEnvironment.coreTypes.functionNonNullableRawType],
+              ),
             ),
           ),
         );
@@ -469,22 +471,27 @@ class SharedInteropTransformer extends Transformer {
               'get',
               StaticInvocation(
                 _functionToJS,
-                Arguments([
-                  FunctionExpression(
-                    FunctionNode(
-                      ReturnStatement(
-                        InstanceGet(
-                          InstanceAccessKind.Instance,
-                          VariableGet(dartInstance),
-                          getter.name,
-                          interfaceTarget: getter,
-                          resultType: resultType,
+                Arguments(
+                  [
+                    FunctionExpression(
+                      FunctionNode(
+                        ReturnStatement(
+                          InstanceGet(
+                            InstanceAccessKind.Instance,
+                            VariableGet(dartInstance),
+                            getter.name,
+                            interfaceTarget: getter,
+                            resultType: resultType,
+                          ),
                         ),
+                        returnType: resultType,
                       ),
-                      returnType: resultType,
                     ),
-                  ),
-                ]),
+                  ],
+                  types: [
+                    _typeEnvironment.coreTypes.functionNonNullableRawType,
+                  ],
+                ),
               ),
             ),
           );
@@ -503,23 +510,28 @@ class SharedInteropTransformer extends Transformer {
               'set',
               StaticInvocation(
                 _functionToJS,
-                Arguments([
-                  FunctionExpression(
-                    FunctionNode(
-                      ExpressionStatement(
-                        InstanceSet(
-                          InstanceAccessKind.Instance,
-                          VariableGet(dartInstance),
-                          setter.name,
-                          VariableGet(setterParameter),
-                          interfaceTarget: setter,
+                Arguments(
+                  [
+                    FunctionExpression(
+                      FunctionNode(
+                        ExpressionStatement(
+                          InstanceSet(
+                            InstanceAccessKind.Instance,
+                            VariableGet(dartInstance),
+                            setter.name,
+                            VariableGet(setterParameter),
+                            interfaceTarget: setter,
+                          ),
                         ),
+                        positionalParameters: [setterParameter],
+                        returnType: const VoidType(),
                       ),
-                      positionalParameters: [setterParameter],
-                      returnType: const VoidType(),
                     ),
-                  ),
-                ]),
+                  ],
+                  types: [
+                    _typeEnvironment.coreTypes.functionNonNullableRawType,
+                  ],
+                ),
               ),
             ),
           );
@@ -659,22 +671,20 @@ class SharedInteropTransformer extends Transformer {
           interopTypeNullable
               ? _isNullableJSExportedDartFunction
               : _isJSExportedDartFunction,
-          Arguments([VariableGet(receiverVar)]),
+          Arguments(
+            [VariableGet(receiverVar)],
+            types: [interopType.typeArguments.first],
+          ),
         );
         break;
       case 'JSTypedArray' when interopTypeDecl == jsType:
         // Only do this special case when users are referring directly to the
         // `dart:js_interop` type and not some wrapper.
-
-        // `TypedArray` doesn't exist as a property in JS, but rather as a
-        // superclass of all typed arrays. In order to do the most sensible
-        // thing here, we can use the prototype of some typed array, and check
-        // that the receiver is an `instanceof` that prototype. See
-        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/TypedArray#description
-        // for more details.
+        isJSAnyCheck = null;
+        nullChecksNeeded = false;
         check = StaticInvocation(
-          _instanceof,
-          Arguments([receiverVarAsJSAny, getInt8ArrayPrototype()]),
+          interopTypeNullable ? _isNullableJSTypedArray : _isJSTypedArray,
+          Arguments([VariableGet(receiverVar)]),
         );
         break;
       case 'JSBoxedDartObject' when interopTypeDecl == jsType:
@@ -843,13 +853,6 @@ class SharedInteropTransformer extends Transformer {
   )..fileOffset = invocation.fileOffset;
 
   Expression getObjectProperty() => getGlobalProperty('Object');
-
-  Expression getInt8ArrayPrototype() => callMethodVarArgs(
-    getObjectProperty(),
-    'getPrototypeOf',
-    [getGlobalProperty('Int8Array')],
-    ExtensionType(_jsFunction, Nullability.nonNullable),
-  );
 
   // Get a fresh object literal, using the proto to create it if one was
   // given.
