@@ -127,6 +127,8 @@ class TestConfiguration {
   bool get useSdk => configuration.useSdk;
   bool get enableAsserts => configuration.enableAsserts;
   bool get useQemu => configuration.useQemu;
+  bool get isDart2wasmStandalone => dart2wasmOptions
+            .any((e) => e.contains('--standalone'));
 
   // Various file paths.
 

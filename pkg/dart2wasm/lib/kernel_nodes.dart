@@ -916,6 +916,12 @@ mixin KernelNodes {
     "printToConsole",
   );
 
+  // Standalone embedder imports
+  late final Procedure embedderStringFromCharCodeArray = index
+      .getTopLevelProcedure('dart:_embedder', 'stringFromCharCodeArray');
+  late final Procedure embedderStringFromAsciiBytes = index
+      .getTopLevelProcedure('dart:_embedder', 'stringFromAsciiBytes');
+
   late final Map<Member, (Extension, ExtensionMemberDescriptor)>
   _extensionCache = {};
 

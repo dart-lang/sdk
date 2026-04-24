@@ -32,7 +32,8 @@ final _variables = {
   "simulator": _Variable.bool((c) => c.isSimulator),
   "spec_parser": _Variable.bool((c) => c.compiler == Compiler.specParser),
   "system": _Variable(_systemName, _systemNames),
-  "use_sdk": _Variable.bool((c) => c.useSdk)
+  "use_sdk": _Variable.bool((c) => c.useSdk),
+  "dart2wasm_standalone": _Variable.bool((c) => c.isDart2wasmStandalone),
 };
 
 /// Gets the name of the runtime as it appears in status files.

@@ -159,6 +159,19 @@ class WasmCompilerOptions {
       }
     }
 
+    if (translatorOptions.standalone) {
+      void handleUnsupportedOption(bool enabled, String name) {
+        if (enabled) {
+          throw ArgumentError('$name is not supported with --standalone');
+        }
+      }
+
+      handleUnsupportedOption(
+        translatorOptions.enableDeferredLoading,
+        '--enable-deferred-loading',
+      );
+    }
+
     _validatePhases();
   }
 
