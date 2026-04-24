@@ -33,21 +33,21 @@ class IsAssignableToTest extends AbstractTypeSystemTest {
   }
 
   test_dynamicType() {
-    isAssignable(dynamicType, dynamicType);
-    isAssignable(dynamicType, invalidType);
-    isAssignable(dynamicType, intNone);
+    isAssignable(parseType('dynamic'), parseType('dynamic'));
+    isAssignable(parseType('dynamic'), parseType('InvalidType'));
+    isAssignable(parseType('dynamic'), parseType('int'));
   }
 
   test_interfaceType() {
-    isAssignable(intNone, numNone);
-    isAssignable(doubleNone, numNone);
+    isAssignable(parseType('int'), parseType('num'));
+    isAssignable(parseType('double'), parseType('num'));
 
-    isNotAssignable(numNone, intNone);
+    isNotAssignable(parseType('num'), parseType('int'));
   }
 
   test_invalidType() {
-    isAssignable(invalidType, invalidType);
-    isAssignable(invalidType, dynamicType);
-    isAssignable(invalidType, intNone);
+    isAssignable(parseType('InvalidType'), parseType('InvalidType'));
+    isAssignable(parseType('InvalidType'), parseType('dynamic'));
+    isAssignable(parseType('InvalidType'), parseType('int'));
   }
 }

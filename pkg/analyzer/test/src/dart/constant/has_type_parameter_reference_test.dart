@@ -18,51 +18,39 @@ main() {
 @reflectiveTest
 class HasTypeParameterReferenceTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _checkFalse(dynamicType);
+    _checkFalse(parseType('dynamic'));
   }
 
   test_functionType() {
-    _checkFalse(functionTypeNone(returnType: voidNone));
+    _checkFalse(parseType('void Function()'));
 
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
-
-    _checkTrue(functionTypeNone(returnType: T_none));
-
-    _checkTrue(
-      functionTypeNone(
-        returnType: voidNone,
-        formalParameters: [requiredParameter(type: T_none)],
-      ),
-    );
-
-    _checkTrue(
-      functionTypeNone(
-        returnType: voidNone,
-        typeParameters: [typeParameter('S', bound: T_none)],
-      ),
-    );
+    withTypeParameterScope('T', (scope) {
+      _checkTrue(scope.parseType('T Function()'));
+      _checkTrue(scope.parseType('void Function(T)'));
+      _checkTrue(scope.parseType('void Function<S extends T>()'));
+    });
   }
 
   test_interfaceType() {
-    _checkFalse(intNone);
-    _checkFalse(intQuestion);
+    _checkFalse(parseType('int'));
+    _checkFalse(parseType('int?'));
 
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
-    _checkTrue(listNone(T_none));
-    _checkTrue(mapNone(T_none, intNone));
-    _checkTrue(mapNone(intNone, T_none));
+    withTypeParameterScope('T', (scope) {
+      _checkTrue(scope.parseType('List<T>'));
+      _checkTrue(scope.parseType('Map<T, int>'));
+      _checkTrue(scope.parseType('Map<int, T>'));
+    });
   }
 
   test_typeParameter() {
-    var T = typeParameter('T');
-    _checkTrue(typeParameterTypeNone(T));
-    _checkTrue(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T', (scope) {
+      _checkTrue(scope.parseType('T'));
+      _checkTrue(scope.parseType('T?'));
+    });
   }
 
   test_void() {
-    _checkFalse(voidNone);
+    _checkFalse(parseType('void'));
   }
 
   void _checkFalse(DartType type) {

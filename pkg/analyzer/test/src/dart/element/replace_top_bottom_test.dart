@@ -21,63 +21,42 @@ main() {
 class ReplaceTopBottomTest extends AbstractTypeSystemTest {
   test_contravariant_bottom() {
     // Not contravariant.
-    _check(neverNone, 'Never');
+    _check(parseType('Never'), 'Never');
 
-    void checkContravariant(TypeImpl type, String expectedStr) {
-      _check(
-        functionTypeNone(
-          returnType: intNone,
-          formalParameters: [requiredParameter(type: type)],
-        ),
-        'int Function($expectedStr)',
-      );
-    }
+    _check(parseFunctionType('int Function(Never)'), 'int Function(Object?)');
 
-    checkContravariant(neverNone, 'Object?');
-
-    checkContravariant(
-      typeParameterTypeNone(typeParameter('T', bound: neverNone)),
-      'Object?',
-    );
+    withTypeParameterScope('T extends Never', (scope) {
+      _check(scope.parseType('int Function(T)'), 'int Function(Object?)');
+    });
   }
 
   test_notContravariant_covariant_top() {
-    _check(objectQuestion, 'Never');
-    _check(dynamicType, 'Never');
-    _check(voidNone, 'Never');
+    _check(parseType('Object?'), 'Never');
+    _check(parseType('dynamic'), 'Never');
+    _check(parseType('void'), 'Never');
 
-    _check(listNone(objectQuestion), 'List<Never>');
-    _check(listNone(dynamicType), 'List<Never>');
-    _check(listNone(voidNone), 'List<Never>');
+    _check(parseType('List<Object?>'), 'List<Never>');
+    _check(parseType('List<dynamic>'), 'List<Never>');
+    _check(parseType('List<void>'), 'List<Never>');
 
-    _check(futureOrNone(objectQuestion), 'Never');
-    _check(futureOrNone(dynamicType), 'Never');
-    _check(futureOrNone(voidNone), 'Never');
-    _check(futureOrNone(futureOrNone(voidNone)), 'Never');
+    _check(parseType('FutureOr<Object?>'), 'Never');
+    _check(parseType('FutureOr<dynamic>'), 'Never');
+    _check(parseType('FutureOr<void>'), 'Never');
+    _check(parseType('FutureOr<FutureOr<void>>'), 'Never');
 
     _check(
-      functionTypeNone(
-        returnType: intNone,
-        formalParameters: [
-          requiredParameter(
-            type: functionTypeNone(
-              returnType: intNone,
-              formalParameters: [requiredParameter(type: objectQuestion)],
-            ),
-          ),
-        ],
-      ),
+      parseType('int Function(int Function(Object?))'),
       'int Function(int Function(Never))',
       typeStr: 'int Function(int Function(Object?))',
     );
 
-    _check(intNone, 'int');
-    _check(intQuestion, 'int?');
+    _check(parseType('int'), 'int');
+    _check(parseType('int?'), 'int?');
 
-    _check(listNone(intNone), 'List<int>');
-    _check(listNone(intQuestion), 'List<int?>');
-    _check(listQuestion(intNone), 'List<int>?');
-    _check(listQuestion(intQuestion), 'List<int?>?');
+    _check(parseType('List<int>'), 'List<int>');
+    _check(parseType('List<int?>'), 'List<int?>');
+    _check(parseType('List<int>?'), 'List<int>?');
+    _check(parseType('List<int?>?'), 'List<int?>?');
   }
 
   test_notContravariant_invariant() {
@@ -88,7 +67,7 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     var F = typeAliasElement('F');
 
     var F_dynamic = F.instantiateImpl(
-      typeArguments: [dynamicType],
+      typeArguments: [parseType('dynamic')],
       nullabilitySuffix: NullabilitySuffix.none,
     );
     _check(F_dynamic, 'Never Function(Never)');

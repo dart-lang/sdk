@@ -34,100 +34,91 @@ class IsNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_dynamic() {
-    isNotNonNullable(dynamicType);
+    isNotNonNullable(parseType('dynamic'));
   }
 
   test_function() {
-    isNonNullable(functionTypeNone(returnType: voidNone));
+    isNonNullable(parseType('void Function()'));
 
-    isNotNonNullable(functionTypeQuestion(returnType: voidNone));
+    isNotNonNullable(parseType('void Function()?'));
   }
 
   test_functionClass() {
-    isNonNullable(functionNone);
-    isNotNonNullable(functionQuestion);
+    isNonNullable(parseType('Function'));
+    isNotNonNullable(parseType('Function?'));
   }
 
   test_futureOr_noneArgument() {
-    isNonNullable(futureOrNone(intNone));
+    isNonNullable(parseType('FutureOr<int>'));
 
-    isNotNonNullable(futureOrQuestion(intNone));
+    isNotNonNullable(parseType('FutureOr<int>?'));
   }
 
   test_futureOr_questionArgument() {
-    isNotNonNullable(futureOrNone(intQuestion));
+    isNotNonNullable(parseType('FutureOr<int?>'));
 
-    isNotNonNullable(futureOrQuestion(intQuestion));
+    isNotNonNullable(parseType('FutureOr<int?>?'));
   }
 
   test_interface() {
-    isNonNullable(intNone);
-    isNotNonNullable(intQuestion);
+    isNonNullable(parseType('int'));
+    isNotNonNullable(parseType('int?'));
   }
 
   test_interface_extensionType2() {
     buildTestLibrary(
-      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
-    );
-    var A = extensionTypeElement('A');
-    buildTestLibrary(
       extensionTypes: [
-        ExtensionTypeSpec('extension type A(int it) implements int'),
+        ExtensionTypeSpec('extension type A(int it)'),
+        ExtensionTypeSpec('extension type B(int it) implements int'),
       ],
     );
-    var AWithInt = extensionTypeElement('A');
-    isNotNonNullable(interfaceTypeNone(A));
-
-    isNonNullable(interfaceTypeNone(AWithInt));
+    isNotNonNullable(parseInterfaceType('A'));
+    isNonNullable(parseInterfaceType('B'));
   }
 
   test_invalidType() {
-    isNotNonNullable(invalidType);
+    isNotNonNullable(parseType('InvalidType'));
   }
 
   test_never() {
-    isNonNullable(neverNone);
-    isNotNonNullable(neverQuestion);
+    isNonNullable(parseType('Never'));
+    isNotNonNullable(parseType('Never?'));
   }
 
   test_null() {
-    isNotNonNullable(nullNone);
+    isNotNonNullable(parseType('Null'));
   }
 
   test_typeParameter_boundNone() {
-    var T = typeParameter('T', bound: intNone);
-
-    isNonNullable(typeParameterTypeNone(T));
-
-    isNotNonNullable(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T extends int', (scope) {
+      isNonNullable(scope.parseType('T'));
+      isNotNonNullable(scope.parseType('T?'));
+    });
   }
 
   test_typeParameter_boundQuestion() {
-    var T = typeParameter('T', bound: intQuestion);
-
-    isNotNonNullable(typeParameterTypeNone(T));
-
-    isNotNonNullable(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T extends int?', (scope) {
+      isNotNonNullable(scope.parseType('T'));
+      isNotNonNullable(scope.parseType('T?'));
+    });
   }
 
   test_typeParameter_promotedBoundNone() {
-    var T = typeParameter('T');
-
-    isNonNullable(typeParameterTypeNone(T, promotedBound: intNone));
-
-    isNonNullable(typeParameterTypeQuestion(T, promotedBound: intNone));
+    withTypeParameterScope('T', (scope) {
+      isNonNullable(scope.parseType('T & int'));
+      isNonNullable(scope.parseType('(T & int)?'));
+    });
   }
 
   test_typeParameter_promotedBoundQuestion() {
-    var T = typeParameter('T');
-
-    isNotNonNullable(typeParameterTypeNone(T, promotedBound: intQuestion));
-
-    isNotNonNullable(typeParameterTypeQuestion(T, promotedBound: intQuestion));
+    withTypeParameterScope('T', (scope) {
+      isNotNonNullable(scope.parseType('T & int?'));
+      isNotNonNullable(scope.parseType('(T & int?)?'));
+    });
   }
 
   test_void() {
-    isNotNonNullable(voidNone);
+    isNotNonNullable(parseType('void'));
   }
 }
 
@@ -142,102 +133,92 @@ class IsNullableTest extends AbstractTypeSystemTest {
   }
 
   test_dynamic() {
-    isNullable(dynamicType);
+    isNullable(parseType('dynamic'));
   }
 
   test_function() {
-    isNotNullable(functionTypeNone(returnType: voidNone));
+    isNotNullable(parseType('void Function()'));
 
-    isNullable(functionTypeQuestion(returnType: voidNone));
+    isNullable(parseType('void Function()?'));
   }
 
   test_functionClass() {
-    isNotNullable(functionNone);
-    isNullable(functionQuestion);
+    isNotNullable(parseType('Function'));
+    isNullable(parseType('Function?'));
   }
 
   test_futureOr_noneArgument() {
-    isNotNullable(futureOrNone(intNone));
+    isNotNullable(parseType('FutureOr<int>'));
 
-    isNullable(futureOrQuestion(intNone));
+    isNullable(parseType('FutureOr<int>?'));
   }
 
   test_futureOr_questionArgument() {
-    isNullable(futureOrNone(intQuestion));
+    isNullable(parseType('FutureOr<int?>'));
 
-    isNullable(futureOrQuestion(intQuestion));
+    isNullable(parseType('FutureOr<int?>?'));
   }
 
   test_interface() {
-    isNotNullable(intNone);
-    isNullable(intQuestion);
+    isNotNullable(parseType('int'));
+    isNullable(parseType('int?'));
   }
 
   test_interface_extensionType2() {
     buildTestLibrary(
-      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
-    );
-    var A = extensionTypeElement('A');
-    buildTestLibrary(
       extensionTypes: [
-        ExtensionTypeSpec('extension type A(int it) implements int'),
+        ExtensionTypeSpec('extension type A(int it)'),
+        ExtensionTypeSpec('extension type B(int it) implements int'),
       ],
     );
-    var AWithInt = extensionTypeElement('A');
-    isNotNullable(interfaceTypeNone(A));
-
-    isNotNullable(interfaceTypeNone(AWithInt));
-
-    isNullable(interfaceTypeQuestion(AWithInt));
+    isNotNullable(parseInterfaceType('A'));
+    isNotNullable(parseInterfaceType('B'));
+    isNullable(parseInterfaceType('B?'));
   }
 
   test_invalidType() {
-    isNullable(invalidType);
+    isNullable(parseType('InvalidType'));
   }
 
   test_never() {
-    isNotNullable(neverNone);
-    isNullable(neverQuestion);
+    isNotNullable(parseType('Never'));
+    isNullable(parseType('Never?'));
   }
 
   test_null() {
-    isNullable(nullNone);
+    isNullable(parseType('Null'));
   }
 
   test_typeParameter_boundNone() {
-    var T = typeParameter('T', bound: intNone);
-
-    isNotNullable(typeParameterTypeNone(T));
-
-    isNullable(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T extends int', (scope) {
+      isNotNullable(scope.parseType('T'));
+      isNullable(scope.parseType('T?'));
+    });
   }
 
   test_typeParameter_boundQuestion_none() {
-    var T = typeParameter('T', bound: intQuestion);
-
-    isNotNullable(typeParameterTypeNone(T));
-
-    isNullable(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T extends int?', (scope) {
+      isNotNullable(scope.parseType('T'));
+      isNullable(scope.parseType('T?'));
+    });
   }
 
   test_typeParameter_promotedBoundNone() {
-    var T = typeParameter('T');
-
-    isNotNullable(typeParameterTypeNone(T, promotedBound: intNone));
-
-    isNotNullable(typeParameterTypeQuestion(T, promotedBound: intNone));
+    withTypeParameterScope('T', (scope) {
+      isNotNullable(scope.parseType('T & int'));
+      isNotNullable(scope.parseType('(T & int)?'));
+    });
   }
 
   test_typeParameter_promotedBoundQuestion() {
-    var T = typeParameter('T');
-
-    isNullable(typeParameterTypeNone(T, promotedBound: intQuestion));
-
-    isNullable(typeParameterTypeQuestion(T, promotedBound: intQuestion));
+    withTypeParameterScope('T', (scope) {
+      isNullable(scope.parseType('T & int?'));
+      isNullable(scope.parseType('(T & int?)?'));
+    });
   }
 
   test_void() {
-    isNullable(voidNone);
+    isNullable(parseType('void'));
   }
 }
 
@@ -252,50 +233,45 @@ class IsPotentiallyNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_dynamic() {
-    isNotPotentiallyNonNullable(dynamicType);
+    isNotPotentiallyNonNullable(parseType('dynamic'));
   }
 
   test_futureOr() {
-    isPotentiallyNonNullable(futureOrNone(intNone));
+    isPotentiallyNonNullable(parseType('FutureOr<int>'));
 
-    isNotPotentiallyNonNullable(futureOrNone(intQuestion));
+    isNotPotentiallyNonNullable(parseType('FutureOr<int?>'));
   }
 
   test_interface() {
-    isPotentiallyNonNullable(intNone);
-    isNotPotentiallyNonNullable(intQuestion);
+    isPotentiallyNonNullable(parseType('int'));
+    isNotPotentiallyNonNullable(parseType('int?'));
   }
 
   test_interface_extensionType2() {
     buildTestLibrary(
-      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
-    );
-    var A = extensionTypeElement('A');
-    buildTestLibrary(
       extensionTypes: [
-        ExtensionTypeSpec('extension type A(int it) implements int'),
+        ExtensionTypeSpec('extension type A(int it)'),
+        ExtensionTypeSpec('extension type B(int it) implements int'),
       ],
     );
-    var AWithInt = extensionTypeElement('A');
-    isPotentiallyNonNullable(interfaceTypeNone(A));
-
-    isPotentiallyNonNullable(interfaceTypeNone(AWithInt));
+    isPotentiallyNonNullable(parseInterfaceType('A'));
+    isPotentiallyNonNullable(parseInterfaceType('B'));
   }
 
   test_invalidType() {
-    isNotPotentiallyNonNullable(invalidType);
+    isNotPotentiallyNonNullable(parseType('InvalidType'));
   }
 
   test_never() {
-    isPotentiallyNonNullable(neverNone);
+    isPotentiallyNonNullable(parseType('Never'));
   }
 
   test_null() {
-    isNotPotentiallyNonNullable(nullNone);
+    isNotPotentiallyNonNullable(parseType('Null'));
   }
 
   test_void() {
-    isNotPotentiallyNonNullable(voidNone);
+    isNotPotentiallyNonNullable(parseType('void'));
   }
 }
 
@@ -310,52 +286,46 @@ class IsPotentiallyNullableTest extends AbstractTypeSystemTest {
   }
 
   test_dynamic() {
-    isPotentiallyNullable(dynamicType);
+    isPotentiallyNullable(parseType('dynamic'));
   }
 
   test_futureOr() {
-    isNotPotentiallyNullable(futureOrNone(intNone));
+    isNotPotentiallyNullable(parseType('FutureOr<int>'));
 
-    isPotentiallyNullable(futureOrNone(intQuestion));
+    isPotentiallyNullable(parseType('FutureOr<int?>'));
   }
 
   test_interface() {
-    isNotPotentiallyNullable(intNone);
-    isPotentiallyNullable(intQuestion);
+    isNotPotentiallyNullable(parseType('int'));
+    isPotentiallyNullable(parseType('int?'));
   }
 
   test_interface_extensionType2() {
     buildTestLibrary(
-      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
-    );
-    var A = extensionTypeElement('A');
-    buildTestLibrary(
       extensionTypes: [
-        ExtensionTypeSpec('extension type A(int it) implements int'),
+        ExtensionTypeSpec('extension type A(int it)'),
+        ExtensionTypeSpec('extension type B(int it) implements int'),
       ],
     );
-    var AWithInt = extensionTypeElement('A');
-    isPotentiallyNullable(interfaceTypeQuestion(A));
-
-    isPotentiallyNullable(interfaceTypeNone(A));
-
-    isNotPotentiallyNullable(interfaceTypeNone(AWithInt));
+    isPotentiallyNullable(parseInterfaceType('A?'));
+    isPotentiallyNullable(parseInterfaceType('A'));
+    isNotPotentiallyNullable(parseInterfaceType('B'));
   }
 
   test_invalidType() {
-    isPotentiallyNullable(invalidType);
+    isPotentiallyNullable(parseType('InvalidType'));
   }
 
   test_never() {
-    isNotPotentiallyNullable(neverNone);
+    isNotPotentiallyNullable(parseType('Never'));
   }
 
   test_null() {
-    isPotentiallyNullable(nullNone);
+    isPotentiallyNullable(parseType('Null'));
   }
 
   test_void() {
-    isPotentiallyNullable(voidNone);
+    isPotentiallyNullable(parseType('void'));
   }
 }
 
@@ -370,226 +340,220 @@ class IsStrictlyNonNullableTest extends AbstractTypeSystemTest {
   }
 
   test_dynamic() {
-    isNotStrictlyNonNullable(dynamicType);
+    isNotStrictlyNonNullable(parseType('dynamic'));
   }
 
   test_function() {
-    isStrictlyNonNullable(functionTypeNone(returnType: voidNone));
+    isStrictlyNonNullable(parseType('void Function()'));
 
-    isNotStrictlyNonNullable(functionTypeQuestion(returnType: voidNone));
+    isNotStrictlyNonNullable(parseType('void Function()?'));
   }
 
   test_functionClass() {
-    isStrictlyNonNullable(functionNone);
-    isNotStrictlyNonNullable(functionQuestion);
+    isStrictlyNonNullable(parseType('Function'));
+    isNotStrictlyNonNullable(parseType('Function?'));
   }
 
   test_futureOr_noneArgument() {
-    isStrictlyNonNullable(futureOrNone(intNone));
+    isStrictlyNonNullable(parseType('FutureOr<int>'));
 
-    isNotStrictlyNonNullable(futureOrQuestion(intNone));
+    isNotStrictlyNonNullable(parseType('FutureOr<int>?'));
   }
 
   test_futureOr_questionArgument() {
-    isNotStrictlyNonNullable(futureOrNone(intQuestion));
+    isNotStrictlyNonNullable(parseType('FutureOr<int?>'));
 
-    isNotStrictlyNonNullable(futureOrQuestion(intQuestion));
+    isNotStrictlyNonNullable(parseType('FutureOr<int?>?'));
   }
 
   test_interface() {
-    isStrictlyNonNullable(intNone);
-    isNotStrictlyNonNullable(intQuestion);
+    isStrictlyNonNullable(parseType('int'));
+    isNotStrictlyNonNullable(parseType('int?'));
   }
 
   test_interface_extensionType2() {
     buildTestLibrary(
-      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
-    );
-    var A = extensionTypeElement('A');
-    buildTestLibrary(
       extensionTypes: [
-        ExtensionTypeSpec('extension type A(int it) implements int'),
+        ExtensionTypeSpec('extension type A(int it)'),
+        ExtensionTypeSpec('extension type B(int it) implements int'),
       ],
     );
-    var AWithInt = extensionTypeElement('A');
-    isNotStrictlyNonNullable(interfaceTypeNone(A));
-
-    isStrictlyNonNullable(interfaceTypeNone(AWithInt));
+    isNotStrictlyNonNullable(parseInterfaceType('A'));
+    isStrictlyNonNullable(parseInterfaceType('B'));
   }
 
   test_invalidType() {
-    isNotStrictlyNonNullable(invalidType);
+    isNotStrictlyNonNullable(parseType('InvalidType'));
   }
 
   test_never() {
-    isStrictlyNonNullable(neverNone);
-    isNotStrictlyNonNullable(neverQuestion);
+    isStrictlyNonNullable(parseType('Never'));
+    isNotStrictlyNonNullable(parseType('Never?'));
   }
 
   test_null() {
-    isNotStrictlyNonNullable(nullNone);
+    isNotStrictlyNonNullable(parseType('Null'));
   }
 
   test_typeParameter_boundNone() {
-    var T = typeParameter('T', bound: intNone);
-
-    isStrictlyNonNullable(typeParameterTypeNone(T));
-
-    isNotStrictlyNonNullable(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T extends int', (scope) {
+      isStrictlyNonNullable(scope.parseType('T'));
+      isNotStrictlyNonNullable(scope.parseType('T?'));
+    });
   }
 
   test_typeParameter_boundQuestion() {
-    var T = typeParameter('T', bound: intQuestion);
-
-    isNotStrictlyNonNullable(typeParameterTypeNone(T));
-
-    isNotStrictlyNonNullable(typeParameterTypeQuestion(T));
+    withTypeParameterScope('T extends int?', (scope) {
+      isNotStrictlyNonNullable(scope.parseType('T'));
+      isNotStrictlyNonNullable(scope.parseType('T?'));
+    });
   }
 
   test_void() {
-    isNotStrictlyNonNullable(voidNone);
+    isNotStrictlyNonNullable(parseType('void'));
   }
 }
 
 @reflectiveTest
 class PromoteToNonNullTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _check(dynamicType, dynamicType);
+    _check(parseType('dynamic'), parseType('dynamic'));
   }
 
   test_functionType() {
     // NonNull(T0 Function(...)) = T0 Function(...)
-    _check(
-      functionTypeQuestion(returnType: voidNone),
-      functionTypeNone(returnType: voidNone),
-    );
+    _check(parseType('void Function()?'), parseType('void Function()'));
   }
 
   test_futureOr_question() {
     // NonNull(FutureOr<T>) = FutureOr<T>
-    _check(futureOrQuestion(stringQuestion), futureOrNone(stringQuestion));
+    _check(parseType('FutureOr<String?>?'), parseType('FutureOr<String?>'));
   }
 
   test_interfaceType() {
-    _check(intNone, intNone);
-    _check(intQuestion, intNone);
+    _check(parseType('int'), parseType('int'));
+    _check(parseType('int?'), parseType('int'));
 
     // NonNull(C<T1, ... , Tn>) = C<T1, ... , Tn>
-    _check(listQuestion(intQuestion), listNone(intQuestion));
+    _check(parseType('List<int?>?'), parseType('List<int?>'));
   }
 
   test_interfaceType_function() {
-    _check(functionQuestion, functionNone);
+    _check(parseType('Function?'), parseType('Function'));
   }
 
   test_invalidType() {
-    _check(invalidType, invalidType);
+    _check(parseType('InvalidType'), parseType('InvalidType'));
   }
 
   test_never() {
-    _check(neverNone, neverNone);
-    _check(neverQuestion, neverNone);
+    _check(parseType('Never'), parseType('Never'));
+    _check(parseType('Never?'), parseType('Never'));
   }
 
   test_null() {
-    _check(nullNone, neverNone);
+    _check(parseType('Null'), parseType('Never'));
   }
 
   test_typeParameter_bound_dynamic() {
-    var element = typeParameter('T', bound: dynamicType);
-
-    _checkTypeParameter(
-      typeParameterTypeNone(element),
-      element: element,
-      promotedBound: null,
-    );
+    withTypeParameterScope('T extends dynamic', (scope) {
+      var element = scope.typeParameter('T');
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T'),
+        element: element,
+        promotedBound: null,
+      );
+    });
   }
 
   test_typeParameter_bound_invalidType() {
-    var element = typeParameter('T', bound: invalidType);
-
-    _checkTypeParameter(
-      typeParameterTypeNone(element),
-      element: element,
-      promotedBound: null,
-    );
+    withTypeParameterScope('T extends InvalidType', (scope) {
+      var element = scope.typeParameter('T');
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T'),
+        element: element,
+        promotedBound: null,
+      );
+    });
   }
 
   test_typeParameter_bound_none() {
-    var element = typeParameter('T', bound: intNone);
-
-    _checkTypeParameter(
-      typeParameterTypeNone(element),
-      element: element,
-      promotedBound: null,
-    );
-
-    _checkTypeParameter(
-      typeParameterTypeQuestion(element),
-      element: element,
-      promotedBound: null,
-    );
+    withTypeParameterScope('T extends int', (scope) {
+      var element = scope.typeParameter('T');
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T'),
+        element: element,
+        promotedBound: null,
+      );
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T?'),
+        element: element,
+        promotedBound: null,
+      );
+    });
   }
 
   test_typeParameter_bound_null() {
-    var element = typeParameter('T');
-    _checkTypeParameter(
-      typeParameterTypeNone(element),
-      element: element,
-      promotedBound: objectNone,
-    );
+    withTypeParameterScope('T', (scope) {
+      var element = scope.typeParameter('T');
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T'),
+        element: element,
+        promotedBound: parseType('Object'),
+      );
+    });
   }
 
   test_typeParameter_bound_question() {
-    var element = typeParameter('T', bound: intQuestion);
-
-    _checkTypeParameter(
-      typeParameterTypeNone(element),
-      element: element,
-      promotedBound: intNone,
-    );
-
-    _checkTypeParameter(
-      typeParameterTypeQuestion(element),
-      element: element,
-      promotedBound: intNone,
-    );
+    withTypeParameterScope('T extends int?', (scope) {
+      var element = scope.typeParameter('T');
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T'),
+        element: element,
+        promotedBound: parseType('int'),
+      );
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T?'),
+        element: element,
+        promotedBound: parseType('int'),
+      );
+    });
   }
 
   test_typeParameter_promotedBound_none() {
-    var element = typeParameter('T', bound: numQuestion);
-
-    _checkTypeParameter(
-      promotedTypeParameterTypeNone(element, intNone),
-      element: element,
-      promotedBound: intNone,
-    );
-
-    _checkTypeParameter(
-      promotedTypeParameterTypeQuestion(element, intNone),
-      element: element,
-      promotedBound: intNone,
-    );
+    withTypeParameterScope('T extends num?', (scope) {
+      var element = scope.typeParameter('T');
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T & int'),
+        element: element,
+        promotedBound: parseType('int'),
+      );
+      _checkTypeParameter(
+        scope.parseTypeParameterType('(T & int)?'),
+        element: element,
+        promotedBound: parseType('int'),
+      );
+    });
   }
 
   test_typeParameter_promotedBound_question() {
-    var element = typeParameter('T', bound: numQuestion);
-
-    _checkTypeParameter(
-      promotedTypeParameterTypeNone(element, intQuestion),
-      element: element,
-      promotedBound: intNone,
-    );
-
-    _checkTypeParameter(
-      promotedTypeParameterTypeQuestion(element, intQuestion),
-      element: element,
-      promotedBound: intNone,
-    );
+    withTypeParameterScope('T extends num?', (scope) {
+      var element = scope.typeParameter('T');
+      _checkTypeParameter(
+        scope.parseTypeParameterType('T & int?'),
+        element: element,
+        promotedBound: parseType('int'),
+      );
+      _checkTypeParameter(
+        scope.parseTypeParameterType('(T & int?)?'),
+        element: element,
+        promotedBound: parseType('int'),
+      );
+    });
   }
 
   test_void() {
-    _check(voidNone, voidNone);
+    _check(parseType('void'), parseType('void'));
   }
 
   void _check(TypeImpl type, TypeImpl expected) {

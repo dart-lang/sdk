@@ -30,14 +30,14 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
   }
 
   test_interface() {
-    promotes(intNone, intNone);
-    promotes(intQuestion, intNone);
+    promotes(parseType('int'), parseType('int'));
+    promotes(parseType('int?'), parseType('int'));
 
-    promotes(numNone, intNone);
-    promotes(numQuestion, intNone);
+    promotes(parseType('num'), parseType('int'));
+    promotes(parseType('num?'), parseType('int'));
 
-    notPromotes(intNone, doubleNone);
-    notPromotes(intNone, intQuestion);
+    notPromotes(parseType('int'), parseType('double'));
+    notPromotes(parseType('int'), parseType('int?'));
   }
 
   test_typeParameter() {
@@ -49,15 +49,16 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
       expect(type.getDisplayString(), expected);
     }
 
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
-    var T_question = typeParameterTypeQuestion(T);
+    withTypeParameterScope('T', (scope) {
+      var T_none = scope.parseTypeParameterType('T');
+      var T_question = scope.parseTypeParameterType('T?');
 
-    check(tryPromote(numNone, T_none), 'T & num');
-    check(tryPromote(numQuestion, T_none), 'T & num?');
+      check(tryPromote(parseType('num'), T_none), 'T & num');
+      check(tryPromote(parseType('num?'), T_none), 'T & num?');
 
-    check(tryPromote(numNone, T_question), 'T & num');
-    check(tryPromote(numQuestion, T_question), '(T & num?)?');
+      check(tryPromote(parseType('num'), T_question), 'T & num');
+      check(tryPromote(parseType('num?'), T_question), '(T & num?)?');
+    });
   }
 
   test_typeParameter_twice() {
@@ -76,13 +77,15 @@ class TryPromoteToTest extends AbstractTypeSystemTest {
       expect(type.promotedBound, promotedBound);
     }
 
-    var T = typeParameter('T');
-    var T_none = typeParameterTypeNone(T);
+    withTypeParameterScope('T', (scope) {
+      var T = scope.typeParameter('T');
+      var T_none = scope.parseTypeParameterType('T');
 
-    var T1 = tryPromote(numNone, T_none);
-    check(T1, T, NullabilitySuffix.none, numNone);
+      var T1 = tryPromote(parseType('num'), T_none);
+      check(T1, T, NullabilitySuffix.none, parseType('num'));
 
-    var T2 = tryPromote(intNone, T1);
-    check(T2, T, NullabilitySuffix.none, intNone);
+      var T2 = tryPromote(parseType('int'), T1);
+      check(T2, T, NullabilitySuffix.none, parseType('int'));
+    });
   }
 }
