@@ -989,6 +989,42 @@ LinterLintCode:
       stable: "2.0"
     categories: [effectiveDart, style]
     hasPublishedDocs: false
+    documentation: |-
+      #### Description
+
+      The analyzer produces this diagnostic when a `catch` clause doesn't
+      have an `on` clause to specify the type of exception being caught.
+      Catching all exceptions without filtering by type can mask unexpected
+      errors and make debugging more difficult.
+
+      #### Example
+
+      The following code produces this diagnostic because the `catch` clause
+      has no `on` clause to specify the exception type:
+
+      ```dart
+      void f() {
+        try {
+          int.parse('?');
+        } [!catch!] (e) {
+          print(e);
+        }
+      }
+      ```
+
+      #### Common fixes
+
+      Add an `on` clause to specify the type of exception to catch:
+
+      ```dart
+      void f() {
+        try {
+          int.parse('?');
+        } on FormatException catch (e) {
+          print(e);
+        }
+      }
+      ```
     deprecatedDetails: |-
       From [Effective Dart](https://dart.dev/effective-dart/usage#avoid-catches-without-on-clauses):
 
