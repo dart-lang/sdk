@@ -65,7 +65,7 @@
 // pkg/front_end/testcases/general/dynamic_modules/main.dart: Error: Cannot invoke member '_privateMethodForC6' from a dynamic module.
 // Try removing the call or update the dynamic interface to list member '_privateMethodForC6' as callable.
 //
-// pkg/front_end/testcases/general/dynamic_modules/main.dart:279:7: Error: Cannot define 'noSuchMethod' on 'Lib5WithNSM' because it is a subtype of 'Lib5C1', which was exposed as dynamically-callable.
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:292:7: Error: Cannot define 'noSuchMethod' on 'Lib5WithNSM' because it is a subtype of 'Lib5C1', which was exposed as dynamically-callable.
 // Try removing the 'noSuchMethod' declaration or no longer expose 'Lib5C1' as dynamically-callable.
 // class Lib5WithNSM extends Lib5C1 {
 //       ^
@@ -286,6 +286,26 @@
 // pkg/front_end/testcases/general/dynamic_modules/main.dart:266:5: Error: Dynamic call to selector 'set:dcField1' is not allowed in a dynamic module.
 // Try listing 'set:dcField1' as 'dynamically-callable' in the dynamic interface specification.
 //   x.dcField1 = 42;
+//     ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:282:5: Error: Dynamic call to selector 'get:notAllowedGetter' is not allowed in a dynamic module.
+// Try listing 'get:notAllowedGetter' as 'dynamically-callable' in the dynamic interface specification.
+//   x.notAllowedGetter;
+//     ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:283:5: Error: Dynamic call to selector 'notAllowedMethod' is not allowed in a dynamic module.
+// Try listing 'notAllowedMethod' as 'dynamically-callable' in the dynamic interface specification.
+//   x.notAllowedMethod();
+//     ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:284:5: Error: Dynamic call to selector 'allowedGetter' is not allowed in a dynamic module.
+// Try listing 'allowedGetter' as 'dynamically-callable' in the dynamic interface specification.
+//   x.allowedGetter(); // not meant to be called
+//     ^
+//
+// pkg/front_end/testcases/general/dynamic_modules/main.dart:285:5: Error: Dynamic call to selector 'get:allowedSetter' is not allowed in a dynamic module.
+// Try listing 'get:allowedSetter' as 'dynamically-callable' in the dynamic interface specification.
+//   x.allowedSetter; // not meant to be used as getter
 //     ^
 //
 library;
@@ -562,6 +582,14 @@ static method testDynamicallyCallable() → void {
   self::x.{dynamic}dcField5 = 42;
   self::x{dynamic}.dcMethod5();
   new self::C26WithM3::•().{self::_C26WithM3&C26&M3::method6}(){() → core::int};
+  self::x{dynamic}.allowedMethod();
+  self::x{dynamic}.allowedMethod;
+  self::x{dynamic}.allowedGetter;
+  self::x.{dynamic}allowedSetter = 2;
+  self::x{dynamic}.notAllowedGetter;
+  self::x{dynamic}.notAllowedMethod();
+  self::x{dynamic}.allowedGetter();
+  self::x{dynamic}.allowedSetter;
 }
 static method main() → void {}
 

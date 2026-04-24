@@ -1848,6 +1848,7 @@ class KernelTarget {
           loader,
           allowDynamicCallsInDynamicModules:
               _options.allowDynamicCallsInDynamicModules,
+          dynamicCallsSelectorAllowList: _options.dynamicCallsSelectorAllowList,
         );
       }
     }

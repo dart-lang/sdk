@@ -270,6 +270,19 @@ void testDynamicallyCallable() {
   x.dcMethod5();
 
   C26WithM3().method6();
+
+  // Allowed - selectors in the allowlist
+  x.allowedMethod();
+  x.allowedMethod; // tearoff implicitly allowed too.
+  x.allowedGetter;
+  x.allowedSetter = 2;
+
+  // Not allowed - selectors not in the allowlist or used in non intended
+  // ways (getter used for a call, setter used for a getter).
+  x.notAllowedGetter;
+  x.notAllowedMethod();
+  x.allowedGetter(); // not meant to be called
+  x.allowedSetter; // not meant to be used as getter
 }
 
 void main() {}
