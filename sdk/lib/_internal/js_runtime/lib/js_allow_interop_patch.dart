@@ -410,6 +410,11 @@ _callDartFunctionFastN(Function callback, List arguments) {
   return Function.apply(callback, arguments);
 }
 
-Function _jsFunctionToDart(JavaScriptFunction f) {
-  return JS('Function', '#.#', f, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME);
+T _jsFunctionToDart<T extends Function>(JavaScriptFunction f) {
+  return JS<dynamic>(
+    'Function',
+    '#.#',
+    f,
+    DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME,
+  );
 }

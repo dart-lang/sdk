@@ -85,10 +85,13 @@ final String DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME = getIsolateAffinityTag(
   r'_$dart_dartClosure_dartJSInterop',
 );
 
-/// Returns whether [f] is a wrapped Dart function through `dart:js_interop`'s
-/// conversion methods.
-bool isJSExportedDartFunction(JavaScriptFunction f) =>
-    JS('', '#.#', f, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME) != null;
+/// Returns whether [f] is a wrapped Dart function of type [T] through
+/// `dart:js_interop`'s conversion methods.
+bool isJSExportedDartFunction<T extends Function>(JavaScriptFunction f) {
+  final function = JS('', '#.#', f, DART_CLOSURE_DART_JSINTEROP_PROPERTY_NAME);
+  // We set this value so we know it always `is Function`.
+  return function != null && T == Function ? true : function is T;
+}
 
 getDispatchProperty(object) {
   return JS(

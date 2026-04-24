@@ -221,20 +221,26 @@ external JSObjectType _createObjectLiteral();
 
 /// A JavaScript [`Function`](https://tc39.es/ecma262/#sec-function-objects)
 /// value.
+///
+/// The type parameter [T] is the Dart type signature that corresponds to the
+/// signature of the JavaScript function. It is purely descriptive and provides
+/// static type checking in Dart, but does not enforce runtime checks on the
+/// JavaScript side.
 @JS('Function')
-extension type JSFunction._(JSFunctionType _jsFunction)
+extension type JSFunction<T extends Function>._(JSFunctionType _jsFunction)
     implements JSObject, JSFunctionType {}
 
-/// A JavaScript callable function created from a Dart function.
+/// A JavaScript function created from a Dart function.
+///
+/// The type parameter [T] should be the Dart function's type.
 ///
 /// See [FunctionToJSExportedDartFunction.toJS] or
 /// [FunctionToJSExportedDartFunction.toJSCaptureThis] for more details on how
 /// to convert a Dart function.
 @JS('Function')
-extension type JSExportedDartFunction._(
+extension type JSExportedDartFunction<T extends Function>._(
   JSExportedDartFunctionType _jsExportedDartFunction
-)
-    implements JSFunction, JSExportedDartFunctionType {}
+) implements JSFunction<T>, JSExportedDartFunctionType {}
 
 /// The synchronous [JS iterable protocol].
 ///
@@ -462,7 +468,7 @@ extension type JSIteratorResult<T extends JSAny?>._(JSObject _)
 /// A JavaScript [`Array`](https://tc39.es/ecma262/#sec-array-objects).
 ///
 /// Because [JSArray] is an extension type, [T] is only a static guarantee and
-/// the array does not necessarily only contain [T] elements. For example:
+/// the array does not necessarily only contain [T]-typed elements. For example:
 ///
 /// ```dart
 /// @JS()
@@ -475,8 +481,8 @@ extension type JSIteratorResult<T extends JSAny?>._(JSObject _)
 /// [T] may introduce additional checking elsewhere, however. When accessing
 /// elements of [JSArray] with type [T], there is a check to ensure the element
 /// is a [T] to ensure soundness. Similarly, when converting to a
-/// <code>[List]<T></code>, casts may be introduced to ensure that it is indeed
-/// a <code>[List]<T></code>.
+/// <code>[List]\<T\></code>, casts may be introduced to ensure that it is
+/// indeed a <code>[List]\<T\></code>.
 @JS('Array')
 extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
     implements JSObject, JSArrayType, JSIterable<T> {
@@ -524,11 +530,12 @@ extension type JSArray<T extends JSAny?>._(JSArrayType _jsArray)
 /// A JavaScript `Promise` or a promise-like object.
 ///
 /// Because [JSPromise] is an extension type, [T] is only a static guarantee and
-/// the [JSPromise] may not actually resolve to a [T].
+/// the [JSPromise] may not actually resolve to a value that is guaranteed to be
+/// of type [T] at runtime.
 ///
 /// Also like with [JSArray], [T] may introduce additional checking elsewhere.
-/// When converted to a <code>[Future]<T></code>, there is a cast to ensure that
-/// the [Future] actually resolves to a [T] to ensure soundness.
+/// When converted to a <code>[Future]\<T\></code>, the resolved value is cast
+/// to [T].
 @JS('Promise')
 extension type JSPromise<T extends JSAny?>._(JSPromiseType _jsPromise)
     implements JSObject, JSPromiseType {
@@ -631,8 +638,7 @@ extension type JSUint8Array._(JSUint8ArrayType _jsUint8Array)
 @JS('Uint8ClampedArray')
 extension type JSUint8ClampedArray._(
   JSUint8ClampedArrayType _jsUint8ClampedArray
-)
-    implements JSTypedArray, JSUint8ClampedArrayType {
+) implements JSTypedArray, JSUint8ClampedArrayType {
   /// Creates a JavaScript `Uint8ClampedArray` with [buffer] as its backing
   /// storage, offset by [byteOffset] bytes, of size [length].
   ///
@@ -1122,10 +1128,11 @@ extension NullableObjectUtilExtension on Object? {
   /// - `JSObject`: `isA<JSObject>` will call an intrinsic function to check
   ///   that the value is a JS object (`instanceof Object` is insufficient for
   ///   some objects).
-  /// - `JSExportedDartFunction`: `isA<JSExportedDartFunction>` will check if
+  /// - `JSExportedDartFunction`: `isA<JSExportedDartFunction<U>>` will check if
   ///   the value is a result of a previous
   ///   [FunctionToJSExportedDartFunction.toJS] or
-  ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call.
+  ///   [FunctionToJSExportedDartFunction.toJSCaptureThis] call and that the
+  ///   Dart function the value forwards to is a function of type `U`.
   /// - User interop types whose representation types are JS primitive types:
   ///   This will result in an error to avoid confusion on whether the user
   ///   interop type is used in the type-check. Use the primitive JS type as the
@@ -1166,46 +1173,49 @@ extension JSFunctionUtilExtension on JSFunction {
 // Not all Dart types can be converted to JS types and vice versa.
 // TODO(srujzs): Move some of these to the associated extension type.
 
-/// Conversions from [JSExportedDartFunction] to [Function].
-extension JSExportedDartFunctionToFunction on JSExportedDartFunction {
-  /// The Dart [Function] that this [JSExportedDartFunction] wrapped.
+/// Conversions from <code>[JSExportedDartFunction]\<T\></code> to [T].
+extension JSExportedDartFunctionToFunction<T extends Function>
+    on JSExportedDartFunction<T> {
+  /// The Dart function that this <code>[JSExportedDartFunction]\<T\></code>
+  /// forwards to.
   ///
-  /// Must be a function that was wrapped with
+  /// Must be a function that was created with
   /// [FunctionToJSExportedDartFunction.toJS] or
   /// [FunctionToJSExportedDartFunction.toJSCaptureThis].
-  external Function get toDart;
+  ///
+  /// The Dart function is cast to [T].
+  external T get toDart;
 }
 
-/// Conversions from [Function] to [JSExportedDartFunction].
-extension FunctionToJSExportedDartFunction on Function {
-  /// A callable JavaScript function that wraps this [Function].
+/// Conversions from [T] to <code>[JSExportedDartFunction]\<T\></code>.
+extension FunctionToJSExportedDartFunction<T extends Function> on T {
+  /// A JavaScript function that forwards to the [T]-typed [Function].
   ///
-  /// If the static type of the [Function] could not be determined or if
-  /// the static type uses types that are disallowed, the call will fail to
-  /// compile. See
+  /// If the type argument to a use of this extension could not be determined at
+  /// compile-time or if that type contains types that are disallowed, the call
+  /// will fail to compile. See
   /// https://dart.dev/interop/js-interop/js-types#requirements-on-external-declarations-and-function-tojs
   /// for more details on what types are allowed.
   ///
-  /// The max number of arguments that are passed to this [Function] from the
-  /// wrapper JavaScript function is determined by this [Function]'s static
-  /// type. Any extra arguments passed to the JavaScript function after the max
-  /// number of arguments are discarded like they are with regular JavaScript
-  /// functions.
+  /// The max number of arguments that are passed to this Dart function from the wrapper
+  /// JavaScript function is determined by this Dart function's static type. Any extra
+  /// arguments passed to the JavaScript function after the max number of
+  /// arguments are discarded like they are with regular JavaScript functions.
   ///
   /// Calling this on the same [Function] again will always result in a new
   /// JavaScript function.
-  external JSExportedDartFunction get toJS;
+  external JSExportedDartFunction<T> get toJS;
 
-  /// A callable JavaScript function that wraps this [Function] and captures the
-  /// `this` value when called.
+  /// A JavaScript function that captures the `this` value when called and
+  /// forwards to the [T]-typed [Function].
   ///
   /// Identical to [toJS], except the resulting [JSExportedDartFunction] will
   /// pass `this` from JavaScript as the first argument to the converted
   /// [Function]. Any [Function] that is converted with this member should take
   /// in an extra parameter at the beginning of the parameter list to handle
-  /// this.
+  /// the `this` value.
   @Since('3.6')
-  external JSExportedDartFunction get toJSCaptureThis;
+  external JSExportedDartFunction<T> get toJSCaptureThis;
 }
 
 /// Conversions from [JSBoxedDartObject] to [Object].
@@ -1931,7 +1941,7 @@ extension JSArrayToList<T extends JSAny?> on JSArray<T> {
   /// > conversion will have different semantics.
   ///
   /// When compiling to JavaScript, core [List]s are `Array`s and therefore, if
-  /// the [JSArray] was already a <code>[List]<T></code> converted via
+  /// the [JSArray] was already a <code>[List]\<T\></code> converted via
   /// [ListToJSArray.toJS], this getter simply casts the `Array`. Otherwise, it
   /// wraps the `Array` with a [List] that casts the elements to [T] to ensure
   /// soundness.
