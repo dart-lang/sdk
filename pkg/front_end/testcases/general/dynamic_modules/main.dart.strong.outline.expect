@@ -558,7 +558,7 @@ static field core::int? g1;
 Extra constant evaluation status:
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:59:16 -> InstanceConstant(const _ConstForC6{_ConstForC6._f: _privateMethodForC6})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main.dart:65:16 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
-Evaluated: StaticGet @ org-dartlang-testcase:///main.dart:280:4 -> InstanceConstant(const _Override{})
+Evaluated: StaticGet @ org-dartlang-testcase:///main.dart:293:4 -> InstanceConstant(const _Override{})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:78:28 -> InstanceConstant(const _ConstForC6{_ConstForC6._f: _privateMethodForC6})
 Evaluated: ConstructorInvocation @ org-dartlang-testcase:///main_lib1.dart:89:28 -> InstanceConstant(const _ConstForC7{_ConstForC7._f: _privateMethodForC7})
 Evaluated: StaticGet @ org-dartlang-testcase:///main_lib1.dart:191:4 -> InstanceConstant(const _Override{})

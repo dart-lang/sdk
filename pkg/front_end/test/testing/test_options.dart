@@ -23,9 +23,21 @@ const Option<Uri?> dynamicInterface = const Option(
   const UriValue(),
 );
 
+const Option<bool> allowDynamicCallsInDynamicModulesOption = const Option(
+  '--allow-dynamic-calls-in-dynamic-modules',
+  const BoolValue(false),
+);
+
+const Option<List<String>?> dynamicCallsSelectorAllowListOption = const Option(
+  '--extra-selectors-allowed-in-dynamic-calls',
+  const StringListValue(),
+);
+
 const List<Option> testOptionsSpecification = [
   fixNnbdReleaseVersion,
   dynamicInterface,
+  allowDynamicCallsInDynamicModulesOption,
+  dynamicCallsSelectorAllowListOption,
 ];
 
 class SuiteTestOptions {
@@ -44,6 +56,8 @@ class SuiteTestOptions {
       Map<ExperimentalFlag, Version>? experimentEnabledVersion;
       Map<ExperimentalFlag, Version>? experimentReleasedVersion;
       Uri? dynamicInterfaceSpecificationUri;
+      bool allowDynamicCallsInDynamicModules = false;
+      List<String> dynamicCallsSelectorAllowList = [];
       if (optionsFile.existsSync()) {
         List<String> arguments = ParsedOptions.readOptionsFile(
           optionsFile.readAsStringSync(),
@@ -73,6 +87,10 @@ class SuiteTestOptions {
           };
         }
         dynamicInterfaceSpecificationUri = dynamicInterface.read(parsedOptions);
+        allowDynamicCallsInDynamicModules =
+            allowDynamicCallsInDynamicModulesOption.read(parsedOptions);
+        dynamicCallsSelectorAllowList =
+            dynamicCallsSelectorAllowListOption.read(parsedOptions) ?? [];
         for (String argument in parsedOptions.arguments) {
           Uri uri = description.uri.resolve(argument);
           if (!uri.isScheme('package')) {
@@ -91,6 +109,8 @@ class SuiteTestOptions {
         experimentEnabledVersion: experimentEnabledVersion,
         experimentReleasedVersion: experimentReleasedVersion,
         dynamicInterfaceSpecificationUri: dynamicInterfaceSpecificationUri,
+        allowDynamicCallsInDynamicModules: allowDynamicCallsInDynamicModules,
+        dynamicCallsSelectorAllowList: dynamicCallsSelectorAllowList,
       );
       _testOptions[directory.uri] = testOptions;
     }
@@ -108,6 +128,8 @@ class TestOptions {
   final Map<ExperimentalFlag, Version>? experimentEnabledVersion;
   final Map<ExperimentalFlag, Version>? experimentReleasedVersion;
   final Uri? dynamicInterfaceSpecificationUri;
+  final bool allowDynamicCallsInDynamicModules;
+  final List<String> dynamicCallsSelectorAllowList;
   Component? component;
   List<Iterable<String>>? errors;
 
@@ -117,5 +139,7 @@ class TestOptions {
     required this.experimentEnabledVersion,
     required this.experimentReleasedVersion,
     required this.dynamicInterfaceSpecificationUri,
+    required this.allowDynamicCallsInDynamicModules,
+    required this.dynamicCallsSelectorAllowList,
   });
 }
