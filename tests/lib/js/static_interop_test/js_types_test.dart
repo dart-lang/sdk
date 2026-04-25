@@ -187,6 +187,18 @@ void syncTests() {
   Expect.isTrue(confuse(obj) is JSObject);
   Expect.equals('bar', (obj as SimpleObject).foo.toDart);
 
+  // [JSUnsafeObject]
+  Expect.isTrue(obj is JSUnsafeObject);
+  Expect.isTrue(confuse(obj) is JSUnsafeObject);
+
+  if (isJSBackend) {
+    Expect.isTrue(Object() is JSUnsafeObject);
+    Expect.isTrue(syncTests is JSUnsafeObject);
+  } else {
+    Expect.isFalse(Object() is JSUnsafeObject);
+    Expect.isFalse(syncTests is JSUnsafeObject);
+  }
+
   // [JSFunction]
   Expect.isTrue(fun is JSFunction);
   Expect.isTrue(confuse(fun) is JSFunction);

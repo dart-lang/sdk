@@ -24,7 +24,17 @@
 /// {@category Web}
 library;
 
+import 'dart:_js_types';
 import 'dart:js_interop';
+
+/// A JavaScript `Object`s *or* a Dart object's JavaScript representation.
+///
+/// This can always be safely used as a type for real [JSObject]s, and in a WASM
+/// context those are its only instances. When compiled to JS, though, this is
+/// also the type of Dart objects and their prototype chains. JS considers these
+/// to be `instanceof Object`, while Dart does not consider them to be
+/// `isA<JSObject>` but does consider them to be `isA<JSUnsafeObject>`.
+extension type JSUnsafeObject._(JSAnyType _) implements JSAny {}
 
 /// Utility methods to check, get, set, and call properties on a [JSObject].
 ///

@@ -136,6 +136,15 @@ bool _isJSObject(Object? any) =>
 bool _isNullableJSObject(Object? any) => any == null || _isJSObject(any);
 
 @pragma('dart2js:prefer-inline')
+bool _isJSUnsafeObject(Object? any) =>
+    foreign_helper.JS('bool', 'typeof # === "object"', any) ||
+    foreign_helper.JS('bool', 'typeof # === "function"', any);
+
+@pragma('dart2js:prefer-inline')
+bool _isNullableJSUnsafeObject(Object? any) =>
+    any == null || _isJSUnsafeObject(any);
+
+@pragma('dart2js:prefer-inline')
 bool _isJSExportedDartFunction(Object? any) =>
     any is JavaScriptFunction && isJSExportedDartFunction(any);
 
