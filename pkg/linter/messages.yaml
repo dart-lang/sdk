@@ -11952,7 +11952,7 @@ LinterLintCode:
       **BAD:**
       ```dart
       void f(Object o) {
-        if (o case String([!length!]: length)) {
+        if (o case String([!length!]: var length)) {
           print('string is $length characters long');
         }
       }
