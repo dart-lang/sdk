@@ -4,7 +4,6 @@
 
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
-import 'dynamic_module_kernel_metadata.dart' show MainModuleMetadata;
 import 'js/util.dart' show JsInteropMemberData;
 import 'translator.dart' show TranslatorOptions;
 import 'util.dart';
@@ -108,21 +107,18 @@ class _InteropHelperMemberNamer {
   final Namer _exportNamer;
   final CoreTypes coreTypes;
   final String interopModuleName;
-  final MainModuleMetadata mainModuleMetadata;
+  final String thisModuleSetterName;
   final Map<Member, String> interopMemberNames = {};
 
   _InteropHelperMemberNamer(
     this._exportNamer,
     this.coreTypes,
-    this.mainModuleMetadata,
     TranslatorOptions options,
   ) : interopModuleName = options.minify ? '_' : 'dart2wasm',
       _interopHelperNamer = Namer(
         minify: options.minify || options.minifyInteropNames,
-      );
-
-  String get thisModuleSetterName =>
-      mainModuleMetadata.thisModuleSetterExportName ??= _exportNamer.getName(
+      ),
+      thisModuleSetterName = _exportNamer.getName(
         '\$setThisModule',
         jsSafeName: true,
       );
@@ -167,13 +163,11 @@ class InteropMemberNamer {
   InteropMemberNamer(
     CoreTypes coreTypes,
     Namer exportNamer,
-    MainModuleMetadata mainModuleMetadata,
     TranslatorOptions options,
   ) : _externalMemberNamer = _ExternalMemberNamer(coreTypes, exportNamer),
       _interopHelperMemberNamer = _InteropHelperMemberNamer(
         exportNamer,
         coreTypes,
-        mainModuleMetadata,
         options,
       );
 

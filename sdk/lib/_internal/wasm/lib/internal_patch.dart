@@ -110,15 +110,6 @@ external bool get checkBounds;
 /// evaluator, and its value depends on `--minify`.
 external bool get minify;
 
-/// Whether dynamic module support is enabled for this build.
-///
-/// Enables shortcuts in some runtime logic if it is known that no support is
-/// needed for dynamic modules.
-///
-/// Reads of this variable are evaluated before the TFA by the constant
-/// evaluator, and its value depends on `--dynamic-module-main`.
-external bool get hasDynamicModuleSupport;
-
 /// Whether deferred loading is enabled.
 ///
 /// If true, then there may be deferred modules that can be loaded at runtime.

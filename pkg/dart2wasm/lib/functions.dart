@@ -5,12 +5,10 @@
 import 'package:kernel/ast.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
 
-import 'class_info.dart';
 import 'closures.dart';
 import 'code_generator.dart';
 import 'dispatch_table.dart';
 import 'dynamic_dispatch_table.dart';
-import 'dynamic_modules.dart';
 import 'namer.dart';
 import 'reference_extensions.dart';
 import 'translator.dart';
@@ -47,12 +45,7 @@ class FunctionCollector {
   InteropMemberNamer get interopNamer => translator.interopMemberNamer;
 
   void _collectImportsAndExports() {
-    final isDynamicSubmodule = translator.isDynamicSubmodule;
     for (Library library in translator.libraries) {
-      if (isDynamicSubmodule &&
-          library.isFromMainModule(translator.coreTypes)) {
-        continue;
-      }
       library.procedures.forEach(_handleExports);
       for (Class cls in library.classes) {
         cls.procedures.forEach(_handleExports);
@@ -128,9 +121,6 @@ class FunctionCollector {
       }
 
       final module = translator.moduleForReference(target);
-      if (translator.isDynamicSubmodule && module == translator.mainModule) {
-        return _importFunctionToDynamicSubmodule(target);
-      }
 
       // If this function is exported via
       //   * `@pragma('wasm:export', '<name>')` or
@@ -152,19 +142,6 @@ class FunctionCollector {
         // Add weak exports to the module as we now know they're used. Strong
         // exports have already been added.
         module.exports.export(exportName, function);
-      }
-
-      // Export the function from the main module if it is callable from
-      // dynamic submodules.
-      if (translator.dynamicModuleSupportEnabled &&
-          !translator.isDynamicSubmodule &&
-          (member.isDynamicSubmoduleCallable(translator.coreTypes) ||
-              member.isDynamicSubmoduleInheritable(translator.coreTypes))) {
-        translator.dynamicModuleExporter.exportDynamicModuleCallable(
-          translator.mainModule,
-          function,
-          target,
-        );
       }
 
       translator.compilationQueue.add(
@@ -190,9 +167,7 @@ class FunctionCollector {
 
   w.BaseFunction getDynamicForwarder(Reference target, CallShape shape) {
     return (_dynamicForwarderFunctions[target] ??= {}).putIfAbsent(shape, () {
-      final module = translator.isDynamicSubmodule
-          ? translator.dynamicSubmodule
-          : translator.moduleForReference(target);
+      final module = translator.moduleForReference(target);
       final ftype = makeDynamicForwarderSignature(translator, shape);
       final name = getDynamicForwarderName(target, shape);
       final function = module.functions.define(ftype, name);
@@ -211,9 +186,7 @@ class FunctionCollector {
 
   w.BaseFunction getInvocationCreatorStub(MethodCallShape shape) {
     return _invocationCreatorStubs.putIfAbsent(shape, () {
-      final module = translator.isDynamicSubmodule
-          ? translator.dynamicSubmodule
-          : translator.mainModule;
+      final module = translator.mainModule;
       final ftype = makeInvocationCreatorSignature(translator, shape);
       final name = getInvocationCreatorStubName(shape);
       final function = module.functions.define(ftype, name);
@@ -221,27 +194,6 @@ class FunctionCollector {
       translator.compilationQueue.add(CompilationTask(function, codegen));
       return function;
     });
-  }
-
-  w.BaseFunction _importFunctionToDynamicSubmodule(Reference target) {
-    assert(translator.isDynamicSubmodule);
-
-    // Export the function from the main module if it is callable from
-    // dynamic submodules.
-    final member = target.asMember;
-    if (!member.isDynamicSubmoduleCallable(translator.coreTypes) &&
-        !member.isDynamicSubmoduleInheritable(translator.coreTypes)) {
-      throw StateError(
-        'Cannot invoke ${target.asMember} since it is not labeled as '
-        'callable in the dynamic interface.',
-      );
-    }
-    return translator.dynamicSubmodule.functions.import(
-      translator.mainModule.moduleName,
-      translator.dynamicModuleInfo!.metadata.callableReferenceNames[target]!,
-      translator.signatureForMainModule(target),
-      getFunctionName(target),
-    );
   }
 
   w.BaseFunction getLambdaFunction(
@@ -406,18 +358,14 @@ class FunctionCollector {
     }
   }
 
-  void recordClassAllocation(ClassId classId) {
-    final id = switch (classId) {
-      RelativeClassId() => classId.relativeValue,
-      AbsoluteClassId() => classId.value,
-    };
-    if (_allocatedClasses.add(id)) {
+  void recordClassAllocation(int classId) {
+    if (_allocatedClasses.add(classId)) {
       // Schedule all members that were pending allocation of this class.
-      for (Reference target in _pendingAllocation[id] ?? const []) {
+      for (Reference target in _pendingAllocation[classId] ?? const []) {
         getFunction(target);
       }
       for (final (shape, target)
-          in _pendingAllocationDynamic[id] ??
+          in _pendingAllocationDynamic[classId] ??
               const <(CallShape, Reference)>[]) {
         getDynamicForwarder(target, shape);
       }
@@ -462,9 +410,7 @@ class _FunctionTypeGenerator extends MemberVisitor1<w.FunctionType, Reference> {
 
   @override
   w.FunctionType visitProcedure(Procedure node, Reference target) {
-    // Compilations for dynamic modules can contain interface calls to methods
-    // that are not implemented yet.
-    assert(!node.isAbstract || translator.dynamicModuleSupportEnabled);
+    assert(!node.isAbstract);
     if (!node.isInstanceMember) {
       return _makeFunctionType(translator, target, null);
     }

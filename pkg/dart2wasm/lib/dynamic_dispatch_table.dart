@@ -128,14 +128,11 @@ class DynamicDispatchTable {
       sr.selector.offset = sr.row.offset;
     }
 
-    final module = translator.isDynamicSubmodule
-        ? translator.dynamicSubmodule
-        : translator.mainModule;
-    _definedTargetsTable = module.tables.define(
+    _definedTargetsTable = translator.mainModule.tables.define(
       w.RefType.func(nullable: true),
       _table.length,
     );
-    _definedClassIdsTable = module.tables.define(
+    _definedClassIdsTable = translator.mainModule.tables.define(
       w.RefType.i31(nullable: true),
       _table.length,
     );
@@ -231,9 +228,7 @@ class DynamicDispatchTable {
         'consecutive class ids.',
       );
 
-      final targetModuleBuilder = translator.isDynamicSubmodule
-          ? translator.dynamicSubmodule
-          : translator.moduleForReference(entry.target);
+      final targetModuleBuilder = translator.moduleForReference(entry.target);
 
       // The dynamic selector is invoked and the class has a target, we have to
       // write the class id - to make it match at runtime.

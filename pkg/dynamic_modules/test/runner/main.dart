@@ -10,7 +10,6 @@ import 'dart:io';
 import 'package:args/args.dart';
 
 import 'vm.dart';
-import 'dart2wasm.dart';
 import 'ddc.dart';
 import 'load.dart';
 import 'model.dart';
@@ -70,7 +69,6 @@ void main(List<String> args) async {
       Target.ddc => DdcExecutor(logger),
       Target.aot => VmExecutor(logger, mode: VmMode.aot),
       Target.jit => VmExecutor(logger, mode: VmMode.jit),
-      Target.dart2wasm => Dart2wasmExecutor(logger),
     };
 
     final results = <DynamicModuleTestResult>[];

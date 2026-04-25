@@ -8,7 +8,6 @@ import 'package:args/args.dart' as args;
 import 'package:front_end/src/api_unstable/vm.dart' show resolveInputUri;
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 
-import 'dynamic_modules.dart' show DynamicModuleType;
 import 'generate_wasm.dart';
 import 'option.dart';
 
@@ -195,44 +194,6 @@ final List<Option> options = [
     "require-js-string-builtin",
     (o, value) => o.translatorOptions.requireJsStringBuiltin = value,
     defaultsTo: _d.translatorOptions.requireJsStringBuiltin,
-  ),
-
-  // Flags for dynamic modules
-  StringOption(
-    "dynamic-module-type",
-    (o, value) => o.dynamicModuleType = DynamicModuleType.parse(value),
-  ),
-
-  // The modified dill file to be output by the dynamic main module compilation.
-  // The dill will contain the AST for the main module as well as some
-  // annotations to help identify entities when compiling dynamic submodules.
-  UriOption(
-    "dynamic-module-main",
-    (o, value) => o.dynamicMainModuleUri = value,
-  ),
-
-  // A yaml file describing the interface of the main module accessible from
-  // dynamic submodules.
-  UriOption(
-    "dynamic-module-interface",
-    (o, value) => o.dynamicInterfaceUri = value,
-  ),
-
-  // A binary metadata file produced by the dynamic main module compilation.
-  UriOption(
-    "dynamic-module-metadata",
-    (o, value) => o.dynamicModuleMetadataFile = value,
-  ),
-
-  Flag(
-    "validate-dynamic-modules",
-    (o, value) => o.validateDynamicModules = value,
-    defaultsTo: true,
-    negatable: true,
-  ),
-  StringOption(
-    "dynamic-module-library-prefix",
-    (o, value) => o.dynamicModuleLibraryPrefix = value,
   ),
 
   UriOption("wasm-opt", (o, value) => o.wasmOptPath = value),

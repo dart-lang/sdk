@@ -178,22 +178,6 @@ class RuntimeFinalizer {
       'DEFERRED_LIBRARY_HELPER_METHODS': moduleLoadingHelperMethods,
     });
   }
-
-  String generateDynamicSubmodule(
-    Iterable<Procedure> translatedProcedures,
-    bool requireJsStringBuiltin,
-    List<String> constantStrings,
-  ) {
-    final jsMethods = generateJsMethods(translatedProcedures);
-
-    return dynamicSubmoduleJsImportTemplate.instantiate({
-      'JS_METHODS': jsMethods,
-      'IMPORTED_JS_STRINGS_IN_MJS': _generateInternalizedStrings(
-        requireJsStringBuiltin,
-        constantStrings,
-      ),
-    });
-  }
 }
 
 void performJSInteropTransformations(
