@@ -65,6 +65,24 @@ class _WebSocketProtocolTransformer
           dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/
         >
     implements EventSink<List<int>> {
+  // Hard cap on a single (uncompressed) WebSocket data frame's declared
+  // payload length. RFC 6455 allows 64-bit lengths up to 2^63 bytes; without
+  // a cap, a malicious peer can advertise a 200 MB+ frame and stream the
+  // payload, causing the receiver to accumulate it into `_payload` until
+  // OOM. Browsers and other WS libraries enforce per-message caps; dart
+  // previously did not.
+  //
+  // 16 MiB is generous compared to typical WS message sizes (browser
+  // runtimes cap at a similar order of magnitude). For peers that need
+  // larger messages, fragmentation across multiple frames still works
+  // because the per-frame cap is independent.
+  //
+  // Per-message-deflate decompression has its own 16 MiB cap on the
+  // INFLATED size (handled in _WebSocketPerMessageDeflate); this cap
+  // protects the COMPRESSED-or-uncompressed receive path BEFORE the data
+  // is even queued.
+  static const int _maxFrameLength = 16 * 1024 * 1024;
+
   static const int START = 0;
   static const int LEN_FIRST = 1;
   static const int LEN_REST = 2;
@@ -289,6 +307,15 @@ class _WebSocketProtocolTransformer
   }
 
   void _lengthDone() {
+    // Reject oversized data frames before any allocation. Control frames
+    // are already capped at 125 bytes upstream (in LEN_FIRST handling).
+    // Negative is impossible (`_len` is built from unsigned bytes).
+    if (!_isControlFrame() && _len > _maxFrameLength) {
+      throw WebSocketException(
+        "Frame payload length $_len exceeds maximum $_maxFrameLength. "
+        "Refusing to allocate to avoid heap exhaustion.",
+      );
+    }
     if (_masked) {
       if (!_serverSide) {
         throw WebSocketException("Received masked frame from server");
