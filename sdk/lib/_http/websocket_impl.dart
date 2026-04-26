@@ -369,6 +369,16 @@ class _WebSocketProtocolTransformer
           if (closeCode == WebSocketStatus.noStatusReceived) {
             throw WebSocketException("Protocol error");
           }
+          // RFC 6455 section 7.4 defines status codes only in the range
+          // 1000-4999. Codes outside this range (e.g. 5000, 65535, 0) MUST
+          // be treated as a protocol error so a malicious peer cannot push
+          // arbitrary 16-bit values into the application's `closeCode`.
+          if (closeCode < 1000 || closeCode > 4999) {
+            throw WebSocketException(
+              "Protocol error: close status code $closeCode is outside the "
+              "RFC 6455 valid range (1000-4999)",
+            );
+          }
           if (payload.length > 2) {
             closeReason = utf8.decode(payload.sublist(2));
           }
@@ -1410,6 +1420,9 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             code == WebSocketStatus.abnormalClosure ||
             (code > WebSocketStatus.internalServerError &&
                 code < WebSocketStatus.reserved1015) ||
-            (code >= WebSocketStatus.reserved1015 && code < 3000));
+            (code >= WebSocketStatus.reserved1015 && code < 3000) ||
+            // RFC 6455 section 7.4: status codes are defined only in the
+            // range 1000-4999; anything above MUST not be sent.
+            code > 4999);
   }
 }
