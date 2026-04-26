@@ -656,6 +656,53 @@ Transfer-Encoding: identity, chunked\r
       chunked: true,
     );
 
+    // Regression test: a Transfer-Encoding token with internal whitespace
+    // (e.g. "x chunked") is NOT a valid `chunked` indicator per RFC 7230
+    // section 3.2.6 (`token = 1*tchar`, no SP/HT allowed in tchar).
+    //
+    // The previous _tokenizeFieldValue() advanced its `start` cursor for any
+    // whitespace, not just leading whitespace, silently eliding every byte
+    // before the last whitespace in a token. That made the function return
+    // ["chunked"] for "x chunked", and the downstream `token.trim() ==
+    // "chunked"` check accepted the malformed header — enabling a
+    // CL/TE request smuggling differential against any RFC-compliant
+    // upstream proxy that rejects the invalid token or falls back to the
+    // Content-Length value.
+    //
+    // After the fix, the malformed token is preserved as "x chunked"
+    // (after trimming surrounding whitespace) so the chunked check fails
+    // and the parser correctly falls back to Content-Length.
+    request = """
+POST /test HTTP/1.1\r
+Content-Length: 10\r
+Transfer-Encoding: x chunked\r
+\r
+0123456789""";
+    _testParseRequest(
+      request,
+      "POST",
+      "/test",
+      expectedTransferLength: 10,
+      expectedBytesReceived: 10,
+      chunked: false,
+    );
+
+    // Same with a tab as the internal whitespace.
+    request = """
+POST /test HTTP/1.1\r
+Content-Length: 10\r
+Transfer-Encoding: x\tchunked\r
+\r
+0123456789""";
+    _testParseRequest(
+      request,
+      "POST",
+      "/test",
+      expectedTransferLength: 10,
+      expectedBytesReceived: 10,
+      chunked: false,
+    );
+
     // Content-Length and "Transfer-Encoding: chunked" are specified.
     request = """
 POST /test HTTP/1.1\r
