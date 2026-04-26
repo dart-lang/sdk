@@ -131,6 +131,12 @@ abstract final class ProcessInfo {
 /// Modes for running a new process.
 final class ProcessStartMode {
   /// Normal child process.
+  ///
+  /// Default for the `mode` parameter of [Process.start]. The child process
+  /// has stdin, stdout, and stderr connected to the parent process using pipes
+  /// and accessible through the [Process] object returned by that method.
+  /// See [Process.start] for how the parent and child interact while the child
+  /// is running.
   static const normal = const ProcessStartMode._internal(0);
 
   /// Stdio handles are inherited by the child process.
