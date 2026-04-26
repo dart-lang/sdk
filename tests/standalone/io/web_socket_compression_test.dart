@@ -344,6 +344,53 @@ class SecurityConfiguration {
     });
   }
 
+  // Ensures the per-frame inflated-size cap rejects a permessage-deflate
+  // "decompression bomb": a small compressed frame that would inflate to
+  // more than 16 MiB. Without the cap, a peer can amplify ~16 KiB on the
+  // wire to >100 MiB on the server heap (RFC 7692 places no limit on the
+  // decompression ratio).
+  //
+  // The cap throws inside the protocol transformer, which is wired to
+  // close the connection with `WebSocketStatus.protocolError` (1002) and
+  // close the stream cleanly (the raw exception is not surfaced to
+  // `Stream.listen`). The test asserts that:
+  //   - the bomb message is never delivered as a `webSocket` event
+  //   - after the stream closes, `webSocket.closeCode == protocolError`.
+  void testDecompressionBombRejected() {
+    asyncStart();
+    createServer().then((server) {
+      server.listen((request) {
+        Expect.isTrue(WebSocketTransformer.isUpgradeRequest(request));
+        WebSocketTransformer.upgrade(request).then((webSocket) {
+          webSocket.listen(
+            (_) {
+              Expect.fail(
+                "permessage-deflate bomb must not be delivered as a message",
+              );
+            },
+            onDone: () {
+              Expect.equals(
+                WebSocketStatus.protocolError,
+                webSocket.closeCode,
+                "expected protocolError closeCode after cap fired",
+              );
+              server.close();
+              asyncEnd();
+            },
+          );
+        });
+      });
+
+      var url = '${secure ? "wss" : "ws"}://$HOST_NAME:${server.port}/';
+      WebSocket.connect(url).then((websocket) {
+        // 17 MiB of zeros compresses to a tiny frame; on the server side
+        // the per-frame inflated cap (16 MiB) fires before the buffer can
+        // grow further.
+        websocket.add(Uint8List(17 * 1024 * 1024));
+      });
+    });
+  }
+
   void runTests() {
     // No compression or takeover
     testCompressionSupport();
@@ -455,6 +502,8 @@ class SecurityConfiguration {
       serverMaxWindowBits: 8,
     );
     testClientRequestHeaders(compression);
+
+    testDecompressionBombRejected();
   }
 }
 
