@@ -582,14 +582,69 @@ void testShouldCopyHeadersOnRedirect() {
   );
   checkShouldCopyHeader("cat", "http://foo.com", "http://foo.com:80/foo", true);
 
-  // Redirect to subdomain.
+  // Redirect to subdomain. Credential-carrying headers MUST NOT be forwarded
+  // to a subdomain (the subdomain can be attacker-controlled on shared apex
+  // hosts, and RFC 6265 host-only cookies must not be sent to subdomains).
+  // Non-sensitive headers continue to follow the redirect.
   checkShouldCopyHeader(
     "authorization",
     "https://foo.com",
     "https://www.foo.com",
-    true,
+    false,
+  );
+  checkShouldCopyHeader(
+    "cookie",
+    "https://foo.com",
+    "https://www.foo.com",
+    false,
+  );
+  checkShouldCopyHeader(
+    "cookie2",
+    "https://foo.com",
+    "https://www.foo.com",
+    false,
+  );
+  checkShouldCopyHeader(
+    "www-authenticate",
+    "https://foo.com",
+    "https://www.foo.com",
+    false,
   );
   checkShouldCopyHeader("cat", "https://foo.com", "https://www.foo.com", true);
+
+  // Redirect to same host: all sensitive headers are still forwarded.
+  checkShouldCopyHeader(
+    "cookie",
+    "https://foo.com",
+    "https://foo.com/path",
+    true,
+  );
+  checkShouldCopyHeader(
+    "cookie2",
+    "https://foo.com",
+    "https://foo.com/path",
+    true,
+  );
+  checkShouldCopyHeader(
+    "www-authenticate",
+    "https://foo.com",
+    "https://foo.com/path",
+    true,
+  );
+
+  // Redirect to a deeper subdomain (e.g. attacker-uploads.example.com).
+  checkShouldCopyHeader(
+    "authorization",
+    "https://example.com",
+    "https://attacker-uploads.example.com",
+    false,
+  );
+  checkShouldCopyHeader(
+    "cookie",
+    "https://example.com",
+    "https://attacker-uploads.example.com",
+    false,
+  );
 
   // Redirect to different domain.
   checkShouldCopyHeader(
