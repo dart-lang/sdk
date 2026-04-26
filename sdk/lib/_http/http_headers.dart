@@ -1208,6 +1208,22 @@ class _Cookie implements Cookie {
         // An extension-av, which is not validated or processed.
       }
     }
+
+    // RFC 6265bis section 5.5.7 (and the IETF SameSite=None spec
+    // adopted by all major browsers since 2020) requires that any
+    // cookie with `SameSite=None` MUST also carry the `Secure`
+    // attribute. A cookie that violates this is rejected by every
+    // mainstream user agent and cannot be sent over HTTP, so accepting
+    // it during parsing serves no useful purpose. Throwing here is
+    // consistent with the existing validation throws elsewhere in this
+    // method (`Value given for 'HttpOnly'`, invalid `SameSite` value,
+    // duplicate `Content-Length`, etc.).
+    if (sameSite == SameSite.none && !secure) {
+      throw HttpException(
+        "Cookie with 'SameSite=None' must also have the 'Secure' "
+        "attribute (RFC 6265bis section 5.5.7).",
+      );
+    }
   }
 
   String toString() {
