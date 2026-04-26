@@ -656,6 +656,34 @@ Transfer-Encoding: identity, chunked\r
       chunked: true,
     );
 
+    // RFC 7230 section 3.3.3 rule 3: a request whose Transfer-Encoding does
+    // NOT have chunked as the final coding has indeterminate body length and
+    // MUST be rejected. Without rejection, dart's parser silently treats the
+    // request as having no body (transferLength=0) AND drops the
+    // Content-Length, then parses the attacker-supplied body bytes as a
+    // separate request on the same connection — a CL/TE smuggling chain
+    // demonstrated against any RFC-compliant upstream proxy that honours the
+    // Content-Length value when Transfer-Encoding is unknown.
+    //
+    // Reject "Transfer-Encoding: gzip" with no chunked at all.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: gzip\r
+Content-Length: 38\r
+\r
+GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
+    _testParseInvalidRequest(request);
+
+    // Reject "Transfer-Encoding: chunked, gzip" — chunked is present but is
+    // NOT the final coding, so message length is indeterminate.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked, gzip\r
+Content-Length: 38\r
+\r
+GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
+    _testParseInvalidRequest(request);
+
     // Content-Length and "Transfer-Encoding: chunked" are specified.
     request = """
 POST /test HTTP/1.1\r

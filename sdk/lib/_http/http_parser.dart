@@ -770,14 +770,31 @@ class _HttpParser extends Stream<_HttpIncoming> {
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
               // RFC 7230 section 3.3.1: Transfer-Encoding can be a
-              // comma-separated list (e.g. "gzip, chunked"). Check each
-              // token individually to avoid CL/TE request smuggling.
+              // comma-separated list (e.g. "gzip, chunked"). The chunked
+              // coding must be the FINAL coding for the body length to be
+              // determinable (RFC 7230 section 3.3.3 rule 3):
+              //
+              //   If a Transfer-Encoding header field is present in a
+              //   request and the chunked transfer coding is not the final
+              //   encoding, the message body length cannot be determined
+              //   reliably; the server MUST respond with the 400 (Bad
+              //   Request) status code and then close the connection.
+              //
+              // Without this check, a request with `Transfer-Encoding: gzip`
+              // (or any TE not ending in chunked) sets _transferEncoding=true,
+              // _chunked=false, _contentLength=false, then _transferLength=0,
+              // and the attacker-supplied body bytes are parsed as the next
+              // request on the same connection (CL/TE request smuggling).
               List<String> tokens = _tokenizeFieldValue(headerValue);
-              for (var token in tokens) {
-                if (token.trim().toLowerCase() == "chunked") {
-                  _chunked = true;
-                  break;
-                }
+              if (tokens.isNotEmpty &&
+                  tokens.last.trim().toLowerCase() == "chunked") {
+                _chunked = true;
+              } else if (_messageType == _MessageType.REQUEST) {
+                throw HttpException(
+                  "Invalid Transfer-Encoding header. RFC 7230 section "
+                  "3.3.3 rule 3 requires chunked to be the final transfer "
+                  "coding in requests.",
+                );
               }
               _contentLength = false;
             }
