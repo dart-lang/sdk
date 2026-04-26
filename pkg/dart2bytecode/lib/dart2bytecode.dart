@@ -109,9 +109,16 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     help: 'Print this help message.',
   )
   ..addFlag(
-    'track-widget-creation',
-    help: 'Run a kernel transformer to track creation locations for widgets.',
+    'track-creation-locations',
+    help:
+        'Run a kernel transformer to track creation locations for'
+        ' classes annotated with @pragma(\'track-creation-locations\').',
     defaultsTo: false,
+    aliases: [
+      // TODO(http://dartbug.com/63225): Remove this once flutter is migrated
+      // to the new flag.
+      'track-widget-creation',
+    ],
   )
   ..addOption(
     'invocation-modes',
@@ -186,7 +193,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String? validateDynamicInterface = options['validate'];
   final String messageVerbosity = options['verbosity'];
   final String cfeInvocationModes = options['invocation-modes'];
-  final bool trackWidgetCreation = options['track-widget-creation'];
+  final bool trackCreationLocations = options['track-creation-locations'];
   final List<String>? bytecodeGeneratorOptions = options['bytecode-options'];
   final String libraryUrisPrefix = options['prefix-library-uris']!;
 
@@ -205,7 +212,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     fileSystemRoots: fileSystemRoots,
     messageVerbosity: messageVerbosity,
     cfeInvocationModes: cfeInvocationModes,
-    trackWidgetCreation: trackWidgetCreation,
+    trackCreationLocations: trackCreationLocations,
     bytecodeGeneratorOptions: bytecodeGeneratorOptions,
     depfile: depfile,
     depfileTarget: depfileTarget,
@@ -231,7 +238,7 @@ Future<int> runCompilerWithOptions({
   String messageVerbosity = Verbosity.defaultValue,
   void Function(String) printMessage = print,
   String cfeInvocationModes = '',
-  bool trackWidgetCreation = false,
+  bool trackCreationLocations = false,
   List<String>? bytecodeGeneratorOptions,
   String? depfile,
   String? depfileTarget,
@@ -287,7 +294,7 @@ Future<int> runCompilerWithOptions({
     ..verbosity = verbosity
     ..target = createFrontEndTarget(
       targetName,
-      trackWidgetCreation: trackWidgetCreation,
+      trackCreationLocations: trackCreationLocations,
       supportMirrors: false,
       isClosureContextLoweringEnabled:
           bytecodeOptions.isClosureContextLoweringEnabled,

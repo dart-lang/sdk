@@ -1,0 +1,42 @@
+main = main::main;
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///widget.dart";
+
+  class MyWidget extends wid::Widget /*hasConstConstructor*/  {
+    final field wid::Widget? child;
+    const constructor •({initializing-formal wid::Widget? child = null, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = null}) → main::MyWidget
+      : main::MyWidget::child = child, super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static synthetic method _#new#tearOff({wid::Widget? child}) → main::MyWidget
+      return new main::MyWidget::•(child: child, $creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::•(file: "org-dartlang-test:///main.dart", line: 4, column: 9, name: "MyWidget"));
+    synthetic no-such-method-forwarder set dart.developer::_location(dart.developer::CreationLocation? value) → void
+      return throw{for-error-handling} dart.core::NoSuchMethodError::withInvocation(this, new dart.core::_Invocation::setter(#_location=, value));
+  }
+  static method main() → void
+    ;
+}
+library from "org-dartlang-test:///widget.dart" as wid {
+
+  import "dart:developer";
+
+  @/*original=dart.core::pragma::•*/ const dart.core::pragma::_("track-creation-locations")
+  abstract class Widget extends dart.core::Object implements dart.developer::_HasCreationLocation /*hasConstConstructor*/  {
+    final field dart.developer::CreationLocation? dart.developer::_location;
+    const constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = null}) → wid::Widget
+      : super dart.core::Object::•(), wid::Widget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+  class StandardWidget extends wid::Widget /*hasConstConstructor*/  {
+    const constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = null}) → wid::StandardWidget
+      : super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    const constructor named(dart.core::String name, {dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = null}) → wid::StandardWidget
+      : super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static synthetic method _#new#tearOff() → wid::StandardWidget
+      return new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::•(file: "org-dartlang-test:///widget.dart", line: 9, column: 9, name: "StandardWidget"));
+    static synthetic method _#named#tearOff(dart.core::String name) → wid::StandardWidget
+      return new wid::StandardWidget::named(name, $creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::•(file: "org-dartlang-test:///widget.dart", line: 10, column: 9, name: "StandardWidget"));
+  }
+}

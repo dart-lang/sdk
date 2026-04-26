@@ -102,7 +102,15 @@ final ArgParser summaryArgsParser = new ArgParser()
   ..addFlag('reuse-compiler-result', defaultsTo: false)
   ..addFlag('use-incremental-compiler', defaultsTo: false)
   ..addOption('used-inputs')
-  ..addFlag('track-widget-creation', defaultsTo: false)
+  ..addFlag(
+    'track-creation-locations',
+    defaultsTo: false,
+    aliases: [
+      // TODO(http://dartbug.com/63225): Remove this once flutter is migrated
+      // to the new flag.
+      'track-widget-creation',
+    ],
+  )
   ..addFlag('include-unsupported-platform-library-stubs', defaultsTo: false)
   ..addMultiOption(
     'enable-experiment',
@@ -205,7 +213,7 @@ Future<ComputeKernelResult> computeKernel(
   if (summaryOnly && !summary) {
     throw new ArgumentError('--summary-only conflicts with --no-summary');
   }
-  bool trackWidgetCreation = parsedArgs['track-widget-creation'] as bool;
+  bool trackCreationLocations = parsedArgs['track-creation-locations'] as bool;
   bool includeUnsupportedPlatformLibraryStubs =
       parsedArgs['include-unsupported-platform-library-stubs'] as bool;
 
@@ -214,7 +222,7 @@ Future<ComputeKernelResult> computeKernel(
   String targetName =
       (parsedArgs['target'] as String?) ?? (summaryOnly ? 'ddc' : 'vm');
   TargetFlags targetFlags = new TargetFlags(
-    trackWidgetCreation: trackWidgetCreation,
+    trackCreationLocations: trackCreationLocations,
     includeUnsupportedPlatformLibraryStubs:
         includeUnsupportedPlatformLibraryStubs,
   );
@@ -392,8 +400,8 @@ Future<ComputeKernelResult> computeKernel(
       previousState,
       {
         "target=$targetName",
-        // trackWidgetCreation is in TargetFlags.
-        "trackWidgetCreation=$trackWidgetCreation",
+        // trackCreationLocations is in TargetFlags.
+        "trackCreationLocations=$trackCreationLocations",
         // includeUnsupportedPlatformLibraryStubs is in TargetFlags.
         "includeUnsupportedPlatformLibraryStubs="
             "$includeUnsupportedPlatformLibraryStubs",

@@ -148,8 +148,8 @@ class NewWorldTestProperties {
     defaultValue: false,
   );
 
-  static const Property<bool> trackWidgetCreation = Property.optional(
-    'trackWidgetCreation',
+  static const Property<bool> trackCreationLocations = Property.optional(
+    'trackCreationLocations',
     BoolValue(),
     defaultValue: false,
   );
@@ -724,10 +724,8 @@ class RunCompilations extends Step<TestData, TestData, Context> {
           forceLateLoweringForTesting: NewWorldTestProperties
               .forceLateLoweringForTesting
               .read(map, keys),
-          trackWidgetCreation: NewWorldTestProperties.trackWidgetCreation.read(
-            map,
-            keys,
-          ),
+          trackCreationLocations: NewWorldTestProperties.trackCreationLocations
+              .read(map, keys),
           incrementalSerialization: NewWorldTestProperties
               .incrementalSerialization
               .read(map, keys),
@@ -1260,7 +1258,7 @@ class NewWorldTest {
   final Map<String, Map<String, String>>? modules;
   final bool omitPlatform;
   final bool forceLateLoweringForTesting;
-  final bool trackWidgetCreation;
+  final bool trackCreationLocations;
   final bool incrementalSerialization;
   final String? targetName;
 
@@ -1279,7 +1277,7 @@ class NewWorldTest {
     required this.modules,
     required this.omitPlatform,
     required this.forceLateLoweringForTesting,
-    required this.trackWidgetCreation,
+    required this.trackCreationLocations,
     required this.incrementalSerialization,
     required this.targetName,
   });
@@ -1296,7 +1294,7 @@ class NewWorldTest {
       forceLateLoweringsForTesting: forceLateLoweringForTesting
           ? LateLowering.all
           : null,
-      trackWidgetCreation: trackWidgetCreation,
+      trackCreationLocations: trackCreationLocations,
     );
     Target target = new VmTarget(targetFlags);
     if (targetName != null) {

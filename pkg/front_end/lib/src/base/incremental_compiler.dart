@@ -443,7 +443,12 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       }
       // Coverage-ignore(suite): Not run.
       else if (componentWithDill != null) {
-        context.options.target.performOutlineTransformations(componentWithDill);
+        context.options.target.performOutlineTransformations(
+          componentWithDill,
+          libraries: currentKernelTarget.loader.libraries,
+          changedStructureNotifier:
+              currentKernelTarget.changedStructureNotifier,
+        );
       }
 
       _benchmarker

@@ -56,8 +56,8 @@ Future<void> main(List<String> arguments) async {
           for (String s in arg.substring("--invalidate=".length).split(",")) {
             settings.invalidate.add(Uri.base.resolve(s));
           }
-        } else if (arg.startsWith("--widgetTransformation")) {
-          settings.widgetTransformation = true;
+        } else if (arg.startsWith("--track-creation-locations")) {
+          settings.trackCreationLocations = true;
         } else if (arg.startsWith("--target=vm")) {
           settings.targetString = "vm";
         } else if (arg.startsWith("--target=flutter")) {

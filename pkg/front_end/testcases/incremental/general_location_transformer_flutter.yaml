@@ -10,32 +10,24 @@ worlds:
     sources:
       main.dart: |
         import 'package:flutter/src/widgets/framework.dart';
-      flutter/lib/src/widgets/framework.dart: |
-        abstract class Bar {
-          const Bar();
-        }
-        abstract class Widget extends Bar {
-          const Widget();
-        }
-        class Key {}
-        class StatefulWidget extends Widget {
-          final Key? key;
 
-          const StatefulWidget({this.key});
-        }
+        class Foo extends Widget {}
+      flutter/lib/src/widgets/framework.dart: |
+        abstract class Bar {}
+
+        @pragma('track-creation-locations')
+        abstract class Widget extends Bar {}
       .dart_tool/package_config.json: |
         {
           "configVersion": 2,
           "packages": [
             {
               "name": "flutter",
-              "rootUri": "../flutter",
-              "packageUri": "lib/"
+              "rootUri": "../flutter/lib"
             }
           ]
         }
     expectedLibraryCount: 2
-
   - entry: main.dart
     worldType: updated
     invalidate:
@@ -44,8 +36,7 @@ worlds:
     sources:
       main.dart: |
         import 'package:flutter/src/widgets/framework.dart';
-        class GalleryApp extends StatefulWidget {
-          const GalleryApp({super.key});
-        }
+
+        class Foo extends Widget {}
     expectedLibraryCount: 2
-    advancedInvalidation: outlineChange
+    advancedInvalidation: bodiesOnly

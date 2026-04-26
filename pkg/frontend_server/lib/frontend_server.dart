@@ -261,9 +261,16 @@ ArgParser argParser = new ArgParser(allowTrailingOptions: true)
     hide: true,
   )
   ..addFlag(
-    'track-widget-creation',
-    help: 'Run a kernel transformer to track creation locations for widgets.',
+    'track-creation-locations',
+    help:
+        'Run a kernel transformer to track creation locations for'
+        ' classes annotated with @pragma(\'track-creation-locations\').',
     defaultsTo: false,
+    aliases: [
+      // TODO(http://dartbug.com/63225): Remove this once flutter is migrated
+      // to the new flag.
+      'track-widget-creation',
+    ],
   )
   ..addMultiOption(
     'delete-tostring-package-uri',
@@ -800,7 +807,7 @@ class FrontendCompiler implements CompilerInterface {
     final bool minimalKernel = options['minimal-kernel'];
     compilerOptions.target = createFrontEndTarget(
       options['target'],
-      trackWidgetCreation: options['track-widget-creation'],
+      trackCreationLocations: options['track-creation-locations'],
       supportMirrors: options['support-mirrors'] ?? !(aot || minimalKernel),
       includeUnsupportedPlatformLibraryStubs:
           options['include-unsupported-platform-library-stubs'],

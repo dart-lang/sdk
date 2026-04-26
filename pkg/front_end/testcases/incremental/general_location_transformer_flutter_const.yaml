@@ -16,9 +16,8 @@ worlds:
         Baz newBaz = new Baz();
         Boz newBoz = new Boz(createNew: true);
         Boz constBoz = new Boz(createNew: false);
-      foo.dart:
+      foo.dart: |
         import 'package:flutter/src/widgets/framework.dart';
-        import 'package:flutter/src/widgets/widget_inspector.dart';
 
         class Foo extends Widget {
           factory Foo() => const Foo._();
@@ -55,33 +54,9 @@ worlds:
         abstract class Bar {
           const Bar();
         }
+        @pragma('track-creation-locations')
         abstract class Widget extends Bar {
           const Widget();
-        }
-      flutter/lib/src/widgets/widget_inspector.dart: |
-        abstract class _HasCreationLocation {
-          _Location get _location;
-        }
-        /// A tuple with file, line, and column number, for displaying human-readable
-        /// file locations.
-        class _Location {
-          const _Location({
-            required this.file,
-            required this.line,
-            required this.column,
-            required this.name,
-            required this.parameterLocations,
-          });
-          /// File path of the location.
-          final String file;
-          /// 1-based line number.
-          final int line;
-          /// 1-based column number.
-          final int column;
-          /// Optional name of the parameter or function at this location.
-          final String name;
-          /// Optional locations of the parameters of the member at this location.
-          final List<_Location> parameterLocations;
         }
       .dart_tool/package_config.json: |
         {
@@ -94,7 +69,7 @@ worlds:
             }
           ]
         }
-    expectedLibraryCount: 4
+    expectedLibraryCount: 3
 
   - entry: main.dart
     worldType: updated
@@ -104,7 +79,7 @@ worlds:
     sources:
       main.dart: |
         import 'foo.dart';
-    expectedLibraryCount: 4
+    expectedLibraryCount: 3
     advancedInvalidation: outlineChange
 
   - entry: main.dart
@@ -121,5 +96,5 @@ worlds:
         Baz newBaz = new Baz();
         Boz newBoz = new Boz(createNew: true);
         Boz constBoz = new Boz(createNew: false);
-    expectedLibraryCount: 4
+    expectedLibraryCount: 3
     advancedInvalidation: outlineChange
