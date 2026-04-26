@@ -3072,17 +3072,37 @@ class _HttpClient implements HttpClient {
     required Uri originalUrl,
     required Uri redirectUrl,
   }) {
-    if (_isSubdomain(redirectUrl, originalUrl)) {
-      return true;
-    }
-
-    const nonRedirectHeaders = [
+    // Headers carrying credentials must NEVER cross a host boundary, even to
+    // a subdomain. Browsers and HTTP libraries (curl, libcurl, requests,
+    // fetch) all strip these on any host change.
+    //
+    // Subdomains of the original host can be attacker-controlled in many
+    // real deployments: user-content subdomains on shared apex domains
+    // (uploads.example.com), platform subdomains (*.user-domain on Heroku /
+    // GitHub Pages-style hosts), custom-domain providers, S3 bucket
+    // subdomains. Forwarding the victim's bearer token / host-only cookie
+    // there is a token leak.
+    //
+    // RFC 6265 host-only cookies (no Domain attribute) MUST not be sent to
+    // subdomains — copying `cookie` to a subdomain redirect violates that.
+    const sensitiveHeaders = [
       "authorization",
       "www-authenticate",
       "cookie",
       "cookie2",
     ];
-    return !nonRedirectHeaders.contains(headerKey.toLowerCase());
+    final sameHost =
+        redirectUrl.isScheme(originalUrl.scheme) &&
+        redirectUrl.port == originalUrl.port &&
+        redirectUrl.host == originalUrl.host;
+    if (sensitiveHeaders.contains(headerKey.toLowerCase())) {
+      // Only copy sensitive headers to the EXACT same host:port:scheme.
+      return sameHost;
+    }
+    // Non-sensitive headers may follow within the original origin or to a
+    // subdomain (preserves legitimate same-site behaviour for tracing /
+    // user-agent / accept-language headers). Cross-origin still strips them.
+    return sameHost || _isSubdomain(redirectUrl, originalUrl);
   }
 
   Future<_HttpClientRequest> _openUrlFromRequest(
