@@ -761,6 +761,7 @@ Annotation
 
     _assertAnnotationValueText(node, r'''
 int 42
+  typeNotExtensionTypeErased: A
 ''');
   }
 
@@ -793,6 +794,7 @@ Annotation
 
     _assertAnnotationValueText(node, r'''
 int 42
+  typeNotExtensionTypeErased: A
 ''');
   }
 

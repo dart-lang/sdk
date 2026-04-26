@@ -3012,7 +3012,13 @@ class _InstanceCreationEvaluator {
     if (definingType.element case ExtensionTypeElement element) {
       var representation = _fieldMap[element.representation.name];
       if (representation != null) {
-        return representation;
+        return DartObjectImpl.withExtensionType(
+          typeSystem: typeSystem,
+          type: representation.type,
+          typeNotExtensionTypeErased: definingType,
+          state: representation.state,
+          variable: representation.variable,
+        );
       }
     }
 
