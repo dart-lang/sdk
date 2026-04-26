@@ -1113,13 +1113,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
   }
 
   static List<String> _tokenizeFieldValue(String headerValue) {
-    // Split on `,` only and trim each token. The previous implementation
-    // advanced `start` for ANY whitespace (not just leading), which silently
-    // elided every byte before the last whitespace character in a token.
-    // For example, _tokenizeFieldValue("x chunked") returned ["chunked"]
-    // because the `x ` prefix was eaten — a downstream `token.trim() ==
-    // "chunked"` check then incorrectly accepted the malformed
-    // `Transfer-Encoding: x chunked` header as chunked encoding.
+    // Split a list-valued header on `,` and trim leading/trailing OWS from
+    // each token. Per RFC 9110 §5.6.1 (Lists), a list-valued header has the
+    // grammar `#element => element *( OWS "," OWS element )`, where OWS is
+    // `*( SP / HTAB )` (RFC 9110 §5.6.3).
     List<String> tokens = <String>[];
     int start = 0;
     int index = 0;
