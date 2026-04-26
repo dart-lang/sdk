@@ -96,7 +96,15 @@ class _WebSocketProtocolTransformer
 
   final bool _serverSide;
   final Uint8List _maskingBytes = Uint8List(4);
+  // Buffer for the in-flight DATA message payload (TEXT / BINARY,
+  // assembled across CONTINUATION frames until _fin == true).
   final BytesBuilder _payload = BytesBuilder(copy: false);
+  // Separate buffer for the in-flight CONTROL frame payload (CLOSE / PING /
+  // PONG). RFC 6455 section 5.4 explicitly permits a control frame to be
+  // injected in the middle of a fragmented data message; using a separate
+  // buffer prevents the control frame's takeBytes() from draining bytes
+  // belonging to the data message.
+  final BytesBuilder _controlPayload = BytesBuilder(copy: false);
 
   final _WebSocketPerMessageDeflate? _deflate;
   _WebSocketProtocolTransformer([this._serverSide = false, this._deflate]);
@@ -219,8 +227,13 @@ class _WebSocketProtocolTransformer
           if (_masked) {
             _unmask(index, payloadLength, buffer);
           }
-          // Control frame and data frame share _payloads.
-          _payload.add(
+          // Control frames and data frames must use SEPARATE buffers.
+          // Otherwise a control frame interleaved into a fragmented data
+          // message (RFC 6455 section 5.4 explicitly permits this) would
+          // drain the in-flight data bytes when its takeBytes() runs,
+          // leaking the data via PONG echo and truncating the message
+          // delivered to the application.
+          (_isControlFrame() ? _controlPayload : _payload).add(
             Uint8List.view(
               buffer.buffer,
               buffer.offsetInBytes + index,
@@ -360,7 +373,7 @@ class _WebSocketProtocolTransformer
     switch (_opcode) {
       case _WebSocketOpcode.CLOSE:
         closeCode = WebSocketStatus.noStatusReceived;
-        var payload = _payload.takeBytes();
+        var payload = _controlPayload.takeBytes();
         if (payload.isNotEmpty) {
           if (payload.length == 1) {
             throw WebSocketException("Protocol error");
@@ -378,11 +391,11 @@ class _WebSocketProtocolTransformer
         break;
 
       case _WebSocketOpcode.PING:
-        _eventSink!.add(_WebSocketPing(_payload.takeBytes()));
+        _eventSink!.add(_WebSocketPing(_controlPayload.takeBytes()));
         break;
 
       case _WebSocketOpcode.PONG:
-        _eventSink!.add(_WebSocketPong(_payload.takeBytes()));
+        _eventSink!.add(_WebSocketPong(_controlPayload.takeBytes()));
         break;
     }
     _prepareForNextFrame();
