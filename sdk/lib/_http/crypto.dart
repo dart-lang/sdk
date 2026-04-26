@@ -5,10 +5,15 @@
 part of "dart:_http";
 
 class _CryptoUtils {
+  // A fresh `Random.secure()` per byte is also unnecessary, but kept here
+  // for minimal-diff churn — only the upper bound is corrected.
   static Uint8List getRandomBytes(int count) {
     final Uint8List result = Uint8List(count);
     for (int i = 0; i < count; i++) {
-      result[i] = Random.secure().nextInt(0xff);
+      // `nextInt` returns a value in `[0, max)`. The previous bound of `0xff`
+      // produced values in `[0, 254]`, omitting `0xff` entirely. The intent
+      // is a uniform random byte in `[0, 255]`, so the bound must be `0x100`.
+      result[i] = Random.secure().nextInt(0x100);
     }
     return result;
   }
