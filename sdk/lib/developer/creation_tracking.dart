@@ -42,7 +42,7 @@ part of dart.developer;
 /// this transformation **will silently skip** any constructor that declares optional
 /// positional parameters. Calling [CreationLocation.of] on an object whose
 /// constructor was skipped, will return `null`.
-class CreationLocation {
+final class CreationLocation {
   /// Returns the creation location of [object].
   ///
   /// The provided object must be an instance of a class annotated with
@@ -54,7 +54,7 @@ class CreationLocation {
     return null;
   }
 
-  const CreationLocation({
+  const CreationLocation._({
     required this.file,
     required this.line,
     required this.column,
@@ -89,7 +89,7 @@ class CreationLocation {
 
 /// Interface for classes that track the source code location their
 /// constructor was called from.
-abstract class _HasCreationLocation {
+abstract interface class _HasCreationLocation {
   /// The location where the constructor was called.
   CreationLocation? _location;
 }
