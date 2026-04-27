@@ -251,7 +251,8 @@ class DevCompilerTarget extends Target {
       libraries: libraries,
       changedStructureNotifier: changedStructureNotifier,
     );
-    // In addition to [performPreConstantEvaluationTransformations] this makes sure summaries are also transformed.
+    // In addition to [performPreConstantEvaluationTransformations] this makes
+    // sure summaries are also transformed.
     if (flags.trackCreationLocations) {
       (_widgetTracker ??= WidgetCreatorTracker()).transform(
         libraries ?? component.libraries,
