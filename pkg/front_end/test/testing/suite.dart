@@ -781,6 +781,8 @@ class CompilationSetup {
     Map<ExperimentalFlag, Version>? experimentEnabledVersion,
     Map<ExperimentalFlag, Version>? experimentReleasedVersion,
     Uri? dynamicInterfaceSpecificationUri,
+    bool allowDynamicCallsInDynamicModules,
+    List<String> dynamicCallsSelectorAllowList,
   )
   createCompilerOptions;
 
@@ -826,6 +828,8 @@ CompilationSetup createCompilationSetup(
     Map<ExperimentalFlag, Version>? experimentEnabledVersion,
     Map<ExperimentalFlag, Version>? experimentReleasedVersion,
     Uri? dynamicInterfaceSpecificationUri,
+    bool allowDynamicCallsInDynamicModules,
+    List<String> dynamicCallsSelectorAllowList,
   ) {
     CompilerOptions compilerOptions = new CompilerOptions()
       ..onDiagnostic = (CfeDiagnosticMessage message) {
@@ -844,8 +848,8 @@ CompilationSetup createCompilationSetup(
       ..omitOsMessageForTesting = true
       ..packagesFileUri = packagesFileUri
       ..dynamicInterfaceSpecificationUri = dynamicInterfaceSpecificationUri
-      ..allowDynamicCallsInDynamicModules =
-          dynamicInterfaceSpecificationUri != null
+      ..allowDynamicCallsInDynamicModules = allowDynamicCallsInDynamicModules
+      ..dynamicCallsSelectorAllowList = dynamicCallsSelectorAllowList
       ..target = createTarget(folderOptions, context)
       ..verify =
           // TODO(johnniwinther): Enable verification in outline and modular
@@ -879,6 +883,8 @@ CompilationSetup createCompilationSetup(
     testOptions.experimentEnabledVersion,
     testOptions.experimentReleasedVersion,
     testOptions.dynamicInterfaceSpecificationUri,
+    testOptions.allowDynamicCallsInDynamicModules,
+    testOptions.dynamicCallsSelectorAllowList,
   );
   ProcessedOptions options = createProcessedOptions(compilerOptions);
   options.sdkSummaryComponent = context.loadPlatform(options.target);

@@ -30,6 +30,7 @@ void validateDynamicModule(
   List<Library> libraries,
   SourceLoader loader, {
   bool allowDynamicCallsInDynamicModules = false,
+  List<String> dynamicCallsSelectorAllowList = const [],
 }) {
   final DynamicInterfaceSpecification spec = new DynamicInterfaceSpecification(
     dynamicInterfaceSpecification,
@@ -45,6 +46,7 @@ void validateDynamicModule(
     hierarchy,
     loader,
     allowDynamicCallsInDynamicModules: allowDynamicCallsInDynamicModules,
+    dynamicCallsSelectorAllowList: dynamicCallsSelectorAllowList,
   );
   for (Library library in libraries) {
     library.accept(validator);
@@ -475,13 +477,17 @@ class _DynamicModuleValidator extends RecursiveVisitor {
     this.hierarchy,
     this.loader, {
     this.allowDynamicCallsInDynamicModules = false,
+    List<String> dynamicCallsSelectorAllowList = const [],
   }) {
     _expandNodes(spec.callable);
     _expandNodes(spec.extendable);
     _expandNodes(spec.canBeOverridden);
     _expandNodes(spec.canBeUsedAsType);
     _expandNodes(spec.dynamicallyCallable);
-    _dynamicCallValidator = new _DynamicCallValidator(this)..run();
+    _dynamicCallValidator = new _DynamicCallValidator(
+      this,
+      dynamicCallsSelectorAllowList,
+    )..run();
   }
 
   // Add nodes which do not have direct relation to its logical "parent" node.
@@ -1108,7 +1114,43 @@ class _DynamicCallValidator {
   final Set<Class> classesExposedDynamically = {};
   DynamicInterfaceSpecification get spec => validator.spec;
 
-  _DynamicCallValidator(this.validator);
+  _DynamicCallValidator(
+    this.validator,
+    List<String> dynamicCallsSelectorAllowList,
+  ) {
+    for (final String descriptor in dynamicCallsSelectorAllowList) {
+      List<String> split = descriptor.split(':');
+      if (split.length == 1) {
+        if (descriptor.startsWith('_')) {
+          // Coverage-ignore(suite): Not run.
+          throw "Unexpected selector name in descriptor '$descriptor': "
+              "private descriptors are not supported.";
+        }
+        final Name name = new Name(descriptor);
+        _dynamicallyCallable.add(new _Selector(.Method, name));
+        _dynamicallyCallable.add(new _Selector(.PropertyGet, name));
+      } else if (split.length > 2) {
+        // Coverage-ignore(suite): Not run.
+        throw "Unexpected selector descriptor '$descriptor'.";
+      } else {
+        final String kindString = split[0];
+        final String nameString = split[1];
+        _SelectorKind kind = switch (kindString) {
+          'get' => .PropertyGet,
+          'set' => .PropertySet,
+          _ => // Coverage-ignore(suite): Not run.
+          throw "Unexpected selector descriptor kind in '$descriptor'.",
+        };
+        if (nameString.startsWith('_')) {
+          // Coverage-ignore(suite): Not run.
+          throw "Unexpected selector name in descriptor '$descriptor': "
+              "private descriptors are not supported.";
+        }
+        final Name name = new Name(nameString);
+        _dynamicallyCallable.add(new _Selector(kind, name));
+      }
+    }
+  }
 
   /// Whether [selectorName] should be allowed in a dynamic module.
   bool isAllowed(_Selector selector) => _dynamicallyCallable.contains(selector);

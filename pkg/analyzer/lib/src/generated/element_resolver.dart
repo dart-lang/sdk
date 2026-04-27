@@ -391,6 +391,7 @@ class ElementResolver {
     switch (context) {
       case SuperContext.annotation:
       case SuperContext.static:
+      case SuperContext.anonymousMethod:
         _diagnosticReporter.report(diag.superInInvalidContext.at(node));
       case SuperContext.extension:
         _diagnosticReporter.report(diag.superInExtension.at(node));

@@ -216,30 +216,6 @@ class CompilerPhaseInputOutputManager {
     return moduleIds;
   }
 
-  Future<Uint8List> readMainDynModuleMetadataBytes() async {
-    final filename =
-        options.dynamicModuleMetadataFile ??
-        Uri.parse(
-          path.setExtension(
-            options.dynamicMainModuleUri!.toFilePath(),
-            '.dyndata',
-          ),
-        );
-    return await File.fromUri(filename).readAsBytes();
-  }
-
-  Future<void> writeMainDynModuleMetadataBytes(Uint8List bytes) async {
-    final filename =
-        options.dynamicModuleMetadataFile ??
-        Uri.parse(
-          path.setExtension(
-            options.dynamicMainModuleUri!.toFilePath(),
-            '.dyndata',
-          ),
-        );
-    await File.fromUri(filename).writeAsBytes(bytes);
-  }
-
   Future<Uri?> resolveUri(Uri? uri) async {
     if (uri == null) return null;
     var fileSystemEntity = fileSystem.entityForUri(uri);

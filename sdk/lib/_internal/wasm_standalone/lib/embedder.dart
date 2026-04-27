@@ -55,3 +55,21 @@ external void clearSchedule(WasmExternRef? schedule);
 
 @pragma("wasm:import", "dart.currentTime")
 external WasmI64 currentTimeMicros();
+
+/// Convert an array of 16-bit char codes into a string.
+@pragma("wasm:import", "dart.stringFromCharCodeArray")
+@pragma("wasm:entry-point")
+external WasmExternRef stringFromCharCodeArray(
+  WasmArray<WasmI16> charCodes,
+  WasmI32 start,
+  WasmI32 length,
+);
+
+/// Convert an array of ascii bytes into a string.
+@pragma("wasm:import", "dart.stringFromAsciiBytes")
+@pragma("wasm:entry-point")
+external WasmExternRef stringFromAsciiBytes(
+  WasmArray<WasmI8> charCodes,
+  WasmI32 start,
+  WasmI32 length,
+);

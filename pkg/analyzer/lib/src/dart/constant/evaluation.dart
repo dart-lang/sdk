@@ -634,7 +634,26 @@ class ConstantVisitor extends UnifyingAstVisitor<Constant> {
 
   @override
   Constant visitAdjacentStrings(AdjacentStrings node) {
-    return _concatenateNodes(node, node.strings);
+    // Adjacent string literals are common in generated code (for example,
+    // large data tables). Buffering them avoids repeatedly materializing
+    // larger intermediate strings.
+    var stringBuffer = StringBuffer();
+    for (var string in node.strings) {
+      var constant = evaluateConstant(string);
+      if (constant is! DartObjectImpl) {
+        return constant;
+      }
+      if (constant.state case StringState(value: var stringValue?)) {
+        stringBuffer.write(stringValue);
+      } else {
+        return _concatenateNodes(node, node.strings);
+      }
+    }
+    return DartObjectImpl(
+      typeSystem,
+      _typeProvider.stringType,
+      StringState(stringBuffer.toString()),
+    );
   }
 
   @override
@@ -2993,7 +3012,13 @@ class _InstanceCreationEvaluator {
     if (definingType.element case ExtensionTypeElement element) {
       var representation = _fieldMap[element.representation.name];
       if (representation != null) {
-        return representation;
+        return DartObjectImpl.withExtensionType(
+          typeSystem: typeSystem,
+          type: representation.type,
+          typeNotExtensionTypeErased: definingType,
+          state: representation.state,
+          variable: representation.variable,
+        );
       }
     }
 

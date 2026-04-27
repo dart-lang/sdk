@@ -646,6 +646,14 @@ class RegularFieldDeclaration
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
         isAssignable: hasSetter,
+        isClosureContextLoweringEnabled: _fragment
+            .builder
+            .libraryBuilder
+            .loader
+            .target
+            .backendTarget
+            .flags
+            .isClosureContextLoweringEnabled,
       );
     } else {
       // Coverage-ignore-block(suite): Not run.

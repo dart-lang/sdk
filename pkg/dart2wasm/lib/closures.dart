@@ -213,12 +213,6 @@ class ClosureLayouter extends RecursiveVisitor {
   late final List<List<ClosureRepresentationsForParameterCount>>
   representations;
 
-  // Dynamic submodules invoke closures dynamically so they use the base structs
-  // in all cases. Therefore, we only need one global copy of the
-  // ClosureRepresentation for each type parameter count.
-  final Map<int, ClosureRepresentation>
-  _dynamicSubmoduleGenericRepresentations = {};
-
   Set<Constant> visitedConstants = Set.identity();
 
   // The member currently being visited while collecting function signatures.
@@ -244,13 +238,12 @@ class ClosureLayouter extends RecursiveVisitor {
   ///
   ///   0: Dynamic call entry (**)
   ///
-  /// (**) Only if the application enables dynamic modules or uses
-  /// `Function.apply` with named arguments we'll include a dynamic call entry.
+  /// (**) Only if the application uses `Function.apply` with named arguments
+  /// we'll include a dynamic call entry.
   late final w.StructType vtableBaseStruct = (() {
     final vtable = _vtableBaseStructUninitialized;
     final index = vtable.fields.length;
-    if (translator.dynamicModuleSupportEnabled ||
-        usesFunctionApplyWithNamedArguments) {
+    if (usesFunctionApplyWithNamedArguments) {
       vtable.fields.add(
         w.FieldType(
           w.RefType.def(
@@ -449,11 +442,6 @@ class ClosureLayouter extends RecursiveVisitor {
       name,
       superType: superType,
     );
-    if (translator.dynamicModuleSupportEnabled) {
-      // Pessimistically assume there will be subtypes in a submodule. This
-      // ensures the struct is not final in all modules so the types are equal.
-      type.hasAnySubtypes = true;
-    }
     if (superType != null) {
       type.fields.addAll(superType.fields);
       type.fieldNames.addAll(superType.fieldNames);
@@ -475,11 +463,6 @@ class ClosureLayouter extends RecursiveVisitor {
               .mapping;
   void collect() {
     usesFunctionApplyWithNamedArguments = false;
-
-    // Dynamic module enabled builds use dynamic call entry points for all
-    // closure invocations so we don't need to generate any representation
-    // info.
-    if (translator.dynamicModuleSupportEnabled) return;
     representations = [];
 
     translator.component.accept(this);
@@ -537,10 +520,6 @@ class ClosureLayouter extends RecursiveVisitor {
     int positionalCount,
     List<String> names,
   ) {
-    if (translator.dynamicModuleSupportEnabled) {
-      return _dynamicSubmoduleGenericRepresentations[typeCount] ??=
-          _createRepresentation(typeCount, 0, const [], null, null, const []);
-    }
     final representations = _representationsForCounts(
       typeCount,
       positionalCount,
@@ -702,9 +681,6 @@ class ClosureLayouter extends RecursiveVisitor {
       // generation, after the imports have been added.
 
       representation._instantiationTrampolinesGenerator = (module) {
-        // Dynamic submodules do not have any trampolines, only a dynamic call
-        // entry point.
-        if (translator.dynamicModuleSupportEnabled) return const [];
         List<w.BaseFunction> instantiationTrampolines = [
           ...?parent?._instantiationTrampolinesForModule(module),
         ];
@@ -965,8 +941,7 @@ class ClosureLayouter extends RecursiveVisitor {
       ),
     );
     final ib = vtable.initializer;
-    if (translator.dynamicModuleSupportEnabled ||
-        translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
+    if (translator.closureLayouter.usesFunctionApplyWithNamedArguments) {
       ib.ref_func(
         _createInstantiationDynamicCallEntry(module, typeCount, contextStruct),
       );

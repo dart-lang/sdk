@@ -123,6 +123,9 @@ abstract base class Constraints
   InstructionConstraints? visitTryEntry(TryEntry instr) => null;
 
   @override
+  InstructionConstraints? visitUnreachable(Unreachable instr) => null;
+
+  @override
   InstructionConstraints? visitConstant(Constant instr) => null;
 
   @override

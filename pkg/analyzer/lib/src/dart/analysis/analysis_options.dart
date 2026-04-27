@@ -728,6 +728,69 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool isLintEnabled(String name) {
     return lintRules.any((rule) => rule.name == name);
   }
+
+  /// Returns a "debug information" map of this set of analysis options.
+  ///
+  /// This map can be presented in different formats, like text in a
+  /// terminal, or HTML.
+  Map<String, Object> toDebugInfo() {
+    return {
+      'enable-experiment': contextFeatures,
+      'diagnostic severities': {
+        for (var processor in errorProcessors)
+          processor.code: processor.severity,
+      },
+      'excludes': excludePatterns,
+      'lint rules': lintRules.map(
+        (e) => DebugLink(e.name, e.diagnosticCodes.first.url),
+      ),
+      'strict-casts': strictCasts,
+      'strict-inference': strictInference,
+      'strict-raw-types': strictRawTypes,
+      'formatter': {
+        'page_width': ?formatterOptions.pageWidth,
+        'trailing_commas': ?formatterOptions.trailingCommas,
+      },
+      'chrome_os_manifest_checks': chromeOsManifestChecks,
+      'legacy plugins': enabledLegacyPluginNames,
+      for (var pluginConfiguration in pluginConfigurations)
+        // TODO(srawlins): Having a top-level 'plugins' section, and then a Map
+        // for each plugin is way too nested in the HTML table. This
+        // interpolated "plugins/foo" section solves that, but is a bit hacky.
+        // It'd be nice to have a general way in the Insights HTML to have a
+        // cell with `colspan=2` and then each plugin Map inside that.
+        'plugins/${pluginConfiguration.name}': {
+          'enabled': pluginConfiguration.isEnabled,
+          'diagnostics': [
+            for (var MapEntry(key: ruleName, value: ruleConfig)
+                in pluginConfiguration.diagnosticConfigs.entries)
+              {ruleName: ruleConfig.severity.name},
+          ],
+          'source': DebugCodeBlock(
+            pluginConfiguration.source
+                .toYaml(name: pluginConfiguration.name)
+                .trimRight(),
+            lang: 'yaml',
+          ),
+        },
+    };
+  }
+}
+
+/// A code block for use as "debug information."
+final class DebugCodeBlock {
+  final String text;
+  final String? lang;
+  DebugCodeBlock(this.text, {this.lang});
+}
+
+/// A debug link object, to be rendered as a Markdown link or an HTML link.
+///
+/// If [url] is `null`, then the [text] is to be rendered as plain text.
+final class DebugLink {
+  final String text;
+  final String? url;
+  DebugLink(this.text, this.url);
 }
 
 @AnalyzerPublicApi(

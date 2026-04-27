@@ -1,9 +1,3 @@
-Problems reported:
-
-parser/dot_shorthands/const_property_recovery:6:20: The expression can't be prefixed by 'const' to form a constant pattern.
-  Color c = const .r;
-                   ^
-
 beginCompilationUnit(class)
   beginMetadataStar(class)
   endMetadataStar(0)
@@ -78,12 +72,11 @@ beginCompilationUnit(class)
               beginConstDotShorthand(const)
                 handleIdentifier(r, expressionContinuation)
                 handleNoTypeArguments(;)
-                handleRecoverableError(InvalidConstantPatternConstPrefix, r, r)
                 handleNoArguments(;)
                 handleSend(r, r)
                 handleDotShorthandHead(.)
-                handleDotShorthandContext(.)
               endConstDotShorthand(const)
+              handleDotShorthandContext(.)
             endVariableInitializer(=)
           endInitializedIdentifier(c)
         endVariablesDeclaration(1, ;)

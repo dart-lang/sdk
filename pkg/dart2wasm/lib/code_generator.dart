@@ -1639,17 +1639,11 @@ abstract class AstCodeGenerator
   }
 
   Member _lookupSuperTarget(Member interfaceTarget, {required bool setter}) {
-    final staticTarget = translator.hierarchy.getDispatchTarget(
+    return translator.hierarchy.getDispatchTarget(
       enclosingMember.enclosingClass!.superclass!,
       interfaceTarget.name,
       setter: setter,
-    );
-    if (staticTarget != null) return staticTarget;
-
-    // During dynamic module compilation a mixin might include a super call to
-    // an abstract class with no implementations yet.
-    assert(translator.dynamicModuleSupportEnabled);
-    return interfaceTarget;
+    )!;
   }
 
   @override
@@ -1988,7 +1982,7 @@ abstract class AstCodeGenerator
       getter: kind.isGetter,
       setter: kind.isSetter,
     );
-    final dispatchTable = translator.dispatchTableForTarget(reference);
+    final dispatchTable = translator.dispatchTable;
     SelectorInfo selector = dispatchTable.selectorForTarget(reference);
     final signature = selector.signature;
     final name = selector.entryPointName(useUncheckedEntry);
@@ -2004,8 +1998,7 @@ abstract class AstCodeGenerator
 
     // NOTE: Keep this in sync with
     // `dynamic_dispatchers.dart:generateNoSuchMethodCall`.
-    final bool noTarget =
-        targetRanges.isEmpty && !selector.isDynamicSubmoduleOverridable;
+    final bool noTarget = targetRanges.isEmpty;
     final bool directCall =
         targetRanges.length == 1 && staticDispatchRanges.length == 1;
     final callPolymorphicDispatcher =
@@ -2548,8 +2541,7 @@ abstract class AstCodeGenerator
     );
     if (intrinsicResult != null) return intrinsicResult;
 
-    if (node.kind == FunctionAccessKind.Function ||
-        translator.dynamicModuleSupportEnabled) {
+    if (node.kind == FunctionAccessKind.Function) {
       // Type of function is `Function`, without the argument types.
       return visitDynamicInvocation(
         DynamicInvocation(
@@ -6016,19 +6008,9 @@ extension MacroAssembler on w.InstructionsBuilder {
 
   /// Pushes fields common to all Dart objects (class id, id hash).
   void pushObjectHeaderFields(Translator translator, ClassInfo classInfo) {
-    pushClassIdToStack(translator, classInfo.classId);
+    var classId = classInfo.classId;
+    i32_const(classId);
     i32_const(initialIdentityHash);
-  }
-
-  void pushClassIdToStack(Translator translator, ClassId classId) {
-    switch (classId) {
-      case AbsoluteClassId():
-        i32_const(classId.value);
-      case RelativeClassId():
-        i32_const(classId.relativeValue);
-        translator.pushModuleId(this);
-        translator.callReference(translator.globalizeClassId.reference, this);
-    }
   }
 
   void loadClassId(Translator translator, w.ValueType receiverType) {

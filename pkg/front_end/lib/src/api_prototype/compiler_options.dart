@@ -94,6 +94,9 @@ class CompilerOptions {
   /// Whether to allow dynamic calls in dynamic modules.
   bool allowDynamicCallsInDynamicModules = false;
 
+  /// List of names that are allowed in dynamic calls in dynamic modules.
+  List<String> dynamicCallsSelectorAllowList = [];
+
   /// The declared variables for use by configurable imports and constant
   /// evaluation.
   Map<String, String>? declaredVariables;

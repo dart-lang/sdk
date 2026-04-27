@@ -363,21 +363,57 @@ DelayedDefaultValueCloner _createParameters(
   Substitution substitution,
   SourceLibraryBuilder libraryBuilder,
 ) {
+  bool isClosureContextLoweringEnabled = libraryBuilder
+      .loader
+      .target
+      .backendTarget
+      .flags
+      .isClosureContextLoweringEnabled;
+
+  VariableDeclaration createTearOffParameter(
+    VariableDeclaration constructorParameter, {
+    required bool isPositional,
+  }) {
+    DartType tearOffParameterType = substitution.substituteType(
+      constructorParameter.type,
+    );
+    if (isClosureContextLoweringEnabled) {
+      // Coverage-ignore-block(suite): Not run.
+      if (isPositional) {
+        return new PositionalParameter(
+          cosmeticName: constructorParameter.name,
+          type: tearOffParameterType,
+        )..fileOffset = constructorParameter.fileOffset;
+      } else {
+        return new NamedParameter(
+          parameterName: constructorParameter.name!,
+          type: tearOffParameterType,
+          isRequired: constructorParameter.isRequired,
+        )..fileOffset = constructorParameter.fileOffset;
+      }
+    } else {
+      return new VariableDeclaration(
+        constructorParameter.name,
+        type: substitution.substituteType(constructorParameter.type),
+        isRequired: !isPositional && constructorParameter.isRequired,
+      )..fileOffset = constructorParameter.fileOffset;
+    }
+  }
+
   for (VariableDeclaration constructorParameter
       in function.positionalParameters) {
-    VariableDeclaration tearOffParameter = new VariableDeclaration(
-      constructorParameter.name,
-      type: substitution.substituteType(constructorParameter.type),
-    )..fileOffset = constructorParameter.fileOffset;
+    VariableDeclaration tearOffParameter = createTearOffParameter(
+      constructorParameter,
+      isPositional: true,
+    );
     tearOff.function.positionalParameters.add(tearOffParameter);
     tearOffParameter.parent = tearOff.function;
   }
   for (VariableDeclaration constructorParameter in function.namedParameters) {
-    VariableDeclaration tearOffParameter = new VariableDeclaration(
-      constructorParameter.name,
-      type: substitution.substituteType(constructorParameter.type),
-      isRequired: constructorParameter.isRequired,
-    )..fileOffset = constructorParameter.fileOffset;
+    VariableDeclaration tearOffParameter = createTearOffParameter(
+      constructorParameter,
+      isPositional: false,
+    );
     tearOff.function.namedParameters.add(tearOffParameter);
     tearOffParameter.parent = tearOff.function;
   }

@@ -517,6 +517,7 @@ class AnonymousMethodExpression extends InternalExpression {
   final bool isImplicitlyTyped;
   final bool isNullAware;
   final bool isCascade;
+  final int typeOffset;
 
   AnonymousMethodExpression(
     this.variable,
@@ -524,6 +525,7 @@ class AnonymousMethodExpression extends InternalExpression {
     required this.isImplicitlyTyped,
     required this.isNullAware,
     required this.isCascade,
+    required this.typeOffset,
   }) {
     variable.parent = this;
     body.parent = this;

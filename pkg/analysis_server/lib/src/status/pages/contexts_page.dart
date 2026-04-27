@@ -3,16 +3,13 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
-import 'dart:collection';
 import 'dart:math' as math;
 
 import 'package:analysis_server/src/status/diagnostics.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/status/utilities/library_cycle_extensions.dart';
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/sdk/sdk.dart';
@@ -39,31 +36,15 @@ class ContextsPage extends DiagnosticPageWithNav {
 
   @override
   Future<void> generateContent(Map<String, String> params) async {
-    var driverMap = SplayTreeMap.of(
-      server.driverMap,
-      (a, b) => a.path.compareTo(b.path),
-    );
     if (driverMap.isEmpty) {
       blankslate('No contexts.');
       return;
     }
 
-    var (folder: folder, driver: driver) = _currentContext(params, driverMap);
+    var (folder: folder, driver: driver) = currentContext(params);
     var contextPath = folder.path;
 
-    buf.writeln('<div class="tabnav">');
-    buf.writeln('<nav class="tabnav-tabs">');
-    var driverFolders = driverMap.keys;
-    for (var f in driverFolders) {
-      var selectedClass = f == folder ? 'selected' : '';
-      var href = '${this.path}?context=${Uri.encodeQueryComponent(f.path)}';
-      buf.writeln(
-        '<a href="${escape(href)}" class="tabnav-tab $selectedClass" title="${escape(f.path)}">${escape(f.shortName)}</a>',
-      );
-    }
-    buf.writeln('</nav>');
-    buf.writeln('</div>');
-
+    writeContextNavigationTabs(folder);
     buf.writeln(formatOption('Context location', escape(contextPath)));
     buf.writeln(
       formatOption('SDK root', escape(driver.analysisContext?.sdkRoot?.path)),
@@ -72,24 +53,15 @@ class ContextsPage extends DiagnosticPageWithNav {
     h3('Analysis options');
 
     // Display analysis options entries inside this context root.
+    var optionsList = getOptionsList(folder, driver);
+    var foldersInContextRoot = [
+      for (var options in optionsList) options.file!.path,
+    ];
     var separator = folder.provider.pathContext.separator;
-    var innerContextFolders = driverFolders
-        .where((e) => e.path.startsWith('$contextPath$separator'))
-        .toList();
-    var foldersInContextRoot = driver.analysisOptionsMap.folders.where((e) {
-      if (contextPath == e.path) return true;
-      // Exclude analysis options in inner folders.
-      if (innerContextFolders.any(
-        (f) => e.path == f.path || e.path.startsWith('${f.path}$separator'),
-      )) {
-        return false;
-      }
-      return e.path.startsWith('$contextPath$separator');
-    });
-    ul(foldersInContextRoot, (folder) {
-      buf.write(escape(folder.path));
+    ul(foldersInContextRoot, (folderPath) {
+      buf.write(escape(folderPath));
       buf.write('$separator<wbr>');
-      var optionsPath = path.join(folder.path, file_paths.analysisOptionsYaml);
+      var optionsPath = path.join(folderPath, file_paths.analysisOptionsYaml);
       buf.writeln(
         formatContentsLink(optionsPath, file_paths.analysisOptionsYaml),
       );
@@ -289,25 +261,5 @@ class ContextsPage extends DiagnosticPageWithNav {
       buf.write(',');
     }
     buf.write('<br>}');
-  }
-
-  /// Information regarding the context currently being displayed.
-  ({Folder folder, analysis.AnalysisDriver driver}) _currentContext(
-    Map<String, String> params,
-    Map<Folder, analysis.AnalysisDriver> driverMap,
-  ) {
-    var contextPath = params['context'];
-    if (contextPath == null) {
-      return (
-        folder: driverMap.entries.first.key,
-        driver: driverMap.entries.first.value,
-      );
-    } else {
-      var entry = driverMap.entries.firstWhere(
-        (e) => e.key.path == contextPath,
-        orElse: () => driverMap.entries.first,
-      );
-      return (folder: entry.key, driver: entry.value);
-    }
   }
 }

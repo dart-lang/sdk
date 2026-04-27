@@ -18,105 +18,94 @@ main() {
 @reflectiveTest
 class ResolveToBoundTest extends AbstractTypeSystemTest {
   test_dynamic() {
-    _check(dynamicType, 'dynamic');
+    _check(parseType('dynamic'), 'dynamic');
   }
 
   test_functionType() {
-    _check(functionTypeNone(returnType: voidNone), 'void Function()');
+    _check(parseType('void Function()'), 'void Function()');
   }
 
   test_interfaceType() {
-    _check(intNone, 'int');
-    _check(intQuestion, 'int?');
+    _check(parseType('int'), 'int');
+    _check(parseType('int?'), 'int?');
   }
 
   test_typeParameter_bound() {
-    _check(typeParameterTypeNone(typeParameter('T', bound: intNone)), 'int');
+    withTypeParameterScope('T extends int', (scope) {
+      _check(scope.parseType('T'), 'int');
+    });
 
-    _check(
-      typeParameterTypeNone(typeParameter('T', bound: intQuestion)),
-      'int?',
-    );
+    withTypeParameterScope('T extends int?', (scope) {
+      _check(scope.parseType('T'), 'int?');
+    });
   }
 
   test_typeParameter_bound_functionType() {
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: functionTypeNone(returnType: voidNone)),
-      ),
-      'void Function()',
-    );
+    withTypeParameterScope('T extends void Function()', (scope) {
+      _check(scope.parseType('T'), 'void Function()');
+    });
   }
 
   test_typeParameter_bound_nested_noBound() {
-    var T = typeParameter('T');
-    var U = typeParameter('U', bound: typeParameterTypeNone(T));
-    _check(typeParameterTypeNone(U), 'Object?');
+    withTypeParameterScope('T, U extends T', (scope) {
+      _check(scope.parseType('U'), 'Object?');
+    });
   }
 
   test_typeParameter_bound_nested_none() {
-    var T = typeParameter('T', bound: intNone);
-    var U = typeParameter('U', bound: typeParameterTypeNone(T));
-    _check(typeParameterTypeNone(U), 'int');
+    withTypeParameterScope('T extends int, U extends T', (scope) {
+      _check(scope.parseType('U'), 'int');
+    });
   }
 
   test_typeParameter_bound_nested_none_outerNullable() {
-    var T = typeParameter('T', bound: intNone);
-    var U = typeParameter('U', bound: typeParameterTypeQuestion(T));
-    _check(typeParameterTypeNone(U), 'int?');
+    withTypeParameterScope('T extends int, U extends T?', (scope) {
+      _check(scope.parseType('U'), 'int?');
+    });
   }
 
   test_typeParameter_bound_nested_question() {
-    var T = typeParameter('T', bound: intQuestion);
-    var U = typeParameter('U', bound: typeParameterTypeNone(T));
-    _check(typeParameterTypeNone(U), 'int?');
+    withTypeParameterScope('T extends int?, U extends T', (scope) {
+      _check(scope.parseType('U'), 'int?');
+    });
   }
 
   test_typeParameter_bound_nullableInner() {
-    _check(
-      typeParameterTypeNone(typeParameter('T', bound: intQuestion)),
-      'int?',
-    );
+    withTypeParameterScope('T extends int?', (scope) {
+      _check(scope.parseType('T'), 'int?');
+    });
   }
 
   test_typeParameter_bound_nullableInnerOuter() {
-    _check(
-      typeParameterTypeQuestion(typeParameter('T', bound: intQuestion)),
-      'int?',
-    );
+    withTypeParameterScope('T extends int?', (scope) {
+      _check(scope.parseType('T?'), 'int?');
+    });
   }
 
   test_typeParameter_bound_nullableOuter() {
-    _check(
-      typeParameterTypeQuestion(typeParameter('T', bound: intNone)),
-      'int?',
-    );
+    withTypeParameterScope('T extends int', (scope) {
+      _check(scope.parseType('T?'), 'int?');
+    });
   }
 
   test_typeParameter_noBound() {
-    _check(typeParameterTypeNone(typeParameter('T')), 'Object?');
+    withTypeParameterScope('T', (scope) {
+      _check(scope.parseType('T'), 'Object?');
+    });
   }
 
   test_typeParameter_promotedBound() {
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: numNone),
-        promotedBound: intNone,
-      ),
-      'int',
-    );
+    withTypeParameterScope('T extends num', (scope) {
+      _check(scope.parseType('T & int'), 'int');
+    });
 
-    _check(
-      typeParameterTypeNone(
-        typeParameter('T', bound: numQuestion),
-        promotedBound: intQuestion,
-      ),
-      'int?',
-    );
+    withTypeParameterScope('T extends num?', (scope) {
+      _check(scope.parseType('T & int?'), 'int?');
+    });
   }
 
   test_void() {
-    _check(voidNone, 'void');
+    _check(parseType('void'), 'void');
   }
 
   void _check(TypeImpl type, String expectedStr) {

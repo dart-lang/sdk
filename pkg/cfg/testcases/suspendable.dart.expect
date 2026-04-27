@@ -1,0 +1,104 @@
+--- async1
+B0 = EntryBlock()
+  v1 = Constant(<int>)
+  v3 = Constant(42)
+  EnterSuspendableFunction(v1)
+  v4 = LeaveSuspendableFunction(v3)
+  Return(v4)
+
+--- async2
+B0 = EntryBlock()
+  v3 = Constant(<int>)
+  v1 = Parameter(a)
+  v2 = Parameter(b)
+  EnterSuspendableFunction(v3)
+  v6 = Suspend await(v1)
+  v8 = Suspend await(v2)
+  v9 = BinaryIntOp +(v6, v8)
+  v10 = LeaveSuspendableFunction(v9)
+  Return(v10)
+
+--- async3
+B0 = EntryBlock()
+  v2 = Constant(<void>)
+  v5 = Constant(<Object>)
+  v10 = Constant(null)
+  v1 = Parameter(x)
+  EnterSuspendableFunction(v2)
+  v6 = Suspend awaitWithTypeCheck(v1, v5)
+  DirectCall print(v6)
+  v11 = LeaveSuspendableFunction(v10)
+  Return(v11)
+
+--- async4
+B0 = EntryBlock()
+  v5 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(x)
+  v4 = TypeParameters(v1)
+  v6 = TypeArguments(v5, v4, <List<async4.T%>>)
+  EnterSuspendableFunction(v6)
+  v8 = TypeArguments(v5, v4, <async4.T%>)
+  v10 = DirectCall _GrowableList._literal1(v8, v2)
+  v11 = LeaveSuspendableFunction(v10)
+  Return(v11)
+
+--- async5
+B0 = EntryBlock()
+  v5 = Constant(<void>)
+  v8 = Constant(null)
+  v1 = Parameter(#functionTypeParameters)
+  v2 = Parameter(x)
+  v4 = TypeParameters(v1)
+  EnterSuspendableFunction(v5)
+  v9 = TypeArguments(v8, v4, <async5.T%>)
+  v10 = Suspend awaitWithTypeCheck(v2, v9)
+  DirectCall print(v10)
+  v14 = LeaveSuspendableFunction(v8)
+  Return(v14)
+
+--- asyncStar1
+B0 = EntryBlock()
+  v2 = Constant(<int>)
+  v6 = Constant(null)
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  Suspend yield(v1)
+  v7 = LeaveSuspendableFunction(v6)
+  Return(v7)
+
+--- asyncStar2
+B0 = EntryBlock()
+  v2 = Constant(<int>)
+  v6 = Constant(null)
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  Suspend yieldStar(v1)
+  v7 = LeaveSuspendableFunction(v6)
+  Return(v7)
+
+--- syncStar1
+B0 = EntryBlock()
+  v2 = Constant(<int>)
+  v6 = Constant(null)
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  Suspend yield(v1)
+  v7 = LeaveSuspendableFunction(v6)
+  Return(v7)
+
+--- syncStar2
+B0 = EntryBlock()
+  v2 = Constant(<int>)
+  v6 = Constant(null)
+  v1 = Parameter(a)
+  EnterSuspendableFunction(v2)
+  Suspend yieldStar(v1)
+  v7 = LeaveSuspendableFunction(v6)
+  Return(v7)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

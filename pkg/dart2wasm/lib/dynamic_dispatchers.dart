@@ -41,11 +41,7 @@ class _DynamicDispatcherCallTarget extends CallTarget {
     this.translator,
     this.callShape,
     this.callingModule,
-  ) : assert(
-        !translator.isDynamicSubmodule ||
-            (callShape.name.text == 'call' && callShape is MethodCallShape),
-      ),
-      super(makeDynamicDispatcherSignature(translator, callShape));
+  ) : super(makeDynamicDispatcherSignature(translator, callShape));
 
   @override
   String get name => 'Dynamic dispatcher for $callShape';
@@ -375,7 +371,7 @@ class _DynamicDispatcherCodeGenerator extends CodeGenerator {
 
     // Invoke "call" if the value is not a closure
     b.loadClassId(translator, receiverLocal.type);
-    b.i32_const((translator.closureInfo.classId as AbsoluteClassId).value);
+    b.i32_const(translator.closureInfo.classId);
     b.i32_ne();
     b.if_();
     // Value is not a closure
@@ -430,85 +426,74 @@ class _DynamicDispatcherCodeGenerator extends CodeGenerator {
       namedArgsLocal,
       noSuchMethodBlock,
     );
-    if (translator.dynamicModuleSupportEnabled) {
-      generateDynamicClosureCallViaDynamicEntry(
-        translator,
-        b,
-        closureLocal,
-        typeArgsLocal,
-        positionalArgsLocal,
-        namedArgsLocal,
+    void emitCallForTypeCount(int typeCount) {
+      final representation = translator.closureLayouter
+          .getClosureRepresentation(
+            typeCount,
+            callerShape.positionalCount,
+            callerShape.named,
+          );
+      if (representation == null) {
+        b.unreachable();
+        return;
+      }
+
+      b.local_get(closureLocal);
+      b.struct_get(
+        translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureContext,
+      );
+      for (int i = 0; i < typeCount; ++i) {
+        b.local_get(typeArgsLocal);
+        b.i32_const(i);
+        b.array_get(translator.typeArrayType);
+      }
+      for (int i = 0; i < callerShape.positionalCount; ++i) {
+        b.local_get(function.locals[1 + callerShape.typeCount + i]);
+      }
+      for (int i = 0; i < callerShape.named.length; ++i) {
+        b.local_get(
+          function.locals[1 +
+              callerShape.typeCount +
+              callerShape.positionalCount +
+              i],
+        );
+      }
+
+      final vtable = representation.vtableStruct;
+      final vtableIndex = representation.fieldIndexForSignature(
+        callerShape.positionalCount,
+        callerShape.named,
+      );
+
+      b.local_get(closureLocal);
+      b.struct_get(
+        translator.closureLayouter.closureBaseStruct,
+        FieldIndex.closureVtable,
+      );
+      b.ref_cast(w.RefType(vtable, nullable: false));
+      b.struct_get(vtable, vtableIndex);
+      b.call_ref(vtable.getVtableEntryAt(vtableIndex));
+    }
+
+    if (callerShape.typeCount == 0) {
+      final maxTypeCount = translator.closureLayouter.maxTypeArgumentCount();
+      b.emitDenseTableBranch(
+        [translator.topType],
+        maxTypeCount,
+        () {
+          b.local_get(typeArgsLocal);
+          b.array_len();
+        },
+        (int typeCount) {
+          emitCallForTypeCount(typeCount);
+        },
+        () {
+          b.unreachable();
+        },
       );
     } else {
-      void emitCallForTypeCount(int typeCount) {
-        final representation = translator.closureLayouter
-            .getClosureRepresentation(
-              typeCount,
-              callerShape.positionalCount,
-              callerShape.named,
-            );
-        if (representation == null) {
-          b.unreachable();
-          return;
-        }
-
-        b.local_get(closureLocal);
-        b.struct_get(
-          translator.closureLayouter.closureBaseStruct,
-          FieldIndex.closureContext,
-        );
-        for (int i = 0; i < typeCount; ++i) {
-          b.local_get(typeArgsLocal);
-          b.i32_const(i);
-          b.array_get(translator.typeArrayType);
-        }
-        for (int i = 0; i < callerShape.positionalCount; ++i) {
-          b.local_get(function.locals[1 + callerShape.typeCount + i]);
-        }
-        for (int i = 0; i < callerShape.named.length; ++i) {
-          b.local_get(
-            function.locals[1 +
-                callerShape.typeCount +
-                callerShape.positionalCount +
-                i],
-          );
-        }
-
-        final vtable = representation.vtableStruct;
-        final vtableIndex = representation.fieldIndexForSignature(
-          callerShape.positionalCount,
-          callerShape.named,
-        );
-
-        b.local_get(closureLocal);
-        b.struct_get(
-          translator.closureLayouter.closureBaseStruct,
-          FieldIndex.closureVtable,
-        );
-        b.ref_cast(w.RefType(vtable, nullable: false));
-        b.struct_get(vtable, vtableIndex);
-        b.call_ref(vtable.getVtableEntryAt(vtableIndex));
-      }
-
-      if (callerShape.typeCount == 0) {
-        final maxTypeCount = translator.closureLayouter.maxTypeArgumentCount();
-        b.emitDenseTableBranch(
-          [translator.topType],
-          maxTypeCount,
-          () {
-            b.local_get(typeArgsLocal);
-            b.array_len();
-          },
-          (int typeCount) {
-            emitCallForTypeCount(typeCount);
-          },
-          () {
-            b.unreachable();
-          },
-        );
-      } else {
-        emitCallForTypeCount(callerShape.typeCount);
-      }
+      emitCallForTypeCount(callerShape.typeCount);
     }
   }
 
@@ -676,10 +661,7 @@ void generateDynamicClosureCallViaDynamicEntry(
   w.Local posArgsLocal,
   w.Local namedArgsLocal,
 ) {
-  assert(
-    translator.dynamicModuleSupportEnabled ||
-        translator.closureLayouter.usesFunctionApplyWithNamedArguments,
-  );
+  assert(translator.closureLayouter.usesFunctionApplyWithNamedArguments);
 
   // Type check passed, call vtable entry
   b.local_get(closureLocal);
@@ -709,10 +691,7 @@ void generateDynamicClosureCallViaPositionalArgs(
   w.Local typeArgsLocal,
   w.Local posArgsLocal,
 ) {
-  assert(
-    !translator.dynamicModuleSupportEnabled &&
-        !translator.closureLayouter.usesFunctionApplyWithNamedArguments,
-  );
+  assert(!translator.closureLayouter.usesFunctionApplyWithNamedArguments);
 
   final maxTypeCount = translator.closureLayouter.maxTypeArgumentCount();
   b.emitDenseTableBranch(

@@ -6552,9 +6552,7 @@ class ThisAccessGenerator extends Generator {
       } else {
         _helper.readInternalThisVariable();
         return _helper.thisVariable != null
-            ?
-              // Coverage-ignore(suite): Not run.
-              _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+            ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
             : intern.createThisExpression(fileOffset);
       }
     } else {
@@ -6626,9 +6624,7 @@ class ThisAccessGenerator extends Generator {
         _helper.readInternalThisVariable();
         return _helper.buildMethodInvocation(
           _helper.thisVariable != null
-              ?
-                // Coverage-ignore(suite): Not run.
-                _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+              ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
               : intern.createThisExpression(fileOffset),
           name,
           selector.typeArguments,
@@ -6686,9 +6682,7 @@ class ThisAccessGenerator extends Generator {
       return intern.createExpressionInvocation(
         offset,
         _helper.thisVariable != null
-            ?
-              // Coverage-ignore(suite): Not run.
-              _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+            ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
             : intern.createThisExpression(fileOffset),
         typeArguments,
         arguments,

@@ -754,7 +754,7 @@ class Type extends Member {
             } else {
               gen.writeln(
                   '${field.generatableName} = _createServiceObjectListOrNull'
-                  '<${fieldType.listTypeArg}>($ref, $typesList)');
+                  '<${fieldType.listTypeArg}>($ref, $typesList) ?? []');
             }
           }
         }

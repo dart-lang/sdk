@@ -308,6 +308,17 @@ copy_tree("copy_prebuilt_devtools") {
   exclude = "{}"
 }
 
+# This action compiles the devtools app from sources.
+action("build_devtools") {
+  output = "$root_out_dir/$dart_sdk_output/web/devtools_app"
+  outputs = [ output ]
+  script = "../tools/build_devtools.py"
+  args = [
+    "--output",
+    rebase_path(output),
+  ]
+}
+
 # This loop generates rules to copy libraries to lib/
 foreach(library, _full_sdk_libraries) {
   copy_tree("copy_${library}_library") {

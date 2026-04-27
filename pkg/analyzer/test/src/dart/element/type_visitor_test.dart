@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_visitor.dart';
 import 'package:test/test.dart';
@@ -29,181 +28,144 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_callsDefaultBehavior() {
-    expect(intNone.accept(visitor), true);
-    visitor.assertVisitedType(intNone);
+    expect(parseType('int').accept(visitor), true);
+    visitor.assertVisitedType(parseType('int'));
   }
 
   void test_functionType_complex() {
-    var T = typeParameter('T', bound: intNone);
-    var K = typeParameter('K', bound: stringNone);
-    var a = positionalParameter(type: numNone);
-    var b = positionalParameter(type: doubleNone);
-    var c = namedParameter(name: 'c', type: voidNone);
-    var d = namedParameter(name: 'd', type: objectNone);
-    var type = functionType(
-      returnType: dynamicType,
-      typeParameters: [T, K],
-      formalParameters: [a, b, c, d],
-      nullabilitySuffix: NullabilitySuffix.none,
+    var type = parseFunctionType(
+      'dynamic Function<T extends int, K extends String>('
+      'num, double, {void c, Object d})',
     );
     expect(type.accept(visitor), true);
     visitor.assertVisitedTypes([
-      dynamicType,
-      intNone,
-      stringNone,
-      numNone,
-      doubleNone,
-      voidNone,
-      objectNone,
+      parseType('dynamic'),
+      parseType('int'),
+      parseType('String'),
+      parseType('num'),
+      parseType('double'),
+      parseType('void'),
+      parseType('Object'),
     ]);
   }
 
   void test_functionType_positionalParameter() {
-    var a = positionalParameter(type: intNone);
-    var type = functionType(
-      returnType: dynamicType,
-      typeParameters: [],
-      formalParameters: [a],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var type = parseFunctionType('dynamic Function([int])');
     expect(type.accept(visitor), true);
-    visitor.assertVisitedType(intNone);
+    visitor.assertVisitedType(parseType('int'));
   }
 
   void test_functionType_returnType() {
-    var type = functionType(
-      returnType: intNone,
-      typeParameters: [],
-      formalParameters: [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var type = parseFunctionType('int Function()');
     expect(type.accept(visitor), true);
-    visitor.assertVisitedType(intNone);
+    visitor.assertVisitedType(parseType('int'));
   }
 
   void test_functionType_typeFormal_bound() {
-    var T = typeParameter('T', bound: intNone);
-    var type = functionType(
-      returnType: dynamicType,
-      typeParameters: [T],
-      formalParameters: [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var type = parseFunctionType('dynamic Function<T extends int>()');
     expect(type.accept(visitor), true);
-    visitor.assertVisitedTypes([dynamicType, intNone]);
+    visitor.assertVisitedTypes([parseType('dynamic'), parseType('int')]);
   }
 
   void test_functionType_typeFormal_noBound() {
-    var T = typeParameter('T');
-    var type = functionType(
-      returnType: dynamicType,
-      typeParameters: [T],
-      formalParameters: [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
+    var type = parseFunctionType('dynamic Function<T>()');
     expect(type.accept(visitor), true);
-    visitor.assertVisitedType(dynamicType);
+    visitor.assertVisitedType(parseType('dynamic'));
   }
 
   void test_interfaceType_typeParameter() {
-    var type = typeProvider.listType(intNone);
+    var type = typeProvider.listType(parseType('int'));
     expect(type.accept(visitor), true);
-    visitor.assertVisitedType(intNone);
+    visitor.assertVisitedType(parseType('int'));
   }
 
   void test_interfaceType_typeParameters() {
-    var type = typeProvider.mapType(intNone, stringNone);
+    var type = typeProvider.mapType(parseType('int'), parseType('String'));
     expect(type.accept(visitor), true);
-    visitor.assertVisitedTypes([intNone, stringNone]);
+    visitor.assertVisitedTypes([parseType('int'), parseType('String')]);
   }
 
   void test_interfaceType_typeParameters_nested() {
-    var innerList = typeProvider.listType(intNone);
+    var innerList = typeProvider.listType(parseType('int'));
     var outerList = typeProvider.listType(innerList);
     expect(outerList.accept(visitor), true);
-    visitor.assertVisitedType(intNone);
+    visitor.assertVisitedType(parseType('int'));
   }
 
   void test_recordType_named() {
     var type = typeOfString('({int f1, double f2})');
     expect(type.accept(visitor), true);
-    visitor.assertVisitedType(intNone);
-    visitor.assertVisitedType(doubleNone);
+    visitor.assertVisitedType(parseType('int'));
+    visitor.assertVisitedType(parseType('double'));
+  }
+
+  void test_recordType_named_dollarIdentifier() {
+    var type = typeOfString(r'({int $1})');
+    expect(type.accept(visitor), true);
+    visitor.assertVisitedType(parseType('int'));
   }
 
   void test_recordType_positional() {
     var type = typeOfString('(int, double)');
     expect(type.accept(visitor), true);
-    visitor.assertVisitedType(intNone);
-    visitor.assertVisitedType(doubleNone);
+    visitor.assertVisitedType(parseType('int'));
+    visitor.assertVisitedType(parseType('double'));
   }
 
   void test_stopVisiting_first() {
-    var T = typeParameter('T', bound: intNone);
-    var K = typeParameter('K', bound: stringNone);
-    var a = positionalParameter(type: numNone);
-    var b = positionalParameter(type: doubleNone);
-    var c = namedParameter(name: 'c', type: voidNone);
-    var d = namedParameter(name: 'd', type: objectNone);
-    var type = functionType(
-      returnType: dynamicType,
-      typeParameters: [T, K],
-      formalParameters: [a, b, c, d],
-      nullabilitySuffix: NullabilitySuffix.none,
+    var type = parseFunctionType(
+      'dynamic Function<T extends int, K extends String>('
+      'num, double, {void c, Object d})',
     );
-    visitor.stopOnType = dynamicType;
+    visitor.stopOnType = parseType('dynamic');
     expect(type.accept(visitor), false);
     visitor.assertNotVisitedTypes([
-      intNone,
-      stringNone,
-      numNone,
-      doubleNone,
-      voidNone,
-      objectNone,
+      parseType('int'),
+      parseType('String'),
+      parseType('num'),
+      parseType('double'),
+      parseType('void'),
+      parseType('Object'),
     ]);
   }
 
   void test_stopVisiting_halfway() {
-    var T = typeParameter('T', bound: intNone);
-    var K = typeParameter('K', bound: stringNone);
-    var a = positionalParameter(type: numNone);
-    var b = positionalParameter(type: doubleNone);
-    var c = namedParameter(name: 'c', type: voidNone);
-    var d = namedParameter(name: 'd', type: objectNone);
-    var type = functionType(
-      returnType: dynamicType,
-      typeParameters: [T, K],
-      formalParameters: [a, b, c, d],
-      nullabilitySuffix: NullabilitySuffix.none,
+    var type = parseFunctionType(
+      'dynamic Function<T extends int, K extends String>('
+      'num, double, {void c, Object d})',
     );
-    visitor.stopOnType = intNone;
+    visitor.stopOnType = parseType('int');
     expect(type.accept(visitor), false);
-    visitor.assertNotVisitedTypes([stringNone, voidNone, objectNone]);
+    visitor.assertNotVisitedTypes([
+      parseType('String'),
+      parseType('void'),
+      parseType('Object'),
+    ]);
   }
 
   void test_stopVisiting_nested() {
-    var innerType = typeProvider.mapType(intNone, stringNone);
+    var innerType = typeProvider.mapType(parseType('int'), parseType('String'));
     var outerList = typeProvider.listType(innerType);
-    visitor.stopOnType = intNone;
+    visitor.stopOnType = parseType('int');
     expect(outerList.accept(visitor), false);
-    visitor.assertNotVisitedType(stringNone);
+    visitor.assertNotVisitedType(parseType('String'));
   }
 
   void test_stopVisiting_nested_parent() {
-    var innerTypeStop = typeProvider.listType(intNone);
-    var innerTypeSkipped = typeProvider.listType(stringNone);
+    var innerTypeStop = typeProvider.listType(parseType('int'));
+    var innerTypeSkipped = typeProvider.listType(parseType('String'));
     var outerType = typeProvider.mapType(innerTypeStop, innerTypeSkipped);
-    visitor.stopOnType = intNone;
+    visitor.stopOnType = parseType('int');
     expect(outerType.accept(visitor), false);
-    visitor.assertNotVisitedType(stringNone);
+    visitor.assertNotVisitedType(parseType('String'));
   }
 
   void test_stopVisiting_typeParameters() {
-    var type = typeProvider.mapType(intNone, stringNone);
-    visitor.stopOnType = intNone;
+    var type = typeProvider.mapType(parseType('int'), parseType('String'));
+    visitor.stopOnType = parseType('int');
     expect(type.accept(visitor), false);
-    visitor.assertVisitedType(intNone);
-    visitor.assertNotVisitedType(stringNone);
+    visitor.assertVisitedType(parseType('int'));
+    visitor.assertNotVisitedType(parseType('String'));
   }
 }
 

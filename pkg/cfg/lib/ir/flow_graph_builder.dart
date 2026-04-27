@@ -163,6 +163,13 @@ class FlowGraphBuilder {
     endBlock();
   }
 
+  /// Append [Unreachable] to the graph. Ends current block.
+  void addUnreachable(String message) {
+    final instr = Unreachable(graph, currentSourcePosition, message);
+    appendInstruction(instr);
+    endBlock();
+  }
+
   /// Append [Comparison] to the graph.
   Comparison addComparison(ComparisonOpcode op) {
     final right = pop();
@@ -599,6 +606,47 @@ class FlowGraphBuilder {
       inputCount: inputCount,
     );
     popInputs(instr, 0, inputCount);
+    push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [EnterSuspendableFunction] to the graph.
+  void addEnterSuspendableFunction() {
+    final typeArguments = pop();
+    final instr = EnterSuspendableFunction(
+      graph,
+      currentSourcePosition,
+      typeArguments,
+    );
+    appendInstruction(instr);
+  }
+
+  /// Append [LeaveSuspendableFunction] to the graph.
+  void addLeaveSuspendableFunction(CType type) {
+    final returnValue = pop();
+    final instr = LeaveSuspendableFunction(
+      graph,
+      currentSourcePosition,
+      type,
+      returnValue,
+    );
+    push(instr);
+    appendInstruction(instr);
+  }
+
+  /// Append [Suspend] to the graph.
+  Suspend addSuspend(SuspendOpcode op, CType type) {
+    final typeArguments = (op == .awaitWithTypeCheck) ? pop() : null;
+    final operand = pop();
+    final instr = Suspend(
+      graph,
+      currentSourcePosition,
+      op,
+      type,
+      operand,
+      typeArguments: typeArguments,
+    );
     push(instr);
     appendInstruction(instr);
     return instr;

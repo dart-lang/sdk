@@ -17,6 +17,7 @@ abstract interface class InstructionVisitor<R> {
   R visitTryEntry(TryEntry instr);
   R visitPhi(Phi instr);
   R visitReturn(Return instr);
+  R visitUnreachable(Unreachable instr);
   R visitComparison(Comparison instr);
   R visitConstant(Constant instr);
   R visitDirectCall(DirectCall instr);
@@ -42,6 +43,9 @@ abstract interface class InstructionVisitor<R> {
   R visitAllocateListLiteral(AllocateListLiteral instr);
   R visitAllocateMapLiteral(AllocateMapLiteral instr);
   R visitStringInterpolation(StringInterpolation instr);
+  R visitEnterSuspendableFunction(EnterSuspendableFunction instr);
+  R visitLeaveSuspendableFunction(LeaveSuspendableFunction instr);
+  R visitSuspend(Suspend instr);
   R visitBinaryIntOp(BinaryIntOp instr);
   R visitUnaryIntOp(UnaryIntOp instr);
   R visitBinaryDoubleOp(BinaryDoubleOp instr);
@@ -83,6 +87,7 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitTryEntry(TryEntry instr) => defaultInstruction(instr);
   R visitPhi(Phi instr) => defaultInstruction(instr);
   R visitReturn(Return instr) => defaultInstruction(instr);
+  R visitUnreachable(Unreachable instr) => defaultInstruction(instr);
   R visitComparison(Comparison instr) => defaultInstruction(instr);
   R visitConstant(Constant instr) => defaultInstruction(instr);
   R visitDirectCall(DirectCall instr) => defaultInstruction(instr);
@@ -113,6 +118,11 @@ abstract mixin class DefaultInstructionVisitor<R>
       defaultInstruction(instr);
   R visitStringInterpolation(StringInterpolation instr) =>
       defaultInstruction(instr);
+  R visitEnterSuspendableFunction(EnterSuspendableFunction instr) =>
+      defaultInstruction(instr);
+  R visitLeaveSuspendableFunction(LeaveSuspendableFunction instr) =>
+      defaultInstruction(instr);
+  R visitSuspend(Suspend instr) => defaultInstruction(instr);
   R visitBinaryIntOp(BinaryIntOp instr) => defaultInstruction(instr);
   R visitUnaryIntOp(UnaryIntOp instr) => defaultInstruction(instr);
   R visitBinaryDoubleOp(BinaryDoubleOp instr) => defaultInstruction(instr);

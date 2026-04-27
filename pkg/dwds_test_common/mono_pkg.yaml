@@ -1,0 +1,27 @@
+# See https://pub.dev/packages/mono_repo for details
+stages:
+  - analyzer_and_format:
+      - group:
+          - format
+          - analyze: --fatal-infos .
+        sdk: dev
+  - unit_test:
+      # Linux tests:
+      # Note: `Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &` must be
+      # run first for Linux.
+      - group:
+          - command: Xvfb :99 -screen 0 1024x768x24 > /dev/null 2>&1 &
+          - test: --exclude-tags=release
+        sdk:
+          - dev
+          - main
+        os:
+          - linux
+        # Windows tests:
+      - group:
+          - test: --exclude-tags=release
+        sdk:
+          - dev
+          - main
+        os:
+          - windows

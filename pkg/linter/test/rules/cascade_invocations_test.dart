@@ -351,6 +351,38 @@ class C {
 ''');
   }
 
+  test_switchCase() async {
+    await assertDiagnostics(
+      r'''
+void f(int x, List<int> list) {
+  switch (x) {
+    case 1:
+      list.clear();
+      list.clear();
+      break;
+  }
+}
+''',
+      [lint(85, 13)],
+    );
+  }
+
+  test_switchDefault() async {
+    await assertDiagnostics(
+      r'''
+void f(int x, List<int> list) {
+  switch (x) {
+    default:
+      list.clear();
+      list.clear();
+      break;
+  }
+}
+''',
+      [lint(86, 13)],
+    );
+  }
+
   test_twoConsecutiveMethodCalls() async {
     await assertDiagnostics(
       r'''

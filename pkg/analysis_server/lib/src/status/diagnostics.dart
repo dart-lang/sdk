@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:async';
+import 'dart:collection';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
@@ -12,6 +13,7 @@ import 'package:analysis_server/src/server/http_server.dart';
 import 'package:analysis_server/src/socket_server.dart';
 import 'package:analysis_server/src/status/pages.dart';
 import 'package:analysis_server/src/status/pages/analysis_driver_page.dart';
+import 'package:analysis_server/src/status/pages/analysis_options_page.dart';
 import 'package:analysis_server/src/status/pages/analysis_performance_log_page.dart';
 import 'package:analysis_server/src/status/pages/assists_page.dart';
 import 'package:analysis_server/src/status/pages/ast_page.dart';
@@ -44,6 +46,9 @@ import 'package:analysis_server/src/status/pages/timing_page.dart';
 import 'package:analysis_server/src/status/utilities/string_extensions.dart';
 import 'package:analysis_server/src/utilities/profiling.dart';
 import 'package:analysis_server_plugin/src/correction/performance.dart';
+import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/src/dart/analysis/analysis_options.dart';
+import 'package:analyzer/src/dart/analysis/driver.dart' as analysis;
 import 'package:analyzer/src/dart/analysis/driver.dart';
 import 'package:analyzer/src/util/platform_info.dart';
 import 'package:collection/collection.dart';
@@ -247,12 +252,35 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
     this.indentInNav = false,
   });
 
+  /// The map of folders to their drivers.
+  Map<Folder, AnalysisDriver> get driverMap =>
+      SplayTreeMap.of(server.driverMap, (a, b) => a.path.compareTo(b.path));
+
   @override
   bool get isNavPage => true;
 
   String? get navDetail => null;
 
   bool get showInNav => true;
+
+  /// Information regarding the analysis context currently being displayed.
+  ({Folder folder, analysis.AnalysisDriver driver}) currentContext(
+    Map<String, String> params,
+  ) {
+    var contextPath = params['context'];
+    if (contextPath == null) {
+      return (
+        folder: driverMap.entries.first.key,
+        driver: driverMap.entries.first.value,
+      );
+    } else {
+      var entry = driverMap.entries.firstWhere(
+        (e) => e.key.path == contextPath,
+        orElse: () => driverMap.entries.first,
+      );
+      return (folder: entry.key, driver: entry.value);
+    }
+  }
 
   String formatLatencyTiming(int elapsed, int? latency) {
     var buffer = StringBuffer();
@@ -306,6 +334,54 @@ abstract class DiagnosticPageWithNav extends DiagnosticPage {
     }, classes: 'markdown-body');
     buf.writeln('</div>');
 
+    buf.writeln('</div>');
+  }
+
+  /// Returns the list of analysis options objects used to analyze the context
+  /// at [folder].
+  List<AnalysisOptionsImpl> getOptionsList(
+    Folder folder,
+    AnalysisDriver driver,
+  ) {
+    var contextPath = folder.path;
+    var separator = folder.provider.pathContext.separator;
+    var driverFolders = driverMap.keys.toList();
+    var innerContextFolders = driverFolders
+        .where((e) => e.path.startsWith('$contextPath$separator'))
+        .toList();
+    var optionsList = driver.analysisOptionsMap.options.where((options) {
+      if (options.file case var file?) {
+        var folder = file.parent;
+        if (folder.path == contextPath) return true;
+        if (innerContextFolders.any(
+          (f) =>
+              folder.path == f.path ||
+              folder.path.startsWith('${f.path}$separator'),
+        )) {
+          return false;
+        }
+        return folder.path.startsWith('$contextPath$separator');
+      }
+      return false;
+    }).toList();
+
+    optionsList.sort((a, b) => a.file!.path.compareTo(b.file!.path));
+    return optionsList;
+  }
+
+  /// Writes the analysis context navigation tabs for [driverMap].
+  void writeContextNavigationTabs(Folder selectedFolder) {
+    buf.writeln('<div class="tabnav">');
+    buf.writeln('<nav class="tabnav-tabs">');
+    var driverFolders = driverMap.keys.toList();
+    for (var f in driverFolders) {
+      var selectedClass = f == selectedFolder ? 'selected' : '';
+      var href = '$path?context=${Uri.encodeQueryComponent(f.path)}';
+      buf.writeln(
+        '<a href="${escape(href)}" class="tabnav-tab $selectedClass" title="${escape(f.path)}">${escape(f.shortName)}</a>',
+      );
+    }
+    buf.writeln('</nav>');
     buf.writeln('</div>');
   }
 }
@@ -461,6 +537,7 @@ td.pre {
     }
 
     pages.add(AnalysisPerformanceLogPage(this));
+    pages.add(AnalysisOptionsPage(this));
 
     var profiler = ProcessProfiler.getProfilerForPlatform();
     if (profiler != null) {

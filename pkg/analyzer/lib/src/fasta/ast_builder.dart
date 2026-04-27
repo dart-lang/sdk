@@ -1380,7 +1380,7 @@ class AstBuilder extends StackListener {
           constructorName: dotShorthand.memberName,
           typeArguments: dotShorthand.typeArguments,
           argumentList: dotShorthand.argumentList,
-        )..isDotShorthand = dotShorthand.isDotShorthand,
+        ),
       );
     } else if (dotShorthand is DotShorthandPropertyAccessImpl) {
       push(
@@ -1390,7 +1390,7 @@ class AstBuilder extends StackListener {
           constructorName: dotShorthand.propertyName,
           typeArguments: null,
           argumentList: _syntheticArgumentList(dotShorthand.propertyName.token),
-        )..isDotShorthand = dotShorthand.isDotShorthand,
+        ),
       );
     }
   }

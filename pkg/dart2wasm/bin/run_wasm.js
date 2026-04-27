@@ -420,12 +420,6 @@ const main = async () => {
     // A loadDeferredId reader function should be registered prior to accessing this.
     loadDeferredId: (id, handleWasmBytes) =>
       globalThis.loadDeferredId(id, readBytes, handleWasmBytes),
-    loadDynamicModule: async (wasmUri, mjsUri, handleWasmBytes) => {
-      return handleWasmBytes(
-        await readBytes(wasmUri),
-        await import(`${wasmDirectory}/${mjsUri}`)
-      );
-    }
   });
 
   // Call `main`. If tasks are placed into the event loop (by scheduling tasks

@@ -41,6 +41,7 @@ const x = a as int;
     assertDartObjectText(result, '''
 int 42
   variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: E
 ''');
   }
 
@@ -1168,6 +1169,7 @@ C<int>
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: E}
   variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: C<E>
 ''');
   }
 
@@ -1186,13 +1188,16 @@ const x = C(E(42));
     assertDartObjectText(result, '''
 C<int>
   f: int 42
+    typeNotExtensionTypeErased: E
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::C::@constructor::new
       substitution: {T: E}
     positionalArguments
       0: int 42
+        typeNotExtensionTypeErased: E
   variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: C<E>
 ''');
   }
 
@@ -1206,6 +1211,7 @@ const x = E(42);
     assertDartObjectText(result, '''
 int 42
   variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: E
 ''');
   }
 
@@ -1274,6 +1280,7 @@ const x = <E>[];
 List
   elementType: int
   variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: List<E>
 ''');
   }
 
@@ -1289,8 +1296,11 @@ List
   elementType: int
   elements
     int 0
+      typeNotExtensionTypeErased: E
     int 1
+      typeNotExtensionTypeErased: E
   variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: List<E>
 ''');
   }
 
@@ -1306,8 +1316,11 @@ Map
   entries
     entry
       key: int 0
+        typeNotExtensionTypeErased: E
       value: int 1
+        typeNotExtensionTypeErased: E
   variable: <testLibrary>::@topLevelVariable::x
+  typeNotExtensionTypeErased: Map<E, E>
 ''');
   }
 
@@ -3798,8 +3811,37 @@ class C {}
 ''');
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
-Type C
+Type
+  toTypeValue: C
+  toTypeValueNotExtensionTypeErased: C
   variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_visitSimpleIdentifier_extensionTypeName() async {
+    await assertNoErrorsInCode('''
+const a = E;
+extension type E(int it);
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+Type
+  toTypeValue: int
+  toTypeValueNotExtensionTypeErased: E
+  variable: <testLibrary>::@topLevelVariable::a
+''');
+  }
+
+  test_visitSimpleIdentifier_extensionTypeObject() async {
+    await assertNoErrorsInCode('''
+const a = E(0);
+extension type const E(int it);
+''');
+    var result = _topLevelVar('a');
+    assertDartObjectText(result, '''
+int 0
+  variable: <testLibrary>::@topLevelVariable::a
+  typeNotExtensionTypeErased: E
 ''');
   }
 
@@ -7373,6 +7415,7 @@ A
   constructorInvocation
     constructor: <testLibrary>::@class::A::@constructor::new
   variable: <testLibrary>::@topLevelVariable::b
+  typeNotExtensionTypeErased: B
 ''');
   }
 
@@ -7717,7 +7760,9 @@ const a = const A<int>();
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A<int>
-  f: Type int
+  f: Type
+    toTypeValue: int
+    toTypeValueNotExtensionTypeErased: int
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -7737,7 +7782,9 @@ const a = const A();
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A<dynamic>
-  f: Type dynamic
+  f: Type
+    toTypeValue: dynamic
+    toTypeValueNotExtensionTypeErased: dynamic
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -7758,8 +7805,12 @@ const a = const B<String>();
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A<int, String>
-  f: Type int
-  g: Type String
+  f: Type
+    toTypeValue: int
+    toTypeValueNotExtensionTypeErased: int
+  g: Type
+    toTypeValue: String
+    toTypeValueNotExtensionTypeErased: String
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -7921,7 +7972,9 @@ const a = const A<int>();
     var result = _topLevelVar('a');
     assertDartObjectText(result, '''
 A<int>
-  f: Type int
+  f: Type
+    toTypeValue: int
+    toTypeValueNotExtensionTypeErased: int
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::A::@constructor::new
@@ -8404,13 +8457,17 @@ const a = const B<int>();
     assertDartObjectText(result, '''
 B<int>
   (super): A<int>
-    f: Type int
+    f: Type
+      toTypeValue: int
+      toTypeValueNotExtensionTypeErased: int
     constructorInvocation
       constructor: ConstructorMember
         baseElement: <testLibrary>::@class::A::@constructor::new
         substitution: {T: int}
       positionalArguments
-        0: Type int
+        0: Type
+          toTypeValue: int
+          toTypeValueNotExtensionTypeErased: int
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::B::@constructor::new
@@ -8434,11 +8491,15 @@ const a = const B<int>();
     assertDartObjectText(result, '''
 B<int>
   (super): A
-    f: Type int
+    f: Type
+      toTypeValue: int
+      toTypeValueNotExtensionTypeErased: int
     constructorInvocation
       constructor: <testLibrary>::@class::A::@constructor::new
       positionalArguments
-        0: Type int
+        0: Type
+          toTypeValue: int
+          toTypeValueNotExtensionTypeErased: int
   constructorInvocation
     constructor: ConstructorMember
       baseElement: <testLibrary>::@class::B::@constructor::new

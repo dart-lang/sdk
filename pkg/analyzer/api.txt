@@ -3330,6 +3330,7 @@ package:analyzer/dart/constant/value.dart:
     hasKnownValue (getter: bool)
     isNull (getter: bool)
     type (getter: DartType?)
+    typeNotExtensionTypeErased (getter: DartType?, experimental)
     variable (getter: VariableElement?)
     getField (method: DartObject? Function(String))
     toBoolValue (method: bool? Function())
@@ -3343,6 +3344,7 @@ package:analyzer/dart/constant/value.dart:
     toStringValue (method: String? Function())
     toSymbolValue (method: String? Function())
     toTypeValue (method: DartType? Function())
+    toTypeValueNotExtensionTypeErased (method: DartType? Function(), experimental)
 package:analyzer/dart/element/element.dart:
   BindPatternVariableElement (class extends Object implements PatternVariableElement, abstract):
     new (constructor: BindPatternVariableElement Function())

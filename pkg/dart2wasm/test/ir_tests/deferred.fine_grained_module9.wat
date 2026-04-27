@@ -8,7 +8,7 @@
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 45 funcref)
   (global $"\"foo4Code(\"" (ref $JSExternWrapper) <...>)
   (global $FooConst4 (ref $Object)
-    (i32.const 115)
+    (i32.const 112)
     (i32.const 0)
     (struct.new $Object))
   (global $fooGlobal4 (mut (ref null $#Top))

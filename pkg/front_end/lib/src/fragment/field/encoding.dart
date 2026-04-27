@@ -1307,9 +1307,26 @@ class AbstractOrExternalFieldEncoding implements FieldEncoding {
           .attachMember(_getter!);
       if (!_fragment.modifiers.isFinal) {
         VariableDeclaration parameter =
-            new VariableDeclaration("#externalFieldValue", isSynthesized: true)
-              ..isCovariantByDeclaration = _fragment.modifiers.isCovariant
-              ..fileOffset = _fragment.nameOffset;
+            libraryBuilder
+                .loader
+                .target
+                .backendTarget
+                .flags
+                .isClosureContextLoweringEnabled
+            ?
+              // Coverage-ignore(suite): Not run.
+              (new PositionalParameter(
+                cosmeticName: "#externalFieldValue",
+                type: const DynamicType(),
+                isSynthesized: true,
+                isCovariantByDeclaration: _fragment.modifiers.isCovariant,
+              )..fileOffset = _fragment.nameOffset)
+            : (new VariableDeclaration(
+                  "#externalFieldValue",
+                  isSynthesized: true,
+                )
+                ..isCovariantByDeclaration = _fragment.modifiers.isCovariant
+                ..fileOffset = _fragment.nameOffset);
         _setter =
             new Procedure(
                 dummyName,

@@ -20,6 +20,13 @@ class AvoidPrintTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_print;
 
+  test_commentReference() async {
+    await assertNoDiagnostics(r'''
+/// See also [print].
+void f() {}
+''');
+  }
+
   test_directCall() async {
     await assertDiagnostics(
       r'''

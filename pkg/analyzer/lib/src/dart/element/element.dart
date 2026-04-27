@@ -7119,6 +7119,11 @@ class LibraryElementImpl extends ElementImpl
     _topLevelVariables.add(element);
   }
 
+  @trackedInternal
+  void addTypeAlias(TypeAliasElementImpl element) {
+    _typeAliases.add(element);
+  }
+
   @override
   @trackedIndirectly
   void appendTo(ElementDisplayStringBuilder builder) {

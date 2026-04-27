@@ -136,6 +136,9 @@ class ProcessedOptions {
   bool get allowDynamicCallsInDynamicModules =>
       _raw.allowDynamicCallsInDynamicModules;
 
+  List<String> get dynamicCallsSelectorAllowList =>
+      _raw.dynamicCallsSelectorAllowList;
+
   String? _dynamicInterfaceSpecificationContents;
   bool _triedLoadingDynamicInterfaceSpecification = false;
 

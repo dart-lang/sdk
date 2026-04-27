@@ -287,6 +287,11 @@ class RegularSetterDeclaration
         fileUri: _fragment.fileUri,
         nameOffset: _fragment.nameOffset,
         nameLength: _fragment.name.length,
+        isClosureContextLoweringEnabled: libraryBuilder
+            .loader
+            .target
+            .backendTarget
+            .isConstructorTearOffLoweringEnabled,
       );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);

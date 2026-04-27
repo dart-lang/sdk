@@ -26,116 +26,98 @@ class IsIncompatibleWithAwaitTest extends AbstractTypeSystemTest {
   }
 
   test_class_int() {
-    isNotIncompatible(intNone);
-    isNotIncompatible(intQuestion);
+    isNotIncompatible(parseType('int'));
+    isNotIncompatible(parseType('int?'));
   }
 
   test_extensionType_implementsFuture() {
-    isNotIncompatible(
-      interfaceTypeNone(
-        buildExtensionType(
-          const ExtensionTypeSpec(
-            name: 'A',
-            representationType: 'Future<int>',
-            interfaces: ['Future<int>'],
-          ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [
+        ExtensionTypeSpec(
+          'extension type A(Future<int> it) implements Future<int>',
         ),
-      ),
+      ],
     );
+    isNotIncompatible(parseInterfaceType('A'));
   }
 
   test_extensionType_notImplementsFuture() {
-    isIncompatible(
-      interfaceTypeNone(
-        buildExtensionType(
-          const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
-        ),
-      ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [ExtensionTypeSpec('extension type A(Future<int> it)')],
     );
+    isIncompatible(parseInterfaceType('A'));
   }
 
   test_futureInt() {
-    isNotIncompatible(futureNone(intNone));
+    isNotIncompatible(parseType('Future<int>'));
   }
 
   test_futureOrInt() {
-    isNotIncompatible(futureOrNone(intNone));
+    isNotIncompatible(parseType('FutureOr<int>'));
   }
 
   test_typeParameter_bound_extensionType_implementsFuture() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(
-        name: 'A',
-        representationType: 'Future<int>',
-        interfaces: ['Future<int>'],
-      ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [
+        ExtensionTypeSpec(
+          'extension type A(Future<int> it) implements Future<int>',
+        ),
+      ],
     );
-
-    isNotIncompatible(
-      typeParameterTypeNone(typeParameter('T', bound: interfaceTypeNone(A))),
-    );
+    withTypeParameterScope('T extends A', (scope) {
+      isNotIncompatible(scope.parseType('T'));
+    });
   }
 
   test_typeParameter_bound_extensionType_notImplementsFuture() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [ExtensionTypeSpec('extension type A(Future<int> it)')],
     );
-
-    isIncompatible(
-      typeParameterTypeNone(typeParameter('T', bound: interfaceTypeNone(A))),
-    );
+    withTypeParameterScope('T extends A', (scope) {
+      isIncompatible(scope.parseType('T'));
+    });
   }
 
   test_typeParameter_bound_numNone() {
-    isNotIncompatible(
-      typeParameterTypeNone(typeParameter('T', bound: numNone)),
-    );
+    withTypeParameterScope('T extends num', (scope) {
+      isNotIncompatible(scope.parseType('T'));
+    });
   }
 
   test_typeParameter_promotedBound_extensionType_implementsFuture() {
     // Incompatible with `await`, used as a bound.
     // Does not matter, `T` is promoted to not incompatible.
-    testLibrary = buildTestLibrary(
-      const LibrarySpec(
-        uri: 'package:test/test.dart',
-        imports: ['dart:core', 'dart:async'],
-        extensionTypes: [
-          ExtensionTypeSpec(name: 'N', representationType: 'Future<int>'),
-          ExtensionTypeSpec(
-            name: 'F',
-            representationType: 'Future<int>',
-            interfaces: ['Future<int>'],
-          ),
-        ],
-      ),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [
+        ExtensionTypeSpec('extension type N(Future<int> it)'),
+        ExtensionTypeSpec(
+          'extension type F(Future<int> it) implements Future<int>',
+        ),
+      ],
     );
-    var N = testLibrary.getExtensionType('N')!;
-    var F = testLibrary.getExtensionType('F')!;
-
-    isNotIncompatible(
-      typeParameterTypeNone(
-        typeParameter('T', bound: interfaceTypeNone(N)),
-        promotedBound: interfaceTypeNone(F),
-      ),
-    );
+    withTypeParameterScope('T extends N', (scope) {
+      isNotIncompatible(scope.parseType('T & F'));
+    });
   }
 
   test_typeParameter_promotedBound_extensionType_notImplementsFuture() {
-    var A = buildExtensionType(
-      const ExtensionTypeSpec(name: 'A', representationType: 'Future<int>'),
+    buildTestLibrary(
+      imports: ['dart:core', 'dart:async'],
+      extensionTypes: [ExtensionTypeSpec('extension type A(Future<int> it)')],
     );
-
-    isIncompatible(
-      typeParameterTypeNone(
-        typeParameter('T'),
-        promotedBound: interfaceTypeNone(A),
-      ),
-    );
+    withTypeParameterScope('T', (scope) {
+      isIncompatible(scope.parseType('T & A'));
+    });
   }
 
   test_typeParameter_promotedBound_intNone() {
-    isNotIncompatible(
-      typeParameterTypeNone(typeParameter('T'), promotedBound: intNone),
-    );
+    withTypeParameterScope('T', (scope) {
+      isNotIncompatible(scope.parseType('T & int'));
+    });
   }
 }

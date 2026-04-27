@@ -1,0 +1,5 @@
+include: package:dart_flutter_team_lints/analysis_options.yaml
+
+analyzer:
+  exclude:
+    - fixtures/**

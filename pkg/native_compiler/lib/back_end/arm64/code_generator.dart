@@ -430,6 +430,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitUnreachable(Unreachable instr) {
+    _asm.unimplemented('Unreachable: ${instr.message}');
+  }
+
+  @override
   void visitComparison(Comparison instr) {
     _asm.unimplemented('Unimplemented: code generation for Comparison');
   }
@@ -1609,6 +1614,25 @@ final class Arm64CodeGenerator extends CodeGenerator {
     _asm.unimplemented(
       'Unimplemented: code generation for UnaryBoolOp ${instr.op.token}',
     );
+  }
+
+  @override
+  void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {
+    _asm.unimplemented(
+      'Unimplemented: code generation for EnterSuspendableFunction',
+    );
+  }
+
+  @override
+  void visitLeaveSuspendableFunction(LeaveSuspendableFunction instr) {
+    _asm.unimplemented(
+      'Unimplemented: code generation for LeaveSuspendableFunction',
+    );
+  }
+
+  @override
+  void visitSuspend(Suspend instr) {
+    _asm.unimplemented('Unimplemented: code generation for Suspend');
   }
 
   @override
