@@ -366,8 +366,16 @@ class _WebSocketProtocolTransformer
             throw WebSocketException("Protocol error");
           }
           closeCode = payload[0] << 8 | payload[1];
-          if (closeCode == WebSocketStatus.noStatusReceived) {
-            throw WebSocketException("Protocol error");
+          // RFC 6455 section 7.4.1 reserves 1005, 1006, and 1015 as
+          // application-internal sentinel values: they MUST NOT appear in a
+          // Close control frame on the wire.
+          if (closeCode == WebSocketStatus.noStatusReceived ||
+              closeCode == WebSocketStatus.abnormalClosure ||
+              closeCode == WebSocketStatus.reserved1015) {
+            throw WebSocketException(
+              "Protocol error: close status code $closeCode is reserved "
+              "(RFC 6455 section 7.4.1) and MUST NOT be set on the wire",
+            );
           }
           // RFC 6455 section 7.4 defines status codes only in the range
           // 1000-4999. Codes outside this range (e.g. 5000, 65535, 0) MUST
