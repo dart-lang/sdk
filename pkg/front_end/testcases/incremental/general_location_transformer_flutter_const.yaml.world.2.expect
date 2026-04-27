@@ -121,7 +121,7 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-test:///foo.dart:
-- CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
 - Foo._ (from org-dartlang-test:///foo.dart:6:9)
 - Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:6:9)

@@ -82,7 +82,7 @@ Constructor coverage from constants:
 org-dartlang-test:///main.dart:
 - pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
-- CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 - Text._ (from org-dartlang-test:///main.dart:11:9)
 - Component. (from org-dartlang-test:///main.dart:3:9)
 - MyComponent. (from org-dartlang-test:///main.dart:17:9)

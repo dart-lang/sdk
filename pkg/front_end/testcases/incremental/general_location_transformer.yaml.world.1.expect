@@ -68,7 +68,7 @@ constants  {
 
 Constructor coverage from constants:
 org-dartlang-test:///main.dart:
-- CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
 - MyWidget. (from org-dartlang-test:///main.dart:4:9)
 - Widget. (from org-dartlang-test:///widget.dart:3:9)
@@ -76,5 +76,5 @@ org-dartlang-test:///main.dart:
 org-dartlang-test:///widget.dart:
 - pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
 - Object. (from org-dartlang-sdk:///lib/core/object.dart)
-- CreationLocation. (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
 

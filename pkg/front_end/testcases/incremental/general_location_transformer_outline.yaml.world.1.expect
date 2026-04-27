@@ -9,7 +9,7 @@ library from "org-dartlang-test:///main.dart" as main {
       : main::MyWidget::child = child, super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static synthetic method _#new#tearOff({wid::Widget? child}) → main::MyWidget
-      return new main::MyWidget::•(child: child, $creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::•(file: "org-dartlang-test:///main.dart", line: 4, column: 9, name: "MyWidget"));
+      return new main::MyWidget::•(child: child, $creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::_(file: "org-dartlang-test:///main.dart", line: 4, column: 9, name: "MyWidget"));
   }
   static method main() → void
     ;
@@ -33,8 +33,8 @@ library from "org-dartlang-test:///widget.dart" as wid {
       : super wid::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
       ;
     static synthetic method _#new#tearOff() → wid::StandardWidget
-      return new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::•(file: "org-dartlang-test:///widget.dart", line: 9, column: 9, name: "StandardWidget"));
+      return new wid::StandardWidget::•($creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::_(file: "org-dartlang-test:///widget.dart", line: 9, column: 9, name: "StandardWidget"));
     static synthetic method _#named#tearOff(dart.core::String name) → wid::StandardWidget
-      return new wid::StandardWidget::named(name, $creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::•(file: "org-dartlang-test:///widget.dart", line: 10, column: 9, name: "StandardWidget"));
+      return new wid::StandardWidget::named(name, $creationLocationd_0dea112b090073317d4: const dart.developer::CreationLocation::_(file: "org-dartlang-test:///widget.dart", line: 10, column: 9, name: "StandardWidget"));
   }
 }

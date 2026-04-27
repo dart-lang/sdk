@@ -31,7 +31,7 @@ void main() {
         new VariableDeclaration('name', type: const DynamicType()),
       ],
     ),
-    name: new Name('_'),
+    name: new Name('_', developerLib),
     fileUri: developerUri,
   );
   creationLocationClass.addConstructor(creationLocationConstructor);
