@@ -684,6 +684,40 @@ Content-Length: 38\r
 GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
     _testParseInvalidRequest(request);
 
+    // RFC 7230 section 3.2.2 lets recipients combine multiple header lines
+    // with the same field name into one comma-separated value. So a request
+    // that splits Transfer-Encoding across two lines, ending in chunked,
+    // is semantically equivalent to "gzip, chunked" and MUST be accepted.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: gzip\r
+Transfer-Encoding: chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(
+      request,
+      "POST",
+      "/test",
+      expectedTransferLength: -1,
+      expectedBytesReceived: 10,
+      chunked: true,
+    );
+
+    // Inverse: the same two lines in the opposite order leave "gzip" as the
+    // final coding, so chunked is NOT final. Must be rejected.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+Transfer-Encoding: gzip\r
+Content-Length: 38\r
+\r
+GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
+    _testParseInvalidRequest(request);
+
     // Content-Length and "Transfer-Encoding: chunked" are specified.
     request = """
 POST /test HTTP/1.1\r

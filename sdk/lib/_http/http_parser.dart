@@ -403,6 +403,24 @@ class _HttpParser extends Stream<_HttpIncoming> {
     }
     headers._mutable = false;
 
+    // RFC 7230 section 3.3.3 rule 3: if a request has a Transfer-Encoding
+    // header and the chunked transfer coding is NOT the final encoding, the
+    // message body length cannot be determined reliably; the server MUST
+    // respond with 400 and close the connection. Without this, a request
+    // like `Transfer-Encoding: gzip` + `Content-Length: 38` causes the
+    // parser to drop Content-Length, set _transferLength=0, and parse the
+    // attacker-supplied body bytes as the next request on the same
+    // connection (CL/TE request smuggling against an RFC-compliant proxy
+    // that honours Content-Length when Transfer-Encoding is unknown).
+    if (_messageType == _MessageType.REQUEST &&
+        _transferEncoding &&
+        !_chunked) {
+      throw HttpException(
+        "Invalid Transfer-Encoding header. RFC 7230 section 3.3.3 rule 3 "
+        "requires chunked to be the final transfer coding in requests.",
+      );
+    }
+
     _transferLength = headers.contentLength;
     // Ignore the Content-Length header if Transfer-Encoding
     // is chunked (RFC 2616 section 4.4)
@@ -770,31 +788,15 @@ class _HttpParser extends Stream<_HttpIncoming> {
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
               // RFC 7230 section 3.3.1: Transfer-Encoding can be a
-              // comma-separated list (e.g. "gzip, chunked"). The chunked
-              // coding must be the FINAL coding for the body length to be
-              // determinable (RFC 7230 section 3.3.3 rule 3):
-              //
-              //   If a Transfer-Encoding header field is present in a
-              //   request and the chunked transfer coding is not the final
-              //   encoding, the message body length cannot be determined
-              //   reliably; the server MUST respond with the 400 (Bad
-              //   Request) status code and then close the connection.
-              //
-              // Without this check, a request with `Transfer-Encoding: gzip`
-              // (or any TE not ending in chunked) sets _transferEncoding=true,
-              // _chunked=false, _contentLength=false, then _transferLength=0,
-              // and the attacker-supplied body bytes are parsed as the next
-              // request on the same connection (CL/TE request smuggling).
+              // comma-separated list (e.g. "gzip, chunked"). RFC 7230
+              // section 3.2.2 also lets recipients combine multiple
+              // Transfer-Encoding header lines into one, so the per-line
+              // tokens must be tracked across calls — `_chunked` reflects
+              // the LAST coding seen so far. Final-coding validation runs
+              // in `_headersEnd` once all header lines are accumulated.
               List<String> tokens = _tokenizeFieldValue(headerValue);
-              if (tokens.isNotEmpty &&
-                  tokens.last.trim().toLowerCase() == "chunked") {
-                _chunked = true;
-              } else if (_messageType == _MessageType.REQUEST) {
-                throw HttpException(
-                  "Invalid Transfer-Encoding header. RFC 7230 section "
-                  "3.3.3 rule 3 requires chunked to be the final transfer "
-                  "coding in requests.",
-                );
+              if (tokens.isNotEmpty) {
+                _chunked = tokens.last.trim().toLowerCase() == "chunked";
               }
               _contentLength = false;
             }
