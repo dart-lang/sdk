@@ -366,26 +366,20 @@ class _WebSocketProtocolTransformer
             throw WebSocketException("Protocol error");
           }
           closeCode = payload[0] << 8 | payload[1];
-          // RFC 6455 section 7.4.1 reserves 1005, 1006, and 1015 as
-          // application-internal sentinel values: they MUST NOT appear in a
-          // Close control frame on the wire.
+          // RFC 6455 §7.4.1 designates 1005, 1006, and 1015 as
+          // application-internal sentinels that MUST NOT be set as a
+          // status code in a Close control frame.
           if (closeCode == WebSocketStatus.noStatusReceived ||
               closeCode == WebSocketStatus.abnormalClosure ||
               closeCode == WebSocketStatus.reserved1015) {
-            throw WebSocketException(
-              "Protocol error: close status code $closeCode is reserved "
-              "(RFC 6455 section 7.4.1) and MUST NOT be set on the wire",
-            );
+            throw WebSocketException("Protocol error");
           }
-          // RFC 6455 section 7.4 defines status codes only in the range
-          // 1000-4999. Codes outside this range (e.g. 5000, 65535, 0) MUST
-          // be treated as a protocol error so a malicious peer cannot push
-          // arbitrary 16-bit values into the application's `closeCode`.
+          // Reject codes outside 1000-4999. RFC 6455 §7.4.2 only assigns
+          // meaning to codes in that range, so accepting anything else
+          // would let a peer push an arbitrary 16-bit value into
+          // `closeCode`.
           if (closeCode < 1000 || closeCode > 4999) {
-            throw WebSocketException(
-              "Protocol error: close status code $closeCode is outside the "
-              "RFC 6455 valid range (1000-4999)",
-            );
+            throw WebSocketException("Protocol error");
           }
           if (payload.length > 2) {
             closeReason = utf8.decode(payload.sublist(2));
@@ -1429,8 +1423,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             (code > WebSocketStatus.internalServerError &&
                 code < WebSocketStatus.reserved1015) ||
             (code >= WebSocketStatus.reserved1015 && code < 3000) ||
-            // RFC 6455 section 7.4: status codes are defined only in the
-            // range 1000-4999; anything above MUST not be sent.
+            // RFC 6455 §7.4.2 only assigns meaning to codes 1000-4999.
             code > 4999);
   }
 }
