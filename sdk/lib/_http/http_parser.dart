@@ -1114,21 +1114,28 @@ class _HttpParser extends Stream<_HttpIncoming> {
 
   static List<String> _tokenizeFieldValue(String headerValue) {
     // Split a list-valued header on `,` and trim leading/trailing OWS from
-    // each token. Per RFC 9110 §5.6.1 (Lists), a list-valued header has the
-    // grammar `#element => element *( OWS "," OWS element )`, where OWS is
-    // `*( SP / HTAB )` (RFC 9110 §5.6.3).
+    // each token. RFC 9110 §5.6.1 specifies that list values are
+    // comma-separated with optional OWS around each comma; OWS is
+    // `*( SP / HTAB )` per RFC 9110 §5.6.3.
     List<String> tokens = <String>[];
     int start = 0;
-    int index = 0;
-    while (index < headerValue.length) {
-      if (headerValue[index] == ",") {
-        tokens.add(headerValue.substring(start, index).trim());
-        start = index + 1;
+    while (true) {
+      int comma = headerValue.indexOf(',', start);
+      int end = comma == -1 ? headerValue.length : comma;
+      while (start < end) {
+        int c = headerValue.codeUnitAt(start);
+        if (c != _CharCode.SP && c != _CharCode.HT) break;
+        start++;
       }
-      index++;
+      while (end > start) {
+        int c = headerValue.codeUnitAt(end - 1);
+        if (c != _CharCode.SP && c != _CharCode.HT) break;
+        end--;
+      }
+      tokens.add(headerValue.substring(start, end));
+      if (comma == -1) return tokens;
+      start = comma + 1;
     }
-    tokens.add(headerValue.substring(start, index).trim());
-    return tokens;
   }
 
   static int _toLowerCaseByte(int x) {
