@@ -3059,13 +3059,6 @@ class _HttpClient implements HttpClient {
     );
   }
 
-  static bool _isSubdomain(Uri subdomain, Uri domain) {
-    return (subdomain.isScheme(domain.scheme) &&
-        subdomain.port == domain.port &&
-        (subdomain.host == domain.host ||
-            subdomain.host.endsWith("." + domain.host)));
-  }
-
   static bool _isSameOrigin(Uri a, Uri b) {
     return a.isScheme(b.scheme) && a.host == b.host && a.port == b.port;
   }
