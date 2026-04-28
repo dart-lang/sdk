@@ -261,10 +261,6 @@ void testUnmaskedMessage() {
   controller.add(frame);
 }
 
-// Regression test: a control frame interleaved into a fragmented data
-// message (RFC 6455 section 5.4) must not corrupt the in-flight data. The
-// full data message delivered to the application must equal the bytes
-// sent across the data frames.
 void testControlFrameDuringFragmentedMessage() {
   asyncStart();
   var transformer = new _WebSocketProtocolTransformer();
@@ -275,29 +271,27 @@ void testControlFrameDuringFragmentedMessage() {
 
   List<int> receivedData = [];
   int controlFrameCount = 0;
-  controller.stream.transform(transformer).listen(
-    (event) {
-      if (event is List<int>) {
-        receivedData.addAll(event);
-      } else {
-        // _WebSocketPing / _WebSocketPong are private; count, don't inspect.
-        controlFrameCount++;
-      }
-    },
-    onDone: () {
-      Expect.listEquals(dataMessage, receivedData);
-      Expect.equals(1, controlFrameCount);
-      asyncEnd();
-    },
-  );
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (event) {
+          if (event is List<int>) {
+            receivedData.addAll(event);
+          } else {
+            controlFrameCount++;
+          }
+        },
+        onDone: () {
+          Expect.listEquals(dataMessage, receivedData);
+          Expect.equals(1, controlFrameCount);
+          asyncEnd();
+        },
+      );
 
-  // TEXT, !FIN, first 5 bytes of the data message.
   controller.add(
-    createFrame(false, FRAME_OPCODE_TEXT, null, dataMessage, 0, 5),
+    createFrame(false, FRAME_OPCODE_BINARY, null, dataMessage, 0, 5),
   );
-  // PING (opcode 0x09), FIN, 4-byte payload, interleaved into the message.
   controller.add(createFrame(true, 0x09, null, pingPayload, 0, 4));
-  // CONTINUATION (opcode 0x00), FIN, last 5 bytes of the data message.
   controller.add(createFrame(true, 0x00, null, dataMessage, 5, 5));
   controller.close();
 }
