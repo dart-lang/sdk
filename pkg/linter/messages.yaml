@@ -12382,7 +12382,7 @@ LinterLintCode:
       experimental: "3.6"
       stable: "3.11"
     categories: [style]
-    hasPublishedDocs: true
+    hasPublishedDocs: false
     documentation: |-
       #### Description
 
