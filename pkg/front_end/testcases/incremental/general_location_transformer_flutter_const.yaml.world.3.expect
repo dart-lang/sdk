@@ -1,0 +1,161 @@
+main = <No Member>;
+library from "package:flutter/src/widgets/framework.dart" as fra {
+
+  abstract class Bar extends dart.core::Object /*hasConstConstructor*/  {
+    const constructor •() → fra::Bar
+      : super dart.core::Object::•()
+      ;
+  }
+  @#C3
+  abstract class Widget extends fra::Bar implements dart.developer::_HasCreationLocation /*hasConstConstructor*/  {
+    final field dart.developer::CreationLocation? dart.developer::_location;
+    const constructor •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → fra::Widget
+      : super fra::Bar::•(), fra::Widget::_location = $creationLocationd_0dea112b090073317d4
+      ;
+  }
+}
+library from "org-dartlang-test:///foo.dart" as foo {
+
+  import "package:flutter/src/widgets/framework.dart";
+
+  class Foo extends fra::Widget /*hasConstConstructor*/  {
+    const constructor _({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Foo
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static factory •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Foo
+      return #C9;
+    static synthetic method _#new#tearOff() → foo::Foo
+      return foo::Foo::•($creationLocationd_0dea112b090073317d4: #C11);
+    static synthetic method _#_#tearOff() → foo::Foo
+      return new foo::Foo::_($creationLocationd_0dea112b090073317d4: #C14);
+  }
+  class Bar extends fra::Widget /*hasConstConstructor*/  {
+    const constructor _({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Bar
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static const factory •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Bar /* redirection-target: foo::Bar::_ */
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
+    static synthetic method _#new#tearOff() → foo::Bar
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C18);
+    static synthetic method _#_#tearOff() → foo::Bar
+      return new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C20);
+  }
+  class Baz extends fra::Widget /*hasConstConstructor*/  {
+    const constructor __({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Baz
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static factory •({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Baz
+      return #C24;
+    static synthetic method _#new#tearOff() → foo::Baz
+      return foo::Baz::•($creationLocationd_0dea112b090073317d4: #C25);
+    static const factory _({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Baz /* redirection-target: foo::Baz::__ */
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
+    static synthetic method _#_#tearOff() → foo::Baz
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C27);
+    static synthetic method _#__#tearOff() → foo::Baz
+      return new foo::Baz::__($creationLocationd_0dea112b090073317d4: #C29);
+  }
+  class Boz extends fra::Widget /*hasConstConstructor*/  {
+    const constructor _({dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Boz
+      : super fra::Widget::•($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4)
+      ;
+    static factory •({required dart.core::bool createNew, dart.developer::CreationLocation? $creationLocationd_0dea112b090073317d4 = #C2}) → foo::Boz {
+      if(createNew) {
+        return new foo::Boz::_($creationLocationd_0dea112b090073317d4: $creationLocationd_0dea112b090073317d4);
+      }
+      else {
+        return #C33;
+      }
+    }
+    static synthetic method _#new#tearOff({required dart.core::bool createNew}) → foo::Boz
+      return foo::Boz::•(createNew: createNew, $creationLocationd_0dea112b090073317d4: #C35);
+    static synthetic method _#_#tearOff() → foo::Boz
+      return new foo::Boz::_($creationLocationd_0dea112b090073317d4: #C37);
+  }
+}
+library from "org-dartlang-test:///main.dart" as main {
+
+  import "org-dartlang-test:///foo.dart";
+
+  static field foo::Foo newFoo = foo::Foo::•($creationLocationd_0dea112b090073317d4: #C40);
+  static field foo::Bar newBar = new foo::Bar::_($creationLocationd_0dea112b090073317d4: #C42);
+  static field foo::Bar constBar = #C45;
+  static field foo::Baz newBaz = foo::Baz::•($creationLocationd_0dea112b090073317d4: #C47);
+  static field foo::Boz newBoz = foo::Boz::•(createNew: true, $creationLocationd_0dea112b090073317d4: #C48);
+  static field foo::Boz constBoz = foo::Boz::•(createNew: false, $creationLocationd_0dea112b090073317d4: #C50);
+}
+constants  {
+  #C1 = "track-creation-locations"
+  #C2 = null
+  #C3 = dart.core::pragma {name:#C1, options:#C2}
+  #C4 = "org-dartlang-test:///foo.dart"
+  #C5 = 4.0
+  #C6 = 26.0
+  #C7 = "Foo"
+  #C8 = dart.developer::CreationLocation {file:#C4, line:#C5, column:#C6, name:#C7}
+  #C9 = foo::Foo {_location:#C8}
+  #C10 = 11.0
+  #C11 = dart.developer::CreationLocation {file:#C4, line:#C5, column:#C10, name:#C7}
+  #C12 = 6.0
+  #C13 = 9.0
+  #C14 = dart.developer::CreationLocation {file:#C4, line:#C12, column:#C13, name:#C7}
+  #C15 = 10.0
+  #C16 = 17.0
+  #C17 = "Bar"
+  #C18 = dart.developer::CreationLocation {file:#C4, line:#C15, column:#C16, name:#C17}
+  #C19 = 12.0
+  #C20 = dart.developer::CreationLocation {file:#C4, line:#C19, column:#C13, name:#C17}
+  #C21 = 16.0
+  #C22 = "Baz"
+  #C23 = dart.developer::CreationLocation {file:#C4, line:#C21, column:#C6, name:#C22}
+  #C24 = foo::Baz {_location:#C23}
+  #C25 = dart.developer::CreationLocation {file:#C4, line:#C21, column:#C10, name:#C22}
+  #C26 = 18.0
+  #C27 = dart.developer::CreationLocation {file:#C4, line:#C26, column:#C16, name:#C22}
+  #C28 = 20.0
+  #C29 = dart.developer::CreationLocation {file:#C4, line:#C28, column:#C13, name:#C22}
+  #C30 = 28.0
+  #C31 = "Boz"
+  #C32 = dart.developer::CreationLocation {file:#C4, line:#C30, column:#C28, name:#C31}
+  #C33 = foo::Boz {_location:#C32}
+  #C34 = 24.0
+  #C35 = dart.developer::CreationLocation {file:#C4, line:#C34, column:#C10, name:#C31}
+  #C36 = 32.0
+  #C37 = dart.developer::CreationLocation {file:#C4, line:#C36, column:#C13, name:#C31}
+  #C38 = "org-dartlang-test:///main.dart"
+  #C39 = 2.0
+  #C40 = dart.developer::CreationLocation {file:#C38, line:#C39, column:#C26, name:#C7}
+  #C41 = 3.0
+  #C42 = dart.developer::CreationLocation {file:#C38, line:#C41, column:#C26, name:#C17}
+  #C43 = 22.0
+  #C44 = dart.developer::CreationLocation {file:#C38, line:#C5, column:#C43, name:#C17}
+  #C45 = foo::Bar {_location:#C44}
+  #C46 = 5.0
+  #C47 = dart.developer::CreationLocation {file:#C38, line:#C46, column:#C26, name:#C22}
+  #C48 = dart.developer::CreationLocation {file:#C38, line:#C12, column:#C26, name:#C31}
+  #C49 = 7.0
+  #C50 = dart.developer::CreationLocation {file:#C38, line:#C49, column:#C28, name:#C31}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-test:///foo.dart:
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+- Foo._ (from org-dartlang-test:///foo.dart:6:9)
+- Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:6:9)
+- Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
+- Baz.__ (from org-dartlang-test:///foo.dart:20:9)
+- Boz._ (from org-dartlang-test:///foo.dart:32:9)
+
+org-dartlang-test:///flutter/lib/src/widgets/framework.dart:
+- pragma._ (from org-dartlang-sdk:///lib/core/annotations.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+
+org-dartlang-test:///main.dart:
+- CreationLocation._ (from org-dartlang-sdk:///lib/developer/creation_tracking.dart)
+- Object. (from org-dartlang-sdk:///lib/core/object.dart)
+- Bar._ (from org-dartlang-test:///foo.dart:12:9)
+- Widget. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:6:9)
+- Bar. (from org-dartlang-test:///flutter/lib/src/widgets/framework.dart:2:9)
+

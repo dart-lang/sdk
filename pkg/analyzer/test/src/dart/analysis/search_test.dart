@@ -325,6 +325,29 @@ testFile
     );
   }
 
+  test_declarations_class_unnamed() async {
+    await resolveTestCode('''
+class {
+  void foo() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+''',
+    );
+  }
+
   test_declarations_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
@@ -413,6 +436,29 @@ testFile
   ENUM_CONSTANT ccc
     offset: 18 2:10
     codeOffset: 18 + 3
+''',
+    );
+  }
+
+  test_declarations_enum_unnamed() async {
+    await resolveTestCode('''
+enum {
+  foo
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 ''',
     );
   }
@@ -509,6 +555,27 @@ testFile
     );
   }
 
+  test_declarations_extensionType_unnamed() async {
+    await resolveTestCode('''
+extension type (int foo) {}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+''',
+    );
+  }
+
   test_declarations_fuzzyMatch() async {
     await resolveTestCode('''
 class A {}
@@ -599,6 +666,29 @@ testFile
     codeOffset: 58 + 11
     mixinName: M
     parameters: ()
+''',
+    );
+  }
+
+  test_declarations_mixin_unnamed() async {
+    await resolveTestCode('''
+mixin {
+  void foo() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 ''',
     );
   }
@@ -3840,6 +3930,37 @@ void f() {
 ''');
   }
 
+  test_searchReferences_FormalParameterElement_ofLocalFunction_optionalNamed_generic() async {
+    _makeTestFilePriority();
+    await resolveTestCode('''
+void f() {
+  void foo<T>({T? test}) {
+    test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
+  }
+
+  foo(test: 0);
+  foo.call(test: 1);
+  (foo)(test: 2);
+}
+''');
+    var element = findElement2.parameter('test');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@5
+  42 3:5 |test| READ
+  52 4:5 |test| WRITE
+  66 5:5 |test| READ_WRITE
+  82 6:6 |test| WRITE
+  106 7:10 |test| WRITE
+  133 10:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  154 11:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  172 12:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+''');
+  }
+
   test_searchReferences_FormalParameterElement_ofLocalFunction_optionalPositional() async {
     _makeTestFilePriority();
     await resolveTestCode('''
@@ -5707,7 +5828,7 @@ class A<T> {
 class B extends A<String> {}
 ''');
     var element = findNode
-        .namedExpression('p: null); // 1')
+        .namedArgument('p: null); // 1')
         .correspondingParameter!;
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
@@ -5736,7 +5857,7 @@ class A<T> {
 class B extends A<String> {}
 ''');
     var element = findNode
-        .namedExpression('p: null); // 1')
+        .namedArgument('p: null); // 1')
         .correspondingParameter!;
     expect(driver.search.references(element, SearchedFiles()), completes);
   }

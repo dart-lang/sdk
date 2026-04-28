@@ -908,7 +908,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::@class::A
       type: A<int>
@@ -969,7 +969,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1038,7 +1038,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1097,7 +1097,7 @@ MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1149,7 +1149,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: X
       element: package:test/a.dart::@typeAlias::X
       type: A<int>
@@ -1411,7 +1411,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1467,7 +1467,7 @@ ExtensionOverride
   importPrefix: ImportPrefixReference
     name: prefix
     period: .
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
   name: E
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1512,7 +1512,7 @@ f() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   operator: .
   methodName: SimpleIdentifier

@@ -767,6 +767,47 @@ class C {
     expect(position.offset, equals(20));
   }
 
+  Future<void> test_writeFunctionDeclaration_async() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
+    addSource(path, content);
+
+    // Create a Future<String> to use as the return type so we can ensure
+    // the `async` keyword is added.
+    var typeProvider = (await resolveFile(path)).typeProvider;
+    var futureStringType = typeProvider.futureElement.instantiate(
+      typeArguments: [typeProvider.stringType],
+      nullabilitySuffix: NullabilitySuffix.none,
+    );
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration('x', returnType: futureStringType);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('Future<String> x() async {}'),
+    );
+  }
+
+  Future<void> test_writeFunctionDeclaration_isStatic() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration('x', isStatic: true);
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('static x() {}'));
+  }
+
   Future<void>
   test_writeFunctionDeclaration_noReturnType_noParams_body() async {
     var path = convertPath('/home/test/lib/test.dart');
@@ -850,13 +891,33 @@ class C {
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('A fib() => null;'));
+    expect(edit.replacement, equalsIgnoringWhitespace('A fib() {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
     var group = linkedEditGroups[0];
     expect(group.length, 1);
     expect(group.positions, hasLength(1));
+  }
+
+  Future<void> test_writeFunctionDeclaration_typeParams() async {
+    var path = convertPath('/home/test/lib/test.dart');
+    var content = '';
+    addSource(path, content);
+
+    var builder = await newBuilder();
+    await builder.addDartFileEdit(path, (builder) {
+      builder.addInsertion(0, (builder) {
+        builder.writeFunctionDeclaration(
+          'x',
+          typeParameterWriter: () {
+            builder.write('<T>');
+          },
+        );
+      });
+    });
+    var edit = getEdit(builder);
+    expect(edit.replacement, equalsIgnoringWhitespace('x<T>() {}'));
   }
 
   Future<void> test_writeGetterDeclaration_bodyWriter() async {
@@ -1394,7 +1455,11 @@ class A {}
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(2, (builder) {
-        builder.writeParameterMatchingArgument(argument, 0, <String>{});
+        builder.writeParameterMatchingArgument(
+          argument.argumentExpression,
+          0,
+          <String>{},
+        );
       });
     });
     var edit = getEdit(builder);
@@ -1709,7 +1774,10 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {/* TODO */}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('set s(value) {/* TODO */}'),
+    );
   }
 
   Future<void> test_writeSetterDeclaration_isStatic() async {
@@ -1724,7 +1792,10 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('static set s(s) {}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('static set s(value) {}'),
+    );
   }
 
   Future<void> test_writeSetterDeclaration_nameGroupName() async {
@@ -1739,7 +1810,7 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {}'));
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(value) {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
@@ -1767,7 +1838,7 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(A s) {}'));
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(A value) {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));

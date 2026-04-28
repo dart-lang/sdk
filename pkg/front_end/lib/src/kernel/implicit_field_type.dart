@@ -13,6 +13,7 @@ import '../base/problems.dart' show unsupported;
 import '../builder/inferable_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../source/source_library_builder.dart';
+import '../type_inference/context_allocation_strategy.dart';
 
 abstract class InferredType extends AuxiliaryType {
   Uri? get fileUri;
@@ -90,7 +91,9 @@ abstract class InferredType extends AuxiliaryType {
 
   DartType inferType(ClassHierarchyBase hierarchy);
 
-  (DartType, Expression?) computeType(ClassHierarchyBase hierarchy);
+  (DartType, Expression?, ScopeProviderInfo?) computeType(
+    ClassHierarchyBase hierarchy,
+  );
 }
 
 /// Signature for function called to trigger the inference of the type of
@@ -102,7 +105,7 @@ typedef InferTypeFunction = DartType Function(ClassHierarchyBase hierarchy);
 /// The function returns the compute type along with the inferred initializer,
 /// if any.
 typedef ComputeTypeFunction =
-    (DartType, Expression?) Function(
+    (DartType, Expression?, ScopeProviderInfo?) Function(
       ClassHierarchyBase hierarchy,
       Token? token,
     );
@@ -157,7 +160,9 @@ class _ImplicitType extends InferredType {
   }
 
   @override
-  (DartType, Expression?) computeType(ClassHierarchyBase hierarchy) {
+  (DartType, Expression?, ScopeProviderInfo?) computeType(
+    ClassHierarchyBase hierarchy,
+  ) {
     if (isStarted) {
       _libraryBuilder.addProblem(
         diag.cantInferTypeDueToCircularity.withArguments(name: _name),
@@ -167,7 +172,7 @@ class _ImplicitType extends InferredType {
       );
       DartType type = const InvalidType();
       _typeBuilder.registerInferredType(type);
-      return (type, null);
+      return (type, null, null);
     }
     isStarted = true;
     Token? token = _token;
@@ -210,8 +215,10 @@ class _InferredTypeUse extends InferredType {
 
   @override
   // Coverage-ignore(suite): Not run.
-  (DartType, Expression?) computeType(ClassHierarchyBase hierarchy) {
-    return (inferType(hierarchy), null);
+  (DartType, Expression?, ScopeProviderInfo?) computeType(
+    ClassHierarchyBase hierarchy,
+  ) {
+    return (inferType(hierarchy), null, null);
   }
 
   @override

@@ -45,32 +45,24 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    node.parameter.accept(this);
-  }
-
-  @override
   void visitFunctionExpression(FunctionExpression node) {
     var contextType = node.approximateContextType;
     if (contextType is! FunctionType) return;
     var parameterList = node.parameters?.parameters;
     if (parameterList != null) {
-      for (var parameter in parameterList) {
-        parameter.accept(this);
-      }
+      parameterList.forEach(_checkParameter);
     }
   }
 
-  @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    rule.reportAtNode(node);
-  }
+  void _checkParameter(FormalParameter node) {
+    if (node.functionTypedSuffix != null) {
+      rule.reportAtNode(node);
+      return;
+    }
 
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
     var type = node.type;
     if (type is NamedType && type.type is! DynamicType) {
-      rule.reportAtNode(node.type);
+      rule.reportAtNode(type);
     }
   }
 }

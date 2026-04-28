@@ -2,14 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-method({int a = 42, required int b, required final int c}) {}
+// Test intended for post-primary constructors language versions, where
+// `final` cannot occur in non-primary parameters.
+
+method({int a = 42, required int b, required int c}) {}
 
 class Class {
   method(
       {int a = 42,
         required int b,
-        required final int c,
-        required covariant final int d}) {}
+        required covariant int c}) {}
 }
 
 // TODO(johnniwinther): Pass the required property to the function types.

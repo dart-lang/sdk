@@ -91,6 +91,11 @@ Future<T> reportCrash<T>(
   data["error"] = safeToString(error);
   data["trace"] = "$trace";
   String json = jsonEncode(data);
+  if (!const bool.fromEnvironment('dart.library.io')) {
+    // Coverage-ignore-block(suite): Not run.
+    // Don't create HttpClient when dart:io is unavailable.
+    return new Future<T>.error(error, trace);
+  }
   HttpClient client = new HttpClient();
   try {
     Uri serverUri = Uri.parse(defaultServerAddress);

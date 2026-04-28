@@ -72,8 +72,7 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
     // If either the parameter or the field has comments or metadata, then
     // don't apply the assist. This is a temporary restriction until the assist
     // supports moving the comments and metadata to the parameter.
-    if (parameter is AnnotatedNode &&
-        _hasCommentOrMetadata(parameter as AnnotatedNode)) {
+    if (_hasCommentOrMetadata(parameter)) {
       return;
     }
     var fieldDeclarationList = fieldDeclaration.parent?.parent;
@@ -137,10 +136,8 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
       }
       if (!insertedVariable) {
         var offset = parameter.offset;
-        if (parameter is NormalFormalParameter) {
-          if (parameter.requiredKeyword case var requiredKeyword?) {
-            offset = requiredKeyword.end;
-          }
+        if (parameter.requiredKeyword case var requiredKeyword?) {
+          offset = requiredKeyword.end;
         }
         var keyword = fieldElement.isFinal ? 'final' : 'var';
         if (offset == parameter.offset) {
@@ -149,12 +146,7 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
           builder.addSimpleInsertion(offset, ' $keyword');
         }
 
-        TypeAnnotation? type;
-        if (parameter is SimpleFormalParameter) {
-          type = parameter.type;
-        } else if (parameter is FieldFormalParameter) {
-          type = parameter.type;
-        }
+        var type = parameter.type;
 
         if (type == null) {
           var variableList = fieldDeclaration.parent as VariableDeclarationList;
@@ -338,6 +330,10 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
   }
 
   _RefactorData? _getRefactorData(FormalParameter parameter) {
+    if (parameter.functionTypedSuffix != null) {
+      return null;
+    }
+
     var parameterElement = parameter.declaredFragment?.element;
     if (parameterElement == null) {
       // If the parameter hasn't been resolved, we woun't be able to find either
@@ -363,11 +359,14 @@ class ConvertToDeclaringParameter extends ResolvedCorrectionProducer {
         // necessary.
         return null;
       }
-      fieldElement = parameter.declaredFragment?.element.field;
+      var element = parameter.declaredFragment?.element;
+      if (element is FieldFormalParameterElement) {
+        fieldElement = element.field;
+      }
       if (fieldElement == null || fieldElement.name != parameter.name.lexeme) {
         return null;
       }
-    } else if (parameter is SimpleFormalParameter) {
+    } else if (parameter is RegularFormalParameter) {
       var body = primaryConstructor.body;
       if (body != null) {
         for (var init in body.initializers) {

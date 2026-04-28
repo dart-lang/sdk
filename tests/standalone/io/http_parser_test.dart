@@ -612,6 +612,112 @@ Transfer-Encoding: chunked\r
       chunked: true,
     );
 
+    // Test "chunked" as part of a comma-separated Transfer-Encoding list
+    // (RFC 7230 section 3.3.1). Before the fix, the parser only did an
+    // exact match on the full header value, so "gzip, chunked" was not
+    // recognized as chunked encoding. Combined with a Content-Length
+    // header this caused a CL/TE request smuggling vector when the Dart
+    // HTTP server sat behind a compliant reverse proxy.
+    request = """
+POST /test HTTP/1.1\r
+Content-Length: 10\r
+Transfer-Encoding: gzip, chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(
+      request,
+      "POST",
+      "/test",
+      expectedTransferLength: -1,
+      expectedBytesReceived: 10,
+      chunked: true,
+    );
+
+    // Same as above but with "identity" preceding "chunked".
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: identity, chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(
+      request,
+      "POST",
+      "/test",
+      expectedTransferLength: -1,
+      expectedBytesReceived: 10,
+      chunked: true,
+    );
+
+    // RFC 7230 section 3.3.3 rule 3: a request whose Transfer-Encoding does
+    // NOT have chunked as the final coding has indeterminate body length and
+    // MUST be rejected. Without rejection, dart's parser silently treats the
+    // request as having no body (transferLength=0) AND drops the
+    // Content-Length, then parses the attacker-supplied body bytes as a
+    // separate request on the same connection — a CL/TE smuggling chain
+    // demonstrated against any RFC-compliant upstream proxy that honours the
+    // Content-Length value when Transfer-Encoding is unknown.
+    //
+    // Reject "Transfer-Encoding: gzip" with no chunked at all.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: gzip\r
+Content-Length: 38\r
+\r
+GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
+    _testParseInvalidRequest(request);
+
+    // Reject "Transfer-Encoding: chunked, gzip" — chunked is present but is
+    // NOT the final coding, so message length is indeterminate.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked, gzip\r
+Content-Length: 38\r
+\r
+GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
+    _testParseInvalidRequest(request);
+
+    // RFC 7230 section 3.2.2 lets recipients combine multiple header lines
+    // with the same field name into one comma-separated value. So a request
+    // that splits Transfer-Encoding across two lines, ending in chunked,
+    // is semantically equivalent to "gzip, chunked" and MUST be accepted.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: gzip\r
+Transfer-Encoding: chunked\r
+\r
+5\r
+01234\r
+5\r
+56789\r
+0\r\n\r\n""";
+    _testParseRequest(
+      request,
+      "POST",
+      "/test",
+      expectedTransferLength: -1,
+      expectedBytesReceived: 10,
+      chunked: true,
+    );
+
+    // Inverse: the same two lines in the opposite order leave "gzip" as the
+    // final coding, so chunked is NOT final. Must be rejected.
+    request = """
+POST /test HTTP/1.1\r
+Transfer-Encoding: chunked\r
+Transfer-Encoding: gzip\r
+Content-Length: 38\r
+\r
+GET /admin HTTP/1.1\r\nHost: backend\r\n\r\n""";
+    _testParseInvalidRequest(request);
+
     // Content-Length and "Transfer-Encoding: chunked" are specified.
     request = """
 POST /test HTTP/1.1\r

@@ -99,7 +99,7 @@ static extension-member method Extension|get#instanceTest<T extends core::Object
   return <S extends core::Object? = dynamic>(dynamic parameter) → dynamic => self::Extension|instanceTest<self::Extension|get#instanceTest::T%, S%>(#this, parameter);
 static extension-member method Extension|staticTest<S extends core::Object? = dynamic>(dynamic parameter) → dynamic
   ;
-static extension-type-member method ExtensionType|constructor#_<T extends core::Object? = dynamic>(self::Class<self::ExtensionType|constructor#_::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_::T%> /* erasure=self::Class<self::ExtensionType|constructor#_::T%> */
+static extension-type-member method ExtensionType|constructor#_<T extends core::Object? = dynamic>(initializing-formal self::Class<self::ExtensionType|constructor#_::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_::T%> /* erasure=self::Class<self::ExtensionType|constructor#_::T%> */
   ;
 static extension-type-member synthetic method ExtensionType|constructor#_#_#tearOff<T extends core::Object? = dynamic>(self::Class<self::ExtensionType|constructor#_#_#tearOff::T%> c) → self::ExtensionType<self::ExtensionType|constructor#_#_#tearOff::T%> /* erasure=self::Class<self::ExtensionType|constructor#_#_#tearOff::T%> */
   return self::ExtensionType|constructor#_<self::ExtensionType|constructor#_#_#tearOff::T%>(c);

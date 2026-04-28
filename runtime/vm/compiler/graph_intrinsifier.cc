@@ -353,7 +353,7 @@ static bool BuildSimdOp(FlowGraph* flow_graph, intptr_t cid, Token::Kind kind) {
   VerifyParameterIsBoxed(&builder, 1);
 
   Cids* value_check = Cids::CreateMonomorphic(zone, cid);
-  // Check argument. Receiver (left) is known to be a Float32x4.
+  // Check argument. Receiver (left) is known to match cid by dispatch.
   builder.AddInstruction(new CheckClassInstr(new Value(right), DeoptId::kNone,
                                              *value_check, builder.Source()));
   Definition* left_simd = builder.AddUnboxInstr(
@@ -385,6 +385,26 @@ bool GraphIntrinsifier::Build_Float32x4Sub(FlowGraph* flow_graph) {
 
 bool GraphIntrinsifier::Build_Float32x4Add(FlowGraph* flow_graph) {
   return BuildSimdOp(flow_graph, kFloat32x4Cid, Token::kADD);
+}
+
+bool GraphIntrinsifier::Build_Int32x4Add(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kInt32x4Cid, Token::kADD);
+}
+
+bool GraphIntrinsifier::Build_Int32x4Sub(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kInt32x4Cid, Token::kSUB);
+}
+
+bool GraphIntrinsifier::Build_Int32x4BitAnd(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kInt32x4Cid, Token::kBIT_AND);
+}
+
+bool GraphIntrinsifier::Build_Int32x4BitOr(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kInt32x4Cid, Token::kBIT_OR);
+}
+
+bool GraphIntrinsifier::Build_Int32x4BitXor(FlowGraph* flow_graph) {
+  return BuildSimdOp(flow_graph, kInt32x4Cid, Token::kBIT_XOR);
 }
 
 bool GraphIntrinsifier::Build_Float64x2Mul(FlowGraph* flow_graph) {

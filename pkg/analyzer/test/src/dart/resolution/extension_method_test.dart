@@ -2703,7 +2703,7 @@ PropertyAccess
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2833,7 +2833,7 @@ PropertyAccess
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3262,7 +3262,7 @@ MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: p
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3400,7 +3400,7 @@ AssignmentExpression
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: p
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
         staticType: null
       period: .
       identifier: SimpleIdentifier

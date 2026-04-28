@@ -96,8 +96,18 @@ class Module implements Serializable {
       Serializer.traceEnabled = true;
     }
     // Wasm module preamble: magic number, version 1.
-    s.writeBytes(Uint8List.fromList(
-        const [0x00, 0x61, 0x73, 0x6D, 0x01, 0x00, 0x00, 0x00]));
+    s.writeBytes(
+      Uint8List.fromList(const [
+        0x00,
+        0x61,
+        0x73,
+        0x6D,
+        0x01,
+        0x00,
+        0x00,
+        0x00,
+      ]),
+    );
     TypeSection(types, watchPoints).serialize(s);
     ImportSection(imports, watchPoints).serialize(s);
     FunctionSection(functions.defined, watchPoints).serialize(s);
@@ -112,14 +122,18 @@ class Module implements Serializable {
     CodeSection(functions.defined, watchPoints).serialize(s);
     DataSection(dataSegments.defined, watchPoints).serialize(s);
     NameSection(
-            moduleName, functions, types.recursionGroups, globals, watchPoints)
-        .serialize(s);
+      moduleName,
+      functions,
+      types.recursionGroups,
+      globals,
+      watchPoints,
+    ).serialize(s);
     RemovableIfUnusedSection(functions).serialize(s);
     SourceMapSection(sourceMapUrl).serialize(s);
   }
 
   static (Map<int, List<Deserializer>>, Map<String, List<Deserializer>>)
-      _deserializeTopLevel(Deserializer d) {
+  _deserializeTopLevel(Deserializer d) {
     final preamble = d.readBytes(8);
     if (preamble[0] != 0x00 ||
         preamble[1] != 0x61 ||
@@ -165,118 +179,180 @@ class Module implements Serializable {
     final types = TypeSection.deserialize(typeSections?.single);
 
     final importSections = sections[ImportSection.sectionId];
-    final imports =
-        ImportSection.deserialize(importSections?.single, module, types);
+    final imports = ImportSection.deserialize(
+      importSections?.single,
+      module,
+      types,
+    );
 
     final functionSections = sections[FunctionSection.sectionId];
     final functions = FunctionSection.deserialize(
-        functionSections?.single, module, types, imports.functions);
+      functionSections?.single,
+      module,
+      types,
+      imports.functions,
+    );
 
     final tablesSections = sections[TableSection.sectionId];
     final tables = TableSection.deserialize(
-        tablesSections?.single, module, types, imports.tables);
+      tablesSections?.single,
+      module,
+      types,
+      imports.tables,
+    );
 
     final memorySections = sections[MemorySection.sectionId];
     final memories = MemorySection.deserialize(
-        memorySections?.single, module, imports.memories);
+      memorySections?.single,
+      module,
+      imports.memories,
+    );
 
     final tagSections = sections[TagSection.sectionId];
     final tags = TagSection.deserialize(
-        tagSections?.single, module, types, imports.tags);
+      tagSections?.single,
+      module,
+      types,
+      imports.tags,
+    );
 
     final globalSections = sections[GlobalSection.sectionId];
     final globals = GlobalSection.deserialize(
-        globalSections?.single, module, types, functions, imports.globals);
+      globalSections?.single,
+      module,
+      types,
+      functions,
+      imports.globals,
+    );
 
     final exportSections = sections[ExportSection.sectionId];
     final exports = ExportSection.deserialize(
-        exportSections?.single, functions, tables, memories, globals, tags);
+      exportSections?.single,
+      functions,
+      tables,
+      memories,
+      globals,
+      tags,
+    );
 
     final startFunctionSections = sections[StartSection.sectionId];
-    final start =
-        StartSection.deserialize(startFunctionSections?.single, functions);
+    final start = StartSection.deserialize(
+      startFunctionSections?.single,
+      functions,
+    );
 
     final elementSections = sections[ElementSection.sectionId];
     final elements = ElementSection.deserialize(
-        elementSections?.single, module, types, functions, tables, globals);
+      elementSections?.single,
+      module,
+      types,
+      functions,
+      tables,
+      globals,
+    );
 
     final dataCountSections = sections[DataCountSection.sectionId];
-    final dataSegments =
-        DataCountSection.deserialize(dataCountSections?.single);
+    final dataSegments = DataCountSection.deserialize(
+      dataCountSections?.single,
+    );
 
     final codeSections = sections[CodeSection.sectionId];
-    CodeSection.deserialize(codeSections?.single, functions.defined, module,
-        types, functions, tables, memories, tags, globals, dataSegments);
+    CodeSection.deserialize(
+      codeSections?.single,
+      functions.defined,
+      module,
+      types,
+      functions,
+      tables,
+      memories,
+      tags,
+      globals,
+      dataSegments,
+    );
 
     final dataSections = sections[DataSection.sectionId];
     // As side-effect initializes [dataSegments.defined]
     DataSection.deserialize(dataSections?.single, dataSegments, memories);
 
     final moduleName = NameSection.deserialize(
-        customSections[NameSection.customSectionName]?.single,
-        functions,
-        types,
-        globals);
+      customSections[NameSection.customSectionName]?.single,
+      functions,
+      types,
+      globals,
+    );
     RemovableIfUnusedSection.deserialize(
-        customSections[RemovableIfUnusedSection.customSectionName]?.single,
-        functions);
+      customSections[RemovableIfUnusedSection.customSectionName]?.single,
+      functions,
+    );
     final sourceMapUrl = SourceMapSection.deserialize(
-        customSections[SourceMapSection.customSectionName]?.single);
+      customSections[SourceMapSection.customSectionName]?.single,
+    );
 
-    return module
-      ..initialize(
-        moduleName ?? '',
-        functions,
-        start,
-        tables,
-        elements,
-        tags,
-        memories,
-        exports,
-        globals,
-        types,
-        dataSegments,
-        imports,
-        [],
-        sourceMapUrl,
-      );
+    return module..initialize(
+      moduleName ?? '',
+      functions,
+      start,
+      tables,
+      elements,
+      tags,
+      memories,
+      exports,
+      globals,
+      types,
+      dataSegments,
+      imports,
+      [],
+      sourceMapUrl,
+    );
   }
 
   /// Deserialize just the `sourceMapUrl` section of a module as a [Uri].
   static Uri? deserializeSourceMapUrl(Deserializer d) {
     final (sections, customSections) = _deserializeTopLevel(d);
     final sourceMapUrl = SourceMapSection.deserialize(
-        customSections[SourceMapSection.customSectionName]?.single);
+      customSections[SourceMapSection.customSectionName]?.single,
+    );
     return sourceMapUrl;
   }
 
-  String printAsWat(
-      {ModulePrintSettings settings = const ModulePrintSettings()}) {
+  String printAsWat({
+    ModulePrintSettings settings = const ModulePrintSettings(),
+  }) {
     final mp = ModulePrinter(this, settings: settings);
 
     if (settings.hasFilters) {
       // If we have any filters, we treat those as roots.
       if (settings.typeFilters.isNotEmpty) {
-        for (final type in mp.typeNamer.sort(mp.typeNamer
-            .filter(types.defined, settings.printTypeConstituents))) {
+        for (final type in mp.typeNamer.sort(
+          mp.typeNamer.filter(types.defined, settings.printTypeConstituents),
+        )) {
           mp.enqueueType(type);
         }
       }
       if (settings.globalFilters.isNotEmpty) {
-        for (final global in mp.globalNamer.sort(mp.globalNamer
-            .filter(globals.defined, settings.printGlobalInitializer))) {
+        for (final global in mp.globalNamer.sort(
+          mp.globalNamer.filter(
+            globals.defined,
+            settings.printGlobalInitializer,
+          ),
+        )) {
           mp.enqueueGlobal(global);
         }
       }
       if (settings.functionFilters.isNotEmpty) {
-        for (final function in mp.functionNamer.sort(mp.functionNamer
-            .filter(functions.defined, settings.printFunctionBody))) {
+        for (final function in mp.functionNamer.sort(
+          mp.functionNamer.filter(
+            functions.defined,
+            settings.printFunctionBody,
+          ),
+        )) {
           mp.enqueueFunction(function);
         }
       }
       if (settings.tableFilters.isNotEmpty) {
-        for (final table in mp.tableNamer.sort(mp.tableNamer
-            .filter(tables.defined, settings.printTableElements))) {
+        for (final table in mp.tableNamer.sort(
+          mp.tableNamer.filter(tables.defined, settings.printTableElements),
+        )) {
           mp.enqueueTable(table);
         }
       }

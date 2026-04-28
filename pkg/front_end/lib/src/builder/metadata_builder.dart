@@ -4,10 +4,13 @@
 
 import 'package:_fe_analyzer_shared/src/metadata/expressions.dart' as shared;
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' show Token;
+import 'package:front_end/src/kernel/kernel_constants.dart'
+    show KernelConstantErrorReporter;
 import 'package:kernel/ast.dart';
 import 'package:kernel/clone.dart';
 
 import '../api_prototype/experimental_flags.dart';
+import '../api_prototype/external_effect.dart' show ExternalEffect;
 import '../base/extension_scope.dart';
 import '../base/loader.dart';
 import '../base/scope.dart' show LookupScope;
@@ -165,6 +168,25 @@ class MetadataBuilder {
     );
     for (Annotation annotation in annotations) {
       annotation.metadataBuilder._expression = annotation.expression;
+    }
+
+    validateAnnotations(annotatable, libraryBuilder);
+  }
+
+  static void validateAnnotations(
+    Annotatable annotatable,
+    SourceLibraryBuilder libraryBuilder,
+  ) {
+    if (ExternalEffect.isOutlineAnnotatedWithExternalEffect(
+      annotatable,
+      libraryBuilder.loader.coreTypes,
+    )) {
+      ExternalEffect.validatePragma(
+        annotatable,
+        libraryBuilder.loader.coreTypes,
+        new KernelConstantErrorReporter(libraryBuilder.loader),
+        checkHasFlag: false,
+      );
     }
   }
 }

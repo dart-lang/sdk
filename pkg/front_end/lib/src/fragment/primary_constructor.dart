@@ -9,6 +9,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
 
   final Uri fileUri;
   final int startOffset;
+  final int endOffset;
   final int formalsOffset;
   final Modifiers modifiers;
   final OmittedTypeBuilder returnType;
@@ -37,6 +38,7 @@ class PrimaryConstructorFragment implements Fragment, FunctionFragment {
     required this.constructorName,
     required this.fileUri,
     required this.startOffset,
+    required this.endOffset,
     required this.formalsOffset,
     required this.modifiers,
     required this.returnType,

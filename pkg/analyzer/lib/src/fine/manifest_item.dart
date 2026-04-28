@@ -1619,8 +1619,8 @@ sealed class VariableItem<E extends PropertyInducingElementImpl>
         flags.isFinal == element.isFinal &&
         flags.isLate == element.isLate &&
         flags.isStatic == element.isStatic &&
-        flags.shouldUseTypeForInitializerInference ==
-            element.shouldUseTypeForInitializerInference &&
+        flags.isTypeInferredFromInitializer ==
+            element.isTypeInferredFromInitializer &&
         type.match(context, element.type) &&
         constInitializer.match(context, element.constantInitializer) &&
         typeInferenceError == element.typeInferenceError;
@@ -1721,7 +1721,7 @@ enum _VariableItemFlag {
   isFinal,
   isLate,
   isStatic,
-  shouldUseTypeForInitializerInference,
+  isTypeInferredFromInitializer,
 }
 
 extension type _ClassItemFlags._(int _bits) implements _InterfaceItemFlags {
@@ -2483,8 +2483,8 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
     if (element.isStatic) {
       bits |= _maskFor(_VariableItemFlag.isStatic);
     }
-    if (element.shouldUseTypeForInitializerInference) {
-      bits |= _maskFor(_VariableItemFlag.shouldUseTypeForInitializerInference);
+    if (element.isTypeInferredFromInitializer) {
+      bits |= _maskFor(_VariableItemFlag.isTypeInferredFromInitializer);
     }
     return _VariableItemFlags._(bits);
   }
@@ -2513,8 +2513,8 @@ extension type _VariableItemFlags._(int _bits) implements _ManifestItemFlags {
     return _has(_VariableItemFlag.isStatic);
   }
 
-  bool get shouldUseTypeForInitializerInference {
-    return _has(_VariableItemFlag.shouldUseTypeForInitializerInference);
+  bool get isTypeInferredFromInitializer {
+    return _has(_VariableItemFlag.isTypeInferredFromInitializer);
   }
 
   void write(BinaryWriter writer) {

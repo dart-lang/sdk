@@ -14,6 +14,7 @@ void main() {
     defineReflectiveTests(ExtensionInstanceFieldFixTest);
     defineReflectiveTests(ExtensionTypeInstanceFieldFixTest);
     defineReflectiveTests(ImplicitThisInInitializerFixTest);
+    defineReflectiveTests(InvalidReferenceToThisFixTest);
   });
 }
 
@@ -287,5 +288,34 @@ class A {
         return error.diagnosticCode == diag.implicitThisReferenceInInitializer;
       },
     );
+  }
+}
+
+@reflectiveTest
+class InvalidReferenceToThisFixTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.convertIntoGetter;
+
+  Future<void> test_invalidReferenceToThis() async {
+    await resolveTestCode('''
+class A {
+  B b = B(this);
+}
+
+class B {
+  A a;
+  B(this.a);
+}
+''');
+    await assertHasFix('''
+class A {
+  B get b => B(this);
+}
+
+class B {
+  A a;
+  B(this.a);
+}
+''');
   }
 }

@@ -1,0 +1,40 @@
+class A {
+  @pragma('external-effect')
+  external static int b(Object? o);
+  @pragma('external-effect')
+  external static void c(Object? o, Object? x);
+  @pragma('external-effect')
+  external static void d(int i);
+  @pragma('external-effect')
+  external static void e([Object? o = const Object()]);
+  @pragma('external-effect')
+  external static void f({required Object? o});
+  @pragma('external-effect')
+  external static void g({Object? o = 3});
+  @pragma('external-effect')
+  external static void h<T>(T? t);
+  @pragma('external-effect')
+  external void a(Object? o);
+}
+
+const z = 'external-effect';
+
+@pragma('external-effect')
+external int a;
+
+@pragma('external-effect')
+external int get b;
+
+@pragma('external-effect')
+external set c(int value);
+
+@pragma('external-effect')
+external void e(Object o);
+
+@pragma(z)
+external void f(Object? o);
+
+@pragma('external-effect')
+void d(Object? o) {}
+
+void main() {}

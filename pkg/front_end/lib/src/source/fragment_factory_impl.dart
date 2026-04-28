@@ -920,7 +920,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     OffsetMap? offsetMap,
     Token? importKeyword,
     required List<MetadataBuilder>? metadata,
-    required bool isAugmentationImport,
     required String uri,
     required List<Configuration>? configurations,
     required String? prefix,
@@ -970,31 +969,22 @@ class FragmentFactoryImpl implements FragmentFactory {
       compilationUnit = loader.read(
         resolvedUri,
         uriOffset,
-        origin: isAugmentationImport
-            ?
-              // Coverage-ignore(suite): Not run.
-              _augmentationRoot
-            : null,
+        origin: null,
         accessor: _compilationUnit,
-        referencesFromIndex: isAugmentationImport
-            ?
-              // Coverage-ignore(suite): Not run.
-              _indexedLibrary
-            : null,
+        referencesFromIndex: null,
       );
     }
 
     Import import = new Import(
-      _compilationUnit,
-      compilationUnit,
-      isAugmentationImport,
-      deferred,
-      prefix,
-      combinators,
-      configurations,
-      _compilationUnit.fileUri,
-      charOffset,
-      prefixCharOffset,
+      importer: _compilationUnit,
+      importedCompilationUnit: compilationUnit,
+      deferred: deferred,
+      prefix: prefix,
+      combinators: combinators,
+      configurations: configurations,
+      fileUri: _compilationUnit.fileUri,
+      importOffset: charOffset,
+      prefixOffset: prefixCharOffset,
       nativeImportPath: nativePath,
     );
     _compilationUnitRegistry.registerImport(import);
@@ -1089,9 +1079,15 @@ class FragmentFactoryImpl implements FragmentFactory {
   }) {
     EnumFragment declarationFragment = endEnumDeclaration();
 
+    Modifiers modifiers = Modifiers.empty;
+    if (declarationFragment.declaresConstConstructor) {
+      modifiers |= Modifiers.DeclaresConstConstructor;
+    }
+
     declarationFragment.compilationUnitScope = _compilationUnitScope;
     declarationFragment.metadata = metadata;
     declarationFragment.mixins = mixins;
+    declarationFragment.modifiers = modifiers;
     declarationFragment.interfaces = interfaces;
     declarationFragment.startOffset = startOffset;
     declarationFragment.endOffset = endOffset;
@@ -1397,6 +1393,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required String? name,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,
+    required int endOffset,
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
@@ -1475,6 +1472,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       constructorName: constructorName,
       fileUri: _compilationUnit.fileUri,
       startOffset: startOffset,
+      endOffset: endOffset,
       formalsOffset: formalsOffset,
       modifiers: isConst ? Modifiers.Const : Modifiers.empty,
       returnType: addInferableType(InferenceDefaultType.Dynamic),
@@ -2137,13 +2135,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     List<FieldInfo> fieldInfos,
   ) {
     for (FieldInfo info in fieldInfos) {
-      bool isConst = modifiers.isConst;
-      bool isFinal = modifiers.isFinal;
-      bool potentiallyNeedInitializerInOutline = isConst || isFinal;
-      Token? startToken;
-      if (potentiallyNeedInitializerInOutline || type == null) {
-        startToken = info.initializerToken;
-      }
+      Token? startToken = info.initializerToken;
       if (startToken != null) {
         // Extract only the tokens for the initializer expression from the
         // token stream.
@@ -2151,7 +2143,6 @@ class FragmentFactoryImpl implements FragmentFactory {
         endToken.setNext(new Token.eof(endToken.next!.offset));
         new Token.eof(startToken.previous!.offset).setNext(startToken);
       }
-      bool hasInitializer = info.initializerToken != null;
       offsetMap.registerField(
         info.identifier,
         _addField(
@@ -2163,10 +2154,6 @@ class FragmentFactoryImpl implements FragmentFactory {
           nameOffset: info.identifier.nameOffset,
           endOffset: info.endOffset,
           initializerToken: startToken,
-          hasInitializer: hasInitializer,
-          constInitializerToken: potentiallyNeedInitializerInOutline
-              ? startToken
-              : null,
         ),
       );
     }
@@ -2181,12 +2168,10 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int nameOffset,
     required int endOffset,
     required Token? initializerToken,
-    required bool hasInitializer,
-    Token? constInitializerToken,
   }) {
     DeclarationFragmentImpl? enclosingDeclaration =
         _declarationFragments.currentOrNull;
-    if (hasInitializer) {
+    if (initializerToken != null) {
       modifiers |= Modifiers.HasInitializer;
     }
     FieldFragment fragment = new FieldFragment(
@@ -2195,7 +2180,6 @@ class FragmentFactoryImpl implements FragmentFactory {
       nameOffset: nameOffset,
       endOffset: endOffset,
       initializerToken: initializerToken,
-      constInitializerToken: constInitializerToken,
       metadata: metadata,
       type: type,
       isTopLevel: isTopLevel,
@@ -2259,7 +2243,9 @@ class FragmentFactoryImpl implements FragmentFactory {
       modifiers |= Modifiers.SuperInitializingFormal;
     }
     bool isWildcard =
-        libraryFeatures.wildcardVariables.isEnabled && name == '_';
+        kind.isPositional &&
+        libraryFeatures.wildcardVariables.isEnabled &&
+        name == '_';
     int? wildcardIndex;
     if (isWildcard) {
       wildcardIndex = wildcardVariableIndex++;

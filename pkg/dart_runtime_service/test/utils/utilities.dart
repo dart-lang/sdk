@@ -24,7 +24,8 @@ Future<DartRuntimeService> createDartRuntimeServiceForTest({
 
   service = await DartRuntimeService.initialize(
     config: config,
-    backendBuilder: (_) => FakeDartRuntimeServiceBackend(),
+    backendBuilder: (frontend) =>
+        FakeDartRuntimeServiceBackend(frontend: frontend),
   );
   return service;
 }

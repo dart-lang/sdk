@@ -39,17 +39,39 @@ void enableVerboseOutput() {
 }
 
 abstract class Logger {
-  void logTestStart(int completed, int failed, int total, Suite suite,
-      TestDescription description);
+  void logTestStart(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    TestDescription description,
+  );
 
-  void logTestComplete(int completed, int failed, int total, Suite suite,
-      TestDescription description);
+  void logTestComplete(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    TestDescription description,
+  );
 
-  void logStepStart(int completed, int failed, int total, Suite suite,
-      TestDescription description, Step step);
+  void logStepStart(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    TestDescription description,
+    Step step,
+  );
 
-  void logStepComplete(int completed, int failed, int total, Suite suite,
-      TestDescription description, Step step);
+  void logStepComplete(
+    int completed,
+    int failed,
+    int total,
+    Suite suite,
+    TestDescription description,
+    Step step,
+  );
 
   void logProgress(String message);
 
@@ -57,11 +79,19 @@ abstract class Logger {
 
   void logNumberedLines(String text);
 
-  void logExpectedResult(Suite suite, TestDescription description,
-      Result result, Set<Expectation> expectedOutcomes);
+  void logExpectedResult(
+    Suite suite,
+    TestDescription description,
+    Result result,
+    Set<Expectation> expectedOutcomes,
+  );
 
-  void logUnexpectedResult(Suite suite, TestDescription description,
-      Result result, Set<Expectation> expectedOutcomes);
+  void logUnexpectedResult(
+    Suite suite,
+    TestDescription description,
+    Result result,
+    Set<Expectation> expectedOutcomes,
+  );
 
   void logSuiteStarted(Suite suite);
 
@@ -79,12 +109,22 @@ class StdoutLogger implements Logger {
   const StdoutLogger();
 
   @override
-  void logTestStart(int completed, int failed, int total, Suite? suite,
-      TestDescription? description) {}
+  void logTestStart(
+    int completed,
+    int failed,
+    int total,
+    Suite? suite,
+    TestDescription? description,
+  ) {}
 
   @override
-  void logTestComplete(int completed, int failed, int total, Suite? suite,
-      TestDescription? description) {
+  void logTestComplete(
+    int completed,
+    int failed,
+    int total,
+    Suite? suite,
+    TestDescription? description,
+  ) {
     String message = formatProgress(completed, failed, total);
     if (suite != null) {
       message += ": ${formatTestDescription(suite, description!)}";
@@ -93,8 +133,14 @@ class StdoutLogger implements Logger {
   }
 
   @override
-  void logStepStart(int completed, int failed, int total, Suite? suite,
-      TestDescription description, Step step) {
+  void logStepStart(
+    int completed,
+    int failed,
+    int total,
+    Suite? suite,
+    TestDescription description,
+    Step step,
+  ) {
     String message = formatProgress(completed, failed, total);
     if (suite != null) {
       message += ": ${formatTestDescription(suite, description)} ${step.name}";
@@ -106,8 +152,14 @@ class StdoutLogger implements Logger {
   }
 
   @override
-  void logStepComplete(int completed, int failed, int total, Suite? suite,
-      TestDescription description, Step step) {
+  void logStepComplete(
+    int completed,
+    int failed,
+    int total,
+    Suite? suite,
+    TestDescription description,
+    Step step,
+  ) {
     if (!step.isAsync) return;
     String message = formatProgress(completed, failed, total);
     if (suite != null) {
@@ -154,12 +206,20 @@ class StdoutLogger implements Logger {
   }
 
   @override
-  void logExpectedResult(Suite suite, TestDescription description,
-      Result result, Set<Expectation> expectedOutcomes) {}
+  void logExpectedResult(
+    Suite suite,
+    TestDescription description,
+    Result result,
+    Set<Expectation> expectedOutcomes,
+  ) {}
 
   @override
-  void logUnexpectedResult(Suite suite, TestDescription description,
-      Result result, Set<Expectation> expectedOutcomes) {
+  void logUnexpectedResult(
+    Suite suite,
+    TestDescription description,
+    Result result,
+    Set<Expectation> expectedOutcomes,
+  ) {
     print("${eraseLine}UNEXPECTED: ${suite.name}/${description.shortName}");
     Uri? statusFile = suite.statusFile;
     if (statusFile != null) {
@@ -167,8 +227,10 @@ class StdoutLogger implements Logger {
       if (result.outcome == Expectation.pass) {
         print("The test unexpectedly passed, please update $path.");
       } else {
-        print("The test had the outcome ${result.outcome}, but the status file "
-            "($path) allows these outcomes: ${expectedOutcomes.join(' ')}");
+        print(
+          "The test had the outcome ${result.outcome}, but the status file "
+          "($path) allows these outcomes: ${expectedOutcomes.join(' ')}",
+        );
       }
     }
     String log = result.log;
@@ -218,8 +280,9 @@ String numberedLines(String text) {
   String fill = " " * pad;
   for (String line in lines) {
     String paddedLineNumber = "$fill$lineNumber";
-    paddedLineNumber =
-        paddedLineNumber.substring(paddedLineNumber.length - pad);
+    paddedLineNumber = paddedLineNumber.substring(
+      paddedLineNumber.length - pad,
+    );
     result.write("$paddedLineNumber: $line");
     lineNumber++;
   }

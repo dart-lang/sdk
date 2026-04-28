@@ -1047,9 +1047,9 @@ class _AstToIRVisitor extends ThrowingAstVisitor<_LValueTemplates> {
     }
     // Stack: BLOCK(1)? target
     for (var argument in argumentList.arguments) {
-      if (argument is NamedExpression) {
-        dispatchNode(argument.expression);
-        argumentNames.add(argument.name.label.name);
+      if (argument is NamedArgument) {
+        dispatchNode(argument.argumentExpression);
+        argumentNames.add(argument.name.lexeme);
       } else {
         dispatchNode(argument);
         argumentNames.add(null);

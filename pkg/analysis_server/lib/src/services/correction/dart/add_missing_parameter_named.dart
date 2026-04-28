@@ -30,7 +30,7 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     // Prepare the name of the missing parameter.
     var node = this.node;
-    if (node is SimpleIdentifier) {
+    if (node is NamedArgument) {
       await _handleArgumentNode(node, builder);
     } else if (node is SuperFormalParameter) {
       await _handleSuperFormalParameter(node, builder);
@@ -43,7 +43,7 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
     int? offset,
     String prefix,
     String suffix, {
-    NamedExpression? namedExpression,
+    NamedArgument? namedExpression,
     SuperFormalParameter? superFormalParameter,
   }) async {
     assert(
@@ -55,10 +55,12 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
         await builder.addDartFileEdit(context.file, (builder) {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
-            builder.writeParameterMatchingArgument(
-              namedExpression,
-              0,
-              <String>{},
+            var type = namedExpression.argumentExpression.staticType;
+            builder.writeFormalParameter(
+              namedExpression.name.lexeme,
+              type: type,
+              isRequiredNamed:
+                  type != null && typeSystem.isPotentiallyNonNullable(type),
             );
             builder.write(suffix);
           });
@@ -68,10 +70,8 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
           builder.addInsertion(offset, (builder) {
             builder.write(prefix);
             var type = superFormalParameter.type?.type;
-            if (superFormalParameter.parent case DefaultFormalParameter(
-              :var defaultValue?,
-            )) {
-              type ??= defaultValue.staticType;
+            if (superFormalParameter.defaultClause case var defaultClause?) {
+              type ??= defaultClause.value.staticType;
             }
             builder.writeFormalParameter(
               superFormalParameter.name.lexeme,
@@ -87,19 +87,13 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
   }
 
   Future<void> _handleArgumentNode(
-    SimpleIdentifier node,
+    NamedArgument namedExpression,
     ChangeBuilder builder,
   ) async {
-    _parameterName = node.name;
+    _parameterName = namedExpression.name.lexeme;
     // It isn't valid to have a private named parameter that is not assigning a
     // value to a field, so we can't support this case.
     if (Identifier.isPrivateName(_parameterName)) return;
-
-    // We expect that the node is part of a NamedExpression.
-    var namedExpression = node.parent?.parent;
-    if (namedExpression is! NamedExpression) {
-      return;
-    }
 
     // We should be in an ArgumentList.
     var argumentList = namedExpression.parent;
@@ -162,7 +156,7 @@ class AddMissingParameterNamed extends ResolvedCorrectionProducer {
     ChangeBuilder builder,
   ) async {
     Element? element;
-    if (node.parent?.parent case FormalParameterList(
+    if (node.parent case FormalParameterList(
       parent: ConstructorDeclaration(:var declaredFragment?),
     )) {
       element = declaredFragment.element.superConstructor;

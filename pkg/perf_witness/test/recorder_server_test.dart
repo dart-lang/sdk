@@ -9,6 +9,7 @@ import 'dart:isolate';
 
 import 'package:path/path.dart' as p;
 import 'package:perf_witness/recorder.dart';
+import 'package:perf_witness/server.dart';
 import 'package:perf_witness/src/common.dart';
 import 'package:perf_witness/src/json_rpc.dart';
 import 'package:test/test.dart';
@@ -832,6 +833,97 @@ void main() {
         throwsA(isA<JsonRpcException>()),
       );
       conn.disconnect();
+      await busyLoopProcess.process.askToExit();
+      expect(await busyLoopProcess.process.exitCode, 0);
+    });
+
+    test('stale control socket', () async {
+      final socketPath = p.join(tempDir.path, 'stale');
+      expect(
+        io.FileSystemEntity.typeSync(socketPath),
+        io.FileSystemEntityType.notFound,
+      );
+      await io.Process.run(io.Platform.resolvedExecutable, [
+        p.join(testsDir, 'common', 'create_stale_socket.dart'),
+        socketPath,
+      ]);
+      expect(
+        io.FileSystemEntity.typeSync(socketPath),
+        io.FileSystemEntityType.unixDomainSock,
+      );
+      expectLater(
+        UnixDomainSocket.connect(socketPath),
+        throwsA(isA<io.SocketException>()),
+      );
+
+      await PerfWitnessServer.start(socketPath: socketPath);
+      final clientSocket = await UnixDomainSocket.connect(socketPath);
+      clientSocket.drain().ignore();
+      await clientSocket.close();
+      await PerfWitnessServer.shutdown();
+    });
+
+    test('recording stops when client disconnects', () async {
+      final busyLoopProcess = await BusyLoopProcess.start(
+        'busy-loop-tag',
+        tempDir,
+      );
+
+      // Request recording, but then disconnect. The server should handle this
+      // gracefully and stop recording.
+      {
+        final conn = await Connection.connectTo(
+          controlSocketPathForPid(
+            busyLoopProcess.process.pid,
+            controlSocketDirectory: p.join(tempDir.path, 'perf'),
+          )!,
+        );
+        await conn.startRecording(
+          tempDir.path,
+          config: PerfWitnessRecorderConfig(),
+        );
+        conn.disconnect();
+        await conn.socket?.done;
+      }
+
+      // Request recording again and check that this does not error.
+      {
+        final conn = await Connection.connectTo(
+          controlSocketPathForPid(
+            busyLoopProcess.process.pid,
+            controlSocketDirectory: p.join(tempDir.path, 'perf'),
+          )!,
+        );
+        await conn.startRecording(
+          tempDir.path,
+          config: PerfWitnessRecorderConfig(),
+        );
+        await conn.stopRecording();
+        conn.disconnect();
+        await conn.socket?.done;
+      }
+
+      await busyLoopProcess.process.askToExit();
+      expect(await busyLoopProcess.process.exitCode, 0);
+    });
+
+    test('server does not crash on abrupt client disconnect', () async {
+      final busyLoopProcess = await BusyLoopProcess.start(
+        'busy-loop-tag',
+        tempDir,
+      );
+      final conn = await Connection.connectTo(
+        controlSocketPathForPid(
+          busyLoopProcess.process.pid,
+          controlSocketDirectory: p.join(tempDir.path, 'perf'),
+        )!,
+      );
+      await conn.startRecording(
+        tempDir.path,
+        config: PerfWitnessRecorderConfig(),
+      );
+      conn.stopRecording().ignore();
+      conn.socket?.destroy();
       await busyLoopProcess.process.askToExit();
       expect(await busyLoopProcess.process.exitCode, 0);
     });

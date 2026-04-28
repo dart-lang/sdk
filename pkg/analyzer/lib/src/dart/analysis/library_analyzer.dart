@@ -176,7 +176,14 @@ class LibraryAnalyzer {
         libraryFilePath: _library.file.path,
         unitFilePath: file.path,
       );
-      parsedUnit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
+      parsedUnit.accept(
+        ElementBindingVisitor.forAnalysis(
+          unit: parsedUnit,
+          fragment: libraryFragment,
+          reporter: DiagnosticReporter(diagnosticListener, file.source),
+          walker: elementWalker,
+        ),
+      );
       parsedUnit.accept(
         ResolutionVisitor(
           libraryFragment: libraryFragment,
@@ -816,7 +823,14 @@ class LibraryAnalyzer {
       libraryFilePath: _library.file.path,
       unitFilePath: fileAnalysis.file.path,
     );
-    unit.accept(ElementBindingVisitor(libraryFragment, elementWalker));
+    unit.accept(
+      ElementBindingVisitor.forAnalysis(
+        unit: unit,
+        fragment: libraryFragment,
+        reporter: fileAnalysis.diagnosticReporter,
+        walker: elementWalker,
+      ),
+    );
 
     var docImportLibraries = [
       for (var import in _library.docLibraryImports)

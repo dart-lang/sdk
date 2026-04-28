@@ -9,20 +9,29 @@ import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename_local.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/visible_ranges_computer.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart' as analyzer;
 import 'package:analyzer/src/generated/java_core.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// A [Refactoring] for renaming [analyzer.FormalParameterElement]s.
 class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+
+  final CorrectionUtils utils;
+
   List<analyzer.FormalParameterElement> elements = [];
   bool _renameAllPositionalOccurrences = false;
 
   RenameParameterRefactoringImpl(
     super.workspace,
     super.sessionHelper,
+    this.resolvedUnit,
     analyzer.FormalParameterElement super.element,
-  ) : super();
+  ) : utils = CorrectionUtils(resolvedUnit),
+      super();
 
   @override
   analyzer.FormalParameterElement get element =>
@@ -31,6 +40,43 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     return 'Rename Parameter';
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var processor = RenameProcessor2(
+      workspace,
+      sessionHelper,
+      builder,
+      newName,
+    );
+    for (var element in elements) {
+      if (element != this.element &&
+          element.isPositional &&
+          !_renameAllPositionalOccurrences) {
+        continue;
+      }
+      var fieldRenamed = false;
+      if (element is analyzer.FieldFormalParameterElement) {
+        var field = element.field;
+        if (field != null) {
+          await processor.renameElement(field);
+          fieldRenamed = true;
+        }
+      }
+
+      if (!fieldRenamed) {
+        await processor.addDeclarationEdit(element);
+      }
+      var references = await searchEngine.searchReferences(element);
+
+      // Named super formals are already in [elements].
+      // Positional super formals are not tied by name so shouldn't be renamed.
+      references.removeWhere(
+        (match) => match.element is analyzer.SuperFormalParameterElement,
+      );
+
+      await processor.addReferenceEdits(references);
+    }
   }
 
   @override
@@ -91,36 +137,20 @@ class RenameParameterRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    for (var element in elements) {
-      if (element != this.element &&
-          element.isPositional &&
-          !_renameAllPositionalOccurrences) {
-        continue;
-      }
-      var fieldRenamed = false;
-      if (element is analyzer.FieldFormalParameterElement) {
-        var field = element.field;
-        if (field != null) {
-          await processor.renameElement(field);
-          fieldRenamed = true;
-        }
-      }
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
 
-      if (!fieldRenamed) {
-        processor.addDeclarationEdit(element);
-      }
-      var references = await searchEngine.searchReferences(element);
-
-      // Named super formals are already in [elements].
-      // Positional super formals are not tied by name so shouldn't be renamed.
-      references.removeWhere(
-        (match) => match.element is analyzer.SuperFormalParameterElement,
-      );
-
-      processor.addReferenceEdits(references);
-    }
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
   }
 
   /// Fills [elements] with [Element]s to rename.

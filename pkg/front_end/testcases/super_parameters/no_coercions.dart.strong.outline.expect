@@ -7,9 +7,9 @@ class A1 extends core::Object {
     ;
 }
 class B1 extends self::A1 {
-  constructor one(dynamic x) → self::B1
+  constructor one(super-initializing-formal dynamic x) → self::B1
     ;
-  constructor two(dynamic x) → self::B1
+  constructor two(super-initializing-formal dynamic x) → self::B1
     ;
 }
 class A2 extends core::Object {
@@ -17,9 +17,9 @@ class A2 extends core::Object {
     ;
 }
 class B2 extends self::A2 {
-  constructor one({required dynamic x}) → self::B2
+  constructor one({required super-initializing-formal dynamic x}) → self::B2
     ;
-  constructor two({required dynamic x}) → self::B2
+  constructor two({required super-initializing-formal dynamic x}) → self::B2
     ;
 }
 class A3 extends core::Object {
@@ -27,9 +27,9 @@ class A3 extends core::Object {
     ;
 }
 class B3 extends self::A3 {
-  constructor one(<X extends core::Object? = dynamic>(core::double) → X% f) → self::B3
+  constructor one(super-initializing-formal <X extends core::Object? = dynamic>(core::double) → X% f) → self::B3
     ;
-  constructor two(<X extends core::Object? = dynamic>(core::double) → X% f) → self::B3
+  constructor two(super-initializing-formal <X extends core::Object? = dynamic>(core::double) → X% f) → self::B3
     ;
 }
 class A4 extends core::Object {
@@ -37,9 +37,9 @@ class A4 extends core::Object {
     ;
 }
 class B4 extends self::A4 {
-  constructor one({required <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
+  constructor one({required super-initializing-formal <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
     ;
-  constructor two({required <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
+  constructor two({required super-initializing-formal <X extends core::Object? = dynamic>(core::double) → X% f}) → self::B4
     ;
 }
 abstract class C5 extends core::Object {
@@ -52,9 +52,9 @@ class A5 extends core::Object {
     ;
 }
 class B5 extends self::A5 {
-  constructor one(self::C5 f) → self::B5
+  constructor one(super-initializing-formal self::C5 f) → self::B5
     ;
-  constructor two(self::C5 f) → self::B5
+  constructor two(super-initializing-formal self::C5 f) → self::B5
     ;
 }
 class A6 extends core::Object {
@@ -62,9 +62,9 @@ class A6 extends core::Object {
     ;
 }
 class B6 extends self::A6 {
-  constructor one({required self::C5 f}) → self::B6
+  constructor one({required super-initializing-formal self::C5 f}) → self::B6
     ;
-  constructor two({required self::C5 f}) → self::B6
+  constructor two({required super-initializing-formal self::C5 f}) → self::B6
     ;
 }
 class A7 extends core::Object {
@@ -72,7 +72,7 @@ class A7 extends core::Object {
     ;
 }
 class B7 extends self::A7 {
-  constructor •({required dynamic x1, required dynamic x2, required <X extends core::Object? = dynamic>(core::Object) → X% f1, required <X extends core::Object? = dynamic>(core::Object) → X% f2, required <X extends core::Object? = dynamic>(X%) → void g1, required <X extends core::Object? = dynamic>(X%) → void g2}) → self::B7
+  constructor •({required super-initializing-formal dynamic x1, required dynamic x2, required super-initializing-formal <X extends core::Object? = dynamic>(core::Object) → X% f1, required <X extends core::Object? = dynamic>(core::Object) → X% f2, required super-initializing-formal <X extends core::Object? = dynamic>(X%) → void g1, required <X extends core::Object? = dynamic>(X%) → void g2}) → self::B7
     ;
 }
 static method main() → dynamic

@@ -55,13 +55,13 @@ class DartObjectPrinter {
       } else if (state is SetState) {
         _writeSetState(state);
       } else if (state is TypeState) {
-        _sink.write('Type ');
-        _sink.writeln(state);
+        _writeTypeObject(object);
       } else {
         throw UnimplementedError();
       }
       _writeConstructorInvocation(object);
       _writeVariable(object);
+      _writeTypeNotExtensionTypeErased(object);
     } else {
       _sink.writeln('<null>');
     }
@@ -245,6 +245,30 @@ class DartObjectPrinter {
   void _writeTypeArguments(List<DartType>? typeArguments) {
     _sink.withIndent(() {
       _elementPrinter.writeTypeList('typeArguments', typeArguments);
+    });
+  }
+
+  void _writeTypeNotExtensionTypeErased(DartObjectImpl object) {
+    var typeNotErased = object.typeNotExtensionTypeErased;
+    if (typeNotErased != object.type) {
+      _sink.withIndent(() {
+        _elementPrinter.writeNamedType(
+          'typeNotExtensionTypeErased',
+          typeNotErased,
+        );
+      });
+    }
+  }
+
+  void _writeTypeObject(DartObjectImpl object) {
+    _elementPrinter.writeType(object.type);
+
+    _sink.withIndent(() {
+      _elementPrinter.writeNamedType('toTypeValue', object.toTypeValue());
+      _elementPrinter.writeNamedType(
+        'toTypeValueNotExtensionTypeErased',
+        object.toTypeValueNotExtensionTypeErased(),
+      );
     });
   }
 

@@ -78,6 +78,24 @@ void f() {}
     expect(symbolsResponse2.error, isNull);
   }
 
+  Future<void> test_class_unnamed() async {
+    const content = '''
+class {
+  void foo() {}
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+
+    failTestOnErrorDiagnostic = false;
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': false,
+    });
+
+    var symbols = await getWorkspaceSymbols('foo');
+    expect(symbols, isEmpty);
+  }
+
   Future<void> test_constructor_primary_named_noBody() async {
     const content = '''
     /*[0*/class /*[1*/UniqueClassName.namedUnique(int a)/*1]*/;/*0]*/
@@ -292,6 +310,24 @@ class UniqueClassName {
     expect(await getWorkspaceSymbols('LocalClass12345'), isNotEmpty);
   }
 
+  Future<void> test_enum_unnamed() async {
+    const content = '''
+enum {
+  v
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+
+    failTestOnErrorDiagnostic = false;
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': false,
+    });
+
+    var symbols = await getWorkspaceSymbols('v');
+    expect(symbols, isEmpty);
+  }
+
   Future<void> test_extensions() async {
     const content = '''
 extension StringExtensions on String {}
@@ -346,6 +382,22 @@ extension type E(int it) {
     );
     expect(namedExtensions.kind, equals(SymbolKind.Method));
     expect(namedExtensions.containerName, 'E');
+  }
+
+  Future<void> test_extensionType_unnamed() async {
+    const content = '''
+extension type (int it) {}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+
+    failTestOnErrorDiagnostic = false;
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': false,
+    });
+
+    var symbols = await getWorkspaceSymbols('it');
+    expect(symbols, isEmpty);
   }
 
   Future<void> test_fullMatch() async {
@@ -423,6 +475,24 @@ class MyClass {
         'params.query must not be undefined',
       ),
     );
+  }
+
+  Future<void> test_mixin_unnamed() async {
+    const content = '''
+mixin {
+  void foo() {}
+}
+''';
+    var code = TestCode.parse(content);
+    newFile(mainFilePath, code.code);
+
+    failTestOnErrorDiagnostic = false;
+    await provideConfig(initialize, {
+      'includeDependenciesInWorkspaceSymbols': false,
+    });
+
+    var symbols = await getWorkspaceSymbols('foo');
+    expect(symbols, isEmpty);
   }
 
   /// Ensure that multiple projects/drivers do not result in duplicate results

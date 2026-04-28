@@ -70,7 +70,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
@@ -100,7 +100,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: B
       element: package:test/a.dart::@class::B
       type: B<num>
@@ -162,7 +162,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: A
       element: package:test/a.dart::@class::A
       type: A
@@ -188,7 +188,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: package:test/b.dart::<fragment>::@prefix2::p
+        element: package:test/b.dart::<fragment>::@prefix::p
       name: A
       element: package:test/a.dart::@class::A
       type: A
@@ -221,7 +221,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
       name: C
       typeArguments: TypeArgumentList
         leftBracket: <

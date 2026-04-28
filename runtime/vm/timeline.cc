@@ -377,7 +377,7 @@ void Timeline::Cleanup() {
   }
 }
 
-void Timeline::ReclaimCachedBlocksFromThreads() {
+void Timeline::ReclaimCachedBlocksFromThreads(OSThreadIterator* it) {
   RecorderSynchronizationLockScope ls;
   TimelineEventRecorder* recorder = Timeline::recorder();
   if (recorder == nullptr || ls.IsUninitialized()) {
@@ -385,9 +385,8 @@ void Timeline::ReclaimCachedBlocksFromThreads() {
   }
   ASSERT(recorder != nullptr);
   // Iterate over threads.
-  OSThreadIterator it;
-  while (it.HasNext()) {
-    OSThread* thread = it.Next();
+  while (it->HasNext()) {
+    OSThread* thread = it->Next();
     MutexLocker ml(thread->timeline_block_lock());
     // Grab block and clear it.
     TimelineEventBlock* block = thread->TimelineBlockLocked();
@@ -443,8 +442,9 @@ void Timeline::Clear() {
   ASSERT(recorder != nullptr);
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until they have been cleared.
+  OSThreadIterator it;
   MutexLocker ml(&recorder->lock_);
-  ReclaimCachedBlocksFromThreads();
+  ReclaimCachedBlocksFromThreads(&it);
   recorder->ClearLocked();
 }
 
@@ -1546,8 +1546,9 @@ void TimelineEventRecorder::WriteTo(const char* directory) {
 
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until the trace has been serialized.
+  OSThreadIterator it;
   MutexLocker ml(&lock_);
-  Timeline::ReclaimCachedBlocksFromThreads();
+  Timeline::ReclaimCachedBlocksFromThreads(&it);
 
   intptr_t pid = OS::ProcessId();
   char* filename =
@@ -1732,8 +1733,9 @@ void TimelineEventFixedBufferRecorder::ForEachNonEmptyBlock(
     std::function<void(const TimelineEventBlock&)>&& handle_block) {
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until the trace has been serialized.
+  OSThreadIterator it;
   MutexLocker ml(&lock_);
-  Timeline::ReclaimCachedBlocksFromThreads();
+  Timeline::ReclaimCachedBlocksFromThreads(&it);
   ResetTimeTracking();
   intptr_t block_offset = FindOldestBlockIndexLocked();
   if (block_offset == -1) {
@@ -2590,8 +2592,9 @@ void TimelineEventEndlessRecorder::ForEachNonEmptyBlock(
     std::function<void(const TimelineEventBlock&)>&& handle_block) {
   // Acquire the recorder's lock to prevent the reclaimed blocks from being
   // handed out again until the trace has been serialized.
+  OSThreadIterator it;
   MutexLocker ml(&lock_);
-  Timeline::ReclaimCachedBlocksFromThreads();
+  Timeline::ReclaimCachedBlocksFromThreads(&it);
   ResetTimeTracking();
   for (TimelineEventBlock* current = head_; current != nullptr;
        current = current->next()) {

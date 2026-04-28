@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 
@@ -14,7 +13,6 @@ VerifySuperFormalParametersResult verifySuperFormalParameters({
 }) {
   var result = VerifySuperFormalParametersResult();
   for (var parameter in formalParameterList.parameters) {
-    parameter = parameter.notDefault;
     if (parameter is SuperFormalParameterImpl) {
       var declaredFragment = parameter.declaredFragment!;
       if (parameter.isNamed) {

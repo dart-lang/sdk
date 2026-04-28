@@ -13,5 +13,6 @@ dependencies:
   file: any
   json_rpc_2: any
   logging: any
+  meta: any
   stream_channel: any
   vm_service: any

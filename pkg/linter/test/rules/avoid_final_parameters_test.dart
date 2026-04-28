@@ -33,12 +33,7 @@ class C {
   C(final this.p);
 }
 ''',
-      [
-        // TODO(srawlins): Do not report this lint rule here, as it is redundant
-        // with the Warning.
-        error(diag.unnecessaryFinal, 23, 5),
-        lint(23, 5),
-      ],
+      [error(diag.unnecessaryFinal, 23, 5)],
     );
   }
 
@@ -413,12 +408,8 @@ class B extends A {
 }
 ''',
       [
-        // TODO(srawlins): Do not report this lint rule here, as it is redundant
-        // with the Hint.
         error(diag.unnecessaryFinal, 83, 5),
         error(diag.unnecessaryFinal, 98, 5),
-        lint(83, 5),
-        lint(98, 5),
       ],
     );
   }

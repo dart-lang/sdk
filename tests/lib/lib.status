@@ -105,6 +105,7 @@ js/static_interop_test/js_function_arity_test: SkipByDesign # Issue 42085. CSP p
 js/static_interop_test/js_function_conversions_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_stack_trace_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/js_typed_array_test: SkipByDesign # CSP policy disallows injected JS code
+js/static_interop_test/js_types_test: SkipByDesign # CSP policy disallows injected JS code
 js/static_interop_test/jsify_dartify_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/jsobject_type_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code
 js/static_interop_test/native_error_test: SkipByDesign # Issue 42085. CSP policy disallows injected JS code

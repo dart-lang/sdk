@@ -86,7 +86,7 @@ class Linker {
     return analysisContext.declaredVariables;
   }
 
-  Reference get rootReference => elementFactory.rootReference;
+  RootReference get rootReference => elementFactory.rootReference;
 
   bool get _isLinkingDartCore {
     var dartCoreUri = uriCache.parse('dart:core');
@@ -188,41 +188,39 @@ class Linker {
       }
     }
 
-    // We keep a queue of exports to propagate.
-    // First we loop over every reference that both exports and is exported,
-    // but then we only process the exports that should be propagated.
-    var additionalExportData = <_AdditionalExport>[];
+    // We keep a queue of export entries to propagate.
+    // First we loop over every library that both exports and is exported, but
+    // then we only process the export entries that should be propagated.
+    var additionalExports = <_AdditionalExport>[];
 
-    void addExport(Export export, String name, ExportedReference reference) {
-      if (export.addToExportScope(name, reference)) {
-        // We've added [name] to [export.exporter]s export scope.
+    void addExport(Export export, ExportEntry entry) {
+      if (export.addToExportScope(entry)) {
+        // We've added [entry.name] to [export.exporter]s export scope.
         // We need to propagate that to anyone that exports that library.
-        additionalExportData.add(
-          _AdditionalExport(export.exporter, name, reference),
-        );
+        additionalExports.add(_AdditionalExport(export.exporter, entry));
       }
     }
 
     for (var exported in both) {
       for (var export in exported.exports) {
-        exported.exportScope.forEach((name, reference) {
-          addExport(export, name, reference);
+        exported.exportScope.forEach((entry) {
+          addExport(export, entry);
         });
       }
     }
 
-    while (additionalExportData.isNotEmpty) {
-      var data = additionalExportData.removeLast();
-      for (var export in data.exported.exports) {
-        addExport(export, data.name, data.reference);
+    while (additionalExports.isNotEmpty) {
+      var additionalExport = additionalExports.removeLast();
+      for (var export in additionalExport.exportedLibrary.exports) {
+        addExport(export, additionalExport.entry);
       }
     }
 
     assert(() {
       for (var exported in both) {
         for (var export in exported.exports) {
-          exported.exportScope.forEach((name, reference) {
-            if (export.addToExportScope(name, reference)) {
+          exported.exportScope.forEach((entry) {
+            if (export.addToExportScope(entry)) {
               throw "Error in export calculation: Assert failed.";
             }
           });
@@ -442,9 +440,8 @@ class LinkResult {
 }
 
 class _AdditionalExport {
-  final LibraryBuilder exported;
-  final String name;
-  final ExportedReference reference;
+  final LibraryBuilder exportedLibrary;
+  final ExportEntry entry;
 
-  _AdditionalExport(this.exported, this.name, this.reference);
+  _AdditionalExport(this.exportedLibrary, this.entry);
 }

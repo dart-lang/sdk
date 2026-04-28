@@ -191,7 +191,8 @@ class AddDiagnosticPropertyReference extends ResolvedCorrectionProducer {
     }
 
     for (var parameter in parameterList.parameters) {
-      if (parameter is SimpleFormalParameter) {
+      if (parameter is RegularFormalParameter &&
+          parameter.functionTypedSuffix == null) {
         var type = parameter.type;
         var identifier = parameter.name;
         if (type is NamedType &&

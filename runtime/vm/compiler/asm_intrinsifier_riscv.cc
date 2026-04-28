@@ -174,7 +174,7 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   Label loop, done;
   __ lx(T0, Address(SP, 3 * target::kWordSize));  // src_digits
   __ lx(T1, Address(SP, 2 * target::kWordSize));  // src_used
-  __ lx(T2, Address(SP, 1 * target::kWordSize));  // shift_amount
+  __ lx(S8, Address(SP, 1 * target::kWordSize));  // shift_amount
   __ lx(T3, Address(SP, 0 * target::kWordSize));  // result_digits
 
 #if XLEN == 32
@@ -185,10 +185,10 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ addi(T1, T1, target::ToRawSmi(1));  // Round up to even
   __ srai(T1, T1, kSmiTagSize + 1);
 #endif
-  __ SmiUntag(T2);
+  __ SmiUntag(S8);
 
-  __ srai(T4, T2, target::kBitsPerWordLog2);  // T4 = word shift
-  __ andi(T5, T2, target::kBitsPerWord - 1);  // T5 = bit shift
+  __ srai(T4, S8, target::kBitsPerWordLog2);  // T4 = word shift
+  __ andi(T5, S8, target::kBitsPerWord - 1);  // T5 = bit shift
   __ li(T6, target::kBitsPerWord);
   __ sub(T6, T6, T5);  // T6 = carry bit shift
 
@@ -200,22 +200,22 @@ void AsmIntrinsifier::Bigint_lsh(Assembler* assembler, Label* normal_ir_body) {
   __ slli(TMP, TMP, target::kWordSizeLog2);
   __ add(T3, T3, TMP);  // T3 = &dst_digits[src_used + word_shift]
 
-  __ li(T2, 0);  // carry
+  __ li(S8, 0);  // carry
 
   __ Bind(&loop);
   __ beqz(T1, &done, Assembler::kNearJump);
   __ lx(TMP, FieldAddress(T0, target::TypedData::payload_offset()));
   __ srl(TMP2, TMP, T6);
-  __ or_(TMP2, TMP2, T2);
+  __ or_(TMP2, TMP2, S8);
   __ sx(TMP2, FieldAddress(T3, target::TypedData::payload_offset()));
-  __ sll(T2, TMP, T5);
+  __ sll(S8, TMP, T5);
   __ subi(T0, T0, target::kWordSize);
   __ subi(T3, T3, target::kWordSize);
   __ subi(T1, T1, 1);
   __ j(&loop);
 
   __ Bind(&done);
-  __ sx(T2, FieldAddress(T3, target::TypedData::payload_offset()));
+  __ sx(S8, FieldAddress(T3, target::TypedData::payload_offset()));
   __ LoadObject(A0, NullObject());
   __ ret();
 }
@@ -228,7 +228,7 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   Label loop, done;
   __ lx(T0, Address(SP, 3 * target::kWordSize));  // src_digits
   __ lx(T1, Address(SP, 2 * target::kWordSize));  // src_used
-  __ lx(T2, Address(SP, 1 * target::kWordSize));  // shift_amount
+  __ lx(S8, Address(SP, 1 * target::kWordSize));  // shift_amount
   __ lx(T3, Address(SP, 0 * target::kWordSize));  // result_digits
 
 #if XLEN == 32
@@ -239,10 +239,10 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ addi(T1, T1, target::ToRawSmi(1));  // Round up to even
   __ srai(T1, T1, kSmiTagSize + 1);
 #endif
-  __ SmiUntag(T2);
+  __ SmiUntag(S8);
 
-  __ srai(T4, T2, target::kBitsPerWordLog2);  // T4 = word shift
-  __ andi(T5, T2, target::kBitsPerWord - 1);  // T5 = bit shift
+  __ srai(T4, S8, target::kBitsPerWordLog2);  // T4 = word shift
+  __ andi(T5, S8, target::kBitsPerWord - 1);  // T5 = bit shift
   __ li(T6, target::kBitsPerWord);
   __ sub(T6, T6, T5);  // T6 = carry bit shift
   __ sub(T1, T1, T4);  // T1 = words to process
@@ -250,9 +250,9 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ slli(TMP, T4, target::kWordSizeLog2);
   __ add(T0, T0, TMP);  // T0 = &src_digits[word_shift]
 
-  // T2 = carry
-  __ lx(T2, FieldAddress(T0, target::TypedData::payload_offset()));
-  __ srl(T2, T2, T5);
+  // S8 = carry
+  __ lx(S8, FieldAddress(T0, target::TypedData::payload_offset()));
+  __ srl(S8, S8, T5);
   __ addi(T0, T0, target::kWordSize);
   __ subi(T1, T1, 1);
 
@@ -260,16 +260,16 @@ void AsmIntrinsifier::Bigint_rsh(Assembler* assembler, Label* normal_ir_body) {
   __ beqz(T1, &done, Assembler::kNearJump);
   __ lx(TMP, FieldAddress(T0, target::TypedData::payload_offset()));
   __ sll(TMP2, TMP, T6);
-  __ or_(TMP2, TMP2, T2);
+  __ or_(TMP2, TMP2, S8);
   __ sx(TMP2, FieldAddress(T3, target::TypedData::payload_offset()));
-  __ srl(T2, TMP, T5);
+  __ srl(S8, TMP, T5);
   __ addi(T0, T0, target::kWordSize);
   __ addi(T3, T3, target::kWordSize);
   __ subi(T1, T1, 1);
   __ j(&loop);
 
   __ Bind(&done);
-  __ sx(T2, FieldAddress(T3, target::TypedData::payload_offset()));
+  __ sx(S8, FieldAddress(T3, target::TypedData::payload_offset()));
   __ LoadObject(A0, NullObject());
   __ ret();
 }
@@ -283,7 +283,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   Label first_loop, second_loop, last_carry, done;
   __ lx(T0, Address(SP, 4 * target::kWordSize));  // longer_digits
   __ lx(T1, Address(SP, 3 * target::kWordSize));  // longer_used
-  __ lx(T2, Address(SP, 2 * target::kWordSize));  // shorter_digits
+  __ lx(S8, Address(SP, 2 * target::kWordSize));  // shorter_digits
   __ lx(T3, Address(SP, 1 * target::kWordSize));  // shorter_used
   __ lx(T4, Address(SP, 0 * target::kWordSize));  // result_digits
 
@@ -303,7 +303,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ Bind(&first_loop);
   __ beqz(T3, &second_loop);
   __ lx(A0, FieldAddress(T0, target::TypedData::payload_offset()));
-  __ lx(A1, FieldAddress(T2, target::TypedData::payload_offset()));
+  __ lx(A1, FieldAddress(S8, target::TypedData::payload_offset()));
   __ add(A0, A0, A1);
   __ sltu(TMP, A0, A1);  // Carry
   __ add(A0, A0, T5);
@@ -311,7 +311,7 @@ void AsmIntrinsifier::Bigint_absAdd(Assembler* assembler,
   __ add(T5, TMP, TMP2);
   __ sx(A0, FieldAddress(T4, target::TypedData::payload_offset()));
   __ addi(T0, T0, target::kWordSize);
-  __ addi(T2, T2, target::kWordSize);
+  __ addi(S8, S8, target::kWordSize);
   __ addi(T4, T4, target::kWordSize);
   __ subi(T1, T1, 1);
   __ subi(T3, T3, 1);
@@ -345,7 +345,7 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   Label first_loop, second_loop, last_borrow, done;
   __ lx(T0, Address(SP, 4 * target::kWordSize));  // longer_digits
   __ lx(T1, Address(SP, 3 * target::kWordSize));  // longer_used
-  __ lx(T2, Address(SP, 2 * target::kWordSize));  // shorter_digits
+  __ lx(S8, Address(SP, 2 * target::kWordSize));  // shorter_digits
   __ lx(T3, Address(SP, 1 * target::kWordSize));  // shorter_used
   __ lx(T4, Address(SP, 0 * target::kWordSize));  // result_digits
 
@@ -365,7 +365,7 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   __ Bind(&first_loop);
   __ beqz(T3, &second_loop);
   __ lx(A0, FieldAddress(T0, target::TypedData::payload_offset()));
-  __ lx(A1, FieldAddress(T2, target::TypedData::payload_offset()));
+  __ lx(A1, FieldAddress(S8, target::TypedData::payload_offset()));
   __ sltu(TMP, A0, A1);  // Borrow
   __ sub(A0, A0, A1);
   __ sltu(TMP2, A0, T5);  // Borrow
@@ -373,7 +373,7 @@ void AsmIntrinsifier::Bigint_absSub(Assembler* assembler,
   __ add(T5, TMP, TMP2);
   __ sx(A0, FieldAddress(T4, target::TypedData::payload_offset()));
   __ addi(T0, T0, target::kWordSize);
-  __ addi(T2, T2, target::kWordSize);
+  __ addi(S8, S8, target::kWordSize);
   __ addi(T4, T4, target::kWordSize);
   __ subi(T1, T1, 1);
   __ subi(T3, T3, 1);
@@ -434,7 +434,7 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   Label done;
   __ lx(T0, Address(SP, 6 * target::kWordSize));  // x_digits
   __ lx(T1, Address(SP, 5 * target::kWordSize));  // xi
-  __ lx(T2, Address(SP, 4 * target::kWordSize));  // m_digits
+  __ lx(S8, Address(SP, 4 * target::kWordSize));  // m_digits
   __ lx(T3, Address(SP, 3 * target::kWordSize));  // i
   __ lx(T4, Address(SP, 2 * target::kWordSize));  // a_digits
   __ lx(T5, Address(SP, 1 * target::kWordSize));  // j
@@ -461,7 +461,7 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   // R4 = mip = &m_digits[i >> 1]
   // R0 = i as Smi, R1 = m_digits.
   __ slli(T3, T3, 1);
-  __ add(T2, T2, T3);
+  __ add(S8, S8, T3);
 
   // R5 = ajp = &a_digits[j >> 1]
   // R0 = j as Smi, R1 = a_digits.
@@ -474,15 +474,15 @@ void AsmIntrinsifier::Bigint_mulAdd(Assembler* assembler,
   Label muladd_loop;
   __ Bind(&muladd_loop);
   // x:   T0
-  // mip: T2
+  // mip: S8
   // ajp: T4
   // c:   T1
   // n:   T6
   // t:   A7:A6 (not live at loop entry)
 
   // uint64_t mi = *mip++
-  __ lx(A0, FieldAddress(T2, target::TypedData::payload_offset()));
-  __ addi(T2, T2, target::kWordSize);
+  __ lx(A0, FieldAddress(S8, target::TypedData::payload_offset()));
+  __ addi(S8, S8, target::kWordSize);
 
   // uint64_t aj = *ajp
   __ lx(A1, FieldAddress(T4, target::TypedData::payload_offset()));
@@ -564,18 +564,18 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
   //   return 2;
   // }
 
-  // T2 = xip = &x_digits[i >> 1]
+  // S8 = xip = &x_digits[i >> 1]
   // T0 = i as Smi, T1 = x_digits
   __ lx(T0, Address(SP, 2 * target::kWordSize));
   __ lx(T1, Address(SP, 3 * target::kWordSize));
   __ slli(TMP, T0, 1);
   __ add(T1, T1, TMP);
-  __ addi(T2, T1, target::TypedData::payload_offset() - kHeapObjectTag);
+  __ addi(S8, T1, target::TypedData::payload_offset() - kHeapObjectTag);
 
   // T1 = x = *xip++, return if x == 0
   Label x_zero;
-  __ lx(T1, Address(T2, 0));
-  __ addi(T2, T2, target::kWordSize);
+  __ lx(T1, Address(S8, 0));
+  __ addi(S8, S8, target::kWordSize);
   __ beqz(T1, &x_zero);
 
   // T3 = ajp = &a_digits[i]
@@ -616,15 +616,15 @@ void AsmIntrinsifier::Bigint_sqrAdd(Assembler* assembler,
 
   __ Bind(&loop);
   // x:   T1
-  // xip: T2
+  // xip: S8
   // ajp: T3
   // c:   T5:T4
   // t:   T0:A1:A0 (not live at loop entry)
   // n:   T6
 
   // uint64_t xi = *xip++
-  __ lx(T0, Address(T2, 0));
-  __ addi(T2, T2, target::kWordSize);
+  __ lx(T0, Address(S8, 0));
+  __ addi(S8, S8, target::kWordSize);
 
   // uint192_t t = T0:A1:A0 = 2*x*xi + aj + c
   __ mul(A0, T0, T1);    // A0 = low64(T0*T1) = low64(x*xi).
@@ -747,10 +747,10 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   __ add(T1, T1, TMP);
 #if XLEN == 32
   // EBX = dp = &digits[i >> 1]
-  __ lx(T2, FieldAddress(T1, target::TypedData::payload_offset()));
+  __ lx(S8, FieldAddress(T1, target::TypedData::payload_offset()));
 #else
-  // T2 = dh = digits[(i >> 1) - 1 .. i >> 1]
-  __ lx(T2, FieldAddress(T1, target::TypedData::payload_offset() -
+  // S8 = dh = digits[(i >> 1) - 1 .. i >> 1]
+  __ lx(S8, FieldAddress(T1, target::TypedData::payload_offset() -
                                  kBytesPerBigIntDigit));
 #endif
 
@@ -759,7 +759,7 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
 
   // Return qd if dh == yt
   Label return_qd;
-  __ beq(T2, T3, &return_qd);
+  __ beq(S8, T3, &return_qd);
 
 #if XLEN == 32
   // EAX = dl = dp[-1]
@@ -775,19 +775,19 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   __ srli(T5, T3, target::kWordSize * 4);
 
   // T6 = qh = dh / yth
-  __ divu(T6, T2, T5);
+  __ divu(T6, S8, T5);
 
   // A6:A1 = ph:pl = yt*qh
   __ mulhu(A6, T3, T6);
   __ mul(A1, T3, T6);
 
   // A7 = tl = (dh << 32)|(dl >> 32)
-  __ slli(A7, T2, target::kWordSize * 4);
+  __ slli(A7, S8, target::kWordSize * 4);
   __ srli(TMP, T1, target::kWordSize * 4);
   __ or_(A7, A7, TMP);
 
   // S3 = th = dh >> 32
-  __ srli(S3, T2, target::kWordSize * 4);
+  __ srli(S3, S8, target::kWordSize * 4);
 
   // while ((ph > th) || ((ph == th) && (pl > tl)))
   Label qh_adj_loop, qh_adj, qh_ok;
@@ -830,10 +830,10 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   __ sub(T1, T1, A7);
 
   // dh -= th
-  __ sub(T2, T2, S3);
+  __ sub(S8, S8, S3);
 
   // T6 = ql = ((dh << 32)|(dl >> 32)) / yth
-  __ slli(T6, T2, target::kWordSize * 4);
+  __ slli(T6, S8, target::kWordSize * 4);
   __ srli(TMP, T1, target::kWordSize * 4);
   __ or_(T6, T6, TMP);
   __ divu(T6, T6, T5);
@@ -845,8 +845,8 @@ void AsmIntrinsifier::Bigint_estimateQuotientDigit(Assembler* assembler,
   // while ((ph > dh) || ((ph == dh) && (pl > dl))) {
   Label ql_adj_loop, ql_adj, ql_ok;
   __ Bind(&ql_adj_loop);
-  __ bgtu(A6, T2, &ql_adj);
-  __ bne(A6, T2, &ql_ok);
+  __ bgtu(A6, S8, &ql_adj);
+  __ bne(A6, S8, &ql_ok);
   __ bleu(A1, T1, &ql_ok);
 
   __ Bind(&ql_adj);
@@ -890,15 +890,15 @@ void AsmIntrinsifier::Montgomery_mulMod(Assembler* assembler,
 
   __ lx(T0, Address(SP, 2 * target::kWordSize));  // args
   __ lx(T1, Address(SP, 1 * target::kWordSize));  // digits
-  __ lx(T2, Address(SP, 0 * target::kWordSize));  // i as Smi
+  __ lx(S8, Address(SP, 0 * target::kWordSize));  // i as Smi
 
   // T3 = rho = args[2..3]
   __ lx(T3, FieldAddress(T0, target::TypedData::payload_offset() +
                                  2 * kBytesPerBigIntDigit));
 
   // T4 = digits[i >> 1 .. (i >> 1) + 1]
-  __ slli(T2, T2, 1);
-  __ add(T1, T1, T2);
+  __ slli(S8, S8, 1);
+  __ add(T1, T1, S8);
   __ lx(T4, FieldAddress(T1, target::TypedData::payload_offset()));
 
   // T5 = rho*d mod DIGIT_BASE
@@ -1243,12 +1243,12 @@ void AsmIntrinsifier::ObjectRuntimeType(Assembler* assembler,
   __ ret();
 
   __ Bind(&use_declaration_type);
-  __ LoadClassById(T2, A1);
-  __ lh(T3, FieldAddress(T2, target::Class::num_type_arguments_offset()));
+  __ LoadClassById(S8, A1);
+  __ lh(T3, FieldAddress(S8, target::Class::num_type_arguments_offset()));
   __ bnez(T3, normal_ir_body, Assembler::kNearJump);
 
   __ LoadCompressed(A0,
-                    FieldAddress(T2, target::Class::declaration_type_offset()));
+                    FieldAddress(S8, target::Class::declaration_type_offset()));
   __ beq(A0, NULL_REG, normal_ir_body, Assembler::kNearJump);
   __ ret();
 
@@ -1335,12 +1335,12 @@ void AsmIntrinsifier::ObjectHaveSameRuntimeType(Assembler* assembler,
                                                 Label* normal_ir_body) {
   __ lx(A0, Address(SP, 1 * target::kWordSize));
   __ lx(A1, Address(SP, 0 * target::kWordSize));
-  __ LoadClassIdMayBeSmi(T2, A1);
+  __ LoadClassIdMayBeSmi(S8, A1);
   __ LoadClassIdMayBeSmi(A1, A0);
 
   Label equal_may_be_generic, equal, not_equal;
   EquivalentClassIds(assembler, normal_ir_body, &equal_may_be_generic, &equal,
-                     &not_equal, A1, T2, TMP,
+                     &not_equal, A1, S8, TMP,
                      /* testing_instance_cids = */ true);
 
   __ Bind(&equal_may_be_generic);
@@ -1486,10 +1486,10 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
 
   __ Bind(&not_yet_computed);
   __ LoadFromOffset(A1, THR, target::Thread::random_offset());
-  __ AndImmediate(T2, A1, 0xffffffff);  // state_lo
+  __ AndImmediate(S8, A1, 0xffffffff);  // state_lo
   __ srli(T3, A1, 32);                  // state_hi
   __ LoadImmediate(A1, 0xffffda61);     // A
-  __ mul(A1, A1, T2);
+  __ mul(A1, A1, S8);
   __ add(A1, A1, T3);  // new_state = (A * state_lo) + state_hi
   __ StoreToOffset(A1, THR, target::Thread::random_offset());
   __ AndImmediate(A1, A1, 0x3fffffff);
@@ -1501,11 +1501,11 @@ void AsmIntrinsifier::Object_getHash(Assembler* assembler,
 
   Label retry, already_set_in_r4;
   __ Bind(&retry);
-  __ lrx(T2, Address(A0, 0));
-  __ srli(T4, T2, target::UntaggedObject::kHashTagPos);
+  __ lrx(S8, Address(A0, 0));
+  __ srli(T4, S8, target::UntaggedObject::kHashTagPos);
   __ bnez(T4, &already_set_in_r4);
-  __ or_(T2, T2, T3);
-  __ scx(T4, T2, Address(A0, 0));
+  __ or_(S8, S8, T3);
+  __ scx(T4, S8, Address(A0, 0));
   __ bnez(T4, &retry);
   // Fall-through with A1 containing new hash value (untagged).
   __ SmiTag(A0, A1);
@@ -1526,17 +1526,17 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
       T1, FieldAddress(A0, target::String::length_offset()));  // this.length
   __ SmiUntag(T1);
   __ LoadCompressedSmi(
-      T2, FieldAddress(A1, target::String::length_offset()));  // other.length
-  __ SmiUntag(T2);
+      S8, FieldAddress(A1, target::String::length_offset()));  // other.length
+  __ SmiUntag(S8);
 
   // if (other.length == 0) return true;
-  __ beqz(T2, return_true);
+  __ beqz(S8, return_true);
 
   // if (start < 0) return false;
   __ bltz(T0, return_false);
 
   // if (start + other.length > this.length) return false;
-  __ add(T3, T0, T2);
+  __ add(T3, T0, S8);
   __ bgt(T3, T1, return_false);
 
   if (receiver_cid == kOneByteStringCid) {
@@ -1572,7 +1572,7 @@ void GenerateSubstringMatchesSpecialization(Assembler* assembler,
   __ addi(T3, T3, 1);
   __ addi(A0, A0, receiver_cid == kOneByteStringCid ? 1 : 2);
   __ addi(A1, A1, other_cid == kOneByteStringCid ? 1 : 2);
-  __ blt(T3, T2, &loop);
+  __ blt(T3, S8, &loop);
 
   __ j(return_true);
 }
@@ -1695,12 +1695,12 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ SmiUntag(T0);
 
   __ mv(T1, ZR);
-  __ addi(T2, A1, target::OneByteString::data_offset() - kHeapObjectTag);
+  __ addi(S8, A1, target::OneByteString::data_offset() - kHeapObjectTag);
 
   // A1: Instance of OneByteString.
   // T0: String length, untagged integer.
   // T1: Loop counter, untagged integer.
-  // T2: String data.
+  // S8: String data.
   // A0: Hash code, untagged integer.
 
   Label loop, done;
@@ -1708,8 +1708,8 @@ void AsmIntrinsifier::OneByteString_getHashCode(Assembler* assembler,
   __ beq(T1, T0, &done);
   // Add to hash code: (hash_ is uint32)
   // Get one characters (ch).
-  __ lbu(T3, Address(T2, 0));
-  __ addi(T2, T2, 1);
+  __ lbu(T3, Address(S8, 0));
+  __ addi(S8, S8, 1);
   // T3: ch.
   __ addi(T1, T1, 1);
   __ CombineHashes(A0, T3);
@@ -1854,32 +1854,32 @@ void AsmIntrinsifier::OneByteString_substringUnchecked(Assembler* assembler,
   // A0: new string as tagged pointer.
   // Copy string.
   __ lx(T1, Address(SP, kStringOffset));
-  __ lx(T2, Address(SP, kStartIndexOffset));
-  __ SmiUntag(T2);
+  __ lx(S8, Address(SP, kStartIndexOffset));
+  __ SmiUntag(S8);
   // Calculate start address.
-  __ add(T1, T1, T2);
+  __ add(T1, T1, S8);
 
   // T1: Start address to copy from.
-  // T2: Untagged start index.
+  // S8: Untagged start index.
   __ lx(T0, Address(SP, kEndIndexOffset));
   __ SmiUntag(T0);
-  __ sub(T0, T0, T2);
+  __ sub(T0, T0, S8);
 
   // T1: Start address to copy from (untagged).
   // T0: Untagged number of bytes to copy.
   // A0: Tagged result string.
   // T3: Pointer into T1.
   // T4: Pointer into A0.
-  // T2: Scratch register.
+  // S8: Scratch register.
   Label loop, done;
   __ blez(T0, &done, Assembler::kNearJump);
   __ mv(T3, T1);
   __ mv(T4, A0);
   __ Bind(&loop);
   __ subi(T0, T0, 1);
-  __ lbu(T2, FieldAddress(T3, target::OneByteString::data_offset()));
+  __ lbu(S8, FieldAddress(T3, target::OneByteString::data_offset()));
   __ addi(T3, T3, 1);
-  __ sb(T2, FieldAddress(T4, target::OneByteString::data_offset()));
+  __ sb(S8, FieldAddress(T4, target::OneByteString::data_offset()));
   __ addi(T4, T4, 1);
   __ bgtz(T0, &loop);
 
@@ -1947,7 +1947,7 @@ void AsmIntrinsifier::OneByteString_equality(Assembler* assembler,
   __ lx(A0, Address(SP, 1 * target::kWordSize));  // This.
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // Other.
 
-  StringEquality(assembler, A0, A1, T2, TMP2, A0, normal_ir_body,
+  StringEquality(assembler, A0, A1, S8, TMP2, A0, normal_ir_body,
                  kOneByteStringCid);
 }
 
@@ -1956,7 +1956,7 @@ void AsmIntrinsifier::TwoByteString_equality(Assembler* assembler,
   __ lx(A0, Address(SP, 1 * target::kWordSize));  // This.
   __ lx(A1, Address(SP, 0 * target::kWordSize));  // Other.
 
-  StringEquality(assembler, A0, A1, T2, TMP2, A0, normal_ir_body,
+  StringEquality(assembler, A0, A1, S8, TMP2, A0, normal_ir_body,
                  kTwoByteStringCid);
 }
 
@@ -1975,10 +1975,10 @@ void AsmIntrinsifier::Timeline_getNextTaskId(Assembler* assembler,
   __ LoadFromOffset(T0, THR, target::Thread::next_task_id_offset());
   __ LoadFromOffset(T1, THR, target::Thread::next_task_id_offset() + 4);
   __ SmiTag(A0, T0);  // Ignore loss of precision.
-  __ addi(T2, T0, 1);
-  __ sltu(T3, T2, T0);  // Carry.
+  __ addi(S8, T0, 1);
+  __ sltu(T3, S8, T0);  // Carry.
   __ add(T1, T1, T3);
-  __ StoreToOffset(T2, THR, target::Thread::next_task_id_offset());
+  __ StoreToOffset(S8, THR, target::Thread::next_task_id_offset());
   __ StoreToOffset(T1, THR, target::Thread::next_task_id_offset() + 4);
   __ ret();
 #endif

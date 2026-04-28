@@ -369,7 +369,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitBreakStatement(covariant BreakStatementImpl node) {
     if (identical(node.label, _oldNode)) {
-      node.label = _newNode as SimpleIdentifierImpl;
+      node.label = _newNode as LabelReferenceImpl?;
       return true;
     }
     return visitNode(node);
@@ -571,7 +571,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   @override
   bool visitContinueStatement(covariant ContinueStatementImpl node) {
     if (identical(node.label, _oldNode)) {
-      node.label = _newNode as SimpleIdentifierImpl;
+      node.label = _newNode as LabelReferenceImpl?;
       return true;
     }
     return visitNode(node);
@@ -584,20 +584,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     }
     return visitAnnotatedNode(node);
-  }
-
-  @override
-  bool visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
-    if (identical(node.parameter, _oldNode)) {
-      node.parameter = _newNode as NormalFormalParameterImpl;
-      return true;
-    } else if (identical(node.defaultValue, _oldNode)) {
-      node.defaultValue = _newNode as ExpressionImpl;
-      var parameterFragment = node.declaredFragment;
-      parameterFragment?.constantInitializer = _newNode;
-      return true;
-    }
-    return visitNode(node);
   }
 
   @override
@@ -732,17 +718,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
-    if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotationImpl;
-      return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterListImpl;
-      return true;
-    } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterListImpl;
-      return true;
-    }
-    return visitNormalFormalParameter(node);
+    return visitFormalParameter(node);
   }
 
   @override
@@ -790,6 +766,42 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     } else if (identical(node.body, _oldNode)) {
       (node as ForElementImpl).body = _newNode as CollectionElementImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  bool visitFormalParameter(covariant FormalParameterImpl node) {
+    if (identical(node.documentationComment, _oldNode)) {
+      node.documentationComment = _newNode as CommentImpl;
+      return true;
+    } else if (_replaceInList(node.metadata)) {
+      return true;
+    } else if (identical(node.type, _oldNode)) {
+      node.type = _newNode as TypeAnnotationImpl?;
+      return true;
+    } else if (identical(node.functionTypedSuffix, _oldNode)) {
+      node.functionTypedSuffix =
+          _newNode as FunctionTypedFormalParameterSuffixImpl?;
+      return true;
+    } else if (identical(node.defaultClause, _oldNode)) {
+      var defaultClause = _newNode as FormalParameterDefaultClauseImpl?;
+      node.defaultClause = defaultClause;
+      node.declaredFragment?.constantInitializer = defaultClause?.value;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
+  bool visitFormalParameterDefaultClause(
+    covariant FormalParameterDefaultClauseImpl node,
+  ) {
+    if (identical(node.value, _oldNode)) {
+      node.value = _newNode as ExpressionImpl;
+      if (node.parent case FormalParameterImpl parent) {
+        parent.declaredFragment?.constantInitializer = _newNode;
+      }
       return true;
     }
     return visitNode(node);
@@ -928,20 +940,17 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
+  bool visitFunctionTypedFormalParameterSuffix(
+    covariant FunctionTypedFormalParameterSuffixImpl node,
   ) {
-    if (identical(node.returnType, _oldNode)) {
-      node.returnType = _newNode as TypeAnnotationImpl;
+    if (identical(node.typeParameters, _oldNode)) {
+      node.typeParameters = _newNode as TypeParameterListImpl?;
       return true;
-    } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterListImpl;
-      return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterListImpl;
+    } else if (identical(node.formalParameters, _oldNode)) {
+      node.formalParameters = _newNode as FormalParameterListImpl;
       return true;
     }
-    return visitNormalFormalParameter(node);
+    return visitNode(node);
   }
 
   @override
@@ -1097,15 +1106,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitLabel(covariant LabelImpl node) {
-    if (identical(node.label, _oldNode)) {
-      node.label = _newNode as SimpleIdentifierImpl;
-      return true;
-    }
-    return visitNode(node);
-  }
-
-  @override
   bool visitLabeledStatement(covariant LabeledStatementImpl node) {
     if (identical(node.statement, _oldNode)) {
       node.statement = _newNode as StatementImpl;
@@ -1181,12 +1181,9 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
-  bool visitNamedExpression(covariant NamedExpressionImpl node) {
-    if (identical(node.name, _oldNode)) {
-      node.name = _newNode as LabelImpl;
-      return true;
-    } else if (identical(node.expression, _oldNode)) {
-      node.expression = _newNode as ExpressionImpl;
+  bool visitNamedArgument(covariant NamedArgumentImpl node) {
+    if (identical(node.argumentExpression, _oldNode)) {
+      node.argumentExpression = _newNode as ExpressionImpl;
       return true;
     }
     return visitNode(node);
@@ -1210,16 +1207,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   bool visitNode(AstNode node) {
     throw ArgumentError("The old node is not a child of it's parent");
-  }
-
-  bool visitNormalFormalParameter(covariant NormalFormalParameterImpl node) {
-    if (identical(node.documentationComment, _oldNode)) {
-      node.documentationComment = _newNode as CommentImpl;
-      return true;
-    } else if (_replaceInList(node.metadata)) {
-      return true;
-    }
-    return visitNode(node);
   }
 
   @override
@@ -1329,6 +1316,17 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool visitRecordLiteralNamedField(
+    covariant RecordLiteralNamedFieldImpl node,
+  ) {
+    if (identical(node.fieldExpression, _oldNode)) {
+      node.fieldExpression = _newNode as ExpressionImpl;
+      return true;
+    }
+    return visitNode(node);
+  }
+
+  @override
   bool visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     if (_replaceInList(node.positionalFields)) {
       return true;
@@ -1390,6 +1388,10 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
   }
 
   @override
+  bool visitRegularFormalParameter(covariant RegularFormalParameterImpl node) =>
+      visitFormalParameter(node);
+
+  @override
   bool? visitRelationalPattern(covariant RelationalPatternImpl node) {
     if (identical(node.operand, _oldNode)) {
       node.operand = _newNode as ExpressionImpl;
@@ -1427,15 +1429,6 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
       return true;
     }
     return visitNode(node);
-  }
-
-  @override
-  bool visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
-    if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotationImpl;
-      return true;
-    }
-    return visitNormalFormalParameter(node);
   }
 
   @override
@@ -1481,17 +1474,7 @@ class NodeReplacer extends ThrowingAstVisitor<bool> {
 
   @override
   bool visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
-    if (identical(node.type, _oldNode)) {
-      node.type = _newNode as TypeAnnotationImpl;
-      return true;
-    } else if (identical(node.typeParameters, _oldNode)) {
-      node.typeParameters = _newNode as TypeParameterListImpl;
-      return true;
-    } else if (identical(node.parameters, _oldNode)) {
-      node.parameters = _newNode as FormalParameterListImpl;
-      return true;
-    }
-    return visitNormalFormalParameter(node);
+    return visitFormalParameter(node);
   }
 
   @override

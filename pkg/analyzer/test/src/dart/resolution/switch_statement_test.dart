@@ -1214,11 +1214,9 @@ SwitchStatement
     SwitchPatternCase
       labels
         Label
-          label: SimpleIdentifier
-            token: myLabel
-            element: myLabel@39
-            staticType: null
+          name: myLabel
           colon: :
+          declaredFragment: <testLibraryFragment> myLabel@39
       keyword: case
       guardedPattern: GuardedPattern
         pattern: DeclaredVariablePattern

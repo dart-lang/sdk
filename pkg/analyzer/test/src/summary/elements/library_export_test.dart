@@ -29,7 +29,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart::@class::C
@@ -52,7 +52,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart::@class::C
@@ -78,7 +78,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/foo.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/foo.dart::@class::A
   exportNamespace
     A: package:test/foo.dart::@class::A
@@ -107,7 +107,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/foo_io.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/foo_io.dart::@class::A
   exportNamespace
     A: package:test/foo_io.dart::@class::A
@@ -136,7 +136,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/foo_html.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/foo_html.dart::@class::A
   exportNamespace
     A: package:test/foo_html.dart::@class::A
@@ -170,14 +170,14 @@ library
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F2
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::A
     declared <testLibrary>::@class::X
   exportNamespace
@@ -198,7 +198,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@function::f
   exportNamespace
     f: package:test/a.dart::@function::f
@@ -240,7 +240,7 @@ library
         package:test/a.dart
           combinators
             hide: A, C
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::B
     exported[(0, 0)] package:test/a.dart::@class::D
   exportNamespace
@@ -271,7 +271,7 @@ library
           combinators
             hide: A
             show: C
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart::@class::C
@@ -317,14 +317,14 @@ library
               element: <testLibrary>::@class::X::@constructor::new
               typeName: X
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F2
-  exportedReferences
+  exportEntries
     exported[(0, 0), (0, 1)] package:test/a.dart::@class::A
     exported[(0, 0)] package:test/b.dart::@class::B
     exported[(0, 1)] package:test/c.dart::@class::C
@@ -349,7 +349,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@setter::f
   exportNamespace
     f=: package:test/a.dart::@setter::f
@@ -377,7 +377,7 @@ library
         package:test/a.dart
           combinators
             show: A, C
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::A
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
@@ -403,7 +403,7 @@ library
         package:test/a.dart
           combinators
             show: f
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@getter::f
     exported[(0, 0)] package:test/a.dart::@setter::f
   exportNamespace
@@ -424,7 +424,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@typeAlias::F
   exportNamespace
     F: package:test/a.dart::@typeAlias::F
@@ -459,7 +459,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@getter::x
     exported[(0, 0)] package:test/a.dart::@setter::x
   exportNamespace
@@ -480,7 +480,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart::@getter::x
@@ -499,7 +499,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart::@getter::x
@@ -529,14 +529,14 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -579,14 +579,14 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -629,14 +629,14 @@ library
       libraryImports
         package:test/bar.dart
       classes
-        #F1 class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
+        #F1 hasExtendsClause class B (nameOffset:25) (firstTokenOffset:19) (offset:25)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -667,7 +667,7 @@ library
       libraryExports
         package:test/a.dart
         package:test/b.dart
-  exportedReferences
+  exportEntries
   exportNamespace
 ''');
   }
@@ -722,7 +722,7 @@ library
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::B
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@fragment::package:test/a.dart::@class::B
     declared <testLibraryFragment>::@class::A
   exportNamespace
@@ -775,7 +775,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@fragment::package:test/a.dart::@class::B
     declared <testLibraryFragment>::@class::A
   exportNamespace
@@ -854,14 +854,14 @@ library
         package:test/b.dart
         package:test/c.dart
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F3
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F4
-  exportedReferences
+  exportEntries
     exported[(1, 0)] package:test/a.dart::@class::A
     exported[(2, 0)] package:test/b.dart::@class::B1
     exported[(2, 0)] package:test/b.dart::@class::B2
@@ -923,14 +923,14 @@ library
           combinators
             hide: A2, A4
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F3
-  exportedReferences
+  exportEntries
     exported[(1, 0)] package:test/a.dart::@class::A1
     exported[(1, 0)] package:test/a.dart::@class::A3
     declared <testLibrary>::@class::X
@@ -987,14 +987,14 @@ library
           combinators
             show: A1, A3
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F3
-  exportedReferences
+  exportEntries
     exported[(1, 0)] package:test/a.dart::@class::A1
     exported[(1, 0)] package:test/a.dart::@class::A3
     declared <testLibrary>::@class::X
@@ -1053,7 +1053,7 @@ library
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           superclassConstraints
             Object
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@fragment::package:test/a.dart::@mixin::B
     declared <testLibraryFragment>::@mixin::A
   exportNamespace
@@ -1094,7 +1094,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
       superclassConstraints
         Object
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@fragment::package:test/a.dart::@mixin::B
     declared <testLibraryFragment>::@mixin::A
   exportNamespace
@@ -1169,28 +1169,28 @@ library
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F3
-    class A
+    isSimplyBounded class A
       reference: <testLibrary>::@class::A
       firstFragment: #F5
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
           firstFragment: #F6
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F7
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@class::A
     declared <testLibrary>::@class::B
     declared <testLibrary>::@class::C
@@ -1265,14 +1265,14 @@ library
       libraryExports
         package:test/b.dart
   classes
-    class X
+    isSimplyBounded class X
       reference: <testLibrary>::@class::X
       firstFragment: #F2
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F3
-  exportedReferences
+  exportEntries
     exported[(1, 0)] package:test/a.dart::@class::A
     exported[(2, 0)] package:test/b.dart::@class::B
     declared <testLibrary>::@class::X
@@ -1311,32 +1311,32 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F2 hasInitializer isOriginDeclaration a (nameOffset:25) (firstTokenOffset:25) (offset:25)
+        #F2 hasInitializer isOriginDeclaration isStatic a (nameOffset:25) (firstTokenOffset:25) (offset:25)
           element: <testLibrary>::@topLevelVariable::a
       getters
-        #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@getter::a
       setters
-        #F4 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
+        #F4 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
           element: <testLibrary>::@setter::a
           formalParameters
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:25)
               element: <testLibrary>::@setter::a::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration a
+    hasInitializer isOriginDeclaration isStatic a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
   setters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@setter::a
       firstFragment: #F4
       formalParameters
@@ -1345,7 +1345,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::a
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::a
     declared <testLibrary>::@setter::a
   exportNamespace
@@ -1382,17 +1382,17 @@ library
       enclosingFragment: #F0
       previousFragment: #F0
       topLevelVariables
-        #F2 hasInitializer isOriginDeclaration a (nameOffset:27) (firstTokenOffset:27) (offset:27)
+        #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:27) (firstTokenOffset:27) (offset:27)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
               literal: 0 @31
               staticType: int
       getters
-        #F3 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
+        #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:27)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasImplicitType hasInitializer isOriginDeclaration a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F2
       type: int
@@ -1401,12 +1401,12 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::a
   exportNamespace
     a: <testLibrary>::@getter::a

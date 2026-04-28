@@ -16,7 +16,7 @@ final class FactoryA extends core::Object {
   [@vm.unboxing-info.metadata=[!regcc]]
   @#C4
   @#C6
-  constructor •([@vm.inferred-arg-type.metadata=int] core::int i) → self::FactoryA
+  constructor •([@vm.inferred-arg-type.metadata=int] initializing-formal core::int i) → self::FactoryA
     : self::FactoryA::i = i, super core::Object::•()
     ;
 

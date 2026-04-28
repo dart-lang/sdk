@@ -83,7 +83,9 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
           !equalSets(oldState.tags, tags) ||
           (sdkSummary != null &&
               (cachedSdkInput == null ||
-                  !digestsEqual(cachedSdkInput.digest, sdkDigest)))) {
+                  !digestsEqual(cachedSdkInput.digest, sdkDigest))) ||
+          (oldState.options.target == null ||
+              !oldState.options.target!.isModularlyCompatibleWith(target))) {
         // No - or immediately not correct - previous state.
         // We'll load a new sdk, anything loaded already will have a wrong root.
         workerInputCache.clear();
@@ -148,6 +150,7 @@ Future<InitializedCompilerState> initializeIncrementalCompiler(
         options.packagesFileUri = packagesFile;
         options.fileSystem = fileSystem;
         processedOpts.clearFileSystemCache();
+        options.target!.updateModularCompatibilityAs(target);
       }
 
       // Then read all the input summary components.

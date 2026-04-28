@@ -196,9 +196,8 @@ class StubCodeCompiler {
   // InitLateFinalInstanceField stubs.
   void GenerateInitLateInstanceFieldStub(bool is_final);
 
-  // Common function for generating AllocateClosure[TA][Generic] stubs.
-  void GenerateAllocateClosureStub(bool has_instantiator_type_args,
-                                   bool is_generic);
+  // Common function for generating AllocateClosure<N> stubs.
+  void GenerateAllocateClosureStub(intptr_t num_elements);
 
   // Common function for generating Allocate<TypedData>Array stubs.
   void GenerateAllocateTypedDataArrayStub(intptr_t cid);

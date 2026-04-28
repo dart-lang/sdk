@@ -677,8 +677,45 @@ missingExplicitConst:
     }
 
 dynamicCallsAreNotAllowedInDynamicModule:
+  parameters:
+    String name: The selector name.
+  problemMessage: "Dynamic call to selector '#name' is not allowed in a dynamic module."
+  correctionMessage: "Try listing '#name' as 'dynamically-callable' in the dynamic interface specification."
+
+dynamicCallsAreDiscouragedInDynamicModules:
   parameters: none
-  problemMessage: "Dynamic calls are not allowed in a dynamic module."
+  problemMessage: "Dynamic calls are discouraged in dynamic modules as they may fail at runtime if their target is not properly exposed as 'dynamically-callable'."
+  correctionMessage: "Consider avoiding dynamic calls. You can remove '--allow-dynamic-calls-in-dynamic-modules' to see where dynamic calls are used."
+  severity: WARNING
+
+dynamicCallsAreDisallowedByDefault:
+  parameters: none
+  problemMessage: "Dynamic calls are not allowed in dynamic modules by default as they increase risks of runtime errors in applications."
+  correctionMessage: "You can bypass this error by using '--allow-dynamic-calls-in-dynamic-modules'."
+
+dynamicallyCallableWithNoSuchMethod:
+  parameters:
+    String name: The class name.
+  problemMessage: "Cannot expose class '#name' because it declares or inherits a 'noSuchMethod' declaration."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration or not exposing the class."
+
+dynamicallyCallableWithNoSuchMethodHostSubtype:
+  parameters:
+    String name: The class name.
+  problemMessage: "Cannot expose class '#name' because it has a subtype with a 'noSuchMethod' declaration."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration from the subtype or not exposing the class."
+
+classWithNoSuchMethodSubtypeCause:
+  parameters:
+    String name: The class name.
+  problemMessage: "Subtype '#name' implements 'noSuchMethod' here."
+
+dynamicallyCallableWithNoSuchMethodDynamicSubtype:
+  parameters:
+    String name: The class name.
+    String subtype: The subclass class name.
+  problemMessage: "Cannot define 'noSuchMethod' on '#subtype' because it is a subtype of '#name', which was exposed as dynamically-callable."
+  correctionMessage: "Try removing the 'noSuchMethod' declaration or no longer expose '#name' as dynamically-callable."
 
 constructorShouldBeListedAsCallableInDynamicInterface:
   parameters:
@@ -1075,6 +1112,15 @@ constConstructorWithBody:
   correctionMessage: "Try removing either the 'const' keyword or the body."
   script:
     - "class C { const C() {} }"
+
+implicitlyConstEnumConstructorWithBody:
+  parameters: none
+  problemMessage: "A generative enum constructor can't have a body."
+  correctionMessage: "Try removing the constructor body."
+  experiments: primary-constructors
+  script:
+    - "enum E { a ; new() {} }"
+  exampleAllowOtherCodes: true # TODO(johnniwinther): Avoid cascading error in constant evaluator.
 
 externalFieldInitializer:
   parameters: none
@@ -3499,10 +3545,6 @@ superAsIdentifier:
     void foo() {
       C.super();
     }
-
-invalidAugmentSuper:
-  parameters: none
-  problemMessage: "'augment super' is only allowed in member augmentations."
 
 superAsExpression:
   parameters: none
@@ -6814,21 +6856,6 @@ mixinApplicationNoConcreteMemberContext:
   problemMessage: "This is the super-access that doesn't have a concrete target."
   severity: CONTEXT
 
-noAugmentSuperReadTarget:
-  parameters: none
-  problemMessage: "Cannot read from 'augment super'."
-  experiments: augmentations
-
-noAugmentSuperWriteTarget:
-  parameters: none
-  problemMessage: "Cannot write to 'augment super'."
-  experiments: augmentations
-
-noAugmentSuperInvokeTarget:
-  parameters: none
-  problemMessage: "Cannot call 'augment super'."
-  experiments: augmentations
-
 indexOutOfBoundInRecordIndexGet:
   parameters:
     int index: The index that was used.
@@ -7720,3 +7747,56 @@ fieldInitializedPrimaryConstructorDuplicateContext:
   parameters: none
   problemMessage: "This is the field declaration."
   severity: CONTEXT
+
+anonymousMethodWrongParameterTypeCfe:
+  parameters:
+    Type receiverType: The type of the receiver.
+    Type parameterType: The type of the parameter.
+  problemMessage: "The receiver type '#receiverType' must be assignable to the formal parameter type '#parameterType' in an anonymous method."
+  correctionMessage: "Try removing the parameter type, or make it a supertype of the receiver type."
+  experiments: anonymous-methods
+  statement:
+    - '"".(int i) => 1;'
+
+dartExternalEffectNotMethod:
+  parameters: none
+  problemMessage: "The 'external-effect' pragma can only be applied to methods."
+  correctionMessage: "Try removing the pragma or applying it to a method."
+  script: |
+    @pragma('external-effect')
+    external int get foo;
+
+dartExternalEffectIncorrectType:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'"
+  correctionMessage: "Try correcting the type of the function."
+  script: |
+    @pragma('external-effect')
+    external void foo(int x);
+
+dartExternalEffectNotStatic:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must be static."
+  correctionMessage: "Try making the function static."
+  script: |
+    class C {
+      @pragma('external-effect')
+      external void foo(Object? x);
+    }
+
+dartExternalEffectNotExternal:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must be external."
+  correctionMessage: "Try making the function external."
+  script: |
+    @pragma('external-effect')
+    void foo(Object? x) {}
+
+dartExternalEffectMalformedPragma:
+  parameters: none
+  problemMessage: "The 'external-effect' pragma must be applied as a String literal."
+  correctionMessage: "Try inlining the 'external-string' argument to the pragma."
+  script: |
+    const bar = 'external-effect';
+    @pragma(bar)
+    external void foo(Object? x);

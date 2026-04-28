@@ -3109,6 +3109,16 @@ const LinterLintWithoutArguments unnecessaryConst = LinterLintWithoutArguments(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments unnecessaryConstInEnumConstructor =
+    LinterLintWithoutArguments(
+      name: 'unnecessary_const_in_enum_constructor',
+      problemMessage: "Unnecessary 'const' keyword in an enum constructor.",
+      correctionMessage: "Try removing the keyword.",
+      uniqueName: 'unnecessary_const_in_enum_constructor',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments unnecessaryConstructorName =
     LinterLintWithoutArguments(
       name: 'unnecessary_constructor_name',
@@ -3415,6 +3425,16 @@ const LinterLintWithoutArguments unnecessaryToListInSpreads =
       correctionMessage: "Try removing the invocation of 'toList'.",
       hasPublishedDocs: true,
       uniqueName: 'unnecessary_to_list_in_spreads',
+      expectedTypes: [],
+    );
+
+/// No parameters.
+const LinterLintWithoutArguments unnecessaryTypeNameInConstructor =
+    LinterLintWithoutArguments(
+      name: 'unnecessary_type_name_in_constructor',
+      problemMessage: "Unnecessary type name in a constructor.",
+      correctionMessage: "Try removing the type name.",
+      uniqueName: 'unnecessary_type_name_in_constructor',
       expectedTypes: [],
     );
 

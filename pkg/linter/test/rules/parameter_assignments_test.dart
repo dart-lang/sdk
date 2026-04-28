@@ -55,6 +55,18 @@ void main() {
     );
   }
 
+  test_assignment_followedByNotOperator() async {
+    await assertDiagnostics(
+      r'''
+void f(bool p) {
+  p = true;
+  if (!p || p) {}
+}
+''',
+      [lint(19, 8)],
+    );
+  }
+
   test_assignment_inIfElseBranches() async {
     await assertDiagnostics(
       r'''
@@ -132,17 +144,24 @@ void f(int p) {
     );
   }
 
-  test_constructor_assignment() async {
-    await assertDiagnostics(
-      r'''
-class Foo {
-  Foo(int x) {
-    x = 4;
+  test_constructor_primary_assignment() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C(int x) {
+  this {
+    [!x = 4!];
   }
 }
-''',
-      [lint(31, 5)],
-    );
+''');
+  }
+
+  test_constructor_secondary_assignment() async {
+    await assertDiagnosticsFromMarkdown(r'''
+class C {
+  C(int x) {
+    [!x = 4!];
+  }
+}
+''');
   }
 
   test_function_assignment() async {

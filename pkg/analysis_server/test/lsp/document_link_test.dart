@@ -34,7 +34,63 @@ class DocumentLinkTest extends AbstractLspAnalysisServerTest {
     await _test_analysisOptions_links(content, []);
   }
 
-  Future<void> test_analysisOptions_lint_links_list() async {
+  Future<void> test_analysisOptions_legacyPlugins() async {
+    var content = '''
+analyzer:
+  plugins:
+    - /*[0*/my_plugin/*0]*/
+''';
+
+    var expectedLinks = ['${_pubBase}my_plugin'];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_legacyPlugins_list() async {
+    var content = '''
+analyzer:
+  plugins:
+    - /*[0*/mockito_analyzer_plugin/*0]*/
+    - /*[1*/test_analyzer_plugin/*1]*/
+''';
+
+    var expectedLinks = [
+      '${_pubBase}mockito_analyzer_plugin',
+      '${_pubBase}test_analyzer_plugin',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_legacyPlugins_map() async {
+    var content = '''
+analyzer:
+  plugins:
+    /*[0*/mockito_analyzer_plugin/*0]*/:
+      enabled: true
+    /*[1*/test_analyzer_plugin/*1]*/:
+      options:
+        foo: bar
+''';
+
+    var expectedLinks = [
+      '${_pubBase}mockito_analyzer_plugin',
+      '${_pubBase}test_analyzer_plugin',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_linterRules_empty() async {
+    var content = '''
+linter:
+  rules:
+''';
+
+    await _test_pubspec_links(content, []);
+  }
+
+  Future<void> test_analysisOptions_linterRules_list() async {
     var content = '''
 linter:
   rules:
@@ -54,7 +110,7 @@ linter:
     await _test_analysisOptions_links(content, expectedLinks);
   }
 
-  Future<void> test_analysisOptions_lint_links_map() async {
+  Future<void> test_analysisOptions_linterRules_map() async {
     var content = '''
 linter:
   rules:
@@ -72,29 +128,40 @@ linter:
     await _test_analysisOptions_links(content, expectedLinks);
   }
 
-  Future<void> test_analysisOptions_linterRules_empty() async {
+  Future<void> test_analysisOptions_plugins_git() async {
     var content = '''
-linter:
-  rules:
-''';
-
-    await _test_pubspec_links(content, []);
-  }
-
-  Future<void> test_analysisOptions_plugins_and_lints() async {
-    var content = '''
-analyzer:
-  plugins:
-    - /*[0*/my_plugin/*0]*/
-
-linter:
-  rules:
-    - /*[1*/await_only_futures/*1]*/
+plugins:
+  /*[0*/github_package_1/*0]*/:
+    git: https://github.com/dart-lang/sdk.git
+  /*[1*/github_package_2/*1]*/:
+    git: git@github.com:dart-lang/sdk.git
+  /*[2*/github_package_3/*2]*/:
+    git:
+      url: https://github.com/dart-lang/sdk.git
 ''';
 
     var expectedLinks = [
-      '${_pubBase}my_plugin',
-      '${_lintBase}await_only_futures',
+      'https://github.com/dart-lang/sdk.git',
+      'https://github.com/dart-lang/sdk.git',
+      'https://github.com/dart-lang/sdk.git',
+    ];
+
+    await _test_analysisOptions_links(content, expectedLinks);
+  }
+
+  Future<void> test_analysisOptions_plugins_hosted() async {
+    var content = '''
+plugins:
+  /*[0*/hosted_package_1/*0]*/:
+    hosted: https://custom.dart.dev/
+  /*[1*/hosted_package_2/*1]*/:
+    hosted:
+      url: https://custom.dart.dev/
+''';
+
+    var expectedLinks = [
+      'https://custom.dart.dev/packages/hosted_package_1',
+      'https://custom.dart.dev/packages/hosted_package_2',
     ];
 
     await _test_analysisOptions_links(content, expectedLinks);
@@ -102,15 +169,14 @@ linter:
 
   Future<void> test_analysisOptions_plugins_list() async {
     var content = '''
-analyzer:
-  plugins:
-    - /*[0*/dart_code_metrics/*0]*/
-    - /*[1*/custom_lint/*1]*/
+plugins:
+  - /*[0*/mockito_analyzer_plugin/*0]*/
+  - /*[1*/test_analyzer_plugin/*1]*/
 ''';
 
     var expectedLinks = [
-      '${_pubBase}dart_code_metrics',
-      '${_pubBase}custom_lint',
+      '${_pubBase}mockito_analyzer_plugin',
+      '${_pubBase}test_analyzer_plugin',
     ];
 
     await _test_analysisOptions_links(content, expectedLinks);
@@ -118,18 +184,17 @@ analyzer:
 
   Future<void> test_analysisOptions_plugins_map() async {
     var content = '''
-analyzer:
-  plugins:
-    /*[0*/dart_code_metrics/*0]*/:
-      enabled: true
-    /*[1*/custom_lint/*1]*/:
-      options:
-        foo: bar
+plugins:
+  /*[0*/mockito_analyzer_plugin/*0]*/:
+    enabled: true
+  /*[1*/test_analyzer_plugin/*1]*/:
+    options:
+      foo: bar
 ''';
 
     var expectedLinks = [
-      '${_pubBase}dart_code_metrics',
-      '${_pubBase}custom_lint',
+      '${_pubBase}mockito_analyzer_plugin',
+      '${_pubBase}test_analyzer_plugin',
     ];
 
     await _test_analysisOptions_links(content, expectedLinks);

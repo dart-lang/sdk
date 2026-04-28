@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/syntactic_entity.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/error.dart';
 
 import '../analyzer.dart';
@@ -49,11 +48,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var classElement = node.declaredFragment?.element;
     if (classElement != null &&
         classElement.isPublic &&
+        !classElement.metadata.hasVisibleForTesting &&
         classElement.extendsWidget &&
         classElement.constructors.where((e) => e.isOriginDeclaration).isEmpty) {
       rule.reportAtToken(node.namePart.typeName);
     }
-    super.visitClassDeclaration(node);
   }
 
   @override
@@ -65,7 +64,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       initializers: node.initializers,
       errorNode: getNodeToAnnotate(node),
     );
-    super.visitConstructorDeclaration(node);
   }
 
   @override
@@ -77,7 +75,6 @@ class _Visitor extends SimpleAstVisitor<void> {
       initializers: node.body?.initializers ?? const [],
       errorNode: getNodeToAnnotate(node),
     );
-    super.visitPrimaryConstructorDeclaration(node);
   }
 
   void _checkConstructor({
@@ -87,38 +84,20 @@ class _Visitor extends SimpleAstVisitor<void> {
     required SyntacticEntity errorNode,
   }) {
     if (constructorElement == null) return;
+    if (constructorElement.isPrivate) return;
+    if (constructorElement.isFactory) return;
+    if (constructorElement.metadata.hasVisibleForTesting) return;
     var classElement = constructorElement.enclosingElement;
-    if (constructorElement.isPublic &&
-        !constructorElement.isFactory &&
-        classElement.isPublic &&
-        classElement is ClassElement &&
-        !classElement.isExactlyWidget &&
-        classElement.extendsWidget &&
-        !_hasKeySuperParameterInitializerArg(parameters) &&
-        !initializers.any((initializer) {
-          if (initializer is SuperConstructorInvocation) {
-            var staticElement = initializer.element;
-            return staticElement != null &&
-                (!_defineKeyParameter(staticElement) ||
-                    _defineKeyArgument(initializer.argumentList));
-          } else if (initializer is RedirectingConstructorInvocation) {
-            var staticElement = initializer.element;
-            return staticElement != null &&
-                (!_defineKeyParameter(staticElement) ||
-                    _defineKeyArgument(initializer.argumentList));
-          }
-          return false;
-        })) {
+    if (classElement.isPrivate) return;
+    if (classElement is! ClassElement) return;
+    if (classElement.metadata.hasVisibleForTesting) return;
+    if (classElement.isExactlyWidget) return;
+    if (!classElement.extendsWidget) return;
+    if (_hasKeySuperParameterInitializerArg(parameters)) return;
+    if (!initializers.any((initializer) => initializer.isMissingKey)) {
       rule.reportAtSourceRange(errorNode.sourceRange);
     }
   }
-
-  bool _defineKeyArgument(ArgumentList argumentList) => argumentList.arguments
-      .any((a) => a.correspondingParameter?.name == 'key');
-
-  bool _defineKeyParameter(ConstructorElement element) => element
-      .formalParameters
-      .any((e) => e.name == 'key' && _isKeyType(e.type));
 
   bool _hasKeySuperParameterInitializerArg(FormalParameterList parameters) {
     for (var parameter in parameters.parameterFragments) {
@@ -129,6 +108,26 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
     return false;
   }
+}
 
-  bool _isKeyType(DartType type) => type.implementsInterface('Key', '');
+extension on ConstructorInitializer {
+  bool get isMissingKey => switch (this) {
+    SuperConstructorInvocation(:var element?, :var argumentList) ||
+    RedirectingConstructorInvocation(
+      :var element?,
+      :var argumentList,
+    ) => !element.definesKeyParameter || argumentList.containsKeyArgument,
+    _ => false,
+  };
+}
+
+extension on ConstructorElement {
+  bool get definesKeyParameter => formalParameters.any(
+    (e) => e.name == 'key' && e.type.implementsInterface('Key', ''),
+  );
+}
+
+extension on ArgumentList {
+  bool get containsKeyArgument =>
+      arguments.any((a) => a.correspondingParameter?.name == 'key');
 }

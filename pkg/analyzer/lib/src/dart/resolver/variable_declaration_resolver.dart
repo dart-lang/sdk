@@ -70,10 +70,10 @@ class VariableDeclarationResolver {
     }
 
     var contextType =
-        element is! PropertyInducingElementImpl ||
-            element.shouldUseTypeForInitializerInference
-        ? element.type
-        : UnknownInferredType.instance;
+        element is PropertyInducingElementImpl &&
+            element.isTypeInferredFromInitializer
+        ? UnknownInferredType.instance
+        : element.type;
     _resolver.analyzeExpression(initializer, SharedTypeSchemaView(contextType));
     initializer = _resolver.popRewrite()!;
     var whyNotPromoted = _resolver.flowAnalysis.flow?.whyNotPromoted(

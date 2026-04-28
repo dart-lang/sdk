@@ -2052,8 +2052,13 @@ void Simulator::DecodeUnconditionalBranchReg(Instr* instr) {
         const Register rn = instr->RnField();
         const int64_t dest = get_register(rn, instr->RnMode());
         const int64_t ret = get_pc() + Instr::kInstrSize;
-        set_pc(dest);
+        // Set LR first so that the profiler does not get confused by
+        // observing the update to PC without the update to LR when we are
+        // calling out of the entry stub, i.e., failing to indentify the entry
+        // stub. On real hardware, the profiler's signal handler cannot
+        // observe a partially execute BLR.
         set_register(instr, LR, ret);
+        set_pc(dest);
         break;
       }
       case 2: {

@@ -59,7 +59,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   void visitPostfixExpression(PostfixExpression node) {
     if (node.operator.type != TokenType.BANG) return;
 
-    var expectedType = getExpectedType(node);
+    var expectedType = getExpectedType(node, allowPromotable: true);
     var type = node.operand.staticType;
     if (isNullableTypeParameterType(type) &&
         expectedType != null &&

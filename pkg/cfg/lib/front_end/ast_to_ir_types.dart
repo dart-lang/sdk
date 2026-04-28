@@ -35,7 +35,7 @@ class AstToIrTypes
       .neverType => const NeverType(),
       .top => TopType(node),
       .otherDartType => StaticType(node),
-      .nothing || .typeParameters || .typeArguments =>
+      .nothing || .lateValue || .typeParameters || .typeArguments =>
         throw 'Unexpected $kind when translating ${node.runtimeType} $node',
     };
     if (kind != TypeKind.otherDartType) {

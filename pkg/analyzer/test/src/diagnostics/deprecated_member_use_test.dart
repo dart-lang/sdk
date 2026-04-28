@@ -392,6 +392,22 @@ f(A a, A b) {
     );
   }
 
+  test_constructor_inAnnotation() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class MyAnnotation {
+  @deprecated
+  const MyAnnotation();
+}
+''',
+      code: r'''
+@MyAnnotation()
+void g() {}
+''',
+      [error(diag.deprecatedMemberUse, 30, 12)],
+    );
+  }
+
   test_deprecatedField_inObjectPattern_explicitName() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -1165,6 +1181,26 @@ void f() {
     );
   }
 
+  test_instanceCreation_undeprecatedClass_deprecatedConstructor_primary() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A() {
+  @deprecated
+  this;
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''',
+      [error(diag.deprecatedMemberUse, 43, 1)],
+    );
+  }
+
   test_instanceCreation_unnamedConstructor() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -1483,6 +1519,21 @@ void f({@deprecated int x = 0}) {}
 ''',
       code: r'''
 void g() => f(x: 1);
+''',
+      [error(diag.deprecatedMemberUse, 43, 1)],
+    );
+  }
+
+  test_parameter_named_inAnnotation() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class MyAnnotation {
+  const MyAnnotation({@deprecated int? x});
+}
+''',
+      code: r'''
+@MyAnnotation(x: 1)
+void g() {}
 ''',
       [error(diag.deprecatedMemberUse, 43, 1)],
     );

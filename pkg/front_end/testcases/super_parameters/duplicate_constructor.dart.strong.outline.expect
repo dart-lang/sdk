@@ -14,10 +14,10 @@ import "dart:core" as core;
 
 class Super extends core::Object {
   final field core::int field;
-  constructor •(core::int field) → self::Super
+  constructor •(initializing-formal core::int field) → self::Super
     ;
 }
 class Sub extends self::Super {
-  constructor •(invalid-type field) → self::Sub
+  constructor •(super-initializing-formal invalid-type field) → self::Sub
     ;
 }

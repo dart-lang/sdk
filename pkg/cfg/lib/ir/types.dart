@@ -45,6 +45,7 @@ enum TypeKind {
   otherDartType,
   // Extended (non-Dart) types.
   nothing,
+  lateValue,
   typeParameters,
   typeArguments,
 }
@@ -73,6 +74,9 @@ sealed class CType {
 
   /// Return non-nullable variant of this type (if possible).
   CType get toNonNullableType;
+
+  /// Returns true if value of this type can be `Future`.
+  bool get canBeFuture;
 
   @override
   bool operator ==(Object other) =>
@@ -104,6 +108,9 @@ final class IntType extends CType {
   CType get toNonNullableType => this;
 
   @override
+  bool get canBeFuture => false;
+
+  @override
   String toString() => 'int';
 }
 
@@ -125,6 +132,9 @@ final class DoubleType extends CType {
 
   @override
   CType get toNonNullableType => this;
+
+  @override
+  bool get canBeFuture => false;
 
   @override
   String toString() => 'double';
@@ -150,6 +160,9 @@ final class BoolType extends CType {
   CType get toNonNullableType => this;
 
   @override
+  bool get canBeFuture => false;
+
+  @override
   String toString() => 'bool';
 }
 
@@ -171,6 +184,9 @@ final class StringType extends CType {
 
   @override
   CType get toNonNullableType => this;
+
+  @override
+  bool get canBeFuture => false;
 
   @override
   String toString() => 'String';
@@ -196,6 +212,9 @@ final class ObjectType extends CType {
   CType get toNonNullableType => this;
 
   @override
+  bool get canBeFuture => true;
+
+  @override
   String toString() => 'Object';
 }
 
@@ -216,6 +235,9 @@ final class NullType extends CType {
   CType get toNonNullableType => const NeverType();
 
   @override
+  bool get canBeFuture => false;
+
+  @override
   String toString() => 'Null';
 }
 
@@ -234,6 +256,9 @@ final class NeverType extends CType {
 
   @override
   CType get toNonNullableType => this;
+
+  @override
+  bool get canBeFuture => false;
 
   @override
   String toString() => 'Never';
@@ -258,6 +283,9 @@ final class TopType extends CType {
   CType get toNonNullableType => const ObjectType();
 
   @override
+  bool get canBeFuture => true;
+
+  @override
   String toString() => '<top>';
 }
 
@@ -276,6 +304,9 @@ final class StaticType extends CType {
 
   @override
   CType get toNonNullableType => CType.fromStaticType(dartType.toNonNull());
+
+  @override
+  bool get canBeFuture => true;
 
   @override
   String toString() => dartType.getDisplayString();
@@ -299,6 +330,9 @@ sealed class ExtendedType extends CType {
 
   @override
   CType get toNonNullableType => this;
+
+  @override
+  bool get canBeFuture => false;
 
   @override
   bool operator ==(Object other) =>
@@ -325,6 +359,20 @@ final class NothingType extends ExtendedType {
 
   @override
   String toString() => '<nothing>';
+}
+
+/// Type of a late variable which can have an uninitialized state
+/// (represented with [SentinelConstant] value).
+///
+/// After checking, it can be casted to a regular Dart type.
+final class LateValueType extends ExtendedType {
+  const LateValueType();
+
+  @override
+  TypeKind get kind => TypeKind.lateValue;
+
+  @override
+  String toString() => '<late-value>';
 }
 
 /// Type of [TypeParameters] instruction.

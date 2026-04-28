@@ -11,7 +11,7 @@ environment:
   #
   # It needs to be updated before testing language features introduced in the
   # next language version.
-  sdk: ^3.12.0-0
+  sdk: ^3.13.0-0
 
 # These are the packages that are contained in the SDK.
 workspace:
@@ -46,6 +46,8 @@ workspace:
   - pkg/dev_compiler
   - pkg/dtd
   - pkg/dtd_impl
+  - pkg/dwds
+  - pkg/dwds_test_common
   - pkg/dynamic_modules
   - pkg/expect
   - pkg/_fe_analyzer_shared
@@ -277,6 +279,8 @@ dependency_overrides:
     path: third_party/pkg/test/pkgs/test
   test_api:
     path: third_party/pkg/test/pkgs/test_api
+  test_case_selector:
+    path: third_party/pkg/native/pkgs/test_case_selector
   test_core:
     path: third_party/pkg/test/pkgs/test_core
   test_descriptor:

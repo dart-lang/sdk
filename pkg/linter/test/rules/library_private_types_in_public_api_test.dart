@@ -113,6 +113,12 @@ extension type E(_C c) {}
     );
   }
 
+  test_extensionTypeDeclaration_representation_noType() async {
+    await assertNoDiagnostics(r'''
+extension type E(it) {}
+''');
+  }
+
   test_extensionTypeDeclaration_representation_private() async {
     await assertNoDiagnostics(r'''
 class _C {}
@@ -302,6 +308,21 @@ class _P {}
     await assertNoDiagnostics(r'''
 class C with _P {}
 mixin _P {}
+''');
+  }
+
+  test_classTypeAlias_privateMixin() async {
+    await assertNoDiagnostics(r'''
+class C = Object with _P;
+mixin _P {}
+''');
+  }
+
+  test_classTypeAlias_privateSuperclass() async {
+    await assertNoDiagnostics(r'''
+class _P {}
+class C = _P with M;
+mixin M {}
 ''');
   }
 

@@ -529,6 +529,9 @@ abstract final class LintNames {
 
   static const String unnecessary_const = 'unnecessary_const';
 
+  static const String unnecessary_const_in_enum_constructor =
+      'unnecessary_const_in_enum_constructor';
+
   static const String unnecessary_constructor_name =
       'unnecessary_constructor_name';
 
@@ -581,6 +584,9 @@ abstract final class LintNames {
 
   static const String unnecessary_to_list_in_spreads =
       'unnecessary_to_list_in_spreads';
+
+  static const String unnecessary_type_name_in_constructor =
+      'unnecessary_type_name_in_constructor';
 
   static const String unnecessary_unawaited = 'unnecessary_unawaited';
 

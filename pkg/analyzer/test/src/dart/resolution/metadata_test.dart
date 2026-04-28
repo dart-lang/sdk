@@ -761,6 +761,7 @@ Annotation
 
     _assertAnnotationValueText(node, r'''
 int 42
+  typeNotExtensionTypeErased: A
 ''');
   }
 
@@ -793,6 +794,7 @@ Annotation
 
     _assertAnnotationValueText(node, r'''
 int 42
+  typeNotExtensionTypeErased: A
 ''');
   }
 
@@ -1820,7 +1822,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1875,7 +1877,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1920,7 +1922,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1969,7 +1971,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2009,7 +2011,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2054,7 +2056,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2119,7 +2121,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2177,7 +2179,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -2250,7 +2252,7 @@ Annotation
   name: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier

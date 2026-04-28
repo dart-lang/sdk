@@ -57,17 +57,22 @@ class LinterRuleOptionsValidator extends OptionsValidator {
   final ResourceProvider _resourceProvider;
   final SourceFactory _sourceFactory;
 
+  /// A cache of options file contents.
+  final AnalysisOptionsCache _analysisOptionsCache;
+
   LinterRuleOptionsValidator({
     required ResourceProvider resourceProvider,
     required AnalysisOptionsProvider optionsProvider,
     required SourceFactory sourceFactory,
     VersionConstraint? sdkVersionConstraint,
     bool isPrimarySource = true,
+    required AnalysisOptionsCache analysisOptionsCache,
   }) : _sourceFactory = sourceFactory,
        _resourceProvider = resourceProvider,
        _optionsProvider = optionsProvider,
        _isPrimarySource = isPrimarySource,
-       _sdkVersionConstraint = sdkVersionConstraint;
+       _sdkVersionConstraint = sdkVersionConstraint,
+       _analysisOptionsCache = analysisOptionsCache;
 
   @override
   void validate(DiagnosticReporter reporter, YamlMap options) {
@@ -310,7 +315,10 @@ class LinterRuleOptionsValidator extends OptionsValidator {
         // if files are invalid, we ignore them
         continue;
       }
-      var includedOptions = _optionsProvider.getOptionsFromFile(file);
+      var includedOptions = _optionsProvider.getOptionsFromFile(
+        file,
+        analysisOptionsCache: _analysisOptionsCache,
+      );
       var linterNode = includedOptions.valueAt(_linter);
       if (linterNode is! YamlMap) {
         continue;

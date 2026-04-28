@@ -30,7 +30,7 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::int? foo = null;
   field self::A bar;
-  constructor •(self::A bar) → self::A
+  constructor •(initializing-formal self::A bar) → self::A
     : self::A::bar = bar, super core::Object::•()
     ;
 }

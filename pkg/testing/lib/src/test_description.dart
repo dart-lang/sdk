@@ -48,8 +48,11 @@ class FileBasedTestDescription extends TestDescription {
     sink.writeln('.main,');
   }
 
-  static FileBasedTestDescription? from(Uri root, FileSystemEntity entity,
-      {Pattern? pattern}) {
+  static FileBasedTestDescription? from(
+    Uri root,
+    FileSystemEntity entity, {
+    Pattern? pattern,
+  }) {
     if (entity is! File) return null;
     pattern ??= "_test.dart";
     String path = entity.uri.path;

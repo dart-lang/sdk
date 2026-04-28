@@ -34,6 +34,8 @@ MixinDeclaration
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
+invalidNodes
+  ConstructorDeclarationImpl [12, 41)
 ''');
   }
 
@@ -56,6 +58,8 @@ MixinDeclaration
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
+invalidNodes
+  ConstructorDeclarationImpl [12, 35)
 ''');
   }
 
@@ -78,6 +82,8 @@ MixinDeclaration
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
+invalidNodes
+  ConstructorDeclarationImpl [12, 22)
 ''');
   }
 
@@ -100,6 +106,8 @@ MixinDeclaration
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> M@6
+invalidNodes
+  ConstructorDeclarationImpl [12, 16)
 ''');
   }
 }

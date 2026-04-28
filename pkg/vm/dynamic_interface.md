@@ -21,6 +21,11 @@ callable:
   ...
   - item N
 
+dynamically-callable:
+  - item 1
+  ...
+  - item N
+
 extendable:
   - item 1
   ...
@@ -40,6 +45,11 @@ can-be-used-as-type:
 `callable` section specifies members which can be
 called from dynamic module and classes which can be
 referenced in types of dynamic module.
+
+`dynamically-callable` section specifies methods and properties
+which can be called from a dynamic module using dynamic calls. A
+dynamic call to a members exposed as `callable` but not
+`dynamically-callable` will fail at runtime.
 
 `extendable` section specifies classes which dynamic module can be
 extend, mix-in or implement.

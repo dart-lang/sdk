@@ -2787,20 +2787,72 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
     __ movl(STCInternal::kInstanceCidOrSignatureReg,
             FieldAddress(STCInternal::kInstanceCidOrSignatureReg,
                          target::Function::signature_offset()));
+
     if (n >= 2) {
-      __ movl(
+      __ movl(STCInternal::kScratchReg,
+              FieldAddress(TypeTestABI::kInstanceReg,
+                           target::Closure::length_and_flags_offset()));
+
+      Label load_function_type_arguments, load_delayed_type_arguments;
+      __ movl(STCInternal::kInstanceInstantiatorTypeArgumentsReg, raw_null);
+      __ BranchIfBit(
+          STCInternal::kScratchReg,
+          UntaggedClosure::kHasInstantiatorTypeArgumentsBit + kSmiTagShift,
+          ZERO, (n >= 5) ? &load_function_type_arguments : &loop);
+      __ ExtractBitField(
+          STCInternal::kInstanceInstantiatorTypeArgumentsReg,
+          STCInternal::kScratchReg,
+          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::shift() +
+              kSmiTagShift,
+          UntaggedClosure::InstantiatorTypeArgumentsIndexBits::bitsize());
+      __ Load(
           STCInternal::kInstanceInstantiatorTypeArgumentsReg,
           FieldAddress(TypeTestABI::kInstanceReg,
-                       target::Closure::instantiator_type_arguments_offset()));
+                       STCInternal::kInstanceInstantiatorTypeArgumentsReg,
+                       TIMES_WORD_SIZE, target::Closure::element_offset(0)));
+      if (n >= 5) {
+        Label no_function_type_arguments;
+        __ Bind(&load_function_type_arguments);
+
+        __ BranchIfBit(
+            STCInternal::kScratchReg,
+            UntaggedClosure::kHasFunctionTypeArgumentsBit + kSmiTagShift, ZERO,
+            &no_function_type_arguments);
+        __ ExtractBitField(
+            STCInternal::kScratchReg, STCInternal::kScratchReg,
+            UntaggedClosure::FunctionTypeArgumentsIndexBits::shift() +
+                kSmiTagShift,
+            UntaggedClosure::FunctionTypeArgumentsIndexBits::bitsize());
+        __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
+                              STCInternal::kScratchReg, TIMES_WORD_SIZE,
+                              target::Closure::element_offset(0)));
+        __ jmp((n >= 6) ? &load_delayed_type_arguments : &loop,
+               Assembler::kNearJump);
+
+        __ Bind(&no_function_type_arguments);
+        __ pushl(raw_null);
+      }
+
+      if (n >= 6) {
+        Label no_delayed_type_arguments;
+        __ Bind(&load_delayed_type_arguments);
+
+        __ testl(FieldAddress(TypeTestABI::kInstanceReg,
+                              target::Closure::length_and_flags_offset()),
+                 Immediate(UntaggedClosure::kHasDelayedTypeArgumentsBit +
+                           kSmiTagShift));
+        __ j(ZERO, &no_delayed_type_arguments, Assembler::kNearJump);
+        __ pushl(
+            FieldAddress(TypeTestABI::kInstanceReg,
+                         target::Closure::element_offset(
+                             UntaggedClosure::kDelayedTypeArgumentsIndex)));
+        __ jmp(&loop, Assembler::kNearJump);
+
+        __ Bind(&no_delayed_type_arguments);
+        __ pushl(raw_null);
+      }
     }
-    if (n >= 5) {
-      __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
-                            target::Closure::function_type_arguments_offset()));
-    }
-    if (n >= 6) {
-      __ pushl(FieldAddress(TypeTestABI::kInstanceReg,
-                            target::Closure::delayed_type_arguments_offset()));
-    }
+
     __ jmp(&loop, Assembler::kNearJump);
   }
 
@@ -2888,14 +2940,6 @@ void StubCodeCompiler::GenerateSubtypeNTestCacheStub(Assembler* assembler,
   // filling in the entry. Thus, we load the null object explicitly instead of
   // just using the (possibly mid-update) test result field.
   __ movl(TypeTestABI::kSubtypeTestCacheResultReg, raw_null);
-  __ ret();
-}
-
-// Return the current stack pointer address, used to do stack alignment checks.
-// TOS + 0: return address
-// Result in EAX.
-void StubCodeCompiler::GenerateGetCStackPointerStub() {
-  __ leal(EAX, Address(ESP, target::kWordSize));
   __ ret();
 }
 

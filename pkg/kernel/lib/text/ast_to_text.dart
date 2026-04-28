@@ -771,7 +771,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
   }
 
   void _writeContexts(ContextConsumer consumer) {
-    if (consumer.contexts case List<VariableContext> contexts
+    if (consumer.capturedContexts case List<VariableContext> contexts
         when contexts.isNotEmpty) {
       ensureSpace();
       writeWord('/*');
@@ -1270,6 +1270,8 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
           writeWord('variable-declaration');
         case CatchVariable():
           writeWord('catch-variable');
+        case VariableInitialization():
+          writeWord('variable-initialization');
       }
 
       // TODO(cstefantsova): Should [Variable]s have annotations?
@@ -1343,6 +1345,9 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeSpace();
     writeAnnotatedType(node.type, annotator?.annotateField(this, node));
     writeName(getMemberName(node), showLibrary: true);
+    if (node.scope case Scope scope?) {
+      writeScope(scope);
+    }
     Expression? initializer = node.initializer;
     if (initializer != null) {
       writeSpaced('=');
@@ -1375,6 +1380,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
     writeModifier(node.isSynthetic, 'synthetic');
     writeModifier(node.isConst, 'const');
     writeModifier(node.isErroneous, 'erroneous');
+    writeModifier(node.hasExternalEffectPragma, 'external-effect');
     switch (node.stubKind) {
       case ProcedureStubKind.Regular:
       case ProcedureStubKind.AbstractForwardingStub:
@@ -2573,7 +2579,7 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       ensureSpace();
     }
     writeSymbol('(');
-    writeList(node.variableInitializations, writeVariableInitialization);
+    writeList(node.variables, writeVariableInitialization);
     writeComma(';');
     Expression? condition = node.condition;
     if (condition != null) {
@@ -2787,6 +2793,11 @@ class Printer extends VisitorDefault<void> with VisitorVoidMixin {
       writeModifier(node.isSynthesized && node.name != null, 'synthesized');
       writeModifier(node.isHoisted, 'hoisted');
       writeModifier(node.isWildcard, 'wildcard');
+      writeModifier(node.isInitializingFormal, 'initializing-formal');
+      writeModifier(
+        node.isSuperInitializingFormal,
+        'super-initializing-formal',
+      );
       writeModifier(node.isErroneouslyInitialized, 'erroneously-initialized');
       bool hasImplicitInitializer =
           node.initializer is NullLiteral ||

@@ -131,6 +131,12 @@ abstract class MapSubstitution extends Substitution {
   const MapSubstitution();
 
   Map<TypeParameterElement, DartType> get map;
+
+  /// Returns a substitution that applies this substitution and then [after].
+  ///
+  /// For example, if this is `{T -> List<G>}` and [after] is `{G -> String}`,
+  /// the result is `{T -> List<String>}`.
+  MapSubstitution andThen(MapSubstitution after);
 }
 
 abstract class Substitution {
@@ -277,6 +283,19 @@ class _MapSubstitution extends MapSubstitution {
   _MapSubstitution(this.map);
 
   @override
+  MapSubstitution andThen(MapSubstitution after) {
+    if (identical(after, _NullSubstitution.instance)) {
+      return this;
+    }
+
+    var combinedMap = <TypeParameterElement, DartType>{
+      for (var MapEntry(:key, :value) in map.entries)
+        key: after.substituteType(value),
+    };
+    return Substitution.fromMap(combinedMap);
+  }
+
+  @override
   DartType? getSubstitute(TypeParameterElement parameter, bool upperBound) {
     return map[parameter];
   }
@@ -292,6 +311,9 @@ class _NullSubstitution extends MapSubstitution {
 
   @override
   Map<TypeParameterElement, DartType> get map => const {};
+
+  @override
+  MapSubstitution andThen(MapSubstitution after) => this;
 
   @override
   DartType getSubstitute(TypeParameterElement parameter, bool upperBound) {

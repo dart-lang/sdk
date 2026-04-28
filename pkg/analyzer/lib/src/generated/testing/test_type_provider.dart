@@ -21,7 +21,7 @@ class TestTypeProvider extends TypeProviderImpl {
     var analysisSession = _MockAnalysisSession();
     var sdkElements = MockSdkElements(
       analysisContext,
-      Reference.root(),
+      RootReference(),
       analysisSession,
     );
     return TestTypeProvider._(

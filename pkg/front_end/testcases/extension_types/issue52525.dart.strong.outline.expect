@@ -9,7 +9,7 @@ extension type IC1(core::int id) {
   static redirecting-factory f = self::IC1|constructor#f;
   static redirecting-factory tearoff f = self::IC1|constructor#_#f#tearOff;
 }
-static extension-type-member method IC1|constructor#(core::int id) → self::IC1% /* erasure=core::int, declared=! */
+static extension-type-member method IC1|constructor#(initializing-formal core::int id) → self::IC1% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method IC1|constructor#_#new#tearOff(core::int id) → self::IC1% /* erasure=core::int, declared=! */
   return self::IC1|constructor#(id);

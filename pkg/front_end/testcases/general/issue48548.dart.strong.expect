@@ -9,7 +9,7 @@ abstract class A extends core::Object {
 }
 class _AImpl extends core::Object implements self::A {
   final field core::int value;
-  constructor •({core::int value = #C1}) → self::_AImpl
+  constructor •({initializing-formal core::int value = #C1}) → self::_AImpl
     : self::_AImpl::value = value, super core::Object::•()
     ;
 }

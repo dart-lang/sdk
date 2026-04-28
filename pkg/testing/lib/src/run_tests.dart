@@ -33,11 +33,13 @@ class CommandLine {
   Set<String> get skip => commaSeparated("--skip=");
 
   Set<String> commaSeparated(String prefix) {
-    return Set<String>.from(options.expand((String s) {
-      if (!s.startsWith(prefix)) return const [];
-      s = s.substring(prefix.length);
-      return s.split(",");
-    }));
+    return Set<String>.from(
+      options.expand((String s) {
+        if (!s.startsWith(prefix)) return const [];
+        s = s.substring(prefix.length);
+        return s.split(",");
+      }),
+    );
   }
 
   Map<String, String> get environment {
@@ -91,8 +93,10 @@ class CommandLine {
           List<FileSystemEntity> candidates = await test
               .list(recursive: true, followLinks: false)
               .where((FileSystemEntity entity) {
-            return entity is File && entity.uri.path.endsWith("/testing.json");
-          }).toList();
+                return entity is File &&
+                    entity.uri.path.endsWith("/testing.json");
+              })
+              .toList();
           switch (candidates.length) {
             case 0:
               fail("Couldn't locate: '$configurationPath'.");
@@ -103,18 +107,22 @@ class CommandLine {
               break;
 
             default:
-              fail("Usage: run_tests.dart [$configPrefix=configuration_file]\n"
-                  "Where configuration_file is one of:\n  "
-                  "${candidates.map((file) => file.path).join('\n  ')}");
+              fail(
+                "Usage: run_tests.dart [$configPrefix=configuration_file]\n"
+                "Where configuration_file is one of:\n  "
+                "${candidates.map((file) => file.path).join('\n  ')}",
+              );
               return null;
           }
         }
       }
     }
-    const StdoutLogger()
-        .logMessage("Reading configuration file '$configurationPath'.");
-    Uri? configuration =
-        await Isolate.resolvePackageUri(Uri.base.resolve(configurationPath));
+    const StdoutLogger().logMessage(
+      "Reading configuration file '$configurationPath'.",
+    );
+    Uri? configuration = await Isolate.resolvePackageUri(
+      Uri.base.resolve(configurationPath),
+    );
     if (configuration == null || !await File.fromUri(configuration).exists()) {
       fail("Couldn't locate: '$configurationPath'.");
       return null;
@@ -130,8 +138,9 @@ class CommandLine {
       arguments = arguments.sublist(index + 1);
     } else {
       options = arguments.where((argument) => argument.startsWith("-")).toSet();
-      arguments =
-          arguments.where((argument) => !argument.startsWith("-")).toList();
+      arguments = arguments
+          .where((argument) => !argument.startsWith("-"))
+          .toList();
     }
     return CommandLine(options, arguments);
   }
@@ -156,7 +165,12 @@ Future<void> main(List<String> arguments) {
     }
     TestRoot root = await TestRoot.fromUri(configuration);
     SuiteRunner runner = SuiteRunner(
-        root.suites, environment, cl.selectors, cl.selectedSuites, cl.skip);
+      root.suites,
+      environment,
+      cl.selectors,
+      cl.selectedSuites,
+      cl.skip,
+    );
     String? program = await runner.generateDartProgram();
     bool hasAnalyzerSuites = await runner.analyze(root.packages);
     Stopwatch sw = Stopwatch()..start();
@@ -171,24 +185,29 @@ Future<void> main(List<String> arguments) {
   });
 }
 
-Future<void> runTests(Map<String, Function> tests) =>
-    withErrorHandling<void>(() async {
-      int completed = 0;
-      for (String name in tests.keys) {
-        const StdoutLogger()
-            .logTestStart(completed, 0, tests.length, null, null);
-        StringBuffer sb = StringBuffer();
-        try {
-          await runGuarded(() {
-            print("Running test $name");
-            return tests[name]!();
-          }, printLineOnStdout: sb.writeln);
-          const StdoutLogger().logMessage(sb);
-        } catch (e) {
-          print(sb);
-          rethrow;
-        }
-        const StdoutLogger()
-            .logTestComplete(++completed, 0, tests.length, null, null);
+Future<void> runTests(Map<String, Function> tests) => withErrorHandling<void>(
+  () async {
+    int completed = 0;
+    for (String name in tests.keys) {
+      const StdoutLogger().logTestStart(completed, 0, tests.length, null, null);
+      StringBuffer sb = StringBuffer();
+      try {
+        await runGuarded(() {
+          print("Running test $name");
+          return tests[name]!();
+        }, printLineOnStdout: sb.writeln);
+        const StdoutLogger().logMessage(sb);
+      } catch (e) {
+        print(sb);
+        rethrow;
       }
-    });
+      const StdoutLogger().logTestComplete(
+        ++completed,
+        0,
+        tests.length,
+        null,
+        null,
+      );
+    }
+  },
+);

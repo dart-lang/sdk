@@ -594,12 +594,14 @@ class FileState {
   CompilationUnitImpl parse({
     DiagnosticListener diagnosticListener = DiagnosticListener.nullListener,
     required OperationPerformanceImpl performance,
+    bool scanComments = true,
   }) {
     try {
       return parseCode(
         code: content,
         diagnosticListener: diagnosticListener,
         performance: performance,
+        scanComments: scanComments,
       );
     } catch (exception, stackTrace) {
       throw CaughtExceptionWithFiles(exception, stackTrace, {path: content});
@@ -611,6 +613,7 @@ class FileState {
     required String code,
     required DiagnosticListener diagnosticListener,
     required OperationPerformanceImpl performance,
+    required bool scanComments,
   }) {
     return performance.run('parseCode', (performance) {
       performance.getDataInt('length').add(code.length);
@@ -621,6 +624,7 @@ class FileState {
           featureSetForOverriding: featureSet,
           featureSet: featureSet.restrictToVersion(packageLanguageVersion),
         );
+      scanner.preserveComments = scanComments;
       Token token = scanner.tokenize(reportScannerErrors: false);
       LineInfo lineInfo = LineInfo(scanner.lineStarts);
       var languageVersion = LibraryLanguageVersion(

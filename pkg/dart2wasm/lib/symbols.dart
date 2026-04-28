@@ -23,8 +23,6 @@ class Symbols {
   }
 
   SymbolConstant symbolForNamedParameter(String name) {
-    // Named parameters cannot be private.
-    assert(!name.startsWith('_'));
     return SymbolConstant(name, null);
   }
 

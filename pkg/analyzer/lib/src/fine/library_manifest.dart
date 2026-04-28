@@ -16,7 +16,6 @@ import 'package:analyzer/src/fine/manifest_id.dart';
 import 'package:analyzer/src/fine/manifest_item.dart';
 import 'package:analyzer/src/fine/requirements.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
-import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/linked_element_factory.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
@@ -755,19 +754,15 @@ class LibraryManifestBuilder {
     for (var libraryElement in libraryElements) {
       var manifest = libraryElement.manifest!.instance;
 
-      for (var exported in libraryElement.exportedReferences) {
+      for (var entry in libraryElement.exportEntries) {
         // We want only re-exports, skip declared.
-        if (exported is! ExportedReferenceExported) {
+        if (!entry.isReExported) {
           continue;
         }
 
-        var reference = exported.reference;
-        var element = elementFactory.elementOfReference3(reference);
+        var element = elementFactory.elementOfReference3(entry.reference);
 
-        var lookupName = element.lookupName?.asLookupName;
-        if (lookupName == null) {
-          continue;
-        }
+        var lookupName = entry.name.asLookupName;
 
         // Skip elements that exist in nowhere.
         var elementLibrary = element.library;
@@ -784,7 +779,7 @@ class LibraryManifestBuilder {
         var id = elementLibraryManifest.getDeclaredId(lookupName)!;
         manifest.reExportMap[lookupName] = id;
 
-        if (libraryElement.isFromDeprecatedExport(exported)) {
+        if (libraryElement.isFromDeprecatedExport(entry)) {
           manifest.reExportDeprecatedOnly.add(lookupName);
         }
       }

@@ -361,19 +361,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _visitNode(node.parameter);
-    var separator = node.separator;
-    if (separator != null) {
-      if (separator.lexeme != ':') {
-        sink.write(' ');
-      }
-      sink.write(separator.lexeme);
-      _visitNode(node.defaultValue, prefix: ' ');
-    }
-  }
-
-  @override
   void visitDoStatement(DoStatement node) {
     sink.write('do ');
     _visitNode(node.body);
@@ -551,15 +538,11 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.requiredKeyword, suffix: ' ');
-    _visitToken(node.covariantKeyword, suffix: ' ');
-    _visitToken(node.keyword, suffix: ' ');
-    _visitNode(node.type, suffix: ' ');
+    _visitFormalParameterHeader(node);
     sink.write('this.');
     _visitToken(node.name);
-    _visitNode(node.typeParameters);
-    _visitNode(node.parameters);
+    _visitNode(node.functionTypedSuffix);
+    _visitNode(node.defaultClause);
   }
 
   @override
@@ -595,6 +578,15 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    if (node.separator.lexeme != ':') {
+      sink.write(' ');
+    }
+    sink.write(node.separator.lexeme);
+    _visitNode(node.value, prefix: ' ');
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     String? groupEnd;
     sink.write('(');
@@ -605,14 +597,11 @@ class ToSourceVisitor implements AstVisitor<void> {
       if (i > 0) {
         sink.write(', ');
       }
-      if (groupEnd == null && parameter is DefaultFormalParameter) {
-        if (parameter.isNamed) {
-          groupEnd = '}';
-          sink.write('{');
-        } else {
-          groupEnd = ']';
-          sink.write('[');
-        }
+      if (groupEnd == null &&
+          node.leftDelimiter != null &&
+          !parameter.isRequiredPositional) {
+        groupEnd = node.rightDelimiter!.lexeme;
+        sink.write(node.leftDelimiter!.lexeme);
       }
       parameter.accept(this);
     }
@@ -707,15 +696,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.requiredKeyword, suffix: ' ');
-    _visitToken(node.covariantKeyword, suffix: ' ');
-    _visitToken(node.keyword, suffix: ' ');
-    _visitNode(node.returnType, suffix: ' ');
-    _visitToken(node.name);
+  void visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) {
     _visitNode(node.typeParameters);
-    _visitNode(node.parameters);
+    _visitNode(node.formalParameters);
     if (node.question != null) {
       sink.write('?');
     }
@@ -863,7 +848,7 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitLabel(Label node) {
-    _visitNode(node.label);
+    _visitToken(node.name);
     sink.write(':');
   }
 
@@ -871,6 +856,11 @@ class ToSourceVisitor implements AstVisitor<void> {
   void visitLabeledStatement(LabeledStatement node) {
     _visitNodeList(node.labels, separator: ' ', suffix: ' ');
     _visitNode(node.statement);
+  }
+
+  @override
+  void visitLabelReference(LabelReference node) {
+    _visitToken(node.name);
   }
 
   @override
@@ -984,9 +974,10 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    _visitNode(node.name);
-    _visitNode(node.expression, prefix: ' ');
+  void visitNamedArgument(NamedArgument node) {
+    _visitToken(node.name);
+    _visitToken(node.colon);
+    _visitNode(node.argumentExpression, prefix: ' ');
   }
 
   @override
@@ -1181,6 +1172,13 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteralNamedField(RecordLiteralNamedField node) {
+    _visitToken(node.name);
+    _visitToken(node.colon);
+    _visitNode(node.fieldExpression, prefix: ' ');
+  }
+
+  @override
   void visitRecordPattern(RecordPattern node) {
     var fields = node.fields;
     sink.write('(');
@@ -1249,6 +1247,14 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _visitFormalParameterHeader(node);
+    _visitToken(node.name);
+    _visitNode(node.functionTypedSuffix);
+    _visitNode(node.defaultClause);
+  }
+
+  @override
   void visitRelationalPattern(RelationalPattern node) {
     sink.write(node.operator.lexeme);
     sink.write(' ');
@@ -1299,19 +1305,6 @@ class ToSourceVisitor implements AstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.requiredKeyword, suffix: ' ');
-    _visitToken(node.covariantKeyword, suffix: ' ');
-    _visitToken(node.keyword, suffix: ' ');
-    _visitNode(node.type);
-    if (node.type != null && node.name != null) {
-      sink.write(' ');
-    }
-    _visitToken(node.name);
-  }
-
-  @override
   void visitSimpleIdentifier(SimpleIdentifier node) {
     sink.write(node.token.lexeme);
   }
@@ -1346,15 +1339,11 @@ class ToSourceVisitor implements AstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(SuperFormalParameter node) {
-    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
-    _visitToken(node.requiredKeyword, suffix: ' ');
-    _visitToken(node.covariantKeyword, suffix: ' ');
-    _visitToken(node.keyword, suffix: ' ');
-    _visitNode(node.type, suffix: ' ');
+    _visitFormalParameterHeader(node);
     sink.write('super.');
     _visitToken(node.name);
-    _visitNode(node.typeParameters);
-    _visitNode(node.parameters);
+    _visitNode(node.functionTypedSuffix);
+    _visitNode(node.defaultClause);
   }
 
   @override
@@ -1536,6 +1525,19 @@ class ToSourceVisitor implements AstVisitor<void> {
     }
     _visitNode(node.expression);
     sink.write(';');
+  }
+
+  /// Visit the prefix shared by all formal parameter kinds.
+  void _visitFormalParameterHeader(FormalParameter node) {
+    _visitNodeList(node.metadata, separator: ' ', suffix: ' ');
+    _visitToken(node.requiredKeyword, suffix: ' ');
+    _visitToken(node.covariantKeyword, suffix: ' ');
+    _visitToken(node.constFinalOrVarKeyword, suffix: ' ');
+    _visitNode(node.type);
+    if (node.type != null &&
+        (node.name != null || node.functionTypedSuffix != null)) {
+      sink.write(' ');
+    }
   }
 
   /// Visit the given function [body], printing a prefix before if the body

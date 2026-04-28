@@ -105,6 +105,17 @@ workspace:
     );
   }
 
+  test_workspaceValueIsNull() {
+    assertErrors(
+      '''
+name: sample
+workspace:
+    -
+''',
+      [diag.workspaceValueNotString],
+    );
+  }
+
   test_workspaceValueIsString() {
     newFolder('/sample/package1');
     assertNoErrors('''

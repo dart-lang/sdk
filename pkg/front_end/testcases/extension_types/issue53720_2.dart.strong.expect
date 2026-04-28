@@ -35,7 +35,7 @@ extension type E2(core::int i) implements self::E1% /* erasure=core::int, declar
   constructor • = self::E2|constructor#;
   constructor tearoff • = self::E2|constructor#_#new#tearOff;
 }
-static extension-type-member method E1|constructor#(core::int i) → self::E1% /* erasure=core::int, declared=! */ {
+static extension-type-member method E1|constructor#(initializing-formal core::int i) → self::E1% /* erasure=core::int, declared=! */ {
   lowered final self::E1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
@@ -48,7 +48,7 @@ static extension-type-member method E1|get#m2(lowered final self::E1% /* erasure
 static extension-type-member method E1|get#m3(lowered final self::E1% /* erasure=core::int, declared=! */ #this) → dynamic
   return 1;
 static extension-type-member method E1|set#m4(lowered final self::E1% /* erasure=core::int, declared=! */ #this, wildcard dynamic _#wc1#formal) → void {}
-static extension-type-member method E2|constructor#(core::int i) → self::E2% /* erasure=core::int, declared=! */ {
+static extension-type-member method E2|constructor#(initializing-formal core::int i) → self::E2% /* erasure=core::int, declared=! */ {
   lowered final self::E2% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

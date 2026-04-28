@@ -426,6 +426,40 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_positional_single_new() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B extends A {
+  new ();
+}
+''');
+    await assertHasFix('''
+class A {
+  A(int a);
+}
+class B extends A {
+  new (super.a);
+}
+''');
+  }
+
+  Future<void> test_positional_single_primary() async {
+    await resolveTestCode('''
+class A {
+  A(int a);
+}
+class B() extends A;
+''');
+    await assertHasFix('''
+class A {
+  A(int a);
+}
+class B(super.a) extends A;
+''');
+  }
+
   Future<void> test_positional_single_usedIndex() async {
     await resolveTestCode('''
 class A {

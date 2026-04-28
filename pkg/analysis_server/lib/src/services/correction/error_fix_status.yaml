@@ -44,10 +44,10 @@
 #   issue created for it.
 #
 # Stats:
-# -  62 "needsEvaluation"
+# -  78 "needsEvaluation"
 # - 302 "needsFix"
-# - 500 "hasFix"
-# - 498 "noFix"
+# - 525 "hasFix"
+# - 487 "noFix"
 
 included_file_parse_error:
   status: noFix
@@ -241,6 +241,8 @@ augmentation_modifier_missing:
   status: needsFix
 augmentation_of_different_declaration_kind:
   status: noFix
+augmentation_of_mixin_application_class:
+  status: needsEvaluation
 augmentation_type_parameter_bound:
   status: noFix
 augmentation_type_parameter_count:
@@ -442,9 +444,15 @@ const_constructor_with_mixin_with_fields:
 const_constructor_with_non_const_super:
   status: noFix
 const_constructor_with_non_final_field:
-  status: noFix
+  status: hasFix
+  notes: |-
+    Currently supported via `RemoveConst`.
+    Another fix to consider is making the non-final fields `final`.
 const_primary_constructor_with_block_body:
-  status: needsEvaluation
+  status: hasFix
+  notes: |-
+    Currently supported via `RemoveConst`.
+    Another fix to consider is removing the block body entirely.
 const_primary_constructor_with_expression_body:
   status: needsEvaluation
 const_deferred_class:
@@ -999,7 +1007,7 @@ invalid_reference_to_generative_enum_constructor_tearoff:
   status: noFix
   since: 2.17
 invalid_reference_to_this:
-  status: noFix
+  status: hasFix
 invalid_super_formal_parameter_location:
   status: needsFix
   since: 2.17
@@ -1104,6 +1112,8 @@ mixin_application_not_implemented_interface:
   status: hasFix
 mixin_class_declaration_extends_not_object:
   status: hasFix
+mixin_class_declaration_with_clause:
+  status: needsEvaluation
 mixin_class_declares_non_trivial_generative_constructor:
   status: needsFix
   notes: |-
@@ -1118,6 +1128,8 @@ mixin_inherits_from_not_object:
     Remove the extends clause.
 mixin_instantiate:
   status: noFix
+mixin_modifier_mixin_application_class_with_multiple_mixins:
+  status: needsEvaluation
 mixin_of_disallowed_class:
   status: hasFix
 mixin_of_non_class:
@@ -1386,7 +1398,7 @@ prefix_identifier_not_followed_by_dot:
 prefix_shadowed_by_local_declaration:
   status: noFix
 primary_constructor_body_with_expression_body:
-  status: needsEvaluation
+  status: hasFix
 primary_constructor_body_with_modifier:
   status: needsEvaluation
 primary_constructor_body_without_declaration:
@@ -2457,6 +2469,8 @@ unnecessary_breaks:
   status: hasFix
 unnecessary_const:
   status: hasFix
+unnecessary_const_in_enum_constructor:
+  status: hasFix
 unnecessary_constructor_name:
   status: hasFix
 unnecessary_final_with_type:
@@ -2510,6 +2524,8 @@ unnecessary_string_interpolations:
 unnecessary_this:
   status: hasFix
 unnecessary_to_list_in_spreads:
+  status: hasFix
+unnecessary_type_name_in_constructor:
   status: hasFix
 unnecessary_unawaited:
   status: hasFix
@@ -2812,8 +2828,9 @@ expected_try_statement_body:
 expected_type_name:
   status: noFix
 experiment_not_enabled:
-  status: needsFix
+  status: hasFix
   notes: |-
+    Currently only for dot-shorthands.
     Update the sdk constraints.
 experiment_not_enabled_off_by_default:
   status: needsFix

@@ -265,7 +265,7 @@ class ForInLowering {
 
     final syncForLoopVariableInitialization =
         _ensureSyncForLoopVariableInitialization(
-          variable: stmt.expressionVariable,
+          variable: stmt.variable,
           initializer: syncForLoopVariableInitializer,
         );
 

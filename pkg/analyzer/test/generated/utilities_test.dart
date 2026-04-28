@@ -554,10 +554,10 @@ void f() {
     var findNode = _parseStringToFindNode(r'''
 void f({int a = 0, double b = 1}) {}
 ''');
-    _assertReplacementForChildren<DefaultFormalParameter>(
-      destination: findNode.defaultParameter('a ='),
-      source: findNode.defaultParameter('b ='),
-      childAccessors: [(node) => node.parameter, (node) => node.defaultValue!],
+    _assertReplacementForChildren<FormalParameter>(
+      destination: findNode.formalParameter('a ='),
+      source: findNode.formalParameter('b ='),
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
@@ -565,10 +565,10 @@ void f({int a = 0, double b = 1}) {}
     var findNode = _parseStringToFindNode(r'''
 void f({int a = 0, double b = 1}) {}
 ''');
-    _assertReplacementForChildren<DefaultFormalParameter>(
-      destination: findNode.defaultParameter('a ='),
-      source: findNode.defaultParameter('b ='),
-      childAccessors: [(node) => node.parameter, (node) => node.defaultValue!],
+    _assertReplacementForChildren<FormalParameter>(
+      destination: findNode.formalParameter('a ='),
+      source: findNode.formalParameter('b ='),
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
@@ -703,6 +703,19 @@ class B extends B0 {}
   void test_fieldFormalParameter() {
     var findNode = _parseStringToFindNode(r'''
 class A {
+  A([int this.foo = 0, double this.bar = 1]);
+}
+''');
+    _assertReplacementForChildren<FieldFormalParameter>(
+      destination: findNode.fieldFormalParameter('foo ='),
+      source: findNode.fieldFormalParameter('bar ='),
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
+    );
+  }
+
+  void test_fieldFormalParameter_functionTyped() {
+    var findNode = _parseStringToFindNode(r'''
+class A {
   A(
     @myA1
     @myA2
@@ -717,9 +730,8 @@ class A {
       destination: findNode.fieldFormalParameter('foo'),
       source: findNode.fieldFormalParameter('bar'),
       childAccessors: [
-        (node) => node.parameters!,
         (node) => node.type!,
-        (node) => node.typeParameters!,
+        (node) => node.functionTypedSuffix!,
       ],
     );
   }
@@ -786,8 +798,8 @@ void f(int a, int b) {}
 ''');
     _assertReplaceInList(
       destination: findNode.formalParameterList('int a'),
-      child: findNode.simpleFormalParameter('int a'),
-      replacement: findNode.simpleFormalParameter('int b'),
+      child: findNode.regularFormalParameter('int a'),
+      replacement: findNode.regularFormalParameter('int b'),
     );
   }
 
@@ -923,24 +935,19 @@ typedef double G<U>(double b);
     );
   }
 
-  void test_functionTypedFormalParameter() {
+  void test_functionTypedFormalParameterSuffix() {
     var findNode = _parseStringToFindNode(r'''
 void f(
-  @myA1
-  @myA2
   int a<T>(int a1),
   double b<U>(double b2),
 ) {}
 ''');
-    var a = findNode.functionTypedFormalParameter('a<T>');
-    _assertFormalParameterMetadata(a);
-    _assertReplacementForChildren<FunctionTypedFormalParameter>(
-      destination: findNode.functionTypedFormalParameter('a<T>'),
-      source: findNode.functionTypedFormalParameter('b<U>'),
+    _assertReplacementForChildren<FunctionTypedFormalParameterSuffix>(
+      destination: findNode.formalParameter('a<T>').functionTypedSuffix!,
+      source: findNode.formalParameter('b<U>').functionTypedSuffix!,
       childAccessors: [
-        (node) => node.returnType!,
         (node) => node.typeParameters!,
-        (node) => node.parameters,
+        (node) => node.formalParameters,
       ],
     );
   }
@@ -1074,20 +1081,6 @@ void f() {
     );
   }
 
-  void test_label() {
-    var findNode = _parseStringToFindNode(r'''
-void f() {
-  foo: while (true) {}
-  bar: while (true) {}
-}
-''');
-    _assertReplacementForChildren<Label>(
-      destination: findNode.label('foo:'),
-      source: findNode.label('bar'),
-      childAccessors: [(node) => node.label],
-    );
-  }
-
   void test_labeledStatement() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
@@ -1174,16 +1167,16 @@ void f() {
     );
   }
 
-  void test_namedExpression() {
+  void test_namedArgument() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
   g(foo: 0, bar: 1);
 }
 ''');
-    _assertReplacementForChildren<NamedExpression>(
-      destination: findNode.namedExpression('foo'),
-      source: findNode.namedExpression('bar'),
-      childAccessors: [(node) => node.name, (node) => node.expression],
+    _assertReplacementForChildren<NamedArgument>(
+      destination: findNode.namedArgument('foo'),
+      source: findNode.namedArgument('bar'),
+      childAccessors: [(node) => node.argumentExpression],
     );
   }
 
@@ -1362,6 +1355,38 @@ class A {
     );
   }
 
+  void test_regularFormalParameter() {
+    var findNode = _parseStringToFindNode(r'''
+void f([int a = 0, double b = 1]) {}
+''');
+    _assertReplacementForChildren<RegularFormalParameter>(
+      destination: findNode.formalParameter('a =') as RegularFormalParameter,
+      source: findNode.formalParameter('b =') as RegularFormalParameter,
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
+    );
+  }
+
+  void test_regularFormalParameter_functionTyped() {
+    var findNode = _parseStringToFindNode(r'''
+void f(
+  @myA1
+  @myA2
+  int a<T>(int a1),
+  double b<U>(double b2),
+) {}
+''');
+    var a = findNode.formalParameter('a<T>');
+    _assertFormalParameterMetadata(a);
+    _assertReplacementForChildren<RegularFormalParameter>(
+      destination: findNode.formalParameter('a<T>') as RegularFormalParameter,
+      source: findNode.formalParameter('b<U>') as RegularFormalParameter,
+      childAccessors: [
+        (node) => node.type!,
+        (node) => node.functionTypedSuffix!,
+      ],
+    );
+  }
+
   void test_relationalPattern() {
     var findNode = _parseStringToFindNode(r'''
 void f(x) {
@@ -1431,11 +1456,11 @@ void f(
   int b
 ) {}
 ''');
-    var a = findNode.simpleFormalParameter('int a');
+    var a = findNode.regularFormalParameter('int a');
     _assertFormalParameterMetadata(a);
-    _assertReplacementForChildren<SimpleFormalParameter>(
+    _assertReplacementForChildren<RegularFormalParameter>(
       destination: a,
-      source: findNode.simpleFormalParameter('int b'),
+      source: findNode.regularFormalParameter('int b'),
       childAccessors: [(node) => node.type!],
     );
   }
@@ -1474,18 +1499,18 @@ class A {
   void test_superFormalParameter() {
     var findNode = _parseStringToFindNode(r'''
 class A {
-  A(num a);
+  A([num a = 0]);
 }
 
 class B extends A {
-  B.sub1(int super.a1);
-  B.sub2(double super.a2);
+  B.sub1([int super.a1 = 1]);
+  B.sub2([double super.a2 = 2]);
 }
 ''');
     _assertReplacementForChildren<SuperFormalParameter>(
-      destination: findNode.superFormalParameter('a1'),
-      source: findNode.superFormalParameter('a2'),
-      childAccessors: [(node) => node.type!],
+      destination: findNode.superFormalParameter('a1 ='),
+      source: findNode.superFormalParameter('a2 ='),
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
@@ -1505,8 +1530,7 @@ class B extends A {
       source: findNode.superFormalParameter('bar2'),
       childAccessors: [
         (node) => node.type!,
-        (node) => node.typeParameters!,
-        (node) => node.parameters!,
+        (node) => node.functionTypedSuffix!,
       ],
     );
   }

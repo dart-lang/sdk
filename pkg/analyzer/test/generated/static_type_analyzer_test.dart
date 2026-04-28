@@ -335,16 +335,6 @@ test() => m();
 ''');
   }
 
-  test_visitNamedExpression() async {
-    await assertNoErrorsInCode('''
-test(dynamic d, String a) => d(n: a);
-''');
-    expect(
-      findNode.namedExpression('n: a').staticType,
-      typeProvider.stringType,
-    );
-  }
-
   test_visitNullLiteral() async {
     await assertNoErrorsInCode('''
 test() => null;

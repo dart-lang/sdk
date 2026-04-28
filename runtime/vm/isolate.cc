@@ -357,7 +357,8 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       cache_mutex_(),
       handler_info_cache_(),
       catch_entry_moves_cache_(),
-      tag_table_lock_() {
+      tag_table_lock_(),
+      roots_(new Roots()) {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
     intptr_t max_worker_threads;
@@ -384,20 +385,20 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       new ClassTable(&class_table_allocator_);
   cached_class_table_table_.store(class_table_->table());
   memset(&native_assets_api_, 0, sizeof(NativeAssetsApi));
+
+  if (!is_vm_isolate) {
+    *roots() = *Dart::vm_isolate_group()->roots();
+  }
+  Roots::SetCurrent(roots());
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            Dart_IsolateFlags api_flags,
                            bool is_vm_isolate)
-    : IsolateGroup(source,
-                   embedder_data,
-                   new ObjectStore(),
-                   api_flags,
-                   is_vm_isolate) {
-  if (object_store() != nullptr) {
-    object_store()->InitStubs();
-  }
+    : IsolateGroup(source, embedder_data, nullptr, api_flags, is_vm_isolate) {
+  set_object_store(new ObjectStore());
+  object_store()->InitStubs();
 }
 
 IsolateGroup::~IsolateGroup() {
@@ -500,6 +501,8 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 }
 
 void IsolateGroup::Shutdown() {
+  Roots::SetCurrent(roots());
+
   char* name = nullptr;
   // We retrieve the flag value once to avoid the compiler complaining about the
   // possibly uninitialized value of name, as the compiler is unaware that when
@@ -558,6 +561,7 @@ void IsolateGroup::Shutdown() {
   }
 
   delete this;
+  Roots::ClearCurrent();
 
   // After this isolate group has died we might need to notify a pending
   // `Dart_Cleanup()` call.
@@ -912,6 +916,7 @@ void IsolateGroup::FreeStaticField(const Field& field) {
 }
 
 Isolate* IsolateGroup::EnterTemporaryIsolate() {
+  Roots::SetCurrent(roots());
   Dart_IsolateFlags flags;
   Isolate::FlagsInitialize(&flags);
   Isolate* const isolate = Isolate::InitIsolate("temp", this, flags);
@@ -925,6 +930,7 @@ void IsolateGroup::ExitTemporaryIsolate() {
   ASSERT(thread != nullptr);
   thread->set_execution_state(Thread::kThreadInVM);
   Dart::ShutdownIsolate(thread);
+  Roots::ClearCurrent();
 }
 
 void IsolateGroup::RunWithCachedCatchEntryMoves(
@@ -2457,7 +2463,7 @@ void Isolate::SetStickyError(ErrorPtr sticky_error) {
 }
 
 void Isolate::Run() {
-  message_handler()->Run(group()->thread_pool(), nullptr, ShutdownIsolate,
+  message_handler()->Run(group()->thread_pool(), ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
 
@@ -2972,9 +2978,8 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
       api_state()->VisitObjectPointersUnlocked(visitor);
       break;
     case kObjectStore:
-      if (object_store() != nullptr) {
-        object_store()->VisitObjectPointers(visitor);
-      }
+      object_store()->VisitObjectPointers(visitor);
+      roots()->VisitObjectPointers(visitor);
       break;
     case kInitialFieldTable:
       initial_field_table()->VisitObjectPointers(visitor);

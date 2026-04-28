@@ -73,6 +73,9 @@ class FakeEntryPointsListener implements EntryPointsListener {
   void recordTearOff(Member target) {}
 
   @override
+  void recordMemberCalledDynamically(Member target, {required bool isGetter}) {}
+
+  @override
   Procedure getClosureCallMethod(Closure closure) => closure.createCallMethod();
 
   @override

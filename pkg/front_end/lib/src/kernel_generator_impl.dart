@@ -224,6 +224,7 @@ Future<InternalCompilerResult> _buildInternal(
     // the only need we have for these transformations).
     if (!buildComponent) {
       options.target.performOutlineTransformations(trimmedSummaryComponent);
+      options.target.performOutlineComponentOperations(trimmedSummaryComponent);
       options.ticker.logMs("Transformed outline");
     }
     if (serializeIfBuildingSummary) {

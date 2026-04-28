@@ -5,7 +5,7 @@ import "dart:core" as core;
 class VariableDeclaration extends core::Object {
   field core::String? _name;
   field core::int flags = 0;
-  constructor •(core::String? _name, {core::int flags = #C1}) → self::VariableDeclaration
+  constructor •(initializing-formal core::String? _name, {core::int flags = #C1}) → self::VariableDeclaration
     : self::VariableDeclaration::_name = _name, super core::Object::•() {
     if(!(flags =={core::num::==}{(core::Object) → core::bool} 1.{core::int::unary-}(){() → core::int})) {
       this.{self::VariableDeclaration::flags} = flags;

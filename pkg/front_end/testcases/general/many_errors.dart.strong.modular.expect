@@ -52,7 +52,7 @@ import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field dynamic x = null;
-  constructor named1() → self::A
+  const constructor named1() → self::A
     : invalid-initializer "pkg/front_end/testcases/general/many_errors.dart:8:26: Error: Constructor bodies can't use 'async', 'async*', or 'sync*'.
   const A.named1() sync* {}
                          ^" {}

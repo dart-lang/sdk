@@ -2,39 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:async';
-import "dart:_js_helper"
-    show
-        JS,
-        JSAnyToExternRef,
-        jsStringFromDartString,
-        jsUint8ArrayFromDartUint8List,
-        JSExternWrapperExt;
-import "dart:_js_types" show JSStringImpl;
-import 'dart:_string';
-import 'dart:js_interop'
-    show
-        ByteBufferToJSArrayBuffer,
-        JSArray,
-        JSFunction,
-        JSFunctionUtilExtension,
-        JSString,
-        JSArrayToList,
-        JSStringToString,
-        JSPromise,
-        JSPromiseToFuture,
-        ListToJSArray,
-        StringToJSString;
-import 'dart:_js_helper' show dartifyRaw, JSValue;
-import 'dart:_js_types';
 import 'dart:_wasm';
-import 'dart:math';
-import 'dart:typed_data' show Uint8List;
 
 part "class_id.dart";
-part "deferred.dart";
-part "dynamic_module.dart";
-part "print_patch.dart";
 part "symbol_patch.dart";
 
 // Compilation to Wasm is always fully null safe.
@@ -96,8 +66,8 @@ void reachabilityFence(Object? object) {}
 external void exportWasmFunction(Function object);
 
 // This function can be used to encode native side effects.
-@pragma("wasm:intrinsic")
-external void _nativeEffect(Object object);
+@pragma("external-effect")
+external void _nativeEffect(Object? object);
 
 // Thomas Wang 64-bit mix.
 // https://gist.github.com/badboy/6267743
@@ -121,59 +91,6 @@ external int doubleToIntBits(double value);
 @pragma("wasm:intrinsic")
 external double intBitsToDouble(int value);
 
-@pragma("wasm:prefer-inline")
-void _invokeMainArg0(WasmExternRef jsArrayRef, Function() mainMethod) {
-  mainMethod();
-  return;
-}
-
-@pragma("wasm:prefer-inline")
-void _invokeMainArg1(
-  WasmExternRef jsArrayRef,
-  Function(List<String>) mainMethod,
-) {
-  final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
-  final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
-  mainMethod(List.unmodifiable(args));
-  return;
-}
-
-@pragma("wasm:prefer-inline")
-void _invokeMainArg2(
-  WasmExternRef jsArrayRef,
-  Function(List<String>, Null) mainMethod,
-) {
-  final jsArray = (JSValue(jsArrayRef) as JSArray<JSString>).toDart;
-  final args = <String>[for (final jsValue in jsArray) jsValue.toDart];
-  mainMethod(List.unmodifiable(args), null);
-  return;
-}
-
-// Will be patched in `pkg/dart2wasm/lib/compile.dart` right before TFA.
-external void _invokeMainInternal(WasmExternRef jsArray);
-
-/// Used to invoke the `main` function from JS, printing any exceptions that
-/// escape.
-@pragma("wasm:export", "\$invokeMain")
-void _invokeMain(WasmExternRef jsArrayRef) {
-  try {
-    _invokeMainInternal(jsArrayRef);
-  } catch (e, s) {
-    print(e);
-    print(s);
-    rethrow;
-  }
-}
-
-String jsonEncode(String object) =>
-    // Use checked boxing as `JSON.stringify` can be patched by users.
-    JSStringImpl.fromRef(
-      JS<WasmExternRef>(
-        "s => JSON.stringify(s)",
-        jsStringFromDartString(object).wrappedExternRef,
-      ),
-    );
-
 /// Whether to check bounds in [IndexErrorUtils.checkIndex],
 /// which are  used in list and typed data implementations.
 ///
@@ -192,15 +109,6 @@ external bool get checkBounds;
 /// Reads of this variable are evaluated before the TFA by the constant
 /// evaluator, and its value depends on `--minify`.
 external bool get minify;
-
-/// Whether dynamic module support is enabled for this build.
-///
-/// Enables shortcuts in some runtime logic if it is known that no support is
-/// needed for dynamic modules.
-///
-/// Reads of this variable are evaluated before the TFA by the constant
-/// evaluator, and its value depends on `--dynamic-module-main`.
-external bool get hasDynamicModuleSupport;
 
 /// Whether deferred loading is enabled.
 ///

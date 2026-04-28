@@ -279,11 +279,11 @@ class AddKeyToConstructors extends ResolvedCorrectionProducer {
       var arguments = argumentList.arguments;
       var existing = arguments.firstWhereOrNull(
         (argument) =>
-            argument is NamedExpression && argument.name.label.name == 'key',
+            argument is NamedArgument && argument.name.lexeme == 'key',
       );
       if (existing == null) {
         // There is no 'key' argument, so add it.
-        var namedArguments = arguments.whereType<NamedExpression>();
+        var namedArguments = arguments.whereType<NamedArgument>();
         var firstNamed = namedArguments.firstOrNull;
         var token = firstNamed?.beginToken ?? argumentList.endToken;
         var comma = token.previous?.type == TokenType.COMMA;

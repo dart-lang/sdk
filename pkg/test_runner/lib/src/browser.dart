@@ -321,9 +321,84 @@ $script
 """;
 }
 
+/*
+Helper function to turn WebAssembly arrays into strings (which isn't possible
+with JavaScript alone). Generated from this WAT module via `wasm-as -all`
+and `base64 -w 0`:
+
+(module
+  (type $i8array (array (mut i8)))
+  (type $i16array (array (mut i16)))
+  (import "wasm:js-string" "fromCharCodeArray"
+    (func $fromCharCodeArray (param (ref null $i16array) i32 i32) (result (ref extern)))
+  )
+
+  (func (export "stringFromAsciiBytes")
+    (param $arr (ref $i8array))
+    (param $start i32)
+    (param $length i32)
+    (result (ref extern))
+
+    (local $i i32)
+    (local $expanded (ref $i16array))
+
+    ;; Copy i8 array into an i16 array
+    (local.set $i (local.get $length))
+    (local.set $expanded (array.new $i16array (i32.const 0) (local.get $length)))
+
+    ;; do { i--; expanded[i] = arr[i]; } while (i >= start);
+    (block $break
+      (loop $loop
+        (local.set $i (i32.add (local.get $i) (i32.const -1)))
+        (br_if $break
+          (i32.lt_s
+            (local.get $i)
+            (local.get $start)
+          )
+        )
+
+        (array.set $i16array
+          (local.get $expanded)
+            (local.get $i)
+            (array.get_u $i8array (local.get $arr) (local.get $i))
+          )
+          br $loop
+      )
+    )
+
+    (call $fromCharCodeArray
+      (local.get $expanded)
+      (i32.const 0)
+      (array.len (local.get $expanded))
+    )
+  )
+
+  (func (export "stringFromCharCodeArray")
+    (param $arr (ref $i16array))
+    (param $start i32)
+    (param $length i32)
+    (result (ref extern))
+
+    (call $fromCharCodeArray
+      (local.get $arr)
+      (local.get $start)
+      (i32.add
+        (local.get $start)
+        (local.get $length)
+      )
+    )
+  )
+)
+ */
+const _wasmStandaloneArrayHelper = 'AGFzbQEAAAABIgVedwFeeAFgA2MAf38BZG9gA2QBf38BZG9gA2QAf38BZG8CJAEOd2FzbTpqcy1zdHJpbmcRZnJvbUNoYXJDb2RlQXJyYXkAAgMDAgMEBzICFHN0cmluZ0Zyb21Bc2NpaUJ5dGVzAAEXc3RyaW5nRnJvbUNoYXJDb2RlQXJyYXkAAgpTAkMCAX8BZAAgAiEDQQAgAvsGACEEAkADQCADQX9qIQMgAyABSA0BIAQgAyAAIAP7DQH7DgAMAAsACyAEQQAgBPsPEAALDQAgACABIAEgAmoQAAs=';
+
 String dart2wasmHtml(String title, String wasmPath, String mjsPath,
     String supportJsPath, bool standalone) {
   const standaloneEmbedder = """
+    const { instance: helperInstance } = await WebAssembly.instantiate(Uint8Array.fromBase64('$_wasmStandaloneArrayHelper'), {}, {
+      builtins: ['js-string']
+    });
+
     const dartEmbedder = {
       // See sdk/lib/_internal/wasm_standalone/lib/embedder.dart for required definitions.
       scheduleOnce: (delayInMicros, callback, arg) => {
@@ -341,6 +416,14 @@ String dart2wasmHtml(String title, String wasmPath, String mjsPath,
         clearTimeout(schedule.timeout);
       },
       currentTime: () => BigInt(Date.now()) * 1000n,
+      stringFromAsciiBytes: (chars, start, length) => {
+        const str = helperInstance.exports.stringFromAsciiBytes(chars, start, length);
+        return str;
+      },
+      stringFromCharCodeArray: (chars, start, length) => {
+        const str = helperInstance.exports.stringFromCharCodeArray(chars, start, length);
+        return str;
+      },
     };
 """;
   final additionalImports = standalone ? '{ dart: dartEmbedder }' : '{}';

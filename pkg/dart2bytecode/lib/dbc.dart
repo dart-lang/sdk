@@ -7,7 +7,7 @@ library;
 
 /// Version of bytecode format
 /// (should match runtime/vm/constants_kbc.h).
-const int bytecodeFormatVersion = 1;
+const int bytecodeFormatVersion = 2;
 
 enum Opcode {
   kTrap,
@@ -34,8 +34,14 @@ enum Opcode {
   kAllocate_Wide,
   kAllocateT,
   kCreateArrayTOS,
+
+  // Closure allocation and access.
   kAllocateClosure,
-  kUnused03,
+  kAllocateClosure_Wide,
+  kLoadClosureElement,
+  kLoadClosureElement_Wide,
+  kStoreClosureElement,
+  kStoreClosureElement_Wide,
 
   // Context allocation and access.
   kAllocateContext,
@@ -677,8 +683,18 @@ const Map<Opcode, Format> BytecodeFormats = const {
     Operand.imm,
     Operand.none,
   ]),
-  Opcode.kAllocateClosure: const Format(Encoding.k0, const [
+  Opcode.kAllocateClosure: const Format(Encoding.kD, const [
+    Operand.lit,
     Operand.none,
+    Operand.none,
+  ]),
+  Opcode.kLoadClosureElement: const Format(Encoding.kD, const [
+    Operand.imm,
+    Operand.none,
+    Operand.none,
+  ]),
+  Opcode.kStoreClosureElement: const Format(Encoding.kD, const [
+    Operand.imm,
     Operand.none,
     Operand.none,
   ]),

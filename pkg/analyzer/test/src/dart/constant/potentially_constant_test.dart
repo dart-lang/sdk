@@ -890,7 +890,7 @@ var x = a.foo();
 void f({a}) {}
 
 var x = f(a: 0);
-''', () => findNode.namedExpression('a: 0'));
+''', () => findNode.namedArgument('a: 0'));
   }
 
   test_parenthesizedExpression_const() async {
@@ -1262,6 +1262,23 @@ class C {
   const C(int a) : f = (0, a);
 }
 ''', () => findNode.recordLiteral('(0'));
+  }
+
+  test_recordLiteral_namedField_const() async {
+    await _assertConst(r'''
+var x = const (f1: 0);
+''', () => _xInitializer());
+  }
+
+  test_recordLiteral_namedField_notConst_element() async {
+    await _assertNotConst(
+      r'''
+final a = 0;
+var x = const (f1: a);
+''',
+      () => _xInitializer(),
+      () => [findNode.simple('a)')],
+    );
   }
 
   test_recordLiteral_notConst() async {

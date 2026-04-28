@@ -287,6 +287,11 @@ class RegularSetterDeclaration
         fileUri: _fragment.fileUri,
         nameOffset: _fragment.nameOffset,
         nameLength: _fragment.name.length,
+        isClosureContextLoweringEnabled: libraryBuilder
+            .loader
+            .target
+            .backendTarget
+            .isConstructorTearOffLoweringEnabled,
       );
     }
     _encoding.ensureTypes(libraryBuilder, membersBuilder.hierarchyBuilder);
@@ -310,6 +315,7 @@ class RegularSetterDeclaration
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     List<FormalParameterBuilder>? declaredFormals = _fragment.declaredFormals;
     if (declaredFormals == null ||
@@ -354,6 +360,7 @@ class RegularSetterDeclaration
       scope: scope,
       asyncMarker: asyncMarker,
       emittedValueType: emittedValueType,
+      thisVariable: thisVariable,
     );
   }
 
@@ -404,6 +411,7 @@ abstract class SetterFragmentDeclaration {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   });
 
   DartType get returnTypeContext;

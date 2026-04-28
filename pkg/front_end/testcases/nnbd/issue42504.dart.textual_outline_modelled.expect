@@ -1,6 +1,8 @@
 abstract class Foo {
   ImageStreamCompleter? putIfAbsent(
-      Object key, ImageStreamCompleter loader()) {}
+    Object key,
+    ImageStreamCompleter loader(),
+  ) {}
   dynamic get _pendingImages;
 }
 

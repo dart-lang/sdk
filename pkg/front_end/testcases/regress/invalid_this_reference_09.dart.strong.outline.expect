@@ -39,7 +39,7 @@ extension type Foo2(dynamic _input) {
   constructor fromInt = self::Foo2|constructor#fromInt;
   constructor tearoff fromInt = self::Foo2|constructor#_#fromInt#tearOff;
 }
-static extension-type-member method Foo|constructor#(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
+static extension-type-member method Foo|constructor#(initializing-formal dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
   ;
 static extension-type-member synthetic method Foo|constructor#_#new#tearOff(dynamic x) → self::Foo% /* erasure=dynamic, declared=! */
   return self::Foo|constructor#(x);
@@ -49,7 +49,7 @@ static extension-type-member method Foo|baz(lowered final self::Foo% /* erasure=
   ;
 static extension-type-member method Foo|get#baz(lowered final self::Foo% /* erasure=dynamic, declared=! */ #this) → (core::int) → core::int
   return (core::int i) → core::int => self::Foo|baz(#this, i);
-static extension-type-member method Foo2|constructor#_(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
+static extension-type-member method Foo2|constructor#_(initializing-formal dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
   ;
 static extension-type-member synthetic method Foo2|constructor#_#_#tearOff(dynamic _input) → self::Foo2% /* erasure=dynamic, declared=! */
   return self::Foo2|constructor#_(_input);

@@ -133,8 +133,16 @@ final class ConstantPropagation extends Pass
     }
   }
 
-  Definition _unwrapRedundantPhi(Definition def) =>
-      def is Phi ? (_redundantPhis[def] ?? def) : def;
+  Definition _unwrapRedundantPhi(Definition def) {
+    while (def is Phi) {
+      final unwrapped = _redundantPhis[def];
+      if (unwrapped == null) {
+        return def;
+      }
+      def = unwrapped;
+    }
+    return def;
+  }
 
   bool _sameDefinitions(Definition a, Definition b) =>
       _unwrapRedundantPhi(a) == _unwrapRedundantPhi(b);
@@ -270,6 +278,9 @@ final class ConstantPropagation extends Pass
 
   @override
   void visitReturn(Return instr) {}
+
+  @override
+  void visitUnreachable(Unreachable instr) {}
 
   @override
   void visitConstant(Constant instr) {
@@ -437,6 +448,14 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {}
+
+  @override
+  void visitSuspend(Suspend instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitComparison(Comparison instr) {
     switch (instr.op) {
       case ComparisonOpcode.equal:
@@ -580,10 +599,10 @@ final class ConstantPropagation extends Pass
       instr.replaceUsesWith(graph.getConstant(constantValue));
       instr.removeFromGraph();
     }
-    for (final entry in _redundantPhis.entries) {
-      final instr = entry.key;
-      final input = entry.value;
+    for (final instr in _redundantPhis.keys) {
       if (!_constantValues.containsKey(instr)) {
+        final input = _unwrapRedundantPhi(instr);
+        assert(input != instr);
         assert(!_constantValues.containsKey(input));
         instr.replaceUsesWith(input);
         instr.removeFromGraph();
@@ -673,7 +692,7 @@ final class ConstantPropagation extends Pass
           return last.tryBody;
         }
         return null;
-      case Return() || Throw():
+      case Return() || Throw() || Unreachable():
         return null;
       default:
         throw 'Unexpected block end ${last.runtimeType}';

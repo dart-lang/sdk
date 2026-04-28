@@ -35,6 +35,7 @@ class LinterRuleOptionsValidatorTest with ResourceProviderMixin {
     optionsProvider: AnalysisOptionsProvider(SourceFactoryImpl([])),
     resourceProvider: resourceProvider,
     sourceFactory: sourceFactory,
+    analysisOptionsCache: {},
   );
 
   void setUp() {

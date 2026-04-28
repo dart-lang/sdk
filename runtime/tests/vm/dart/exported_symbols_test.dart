@@ -366,6 +366,7 @@ main() {
     "Dart_TypeToNullableType",
     "Dart_TypeVoid",
     "Dart_VersionString",
+    "Dart_WriteCallbackStub",
     "Dart_WriteHeapSnapshot",
     "Dart_WriteProfileToTimeline",
     if (isAOTRuntime) ...[

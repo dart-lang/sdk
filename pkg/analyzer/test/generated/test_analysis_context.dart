@@ -17,7 +17,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
 class TestAnalysisContext implements AnalysisContext {
-  final Reference rootReference = Reference.root();
+  final RootReference rootReference = RootReference();
 
   @override
   final SourceFactory sourceFactory = _MockSourceFactory();
@@ -25,21 +25,25 @@ class TestAnalysisContext implements AnalysisContext {
   final _MockAnalysisSession _analysisSession = _MockAnalysisSession();
   final AnalysisOptions analysisOptions = AnalysisOptionsImpl();
 
+  late final LibraryElementImpl coreLibrary;
+  late final LibraryElementImpl asyncLibrary;
   late TypeProviderImpl _typeProvider;
   late TypeSystemImpl _typeSystem;
 
   TestAnalysisContext() {
     var sdkElements = MockSdkElements(this, rootReference, _analysisSession);
+    coreLibrary = sdkElements.coreLibrary;
+    asyncLibrary = sdkElements.asyncLibrary;
 
     _typeProvider = TypeProviderImpl(
-      coreLibrary: sdkElements.coreLibrary,
-      asyncLibrary: sdkElements.asyncLibrary,
+      coreLibrary: coreLibrary,
+      asyncLibrary: asyncLibrary,
     );
 
     _typeSystem = TypeSystemImpl(typeProvider: _typeProvider);
 
-    _setLibraryTypeSystem(sdkElements.coreLibrary);
-    _setLibraryTypeSystem(sdkElements.asyncLibrary);
+    _setLibraryTypeSystem(coreLibrary);
+    _setLibraryTypeSystem(asyncLibrary);
   }
 
   AnalysisSessionImpl get analysisSession => _analysisSession;

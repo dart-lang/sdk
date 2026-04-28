@@ -222,6 +222,32 @@ f() {
 ''');
   }
 
+  Future<void> test_primaryConstructor_final() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.always_specify_types],
+    );
+    await resolveTestCode(r'''
+class A([final b = 1]);
+''');
+    await assertHasFix(r'''
+class A([final int b = 1]);
+''');
+  }
+
+  Future<void> test_primaryConstructor_var() async {
+    createAnalysisOptionsFile(
+      experiments: experiments,
+      lints: [LintNames.always_specify_types],
+    );
+    await resolveTestCode(r'''
+class A([var b = 1]);
+''');
+    await assertHasFix(r'''
+class A([var int b = 1]);
+''');
+  }
+
   // More coverage in the `add_type_annotation_test.dart` assist test.
 
   Future<void> test_privateType_list() async {

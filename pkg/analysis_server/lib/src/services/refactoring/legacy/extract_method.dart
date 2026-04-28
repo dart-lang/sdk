@@ -792,6 +792,12 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
     var offset = _selectionRange.offset;
     var node = _resolveResult.unit.nodeCovering(offset: offset);
 
+    if (node case NamedArgument(
+      argumentExpression: FunctionExpression function,
+    )) {
+      return function;
+    }
+
     // Check for the parameter list of a FunctionExpression.
     {
       var function = node?.thisOrAncestorOfType<FunctionExpression>();
@@ -806,20 +812,6 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
       }
     }
 
-    // Check for the name of the named argument with the closure expression.
-    if (node is SimpleIdentifier) {
-      var label = node.parent;
-      if (label is Label) {
-        var namedExpression = label.parent;
-        if (namedExpression is NamedExpression) {
-          var expression = namedExpression.expression;
-          if (expression is FunctionExpression) {
-            return expression;
-          }
-        }
-      }
-    }
-
     return null;
   }
 
@@ -828,9 +820,9 @@ final class ExtractMethodRefactoringImpl extends RefactoringImpl
   /// function type has the return type specified, return this return type's
   /// code. Otherwise return the empty string.
   String _getExpectedClosureReturnTypeCode() {
-    Expression argument = _selectionFunctionExpression!;
-    if (argument.parent is NamedExpression) {
-      argument = argument.parent as NamedExpression;
+    Argument argument = _selectionFunctionExpression!;
+    if (argument.parent case NamedArgument parent) {
+      argument = parent;
     }
     var parameter = argument.correspondingParameter;
     if (parameter != null) {
@@ -1403,8 +1395,8 @@ class _GetSourcePatternVisitor extends GeneralizingAstVisitor<void> {
   _GetSourcePatternVisitor(this.partRange, this.pattern, this.replaceEdits);
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    node.expression.accept(this);
+  void visitNamedArgument(NamedArgument node) {
+    node.argumentExpression.accept(this);
   }
 
   @override
@@ -1636,10 +1628,6 @@ class _InitializeParametersVisitor extends GeneralizingAstVisitor<void> {
     // analyze local element
     var element = _getLocalElement(node);
     if (element != null) {
-      // name of the named expression
-      if (isNamedExpressionName(node)) {
-        return;
-      }
       // if declared outside, add parameter
       if (!ref._isDeclaredInSelection(element)) {
         // add parameter

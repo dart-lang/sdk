@@ -1436,14 +1436,15 @@ void main(int argc, char** argv) {
     }
   }
 
-  // Terminate process exit-code handler.
-  Process::TerminateExitCodeHandler();
-
   error = Dart_Cleanup();
   if (error != nullptr) {
     Syslog::PrintErr("VM cleanup failed: %s\n", error);
     free(error);
   }
+
+  // Terminate process exit-code handler.
+  Process::TerminateExitCodeHandler();
+
   const intptr_t global_exit_code = Process::GlobalExitCode();
   dart::embedder::Cleanup();
 

@@ -13,6 +13,7 @@ dependencies:
   dart_data_home: any
   ffi: any
   json_rpc_2: any
+  meta: any
   path: any
   stream_channel: any
 

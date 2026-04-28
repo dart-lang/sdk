@@ -155,9 +155,10 @@ void Expect::FloatEquals(const E& expected, const A& actual, const T& tol) {
        tols.c_str());
 }
 
-static void Escape(std::string& dst, const char* src) {
-  char c;
-  while ((c = *src++) != '\0') {
+static void Escape(std::string& dst, const char* src, int len) {
+  if (len == 0) return;
+  const char* const end = src + len;
+  for (char c = *src; src < end; src++, c = *src) {
     if (c == '\n') {
       dst += "\\n\"\n\"";
     } else if (c == '\'') {
@@ -166,22 +167,77 @@ static void Escape(std::string& dst, const char* src) {
       dst += "\\\"";
     } else if (c == '\\') {
       dst += "\\\\";
+    } else if (c == '\0') {
+      dst += "\\0";
     } else {
       dst += c;
     }
   }
 }
 
+static void FindCommonPrefixAndSuffix(const char* expected,
+                                      const char* actual,
+                                      std::string& prefix,
+                                      std::string& expected_mismatch,
+                                      std::string& actual_mismatch,
+                                      std::string& suffix) {
+  const int expected_len = strlen(expected);
+  const int actual_len = strlen(actual);
+  int prefix_length = 0;
+  while (expected[prefix_length] == actual[prefix_length]) {
+    prefix_length += 1;
+  }
+
+  int suffix_length = 0;
+  while (expected[(expected_len - 1) - suffix_length] ==
+         actual[(actual_len - 1) - suffix_length]) {
+    suffix_length += 1;
+  }
+
+  // Set a minimum difference required to output a non-empty prefix and suffix,
+  // so that they are not output if the common prefix and suffix of the expected
+  // and actual strings is small.
+  constexpr int kMinDifference = 10;
+  if (prefix_length + suffix_length < kMinDifference) {
+    prefix_length = 0;
+    suffix_length = 0;
+  }
+
+  Escape(prefix, expected, prefix_length);
+  Escape(expected_mismatch, expected + prefix_length,
+         expected_len - prefix_length - suffix_length);
+  Escape(actual_mismatch, actual + prefix_length,
+         actual_len - prefix_length - suffix_length);
+  Escape(suffix, expected + expected_len - suffix_length, suffix_length);
+}
+
 inline void Expect::StringEquals(const char* expected, const char* actual) {
-  if (strcmp(expected, actual) == 0) return;
   if (actual == nullptr) {
     Fail("expected:\n<\"%s\">\nbut was nullptr", expected);
   } else {
     if (strcmp(expected, actual) == 0) return;
-    std::string es, as;
-    Escape(es, expected);
-    Escape(as, actual);
-    Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", es.c_str(), as.c_str());
+    std::string prefix, expected_mismatch, actual_mismatch, suffix;
+    FindCommonPrefixAndSuffix(expected, actual, prefix, expected_mismatch,
+                              actual_mismatch, suffix);
+    // Only print the prefix and/or suffix if non-empty.
+    if (prefix.empty() && suffix.empty()) {
+      Fail("expected:\n<\"%s\">\nbut was:\n<\"%s\">", expected_mismatch.c_str(),
+           actual_mismatch.c_str());
+    } else if (prefix.empty()) {
+      Fail(
+          "substring mismatch:\nexpected:\n  <\"%s\">\nbut was:\n  "
+          "<\"%s\">\nsuffix:\n  <\"%s\">",
+          expected_mismatch.c_str(), actual_mismatch.c_str(), suffix.c_str());
+    } else if (suffix.empty()) {
+      Fail("prefix:\n  <\"%s\">\nexpected:\n  <\"%s\">\nbut was:\n  <\"%s\">",
+           prefix.c_str(), expected_mismatch.c_str(), actual_mismatch.c_str());
+    } else {
+      Fail(
+          "prefix:\n  <\"%s\">\nexpected:\n  <\"%s\">\nbut was:\n  "
+          "<\"%s\">\nsuffix:\n  <\"%s\">",
+          prefix.c_str(), expected_mismatch.c_str(), actual_mismatch.c_str(),
+          suffix.c_str());
+    }
   }
 }
 

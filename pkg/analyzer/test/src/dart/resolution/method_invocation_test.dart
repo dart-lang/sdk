@@ -1696,7 +1696,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@prefix2::p
+    element: <testLibraryFragment>::@prefix::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2122,7 +2122,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2154,7 +2154,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2186,7 +2186,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@prefix2::foo
+    element: <testLibraryFragment>::@prefix::foo
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2243,7 +2243,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2789,7 +2789,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@prefix2::p
+    element: <testLibraryFragment>::@prefix::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3429,7 +3429,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3464,7 +3464,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3811,7 +3811,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3860,7 +3860,7 @@ FunctionExpressionInvocation
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -5331,7 +5331,7 @@ FunctionExpressionInvocation
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -5381,7 +5381,7 @@ MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -6102,25 +6102,17 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: p
-            element: <testLibrary>::@function::foo::@formalParameter::p
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: p
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 0
           staticType: int
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::p
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: p
-            element: <testLibrary>::@function::foo::@formalParameter::p
-            staticType: null
-          colon: :
-        expression: SimpleIdentifier
+      NamedArgument
+        name: p
+        colon: :
+        argumentExpression: SimpleIdentifier
           token: a
           element: <testLibrary>::@getter::a
           staticType: int
@@ -6559,16 +6551,10 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: a
-            element: ParameterMember
-              baseElement: a@32
-              substitution: {T: int}
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: a
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 0
           staticType: int
         correspondingParameter: ParameterMember
@@ -6679,25 +6665,17 @@ MethodInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     arguments
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: b
-            element: <testLibrary>::@function::foo::@formalParameter::b
-            staticType: null
-          colon: :
-        expression: BooleanLiteral
+      NamedArgument
+        name: b
+        colon: :
+        argumentExpression: BooleanLiteral
           literal: false
           staticType: bool
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::b
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: a
-            element: <testLibrary>::@function::foo::@formalParameter::a
-            staticType: null
-          colon: :
-        expression: IntegerLiteral
+      NamedArgument
+        name: a
+        colon: :
+        argumentExpression: IntegerLiteral
           literal: 0
           staticType: int
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
@@ -6749,14 +6727,10 @@ MethodInvocation
         staticType: A
         typeArgumentTypes
           A
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: c
-            element: <testLibrary>::@function::foo::@formalParameter::c
-            staticType: null
-          colon: :
-        expression: MethodInvocation
+      NamedArgument
+        name: c
+        colon: :
+        argumentExpression: MethodInvocation
           methodName: SimpleIdentifier
             token: g3
             element: <testLibrary>::@function::g3
@@ -6782,14 +6756,10 @@ MethodInvocation
         staticType: B
         typeArgumentTypes
           B
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: d
-            element: <testLibrary>::@function::foo::@formalParameter::d
-            staticType: null
-          colon: :
-        expression: MethodInvocation
+      NamedArgument
+        name: d
+        colon: :
+        argumentExpression: MethodInvocation
           methodName: SimpleIdentifier
             token: g4
             element: <testLibrary>::@function::g4
@@ -6939,7 +6909,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -7525,7 +7495,7 @@ void f() {
 
     // See https://github.com/dart-lang/sdk/issues/54669 for why we check for
     // isNotNull despite #50660 suggesting the source would be null.
-    var element = findNode.simple('a:').element!;
+    var element = findNode.namedArgument('a:').correspondingParameter!;
     var libraryFragment2 = element.firstFragment.libraryFragment!;
     expect(libraryFragment2.source, isNotNull);
   }
@@ -8186,14 +8156,10 @@ MethodInvocation
         literal: 0
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::a
         staticType: int
-      NamedExpression
-        name: Label
-          label: SimpleIdentifier
-            token: b
-            element: <testLibrary>::@function::foo::@formalParameter::b
-            staticType: null
-          colon: :
-        expression: BooleanLiteral
+      NamedArgument
+        name: b
+        colon: :
+        argumentExpression: BooleanLiteral
           literal: true
           staticType: bool
         correspondingParameter: <testLibrary>::@function::foo::@formalParameter::b

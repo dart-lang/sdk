@@ -34,19 +34,19 @@ extension type E(core::int x) {
   constructor testNamed = self::E|constructor#testNamed;
   constructor tearoff testNamed = self::E|constructor#_#testNamed#tearOff;
 }
-static extension-type-member method E|constructor#(core::int x) → self::E% /* erasure=core::int, declared=! */ {
+static extension-type-member method E|constructor#(initializing-formal core::int x) → self::E% /* erasure=core::int, declared=! */ {
   lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }
 static extension-type-member synthetic method E|constructor#_#new#tearOff(core::int x) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#(x);
-static extension-type-member method E|constructor#testPositional([erroneously-initialized core::int x = #C1, erroneously-initialized core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */ {
+static extension-type-member method E|constructor#testPositional([initializing-formal erroneously-initialized core::int x = #C1, erroneously-initialized core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */ {
   lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }
 static extension-type-member synthetic method E|constructor#_#testPositional#tearOff([erroneously-initialized core::int x = #C1, erroneously-initialized core::int y = #C1]) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#testPositional(x, y);
-static extension-type-member method E|constructor#testNamed({erroneously-initialized core::int x = #C1, erroneously-initialized core::String y = #C1}) → self::E% /* erasure=core::int, declared=! */ {
+static extension-type-member method E|constructor#testNamed({initializing-formal erroneously-initialized core::int x = #C1, erroneously-initialized core::String y = #C1}) → self::E% /* erasure=core::int, declared=! */ {
   lowered final self::E% /* erasure=core::int, declared=! */ #this = x;
   return #this;
 }

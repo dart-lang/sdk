@@ -35,7 +35,11 @@ class ReplaceFinalWithVar extends ResolvedCorrectionProducer {
       DeclaredIdentifier node => (node.keyword, node.type != null, true),
       DeclaredVariablePattern node => (node.keyword, node.type != null, true),
       ForEachPartsWithPattern node => (node.keyword, false, true),
-      SimpleFormalParameter node => (node.keyword, node.type != null, false),
+      RegularFormalParameter node => (
+        node.finalKeyword,
+        node.type != null,
+        false,
+      ),
       _ => (null, true, false),
     };
 

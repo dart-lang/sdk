@@ -46,15 +46,15 @@ Future func10() async {
 }
 
 void expectFrame(
-  final frame,
-  final kindExpectation,
-  final codeNameExpectation,
+  frame,
+  kindExpectation,
+  codeNameExpectation,
 ) {
   expect(frame.kind, kindExpectation);
   expect(frame.code?.name, codeNameExpectation);
 }
 
-void expectFrames(final frames, final expectKindAndCodeName) {
+void expectFrames(frames, expectKindAndCodeName) {
   for (int i = 0; i < expectKindAndCodeName.length; i++) {
     expectFrame(
       frames[i],

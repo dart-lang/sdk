@@ -28,7 +28,7 @@ static extension-type-member method ET1|constructor#c1() → self::ET1% /* erasu
 
 [@vm.inferred-return-type.metadata=int]
 [@vm.unboxing-info.metadata=(i)->i]
-static extension-type-member method ET1|constructor#c2([@vm.inferred-arg-type.metadata=int] core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ET1|constructor#c2([@vm.inferred-arg-type.metadata=int] initializing-formal core::int id) → self::ET1% /* erasure=core::int, declared=! */ {
   lowered final self::ET1% /* erasure=core::int, declared=! */ #this = id;
   return #this;
 }

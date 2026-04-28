@@ -13,7 +13,11 @@ import 'package:analyzer/src/summary/format.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:collection/collection.dart';
 
-Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
+Element? declaredNamedArgumentParameter(
+  String parameterName,
+  AstNode namedArgument,
+  Element? element,
+) {
   if (element == null || element.enclosingElement != null) {
     return element;
   }
@@ -27,72 +31,25 @@ Element? declaredParameterElement(SimpleIdentifier node, Element? element) {
       return null;
     }
 
-    var parameterName = node.name;
     return executable.baseElement.formalParameters.where((parameter) {
       return parameter.isNamed && parameter.name == parameterName;
-    }).first;
+    }).firstOrNull;
   }
 
-  var parent = node.parent;
-  if (parent is Label && parent.label == node) {
-    var namedExpression = parent.parent;
-    if (namedExpression is NamedExpression && namedExpression.name == parent) {
-      var argumentList = namedExpression.parent;
-      if (argumentList is ArgumentList) {
-        var invocation = argumentList.parent;
-        if (invocation is InstanceCreationExpression) {
-          var executable = invocation.constructorName.element;
-          return namedParameterElement(executable);
-        } else if (invocation is MethodInvocation) {
-          var executable = invocation.methodName.element;
-          if (executable is ExecutableElement) {
-            return namedParameterElement(executable);
-          }
-        }
+  var argumentList = namedArgument.parent;
+  if (argumentList is ArgumentList) {
+    var invocation = argumentList.parent;
+    if (invocation is InstanceCreationExpression) {
+      return namedParameterElement(invocation.constructorName.element);
+    } else if (invocation is MethodInvocation) {
+      var executable = invocation.methodName.element;
+      if (executable is ExecutableElement) {
+        return namedParameterElement(executable);
       }
-    }
-  }
-
-  return element;
-}
-
-Element? declaredParameterElement2(SimpleIdentifier node, Element? element) {
-  if (element == null || element.enclosingElement != null) {
-    return element;
-  }
-
-  /// When we instantiate the [FunctionType] of an executable, we use
-  /// synthetic [ParameterElement]s, disconnected from the rest of the
-  /// element model. But we want to index these parameter references
-  /// as references to declared parameters.
-  FormalParameterElement? namedParameterElement(ExecutableElement? executable) {
-    if (executable == null) {
-      return null;
-    }
-
-    var parameterName = node.name;
-    return executable.baseElement.formalParameters.where((parameter) {
-      return parameter.isNamed && parameter.name == parameterName;
-    }).first;
-  }
-
-  var parent = node.parent;
-  if (parent is Label && parent.label == node) {
-    var namedExpression = parent.parent;
-    if (namedExpression is NamedExpression && namedExpression.name == parent) {
-      var argumentList = namedExpression.parent;
-      if (argumentList is ArgumentList) {
-        var invocation = argumentList.parent;
-        if (invocation is InstanceCreationExpression) {
-          var executable = invocation.constructorName.element;
-          return namedParameterElement(executable);
-        } else if (invocation is MethodInvocation) {
-          var executable = invocation.methodName.element;
-          if (executable is ExecutableElement) {
-            return namedParameterElement(executable);
-          }
-        }
-      }
+    } else if (invocation is RedirectingConstructorInvocation) {
+      return namedParameterElement(invocation.element);
+    } else if (invocation is SuperConstructorInvocation) {
+      return namedParameterElement(invocation.element);
     }
   }
 
@@ -995,6 +952,12 @@ class _IndexContributor extends GeneralizingAstVisitor {
   }
 
   @override
+  void visitLabelReference(LabelReference node) {
+    var element = node.element;
+    recordRelation(element, IndexRelationKind.IS_REFERENCED_BY, node, false);
+  }
+
+  @override
   void visitMethodInvocation(MethodInvocation node) {
     SimpleIdentifier name = node.methodName;
     var element = name.element;
@@ -1025,6 +988,23 @@ class _IndexContributor extends GeneralizingAstVisitor {
       recordSuperType(namedType, IndexRelationKind.CONSTRAINS);
       namedType.accept(this);
     }
+  }
+
+  @override
+  void visitNamedArgument(NamedArgument node) {
+    var element = declaredNamedArgumentParameter(
+      node.name.lexeme,
+      node,
+      node.correspondingParameter,
+    );
+    if (element != null) {
+      recordRelationToken(
+        element,
+        IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT,
+        node.name,
+      );
+    }
+    super.visitNamedArgument(node);
   }
 
   @override
@@ -1136,9 +1116,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
     }
 
     var element = node.writeOrReadElement;
-    if (element is FormalParameterElementImpl) {
-      element = declaredParameterElement(node, element);
-    }
 
     var parent = node.parent;
     if (element != null &&
@@ -1171,8 +1148,6 @@ class _IndexContributor extends GeneralizingAstVisitor {
       var isSet = node.inSetterContext();
       if (parent is CommentReference) {
         kind = IndexRelationKind.IS_REFERENCED_BY;
-      } else if (parent is Label && parent.parent is NamedExpression) {
-        kind = IndexRelationKind.IS_REFERENCED_BY_NAMED_ARGUMENT;
       } else if (isGet && isSet) {
         kind = IndexRelationKind.IS_READ_WRITTEN_BY;
       } else if (isGet) {

@@ -353,7 +353,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: TA
       element: package:test/a.dart::@typeAlias::TA
       type: null
@@ -389,7 +389,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: TA
       element: package:test/a.dart::@typeAlias::TA
       type: null
@@ -424,7 +424,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/a.dart::@class::A
       type: null
@@ -459,7 +459,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       element: package:test/a.dart::@class::A
       type: null
@@ -1399,7 +1399,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: TA
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1446,7 +1446,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1496,7 +1496,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1543,7 +1543,7 @@ ConstructorReference
       importPrefix: ImportPrefixReference
         name: a
         period: .
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <

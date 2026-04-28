@@ -1,3 +1,28 @@
+## 3.13.0
+
+**Released on:** Unreleased
+
+### Libraries
+
+#### `dart:io`
+
+- The cookie-date parser now uses the correct algorithm again.
+  A change to the parsing made it only accept the formats that
+  cookie-dates _should_ have, but the RFC specifies a very
+  permissive algorithm for what should be accepted.
+
+#### `dart:js_interop`
+
+- `JSFunction` and `JSExportedDartFunction` are now generic.
+  `JSExportedDartFunction<T>.toDart` now casts the original wrapped function to
+  the type argument `T`. Calls to `isA<JSExportedDartFunction<T>>` now also
+  check that the wrapped function is a `T`. Otherwise, this type argument is
+  purely descriptive and intended for increased static type safety. Importantly,
+  the runtime types of `JSFunction` and `JSExportedDartFunction` do not change.
+  See [#56905][] for more details.
+
+[#54557]: https://github.com/dart-lang/sdk/issues/54557
+
 ## 3.12.0
 
 **Released on:** Unreleased
@@ -26,8 +51,8 @@ parameter, you had to write an explicit initializer list:
 class Point {
   final int _x, _y;
   Point({required int x, required int y})
-    : x = _x,
-      y = _y;
+    : _x = x,
+      _y = y;
 }
 ```
 
@@ -72,7 +97,16 @@ main() {
   wrapper function that is returned from `Function.toJS` or
   `Function.toJSCaptureThis`.
 
+- Added `JSIterableProtocol`, `JSIterable`, `JSIteratorProtocol`, `JSIterator`,
+  and `JSIteratorResult` types to model JavaScript's [iteration protocols].
+  `JSArray` and `JSString` now implement `JSIterable`.
+
+- Added extension types to provide `Iterable.toJSIterable`,
+  `JSIterable.toDartIterable`, `Iterator.toJSIterator`, and
+  `JSIterator.toDartIterator`.
+
 [#56905]: https://github.com/dart-lang/sdk/issues/56905
+[iteration protocols]: https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Iteration_protocols
 
 ### Tools
 
@@ -81,11 +115,34 @@ main() {
 - The new `simple_directive_paths` lint and its associated fix
   flag and simplify unnecessarily complex `import` and `export` paths,
   such as those containing redundant `./` or backtracking `../` segments.
+
+  Use `dart fix --code=simple_directive_paths` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `prefer_initializing_formals` lint rule will report named parameters
+  which could be private named parameters, if the package's Dart SDK constraint
+  is set to enable the language feature (for example, `sdk: ^3.12.0`).
+
+  Use `dart fix --code=prefer_initializing_formals` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `avoid_final_parameters` lint violations can now be fixed with `dart fix
+  --code=avoid_final_parameters` (with either `--dry-run` or `--apply`).
 - The analyzer now warns when a function which contains a parameter which is
   annotated with `@mustBeConst` is torn off.
 - The `invalid_runtime_check_with_js_interop_types` rule now checks for JS
   interop types in the type in a catch clause and instructs users to use `isA`
   for type checks instead.
+- Analyzer plugins: Initial support for 'print debugging' via new sections in
+  the "Plugins" Insights (Diagnostics) page. When a plugin is computing lint
+  and warning diagnostics, `print` calls are now redirected to the analysis
+  server, which presents the messages in the appropriate plugin's section on
+  the Plugins page.
+- Improved support for extension types in many existing lint rules.
+- Improved support for null-aware elements in existing lint rules.
+- The analysis server starts up faster with the help of improved analysis
+  options file caching. The improvement depends on the number of analysis
+  options files in the workspace, and the number of `include`d analysis options
+  files. The improvement is greater for systems with slower disk access.
+- Various other improvements to analysis performance.
 
 #### Pub
 

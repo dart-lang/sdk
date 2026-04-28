@@ -340,8 +340,8 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    node.expression.accept(this);
+  void visitNamedArgument(NamedArgument node) {
+    node.argumentExpression.accept(this);
   }
 
   @override
@@ -388,12 +388,12 @@ class _ElementCollector extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     node.visitChildren(this);
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitSetOrMapLiteral(SetOrMapLiteral node) {
     node.visitChildren(this);
   }
 

@@ -231,7 +231,7 @@ class LocalVariable : public ZoneObject {
   // in the stack frame.
   using IsCapturedBit = BitField<uint32_t, bool, IsFinalBit::kNextBit, 1>;
   using IsInvisibleBit = BitField<uint32_t, bool, IsCapturedBit::kNextBit, 1>;
-  using IsLateBit = BitField<uint32_t, bool, IsInvisibleBit ::kNextBit, 1>;
+  using IsLateBit = BitField<uint32_t, bool, IsInvisibleBit::kNextBit, 1>;
 
   enum CovarianceMode {
     kNotCovariant,

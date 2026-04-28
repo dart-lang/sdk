@@ -11,6 +11,8 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(RemoveUnnecessaryConstBulkTest);
+    defineReflectiveTests(RemoveUnnecessaryConstInEnumConstructorBulkTest);
+    defineReflectiveTests(RemoveUnnecessaryConstInEnumConstructorTest);
     defineReflectiveTests(RemoveUnnecessaryConstTest);
   });
 }
@@ -35,6 +37,83 @@ const c = C();
 const list = [];
 var d = const D(C());
 ''', isParse: true);
+  }
+}
+
+@reflectiveTest
+class RemoveUnnecessaryConstInEnumConstructorBulkTest
+    extends BulkFixProcessorTest {
+  @override
+  String get lintCode => LintNames.unnecessary_const_in_enum_constructor;
+
+  Future<void> test_singleFile() async {
+    await resolveTestCode('''
+enum const E1(final int i) {
+  a(1), b(2);
+}
+enum E2 {
+  a(1), b(2);
+
+  const E2(this.i);
+
+  final int i;
+}
+''');
+    await assertHasFix('''
+enum E1(final int i) {
+  a(1), b(2);
+}
+enum E2 {
+  a(1), b(2);
+
+  E2(this.i);
+
+  final int i;
+}
+''');
+  }
+}
+
+@reflectiveTest
+class RemoveUnnecessaryConstInEnumConstructorTest extends FixProcessorLintTest {
+  @override
+  FixKind get kind => DartFixKind.removeUnnecessaryConst;
+
+  @override
+  String get lintCode => LintNames.unnecessary_const_in_enum_constructor;
+
+  Future<void> test_enumConstructor_primary() async {
+    await resolveTestCode('''
+enum const E(final int i) {
+  a(1), b(2);
+}
+''');
+    await assertHasFix('''
+enum E(final int i) {
+  a(1), b(2);
+}
+''');
+  }
+
+  Future<void> test_enumConstructor_secondary() async {
+    await resolveTestCode('''
+enum E {
+  a(1), b(2);
+
+  const E(this.i);
+
+  final int i;
+}
+''');
+    await assertHasFix('''
+enum E {
+  a(1), b(2);
+
+  E(this.i);
+
+  final int i;
+}
+''');
   }
 }
 

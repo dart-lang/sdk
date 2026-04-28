@@ -76,6 +76,31 @@ class B extends A {
 ''');
   }
 
+  Future<void> test_constructor_factory_hasOne() async {
+    await resolveTestCode('''
+class C {
+  factory (int a) => C._();
+
+  C._();
+}
+
+void f() {
+  C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C {
+  factory (int a, [double? d]) => C._();
+
+  C._();
+}
+
+void f() {
+  C(1, 2.0);
+}
+''');
+  }
+
   Future<void> test_constructor_hasOne() async {
     await resolveTestCode('''
 class A {
@@ -150,6 +175,44 @@ class B extends A {
 }
 ''');
     await assertNoFix();
+  }
+
+  Future<void> test_constructor_new_hasOne() async {
+    await resolveTestCode('''
+class C {
+  new (int a);
+}
+
+void f() {
+  C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C {
+  new (int a, [double? d]);
+}
+
+void f() {
+  C(1, 2.0);
+}
+''');
+  }
+
+  Future<void> test_constructor_primary_hasOne() async {
+    await resolveTestCode('''
+class C(int a) {}
+
+void f() {
+  C(1, 2.0);
+}
+''');
+    await assertHasFix('''
+class C(int a, [double? d]) {}
+
+void f() {
+  C(1, 2.0);
+}
+''');
   }
 
   Future<void> test_constructor_superParameter() async {

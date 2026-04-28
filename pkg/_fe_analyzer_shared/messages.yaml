@@ -558,7 +558,7 @@ anonymousMethodWrongParameterList:
   hasPublishedDocs: false
   experiments: anonymous-methods
   statement:
-    - "1.(a, b){};"
+    - "1.(a, b) => 1;"
 
 missingExpressionInThrow:
   type: syntacticError
@@ -1531,7 +1531,7 @@ fieldInitializerOutsideConstructor:
     class A {
       int x = 0;
 
-      m([[!this.x!] = 0]) {}
+      m([[!this!].x = 0]) {}
     }
     ```
 
@@ -2620,6 +2620,7 @@ primaryConstructorBodyWithoutDeclaration:
     a primary constructor body but doesn't declare a primary constructor:
 
     ```dart
+    %ignore=undefined_identifier
     class C {
       [!this!] : assert(x > 0);
     }

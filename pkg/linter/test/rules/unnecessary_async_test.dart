@@ -190,11 +190,14 @@ Future<int?> f(int? x) async {
   }
 
   test_topLevelFunction_blockBody_dynamic() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 dynamic f() async {
   return 0;
 }
-''');
+''',
+      [lint(12, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_future_int_hasReturn_futureCustom() async {
@@ -388,11 +391,25 @@ FutureOr<int> f() async {
   }
 
   test_topLevelFunction_blockBody_object() async {
-    await assertNoDiagnostics(r'''
+    await assertDiagnostics(
+      r'''
 Object f() async {
   return 0;
 }
-''');
+''',
+      [lint(11, 5)],
+    );
+  }
+
+  test_topLevelFunction_blockBody_objectQuestion() async {
+    await assertDiagnostics(
+      r'''
+Object? f() async {
+  return 0;
+}
+''',
+      [lint(12, 5)],
+    );
   }
 
   test_topLevelFunction_blockBody_void_hasAwait_expression() async {

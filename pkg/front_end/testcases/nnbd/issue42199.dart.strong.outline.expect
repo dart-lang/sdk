@@ -1,11 +1,26 @@
 library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/nnbd/issue42199.dart:5:7: Error: The implementation of '==' in the non-abstract class 'A' does not conform to its interface.
+// class A {
+//       ^
+// sdk/lib/_internal/vm/lib/object_patch.dart:*: Context: The parameter 'other' of the method 'Object.==' has type 'Object', which does not match the corresponding type, 'dynamic', in the overridden method, 'A.=='.
+//  - 'Object' is from 'dart:core'.
+// Change to a supertype of 'dynamic', or, for a covariant parameter, a subtype.
+//   external bool operator ==(Object other);
+//                                    ^
+// pkg/front_end/testcases/nnbd/issue42199.dart:6:12: Context: This is the overridden method ('==').
+//   operator ==(dynamic other);
+//            ^
+//
 import self as self;
 import "dart:core" as core;
 
 class A extends core::Object {
   synthetic constructor •() → self::A
     ;
-  abstract operator ==(dynamic other) → core::bool;
+  abstract erroneous operator ==(dynamic other) → core::bool;
 }
 static method main() → dynamic
   ;

@@ -1,0 +1,31 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+extension E on core::int {
+  method foo = self::E|foo;
+  method tearoff foo = self::E|get#foo;
+}
+static extension-member method E|foo(lowered final core::int #this) → void {
+  let final core::int #t1 = 1 in #t1;
+  let core::int p = 1 in #this;
+  let core::int #t2 = 1 in #t2 == null ?{core::int?} null : let final core::int #t3 = #t2 as core::int in #t3;
+  let core::int #t4 = 1 in #t4 == null ?{core::int?} null : let core::int p = #t4 as core::int in #this;
+  let final core::int #t5 = 1 in block {
+    let final core::int #t6 = #t5 in let dynamic #t7 = #t6 in #t6;
+  } =>#t5;
+  let final core::int #t8 = 1 in block {
+    let core::int p = #t8 in let dynamic #t9 = #this in p;
+  } =>#t8;
+  let final core::int #t10 = 1 in #t10 == null ?{core::int} #t10 : block {
+    let core::int #t11 = #t10 in #t11 == null ?{core::int?} null : let final core::int #t12 = #t11 as core::int in let dynamic #t13 = #t12 in #t12;
+  } =>#t10;
+  let final core::int #t14 = 1 in #t14 == null ?{core::int} #t14 : block {
+    let core::int #t15 = #t14 in #t15 == null ?{core::int?} null : let core::int p = #t15 as core::int in let dynamic #t16 = #this in p;
+  } =>#t14;
+}
+static extension-member method E|get#foo(lowered final core::int #this) → () → void
+  return () → void => self::E|foo(#this);
+static method main() → void {
+  self::E|foo(1);
+}

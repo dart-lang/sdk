@@ -379,7 +379,7 @@ enum E { e1 }
     await assertNoErrorsInCode(r'''
 void f(int x) {}
 ''');
-    var parameter = findNode.simpleFormalParameter('x');
+    var parameter = findNode.regularFormalParameter('x');
     checkOffset<FormalParameterFragment>(
       parameter,
       parameter.declaredFragment!,
@@ -397,8 +397,8 @@ void f((int x)) {}
     var function = findNode.functionDeclaration('f(');
     var parameter =
         function.functionExpression.parameters!.parameters[0]
-            as FunctionTypedFormalParameter;
-    expect(parameter.name.isSynthetic, true);
+            as RegularFormalParameter;
+    expect(parameter.name!.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
       parameter,
       parameter.declaredFragment!,
@@ -415,8 +415,8 @@ void f(void (int x)) {}
     var function = findNode.functionDeclaration('f(');
     var parameter =
         function.functionExpression.parameters!.parameters[0]
-            as FunctionTypedFormalParameter;
-    expect(parameter.name.isSynthetic, true);
+            as RegularFormalParameter;
+    expect(parameter.name!.isSynthetic, true);
     checkOffsetInRange<FormalParameterFragment>(
       parameter,
       parameter.declaredFragment!,
@@ -466,7 +466,7 @@ int? x;
     await assertNoErrorsInCode(r'''
 void f({int x = 0}) {}
 ''');
-    var parameter = findNode.simpleFormalParameter('x');
+    var parameter = findNode.regularFormalParameter('x');
     checkOffset<FormalParameterFragment>(
       parameter,
       parameter.declaredFragment!,
@@ -582,7 +582,7 @@ void f() {
     checkOffset<LabelFragment>(
       label,
       label.declaredFragment!,
-      label.label.offset,
+      label.name.offset,
     );
   }
 

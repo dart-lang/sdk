@@ -14,7 +14,6 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
-import 'package:analyzer_plugin/utilities/range_factory.dart';
 
 class CreateMethodOrFunction extends ResolvedCorrectionProducer {
   @override
@@ -138,33 +137,27 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     DartEditBuilder builder,
     FunctionType functionType,
     String name,
+    String targetFile,
     bool isStatic,
   ) {
-    // may be static
-    if (isStatic) {
-      builder.write('static ');
-    }
-    // append return type
-    if (builder.writeType(
-      functionType.returnType,
+    var includeGroupNames = targetFile == file;
+    builder.writeFunctionDeclaration(
+      name,
+      nameGroupName: includeGroupNames ? 'NAME' : null,
+      returnType: functionType.returnType,
+      returnTypeGroupName: includeGroupNames ? 'RETURN_TYPE' : null,
+      parameterWriter: () {
+        builder.writeFormalParameters(
+          functionType.formalParameters,
+          includeParentheses: false,
+        );
+      },
+      typeParameterWriter: () {
+        builder.writeTypeParameters(functionType.typeParameters);
+      },
+      isStatic: isStatic,
       typeParametersInScope: functionType.typeParameters,
-      groupName: 'RETURN_TYPE',
-    )) {
-      builder.write(' ');
-    }
-    // append name
-    builder.addLinkedEdit('NAME', (builder) {
-      builder.write(name);
-    });
-    // append type parameters
-    builder.writeTypeParameters(functionType.typeParameters);
-    // append parameters
-    builder.writeFormalParameters(functionType.formalParameters);
-    if (functionType.returnType.isDartAsyncFuture) {
-      builder.write(' async');
-    }
-    // close method
-    builder.write(' {}');
+    );
   }
 
   /// Adds proposal for creating method corresponding to the given
@@ -179,10 +172,9 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
     await builder.addDartFileEdit(file, (builder) {
       builder.addInsertion(insertOffset, (builder) {
         builder.writeln();
-        _createExecutable(builder, functionType, name, false);
+        _createExecutable(builder, functionType, name, file, false);
         builder.writeln();
       });
-      builder.addLinkedPosition(range.node(node), 'NAME');
     });
     _functionName = name;
   }
@@ -210,12 +202,10 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
           builder,
           functionType,
           name,
+          targetFile,
           isStatic || inStaticContext,
         );
       });
-      if (targetFile == file) {
-        builder.addLinkedPosition(range.node(node), 'NAME');
-      }
     });
     _functionName = name;
   }

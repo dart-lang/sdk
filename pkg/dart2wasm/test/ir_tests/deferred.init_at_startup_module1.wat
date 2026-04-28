@@ -20,7 +20,7 @@
     array.new_default $Array<String?>
     global.set $array
   )
-  (func $Expect.equals (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $Expect.equals (param $var0 (ref null $#Top)) <...>)
   (func $read (result (ref $JSExternWrapper))
     block $label0 (result (ref $JSExternWrapper))
       global.get $array
@@ -28,11 +28,11 @@
       array.get $Array<String?>
       br_on_non_null $label0
       i32.const 19
-      call_indirect $module0.cross-module-funcs-0 (result (ref none))
+      call_indirect $module0.cross-module-funcs-0 
       unreachable
     end $label0
   )
-  (func $write (result (ref null $#Top))
+  (func $write (result (ref $JSExternWrapper))
     (local $var0 (ref $JSExternWrapper))
     global.get $array
     i32.const 0

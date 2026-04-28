@@ -27,7 +27,7 @@ export 'snapshot_graph.dart'
         HeapSnapshotObjectNoData,
         HeapSnapshotObjectNullData;
 
-const String vmServiceVersion = '4.21.0';
+const String vmServiceVersion = '4.22.0';
 
 /// @optional
 const String optional = 'optional';
@@ -2680,7 +2680,8 @@ class AllocationProfile extends Response {
 
   AllocationProfile._fromJson(super.json)
       : members = _createServiceObjectListOrNull<ClassHeapStats>(
-            json['members'], const ['ClassHeapStats']),
+                json['members'], const ['ClassHeapStats']) ??
+            [],
         memoryUsage =
             createServiceObject(json['memoryUsage'], const ['MemoryUsage'])
                 as MemoryUsage?,
@@ -3098,15 +3099,19 @@ class Class extends Obj implements ClassRef {
             createServiceObject(json['superType'], const ['InstanceRef'])
                 as InstanceRef?,
         interfaces = _createServiceObjectListOrNull<InstanceRef>(
-            json['interfaces'], const ['InstanceRef']),
+                json['interfaces'], const ['InstanceRef']) ??
+            [],
         mixin = createServiceObject(json['mixin'], const ['InstanceRef'])
             as InstanceRef?,
         fields = _createServiceObjectListOrNull<FieldRef>(
-            json['fields'], const ['FieldRef']),
+                json['fields'], const ['FieldRef']) ??
+            [],
         functions = _createServiceObjectListOrNull<FuncRef>(
-            json['functions'], const ['FuncRef']),
+                json['functions'], const ['FuncRef']) ??
+            [],
         subclasses = _createServiceObjectListOrNull<ClassRef>(
-            json['subclasses'], const ['ClassRef']),
+                json['subclasses'], const ['ClassRef']) ??
+            [],
         super._fromJson();
 
   @override
@@ -3221,7 +3226,8 @@ class ClassList extends Response {
 
   ClassList._fromJson(super.json)
       : classes = _createServiceObjectListOrNull<ClassRef>(
-            json['classes'], const ['ClassRef']),
+                json['classes'], const ['ClassRef']) ??
+            [],
         super._fromJson();
 
   @override
@@ -3421,7 +3427,8 @@ class Context extends Obj implements ContextRef {
         parent = createServiceObject(json['parent'], const ['ContextRef'])
             as ContextRef?,
         variables = _createServiceObjectListOrNull<ContextElement>(
-            json['variables'], const ['ContextElement']),
+                json['variables'], const ['ContextElement']) ??
+            [],
         super._fromJson();
 
   @override
@@ -3522,9 +3529,11 @@ class CpuSamples extends Response {
         timeExtentMicros = json['timeExtentMicros'] ?? -1,
         pid = json['pid'] ?? -1,
         functions = _createServiceObjectListOrNull<ProfileFunction>(
-            json['functions'], const ['ProfileFunction']),
+                json['functions'], const ['ProfileFunction']) ??
+            [],
         samples = _createServiceObjectListOrNull<CpuSample>(
-            json['samples'], const ['CpuSample']),
+                json['samples'], const ['CpuSample']) ??
+            [],
         super._fromJson();
 
   @override
@@ -3600,9 +3609,11 @@ class CpuSamplesEvent {
         timeExtentMicros = json['timeExtentMicros'] ?? -1,
         pid = json['pid'] ?? -1,
         functions = _createServiceObjectListOrNull<dynamic>(
-            json['functions'], const ['dynamic']),
+                json['functions'], const ['dynamic']) ??
+            [],
         samples = _createServiceObjectListOrNull<CpuSample>(
-            json['samples'], const ['CpuSample']);
+                json['samples'], const ['CpuSample']) ??
+            [];
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'samplePeriod': samplePeriod ?? -1,
@@ -4471,8 +4482,9 @@ class FlagList extends Response {
   });
 
   FlagList._fromJson(super.json)
-      : flags =
-            _createServiceObjectListOrNull<Flag>(json['flags'], const ['Flag']),
+      : flags = _createServiceObjectListOrNull<Flag>(
+                json['flags'], const ['Flag']) ??
+            [],
         super._fromJson();
 
   @override
@@ -5898,7 +5910,8 @@ class Isolate extends Response implements IsolateRef {
         isSystemIsolate = json['isSystemIsolate'] ?? false,
         isolateGroupId = json['isolateGroupId'] ?? '',
         isolateFlags = _createServiceObjectListOrNull<IsolateFlag>(
-            json['isolateFlags'], const ['IsolateFlag']),
+                json['isolateFlags'], const ['IsolateFlag']) ??
+            [],
         startTime = json['startTime'] ?? -1,
         runnable = json['runnable'] ?? false,
         livePorts = json['livePorts'] ?? -1,
@@ -5908,9 +5921,11 @@ class Isolate extends Response implements IsolateRef {
         rootLib = createServiceObject(json['rootLib'], const ['LibraryRef'])
             as LibraryRef?,
         libraries = _createServiceObjectListOrNull<LibraryRef>(
-            json['libraries'], const ['LibraryRef']),
+                json['libraries'], const ['LibraryRef']) ??
+            [],
         breakpoints = _createServiceObjectListOrNull<Breakpoint>(
-            json['breakpoints'], const ['Breakpoint']),
+                json['breakpoints'], const ['Breakpoint']) ??
+            [],
         error = createServiceObject(json['error'], const ['Error']) as Error?,
         exceptionPauseMode = json['exceptionPauseMode'] ?? '',
         extensionRPCs = json['extensionRPCs'] == null
@@ -6081,7 +6096,8 @@ class IsolateGroup extends Response implements IsolateGroupRef {
         name = json['name'] ?? '',
         isSystemIsolateGroup = json['isSystemIsolateGroup'] ?? false,
         isolates = _createServiceObjectListOrNull<IsolateRef>(
-            json['isolates'], const ['IsolateRef']),
+                json['isolates'], const ['IsolateRef']) ??
+            [],
         super._fromJson();
 
   @override
@@ -6123,7 +6139,8 @@ class InboundReferences extends Response {
 
   InboundReferences._fromJson(super.json)
       : references = _createServiceObjectListOrNull<InboundReference>(
-            json['references'], const ['InboundReference']),
+                json['references'], const ['InboundReference']) ??
+            [],
         super._fromJson();
 
   @override
@@ -6331,13 +6348,17 @@ class Library extends Obj implements LibraryRef {
         dependencies = List<LibraryDependency>.from(_createSpecificObject(
             json['dependencies']!, LibraryDependency.parse)),
         scripts = _createServiceObjectListOrNull<ScriptRef>(
-            json['scripts'], const ['ScriptRef']),
+                json['scripts'], const ['ScriptRef']) ??
+            [],
         variables = _createServiceObjectListOrNull<FieldRef>(
-            json['variables'], const ['FieldRef']),
+                json['variables'], const ['FieldRef']) ??
+            [],
         functions = _createServiceObjectListOrNull<FuncRef>(
-            json['functions'], const ['FuncRef']),
+                json['functions'], const ['FuncRef']) ??
+            [],
         classes = _createServiceObjectListOrNull<ClassRef>(
-            json['classes'], const ['ClassRef']),
+                json['classes'], const ['ClassRef']) ??
+            [],
         super._fromJson();
 
   @override
@@ -6592,6 +6613,9 @@ class MemoryUsage extends Response {
 
 /// A `Message` provides information about a pending isolate message and the
 /// function that will be invoked to handle it.
+///
+/// This type is deprecated starting with protocol version 4.22 and instances of
+/// this type will not be returned in protocol responses.
 class Message extends Response {
   static Message? parse(Map<String, dynamic>? json) =>
       json == null ? null : Message._fromJson(json);
@@ -7130,7 +7154,8 @@ class PortList extends Response {
 
   PortList._fromJson(super.json)
       : ports = _createServiceObjectListOrNull<InstanceRef>(
-            json['ports'], const ['InstanceRef']),
+                json['ports'], const ['InstanceRef']) ??
+            [],
         super._fromJson();
 
   @override
@@ -7216,7 +7241,8 @@ class ProtocolList extends Response {
 
   ProtocolList._fromJson(super.json)
       : protocols = _createServiceObjectListOrNull<Protocol>(
-            json['protocols'], const ['Protocol']),
+                json['protocols'], const ['Protocol']) ??
+            [],
         super._fromJson();
 
   @override
@@ -7326,7 +7352,8 @@ class ProcessMemoryItem {
         description = json['description'] ?? '',
         size = json['size'] ?? -1,
         children = _createServiceObjectListOrNull<ProcessMemoryItem>(
-            json['children'], const ['ProcessMemoryItem']);
+                json['children'], const ['ProcessMemoryItem']) ??
+            [];
 
   Map<String, dynamic> toJson() => <String, Object?>{
         'name': name ?? '',
@@ -7365,7 +7392,8 @@ class QueuedMicrotasks extends Response {
   QueuedMicrotasks._fromJson(super.json)
       : timestamp = json['timestamp'] ?? -1,
         microtasks = _createServiceObjectListOrNull<Microtask>(
-            json['microtasks'], const ['Microtask']),
+                json['microtasks'], const ['Microtask']) ??
+            [],
         super._fromJson();
 
   @override
@@ -7494,7 +7522,8 @@ class RetainingPath extends Response {
       : length = json['length'] ?? -1,
         gcRootType = json['gcRootType'] ?? '',
         elements = _createServiceObjectListOrNull<RetainingObject>(
-            json['elements'], const ['RetainingObject']),
+                json['elements'], const ['RetainingObject']) ??
+            [],
         super._fromJson();
 
   @override
@@ -7766,7 +7795,8 @@ class ScriptList extends Response {
 
   ScriptList._fromJson(super.json)
       : scripts = _createServiceObjectListOrNull<ScriptRef>(
-            json['scripts'], const ['ScriptRef']),
+                json['scripts'], const ['ScriptRef']) ??
+            [],
         super._fromJson();
 
   @override
@@ -7871,7 +7901,8 @@ class SourceReport extends Response {
       : ranges = List<SourceReportRange>.from(
             _createSpecificObject(json['ranges']!, SourceReportRange.parse)),
         scripts = _createServiceObjectListOrNull<ScriptRef>(
-            json['scripts'], const ['ScriptRef']),
+                json['scripts'], const ['ScriptRef']) ??
+            [],
         super._fromJson();
 
   @override
@@ -8054,6 +8085,9 @@ class Stack extends Response {
   @optional
   List<Frame>? awaiterFrames;
 
+  /// Deprecated since version 4.22 of the protocol. Will always be empty in the
+  /// response.
+  ///
   /// A list of messages in the isolate's message queue.
   List<Message>? messages;
 
@@ -8071,13 +8105,15 @@ class Stack extends Response {
 
   Stack._fromJson(super.json)
       : frames = _createServiceObjectListOrNull<Frame>(
-            json['frames'], const ['Frame']),
+                json['frames'], const ['Frame']) ??
+            [],
         asyncCausalFrames = _createServiceObjectListOrNull<Frame>(
             json['asyncCausalFrames'], const ['Frame']),
         awaiterFrames = _createServiceObjectListOrNull<Frame>(
             json['awaiterFrames'], const ['Frame']),
         messages = _createServiceObjectListOrNull<Message>(
-            json['messages'], const ['Message']),
+                json['messages'], const ['Message']) ??
+            [],
         truncated = json['truncated'] ?? false,
         super._fromJson();
 
@@ -8149,7 +8185,8 @@ class Timeline extends Response {
 
   Timeline._fromJson(super.json)
       : traceEvents = _createServiceObjectListOrNull<TimelineEvent>(
-            json['traceEvents'], const ['TimelineEvent']),
+                json['traceEvents'], const ['TimelineEvent']) ??
+            [],
         timeOriginMicros = json['timeOriginMicros'] ?? -1,
         timeExtentMicros = json['timeExtentMicros'] ?? -1,
         super._fromJson();
@@ -8330,7 +8367,8 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
   TypeArguments._fromJson(super.json)
       : name = json['name'] ?? '',
         types = _createServiceObjectListOrNull<InstanceRef>(
-            json['types'], const ['InstanceRef']),
+                json['types'], const ['InstanceRef']) ??
+            [],
         super._fromJson();
 
   @override
@@ -8678,13 +8716,17 @@ class VM extends Response implements VMRef {
         pid = json['pid'] ?? -1,
         startTime = json['startTime'] ?? -1,
         isolates = _createServiceObjectListOrNull<IsolateRef>(
-            json['isolates'], const ['IsolateRef']),
+                json['isolates'], const ['IsolateRef']) ??
+            [],
         isolateGroups = _createServiceObjectListOrNull<IsolateGroupRef>(
-            json['isolateGroups'], const ['IsolateGroupRef']),
+                json['isolateGroups'], const ['IsolateGroupRef']) ??
+            [],
         systemIsolates = _createServiceObjectListOrNull<IsolateRef>(
-            json['systemIsolates'], const ['IsolateRef']),
+                json['systemIsolates'], const ['IsolateRef']) ??
+            [],
         systemIsolateGroups = _createServiceObjectListOrNull<IsolateGroupRef>(
-            json['systemIsolateGroups'], const ['IsolateGroupRef']),
+                json['systemIsolateGroups'], const ['IsolateGroupRef']) ??
+            [],
         super._fromJson();
 
   @override

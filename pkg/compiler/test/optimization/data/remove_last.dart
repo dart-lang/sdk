@@ -7,7 +7,7 @@ import 'dart:typed_data';
 
 /*member: dynamicIndex:Specializer=[!RemoveLast]*/
 @pragma('dart2js:noInline')
-dynamicIndex(var list) {
+dynamicIndex(list) {
   return list.removeLast(); // This is not known to be an indexable primitive.
 }
 

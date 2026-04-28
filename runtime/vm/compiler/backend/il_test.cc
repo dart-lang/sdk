@@ -182,10 +182,10 @@ ISOLATE_UNIT_TEST_CASE(IRTest_InitializingStores) {
   expected_stores_jit.insert(
       expected_stores_jit.end(),
       {"value", "Context.parent", "Context.parent", "value",
-       "Closure.function_type_arguments", "Closure.context"});
+       ":closure_element[0]", ":closure_element[0]"});
   expected_stores_aot.insert(
       expected_stores_aot.end(),
-      {"value", "Closure.function_type_arguments", "Closure.context"});
+      {"value", ":closure_element[0]", ":closure_element[0]"});
 
   RunInitializingStoresTest(root_library, "f4", CompilerPass::kJIT,
                             expected_stores_jit);

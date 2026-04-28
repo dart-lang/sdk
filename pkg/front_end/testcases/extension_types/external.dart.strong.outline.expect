@@ -29,7 +29,7 @@ extension type B(self::A a) {
   constructor named = self::B|constructor#named;
   constructor tearoff named = self::B|constructor#_#named#tearOff;
 }
-static extension-type-member method B|constructor#_(self::A a) → self::B% /* erasure=self::A, declared=! */
+static extension-type-member method B|constructor#_(initializing-formal self::A a) → self::B% /* erasure=self::A, declared=! */
   ;
 static extension-type-member synthetic method B|constructor#_#_#tearOff(self::A a) → self::B% /* erasure=self::A, declared=! */
   return self::B|constructor#_(a);

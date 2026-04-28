@@ -236,7 +236,7 @@ class VmExecutor implements TargetExecutor {
     var result = await runProcess(
       switch (mode) {
         VmMode.aot => aotRuntimeBin.toFilePath(),
-        VmMode.jit => dartBin.toFilePath(),
+        VmMode.jit => jitRuntimeBin.toFilePath(),
       },
       [
         switch (mode) {

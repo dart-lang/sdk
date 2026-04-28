@@ -30,10 +30,7 @@ class IdentifierHelper {
 
   /// Adds any suggestions for the name of the [parameter].
   void addParameterName(FormalParameter parameter) {
-    if (parameter is DefaultFormalParameter) {
-      parameter = parameter.parameter;
-    }
-    if (parameter is SimpleFormalParameter) {
+    if (parameter.functionTypedSuffix == null) {
       addVariable(parameter.type);
     }
   }

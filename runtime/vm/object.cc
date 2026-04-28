@@ -507,6 +507,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     Roots::set_null_obj(static_cast<InstancePtr>(address + kHeapObjectTag));
     InitializeObjectVariant<Instance>(address, kNullCid);
     Roots::null_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::null_obj(), kNullIdentityHash);
+#endif
   }
 
   // Allocate and initialize the bool instances.
@@ -526,6 +529,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     InitializeObject<Bool>(address);
     Roots::true_obj()->untag()->value_ = true;
     Roots::true_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::true_obj(), kTrueIdentityHash);
+#endif
   }
   {
     // Allocate false.
@@ -534,6 +540,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     InitializeObject<Bool>(address);
     Roots::false_obj()->untag()->value_ = false;
     Roots::false_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::false_obj(), kFalseIdentityHash);
+#endif
   }
 
   // Check that the objects have been allocated at appropriate addresses.
@@ -644,6 +653,11 @@ void Object::InitVtables() {
     TypedDataView fake_handle;
     builtin_vtables_[kByteDataViewCid] = fake_handle.vtable();
     builtin_vtables_[kUnmodifiableByteDataViewCid] = fake_handle.vtable();
+  }
+
+  {
+    LinkedHashBase fake_handle;
+    builtin_vtables_[kLinkedHashBaseCid] = fake_handle.vtable();
   }
 
   {
@@ -982,7 +996,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     InstantiationsCacheTable table(Roots::empty_instantiations_cache_array());
     table.At(0).Set<TypeArguments::Cache::kSentinelIndex>(smi);
     // The other contents of the array are immaterial.
-    Roots::empty_instantiations_cache_array().SetCanonical();
   }
 
   // Allocate and initialize the empty subtype test cache array instance,
@@ -1005,7 +1018,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     table.At(0).Set<SubtypeTestCache::kInstanceCidOrSignature>(
         Object::null_object());
     // The other contents of the array are immaterial.
-    Roots::empty_subtype_test_cache_array().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty context scope object.
@@ -1019,7 +1031,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         &Roots::empty_context_scope().untag()->num_variables_, 0);
     Roots::empty_context_scope().StoreNonPointer(
         &Roots::empty_context_scope().untag()->is_implicit_, true);
-    Roots::empty_context_scope().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty object pool object.
@@ -1031,7 +1042,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<ObjectPoolPtr>(address + kHeapObjectTag));
     Roots::empty_object_pool().StoreNonPointer(
         &Roots::empty_object_pool().untag()->length_, 0);
-    Roots::empty_object_pool().SetCanonical();
   }
 
   // Allocate and initialize the empty_compressed_stackmaps instance.
@@ -1043,7 +1053,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
     Roots::empty_compressed_stackmaps().untag()->payload()->set_flags_and_size(
         0);
-    Roots::empty_compressed_stackmaps().SetCanonical();
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -1055,7 +1064,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<PcDescriptorsPtr>(address + kHeapObjectTag));
     Roots::empty_descriptors().StoreNonPointer(
         &Roots::empty_descriptors().untag()->length_, 0);
-    Roots::empty_descriptors().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty variable descriptor object.
@@ -1067,7 +1075,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<LocalVarDescriptorsPtr>(address + kHeapObjectTag));
     Roots::empty_var_descriptors().StoreNonPointer(
         &Roots::empty_var_descriptors().untag()->num_entries_, 0);
-    Roots::empty_var_descriptors().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty exception handler info object.
@@ -1081,7 +1088,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
     Roots::empty_exception_handlers().StoreNonPointer(
         &Roots::empty_exception_handlers().untag()->packed_fields_, 0);
-    Roots::empty_exception_handlers().SetCanonical();
   }
 
   // Empty exception handlers for async/async* functions.
@@ -1094,7 +1100,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     Roots::empty_async_exception_handlers().StoreNonPointer(
         &Roots::empty_async_exception_handlers().untag()->packed_fields_,
         UntaggedExceptionHandlers::AsyncHandlerBit::update(true, 0));
-    Roots::empty_async_exception_handlers().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty type arguments object.
@@ -1106,6 +1111,7 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<TypeArgumentsPtr>(address + kHeapObjectTag));
     Roots::empty_type_arguments().untag()->set_length(Smi::New(0));
     Roots::empty_type_arguments().untag()->set_hash(Smi::New(0));
+    Roots::empty_type_arguments().untag()->set_nullability(Smi::New(0));
     Roots::empty_type_arguments().ComputeHash();
     Roots::empty_type_arguments().SetCanonical();
   }
@@ -1229,8 +1235,11 @@ void Object::Init(IsolateGroup* isolate_group) {
   Roots::implicit_shared_static_setter_bytecode().initRO(
       CreateVMInternalBytecode(
           KernelBytecode::kVMInternal_ImplicitSharedStaticSetter));
-  Roots::method_extractor_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor));
+  Roots::method_extractor_with_ita_bytecode().initRO(CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_MethodExtractorWithITA));
+  Roots::method_extractor_without_ita_bytecode().initRO(
+      CreateVMInternalBytecode(
+          KernelBytecode::kVMInternal_MethodExtractorWithoutITA));
   Roots::invoke_closure_bytecode().initRO(
       CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure));
   Roots::invoke_field_bytecode().initRO(
@@ -1254,7 +1263,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   Roots::implicit_shared_static_getter_bytecode().initRO(Bytecode::null());
   Roots::implicit_static_setter_bytecode().initRO(Bytecode::null());
   Roots::implicit_shared_static_setter_bytecode().initRO(Bytecode::null());
-  Roots::method_extractor_bytecode().initRO(Bytecode::null());
+  Roots::method_extractor_with_ita_bytecode().initRO(Bytecode::null());
+  Roots::method_extractor_without_ita_bytecode().initRO(Bytecode::null());
   Roots::invoke_closure_bytecode().initRO(Bytecode::null());
   Roots::invoke_field_bytecode().initRO(Bytecode::null());
   Roots::nsm_dispatcher_bytecode().initRO(Bytecode::null());
@@ -1356,8 +1366,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(Roots::implicit_static_getter_bytecode().IsBytecode());
   ASSERT(!Roots::implicit_static_setter_bytecode().IsSmi());
   ASSERT(Roots::implicit_static_setter_bytecode().IsBytecode());
-  ASSERT(!Roots::method_extractor_bytecode().IsSmi());
-  ASSERT(Roots::method_extractor_bytecode().IsBytecode());
+  ASSERT(!Roots::method_extractor_with_ita_bytecode().IsSmi());
+  ASSERT(Roots::method_extractor_with_ita_bytecode().IsBytecode());
+  ASSERT(!Roots::method_extractor_without_ita_bytecode().IsSmi());
+  ASSERT(Roots::method_extractor_without_ita_bytecode().IsBytecode());
   ASSERT(!Roots::invoke_closure_bytecode().IsSmi());
   ASSERT(Roots::invoke_closure_bytecode().IsBytecode());
   ASSERT(!Roots::invoke_field_bytecode().IsSmi());
@@ -1391,9 +1403,7 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   Roots::void_type().InitializeTypeTestingStubNonAtomic(code);
 }
 
-void Object::Cleanup() {
-  Roots::Current().Reset();
-}
+void Object::Cleanup() {}
 
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.  Also precalculates hash
@@ -1424,13 +1434,7 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
         // Some classes have identity hash codes that depend on their contents,
         // not per object.
         ASSERT(!obj->IsStringInstance());
-        if (obj == Object::null()) {
-          Object::SetCachedHashIfNotSet(obj, kNullIdentityHash);
-        } else if (obj == Object::bool_true().ptr()) {
-          Object::SetCachedHashIfNotSet(obj, kTrueIdentityHash);
-        } else if (obj == Object::bool_false().ptr()) {
-          Object::SetCachedHashIfNotSet(obj, kFalseIdentityHash);
-        } else if (!obj->IsMint() && !obj->IsDouble()) {
+        if (!obj->IsMint() && !obj->IsDouble()) {
           counter_ += 2011;  // The year Dart was announced and a prime.
           counter_ &= 0x3fffffff;
           if (counter_ == 0) counter_++;
@@ -2139,6 +2143,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     ASSERT(!lib.IsNull());
     ASSERT(lib.ptr() == Library::CompactHashLibrary());
+
+    cls = Class::New<LinkedHashBase, RTN::LinkedHashBase>(
+        kLinkedHashBaseCid, isolate_group, /*register_class=*/true,
+        /*is_abstract=*/true);
+    cls.set_type_arguments_field_offset(
+        LinkedHashBase::type_arguments_offset(),
+        RTN::LinkedHashBase::type_arguments_offset());
+    cls.set_is_prefinalized();
+    isolate_group->class_table()->Register(cls);
+    RegisterPrivateClass(cls, Symbols::_LinkedHashBase(), lib);
+    pending_classes.Add(cls);
+
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
     cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
@@ -2619,6 +2635,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(
         isolate_group);
     object_store->set_growable_object_array_class(cls);
+
+    cls = Class::New<LinkedHashBase, RTN::LinkedHashBase>(
+        kLinkedHashBaseCid, isolate_group, /*register_class=*/true,
+        /*is_abstract=*/true);
 
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
@@ -4153,7 +4173,18 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
   const bool attach_bytecode = is_declared_in_bytecode();
 #endif
   if (attach_bytecode) {
-    extractor.AttachBytecode(Object::method_extractor_bytecode());
+    // Bytecode method extractor may be used to create a closure instance
+    // with a compiled closure function, so layout of the closure object
+    // has to be compatible between them.
+    // 'Closure::HasInstantiatorTypeArgumentsField' involves a heavy signature
+    // type inspection which is not feasible to perform in the method
+    // extractor. So it is performed here to select a variant of the bytecode
+    // method extractor.
+    if (Closure::HasInstantiatorTypeArgumentsField(closure_function)) {
+      extractor.AttachBytecode(Object::method_extractor_with_ita_bytecode());
+    } else {
+      extractor.AttachBytecode(Object::method_extractor_without_ita_bytecode());
+    }
   }
 #endif  // defined(DART_DYNAMIC_MODULES)
 
@@ -4403,17 +4434,22 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 #endif
   forwarder.ClearICDataArray();
   forwarder.ClearCode();
+#if !defined(DART_PRECOMPILED_RUNTIME)
   forwarder.set_usage_counter(0);
   forwarder.set_deoptimization_counter(0);
   forwarder.set_optimized_instruction_count(0);
   forwarder.set_inlining_depth(0);
   forwarder.set_optimized_call_site_count(0);
+#endif
 
   forwarder.InheritKernelOffsetFrom(*this);
   forwarder.SetForwardingTarget(*this);
 
 #if defined(DART_DYNAMIC_MODULES)
 #if defined(DART_PRECOMPILED_RUNTIME)
+  // Allow the creation of a lazily created interpreted dynamic invocation
+  // forwarders for compiled code that does not already have one created,
+  // for example, when the only dynamic callers are in interpreted code.
   const bool attach_bytecode = true;
 #else
   const bool attach_bytecode = is_declared_in_bytecode();
@@ -8443,23 +8479,27 @@ bool Function::HasCode(FunctionPtr function) {
 }
 
 void Function::ClearCode() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_unoptimized_code(Code::null());
-  SetInstructions(StubCode::LazyCompile());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  ClearCodeSafe();
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 void Function::ClearCodeSafe() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
+  // This may get called when lazily creating dynamic invocation forwarders
+  // in the precompiled runtime, which can be done with dynamic modules.
+  // While the original function from which the forwarder is cloned may have
+  // been compiled, the forwarder is instead interpreted once complete.
+#if !defined(DART_PRECOMPILED_RUNTIME)
   untag()->set_unoptimized_code(Code::null());
-
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   SetInstructionsSafe(StubCode::LazyCompile());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 void Function::EnsureHasCompiledUnoptimizedCode() const {
@@ -9559,6 +9599,13 @@ bool Function::IsCachableIdempotent() const {
 
   // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions.
   return InVmTests(*this);
+}
+
+bool Function::IsExternalEffect() const {
+  if (!has_pragma()) return false;
+
+  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                             *this, Symbols::external_effect());
 }
 
 bool Function::IsFfiCallClosure() const {
@@ -11513,7 +11560,6 @@ const char* Function::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
   }
-  is_extension_type_member();
   return String::ScrubName(String::Handle(name()),
                            is_extension_member() || is_extension_type_member());
 }
@@ -19368,8 +19414,12 @@ static const char* BytecodeStubName(const Bytecode& bytecode) {
   } else if (bytecode.ptr() ==
              Object::implicit_shared_static_setter_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_ImplicitSharedStaticSetter";
-  } else if (bytecode.ptr() == Object::method_extractor_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_MethodExtractor";
+  } else if (bytecode.ptr() ==
+             Object::method_extractor_with_ita_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_MethodExtractorWithITA";
+  } else if (bytecode.ptr() ==
+             Object::method_extractor_without_ita_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_MethodExtractorWithoutITA";
   } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_InvokeClosure";
   } else if (bytecode.ptr() == Object::invoke_field_bytecode().ptr()) {
@@ -19384,8 +19434,7 @@ const char* Bytecode::Name() const {
   if (fun.IsNull()) {
     return BytecodeStubName(*this);
   }
-  const char* function_name =
-      String::Handle(zone, fun.UserVisibleName()).ToCString();
+  const char* function_name = fun.UserVisibleNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
@@ -19395,8 +19444,7 @@ const char* Bytecode::QualifiedName() const {
   if (fun.IsNull()) {
     return BytecodeStubName(*this);
   }
-  const char* function_name =
-      String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
+  const char* function_name = fun.QualifiedScrubbedNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
@@ -26768,18 +26816,35 @@ uword Closure::ComputeHash() const {
   return FinalizeHash(result, String::kHashBits);
 }
 
+ClosurePtr Closure::New(intptr_t length_and_flags, Heap::Space space) {
+  const intptr_t num_elements =
+      UntaggedClosure::LengthBits::decode(length_and_flags);
+  ASSERT(num_elements >= 0);
+  if (!IsValidLength(num_elements)) {
+    // This should be caught before we reach here.
+    FATAL("Fatal error in Closure::New: invalid num_elements %" Pd "\n",
+          num_elements);
+  }
+  auto raw = Object::Allocate<Closure>(space, num_elements);
+  NoSafepointScope no_safepoint;
+  raw->untag()->set_length_and_flags(Smi::New(length_and_flags));
+  raw->untag()->set_hash(Smi::New(0));
+  if (UntaggedClosure::HasDelayedTypeArgumentsBit::decode(length_and_flags)) {
+    raw->untag()->set_element(UntaggedClosure::kDelayedTypeArgumentsIndex,
+                              Object::empty_type_arguments().ptr());
+  }
+  return raw;
+}
+
 ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const Function& function,
                         const Object& context,
                         Heap::Space space) {
-  // We store null delayed type arguments, not empty ones, in closures with
-  // non-generic functions a) to make method extraction slightly faster and
-  // b) to make the Closure::IsGeneric check fast.
-  // Keep in sync with StubCodeCompiler::GenerateAllocateClosureStub.
   return Closure::New(instantiator_type_arguments, function_type_arguments,
-                      function.IsGeneric() ? Object::empty_type_arguments()
-                                           : Object::null_type_arguments(),
+                      Closure::HasDelayedTypeArgumentsField(function)
+                          ? Object::empty_type_arguments()
+                          : Object::null_type_arguments(),
                       function, context, space);
 }
 
@@ -26792,21 +26857,39 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
   ASSERT(instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsCanonical());
   ASSERT(delayed_type_arguments.IsCanonical());
+  ASSERT(function.IsClosureFunction());
   ASSERT(FunctionType::Handle(function.signature()).IsCanonical());
   ASSERT(
       (function.IsImplicitInstanceClosureFunction() && context.IsInstance()) ||
       (function.IsNonImplicitClosureFunction() && context.IsContext()) ||
       context.IsNull());
-  const auto& result = Closure::Handle(Object::Allocate<Closure>(space));
-  result.untag()->set_instantiator_type_arguments(
-      instantiator_type_arguments.ptr());
-  result.untag()->set_function_type_arguments(function_type_arguments.ptr());
-  result.untag()->set_delayed_type_arguments(delayed_type_arguments.ptr());
-  result.untag()->set_function(function.ptr());
-  result.untag()->set_context(context.ptr());
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.set_entry_point(function.entry_point());
-#endif
+
+  const bool has_delayed_type_args =
+      Closure::HasDelayedTypeArgumentsField(function);
+  const bool has_instantiator_type_args =
+      Closure::HasInstantiatorTypeArgumentsField(function);
+  const bool has_function_type_args =
+      Closure::HasFunctionTypeArgumentsField(function);
+  const intptr_t context_index = UntaggedClosure::ContextIndex(
+      has_delayed_type_args, has_instantiator_type_args,
+      has_function_type_args);
+  const intptr_t num_elements = context_index + 1;
+  const intptr_t length_and_flags = UntaggedClosure::EncodeLengthAndFlags(
+      has_delayed_type_args, has_instantiator_type_args, has_function_type_args,
+      num_elements);
+
+  const auto& result = Closure::Handle(Closure::New(length_and_flags, space));
+  result.set_function(function);
+  if (has_delayed_type_args) {
+    result.set_delayed_type_arguments(delayed_type_arguments);
+  }
+  if (has_instantiator_type_args) {
+    result.set_instantiator_type_arguments(instantiator_type_arguments);
+  }
+  if (has_function_type_args) {
+    result.set_function_type_arguments(function_type_arguments);
+  }
+  result.SetElementAt(context_index, context);
   return result.ptr();
 }
 

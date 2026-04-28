@@ -48,6 +48,7 @@ extension type ConstantValue(ast.Constant constant) {
   bool get isNull => constant is ast.NullConstant;
   bool get isString => constant is ast.StringConstant;
   bool get isUnboxed => constant is UnboxedConstant;
+  bool get isTypeArgumentsConstant => constant is TypeArgumentsConstant;
 
   CType get type => switch (constant) {
     ast.IntConstant() || UnboxedIntConstant() => const IntType(),
@@ -56,6 +57,7 @@ extension type ConstantValue(ast.Constant constant) {
     ast.NullConstant() => const NullType(),
     ast.StringConstant() => const StringType(),
     TypeArgumentsConstant() => const TypeArgumentsType(),
+    SentinelConstant() => const LateValueType(),
     _ => StaticType(
       constant.getType(GlobalContext.instance.staticTypeContextForConstants),
     ),
@@ -301,9 +303,9 @@ class TypeArgumentsConstant extends ast.AuxiliaryConstant {
   ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
 }
 
-/// Synthetic sentinel value which can be used by certain back-ends to
-/// represent the uninitialized value of a late or static field, late variable or
-/// value of an optional parameter which was not passed.
+/// Synthetic sentinel value which is used represent the uninitialized
+/// value of a late local variable, late or static field or
+/// a value of an optional parameter which was not passed.
 class SentinelConstant extends ast.AuxiliaryConstant {
   SentinelConstant();
 
@@ -396,4 +398,29 @@ final class UnboxedDoubleConstant extends UnboxedConstant {
   @override
   ast.DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.doubleNonNullableRawType;
+}
+
+/// Synthetic constant representing undefined value of a local variable.
+class UndefinedConstant extends ast.AuxiliaryConstant {
+  UndefinedConstant();
+
+  @override
+  void visitChildren(ast.Visitor v) {}
+
+  @override
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('#undefined');
+  }
+
+  @override
+  String toString() => toStringInternal();
+
+  @override
+  int get hashCode => 2053;
+
+  @override
+  bool operator ==(Object other) => other is UndefinedConstant;
+
+  @override
+  ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
 }

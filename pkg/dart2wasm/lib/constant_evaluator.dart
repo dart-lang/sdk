@@ -17,13 +17,11 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     implements VMConstantEvaluator {
   final bool _checkBounds;
   final bool _minify;
-  final bool _hasDynamicModuleSupport;
   final bool _deferredLoadingEnabled;
   final bool _deferredLoadingViaEmbedderLoadId;
 
   final Procedure? _dartInternalCheckBoundsGetter;
   final Procedure? _dartInternalMinifyGetter;
-  final Procedure? _dartInternalHasDynamicModuleSupportGetter;
   final Procedure? _dartInternalDeferredLoadingEnabled;
   final Procedure? _dartInternalDeferredLoadingViaEmbedderLoadId;
 
@@ -36,7 +34,6 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     LibraryIndex libraryIndex,
   ) : _checkBounds = !options.translatorOptions.omitBoundsChecks,
       _minify = options.translatorOptions.minify,
-      _hasDynamicModuleSupport = options.enableDynamicModules,
       _deferredLoadingEnabled =
           options.translatorOptions.enableDeferredLoading ||
           options.translatorOptions.enableMultiModuleStressTestMode,
@@ -50,11 +47,6 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
         "dart:_internal",
         LibraryIndex.topLevel,
         "get:minify",
-      ),
-      _dartInternalHasDynamicModuleSupportGetter = libraryIndex.tryGetProcedure(
-        "dart:_internal",
-        LibraryIndex.topLevel,
-        "get:hasDynamicModuleSupport",
       ),
       _dartInternalDeferredLoadingEnabled = libraryIndex.tryGetProcedure(
         "dart:_internal",
@@ -88,9 +80,6 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
     if (target == _dartInternalMinifyGetter) {
       return canonicalize(BoolConstant(_minify));
     }
-    if (target == _dartInternalHasDynamicModuleSupportGetter) {
-      return canonicalize(BoolConstant(_hasDynamicModuleSupport));
-    }
     if (target == _dartInternalDeferredLoadingEnabled) {
       return canonicalize(BoolConstant(_deferredLoadingEnabled));
     }
@@ -108,7 +97,6 @@ class ConstantEvaluator extends kernel.ConstantEvaluator
   bool shouldEvaluateMember(Member node) =>
       node == _dartInternalCheckBoundsGetter ||
       node == _dartInternalMinifyGetter ||
-      node == _dartInternalHasDynamicModuleSupportGetter ||
       node == _dartInternalDeferredLoadingEnabled ||
       node == _dartInternalDeferredLoadingViaEmbedderLoadId;
 }

@@ -221,6 +221,34 @@ class D extends C {
 ''');
   }
 
+  Future<void> test_primaryConstructor_body() async {
+    await resolveTestCode('''
+class C(int x) {
+  this {
+    int? y = null;
+    y;
+  }
+}
+''');
+    await assertHasFix('''
+class C(int x) {
+  this {
+    int? y;
+    y;
+  }
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_parameter() async {
+    await resolveTestCode('''
+class C([int? x = null]);
+''');
+    await assertHasFix('''
+class C([int? x]);
+''');
+  }
+
   Future<void> test_topLevel() async {
     await resolveTestCode('''
 var x = null;

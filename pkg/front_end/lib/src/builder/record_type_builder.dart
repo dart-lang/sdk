@@ -425,7 +425,7 @@ abstract class RecordTypeBuilderImpl extends RecordTypeBuilder {
     Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
     Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
     TypeParameterFactory typeParameterFactory, {
-    final Variance variance = Variance.covariant,
+    Variance variance = Variance.covariant,
   }) {
     List<RecordTypeFieldBuilder>? positionalFields = this.positionalFields;
     List<RecordTypeFieldBuilder>? namedFields = this.namedFields;

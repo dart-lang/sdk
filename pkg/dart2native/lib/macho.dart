@@ -1066,7 +1066,7 @@ class MachOLinkeditDataCommand extends MachOLoadCommand {
   );
 
   static MachOLinkeditDataCommand fromStream(
-      int code, final int size, MachOReader stream) {
+      int code, int size, MachOReader stream) {
     final dataFileOffset = stream.readUint32();
     final dataSize = stream.readUint32();
 
@@ -1113,7 +1113,7 @@ class MachOEncryptionInfoCommand extends MachOLoadCommand {
       this.fileSize, this.encryptionSystem, this.padding);
 
   static MachOEncryptionInfoCommand fromStream(
-      int code, final int size, MachOReader stream) {
+      int code, int size, MachOReader stream) {
     final is64Bit =
         LoadCommandType.fromCode(code) == LoadCommandType.encryptionInfo64;
 

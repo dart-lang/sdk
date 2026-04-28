@@ -20,7 +20,7 @@ class PerfWitnessServer {
   final String _recorderSocketPath;
   final ffi.Pointer<ffi.Bool> _isRecordingTimelineWithAsyncSpans;
 
-  bool _isRecordingTimeline = false;
+  json_rpc.Peer? _timelineRequestor;
 
   JsonRpcServer? _server;
   json_rpc.Peer? _recorderConnection;
@@ -52,10 +52,14 @@ class PerfWitnessServer {
   /// concurrently in background and the returned [Future] will compelete
   /// immediately, unless there is a recorder process monitoring start
   /// of new processes.
-  static Future<void> start({String? tag, bool inBackground = false}) {
+  static Future<void> start({
+    String? tag,
+    bool inBackground = false,
+    String? socketPath,
+  }) {
     if (_instance == null) {
       try {
-        final started = _startImpl(tag: tag);
+        final started = _startImpl(tag: tag, socketPath: socketPath);
         if (inBackground && !_isRecorderProcessPossiblyActive) {
           started.ignore();
         } else {
@@ -76,31 +80,47 @@ class PerfWitnessServer {
     return false;
   }
 
-  static Future<void> _startImpl({required String? tag}) async {
-    assert(_instance != null);
+  static Future<void> _startImpl({
+    required String? tag,
+    required String? socketPath,
+  }) async {
+    assert(_instance == null);
 
-    if (controlSocketPath case final socketPath?) {
+    socketPath ??= controlSocketPath;
+    if (socketPath != null) {
       if (io.FileSystemEntity.typeSync(socketPath) == .unixDomainSock) {
-        // Another isolate is already serving the process. We assume that
-        // server will remain open as long as the process is running.
-        // However we want to make sure that setting global settings (e.g.
-        // whether async spans are enabled or not) will affect all isolates
-        // not just the one that created the server.
-        final client = jsonRpcPeerFromSocket(
-          await UnixDomainSocket.connect(socketPath),
-        );
-        final {'address': int addr, 'pid': int pid} =
-            await client.sendRequest(
-                  'process._isRecordingTimelineWithAsyncSpansAddr',
-                )
-                as Map<String, dynamic>;
-        client.close().ignore(); // Don't leave the client open.
-        // Just double check that we are the very same process.
-        if (pid != io.pid) {
-          return;
+        try {
+          // Another isolate is already serving the process. We assume that
+          // server will remain open as long as the process is running.
+          // However we want to make sure that setting global settings (e.g.
+          // whether async spans are enabled or not) will affect all isolates
+          // not just the one that created the server.
+          final client = jsonRpcPeerFromSocket(
+            await UnixDomainSocket.connect(socketPath),
+          );
+          try {
+            final {'address': int addr, 'pid': int pid} =
+                await client.sendRequest(
+                      'process._isRecordingTimelineWithAsyncSpansAddr',
+                    )
+                    as Map<String, dynamic>;
+            // Just double check that we are the very same process.
+            if (pid != io.pid) {
+              return;
+            }
+            _sharedIsRecordingTimelineWithAsyncSpans = .fromAddress(addr);
+            return;
+          } finally {
+            client.close().ignore(); // Don't leave the client open.
+          }
+        } catch (_) {
+          // Socket looks defunct, delete it and continue.
+          try {
+            io.File(socketPath).deleteSync();
+          } catch (_) {
+            return;
+          }
         }
-        _sharedIsRecordingTimelineWithAsyncSpans = .fromAddress(addr);
-        return;
       }
 
       _instance = PerfWitnessServer._(tag, socketPath, recorderSocketPath!);
@@ -121,7 +141,7 @@ class PerfWitnessServer {
     json_rpc.Peer requestor,
     Map<String, Object?>? params,
   ) async {
-    if (_isRecordingTimeline) {
+    if (_timelineRequestor != null) {
       throw StateError('Timeline is already being recorded');
     }
 
@@ -147,7 +167,14 @@ class PerfWitnessServer {
       enableProfiler: paramsObj.enableProfiler ?? false,
       samplingInterval: samplingInterval,
     );
-    _isRecordingTimeline = true;
+    _timelineRequestor = requestor;
+    requestor.done.whenComplete(() {
+      if (_timelineRequestor == requestor) {
+        developer.NativeRuntime.stopStreamingTimeline();
+        _isRecordingTimelineWithAsyncSpans.value = false;
+        _timelineRequestor = null;
+      }
+    }).ignore();
     _isRecordingTimelineWithAsyncSpans.value = enableAsyncSpans;
   }
 
@@ -155,12 +182,16 @@ class PerfWitnessServer {
     json_rpc.Peer requestor,
     Map<String, Object?>? params,
   ) async {
-    if (!_isRecordingTimeline) {
+    if (_timelineRequestor == null) {
       throw StateError('Timeline is not being recorded');
     }
 
+    if (_timelineRequestor != requestor) {
+      throw StateError('This peer did not start recording timeline');
+    }
+
+    _timelineRequestor = null;
     developer.NativeRuntime.stopStreamingTimeline();
-    _isRecordingTimeline = false;
     _isRecordingTimelineWithAsyncSpans.value = false;
   }
 
@@ -200,6 +231,9 @@ class PerfWitnessServer {
         await UnixDomainSocket.connect(recorderPath),
         _methods,
       );
+      _recorderConnection!.done.whenComplete(() {
+        _recorderConnection = null;
+      }).ignore();
       await _recorderConnection!.sendRequest(
         'process.announce',
         ProcessInfo.current(tag: tag).toJson(),
@@ -211,15 +245,15 @@ class PerfWitnessServer {
 
   Future<void> _shutdown() async {
     _recorderConnection?.close();
+    if (_timelineRequestor != null) {
+      developer.NativeRuntime.stopStreamingTimeline();
+      _timelineRequestor = null;
+    }
     await _server?.close();
     if (io.FileSystemEntity.typeSync(_controlSocketPath) != .notFound) {
       io.File(_controlSocketPath).deleteSync();
     }
     calloc.free(_isRecordingTimelineWithAsyncSpans);
-    if (_isRecordingTimeline) {
-      developer.NativeRuntime.stopStreamingTimeline();
-      _isRecordingTimeline = false;
-    }
   }
 }
 

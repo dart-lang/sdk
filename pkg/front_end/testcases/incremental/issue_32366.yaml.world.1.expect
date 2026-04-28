@@ -8,7 +8,7 @@ library from "org-dartlang-test:///main.dart" as main {
   }
   class Foo extends dart.core::Object {
     final field dynamic a;
-    constructor •(dynamic a) → main::Foo
+    constructor •(initializing-formal dynamic a) → main::Foo
       : main::Foo::a = a, super dart.core::Object::•()
       ;
   }

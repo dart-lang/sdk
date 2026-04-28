@@ -337,21 +337,6 @@ void main() {
 ''');
   }
 
-  test_field_result_passed() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-class A {
-  @useResult
-  int foo = 0;
-}
-
-void main() {
-  print(A().foo); // OK
-}
-''');
-  }
-
   test_field_result_returned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -569,6 +554,21 @@ void main() {
 ''');
   }
 
+  test_field_result_usedAsArgument_positional() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo = 0;
+}
+
+void main() {
+  print(A().foo); // OK
+}
+''');
+  }
+
   test_field_static_result_unassigned() async {
     await assertErrorsInCode(
       r'''
@@ -644,21 +644,6 @@ void f() {
 ''');
   }
 
-  test_getter_result_passed() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-class A {
-  @useResult
-  int get foo => 0;
-}
-
-void main() {
-  print(A().foo); // OK
-}
-''');
-  }
-
   test_getter_result_returned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -721,6 +706,21 @@ void main() {
 ''',
       [error(diag.unusedResult, 100, 3)],
     );
+  }
+
+  test_getter_result_usedAsArgument_positional() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int get foo => 0;
+}
+
+void main() {
+  print(A().foo); // OK
+}
+''');
   }
 
   test_import_hide() async {
@@ -1172,21 +1172,6 @@ A g() => A(1);
 ''');
   }
 
-  test_method_result_passed() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-class A {
-  @useResult
-  int foo() => 0;
-}
-
-void main() {
-  print(A().foo()); // OK
-}
-''');
-  }
-
   test_method_result_recordPattern() async {
     await assertErrorsInCode(
       r'''
@@ -1427,6 +1412,38 @@ void main() {
 ''');
   }
 
+  test_method_result_usedAsArgument_named() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int m() => 1;
+}
+
+void g({int? i}) {}
+
+void f() {
+  g(i: A().m());
+}
+''');
+  }
+
+  test_method_result_usedAsArgument_positional() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class A {
+  @useResult
+  int foo() => 0;
+}
+
+void main() {
+  print(A().foo()); // OK
+}
+''');
+  }
+
   test_method_result_while() async {
     await assertNoErrorsInCode('''
 import 'package:meta/meta.dart';
@@ -1453,23 +1470,6 @@ class A {
 
 Stream<int> f(A a) async* {
   yield a.foo();
-}
-''');
-  }
-
-  test_namedExpression() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-class A {
-  @useResult
-  int m() => 1;
-}
-
-void g({int? i}) {}
-
-void f() {
-  g(i: A().m());
 }
 ''');
   }
@@ -1508,7 +1508,22 @@ const a = 'a';
 ''');
   }
 
-  test_recordLiteral() async {
+  test_recordLiteral_namedField() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+class C {
+  ({bool ok, bool value}) m() {
+    return (ok: true, value: methodWithAnnotation());
+  }
+
+  @useResult
+  bool methodWithAnnotation() => true;
+}
+''');
+  }
+
+  test_recordLiteral_positionalField() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -1667,7 +1682,7 @@ String f(bool b) {
 ''');
   }
 
-  test_topLevelFunction_result_awaited_future_passed() async {
+  test_topLevelFunction_result_awaited_future_usedAsArgument_positional() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
 
@@ -1690,19 +1705,6 @@ int foo({int? value}) => value ?? 0;
 
 void main() {
   foo(value: 3);
-}
-''');
-  }
-
-  test_topLevelFunction_result_passed() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-@useResult
-int foo() => 0;
-
-void main() {
-  print(foo()); // OK
 }
 ''');
   }
@@ -1811,6 +1813,19 @@ void main() {
 ''');
   }
 
+  test_topLevelFunction_result_usedAsArgument_positional() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo() => 0;
+
+void main() {
+  print(foo()); // OK
+}
+''');
+  }
+
   test_topLevelVariable_assigned() async {
     await assertNoErrorsInCode(r'''
 import 'package:meta/meta.dart';
@@ -1821,19 +1836,6 @@ int foo = 0;
 void main() {
   var bar = foo; // OK
   print(bar);
-}
-''');
-  }
-
-  test_topLevelVariable_passed() async {
-    await assertNoErrorsInCode(r'''
-import 'package:meta/meta.dart';
-
-@useResult
-int foo = 0;
-
-void main() {
-  print(foo); // OK
 }
 ''');
   }
@@ -1879,6 +1881,19 @@ void main() {
 ''',
       [error(diag.unusedResult, 75, 3)],
     );
+  }
+
+  test_topLevelVariable_usedAsArgument_positional() async {
+    await assertNoErrorsInCode(r'''
+import 'package:meta/meta.dart';
+
+@useResult
+int foo = 0;
+
+void main() {
+  print(foo); // OK
+}
+''');
   }
 
   test_whenClause() async {

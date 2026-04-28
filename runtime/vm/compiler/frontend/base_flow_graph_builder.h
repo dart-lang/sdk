@@ -399,8 +399,9 @@ class BaseFlowGraphBuilder {
   Fragment AllocateContext(const ZoneGrowableArray<const Slot*>& scope);
   // Top of the stack should be the closure function.
   Fragment AllocateClosure(TokenPosition position,
+                           bool has_delayed_type_args,
                            bool has_instantiator_type_args,
-                           bool is_generic,
+                           bool has_function_type_args,
                            bool is_tear_off);
   Fragment CreateArray();
   Fragment AllocateRecord(TokenPosition position, RecordShape shape);

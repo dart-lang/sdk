@@ -11,24 +11,24 @@
   (global $1 (import "module0" "global2") (ref $BoxedInt))
   (global $2 (import "module0" "global3") (ref $BoxedInt))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 18 funcref)
-  (table $module0.dispatch0 (import "module0" "dispatch0") 668 funcref)
+  (table $module0.dispatch0 (import "module0" "dispatch0") 649 funcref)
   (global $"\"Foo0.doitDispatch(\"" (ref $JSExternWrapper)
-    (i32.const 108)
+    (i32.const 103)
     (i32.const 0)
     (global.get $".Foo0.doitDispatch(")
     (struct.new $JSExternWrapper))
   (global $"\"Foo1.doitDevirt(\"" (ref $JSExternWrapper)
-    (i32.const 108)
+    (i32.const 103)
     (i32.const 0)
     (global.get $".Foo1.doitDevirt(")
     (struct.new $JSExternWrapper))
   (global $"\"Foo1.doitDispatch(\"" (ref $JSExternWrapper)
-    (i32.const 108)
+    (i32.const 103)
     (i32.const 0)
     (global.get $".Foo1.doitDispatch(")
     (struct.new $JSExternWrapper))
   (global $"\"FooBase(\"" (ref $JSExternWrapper)
-    (i32.const 108)
+    (i32.const 103)
     (i32.const 0)
     (global.get $".FooBase(")
     (struct.new $JSExternWrapper))
@@ -39,10 +39,10 @@
     (set 1 (ref.func $"foo1 <noInline>"))
     (set 2 (ref.func $"foo0 <noInline>")))
   (elem $module0.dispatch0 <...>)
-  (func $"foo0 <noInline>" (result (ref null $#Top))
+  (func $"foo0 <noInline>"
     call $"runtimeTrue implicit getter"
     if (result (ref $Object))
-      i32.const 111
+      i32.const 108
       i32.const 0
       struct.new $Object
     else
@@ -58,10 +58,8 @@
     call_indirect $module0.cross-module-funcs-0 (param i64) (result i32)
     drop
     call $"foo1 <noInline>"
-    drop
-    ref.null none
   )
-  (func $"foo1 <noInline>" (result (ref null $#Top))
+  (func $"foo1 <noInline>"
     (local $var0 (ref $Object))
     block $label0
       block $label1 (result (ref $Object))
@@ -73,10 +71,9 @@
       global.get $1
       local.get $var0
       struct.get $Object $field0
-      i32.const 521
+      i32.const 457
       i32.add
-      call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top)) (result (ref null $#Top))
-      drop
+      call_indirect $module0.dispatch0 (param (ref $Object) (ref null $#Top))
       block $label2 (result (ref $Object))
         global.get $foo1Obj
         br_on_non_null $label2
@@ -84,7 +81,6 @@
       end $label2
       global.get $2
       call $Foo1.doitDispatch
-      drop
       block $label3 (result (ref $Object))
         global.get $foo1Obj
         br_on_non_null $label3
@@ -99,26 +95,23 @@
       end $label4
       drop
       call $Foo1.doitDevirt
-      ref.null none
       return
     end $label0
     i32.const 4
-    call_indirect $module0.cross-module-funcs-0 (result (ref none))
+    call_indirect $module0.cross-module-funcs-0 
     unreachable
   )
   (func $runtimeTrue implicit getter (result i32) <...>)
-  (func $Foo0.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
+  (func $Foo0.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
     global.get $"\"Foo0.doitDispatch(\""
     local.get $var1
     global.get $"\")\""
     i32.const 5
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 6
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
     local.get $var1
     call $FooBase.doitDispatch
-    ref.null none
   )
   (func $Foo1 (result (ref $Object)) <...>)
   (func $Foo1.doitDevirt
@@ -128,29 +121,25 @@
     i32.const 5
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 6
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
     global.get $"\"FooBase(\""
     global.get $1
     global.get $"\")\""
     i32.const 5
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 6
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
   )
-  (func $Foo1.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
+  (func $Foo1.doitDispatch (param $var0 (ref $Object)) (param $var1 (ref null $#Top))
     global.get $"\"Foo1.doitDispatch(\""
     local.get $var1
     global.get $"\")\""
     i32.const 5
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 6
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
     local.get $var1
     call $FooBase.doitDispatch
-    ref.null none
   )
   (func $FooBase.doitDispatch (param $var0 (ref null $#Top))
     global.get $"\"FooBase(\""
@@ -159,7 +148,6 @@
     i32.const 5
     call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top) (ref null $#Top) (ref null $#Top)) (result (ref $JSExternWrapper))
     i32.const 6
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
   )
 )

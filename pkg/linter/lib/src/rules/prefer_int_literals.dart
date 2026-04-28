@@ -69,7 +69,7 @@ class _Visitor extends SimpleAstVisitor<void> {
       var typeArguments = parent.typeArguments?.arguments;
       return typeArguments?.length == 1 &&
           _isDartCoreDoubleTypeAnnotation(typeArguments!.first);
-    } else if (parent is NamedExpression) {
+    } else if (parent is NamedArgument) {
       var argList = parent.parent;
       if (argList is ArgumentList) {
         return _isDartCoreDouble(parent.correspondingParameter?.type);

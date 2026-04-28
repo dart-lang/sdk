@@ -327,8 +327,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: l
+                label: LabelReference
+                  name: l
                 semicolon: ; <synthetic>
               ExpressionStatement
                 expression: SimpleIdentifier
@@ -365,8 +365,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: int
+                label: LabelReference
+                  name: int
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -630,8 +630,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               AssertStatement
                 assertKeyword: assert
@@ -668,8 +668,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               Block
                 leftBracket: {
@@ -703,8 +703,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               BreakStatement
                 breakKeyword: break
@@ -738,8 +738,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ContinueStatement
                 continueKeyword: continue
@@ -772,8 +772,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               DoStatement
                 doKeyword: do
@@ -814,8 +814,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
             rightBracket: }
 ''');
@@ -845,8 +845,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ForStatement
                 forKeyword: for
@@ -890,8 +890,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               IfStatement
                 ifKeyword: if
@@ -930,14 +930,13 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               LabeledStatement
                 labels
                   Label
-                    label: SimpleIdentifier
-                      token: l
+                    name: l
                     colon: :
                 statement: Block
                   leftBracket: {
@@ -970,8 +969,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -1014,8 +1013,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               FunctionDeclarationStatement
                 functionDeclaration: FunctionDeclaration
@@ -1058,8 +1057,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               VariableDeclarationStatement
                 variables: VariableDeclarationList
@@ -1096,8 +1095,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               ReturnStatement
                 returnKeyword: return
@@ -1130,8 +1129,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               SwitchStatement
                 switchKeyword: switch
@@ -1169,8 +1168,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               TryStatement
                 tryKeyword: try
@@ -1209,8 +1208,8 @@ CompilationUnit
             statements
               ContinueStatement
                 continueKeyword: continue
-                label: SimpleIdentifier
-                  token: a
+                label: LabelReference
+                  name: a
                 semicolon: ; <synthetic>
               WhileStatement
                 whileKeyword: while

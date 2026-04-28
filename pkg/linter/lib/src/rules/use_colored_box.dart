@@ -54,15 +54,15 @@ class _Visitor extends SimpleAstVisitor<void> {
     var hasColor = false;
 
     for (var argument in argumentList.arguments) {
-      if (argument is! NamedExpression) {
+      if (argument is! NamedArgument) {
         // Positional arguments are not supported.
         return false;
       }
-      switch (argument.name.label.name) {
+      switch (argument.name.lexeme) {
         case 'child':
           hasChild = true;
         case 'color'
-            when argument.staticType?.nullabilitySuffix !=
+            when argument.argumentExpression.staticType?.nullabilitySuffix !=
                 NullabilitySuffix.question:
           hasColor = true;
         case 'key':

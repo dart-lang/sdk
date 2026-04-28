@@ -26,7 +26,73 @@ class ConvertToInitializingFormalDifferentTypesTest
   @override
   AssistKind get kind => DartAssistKind.convertToInitializingFormal;
 
-  Future<void> test_assignment() async {
+  Future<void> test_primary_assignment() async {
+    await resolveTestCode('''
+class C(String ^a) {
+  Object a = '';
+  this {
+    this.a = a;
+  }
+}
+''');
+    await assertHasAssist('''
+class C(String this.a) {
+  Object a = '';
+  this;
+}
+''');
+  }
+
+  Future<void> test_primary_initializer() async {
+    await resolveTestCode('''
+class C(String ^a) {
+  Object a;
+  this : a = a;
+}
+''');
+    await assertHasAssist('''
+class C(String this.a) {
+  Object a;
+  this;
+}
+''');
+  }
+
+  Future<void> test_primary_optionalNamed() async {
+    await resolveTestCode('''
+class C({String? ^a}) {
+  Object? a;
+  this {
+    this.a = a;
+  }
+}
+''');
+    await assertHasAssist('''
+class C({String? this.a}) {
+  Object? a;
+  this;
+}
+''');
+  }
+
+  Future<void> test_primary_optionalPositional() async {
+    await resolveTestCode('''
+class C([String? ^a]) {
+  Object? a;
+  this {
+    this.a = a;
+  }
+}
+''');
+    await assertHasAssist('''
+class C([String? this.a]) {
+  Object? a;
+  this;
+}
+''');
+  }
+
+  Future<void> test_secondary_assignment() async {
     await resolveTestCode('''
 class C {
   Object a = '';
@@ -43,7 +109,7 @@ class C {
 ''');
   }
 
-  Future<void> test_initializer() async {
+  Future<void> test_secondary_initializer() async {
     await resolveTestCode('''
 class C {
   Object a = '';
@@ -58,7 +124,7 @@ class C {
 ''');
   }
 
-  Future<void> test_named() async {
+  Future<void> test_secondary_optionalNamed() async {
     await resolveTestCode('''
 class C {
   Object? a;
@@ -75,7 +141,7 @@ class C {
 ''');
   }
 
-  Future<void> test_optionalPositional() async {
+  Future<void> test_secondary_optionalPositional() async {
     await resolveTestCode('''
 class C {
   Object? a;
@@ -112,7 +178,24 @@ class A {
     await assertNoAssist();
   }
 
-  Future<void> test_assignment_rightSide() async {
+  Future<void> test_assignment_rightSide_primary() async {
+    await resolveTestCode('''
+class C(int? aaa) {
+  int? aaa;
+  this {
+    this.aaa = ^aaa;
+  }
+}
+''');
+    await assertHasAssist('''
+class C(this.aaa) {
+  int? aaa;
+  this;
+}
+''');
+  }
+
+  Future<void> test_assignment_rightSide_secondary() async {
     await resolveTestCode('''
 class A {
   int? aaa;
@@ -151,21 +234,6 @@ class A {
     await assertNoAssist();
   }
 
-  Future<void> test_initializer_rightSide() async {
-    await resolveTestCode('''
-class A {
-  int? aaa;
-  A(int? aaa) : aaa = ^aaa;
-}
-''');
-    await assertHasAssist('''
-class A {
-  int? aaa;
-  A(this.aaa);
-}
-''');
-  }
-
   Future<void> test_initializer_rightSide_explicitThis() async {
     await resolveTestCode('''
 class A {
@@ -181,7 +249,52 @@ class A {
 ''');
   }
 
-  Future<void> test_parameterDeclaration() async {
+  Future<void> test_initializer_rightSide_primary() async {
+    await resolveTestCode('''
+class C(int? aaa) {
+  int? aaa;
+  this : aaa = ^aaa;
+}
+''');
+    await assertHasAssist('''
+class C(this.aaa) {
+  int? aaa;
+  this;
+}
+''');
+  }
+
+  Future<void> test_initializer_rightSide_secondary() async {
+    await resolveTestCode('''
+class A {
+  int? aaa;
+  A(int? aaa) : aaa = ^aaa;
+}
+''');
+    await assertHasAssist('''
+class A {
+  int? aaa;
+  A(this.aaa);
+}
+''');
+  }
+
+  Future<void> test_parameterDeclaration_primary() async {
+    await resolveTestCode('''
+class C(int ^test) {
+  int test;
+  this : test = test;
+}
+''');
+    await assertHasAssist('''
+class C(this.test) {
+  int test;
+  this;
+}
+''');
+  }
+
+  Future<void> test_parameterDeclaration_secondary() async {
     await resolveTestCode('''
 class A {
   int test;

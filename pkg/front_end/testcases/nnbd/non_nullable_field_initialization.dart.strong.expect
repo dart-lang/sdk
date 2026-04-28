@@ -65,7 +65,7 @@ class A extends core::Object {
   erroneous constructor foo() → self::A
     : self::A::fieldOfA = null, super core::Object::•()
     ;
-  constructor bar(core::int fieldOfA) → self::A
+  constructor bar(initializing-formal core::int fieldOfA) → self::A
     : self::A::fieldOfA = fieldOfA, super core::Object::•()
     ;
 }
@@ -75,7 +75,7 @@ class B<X extends core::Object?, Y extends core::Object> extends core::Object {
   erroneous constructor foo() → self::B<self::B::X%, self::B::Y>
     : self::B::fieldOfB2 = null, self::B::fieldOfB = null, super core::Object::•()
     ;
-  constructor bar(self::B::X% fieldOfB, self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
+  constructor bar(initializing-formal self::B::X% fieldOfB, initializing-formal self::B::Y fieldOfB2) → self::B<self::B::X%, self::B::Y>
     : self::B::fieldOfB = fieldOfB, self::B::fieldOfB2 = fieldOfB2, super core::Object::•()
     ;
 }
@@ -101,10 +101,10 @@ class C<X extends core::Object?, Y extends core::Object> extends core::Object {
   late covariant-by-class field self::C::X% fieldOfC8;
   late covariant-by-class field self::C::Y fieldOfC9;
   field core::int fieldOfC10;
-  constructor foo(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
+  constructor foo(initializing-formal core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
     : self::C::fieldOfC10 = fieldOfC10, super core::Object::•()
     ;
-  constructor bar(core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
+  constructor bar(initializing-formal core::int fieldOfC10) → self::C<self::C::X%, self::C::Y>
     : self::C::fieldOfC10 = fieldOfC10, super core::Object::•()
     ;
 }

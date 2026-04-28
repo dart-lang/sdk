@@ -4,10 +4,12 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/scope.dart';
+import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 
 class ScopeContext {
@@ -16,6 +18,7 @@ class ScopeContext {
 
   Scope _nameScope;
   InstanceElementImpl? _enclosingInstanceElement;
+  bool _isInStaticMember = false;
 
   ScopeContext({
     required LibraryFragmentImpl libraryFragment,
@@ -35,6 +38,16 @@ class ScopeContext {
   Scope get nameScope => _nameScope;
 
   FeatureSet get _featureSet => _libraryFragment.library.featureSet;
+
+  TypeImpl instantiateTypeParameter({
+    required TypeParameterElementImpl element,
+    required NullabilitySuffix nullability,
+  }) {
+    if (_isInStaticMember && element.enclosingElement is InstanceElement) {
+      return InvalidTypeImpl.instance;
+    }
+    return element.instantiate(nullabilitySuffix: nullability);
+  }
 
   void visitClassDeclaration(
     ClassDeclarationImpl node, {
@@ -206,20 +219,37 @@ class ScopeContext {
     });
   }
 
-  void visitFieldFormalParameter(
-    FieldFormalParameterImpl node, {
+  void visitFieldDeclaration(
+    FieldDeclarationImpl node, {
     required AstVisitor visitor,
   }) {
-    var element = node.declaredFragment!.element;
+    withInStaticMember(node.isStatic, () {
+      node.visitChildren(visitor);
+    });
+  }
+
+  void visitFormalParameter(
+    FormalParameterImpl node, {
+    required AstVisitor visitor,
+  }) {
+    node.scope = nameScope;
 
     node.metadata.accept(visitor);
     node.documentationComment?.accept(visitor);
 
-    withTypeParameterScope(element.typeParameters, () {
+    var functionTypedSuffix = node.functionTypedSuffix;
+    if (functionTypedSuffix == null) {
       node.type?.accept(visitor);
-      node.typeParameters?.accept(visitor);
-      node.parameters?.accept(visitor);
-    });
+    } else {
+      var element = node.declaredFragment!.element;
+      withTypeParameterScope(element.typeParameters, () {
+        node.type?.accept(visitor);
+        functionTypedSuffix.typeParameters?.accept(visitor);
+        functionTypedSuffix.formalParameters.accept(visitor);
+      });
+    }
+
+    node.defaultClause?.accept(visitor);
   }
 
   void visitFunctionDeclaration(
@@ -281,22 +311,6 @@ class ScopeContext {
     });
   }
 
-  void visitFunctionTypedFormalParameter(
-    FunctionTypedFormalParameterImpl node, {
-    required AstVisitor visitor,
-  }) {
-    var element = node.declaredFragment!.element;
-
-    node.metadata.accept(visitor);
-    node.documentationComment?.accept(visitor);
-
-    withTypeParameterScope(element.typeParameters, () {
-      node.returnType?.accept(visitor);
-      node.typeParameters?.accept(visitor);
-      node.parameters.accept(visitor);
-    });
-  }
-
   void visitGenericFunctionType(
     GenericFunctionTypeImpl node, {
     required AstVisitor visitor,
@@ -346,16 +360,18 @@ class ScopeContext {
 
     node.metadata.accept(visitor);
 
-    withTypeParameterScope(element.typeParameters, () {
-      node.nameScope = nameScope;
-      node.typeParameterScope = nameScope;
-      node.returnType?.accept(visitor);
-      node.typeParameters?.accept(visitor);
-      node.parameters?.accept(visitor);
+    withInStaticMember(node.isStatic, () {
+      withTypeParameterScope(element.typeParameters, () {
+        node.nameScope = nameScope;
+        node.typeParameterScope = nameScope;
+        node.returnType?.accept(visitor);
+        node.typeParameters?.accept(visitor);
+        node.parameters?.accept(visitor);
 
-      withFormalParameterScope(element.formalParameters, () {
-        node.documentationComment?.accept(visitor);
-        node.body.accept(visitor);
+        withFormalParameterScope(element.formalParameters, () {
+          node.documentationComment?.accept(visitor);
+          node.body.accept(visitor);
+        });
       });
     });
   }
@@ -405,22 +421,6 @@ class ScopeContext {
     withScope(primaryParameterScope, () {
       node.documentationComment?.accept(visitor);
       node.body.accept(visitor);
-    });
-  }
-
-  void visitSuperFormalParameter(
-    SuperFormalParameterImpl node, {
-    required AstVisitor visitor,
-  }) {
-    var element = node.declaredFragment!.element;
-
-    node.metadata.accept(visitor);
-    node.documentationComment?.accept(visitor);
-
-    withTypeParameterScope(element.typeParameters, () {
-      node.type?.accept(visitor);
-      node.typeParameters?.accept(visitor);
-      node.parameters?.accept(visitor);
     });
   }
 
@@ -488,6 +488,16 @@ class ScopeContext {
     withScope(InstanceScope(nameScope, element), () {
       _withEnclosingInstanceElement(element, operation);
     });
+  }
+
+  void withInStaticMember(bool isInStaticMember, void Function() operation) {
+    var outer = _isInStaticMember;
+    try {
+      _isInStaticMember = isInStaticMember;
+      operation();
+    } finally {
+      _isInStaticMember = outer;
+    }
   }
 
   /// Run [operation] with a new [LocalScope].

@@ -19,7 +19,7 @@ class AddLate extends ResolvedCorrectionProducer {
 
   AddLate({required super.context}) : _type = _Type.base;
 
-  AddLate.implicitThis({required super.context}) : _type = _Type.implicitThis;
+  AddLate.this_({required super.context}) : _type = _Type.this_;
 
   @override
   CorrectionApplicability get applicability =>
@@ -35,7 +35,7 @@ class AddLate extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     AstNode? node = this.node;
-    if (_type == _Type.implicitThis) {
+    if (_type == _Type.this_) {
       node = node.thisOrAncestorOfType<VariableDeclaration>();
     }
     if (node is VariableDeclaration) {
@@ -116,4 +116,4 @@ class AddLate extends ResolvedCorrectionProducer {
   }
 }
 
-enum _Type { base, implicitThis }
+enum _Type { base, this_ }

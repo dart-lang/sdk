@@ -20,6 +20,36 @@ class CreateConstructorSuperTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createConstructorSuper;
 
+  Future<void> test_emptyBody_braces() async {
+    await resolveTestCode('''
+class A(final int field) {}
+
+class B extends A {}
+''');
+    await assertHasFix('''
+class A(final int field) {}
+
+class B extends A {
+  B(super.field);
+}
+''', matchFixMessage: 'Create constructor to call super.');
+  }
+
+  Future<void> test_emptyBody_semicolon() async {
+    await resolveTestCode('''
+class A(final int field);
+
+class B extends A;
+''');
+    await assertHasFix('''
+class A(final int field);
+
+class B extends A {
+  B(super.field);
+}
+''', matchFixMessage: 'Create constructor to call super.');
+  }
+
   Future<void> test_fieldInitializer() async {
     await resolveTestCode('''
 class A {

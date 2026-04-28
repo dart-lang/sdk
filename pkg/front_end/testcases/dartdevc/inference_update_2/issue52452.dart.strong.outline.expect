@@ -44,7 +44,7 @@ class B extends core::Object {
     return new self::B::•(i);
 }
 class E extends self::_E&B&M1 implements self::D {
-  constructor •(core::int? i) → self::E
+  constructor •(super-initializing-formal core::int? i) → self::E
     ;
   static synthetic method _#new#tearOff(core::int? i) → self::E
     return new self::E::•(i);

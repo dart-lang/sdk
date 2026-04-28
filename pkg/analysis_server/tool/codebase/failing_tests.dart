@@ -133,10 +133,10 @@ class FailingTestAnnotationTracker extends RecursiveAstVisitor<void> {
   void visitAnnotation(Annotation node) {
     if (node.name.name == 'FailingTest' || node.name.name == 'SkippedTest') {
       var issue = node.arguments?.arguments
-          .whereType<NamedExpression>()
-          .where((arg) => arg.name.label.name == 'issue')
+          .whereType<NamedArgument>()
+          .where((arg) => arg.name.lexeme == 'issue')
           .firstOrNull;
-      var issueUrl = (issue?.expression as SimpleStringLiteral?)?.value;
+      var issueUrl = (issue?.argumentExpression as SimpleStringLiteral?)?.value;
       if (issueUrl != null && issueUrl.startsWith('https://github.com/')) {
         var issueUri = Uri.parse(issueUrl);
         var apiUri = issueUri.replace(

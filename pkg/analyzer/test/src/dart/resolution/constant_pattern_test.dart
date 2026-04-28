@@ -184,7 +184,7 @@ ConstantPattern
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -222,7 +222,7 @@ ConstantPattern
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -427,7 +427,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix::core
       name: dynamic
       element: dynamic
       type: dynamic
@@ -452,7 +452,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix::core
       name: int
       element: dart:core::@class::int
       type: int
@@ -477,7 +477,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: core
         period: .
-        element: <testLibraryFragment>::@prefix2::core
+        element: <testLibraryFragment>::@prefix::core
       name: Never
       element: Never
       type: Never
@@ -507,7 +507,7 @@ ConstantPattern
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::@typeAlias::A
       type: int

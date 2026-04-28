@@ -68,16 +68,16 @@ class _Visitor extends SimpleAstVisitor<void> {
     double? width;
 
     for (var argument in argumentList.arguments) {
-      if (argument is! NamedExpression) {
+      if (argument is! NamedArgument) {
         // Positional arguments are not supported.
         return null;
       }
 
-      switch (argument.name.label.name) {
+      switch (argument.name.lexeme) {
         case 'width':
-          width = argument.expression.argumentValue;
+          width = argument.argumentExpression.argumentValue;
         case 'height':
-          height = argument.expression.argumentValue;
+          height = argument.argumentExpression.argumentValue;
       }
     }
 

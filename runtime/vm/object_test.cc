@@ -3868,10 +3868,7 @@ static void Finalizer_PreserveOne(Thread* thread,
 #endif
 
   MessageHandler* handler = thread->isolate()->message_handler();
-  {
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT_EQ(0, handler->GetMessageCounts().num_messages);
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
   finalizer.set_isolate(thread->isolate());
@@ -3905,11 +3902,7 @@ static void Finalizer_PreserveOne(Thread* thread,
             NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
 
   // We should have no messages.
-  {
-    // Acquire ownership of message handler queues.
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT(!handler->HasMessages());
 }
 
 ISOLATE_UNIT_TEST_CASE(Finalizer_PreserveNoDetachOne_NewSpace) {
@@ -3934,10 +3927,7 @@ static void Finalizer_ClearDetachOne(Thread* thread, Heap::Space space) {
 #endif
 
   MessageHandler* handler = thread->isolate()->message_handler();
-  {
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT(!handler->HasMessages());
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
   finalizer.set_isolate(thread->isolate());
@@ -3970,11 +3960,7 @@ static void Finalizer_ClearDetachOne(Thread* thread, Heap::Space space) {
             NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
 
   // We should have no messages.
-  {
-    // Acquire ownership of message handler queues.
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT(!handler->HasMessages());
 }
 
 ISOLATE_UNIT_TEST_CASE(Finalizer_ClearDetachOne_NewSpace) {
@@ -3993,10 +3979,7 @@ static void Finalizer_ClearValueOne(Thread* thread,
 #endif
 
   MessageHandler* handler = thread->isolate()->message_handler();
-  {
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT(!handler->HasMessages());
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
   finalizer.set_isolate(thread->isolate());
@@ -4034,11 +4017,7 @@ static void Finalizer_ClearValueOne(Thread* thread,
             NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
 
   // We should have 1 message.
-  {
-    // Acquire ownership of message handler queues.
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(1, aq.queue()->Length());
-  }
+  EXPECT_EQ(1, handler->GetMessageCounts().num_messages);
 }
 
 ISOLATE_UNIT_TEST_CASE(Finalizer_ClearValueOne_NewSpace) {
@@ -4065,10 +4044,7 @@ static void Finalizer_DetachOne(Thread* thread,
 #endif
 
   MessageHandler* handler = thread->isolate()->message_handler();
-  {
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT(!handler->HasMessages());
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(space));
   finalizer.set_isolate(thread->isolate());
@@ -4106,11 +4082,7 @@ static void Finalizer_DetachOne(Thread* thread,
             NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
 
   // We should have no message.
-  {
-    // Acquire ownership of message handler queues.
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT(!handler->HasMessages());
 }
 
 ISOLATE_UNIT_TEST_CASE(Finalizer_DetachOne_NewSpace) {
@@ -4135,10 +4107,7 @@ static void Finalizer_GcFinalizer(Thread* thread, Heap::Space space) {
 #endif
 
   MessageHandler* handler = thread->isolate()->message_handler();
-  {
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT(!handler->HasMessages());
 
   const auto& detach = String::Handle(OneByteString::New("detach", space));
   const auto& token = String::Handle(OneByteString::New("token", space));
@@ -4162,11 +4131,7 @@ static void Finalizer_GcFinalizer(Thread* thread, Heap::Space space) {
   }
 
   // We should have no message, the Finalizer itself has been GCed.
-  {
-    // Acquire ownership of message handler queues.
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(0, aq.queue()->Length());
-  }
+  EXPECT(!handler->HasMessages());
 }
 
 ISOLATE_UNIT_TEST_CASE(Finalizer_GcFinalizer_NewSpace) {
@@ -4194,11 +4159,7 @@ static void Finalizer_TwoEntriesCrossGen(
   MessageHandler* handler = thread->isolate()->message_handler();
   // We're reusing the isolate in a loop, so there are messages from previous
   // runs of this test.
-  intptr_t queue_length_start = 0;
-  {
-    MessageHandler::AcquiredQueues aq(handler);
-    queue_length_start = aq.queue()->Length();
-  }
+  const intptr_t queue_length_start = handler->GetMessageCounts().num_messages;
 
   const auto& finalizer = Finalizer::Handle(Finalizer::New(spaces[0]));
   finalizer.set_isolate(thread->isolate());
@@ -4270,11 +4231,8 @@ static void Finalizer_TwoEntriesCrossGen(
             NumEntries(FinalizerEntry::Handle(finalizer.entries_collected())));
 
   const intptr_t expect_num_messages = expect_num_cleared == 0 ? 0 : 1;
-  {
-    // Acquire ownership of message handler queues.
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(expect_num_messages + queue_length_start, aq.queue()->Length());
-  }
+  EXPECT_EQ(expect_num_messages + queue_length_start,
+            handler->GetMessageCounts().num_messages);
 }
 
 const intptr_t kFinalizerTwoEntriesNumObjects = 9;
@@ -4991,11 +4949,7 @@ static void NativeFinalizer_TwoEntriesCrossGen(
   MessageHandler* handler = thread->isolate()->message_handler();
   // We're reusing the isolate in a loop, so there are messages from previous
   // runs of this test.
-  intptr_t queue_length_start = 0;
-  {
-    MessageHandler::AcquiredQueues aq(handler);
-    queue_length_start = aq.queue()->Length();
-  }
+  const intptr_t queue_length_start = handler->GetMessageCounts().num_messages;
 
   const auto& callback = Pointer::Handle(Pointer::New(
       reinterpret_cast<uword>(&NativeFinalizer_TwoEntriesCrossGen_Finalizer),
@@ -5104,11 +5058,8 @@ static void NativeFinalizer_TwoEntriesCrossGen(
   EXPECT_EQ(clear_value_2 ? 1 : 0, token2_memory);
 
   const intptr_t expect_num_messages = expect_num_cleared == 0 ? 0 : 1;
-  {
-    // Acquire ownership of message handler queues.
-    MessageHandler::AcquiredQueues aq(handler);
-    EXPECT_EQ(expect_num_messages + queue_length_start, aq.queue()->Length());
-  }
+  EXPECT_EQ(expect_num_messages + queue_length_start,
+            handler->GetMessageCounts().num_messages);
 
   // Simulate detachments.
   entry1.set_token(entry1);

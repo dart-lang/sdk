@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analysis_server/src/services/correction/util.dart';
 import 'package:analysis_server/src/utilities/extensions/string.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -46,7 +45,7 @@ class CreateMixin extends MultiCorrectionProducer {
             return const [];
           }
       }
-      expression = stepUpNamedExpression(node);
+      expression = node;
       mixinName = node.name;
     } else if (node is PrefixedIdentifier) {
       if (node.parent is InstanceCreationExpression) {
@@ -56,7 +55,7 @@ class CreateMixin extends MultiCorrectionProducer {
       if (prefixElement == null) {
         return const [];
       }
-      expression = stepUpNamedExpression(node);
+      expression = node;
       mixinName = node.identifier.name;
     } else {
       return const [];

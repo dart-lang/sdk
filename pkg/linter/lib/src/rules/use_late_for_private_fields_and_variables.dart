@@ -156,6 +156,15 @@ class _Visitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    var element = node.declaredFragment?.element;
+    if (element case FieldFormalParameterElement(:var field?)) {
+      nullableAccess.add(field.baseElement);
+    }
+    super.visitFieldFormalParameter(node);
+  }
+
+  @override
   void visitPrefixedIdentifier(PrefixedIdentifier node) {
     var element = node.element?.canonicalElement2;
     _visitIdentifierOrPropertyAccess(node, element);

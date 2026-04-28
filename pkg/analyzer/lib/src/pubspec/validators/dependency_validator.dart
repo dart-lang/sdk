@@ -120,7 +120,7 @@ void dependencyValidator(PubspecValidationContext ctx) {
       ctx.reportErrorForNode(
         packageName,
         diag.unnecessaryDevDependency.withArguments(
-          package: packageName.valueOrThrow.toString(),
+          package: packageName.value.toString(),
         ),
       );
     }

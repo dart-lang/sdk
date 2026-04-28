@@ -82,8 +82,6 @@ export '../api_prototype/experimental_flags.dart'
 export '../api_prototype/file_system.dart'
     show FileSystem, FileSystemEntity, FileSystemException;
 export '../api_prototype/kernel_generator.dart' show kernelForProgram;
-export '../api_prototype/language_version.dart'
-    show uriUsesLegacyLanguageVersion;
 export '../api_prototype/standard_file_system.dart' show DataFileSystemEntity;
 export '../api_prototype/try_constant_evaluator.dart';
 export '../base/operator.dart' show Operator;

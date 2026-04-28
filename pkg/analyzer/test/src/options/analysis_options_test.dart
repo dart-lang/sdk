@@ -338,6 +338,40 @@ code-style:
     expect(analysisOptions.codeStyleOptions.useFormatter, true);
   }
 
+  test_plugins_dependency_overrides_git() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one: ^1.2.3
+  dependency_overrides:
+    some_package:
+      git:
+        url: https://github.com/dart-lang/some_package.git
+        ref: main
+''');
+
+    var dependencyOverrides =
+        analysisOptions.pluginsOptions.dependencyOverrides;
+    expect(dependencyOverrides, isNotNull);
+    expect(dependencyOverrides, hasLength(1));
+
+    var packageOverride = dependencyOverrides!.entries.singleOrNull;
+    expect(packageOverride, isNotNull);
+    expect(packageOverride!.key, 'some_package');
+    expect(
+      packageOverride.value,
+      isA<GitPluginSource>().having(
+        (e) => e.toYaml(name: 'some_package'),
+        'toYaml',
+        '''
+  some_package:
+    git:
+      url: https://github.com/dart-lang/some_package.git
+      ref: main
+''',
+      ),
+    );
+  }
+
   test_plugins_dependency_overrides_relative() {
     var analysisOptions = parseOptions('''
 plugins:
@@ -415,6 +449,85 @@ plugins:
   some_package1:
     version: ^3.2.1
     hosted: https://example.com/packages/
+''',
+      ),
+    );
+  }
+
+  test_plugins_gitConstraint() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    git: https://github.com/dart-lang/plugin_one.git
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<GitPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    git:
+      url: https://github.com/dart-lang/plugin_one.git
+''',
+      ),
+    );
+  }
+
+  test_plugins_gitConstraint_full() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    git:
+      url: https://github.com/dart-lang/sdk.git
+      ref: main
+      path: pkg/plugin_one
+      tag_pattern: 'v*'
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<GitPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    git:
+      url: https://github.com/dart-lang/sdk.git
+      ref: main
+      path: pkg/plugin_one
+      tag_pattern: v*
+''',
+      ),
+    );
+  }
+
+  test_plugins_gitConstraint_scalar() {
+    var analysisOptions = parseOptions('''
+plugins:
+  plugin_one:
+    git: https://github.com/dart-lang/plugin_one.git
+''');
+
+    var configuration = analysisOptions.pluginConfigurations.single;
+    expect(configuration.isEnabled, isTrue);
+    expect(configuration.name, 'plugin_one');
+    expect(
+      configuration.source,
+      isA<GitPluginSource>().having(
+        (e) => e.toYaml(name: 'plugin_one'),
+        'toYaml',
+        '''
+  plugin_one:
+    git:
+      url: https://github.com/dart-lang/plugin_one.git
 ''',
       ),
     );

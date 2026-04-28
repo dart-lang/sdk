@@ -17,5 +17,5 @@
   (func $SystemHash.combine (param $var0 i64) (param $var1 i64) (result i64) <...>)
   (func $_TypeUniverse.substituteFunctionTypeArgument (param $var0 (ref $_FunctionType)) (param $var1 (ref $Array<_Type>)) (result (ref $_FunctionType)) <...>)
   (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) (result i32) <...>)
-  (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $print (param $var0 (ref null $#Top)) <...>)
 )

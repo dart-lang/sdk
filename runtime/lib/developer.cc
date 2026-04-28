@@ -121,9 +121,9 @@ DEFINE_NATIVE_ENTRY(Developer_getServiceMinorVersion, 0, 0) {
 }
 
 static void SendNull(const SendPort& port) {
-  const Dart_Port destination_port_id = port.Id();
-  PortMap::PostMessage(Message::New(destination_port_id, Object::null(),
-                                    Message::kNormalPriority));
+  Dart_CObject message;
+  message.type = Dart_CObject_kNull;
+  Dart_PostCObject(port.Id(), &message);
 }
 
 DEFINE_NATIVE_ENTRY(Developer_getServerInfo, 0, 1) {

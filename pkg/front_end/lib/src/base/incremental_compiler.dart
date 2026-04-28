@@ -7,7 +7,7 @@ import 'dart:convert' show JsonEncoder;
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
-    show ExperimentalFeatures;
+    show ExperimentalFeatures, ExperimentalFeaturesExtension;
 import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
     show ScannerConfiguration;
 import 'package:front_end/src/base/name_space.dart';
@@ -441,6 +441,15 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
         );
         componentWithDill = buildResult.component;
       }
+      // Coverage-ignore(suite): Not run.
+      else if (componentWithDill != null) {
+        context.options.target.performOutlineTransformations(
+          componentWithDill,
+          libraries: currentKernelTarget.loader.libraries,
+          changedStructureNotifier:
+              currentKernelTarget.changedStructureNotifier,
+        );
+      }
 
       _benchmarker
       // Coverage-ignore(suite): Not run.
@@ -577,6 +586,11 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       // Copy the metadata *just created*. This will likely not contain metadata
       // about other libraries.
       result.metadata.addAll(componentWithDill.metadata);
+
+      if (outlineOnly) {
+        // Coverage-ignore-block(suite): Not run.
+        context.options.target.performOutlineComponentOperations(result);
+      }
 
       // We're now done. Allow any waiting compile to start.
       Completer<dynamic> currentlyCompilingLocal = _currentlyCompiling!;
@@ -1196,14 +1210,10 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
           );
           return null;
         }
-        ScannerConfiguration scannerConfiguration = new ScannerConfiguration(
-          enableTripleShift:
-              /* should this be on the library? */
-              /* this is effectively what the constant evaluator does */
-              context.options.globalFeatures.tripleShift.isEnabled,
-        );
         ExperimentalFeatures experimentalFeatures =
             new ExperimentalFeaturesFromVersion(builder.languageVersion);
+        ScannerConfiguration scannerConfiguration = experimentalFeatures
+            .buildScannerConfiguration();
         String? before = textualOutline(
           previousSource,
           scannerConfiguration,

@@ -18,7 +18,7 @@ abstract class Square extends core::Object {
 }
 class Unit extends core::Object /*hasConstConstructor*/  {
   final field core::double value;
-  const constructor •(core::double value) → self::Unit
+  const constructor •(initializing-formal core::double value) → self::Unit
     : self::Unit::value = value, super core::Object::•()
     ;
 }

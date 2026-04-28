@@ -8,7 +8,7 @@ class C1 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •(final dynamic a, core::Object? b, final core::Object? c) → self::C1
+  constructor •(final dynamic a, initializing-formal core::Object? b, final initializing-formal core::Object? c) → self::C1
     ;
 }
 class C2 extends core::Object {
@@ -17,7 +17,7 @@ class C2 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •([final has-declared-initializer dynamic a = null, has-declared-initializer core::Object? b = null, final has-declared-initializer core::Object? c = null]) → self::C2
+  constructor •([final has-declared-initializer dynamic a = null, initializing-formal has-declared-initializer core::Object? b = null, final initializing-formal has-declared-initializer core::Object? c = null]) → self::C2
     ;
 }
 class C3 extends core::Object {
@@ -26,7 +26,7 @@ class C3 extends core::Object {
   field core::int d;
   field core::int e;
   field core::int f;
-  constructor •({final has-declared-initializer dynamic a = null, has-declared-initializer core::Object? b = null, final has-declared-initializer core::Object? c = null}) → self::C3
+  constructor •({final has-declared-initializer dynamic a = null, initializing-formal has-declared-initializer core::Object? b = null, final initializing-formal has-declared-initializer core::Object? c = null}) → self::C3
     ;
 }
 extension type ET1(core::Object? a) {
@@ -44,15 +44,15 @@ extension type ET3(core::Object? a) {
   constructor • = self::ET3|constructor#;
   constructor tearoff • = self::ET3|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#(core::Object? a) → self::ET1% /* erasure=core::Object?, declared=! */
+static extension-type-member method ET1|constructor#(initializing-formal core::Object? a) → self::ET1% /* erasure=core::Object?, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff(core::Object? a) → self::ET1% /* erasure=core::Object?, declared=! */
   return self::ET1|constructor#(a);
-static extension-type-member method ET2|constructor#([has-declared-initializer core::Object? a = null]) → self::ET2% /* erasure=core::Object?, declared=! */
+static extension-type-member method ET2|constructor#([initializing-formal has-declared-initializer core::Object? a = null]) → self::ET2% /* erasure=core::Object?, declared=! */
   ;
 static extension-type-member synthetic method ET2|constructor#_#new#tearOff([has-declared-initializer core::Object? a]) → self::ET2% /* erasure=core::Object?, declared=! */
   return self::ET2|constructor#(a);
-static extension-type-member method ET3|constructor#({has-declared-initializer core::Object? a = null}) → self::ET3% /* erasure=core::Object?, declared=! */
+static extension-type-member method ET3|constructor#({initializing-formal has-declared-initializer core::Object? a = null}) → self::ET3% /* erasure=core::Object?, declared=! */
   ;
 static extension-type-member synthetic method ET3|constructor#_#new#tearOff({has-declared-initializer core::Object? a}) → self::ET3% /* erasure=core::Object?, declared=! */
   return self::ET3|constructor#(a: a);

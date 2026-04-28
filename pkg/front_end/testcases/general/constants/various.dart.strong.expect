@@ -89,10 +89,9 @@ library;
 // const AbstractClassWithConstructor();
 //       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 //
-// pkg/front_end/testcases/general/constants/various.dart:184:7: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-// Try using a constructor or factory that is 'const'.
-// const ClassWithNonEmptyConstConstructor();
-//       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+// pkg/front_end/testcases/general/constants/various.dart:179:5: Error: Method invocation is not a constant expression.
+//     print("hello");
+//     ^^^^^
 //
 // pkg/front_end/testcases/general/constants/various.dart:100:10: Error: Field 'foo' should be initialized because its type 'Object' doesn't allow null.
 //  - 'Object' is from 'dart:core'.
@@ -186,6 +185,11 @@ library;
 //   const ConstClassWithFailingAssertWithEmptyMessage() : assert(false, "");
 //                                                                ^
 //
+// pkg/front_end/testcases/general/constants/various.dart:184:7: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+// const ClassWithNonEmptyConstConstructor();
+//       ^
+//
 // pkg/front_end/testcases/general/constants/various.dart:219:35: Error: Constant evaluation error:
 // const bool.fromEnvironment("foo") ? id1 : willBecomeNull;
 //                                   ^
@@ -260,10 +264,12 @@ class ClassWithTypeArguments<E extends core::Object? = dynamic, F extends core::
     : super core::Object::•()
     ;
 }
-class ClassWithNonEmptyConstConstructor extends core::Object {
-  constructor •() → self::ClassWithNonEmptyConstConstructor
+class ClassWithNonEmptyConstConstructor extends core::Object /*hasConstConstructor*/  {
+  const constructor •() → self::ClassWithNonEmptyConstConstructor
     : super core::Object::•() {
-    core::print("hello");
+    invalid-expression "pkg/front_end/testcases/general/constants/various.dart:179:5: Error: Method invocation is not a constant expression.
+    print(\"hello\");
+    ^^^^^";
   }
 }
 class ConstClassWithFinalFields1 extends core::Object /*hasConstConstructor*/  {
@@ -429,10 +435,7 @@ static field self::ConstClassWithFailingAssertWithEmptyMessage failedAssertEmpty
 static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic> classWithTypeArguments1 = #C20;
 static const field self::ClassWithTypeArguments<dynamic, dynamic, dynamic> classWithTypeArguments2 = #C21;
 static const field core::bool classWithTypeArgumentsIdentical = #C1;
-static field self::ClassWithNonEmptyConstConstructor classWithNonEmptyConstConstructor = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:184:7: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
-Try using a constructor or factory that is 'const'.
-const ClassWithNonEmptyConstConstructor();
-      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^";
+static field self::ClassWithNonEmptyConstConstructor classWithNonEmptyConstConstructor = invalid-expression "A const constructor can't have a body.";
 static field self::ConstClassWithFinalFields2 constClassWithFinalFields = invalid-expression "pkg/front_end/testcases/general/constants/various.dart:196:14: Error: Can't access 'this' in a field initializer to read 'y'.
   final z1 = y;
              ^";

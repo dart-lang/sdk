@@ -141,7 +141,6 @@ class ParserCreatorListener extends Listener {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,

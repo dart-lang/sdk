@@ -9,6 +9,7 @@ resolution: workspace
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
+  dds: any
   dds_service_extensions: any
   json_rpc_2: any
   logging: any

@@ -36,12 +36,16 @@ class Bar4 implements Foo4<Object> {
 
 class Foo5<T> {
   void method<V extends FutureOr<S>, S extends FutureOr<T>>(
-      Baz<S> x, Baz<V> y) {}
+    Baz<S> x,
+    Baz<V> y,
+  ) {}
 }
 
 class Bar5 implements Foo5<Object> {
   void method<V extends FutureOr<T>, T extends FutureOr<Object>>(
-      Baz<T> x, Baz<V> y) {}
+    Baz<T> x,
+    Baz<V> y,
+  ) {}
 }
 
 void main() {}

@@ -15,7 +15,6 @@ void main() {
     defineReflectiveTests(NonFinalFieldInEnumTest);
     defineReflectiveTests(PreferFinalFieldsBulkTest);
     defineReflectiveTests(PreferFinalFieldsTest);
-    defineReflectiveTests(PreferFinalFieldsWithNullSafetyTest);
     defineReflectiveTests(PreferFinalInForEachTest);
     defineReflectiveTests(PreferFinalLocalTest);
     defineReflectiveTests(PreferFinalLocalsBulkTest);
@@ -122,16 +121,6 @@ class C {
 }
 ''');
   }
-}
-
-@reflectiveTest
-class PreferFinalFieldsWithNullSafetyTest extends FixProcessorLintTest
-    with WithNullSafetyLintMixin {
-  @override
-  FixKind get kind => DartFixKind.makeFinal;
-
-  @override
-  String get lintCode => LintNames.prefer_final_fields;
 
   Future<void> test_lateField_type() async {
     await resolveTestCode('''

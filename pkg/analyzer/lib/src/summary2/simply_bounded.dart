@@ -353,14 +353,12 @@ class _TypeCollector {
   }
 
   void visitParameter(FormalParameter node) {
-    if (node is DefaultFormalParameter) {
-      visitParameter(node.parameter);
-    } else if (node is FieldFormalParameter) {
+    if (node is FieldFormalParameter || node is SuperFormalParameter) {
       // The spec does not allow them here, ignore.
-    } else if (node is FunctionTypedFormalParameter) {
-      addType(node.returnType);
-      visitParameters(node.parameters);
-    } else if (node is SimpleFormalParameter) {
+    } else if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      addType(node.type);
+      visitParameters(functionTypedSuffix.formalParameters);
+    } else if (node is RegularFormalParameter) {
       addType(node.type);
     } else {
       throw UnimplementedError('(${node.runtimeType}) $node');

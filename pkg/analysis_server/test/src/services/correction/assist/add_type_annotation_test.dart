@@ -834,6 +834,60 @@ void f() {
 ''');
   }
 
+  Future<void> test_primaryConstructor_namedConstructor_final() async {
+    await resolveTestCode('''
+class A.named({final ^f = 0}) {}
+''');
+    await assertHasAssist('''
+class A.named({final int f = 0}) {}
+''');
+  }
+
+  Future<void> test_primaryConstructor_namedConstructor_var() async {
+    await resolveTestCode('''
+class A.named({var ^f = 0}) {}
+''');
+    await assertHasAssist('''
+class A.named({var int f = 0}) {}
+''');
+  }
+
+  Future<void> test_primaryConstructor_namedParameter_final() async {
+    await resolveTestCode('''
+class A({final ^f = 0}) {}
+''');
+    await assertHasAssist('''
+class A({final int f = 0}) {}
+''');
+  }
+
+  Future<void> test_primaryConstructor_namedParameter_var() async {
+    await resolveTestCode('''
+class A({var ^f = 0}) {}
+''');
+    await assertHasAssist('''
+class A({var int f = 0}) {}
+''');
+  }
+
+  Future<void> test_primaryConstructor_positionalParameter_final() async {
+    await resolveTestCode('''
+class A([final ^f = 0]) {}
+''');
+    await assertHasAssist('''
+class A([final int f = 0]) {}
+''');
+  }
+
+  Future<void> test_primaryConstructor_positionalParameter_var() async {
+    await resolveTestCode('''
+class A([var ^f = 0]) {}
+''');
+    await assertHasAssist('''
+class A([var int f = 0]) {}
+''');
+  }
+
   Future<void> test_privateType_closureParameter() async {
     newFile('$testPackageLibPath/my_lib.dart', '''
 library my_lib;

@@ -114,7 +114,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -149,7 +149,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -185,7 +185,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -231,7 +231,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -282,7 +282,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -327,7 +327,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -378,7 +378,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -423,7 +423,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -500,7 +500,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -536,7 +536,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -582,7 +582,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -654,7 +654,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -688,7 +688,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -736,7 +736,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -811,7 +811,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -846,7 +846,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -892,7 +892,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -964,7 +964,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -998,7 +998,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1045,7 +1045,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1096,7 +1096,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1155,7 +1155,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1210,7 +1210,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1251,7 +1251,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1302,7 +1302,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1368,7 +1368,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1400,7 +1400,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -1474,7 +1474,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1500,7 +1500,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1563,7 +1563,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1610,7 +1610,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1659,7 +1659,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1704,7 +1704,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1755,7 +1755,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1812,7 +1812,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1857,7 +1857,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1902,7 +1902,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1947,7 +1947,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -1992,7 +1992,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2037,7 +2037,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2082,7 +2082,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2127,7 +2127,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2172,7 +2172,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2219,7 +2219,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2270,7 +2270,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2316,7 +2316,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2368,7 +2368,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2409,7 +2409,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2460,7 +2460,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2526,7 +2526,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -2558,7 +2558,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -2603,7 +2603,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2648,7 +2648,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2693,7 +2693,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2782,7 +2782,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -2817,7 +2817,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -2880,7 +2880,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2935,7 +2935,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -2980,7 +2980,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3025,7 +3025,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3091,7 +3091,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -3123,7 +3123,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -3212,7 +3212,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -3247,7 +3247,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -3321,7 +3321,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -3353,7 +3353,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -3408,7 +3408,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3463,7 +3463,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3518,7 +3518,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3581,7 +3581,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -3636,7 +3636,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3699,7 +3699,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3762,7 +3762,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3834,7 +3834,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -3868,7 +3868,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -3925,7 +3925,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -3972,7 +3972,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4029,7 +4029,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4076,7 +4076,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4171,7 +4171,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -4210,7 +4210,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -4263,7 +4263,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4318,7 +4318,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4373,7 +4373,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4445,7 +4445,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -4479,7 +4479,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -4545,7 +4545,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -4577,7 +4577,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -4622,7 +4622,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4667,7 +4667,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4712,7 +4712,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -4801,7 +4801,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -4836,7 +4836,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -4901,7 +4901,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -4960,7 +4960,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5011,7 +5011,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5062,7 +5062,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5137,7 +5137,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5168,7 +5168,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5219,7 +5219,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5268,7 +5268,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5309,7 +5309,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5470,7 +5470,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -5502,7 +5502,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -5553,7 +5553,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5626,7 +5626,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C
@@ -5653,7 +5653,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: C
     element: package:test/a.dart::@class::C
     type: C<dynamic>
@@ -5878,7 +5878,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: CA
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -5952,7 +5952,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: dynamic
     element: dynamic
     type: dynamic
@@ -6013,7 +6013,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: dynamic
     element: dynamic
     type: dynamic
@@ -6110,7 +6110,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: dynamic
     element: dynamic
     type: dynamic
@@ -6147,7 +6147,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: dynamic
     element: dynamic
     type: dynamic
@@ -6246,7 +6246,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: dynamic
     element: dynamic
     type: dynamic
@@ -6311,7 +6311,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: dynamic
     element: dynamic
     type: dynamic
@@ -6352,7 +6352,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: E
     element: package:test/a.dart::@enum::E
     type: E
@@ -6418,7 +6418,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: A
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -6450,7 +6450,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: A
     element: package:test/a.dart::@extensionType::A
     type: A
@@ -6478,7 +6478,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: F
     element: package:test/a.dart::@typeAlias::F
     type: void Function()
@@ -6545,7 +6545,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: M
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -6577,7 +6577,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: M
     element: package:test/a.dart::@mixin::M
     type: M<dynamic>
@@ -6621,7 +6621,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6646,7 +6646,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: core
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -6662,7 +6662,7 @@ FunctionReference
         importPrefix: ImportPrefixReference
           name: core
           period: .
-          element: <testLibraryFragment>::@prefix2::core
+          element: <testLibraryFragment>::@prefix::core
         name: int
         element: dart:core::@class::int
         type: int
@@ -6688,7 +6688,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6710,7 +6710,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6753,7 +6753,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6776,7 +6776,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6798,7 +6798,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6853,7 +6853,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6875,7 +6875,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6902,7 +6902,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6926,7 +6926,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6967,7 +6967,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -6990,7 +6990,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -7055,7 +7055,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: core
       period: .
-      element: <testLibraryFragment>::@prefix2::core
+      element: <testLibraryFragment>::@prefix::core
     name: Never
     element: Never
     type: Never
@@ -7082,7 +7082,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: F
     element: package:test/a.dart::@typeAlias::F
     type: void Function()
@@ -7111,7 +7111,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: A
     element: package:test/a.dart::@typeAlias::A
     type: void Function()
@@ -7140,7 +7140,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: A
     element: package:test/a.dart::@typeAlias::A
     type: List<int>
@@ -7248,7 +7248,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -7580,7 +7580,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: Fn
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -7615,7 +7615,7 @@ TypeLiteral
     importPrefix: ImportPrefixReference
       name: a
       period: .
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
     name: F
     element: package:test/a.dart::@typeAlias::F
     type: void Function()

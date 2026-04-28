@@ -41,16 +41,19 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
   final String? _mainModuleJs;
 
   DartDevcFrontendServerClient._(
-      this._frontendServerClient, this._entrypoint, String moduleFormat)
-      : _bootstrapJs = moduleFormat == 'amd'
-            ? generateAmdBootstrapScript(
-                requireUrl: 'require.js',
-                mapperUrl: 'dart_stack_trace_mapper.js',
-                entrypoint: _entrypoint)
-            : null,
-        _mainModuleJs = moduleFormat == 'amd'
-            ? generateAmdMainModule(entrypoint: _entrypoint)
-            : null {
+    this._frontendServerClient,
+    this._entrypoint,
+    String moduleFormat,
+  ) : _bootstrapJs = moduleFormat == 'amd'
+          ? generateAmdBootstrapScript(
+              requireUrl: 'require.js',
+              mapperUrl: 'dart_stack_trace_mapper.js',
+              entrypoint: _entrypoint,
+            )
+          : null,
+      _mainModuleJs = moduleFormat == 'amd'
+          ? generateAmdMainModule(entrypoint: _entrypoint)
+          : null {
     _resetAssets();
   }
 
@@ -86,7 +89,10 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
       verbose: verbose,
     );
     return DartDevcFrontendServerClient._(
-        feServer, Uri.parse(entrypoint).path, dartdevcModuleFormat);
+      feServer,
+      Uri.parse(entrypoint).path,
+      dartdevcModuleFormat,
+    );
   }
 
   /// Returns the current bytes for the asset at [path].
@@ -121,11 +127,15 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     for (final entry in manifest.entries) {
       final metadata = entry.value as Map<String, dynamic>;
       final sourceOffsets = metadata['code'] as List;
-      _assets[entry.key] =
-          sourceBytes.sublist(sourceOffsets[0] as int, sourceOffsets[1] as int);
+      _assets[entry.key] = sourceBytes.sublist(
+        sourceOffsets[0] as int,
+        sourceOffsets[1] as int,
+      );
       final sourceMapOffsets = metadata['sourcemap'] as List;
       _assets['${entry.key}.map'] = sourceMapBytes.sublist(
-          sourceMapOffsets[0] as int, sourceMapOffsets[1] as int);
+        sourceMapOffsets[0] as int,
+        sourceMapOffsets[1] as int,
+      );
     }
   }
 
@@ -142,9 +152,9 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     required String klass,
     required String libraryUri,
     required List<String> typeDefinitions,
-  }) =>
-      throw UnsupportedError(
-          'Use `compileExpressionToJs` for dartdevc based clients');
+  }) => throw UnsupportedError(
+    'Use `compileExpressionToJs` for dartdevc based clients',
+  );
 
   @override
   Future<CompileResult> compileExpressionToJs({
@@ -155,15 +165,15 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     required String libraryUri,
     required int line,
     required String moduleName,
-  }) =>
-      _frontendServerClient.compileExpressionToJs(
-          expression: expression,
-          column: column,
-          jsFrameValues: jsFrameValues,
-          jsModules: jsModules,
-          libraryUri: libraryUri,
-          line: line,
-          moduleName: moduleName);
+  }) => _frontendServerClient.compileExpressionToJs(
+    expression: expression,
+    column: column,
+    jsFrameValues: jsFrameValues,
+    jsModules: jsModules,
+    libraryUri: libraryUri,
+    line: line,
+    moduleName: moduleName,
+  );
 
   @override
   void accept() {
@@ -201,11 +211,13 @@ class DartDevcFrontendServerClient implements FrontendServerClient {
     }
     final mainModuleJs = _mainModuleJs;
     if (mainModuleJs != null) {
-      _assets['$_entrypoint.bootstrap.js'] =
-          Uint8List.fromList(utf8.encode(mainModuleJs));
+      _assets['$_entrypoint.bootstrap.js'] = Uint8List.fromList(
+        utf8.encode(mainModuleJs),
+      );
     }
   }
 }
 
-final _dartdevcPlatformKernel =
-    p.toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill')).toString();
+final _dartdevcPlatformKernel = p
+    .toUri(p.join(sdkDir, 'lib', '_internal', 'ddc_sdk.dill'))
+    .toString();

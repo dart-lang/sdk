@@ -159,13 +159,16 @@ bool b = false;'''),
 
 @reflectiveTest
 class PluginServerTest extends PluginServerTestBase with PluginServerTestMixin {
+  late _NoLiteralsPlugin _plugin;
+
   @override
   Future<void> setUp() async {
     await super.setUp();
 
+    _plugin = _NoLiteralsPlugin();
     pluginServer = PluginServer(
       resourceProvider: resourceProvider,
-      plugins: [_NoLiteralsPlugin()],
+      plugins: [_plugin],
     );
     await startPlugin();
   }
@@ -578,6 +581,12 @@ int b = 1;
     expect(params.file, filePath);
   }
 
+  Future<void> test_shutdown() async {
+    expect(_plugin.isShutdown, isFalse);
+    await channel.sendRequest(protocol.PluginShutdownParams());
+    expect(_plugin.isShutdown, isTrue);
+  }
+
   Future<void> test_unsupportedRequest() async {
     writeAnalysisOptionsWithPlugin();
     newFile(filePath, 'bool b = false;');
@@ -948,6 +957,8 @@ class _InvertBoolean extends ResolvedCorrectionProducer {
 }
 
 class _NoLiteralsPlugin extends Plugin {
+  bool isShutdown = false;
+
   @override
   String get name => 'No Literals Plugin';
 
@@ -963,6 +974,11 @@ class _NoLiteralsPlugin extends Plugin {
     registry.registerFixForRule(NoBoolsRule.code, _WrapInQuotes.new);
     registry.registerFixForRule(NoInteger10Rule.code, _WrapInQuotes.new);
     registry.registerAssist(_InvertBoolean.new);
+  }
+
+  @override
+  Future<void> shutDown() async {
+    isShutdown = true;
   }
 }
 

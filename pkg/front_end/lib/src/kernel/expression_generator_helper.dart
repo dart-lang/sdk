@@ -39,6 +39,8 @@ typedef Expression_Generator_Initializer = dynamic;
 typedef Expression_Initializer = dynamic;
 
 abstract class ExpressionGeneratorHelper {
+  VariableDeclaration? get thisVariable;
+
   Uri get uri;
 
   SourceLibraryBuilder get libraryBuilder;

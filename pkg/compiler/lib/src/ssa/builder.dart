@@ -6,6 +6,10 @@
 import 'package:_js_interop_checks/src/js_interop.dart'
     show getDartJSInteropJSName;
 // ignore: implementation_imports
+import 'package:front_end/src/api_prototype/external_effect.dart'
+    as ir
+    show ExternalEffect;
+// ignore: implementation_imports
 import 'package:front_end/src/api_prototype/static_weak_references.dart'
     as ir
     show StaticWeakReferences;
@@ -5060,6 +5064,10 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
         argument.accept(this);
         return;
       }
+      stack.add(graph.addConstantNull(closedWorld));
+      return;
+    }
+    if (ir.ExternalEffect.isExternalEffect(node)) {
       stack.add(graph.addConstantNull(closedWorld));
       return;
     }

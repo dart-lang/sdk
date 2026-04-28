@@ -20,6 +20,10 @@ class CodeStyleOptionsImpl implements CodeStyleOptions {
   bool get addTrailingCommas => _isLintEnabled('require_trailing_commas');
 
   @override
+  bool get avoidAnnotatingWithDynamic =>
+      _isLintEnabled('avoid_annotating_with_dynamic');
+
+  @override
   bool get avoidRenamingMethodParameters =>
       _isLintEnabled('avoid_renaming_method_parameters');
 

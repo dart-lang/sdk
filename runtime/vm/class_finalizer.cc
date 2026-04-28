@@ -27,7 +27,9 @@
 
 namespace dart {
 
+#if !defined(PRODUCT)
 DEFINE_FLAG(bool, print_classes, false, "Prints details about loaded classes.");
+#endif
 DEFINE_FLAG(bool, trace_class_finalization, false, "Trace class finalization.");
 DEFINE_FLAG(bool, trace_type_finalization, false, "Trace type finalization.");
 
@@ -749,7 +751,7 @@ void ClassFinalizer::FinalizeClass(const Class& cls) {
   }
   // Mark as loaded and finalized.
   cls.Finalize();
-#if !defined(DART_PRECOMPILED_RUNTIME)
+#if !defined(PRODUCT)
   if (FLAG_print_classes) {
     PrintClassInformation(cls);
   }
@@ -844,10 +846,8 @@ ErrorPtr ClassFinalizer::LoadClassMembers(const Class& cls) {
     return thread->StealStickyError();
   }
 }
-#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
 
-#if !defined(DART_PRECOMPILED_RUNTIME)
-
+#if !defined(PRODUCT)
 void ClassFinalizer::PrintClassInformation(const Class& cls) {
   Thread* thread = Thread::Current();
   HANDLESCOPE(thread);
@@ -893,6 +893,10 @@ void ClassFinalizer::PrintClassInformation(const Class& cls) {
     THR_Print("  %s\n", field.ToCString());
   }
 }
+#endif  // !defined(PRODUCT)
+#endif  // !defined(DART_PRECOMPILED_RUNTIME) || defined(DART_DYNAMIC_MODULES)
+
+#if !defined(DART_PRECOMPILED_RUNTIME)
 
 void ClassFinalizer::VerifyImplicitFieldOffsets() {
 #ifdef DEBUG

@@ -34,7 +34,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
 
     var arguments = node.arguments;
     if (arguments != null) {
-      if (!arguments.arguments.every(_isSerializableExpression)) {
+      if (!arguments.arguments.every((argument) {
+        return _isSerializableExpression(argument.argumentExpression);
+      })) {
         arguments = null;
       }
     }
@@ -183,27 +185,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _writeByte(Tag.DefaultFormalParameter);
-
-    _writeByte(
-      AstBinaryFlags.encode(
-        hasInitializer: node.defaultValue != null,
-        isPositional: node.isPositional,
-        isRequired: node.isRequired,
-      ),
-    );
-
-    _writeNode(node.parameter);
-
-    var defaultValue = node.defaultValue;
-    if (!_isSerializableExpression(defaultValue)) {
-      defaultValue = null;
-    }
-    _writeOptionalNode(defaultValue);
-  }
-
-  @override
   void visitDotShorthandConstructorInvocation(
     covariant DotShorthandConstructorInvocationImpl node,
   ) {
@@ -272,15 +253,11 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
     _writeByte(Tag.FieldFormalParameter);
 
-    _withTypeParameters(node.typeParameters, () {
-      _writeOptionalNode(node.typeParameters);
+    _withTypeParameters(node.functionTypedSuffix?.typeParameters, () {
+      _writeOptionalNode(node.functionTypedSuffix?.typeParameters);
       _writeOptionalNode(node.type);
-      _writeOptionalNode(node.parameters);
-      _storeNormalFormalParameter(
-        node,
-        node.keyword,
-        hasQuestion: node.question != null,
-      );
+      _writeOptionalNode(node.functionTypedSuffix?.formalParameters);
+      _storeRegularFormalParameter(node, node.constFinalOrVarKeyword);
     });
   }
 
@@ -335,20 +312,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeOptionalNode(node.typeArguments);
     _sink.writeOptionalTypeList(node.typeArgumentTypes);
     _storeExpression(node);
-  }
-
-  @override
-  void visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
-  ) {
-    _writeByte(Tag.FunctionTypedFormalParameter);
-
-    _withTypeParameters(node.typeParameters, () {
-      _writeOptionalNode(node.typeParameters);
-      _writeOptionalNode(node.returnType);
-      _writeNode(node.parameters);
-      _storeNormalFormalParameter(node, null);
-    });
   }
 
   @override
@@ -542,13 +505,12 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
-    _writeByte(Tag.NamedExpression);
+  void visitNamedArgument(NamedArgument node) {
+    _writeByte(Tag.NamedArgument);
 
-    var nameNode = node.name.label;
-    _writeStringReference(nameNode.name);
+    _writeStringReference(node.name.lexeme);
 
-    _writeNode(node.expression);
+    _writeNode(node.argumentExpression);
   }
 
   @override
@@ -674,6 +636,13 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRecordLiteralNamedField(RecordLiteralNamedField node) {
+    _writeByte(Tag.RecordLiteralNamedField);
+    _writeStringReference(node.name.lexeme);
+    _writeNode(node.fieldExpression);
+  }
+
+  @override
   void visitRecordTypeAnnotation(RecordTypeAnnotation node) {
     _writeByte(Tag.RecordTypeAnnotation);
 
@@ -728,6 +697,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   }
 
   @override
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
+    _writeByte(Tag.RegularFormalParameter);
+
+    _withTypeParameters(node.functionTypedSuffix?.typeParameters, () {
+      _writeOptionalNode(node.functionTypedSuffix?.typeParameters);
+      _writeOptionalNode(node.type);
+      _writeOptionalNode(node.functionTypedSuffix?.formalParameters);
+      _storeRegularFormalParameter(node, node.constFinalOrVarKeyword);
+    });
+  }
+
+  @override
   void visitSetOrMapLiteral(SetOrMapLiteral node) {
     _writeByte(Tag.SetOrMapLiteral);
 
@@ -741,14 +722,6 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeNodeList(node.elements);
 
     _storeExpression(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
-    _writeByte(Tag.SimpleFormalParameter);
-
-    _writeOptionalNode(node.type);
-    _storeNormalFormalParameter(node, node.keyword);
   }
 
   @override
@@ -803,6 +776,18 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
   void visitSuperExpression(SuperExpression node) {
     _writeByte(Tag.SuperExpression);
     _storeExpression(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
+    _writeByte(Tag.SuperFormalParameter);
+
+    _withTypeParameters(node.functionTypedSuffix?.typeParameters, () {
+      _writeOptionalNode(node.functionTypedSuffix?.typeParameters);
+      _writeOptionalNode(node.type);
+      _writeOptionalNode(node.functionTypedSuffix?.formalParameters);
+      _storeRegularFormalParameter(node, node.constFinalOrVarKeyword);
+    });
   }
 
   @override
@@ -912,19 +897,17 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _storeExpression(node);
   }
 
-  void _storeNormalFormalParameter(
-    NormalFormalParameterImpl node,
-    Token? keyword, {
-    bool hasQuestion = false,
-  }) {
+  void _storeRegularFormalParameter(FormalParameterImpl node, Token? keyword) {
     _writeByte(
-      AstBinaryFlags.encode(
+      AstBinaryFlags.encodeFormalParameter(
+        hasInitializer: node.defaultClause != null,
         hasName: node.name != null,
-        hasQuestion: hasQuestion,
+        hasQuestion: node.functionTypedSuffix?.question != null,
         isConst: keyword?.type == Keyword.CONST,
         isCovariant: node.covariantKeyword != null,
         isFinal: keyword?.type == Keyword.FINAL,
-        isRequired: node.requiredKeyword != null,
+        isPositional: node.isPositional,
+        isRequired: node.isRequired,
         isVar: keyword?.type == Keyword.VAR,
       ),
     );
@@ -932,6 +915,9 @@ class AstBinaryWriter extends ThrowingAstVisitor<void> {
     _writeNodeList(node.metadata);
     if (node.name != null) {
       _writeDeclarationName(node.name!);
+    }
+    if (node.defaultClause case var defaultClause?) {
+      _writeNode(defaultClause.value);
     }
     _storeFormalParameter(node);
   }

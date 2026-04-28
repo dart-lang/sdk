@@ -39,6 +39,18 @@ flutter:
 ''');
   }
 
+  test_assetNotString_error_null() {
+    assertErrors(
+      '''
+name: sample
+flutter:
+  assets:
+    -
+''',
+      [diag.assetNotStringOrMap],
+    );
+  }
+
   test_assetNotString_noError() {
     newFile('/sample/assets/my_icon.png', '');
     assertNoErrors('''

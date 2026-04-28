@@ -324,8 +324,7 @@ void f(bool b) {
   print(b);
 }
 
-bool test() {
-}
+bool test() {}
 ''');
   }
 
@@ -336,8 +335,7 @@ bool Function() f = g();
     await assertHasFix('''
 bool Function() f = g();
 
-bool Function() g() {
-}
+bool Function() g() {}
 ''');
   }
 
@@ -352,8 +350,7 @@ Future<void> f() async {
   if (await myUndefinedFunction()) {}
 }
 
-Future<bool> myUndefinedFunction() async {
-}
+Future<bool> myUndefinedFunction() async {}
 ''');
   }
 
@@ -368,8 +365,7 @@ Future<void> f() async {
   await myUndefinedFunction();
 }
 
-Future<void> myUndefinedFunction() async {
-}
+Future<void> myUndefinedFunction() async {}
 ''');
   }
 
@@ -388,8 +384,7 @@ Future<void> f() async {
   print(x);
 }
 
-Future<int> myUndefinedFunction() async {
-}
+Future<int> myUndefinedFunction() async {}
 ''');
   }
 
@@ -406,8 +401,7 @@ Future<void> f() async {
   print(x);
 }
 
-Future<Object?> myUndefinedFunction() async {
-}
+Future<Object?> myUndefinedFunction() async {}
 ''');
   }
 
@@ -426,8 +420,7 @@ Future<void> f() async {
   print(x);
 }
 
-Future<String> myUndefinedFunction() async {
-}
+Future<String> myUndefinedFunction() async {}
 ''');
   }
 
@@ -442,8 +435,7 @@ void f() {
   test(throw 42);
 }
 
-void test(Object? object) {
-}
+void test(Object? object) {}
 ''');
   }
 
@@ -466,8 +458,7 @@ foo(C c1, C c2) {
   bar(c1.x, c2.x);
 }
 
-void bar(int x, int x2) {
-}
+void bar(int x, int x2) {}
 ''');
   }
 
@@ -484,8 +475,7 @@ void f() {
   test(v);
 }
 
-void test(v) {
-}
+void test(v) {}
 ''');
   }
 
@@ -502,8 +492,7 @@ void f() {
   print(v);
 }
 
-test() {
-}
+test() {}
 ''');
   }
 
@@ -514,8 +503,7 @@ int f1() => f2();
     await assertHasFix('''
 int f1() => f2();
 
-int f2() {
-}
+int f2() {}
 ''');
   }
 
@@ -532,8 +520,7 @@ void f() {
     print(v);
 }
 
-int myUndefinedFunction(int i, double d, String s) {
-}
+int myUndefinedFunction(int i, double d, String s) {}
 ''');
   }
 
@@ -554,8 +541,7 @@ class A {
   }
 }
 
-int myUndefinedFunction(int i, double d, String s) {
-}
+int myUndefinedFunction(int i, double d, String s) {}
 ''');
   }
 
@@ -584,8 +570,7 @@ void f1(int i) {
   f2(f3() ? (v) => v : (v) => v);
 }
 
-bool f3() {
-}
+bool f3() {}
 
 void f2(int Function(int) f) {}
 ''');
@@ -605,8 +590,7 @@ void f1(int i) {
   f2(i == 0 ? i : f3());
 }
 
-int f3() {
-}
+int f3() {}
 
 void f2(int p) {}
 ''');
@@ -626,8 +610,7 @@ void f1(int i) {
   f2(i == 0 ? f3() : i);
 }
 
-int f3() {
-}
+int f3() {}
 
 void f2(int p) {}
 ''');
@@ -661,8 +644,7 @@ class A {
   }
 }
 
-void process(List<int> items) {
-}
+void process(List<int> items) {}
 ''');
     assertLinkedGroup(
       change.linkedEditGroups[2],
@@ -692,8 +674,7 @@ class A<T> {
   }
 }
 
-void process(Map<int, Object?> items) {
-}
+void process(Map<int, Object?> items) {}
 ''');
   }
 
@@ -715,8 +696,7 @@ void f() {
   test(getFuture());
 }
 
-void test(Future<dynamic> future) {
-}
+void test(Future<dynamic> future) {}
 ''');
   }
 
@@ -731,8 +711,7 @@ void f() {
   test(null);
 }
 
-void test(Object? object) {
-}
+void test(Object? object) {}
 ''');
   }
 
@@ -755,8 +734,7 @@ class A {
   }
 }
 
-void bar(int i) {
-}
+void bar(int i) {}
 ''');
   }
 
@@ -767,8 +745,7 @@ void bar(int i) {
     await assertHasFix('''
 (bool,) f = (g(),);
 
-bool g() {
-}
+bool g() {}
 ''');
   }
 
@@ -819,8 +796,7 @@ void f(List<int> list) {
   list.where((i) => myMethod(i));
 }
 
-bool myMethod(int i) {
-}
+bool myMethod(int i) {}
 ''');
   }
 
@@ -839,8 +815,7 @@ void f(List<int> list) {
   });
 }
 
-bool myMethod(int i) {
-}
+bool myMethod(int i) {}
 ''');
   }
 
@@ -859,8 +834,7 @@ void f() {
   print(v);
 }
 
-int myUndefinedFunction() {
-}
+int myUndefinedFunction() {}
 ''');
   }
 
@@ -879,8 +853,7 @@ void f() {
   print(v);
 }
 
-num myUndefinedFunction() {
-}
+num myUndefinedFunction() {}
 ''');
   }
 
@@ -895,8 +868,7 @@ void f() {
   0 + myUndefinedFunction();
 }
 
-num myUndefinedFunction() {
-}
+num myUndefinedFunction() {}
 ''');
   }
 
@@ -913,8 +885,7 @@ void f() {
   print(v);
 }
 
-int myUndefinedFunction() {
-}
+int myUndefinedFunction() {}
 ''');
   }
 
@@ -931,8 +902,7 @@ void f() {
   foo( myUndefinedFunction() );
 }
 
-int myUndefinedFunction() {
-}
+int myUndefinedFunction() {}
 ''');
   }
 
@@ -947,8 +917,7 @@ int f() {
   return myUndefinedFunction();
 }
 
-int myUndefinedFunction() {
-}
+int myUndefinedFunction() {}
 ''');
   }
 
@@ -963,8 +932,7 @@ void f() {
   myUndefinedFunction();
 }
 
-void myUndefinedFunction() {
-}
+void myUndefinedFunction() {}
 ''');
   }
 }

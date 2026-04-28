@@ -594,6 +594,15 @@ class C {}
 ''');
   }
 
+  Future<void> test_constClass_withPrimaryConstructor() async {
+    await resolveTestCode('''
+const class C(int x) {}
+''');
+    await assertHasFix('''
+class C(int x) {}
+''');
+  }
+
   Future<void> test_constFactoryConstructor() async {
     await resolveTestCode('''
 class C {
@@ -904,5 +913,31 @@ final Object x = A(), y = const [0];
         return e.diagnosticCode == diag.constWithNonConst;
       },
     );
+  }
+
+  Future<void> test_primaryConstructor_const_blockBody() async {
+    await resolveTestCode('''
+class const C() {
+  this {}
+}
+''');
+    await assertHasFix('''
+class C() {
+  this {}
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_const_nonFinal() async {
+    await resolveTestCode('''
+class const C(int x) {
+  int y = 0;
+}
+''');
+    await assertHasFix('''
+class C(int x) {
+  int y = 0;
+}
+''');
   }
 }

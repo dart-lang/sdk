@@ -722,6 +722,9 @@ class PluginServer {
         result = protocol.PluginDetailsResult(details);
 
       case protocol.PLUGIN_REQUEST_SHUTDOWN:
+        await Future.wait(
+          _plugins.map((p) => p.shutDown()).whereType<Future<Object?>>(),
+        );
         _channel.sendResponse(
           protocol.PluginShutdownResult().toResponse(request.id, requestTime),
         );

@@ -98,8 +98,8 @@ var topLevelExtensionFunctionTypeTearOff = nullableClass.call;
 
 var topLevelExtensionFunctionGetter = nullableClass.extensionFunctionGetter();
 
-var topLevelExtensionFunctionTypeGetter =
-    nullableClass.extensionFunctionTypeGetter();
+var topLevelExtensionFunctionTypeGetter = nullableClass
+    .extensionFunctionTypeGetter();
 
 test() {}
 

@@ -8,8 +8,10 @@ class AconBound<X extends FconBound<Y>, Y extends num> {}
 
 class AconCyclicBound<X extends FconCyclicBound<Y>, Y extends A<Y>> {}
 
-class AconCyclicCoBound<X extends FconCyclicCoBound<Y>,
-    Y extends Function(Y)> {}
+class AconCyclicCoBound<
+  X extends FconCyclicCoBound<Y>,
+  Y extends Function(Y)
+> {}
 
 class Acov<X extends Fcov<Y>, Y> {}
 
@@ -17,8 +19,10 @@ class AcovBound<X extends FcovBound<Y>, Y extends num> {}
 
 class AcovCyclicBound<X extends FcovCyclicBound<Y>, Y extends A<Y>> {}
 
-class AcovCyclicCoBound<X extends FcovCyclicCoBound<Y>,
-    Y extends Function(Y)> {}
+class AcovCyclicCoBound<
+  X extends FcovCyclicCoBound<Y>,
+  Y extends Function(Y)
+> {}
 
 class Ainv<X extends Finv<Y>, Y> {}
 
@@ -26,8 +30,10 @@ class AinvBound<X extends FinvBound<Y>, Y extends num> {}
 
 class AinvCyclicBound<X extends FinvCyclicBound<Y>, Y extends A<Y>> {}
 
-class AinvCyclicCoBound<X extends FinvCyclicCoBound<Y>,
-    Y extends Function(Y)> {}
+class AinvCyclicCoBound<
+  X extends FinvCyclicCoBound<Y>,
+  Y extends Function(Y)
+> {}
 
 class B<X> {}
 

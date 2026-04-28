@@ -46,66 +46,70 @@ void runTestCaseAot(
 
   final nopErrorDetector = ErrorDetector();
 
-  var tempDir = Directory.systemTemp.createTempSync().path;
-  var recordedUsagesFile = Uri(
-    scheme: 'file',
-    path: path.join(tempDir, 'recorded_usages.json'),
-  );
-  runGlobalTransformations(
-    target,
-    component,
-    nopErrorDetector,
-    KernelCompilationArguments(
-      useGlobalTypeFlowAnalysis: true,
-      enableAsserts: false,
-      useProtobufTreeShakerV2: true,
-      treeShakeWriteOnlyFields: true,
-      recordedUsages: recordedUsagesFile,
-      source: sourcePackageUri,
-    ),
-  );
+  var tempDir = Directory.systemTemp.createTempSync();
+  try {
+    var recordedUsagesFile = Uri(
+      scheme: 'file',
+      path: path.join(tempDir.path, 'recorded_usages.json'),
+    );
+    runGlobalTransformations(
+      target,
+      component,
+      nopErrorDetector,
+      KernelCompilationArguments(
+        useGlobalTypeFlowAnalysis: true,
+        enableAsserts: false,
+        useProtobufTreeShakerV2: true,
+        treeShakeWriteOnlyFields: true,
+        recordedUsages: recordedUsagesFile,
+        source: sourcePackageUri,
+      ),
+    );
 
-  verifyComponent(
-    target,
-    VerificationStage.afterGlobalTransformations,
-    component,
-  );
+    verifyComponent(
+      target,
+      VerificationStage.afterGlobalTransformations,
+      component,
+    );
 
-  final actual = kernelLibraryToString(
-    component.mainMethod!.enclosingLibrary,
-  ).replaceAll(_pkgVmDir.toString(), 'org-dartlang-test:///');
+    final actual = kernelLibraryToString(
+      component.mainMethod!.enclosingLibrary,
+    ).replaceAll(_pkgVmDir.toString(), 'org-dartlang-test:///');
 
-  compareResultWithExpectationsFile(
-    sourceFileUri,
-    actual,
-    expectFilePostfix: '.aot',
-  );
-
-  final actualSemantic = Recordings.fromJson(
-    jsonDecode(File.fromUri(recordedUsagesFile).readAsStringSync()),
-  );
-  final goldenFile = File('${sourceFileUri.toFilePath()}.json.expect');
-  final update = bool.fromEnvironment('updateExpectations');
-
-  bool semanticEquals = false;
-  if (goldenFile.existsSync()) {
-    try {
-      final goldenContents = await goldenFile.readAsString();
-      final golden = Recordings.fromJson(jsonDecode(goldenContents));
-      semanticEquals = actualSemantic.semanticEquals(golden);
-    } on FormatException {
-      if (!update) {
-        rethrow;
-      }
-    }
-  }
-
-  if (!semanticEquals || update) {
     compareResultWithExpectationsFile(
       sourceFileUri,
-      File.fromUri(recordedUsagesFile).readAsStringSync(),
-      expectFilePostfix: '.json',
+      actual,
+      expectFilePostfix: '.aot',
     );
+
+    final actualSemantic = Recordings.fromJson(
+      jsonDecode(File.fromUri(recordedUsagesFile).readAsStringSync()),
+    );
+    final goldenFile = File('${sourceFileUri.toFilePath()}.json.expect');
+    final update = bool.fromEnvironment('updateExpectations');
+
+    bool semanticEquals = false;
+    if (goldenFile.existsSync()) {
+      try {
+        final goldenContents = await goldenFile.readAsString();
+        final golden = Recordings.fromJson(jsonDecode(goldenContents));
+        semanticEquals = actualSemantic.semanticEquals(golden);
+      } on FormatException {
+        if (!update) {
+          rethrow;
+        }
+      }
+    }
+
+    if (!semanticEquals || update) {
+      compareResultWithExpectationsFile(
+        sourceFileUri,
+        File.fromUri(recordedUsagesFile).readAsStringSync(),
+        expectFilePostfix: '.json',
+      );
+    }
+  } finally {
+    tempDir.deleteSync(recursive: true);
   }
 }
 

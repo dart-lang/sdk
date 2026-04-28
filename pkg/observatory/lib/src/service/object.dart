@@ -2065,12 +2065,12 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('_getRetainedSize', params);
   }
 
-  Future<ServiceObject> getRetainingPath(ServiceObject target, var limit) {
+  Future<ServiceObject> getRetainingPath(ServiceObject target, limit) {
     Map params = {'targetId': target.id, 'limit': limit.toString()};
     return invokeRpc('getRetainingPath', params);
   }
 
-  Future<ServiceObject> getInboundReferences(ServiceObject target, var limit) {
+  Future<ServiceObject> getInboundReferences(ServiceObject target, limit) {
     Map params = {'targetId': target.id, 'limit': limit.toString()};
     return invokeRpc('getInboundReferences', params);
   }
@@ -2080,7 +2080,7 @@ class Isolate extends ServiceObjectOwner implements M.Isolate {
     return invokeRpc('_getTypeArgumentsList', params);
   }
 
-  Future<ServiceObject> getInstances(Class cls, var limit) {
+  Future<ServiceObject> getInstances(Class cls, limit) {
     Map params = {'objectId': cls.id, 'limit': limit.toString()};
     return invokeRpc('getInstances', params);
   }

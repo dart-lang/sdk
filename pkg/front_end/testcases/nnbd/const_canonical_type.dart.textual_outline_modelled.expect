@@ -6,8 +6,8 @@ class A<X> {
 
 class Check {
   const Check(x, y)
-      : assert(identical(x, y)),
-        _ignored = identical(x, y) ? 42 : 1 ~/ 0;
+    : assert(identical(x, y)),
+      _ignored = identical(x, y) ? 42 : 1 ~/ 0;
   final _ignored;
 }
 

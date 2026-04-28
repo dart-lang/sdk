@@ -31,14 +31,14 @@ void main() {
   //                      ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //                            ^
-  // [web] The argument type 'Function' can't be assigned to the parameter type 'JSFunction'.
+  // [web] The argument type 'Function' can't be assigned to the parameter type 'JSFunction<Function>'.
 
   // [JSExportedDartFunction] != [Function]
   ((JSExportedDartFunction jsFun) {})(() {} as Function);
   //                                  ^^^^^^^^^^^^^^^^^
   // [analyzer] COMPILE_TIME_ERROR.ARGUMENT_TYPE_NOT_ASSIGNABLE
   //                                        ^
-  // [web] The argument type 'Function' can't be assigned to the parameter type 'JSExportedDartFunction'.
+  // [web] The argument type 'Function' can't be assigned to the parameter type 'JSExportedDartFunction<Function>'.
 
   // [JSBoxedDartObject] != [Object]
   ((JSBoxedDartObject jsObj) {})(DartObject());

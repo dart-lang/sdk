@@ -11,7 +11,7 @@ abstract class A extends core::Object {
 }
 class B<T extends core::Object? = dynamic> extends self::A {
   final field core::double foo;
-  constructor •({core::double foo = #C1}) → self::B<self::B::T%>
+  constructor •({initializing-formal core::double foo = #C1}) → self::B<self::B::T%>
     : self::B::foo = foo, super self::A::•()
     ;
 }

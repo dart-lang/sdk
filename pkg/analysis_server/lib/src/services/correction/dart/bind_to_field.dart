@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/source/source_range.dart';
@@ -36,8 +37,13 @@ class BindToField extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var parameter = node.thisOrAncestorOfType<FormalParameter>();
     if (parameter != null) {
-      // Don't propose an assist for super parameters and super parameters with
-      // a default value because they can't be bound to a field.
+      if (parameter.defaultClause case var defaultClause?) {
+        if (node.offset >= defaultClause.separator.offset) {
+          // Don't propose the assist if the selection is inside the default
+          // value.
+          return;
+        }
+      }
       await tryReplacingParameter(file, builder, parameter, libraryElement2);
     }
   }
@@ -49,26 +55,57 @@ class BindToField extends ResolvedCorrectionProducer {
     LibraryElement libraryElement2,
   ) async {
     if (parameter is SuperFormalParameter) {
-      return;
-    }
-    if (parameter is DefaultFormalParameter &&
-        parameter.parameter is SuperFormalParameter) {
+      // Don't propose the assist for super parameters because they can't be
+      // bound to a field.
       return;
     }
     if (parameter is FieldFormalParameter) {
+      // Don't propose the assist if the parameter is already a field formal
+      // parameter.
       return;
     }
     await _replaceParameterWithThis(file, builder, parameter, libraryElement2);
   }
 
+  static (
+    List<ConstructorInitializer> initializers,
+    Token? factoryKeyword,
+    Token? constKeyword,
+    CompilationUnitMember? container,
+  )?
+  _constructorParts(FormalParameter parameter) {
+    var constructor = parameter.thisOrAncestorOfType<ConstructorDeclaration>();
+    if (constructor != null) {
+      var container = constructor.thisOrAncestorOfType<CompilationUnitMember>();
+      return (
+        constructor.initializers,
+        constructor.factoryKeyword,
+        constructor.constKeyword,
+        container,
+      );
+    }
+    var primaryConstructor = parameter
+        .thisOrAncestorOfType<PrimaryConstructorDeclaration>();
+    if (primaryConstructor != null) {
+      var body = primaryConstructor.body;
+      var container = primaryConstructor
+          .thisOrAncestorOfType<CompilationUnitMember>();
+      return (
+        body?.initializers ?? [],
+        null as Token?,
+        primaryConstructor.constKeyword,
+        container,
+      );
+    }
+    return null;
+  }
+
   static SourceRange _replaceable(FormalParameter parameter) {
     return switch (parameter) {
-      SimpleFormalParameter() => range.startEnd(
-        parameter.type ?? parameter.keyword ?? parameter.name!,
-        parameter,
+      RegularFormalParameter() => range.startEnd(
+        parameter.type ?? parameter.constFinalOrVarKeyword ?? parameter.name!,
+        parameter.functionTypedSuffix?.endToken ?? parameter.name!,
       ),
-      DefaultFormalParameter() => _replaceable(parameter.parameter),
-      FunctionTypedFormalParameter() => range.node(parameter),
       // Should not happen, as these are excluded, but better to not crash.
       FieldFormalParameter() || SuperFormalParameter() => range.node(parameter),
     };
@@ -80,22 +117,22 @@ class BindToField extends ResolvedCorrectionProducer {
     FormalParameter parameter,
     LibraryElement libraryElement2,
   ) async {
-    var constructor = parameter.thisOrAncestorOfType<ConstructorDeclaration>();
-    if (constructor == null) {
-      // Not a constructor.
+    var constructorParts = _constructorParts(parameter);
+    if (constructorParts == null) {
       return;
     }
-    if (constructor.childEntities.any(
+    var (initializers, factoryKeyword, constKeyword, container) =
+        constructorParts;
+    if (initializers.any(
       (element) => element is RedirectingConstructorInvocation,
     )) {
       // A redirecting constructor.
       return;
     }
-    if (constructor.factoryKeyword != null) {
+    if (factoryKeyword != null) {
       // A factory constructor.
       return;
     }
-    var container = constructor.thisOrAncestorOfType<CompilationUnitMember>();
     if (container == null ||
         (container is! ClassDeclaration && container is! EnumDeclaration)) {
       // Not a class or enum.
@@ -133,6 +170,10 @@ class BindToField extends ResolvedCorrectionProducer {
           type,
           libraryElement2,
         );
+        if (fixType == _FixType.addVar) {
+          builder.addSimpleInsertion(parameter.offset, 'var ');
+          return;
+        }
         if (fixType != _FixType.noop) {
           builder.addSimpleReplacement(
             _replaceable(parameter),
@@ -141,7 +182,7 @@ class BindToField extends ResolvedCorrectionProducer {
         }
         if (fixType == _FixType.replaceWithThisAndNewField) {
           builder.insertField(container, (builder) {
-            var isFinal = constructor.constKeyword != null || parameter.isFinal;
+            var isFinal = constKeyword != null || parameter.isFinal;
             builder.writeFieldDeclaration(
               name.lexeme,
               isFinal: isFinal,
@@ -182,6 +223,11 @@ class BindToField extends ResolvedCorrectionProducer {
           return _FixType.replaceWithThis;
         }
       } else {
+        var declaration = parameter
+            .thisOrAncestorOfType<PrimaryConstructorDeclaration>();
+        if (declaration != null) {
+          return _FixType.addVar;
+        }
         return _FixType.replaceWithThisAndNewField;
       }
     }
@@ -189,4 +235,4 @@ class BindToField extends ResolvedCorrectionProducer {
   }
 }
 
-enum _FixType { replaceWithThis, replaceWithThisAndNewField, noop }
+enum _FixType { replaceWithThis, replaceWithThisAndNewField, addVar, noop }

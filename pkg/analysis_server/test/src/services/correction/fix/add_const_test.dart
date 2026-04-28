@@ -160,12 +160,14 @@ class AddConst_NonConstGenerativeEnumConstructorTest extends FixProcessorTest {
 
   Future<void> test_named() async {
     await resolveTestCode('''
+// @dart = 3.10
 enum E {
   v.named();
   E.named();
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 enum E {
   v.named();
   const E.named();
@@ -175,12 +177,14 @@ enum E {
 
   Future<void> test_unnamed() async {
     await resolveTestCode('''
+// @dart = 3.10
 enum E {
   v;
   E();
 }
 ''');
     await assertHasFix('''
+// @dart = 3.10
 enum E {
   v;
   const E();

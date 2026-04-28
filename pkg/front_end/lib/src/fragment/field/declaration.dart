@@ -34,7 +34,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/type_parameter_factory.dart';
-import '../../type_inference/inference_results.dart';
+import '../../type_inference/context_allocation_strategy.dart';
 import '../../type_inference/type_inference_engine.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../util/helpers.dart';
@@ -67,7 +67,7 @@ abstract class FieldDeclaration {
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool isClassInstanceMember,
+    required bool forConstantConstructor,
   });
 
   int computeFieldDefaultTypes(ComputeDefaultTypeContext context);
@@ -285,7 +285,11 @@ class RegularFieldDeclaration
   InferenceDefaultType get inferenceDefaultType => InferenceDefaultType.Dynamic;
 
   @override
-  void buildBody(CoreTypes coreTypes, Expression? initializer) {
+  void buildBody(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  }) {
     assert(!hasBodyBeenBuilt, "Body has already been built for $this.");
     hasBodyBeenBuilt = true;
     if (!_fragment.modifiers.hasInitializer &&
@@ -301,7 +305,11 @@ class RegularFieldDeclaration
         fileUri,
       );
     }
-    _encoding.createBodies(coreTypes, initializer);
+    _encoding.createBodies(
+      coreTypes,
+      initializer,
+      scopeProviderInfo: scopeProviderInfo,
+    );
   }
 
   @override
@@ -334,7 +342,7 @@ class RegularFieldDeclaration
     required DeclarationBuilder? declarationBuilder,
     required List<Annotatable> annotatables,
     required Uri annotatablesFileUri,
-    required bool isClassInstanceMember,
+    required bool forConstantConstructor,
   }) {
     BodyBuilderContext bodyBuilderContext = createBodyBuilderContext();
     for (Annotatable annotatable in annotatables) {
@@ -352,17 +360,21 @@ class RegularFieldDeclaration
     // For modular compilation we need to include initializers of all const
     // fields and all non-static final fields in classes with const constructors
     // into the outline.
-    Token? token = _fragment.takeConstInitializerToken();
+    Token? token = _fragment.takeInitializerTokenForOutline();
     if (!hasBodyBeenBuilt && token != null) {
-      if ((_fragment.modifiers.isConst ||
-          (isFinal &&
-              isClassInstanceMember &&
-              (declarationBuilder as SourceClassBuilder)
-                  .declaresConstConstructor))) {
+      if (_fragment.modifiers.isConst || forConstantConstructor) {
         if (hasInitializerBeenComputed) {
-          buildBody(classHierarchy.coreTypes, cachedFieldInitializer);
+          buildBody(
+            classHierarchy.coreTypes,
+            cachedFieldInitializer,
+            scopeProviderInfo: null,
+          );
         } else {
-          var (_, initializer) = _buildFieldInitializerFromToken(
+          var (
+            _,
+            initializer,
+            scopeProviderInfo,
+          ) = _buildFieldInitializerFromToken(
             classHierarchy: classHierarchy,
             libraryBuilder: libraryBuilder,
             bodyBuilderContext: bodyBuilderContext,
@@ -370,13 +382,17 @@ class RegularFieldDeclaration
             token: token,
             inferenceDefaultType: inferenceDefaultType,
           );
-          buildBody(classHierarchy.coreTypes, initializer);
+          buildBody(
+            classHierarchy.coreTypes,
+            initializer,
+            scopeProviderInfo: scopeProviderInfo,
+          );
         }
       }
     }
   }
 
-  (DartType, Expression) _buildFieldInitializerFromToken({
+  (DartType, Expression, ScopeProviderInfo?) _buildFieldInitializerFromToken({
     required ClassHierarchyBase classHierarchy,
     required SourceLibraryBuilder libraryBuilder,
     required BodyBuilderContext bodyBuilderContext,
@@ -385,7 +401,7 @@ class RegularFieldDeclaration
     required InferenceDefaultType inferenceDefaultType,
   }) {
     LookupScope scope = _fragment.enclosingScope;
-    ExpressionInferenceResult expressionInferenceResult = libraryBuilder.loader
+    InferredFieldInitializer inferredFieldInitializer = libraryBuilder.loader
         .createResolver()
         .buildFieldInitializer(
           libraryBuilder: libraryBuilder,
@@ -414,8 +430,9 @@ class RegularFieldDeclaration
       );
     }
     return (
-      expressionInferenceResult.inferredType,
-      expressionInferenceResult.expression,
+      inferredFieldInitializer.expressionInferenceResult.inferredType,
+      inferredFieldInitializer.expressionInferenceResult.expression,
+      inferredFieldInitializer.scopeProviderInfo,
     );
   }
 
@@ -587,7 +604,7 @@ class RegularFieldDeclaration
     }
 
     type.registerInferredTypeListener(this);
-    Token? token = _fragment.takeInitializerToken();
+    Token? token = _fragment.takeInitializerTokenForTopLevelInference();
     if (type is InferableTypeBuilder) {
       if (!_fragment.modifiers.hasInitializer && isStatic) {
         // A static field without type and initializer will always be inferred
@@ -629,6 +646,14 @@ class RegularFieldDeclaration
         nameOffset: nameOffset,
         nameLength: _fragment.name.length,
         isAssignable: hasSetter,
+        isClosureContextLoweringEnabled: _fragment
+            .builder
+            .libraryBuilder
+            .loader
+            .target
+            .backendTarget
+            .flags
+            .isClosureContextLoweringEnabled,
       );
     } else {
       // Coverage-ignore-block(suite): Not run.
@@ -645,7 +670,7 @@ class RegularFieldDeclaration
     _encoding.registerSuperCall();
   }
 
-  (DartType, Expression?) _computeInferredType(
+  (DartType, Expression?, ScopeProviderInfo?) _computeInferredType(
     ClassHierarchyBase classHierarchy,
     Token? token,
   ) {
@@ -659,7 +684,7 @@ class RegularFieldDeclaration
         inferenceDefaultType: InferenceDefaultType.Dynamic,
       );
     } else {
-      return (const DynamicType(), null);
+      return (const DynamicType(), null, null);
     }
   }
 
@@ -835,8 +860,13 @@ mixin FieldDeclarationMixin
       nameOffset,
       () {
         InferredType implicitFieldType = fieldType as InferredType;
-        var (DartType inferredType, Expression? initializer) = implicitFieldType
-            .computeType(hierarchy);
+        var (
+          DartType inferredType,
+          Expression? initializer,
+          ScopeProviderInfo? _,
+        ) = implicitFieldType.computeType(
+          hierarchy,
+        );
         if (fieldType is InferredType) {
           // `fieldType` may have changed if a circularity was detected when
           // [inferredType] was computed.
@@ -871,7 +901,11 @@ mixin FieldDeclarationMixin
 
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
-  void buildBody(CoreTypes coreTypes, Expression? initializer);
+  void buildBody(
+    CoreTypes coreTypes,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  });
 
   /// Caches the [initializer], computed for top level inference.
   ///
@@ -916,6 +950,7 @@ abstract class FieldFragmentDeclaration {
     required CoreTypes coreTypes,
     required Uri fileUri,
     Expression? initializer,
+    required ThisVariable? internalThisVariable,
   });
 
   BodyBuilderContext createBodyBuilderContext();
@@ -945,7 +980,11 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
 
   /// Builds the body of this field using [initializer] as the initializer
   /// expression.
-  void buildBody(CoreTypes coreType, Expression? initializer);
+  void buildBody(
+    CoreTypes coreType,
+    Expression? initializer, {
+    required ScopeProviderInfo? scopeProviderInfo,
+  });
 
   /// Caches the [initializer], computed for top level inference.
   ///
@@ -967,27 +1006,34 @@ mixin FieldFragmentDeclarationMixin implements FieldFragmentDeclaration {
     required CoreTypes coreTypes,
     required Uri fileUri,
     Expression? initializer,
+    required ThisVariable? internalThisVariable,
   }) {
     if (_fieldInitializerCache != null) {
       if (!hasBodyBeenBuilt) {
-        buildBody(coreTypes, _fieldInitializerCache);
+        buildBody(coreTypes, _fieldInitializerCache, scopeProviderInfo: null);
       }
     } else if (initializer != null) {
       if (!hasBodyBeenBuilt) {
-        initializer = typeInferrer
+        InferredFieldInitializer inferredFieldInitializer = typeInferrer
             .inferFieldInitializer(
               fileUri: fileUri,
               declaredType: fieldType,
               initializer: initializer,
               inferenceDefaultType: inferenceDefaultType,
-            )
-            .expression;
+              internalThisVariable: internalThisVariable,
+            );
+        initializer =
+            inferredFieldInitializer.expressionInferenceResult.expression;
         _hasInitializerBeenComputed = true;
-        buildBody(coreTypes, initializer);
+        buildBody(
+          coreTypes,
+          initializer,
+          scopeProviderInfo: inferredFieldInitializer.scopeProviderInfo,
+        );
       }
     } else if (!hasBodyBeenBuilt) {
       _hasInitializerBeenComputed = true;
-      buildBody(coreTypes, null);
+      buildBody(coreTypes, null, scopeProviderInfo: null);
     }
   }
 }

@@ -208,6 +208,7 @@ import 'rules/unnecessary_await_in_return.dart';
 import 'rules/unnecessary_brace_in_string_interps.dart';
 import 'rules/unnecessary_breaks.dart';
 import 'rules/unnecessary_const.dart';
+import 'rules/unnecessary_const_in_enum_constructor.dart';
 import 'rules/unnecessary_constructor_name.dart';
 import 'rules/unnecessary_final.dart';
 import 'rules/unnecessary_getters_setters.dart';
@@ -230,6 +231,7 @@ import 'rules/unnecessary_string_escapes.dart';
 import 'rules/unnecessary_string_interpolations.dart';
 import 'rules/unnecessary_this.dart';
 import 'rules/unnecessary_to_list_in_spreads.dart';
+import 'rules/unnecessary_type_name_in_constructor.dart';
 import 'rules/unnecessary_unawaited.dart';
 import 'rules/unnecessary_underscores.dart';
 import 'rules/unreachable_from_main.dart';
@@ -466,6 +468,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryBraceInStringInterps())
     ..registerLintRule(UnnecessaryBreaks())
     ..registerLintRule(UnnecessaryConst())
+    ..registerLintRule(UnnecessaryConstInEnumConstructor())
     ..registerLintRule(UnnecessaryConstructorName())
     ..registerLintRule(UnnecessaryFinal())
     ..registerLintRule(UnnecessaryGettersSetters())
@@ -488,6 +491,7 @@ void registerLintRules() {
     ..registerLintRule(UnnecessaryStringInterpolations())
     ..registerLintRule(UnnecessaryThis())
     ..registerLintRule(UnnecessaryToListInSpreads())
+    ..registerLintRule(UnnecessaryTypeNameInConstructor())
     ..registerLintRule(UnnecessaryUnawaited())
     ..registerLintRule(UnnecessaryUnderscores())
     ..registerLintRule(UnreachableFromMain())

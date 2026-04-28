@@ -1086,7 +1086,6 @@ class LegacyAnalysisServer extends AnalysisServer {
       // analyzed. Add it to driver to which it should have been added.
       contextManager.getDriverFor(file)?.addFile(file);
 
-      notifyDeclarationsTracker(file);
       notifyFlutterWidgetDescriptions(file);
 
       // TODO(scheglov): implement other cases

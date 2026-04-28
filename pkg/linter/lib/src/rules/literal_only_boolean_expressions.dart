@@ -19,8 +19,8 @@ const _desc = r'Boolean expression composed only with literals.';
 bool _onlyLiterals(Expression? rawExpression) {
   var expression = rawExpression?.unParenthesized;
   if (expression is Literal) {
-    return expression is! StringLiteral ||
-        expression.computeConstantValue() != null;
+    if (expression is! StringLiteral) return true;
+    return expression.computeConstantValue()?.value != null;
   }
   if (expression is PrefixExpression) {
     return _onlyLiterals(expression.operand);

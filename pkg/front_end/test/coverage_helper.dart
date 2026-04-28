@@ -35,8 +35,8 @@ Future<Coverage?> collectCoverage({
 
 Future<Coverage?> collectCoverageWithHelper({
   required VMServiceHelper helper,
-  required final bool getKernelServiceCoverageToo,
-  required final String displayName,
+  required bool getKernelServiceCoverageToo,
+  required String displayName,
   bool forceCompile = false,
 }) async {
   VM vm = await helper.serviceClient.getVM();

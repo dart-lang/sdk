@@ -1,0 +1,9 @@
+@pragma('external-effect')
+external void foo(Object? o);
+
+class A {
+  @pragma('external-effect')
+  external static void foo(Object? o);
+}
+
+void main() {}

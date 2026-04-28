@@ -1,12 +1,12 @@
 import 'dart:async';
 
 exhaustiveNonNullableFutureOr1(FutureOr<int>? o) => switch (o) {
-      FutureOr<int>() as FutureOr<int> => 0,
-    };
+  FutureOr<int>() as FutureOr<int> => 0,
+};
 
 exhaustiveNonNullableFutureOr2(FutureOr<int?> o) => switch (o) {
-      FutureOr<int>() as FutureOr<int> => 0,
-    };
+  FutureOr<int>() as FutureOr<int> => 0,
+};
 
 exhaustiveNonNullableFutureOrTypeVariable1<T extends Object>(FutureOr<T>? o) =>
     switch (o) {
@@ -19,16 +19,16 @@ exhaustiveNonNullableFutureOrTypeVariable2<T extends Object>(FutureOr<T?> o) =>
     };
 
 exhaustiveNonNullableSuperType(int? o) => switch (o) {
-      int() as num => 0,
-    };
+  int() as num => 0,
+};
 
 exhaustiveNonNullableType(int? o) => switch (o) {
-      int() as int => 0,
-    };
+  int() as int => 0,
+};
 
 exhaustiveNonNullableTypeVariable<T extends Object>(int? o) => switch (o) {
-      int() as T => 0,
-    };
+  int() as T => 0,
+};
 
 expect(expected, actual) {}
 

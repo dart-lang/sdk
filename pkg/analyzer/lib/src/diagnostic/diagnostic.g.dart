@@ -509,7 +509,7 @@ anonymousMethodWrongParameterType = DiagnosticWithArguments(
   name: 'anonymous_method_wrong_parameter_type',
   problemMessage:
       "The receiver type '{0}' must be assignable to the formal parameter type "
-      "'{1}' of an anonymous method.",
+      "'{1}' in an anonymous method.",
   correctionMessage:
       "Try removing the parameter type, or make it a supertype of the "
       "receiver type.",
@@ -942,6 +942,19 @@ augmentationOfDifferentDeclarationKind = DiagnosticWithArguments(
   withArguments: _withArgumentsAugmentationOfDifferentDeclarationKind,
   expectedTypes: [ExpectedType.string, ExpectedType.string],
 );
+
+/// No parameters.
+const DiagnosticWithoutArguments augmentationOfMixinApplicationClass =
+    DiagnosticWithoutArgumentsImpl(
+      name: 'augmentation_of_mixin_application_class',
+      problemMessage: "Mixin application classes can't be augmented.",
+      correctionMessage:
+          "Try removing the 'augment' keyword, or making the target a normal "
+          "class.",
+      type: DiagnosticType.COMPILE_TIME_ERROR,
+      uniqueName: 'augmentation_of_mixin_application_class',
+      expectedTypes: [],
+    );
 
 /// No parameters.
 const DiagnosticWithoutArguments augmentationTypeParameterBound =
@@ -3259,10 +3272,12 @@ deferredAfterPrefix = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments deferredImportOfExtension =
     DiagnosticWithoutArgumentsImpl(
       name: 'deferred_import_of_extension',
-      problemMessage: "Imports of deferred libraries must hide all extensions.",
+      problemMessage:
+          "Deferred library imports must hide all extension declarations.",
       correctionMessage:
           "Try adding either a show combinator listing the names you need to "
-          "reference or a hide combinator listing all of the extensions.",
+          "reference or a hide combinator listing all of the extension "
+          "declarations.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
       uniqueName: 'deferred_import_of_extension',
@@ -10615,6 +10630,24 @@ mixinClassDeclarationExtendsNotObject = DiagnosticWithArguments(
 );
 
 /// Parameters:
+/// String name: the name of the mixin class
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+mixinClassDeclarationWithClause = DiagnosticWithArguments(
+  name: 'mixin_class_declaration_with_clause',
+  problemMessage:
+      "The class '{0}' can't be declared a mixin because it has a 'with' clause.",
+  correctionMessage:
+      "Try removing the 'with' clause or removing the 'mixin' modifier from "
+      "the class.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'mixin_class_declaration_with_clause',
+  withArguments: _withArgumentsMixinClassDeclarationWithClause,
+  expectedTypes: [ExpectedType.string],
+);
+
+/// Parameters:
 /// String className: the name of the mixin class
 const DiagnosticWithArguments<
   LocatableDiagnostic Function({required String className})
@@ -10679,6 +10712,23 @@ const DiagnosticWithoutArguments mixinInstantiate =
       uniqueName: 'mixin_instantiate',
       expectedTypes: [],
     );
+
+/// Parameters:
+/// String name: the name of the mixin class
+const DiagnosticWithArguments<
+  LocatableDiagnostic Function({required String name})
+>
+mixinModifierMixinApplicationClassWithMultipleMixins = DiagnosticWithArguments(
+  name: 'mixin_modifier_mixin_application_class_with_multiple_mixins',
+  problemMessage:
+      "The mixin application class '{0}' can only have a single mixin.",
+  correctionMessage: "Try removing all but one mixin.",
+  type: DiagnosticType.COMPILE_TIME_ERROR,
+  uniqueName: 'mixin_modifier_mixin_application_class_with_multiple_mixins',
+  withArguments:
+      _withArgumentsMixinModifierMixinApplicationClassWithMultipleMixins,
+  expectedTypes: [ExpectedType.string],
+);
 
 /// Parameters:
 /// Type disallowedType: the name of the disallowed type
@@ -20144,6 +20194,12 @@ LocatableDiagnostic _withArgumentsMixinClassDeclarationExtendsNotObject({
   ]);
 }
 
+LocatableDiagnostic _withArgumentsMixinClassDeclarationWithClause({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(diag.mixinClassDeclarationWithClause, [name]);
+}
+
 LocatableDiagnostic
 _withArgumentsMixinClassDeclaresNonTrivialGenerativeConstructor({
   required String className,
@@ -20158,6 +20214,16 @@ LocatableDiagnostic _withArgumentsMixinInheritsFromNotObject({
   required String name,
 }) {
   return LocatableDiagnosticImpl(diag.mixinInheritsFromNotObject, [name]);
+}
+
+LocatableDiagnostic
+_withArgumentsMixinModifierMixinApplicationClassWithMultipleMixins({
+  required String name,
+}) {
+  return LocatableDiagnosticImpl(
+    diag.mixinModifierMixinApplicationClassWithMultipleMixins,
+    [name],
+  );
 }
 
 LocatableDiagnostic _withArgumentsMixinOfDisallowedClass({

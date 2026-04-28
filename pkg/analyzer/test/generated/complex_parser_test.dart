@@ -1785,16 +1785,13 @@ void f() {
 LabeledStatement
   labels
     Label
-      label: SimpleIdentifier
-        token: a
+      name: a
       colon: :
     Label
-      label: SimpleIdentifier
-        token: b
+      name: b
       colon: :
     Label
-      label: SimpleIdentifier
-        token: c
+      name: c
       colon: :
   statement: ReturnStatement
     returnKeyword: return

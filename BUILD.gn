@@ -444,6 +444,7 @@ if (is_fuchsia) {
       manifest = "runtime/bin/${binary}_test_component.cml"
       data_deps = [
         "runtime/bin:${binary}",
+        "runtime/bin:ffi_callback_stub_bin",
         "runtime/bin:ffi_test_dynamic_library",
         "runtime/bin:ffi_test_functions",
       ]
@@ -464,6 +465,13 @@ if (is_fuchsia) {
           },
         ]
       }
+      resources += [
+        {
+          path = get_label_info("runtime/bin:ffi_callback_stub_bin",
+                                "target_gen_dir") + "/ffi_callback_stub.bin"
+          dest = "lib/ffi_callback_stub.bin"
+        },
+      ]
       foreach(file, resource_files) {
         resources += [
           {

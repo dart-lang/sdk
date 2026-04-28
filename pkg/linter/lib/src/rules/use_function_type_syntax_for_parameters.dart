@@ -33,7 +33,9 @@ class UseFunctionTypeSyntaxForParameters extends AnalysisRule {
     RuleContext context,
   ) {
     var visitor = _Visitor(this);
-    registry.addFunctionTypedFormalParameter(this, visitor);
+    registry.addFieldFormalParameter(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
+    registry.addSuperFormalParameter(this, visitor);
   }
 }
 
@@ -43,7 +45,23 @@ class _Visitor extends SimpleAstVisitor<void> {
   _Visitor(this.rule);
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
-    rule.reportAtNode(node, arguments: [node.name.lexeme]);
+  void visitFieldFormalParameter(FieldFormalParameter node) {
+    _check(node);
+  }
+
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _check(node);
+  }
+
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    _check(node);
+  }
+
+  void _check(FormalParameter node) {
+    if (node.functionTypedSuffix != null) {
+      rule.reportAtNode(node, arguments: [node.name?.lexeme ?? '']);
+    }
   }
 }

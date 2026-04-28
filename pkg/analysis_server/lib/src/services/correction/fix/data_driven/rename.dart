@@ -90,18 +90,16 @@ class Rename extends Change<_Data> {
         return _Data(parent, parent.name?.token);
       }
       return _Data(node, node.name);
-    } else if (node is SimpleIdentifier) {
-      var parent = node.parent;
-      var grandParent = parent?.parent;
-      if (parent is Label && grandParent is NamedExpression) {
-        var invocation = grandParent.parent?.parent;
-        if (invocation is InstanceCreationExpression) {
-          invocation.constructorName.name;
-        } else if (invocation is MethodInvocation) {
-          return _Data(node, invocation.methodName.token);
-        }
-        return null;
+    } else if (node is NamedArgument) {
+      var target = node.parent?.parent;
+      if (target is MethodInvocation) {
+        return _Data(target.methodName, target.methodName.token);
+      } else if (target is InstanceCreationExpression) {
+        var constructorName = target.constructorName;
+        return _Data(constructorName, constructorName.name?.token);
       }
+      return null;
+    } else if (node is SimpleIdentifier) {
       return _Data(node, node.token);
     } else if (node is ConstructorName) {
       return _Data(node, node.name?.token);

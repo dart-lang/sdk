@@ -5,7 +5,7 @@ import "dart:core" as core;
 class A extends core::Object {
   field core::int field1;
   field core::num field2;
-  constructor •(core::int field1, core::num field2) → self::A
+  constructor •(initializing-formal core::int field1, initializing-formal core::num field2) → self::A
     ;
 }
 static method exhaustiveDirect(self::A a) → dynamic

@@ -818,7 +818,7 @@ class ArticleView extends View {
     }
   }
 
-  String getDataUriForImage(final img) {
+  String getDataUriForImage(img) {
     // TODO(hiltonc,jimhug) eval perf of this vs. reusing one canvas element
     final CanvasElement canvas = CanvasElement(
       height: img.height,

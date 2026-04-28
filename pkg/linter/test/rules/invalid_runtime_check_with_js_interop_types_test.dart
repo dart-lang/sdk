@@ -338,6 +338,23 @@ export 'dart:_js_annotations' show JS, staticInterop;
       _AsCast('JSArray<JSString>', 'JSArray<JSAny>', lint: false),
       _AsCast('JSArray<JSAny>', 'JSArray<JSString>', lint: false),
       _AsCast('JSArray<JSString>', 'JSArray<JSBoolean>', lint: false),
+      _AsCast('JSExportedDartFunction', 'JSFunction', lint: false),
+      _AsCast(
+        'JSExportedDartFunction<void Function()>',
+        'JSFunction<int Function()>',
+        lint: false,
+      ),
+      _AsCast(
+        'JSExportedDartFunction',
+        'JSExportedDartFunction',
+        lint: false,
+        unnecessary: true,
+      ),
+      _AsCast(
+        'JSExportedDartFunction<void Function()>',
+        'JSExportedDartFunction<int Function()>',
+        lint: false,
+      ),
     ]);
   }
 
@@ -432,6 +449,28 @@ export 'dart:_js_annotations' show JS, staticInterop;
       ),
       _IsCheck('JSArray<JSAny>', 'JSArray<JSString>', lint: false),
       _IsCheck('JSArray<JSString>', 'JSArray<JSBoolean>', lint: false),
+      _IsCheck(
+        'JSExportedDartFunction',
+        'JSFunction',
+        lint: false,
+        unnecessary: true,
+      ),
+      _IsCheck(
+        'JSExportedDartFunction<void Function()>',
+        'JSFunction<int Function()>',
+        lint: false,
+      ),
+      _IsCheck(
+        'JSExportedDartFunction',
+        'JSExportedDartFunction',
+        lint: false,
+        unnecessary: true,
+      ),
+      _IsCheck(
+        'JSExportedDartFunction<void Function()>',
+        'JSExportedDartFunction<int Function()>',
+        lint: false,
+      ),
     ]);
   }
 

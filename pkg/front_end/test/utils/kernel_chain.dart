@@ -6,8 +6,6 @@ import 'dart:async';
 import 'dart:io' show Directory, File, IOSink, Platform;
 import 'dart:typed_data';
 
-import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
-    show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
@@ -50,8 +48,8 @@ import 'package:testing/testing.dart'
         Step,
         TestDescription;
 
-import '../testing/suite.dart' show CompilationSetup, CompileMode;
 import '../test_utils.dart';
+import '../testing/suite.dart' show CompilationSetup, CompileMode;
 
 final Uri platformBinariesLocation = computePlatformBinariesLocation();
 
@@ -357,7 +355,6 @@ class ErrorCommentChecker
     Uint8List rawBytes = f.readAsBytesSync();
     Utf8BytesScanner scanner = new Utf8BytesScanner(
       rawBytes,
-      configuration: const ScannerConfiguration(enableTripleShift: true),
       includeComments: true,
       languageVersionChanged: (scanner, languageVersion) {
         // Nothing - but don't overwrite the previous settings.

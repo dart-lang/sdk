@@ -104,8 +104,6 @@ abstract class AstVisitor<R> {
 
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node);
 
-  R? visitDefaultFormalParameter(DefaultFormalParameter node);
-
   R? visitDoStatement(DoStatement node);
 
   R? visitDotShorthandConstructorInvocation(
@@ -162,6 +160,8 @@ abstract class AstVisitor<R> {
 
   R? visitForElement(ForElement node);
 
+  R? visitFormalParameterDefaultClause(FormalParameterDefaultClause node);
+
   R? visitFormalParameterList(FormalParameterList node);
 
   R? visitForPartsWithDeclarations(ForPartsWithDeclarations node);
@@ -184,7 +184,9 @@ abstract class AstVisitor<R> {
 
   R? visitFunctionTypeAlias(FunctionTypeAlias node);
 
-  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node);
+  R? visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  );
 
   R? visitGenericFunctionType(GenericFunctionType node);
 
@@ -222,6 +224,8 @@ abstract class AstVisitor<R> {
 
   R? visitLabeledStatement(LabeledStatement node);
 
+  R? visitLabelReference(LabelReference node);
+
   R? visitLibraryDirective(LibraryDirective node);
 
   R? visitListLiteral(ListLiteral node);
@@ -246,7 +250,7 @@ abstract class AstVisitor<R> {
 
   R? visitMixinOnClause(MixinOnClause node);
 
-  R? visitNamedExpression(NamedExpression node);
+  R? visitNamedArgument(NamedArgument node);
 
   R? visitNamedType(NamedType node);
 
@@ -302,6 +306,8 @@ abstract class AstVisitor<R> {
 
   R? visitRecordLiteral(RecordLiteral node);
 
+  R? visitRecordLiteralNamedField(RecordLiteralNamedField node);
+
   R? visitRecordPattern(RecordPattern node);
 
   R? visitRecordTypeAnnotation(RecordTypeAnnotation node);
@@ -318,6 +324,8 @@ abstract class AstVisitor<R> {
     RedirectingConstructorInvocation node,
   );
 
+  R? visitRegularFormalParameter(RegularFormalParameter node);
+
   R? visitRelationalPattern(RelationalPattern node);
 
   R? visitRestPatternElement(RestPatternElement node);
@@ -331,8 +339,6 @@ abstract class AstVisitor<R> {
   R? visitSetOrMapLiteral(SetOrMapLiteral node);
 
   R? visitShowCombinator(ShowCombinator node);
-
-  R? visitSimpleFormalParameter(SimpleFormalParameter node);
 
   R? visitSimpleIdentifier(SimpleIdentifier node);
 

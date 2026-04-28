@@ -24,18 +24,14 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     // Find "child: widget" under selection.
-    NamedExpression namedExp;
+    NamedArgument namedExp;
     {
       var node = this.node;
-      var parent = node.parent;
-      var parent2 = parent?.parent;
-      if (node is SimpleIdentifier &&
-          parent is Label &&
-          parent2 is NamedExpression &&
-          node.name == 'child' &&
-          node.element != null &&
-          parent2.expression.isWidgetExpression) {
-        namedExp = parent2;
+      if (node is NamedArgument &&
+          node.name.lexeme == 'child' &&
+          node.correspondingParameter != null &&
+          node.argumentExpression.isWidgetExpression) {
+        namedExp = node;
       } else {
         return;
       }
@@ -53,14 +49,14 @@ class FlutterConvertToChildren extends ResolvedCorrectionProducer {
   }
 
   void _convertFlutterChildToChildren(
-    NamedExpression namedExp,
+    NamedArgument namedExp,
     String Function(Expression) getNodeText,
     String Function(int) getLinePrefix,
     String Function(int, int) getText,
     FileEditBuilder builder,
   ) {
     var eol = builder.eol;
-    var childArg = namedExp.expression;
+    var childArg = namedExp.argumentExpression;
     var childLoc = namedExp.offset + 'child'.length;
     builder.addSimpleInsertion(childLoc, 'ren');
     var listLoc = childArg.offset;

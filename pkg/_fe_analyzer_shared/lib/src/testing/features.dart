@@ -30,12 +30,12 @@ class Features {
 
   /// Mark the feature [key] as existing. If [value] is provided, the feature
   /// [key] is set to have this value.
-  void add(String key, {var value = ''}) {
+  void add(String key, {value = ''}) {
     _features[key] = value.toString();
   }
 
   /// Add [value] as an element of the list values of feature [key].
-  void addElement(String key, [var value]) {
+  void addElement(String key, [value]) {
     List<String> list =
         _features.putIfAbsent(key, () => <String>[]) as List<String>;
     if (value != null) {

@@ -22,7 +22,7 @@ class AddMissingParameter extends MultiCorrectionProducer {
     var parent = node.parent;
     AstNode? invocation;
     Element? element;
-    if (parent is DefaultFormalParameter) {
+    if (parent is FormalParameterDefaultClause) {
       parent = parent.parent;
     }
     if (parent case FormalParameterList(
@@ -129,7 +129,7 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
         builder.addInsertion(offset, (builder) {
           builder.write(prefix);
           builder.writeParameterMatchingArgument(
-            argument,
+            argument.argumentExpression,
             numRequired,
             <String>{},
             isOptional: isOptional,
@@ -138,7 +138,7 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
         });
       });
     }
-    if (parent is DefaultFormalParameter) {
+    if (parent is FormalParameterDefaultClause) {
       parent = parent.parent;
     }
     if (parent case FormalParameterList(:var parameters)) {
@@ -150,15 +150,10 @@ abstract class _AddMissingParameter extends ResolvedCorrectionProducer {
       await builder.addDartFileEdit(_executableParameters.file, (builder) {
         SuperFormalParameter formalParameter;
         DartType? type;
-        if (parameter case DefaultFormalParameter(
-          :var defaultValue,
-          :SuperFormalParameter parameter,
-        )) {
+        if (parameter case SuperFormalParameter()) {
           formalParameter = parameter;
-          type = parameter.type?.type ?? defaultValue?.staticType;
-        } else if (parameter is SuperFormalParameter) {
-          formalParameter = parameter;
-          type = formalParameter.type?.type;
+          type =
+              parameter.type?.type ?? parameter.defaultClause?.value.staticType;
         } else {
           return;
         }

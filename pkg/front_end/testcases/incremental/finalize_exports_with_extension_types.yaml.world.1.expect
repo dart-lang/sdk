@@ -8,7 +8,7 @@ library from "org-dartlang-test:///bar.dart" as bar {
     constructor • = bar::Baz|constructor#;
     constructor tearoff • = bar::Baz|constructor#_#new#tearOff;
   }
-  static extension-type-member method Baz|constructor#(dart.core::String qux) → bar::Baz% /* erasure=dart.core::String, declared=! */ {
+  static extension-type-member method Baz|constructor#(initializing-formal dart.core::String qux) → bar::Baz% /* erasure=dart.core::String, declared=! */ {
     lowered final bar::Baz% /* erasure=dart.core::String, declared=! */ #this = qux;
     return #this;
   }

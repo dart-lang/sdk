@@ -86,6 +86,7 @@ class OptionsFileValidatorTest
     optionsProvider: optionsProvider,
     resourceProvider: resourceProvider,
     sourceFactory: SourceFactory([ResourceUriResolver(resourceProvider)]),
+    analysisOptionsCache: {},
   );
   final optionsProvider = AnalysisOptionsProvider(SourceFactoryImpl([]));
 
@@ -391,10 +392,17 @@ analyzer:
     );
   }
 
-  test_codeStyle_format_false() {
+  test_codeStyle_format_bool_false() {
     validate('''
 code-style:
   format: false
+''', []);
+  }
+
+  test_codeStyle_format_bool_true() {
+    validate('''
+code-style:
+  format: true
 ''', []);
   }
 
@@ -408,10 +416,31 @@ code-style:
     );
   }
 
-  test_codeStyle_format_true() {
+  test_codeStyle_format_string_false() {
     validate('''
 code-style:
-  format: true
+  format: "false"
+''', []);
+  }
+
+  test_codeStyle_format_string_true() {
+    validate('''
+code-style:
+  format: "true"
+''', []);
+  }
+
+  test_codeStyle_format_string_true_mixedCase() {
+    validate('''
+code-style:
+  format: "True"
+''', []);
+  }
+
+  test_codeStyle_format_string_true_upperCase() {
+    validate('''
+code-style:
+  format: "TRUE"
 ''', []);
   }
 
@@ -587,12 +616,60 @@ linter:
     );
   }
 
-  test_plugins_each_invalid_mapKey() {
+  test_plugins_diagnostics_invalid() {
+    validate(
+      '''
+plugins:
+  one:
+    diagnostics:
+      code: abc
+''',
+      [diag.unsupportedOptionWithLegalValues],
+    );
+  }
+
+  test_plugins_diagnostics_notAMap() {
+    validate(
+      '''
+plugins:
+  one:
+    diagnostics: 7
+''',
+      [diag.invalidSectionFormat],
+    );
+  }
+
+  test_plugins_diagnostics_supported_severity() {
     validate('''
 plugins:
   one:
-    ppath: foo/bar
+    diagnostics:
+      code1: ignore
+      code2: warning
+      code3: error
+      code4: info
 ''', []);
+  }
+
+  test_plugins_diagnostics_supported_trueOrFalse() {
+    validate('''
+plugins:
+  one:
+    diagnostics:
+      code1: true
+      code2: false
+''', []);
+  }
+
+  test_plugins_each_invalid_mapKey() {
+    validate(
+      '''
+plugins:
+  one:
+    ppath: foo/bar
+''',
+      [diag.unsupportedOptionWithLegalValues],
+    );
   }
 
   test_plugins_each_valid_mapKey() {
@@ -607,6 +684,52 @@ plugins:
     validate('''
 plugins:
   one: ^1.2.3
+''', []);
+  }
+
+  test_plugins_git_invalid_key() {
+    validate(
+      '''
+plugins:
+  one:
+    git:
+      url: https://github.com/dart-lang/linter.git
+      invalid: main
+''',
+      [diag.unsupportedOptionWithLegalValues],
+    );
+  }
+
+  test_plugins_git_invalid_value() {
+    validate(
+      '''
+plugins:
+  one:
+    git:
+      url: https://github.com/dart-lang/linter.git
+      ref: 7
+''',
+      [diag.invalidSectionFormat],
+    );
+  }
+
+  test_plugins_git_map() {
+    validate('''
+plugins:
+  one:
+    git:
+      url: https://github.com/dart-lang/linter.git
+      ref: main
+      path: pkg/linter
+      tag_pattern: 'v*'
+''', []);
+  }
+
+  test_plugins_git_scalar() {
+    validate('''
+plugins:
+  one:
+    git: https://github.com/dart-lang/linter.git
 ''', []);
   }
 

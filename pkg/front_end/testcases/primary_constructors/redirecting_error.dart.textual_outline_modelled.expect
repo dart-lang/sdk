@@ -1,0 +1,4 @@
+class C5(var int v) {
+  C5.foo(int v) : this(v);
+  factory C5(int v) = C5.foo;
+}

@@ -19,6 +19,7 @@ import 'package:native_compiler/back_end/stack_frame.dart';
 /// FP ->  [saved FP]
 ///        [Code]
 ///        [saved tagged ObjectPool]
+///        [suspend state (only for async/async*/sync* functions)]
 ///        [shadow space for optional parameters]
 ///        [spill slot 0]
 ///        ...
@@ -27,6 +28,9 @@ import 'package:native_compiler/back_end/stack_frame.dart';
 /// ```
 /// TODO: add catch block entry parameters area.
 final class Arm64StackFrame extends StackFrame {
+  /// Stack frame alignment.
+  static const int alignment = 2 * wordSize;
+
   /// Number of fixed frame slots; distance between the last parameter
   /// slot and the first spill slot in words.
   static const int numberOfFixedSlots = 4;
@@ -37,11 +41,15 @@ final class Arm64StackFrame extends StackFrame {
   /// Offset of the saved pool pointer relative to FP.
   static const int poolPointerOffsetFromFP = -2 * wordSize;
 
-  /// Offset of the first shadow parameter, relative to FP
-  static const int shadowParametersOffsetFromFP = -3 * wordSize;
+  /// Offset of the suspend state, relative to FP
+  static const int _suspendStateOffsetFromFP = -3 * wordSize;
 
-  /// Stack frame alignment.
-  static const int alignment = 2 * wordSize;
+  /// Number of stack slots used by suspend state.
+  late final int _suspendStateStackSlots = (function.isSuspendable ? 1 : 0);
+
+  /// Offset of the first shadow parameter, relative to FP
+  late final int _shadowParametersOffsetFromFP =
+      _suspendStateOffsetFromFP - _suspendStateStackSlots * wordSize;
 
   /// Number of stack slots reserved for shadow parameters.
   late final int _shadowParametersStackSlots =
@@ -52,7 +60,7 @@ final class Arm64StackFrame extends StackFrame {
       : 0;
 
   late final int _firstSpillSlotOffsetFromFP =
-      shadowParametersOffsetFromFP - _shadowParametersStackSlots * wordSize;
+      _shadowParametersOffsetFromFP - _shadowParametersStackSlots * wordSize;
 
   Arm64StackFrame(super.function);
 
@@ -63,9 +71,20 @@ final class Arm64StackFrame extends StackFrame {
   int spillSlotAlignmentInWords(RegisterClass registerClass) => 1;
 
   @override
-  int argumentsStackSlots(CallInstruction instr) {
+  int argumentsStackSlots(Instruction instr) {
     // TODO: pass arguments on registers
-    return instr.inputCount;
+    switch (instr) {
+      case CallInstruction():
+        return instr.inputCount;
+      case TypeLiteral():
+        return 4; // Result + 3 arguments for InstantiateType runtime call.
+      case TypeTest():
+        return 6; // Result + 5 arguments for Instanceof runtime call.
+      case Suspend(:var op) when op == .asyncYield || op == .asyncYieldStar:
+        return 2; // 2 arguments for _AsyncStarStreamController.add/addStream call.
+      default:
+        return 0;
+    }
   }
 
   @override
@@ -89,19 +108,28 @@ final class Arm64StackFrame extends StackFrame {
   }
 
   @override
+  int get suspendStateOffsetFromFP {
+    assert(function.isSuspendable);
+    return _suspendStateOffsetFromFP;
+  }
+
+  @override
   int shadowParameterOffsetFromFP(int paramIndex) {
     assert(
       function.hasOptionalPositionalParameters || function.hasNamedParameters,
     );
     assert(paramIndex >= argumentRegisters.length);
     assert(paramIndex < function.numberOfParameters);
-    return shadowParametersOffsetFromFP -
+    return _shadowParametersOffsetFromFP -
         (paramIndex - argumentRegisters.length) * wordSize;
   }
 
   @override
   int get frameSizeToAllocate => roundUp(
-    (_shadowParametersStackSlots + usedSpillSlots + maxArgumentsStackSlots) *
+    (_suspendStateStackSlots +
+            _shadowParametersStackSlots +
+            usedSpillSlots +
+            maxArgumentsStackSlots) *
         wordSize,
     alignment,
   );

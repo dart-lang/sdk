@@ -31,7 +31,7 @@ extension type Foo(core::String x) {
   constructor tearoff • = self::Foo|constructor#_#new#tearOff;
 }
 static const field core::int Foo|x1 = #C1;
-static extension-type-member method Foo|constructor#(core::String x) → self::Foo% /* erasure=core::String, declared=! */ {
+static extension-type-member method Foo|constructor#(initializing-formal core::String x) → self::Foo% /* erasure=core::String, declared=! */ {
   lowered final self::Foo% /* erasure=core::String, declared=! */ #this = x;
   return #this;
 }

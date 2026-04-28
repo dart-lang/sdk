@@ -539,8 +539,10 @@ class DoStatement extends Statement implements LoopStatement {
 
 class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   // May be empty, but not null.
-  final List<VariableInitializationBase> variableInitializations;
-  List<VariableDeclaration> get variables => variableInitializations.cast();
+  final List<VariableDeclaration> variables;
+
+  // TODO(61572): Remove this.
+  List<VariableDeclaration> get variableInitializations => variables;
 
   Expression? condition; // May be null.
   final List<Expression> updates; // May be empty, but not null.
@@ -551,13 +553,8 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   Scope? scope;
 
-  ForStatement(
-    this.variableInitializations,
-    this.condition,
-    this.updates,
-    this.body,
-  ) {
-    setParents(variableInitializations, this);
+  ForStatement(this.variables, this.condition, this.updates, this.body) {
+    setParents(variables, this);
     condition?.parent = this;
     setParents(updates, this);
     body.parent = this;
@@ -572,7 +569,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void visitChildren(Visitor v) {
-    visitList(variableInitializations, v);
+    visitList(variables, v);
     condition?.accept(v);
     visitList(updates, v);
     body.accept(v);
@@ -580,7 +577,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void transformChildren(Transformer v) {
-    v.transformList(variableInitializations, this);
+    v.transformList(variables, this);
     if (condition != null) {
       condition = v.transform(condition!);
       condition?.parent = this;
@@ -592,7 +589,7 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    v.transformVariableInitializationList(variableInitializations, this);
+    v.transformVariableInitializationList(variables, this);
     if (condition != null) {
       condition = v.transformOrRemoveExpression(condition!);
       condition?.parent = this;
@@ -610,12 +607,12 @@ class ForStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    for (int index = 0; index < variableInitializations.length; index++) {
+    for (int index = 0; index < variables.length; index++) {
       if (index > 0) {
         printer.write(', ');
       }
       printer.writeVariableInitialization(
-        variableInitializations[index],
+        variables[index],
         includeModifiersAndType: index == 0,
       );
     }
@@ -640,14 +637,8 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   List<int>? get fileOffsetsIfMultiple => [fileOffset, bodyOffset];
 
-  VariableDeclaration expressionVariable;
-
   // Has no initializer.
-  VariableDeclaration get variable => expressionVariable;
-
-  void set variable(VariableDeclaration value) {
-    expressionVariable = value;
-  }
+  VariableDeclaration variable;
 
   Expression iterable;
 
@@ -660,12 +651,12 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   Scope? scope;
 
   ForInStatement(
-    this.expressionVariable,
+    this.variable,
     this.iterable,
     this.body, {
     this.isAsync = false,
   }) {
-    expressionVariable.parent = this;
+    variable.parent = this;
     iterable.parent = this;
     body.parent = this;
   }
@@ -679,15 +670,15 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void visitChildren(Visitor v) {
-    expressionVariable.accept(v);
+    variable.accept(v);
     iterable.accept(v);
     body.accept(v);
   }
 
   @override
   void transformChildren(Transformer v) {
-    expressionVariable = v.transform(expressionVariable);
-    expressionVariable.parent = this;
+    variable = v.transform(variable);
+    variable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     body = v.transform(body);
@@ -696,8 +687,8 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
 
   @override
   void transformOrRemoveChildren(RemovingTransformer v) {
-    expressionVariable = v.transform(expressionVariable);
-    expressionVariable.parent = this;
+    variable = v.transform(variable);
+    variable.parent = this;
     iterable = v.transform(iterable);
     iterable.parent = this;
     body = v.transform(body);
@@ -804,7 +795,7 @@ class ForInStatement extends Statement implements LoopStatement, ScopeProvider {
   @override
   void toTextInternal(AstPrinter printer) {
     printer.write('for (');
-    printer.writeExpressionVariable(expressionVariable);
+    printer.writeExpressionVariable(variable);
 
     printer.write(' in ');
     printer.writeExpression(iterable);
@@ -1764,14 +1755,14 @@ class VariableStatement extends Statement implements LegacyVariableDeclaration {
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   static const int FlagFinal = 1 << 0; // Must match serialized bit positions.
@@ -2177,16 +2168,18 @@ abstract class VariableInitializationBase
   VariableDeclaration get asExpressionVariable;
 }
 
-class VariableInitialization extends Statement
-    implements VariableInitializationBase {
+class VariableInitialization extends Statement implements VariableDeclaration {
   @override
   VariableDeclaration variable;
 
   @override
   Expression? initializer;
 
+  /// Contexts of the variables captured by the late variable initializer.
+  ///
+  /// If [variable] isn't `late`, [capturedContexts] should be `null`.
   @override
-  List<VariableContext>? contexts;
+  List<VariableContext>? capturedContexts;
 
   VariableInitialization({
     required this.variable,
@@ -2433,4 +2426,74 @@ class VariableInitialization extends Statement
 
   @override
   VariableDeclaration get asExpressionVariable => variable;
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasHasDeclaredInitializer => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsConst => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsCovariantByClass => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsCovariantByDeclaration => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsErroneouslyInitialized => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsFinal => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsHoisted => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsInitializingFormal => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsLate => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsLowered => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsRequired => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsSuperInitializingFormal => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsSynthesized => throw UnimplementedError();
+
+  @override
+  // TODO(62620): Remove the method when the [VariableInitialization] stops
+  // implementing [VariableDeclaration].
+  bool get hasIsWildcard => throw UnimplementedError();
 }

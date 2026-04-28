@@ -144,7 +144,6 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     var path = '/test.txt';
     await builder.addGenericFileEdit(path, (builder) {});
     var sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
     expect(sourceChange.edits, isEmpty);
     expect(sourceChange.linkedEditGroups, isEmpty);
     expect(sourceChange.message, isEmpty);
@@ -153,7 +152,6 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
 
   void test_sourceChange_noEdits() {
     var sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
     expect(sourceChange.edits, isEmpty);
     expect(sourceChange.linkedEditGroups, isEmpty);
     expect(sourceChange.message, isEmpty);
@@ -167,7 +165,6 @@ class ChangeBuilderImplTest extends AbstractChangeBuilderTest {
     });
     builder.getLinkedEditGroup('a');
     var sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
     expect(sourceChange.edits, hasLength(1));
     expect(sourceChange.linkedEditGroups, hasLength(1));
     expect(sourceChange.message, isEmpty);
@@ -248,15 +245,78 @@ class EditBuilderImplTest extends AbstractChangeBuilderTest {
       });
     });
     var sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
     var groups = sourceChange.linkedEditGroups;
     expect(groups, hasLength(1));
     var group = groups[0];
-    expect(group, isNotNull);
     expect(group.length, text.length);
     var positions = group.positions;
     expect(positions, hasLength(1));
     expect(positions[0].offset, offset);
+  }
+
+  Future<void> test_addLinkedEdit_afterInsertionInDifferentFile() async {
+    var linkedText = 'content';
+    await builder.addGenericFileEdit('/test2.txt', (builder) {
+      builder.addInsertion(8, (builder) {
+        builder.addSimpleLinkedEdit('group_name', linkedText);
+      });
+    });
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
+        builder.addSimpleLinkedEdit('group_name', linkedText);
+      });
+      builder.addSimpleInsertion(5, 'some text');
+    });
+    var sourceChange = builder.sourceChange;
+    var groups = sourceChange.linkedEditGroups;
+    expect(groups, hasLength(1));
+    var group = groups[0];
+    expect(group.length, linkedText.length);
+    var positions = group.positions;
+    expect(positions, hasLength(2));
+    for (var position in positions) {
+      if (position.file == path) {
+        expect(position.offset, 19);
+      } else {
+        expect(position.offset, 8);
+      }
+    }
+  }
+
+  Future<void> test_addLinkedEdit_afterPreceedingInsertion() async {
+    var linkedText = 'content';
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addSimpleInsertion(5, 'some text');
+      builder.addInsertion(10, (builder) {
+        builder.addSimpleLinkedEdit('group_name', linkedText);
+      });
+    });
+    var sourceChange = builder.sourceChange;
+    var groups = sourceChange.linkedEditGroups;
+    expect(groups, hasLength(1));
+    var group = groups[0];
+    expect(group.length, linkedText.length);
+    var positions = group.positions;
+    expect(positions, hasLength(1));
+    expect(positions[0].offset, 19);
+  }
+
+  Future<void> test_addLinkedEdit_beforePreceedingInsertion() async {
+    var linkedText = 'content';
+    await builder.addGenericFileEdit(path, (builder) {
+      builder.addInsertion(10, (builder) {
+        builder.addSimpleLinkedEdit('group_name', linkedText);
+      });
+      builder.addSimpleInsertion(5, 'some text');
+    });
+    var sourceChange = builder.sourceChange;
+    var groups = sourceChange.linkedEditGroups;
+    expect(groups, hasLength(1));
+    var group = groups[0];
+    expect(group.length, linkedText.length);
+    var positions = group.positions;
+    expect(positions, hasLength(1));
+    expect(positions[0].offset, 19);
   }
 
   Future<void> test_addSimpleLinkedEdit() async {
@@ -270,11 +330,9 @@ class EditBuilderImplTest extends AbstractChangeBuilderTest {
       });
     });
     var sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
     var groups = sourceChange.linkedEditGroups;
     expect(groups, hasLength(1));
     var group = groups[0];
-    expect(group, isNotNull);
     expect(group.length, text.length);
     var positions = group.positions;
     expect(positions, hasLength(1));
@@ -310,18 +368,15 @@ class EditBuilderImplTest extends AbstractChangeBuilderTest {
     });
 
     var sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
 
     var fileEdits = sourceChange.edits;
     expect(fileEdits, hasLength(1));
     var fileEdit = fileEdits[0];
-    expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
 
     var edits = fileEdit.edits;
     expect(edits, hasLength(1));
     var edit = edits[0];
-    expect(edit, isNotNull);
     expect(edit.offset, offset);
     expect(edit.length, 0);
     expect(edit.replacement, text);
@@ -337,18 +392,15 @@ class EditBuilderImplTest extends AbstractChangeBuilderTest {
     });
 
     var sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
 
     var fileEdits = sourceChange.edits;
     expect(fileEdits, hasLength(1));
     var fileEdit = fileEdits[0];
-    expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
 
     var edits = fileEdit.edits;
     expect(edits, hasLength(1));
     var edit = edits[0];
-    expect(edit, isNotNull);
     expect(edit.offset, offset);
     expect(edit.length, length);
     expect(edit.replacement == '\n' || edit.replacement == '\r\n', isTrue);
@@ -365,18 +417,15 @@ class EditBuilderImplTest extends AbstractChangeBuilderTest {
     });
 
     var sourceChange = builder.sourceChange;
-    expect(sourceChange, isNotNull);
 
     var fileEdits = sourceChange.edits;
     expect(fileEdits, hasLength(1));
     var fileEdit = fileEdits[0];
-    expect(fileEdit, isNotNull);
     expect(fileEdit.file, path);
 
     var edits = fileEdit.edits;
     expect(edits, hasLength(1));
     var edit = edits[0];
-    expect(edit, isNotNull);
     expect(edit.offset, offset);
     expect(edit.length, length);
     expect(
@@ -468,7 +517,9 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
   Future<void> test_addInsertion() async {
     await builder.addGenericFileEdit(path, (builder) {
       builder.addInsertion(10, (builder) {
-        expect(builder, isNotNull);
+        builder as EditBuilderImpl;
+        expect(builder.offset, 10);
+        expect(builder.length, 0);
       });
     });
   }
@@ -510,7 +561,9 @@ class FileEditBuilderImplTest extends AbstractChangeBuilderTest {
   Future<void> test_addReplacement() async {
     await builder.addGenericFileEdit(path, (builder) {
       builder.addReplacement(SourceRange(4, 5), (builder) {
-        expect(builder, isNotNull);
+        builder as EditBuilderImpl;
+        expect(builder.offset, 4);
+        expect(builder.length, 5);
       });
     });
   }

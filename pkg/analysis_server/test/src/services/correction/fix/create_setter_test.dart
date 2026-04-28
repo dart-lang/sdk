@@ -20,6 +20,25 @@ class CreateSetterMixinTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createSetter;
 
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+mixin M;
+
+void f(M m) {
+  m.test = 0;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  set test(int value) {}
+}
+
+void f(M m) {
+  m.test = 0;
+}
+''');
+  }
+
   Future<void> test_main_part() async {
     var partPath = join(testPackageLibPath, 'part.dart');
     newFile(partPath, '''
@@ -39,7 +58,7 @@ void foo(M a) {
 part of 'test.dart';
 
 mixin M {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: partPath);
   }
@@ -63,7 +82,7 @@ void foo(M a) {
 part 'test.dart';
 
 mixin M {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: mainPath);
   }
@@ -91,7 +110,7 @@ void foo(M a) {
 part of 'main.dart';
 
 mixin M {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: part1Path);
   }
@@ -107,7 +126,7 @@ void f(M m) {
 ''');
     await assertHasFix('''
 mixin M {
-  set test(int test) {}
+  set test(int value) {}
 }
 
 void f(M m) {
@@ -126,7 +145,7 @@ mixin M {
 ''');
     await assertHasFix('''
 mixin M {
-  set test(int test) {}
+  set test(int value) {}
 
   void f() {
     test = 0;
@@ -152,6 +171,23 @@ class CreateSetterTest extends FixProcessorTest {
   @override
   FixKind get kind => DartFixKind.createSetter;
 
+  Future<void> test_emptyBody() async {
+    await resolveTestCode('''
+class A;
+void f(A a) {
+  a.test = 0;
+}
+''');
+    await assertHasFix('''
+class A {
+  set test(int value) {}
+}
+void f(A a) {
+  a.test = 0;
+}
+''');
+  }
+
   Future<void> test_extension_type() async {
     await resolveTestCode('''
 extension type A(String s) {
@@ -162,7 +198,7 @@ void f(A a) {
 ''');
     await assertHasFix('''
 extension type A(String s) {
-  set test(int test) {}
+  set test(int value) {}
 }
 void f(A a) {
   a.test = 0;
@@ -178,7 +214,7 @@ void g<T>(T? v) => A().setter = v;
 ''');
     await assertHasFix('''
 class A {
-  set setter(Object? setter) {}
+  set setter(Object? value) {}
 }
 
 void g<T>(T? v) => A().setter = v;
@@ -193,7 +229,7 @@ void g<T extends int>(T? v) => A().setter = v;
 ''');
     await assertHasFix('''
 class A {
-  set setter(int? setter) {}
+  set setter(int? value) {}
 }
 
 void g<T extends int>(T? v) => A().setter = v;
@@ -208,7 +244,7 @@ void g<T>(T? v) => A<T>().setter = v;
 ''');
     await assertHasFix('''
 class A<O> {
-  set setter(O? setter) {}
+  set setter(O? value) {}
 }
 
 void g<T>(T? v) => A<T>().setter = v;
@@ -223,7 +259,7 @@ class A<T> {
 ''');
     await assertHasFix('''
 class A<T> {
-  set setter(T? setter) {}
+  set setter(T? value) {}
 
   void m(T? v) => setter = v;
 }
@@ -252,7 +288,7 @@ void f(A a) {
 ''');
     await assertHasFix('''
 class A {
-  set test(int test) {}
+  set test(int value) {}
 }
 void f(A a) {
   var x = a;
@@ -298,7 +334,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  set s(int s) {}
+  set s(int value) {}
 
   int m(int x) => s = x;
 }
@@ -313,7 +349,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  static set s(int s) {}
+  static set s(int value) {}
 
   static int m(int x) => s = x;
 }
@@ -329,7 +365,7 @@ void g(dynamic v) => A().setter = v;
 ''');
     await assertHasFix('''
 class A {
-  set setter(dynamic setter) {}
+  set setter(dynamic value) {}
 }
 
 void g(dynamic v) => A().setter = v;
@@ -355,7 +391,7 @@ class A {
 
   int get existingGetter => 0;
 
-  set test(int test) {}
+  set test(int value) {}
 
   existingMethod() {}
 }
@@ -384,7 +420,7 @@ void foo(A a) {
 part of 'test.dart';
 
 class A {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: partPath);
   }
@@ -405,7 +441,7 @@ void f(C c) {
 ''');
     await assertHasFix('''
 class A {
-  set test(int test) {}
+  set test(int value) {}
 }
 class B {
   A a = A();
@@ -427,7 +463,7 @@ void g(dynamic v) => A().setter = v;
 ''');
     await assertHasFix('''
 class A {
-  set setter(setter) {}
+  set setter(value) {}
 }
 
 void g(dynamic v) => A().setter = v;
@@ -459,7 +495,7 @@ void f(A a) {
 ''');
     await assertHasFix('''
 class A {
-  set test(String test) {}
+  set test(String value) {}
 }
 
 extension E on A {}
@@ -489,7 +525,7 @@ void foo(A a) {
 part 'test.dart';
 
 class A {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: mainPath);
   }
@@ -517,7 +553,7 @@ void foo(A a) {
 part of 'main.dart';
 
 class A {
-  set myUndefinedSetter(int myUndefinedSetter) {}
+  set myUndefinedSetter(int value) {}
 }
 ''', target: part1Path);
   }
@@ -532,7 +568,7 @@ void f(A a) {
 ''');
     await assertHasFix('''
 class A {
-  set test(int test) {}
+  set test(int value) {}
 }
 void f(A a) {
   a.test = 0;
@@ -568,7 +604,7 @@ void f(A a) {
  * of the target source to compute the location at which to insert the field.
  */
 class A {
-  set test(int test) {}
+  set test(int value) {}
 }
 ''', target: '$testPackageLibPath/other.dart');
   }
@@ -592,7 +628,7 @@ class A {
   }
 }
 class B {
-  set test(test) {}
+  set test(value) {}
 }
 ''');
   }
@@ -625,7 +661,7 @@ void f() {
 class A {
   A get self => this;
 
-  set test(int test) {}
+  set test(int value) {}
 }
 void f() {
   var a = new A();
@@ -645,7 +681,7 @@ void f() {
 ''');
     await assertHasFix('''
 class A {
-  static set test(int test) {}
+  static set test(int value) {}
 }
 
 void f() {
@@ -677,7 +713,7 @@ class A {
 ''');
     await assertHasFix('''
 class A {
-  set test(int test) {}
+  set test(int value) {}
 
   void f() {
     test = 0;

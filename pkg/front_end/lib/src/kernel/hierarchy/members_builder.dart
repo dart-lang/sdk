@@ -30,7 +30,12 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
 
   final List<ClassMember> _delayedMemberComputations = <ClassMember>[];
 
-  ClassMembersBuilder(this.hierarchyBuilder);
+  final bool _isClosureContextLoweringEnabled;
+
+  ClassMembersBuilder(
+    this.hierarchyBuilder, {
+    required bool isClosureContextLoweringEnabled,
+  }) : _isClosureContextLoweringEnabled = isClosureContextLoweringEnabled;
 
   void clear() {
     classNodes.clear();
@@ -95,6 +100,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     required int nameOffset,
     required int nameLength,
     required bool isAssignable,
+    required bool isClosureContextLoweringEnabled,
   }) {
     ClassMembersNodeBuilder.inferFieldType(
       hierarchyBuilder,
@@ -107,6 +113,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       nameOffset: nameOffset,
       nameLength: nameLength,
       isAssignable: isAssignable,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
   }
 
@@ -118,6 +125,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     required Uri fileUri,
     required int nameOffset,
     required int nameLength,
+    required bool isClosureContextLoweringEnabled,
   }) {
     ClassMembersNodeBuilder.inferGetterType(
       hierarchyBuilder,
@@ -129,6 +137,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       fileUri: fileUri,
       nameOffset: nameOffset,
       nameLength: nameLength,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
   }
 
@@ -140,6 +149,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     required Uri fileUri,
     required int nameOffset,
     required int nameLength,
+    required bool isClosureContextLoweringEnabled,
   }) {
     ClassMembersNodeBuilder.inferSetterType(
       hierarchyBuilder,
@@ -151,6 +161,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       fileUri: fileUri,
       nameOffset: nameOffset,
       nameLength: nameLength,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
   }
 
@@ -164,6 +175,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     required Uri fileUri,
     required int nameOffset,
     required int nameLength,
+    required bool isClosureContextLoweringEnabled,
   }) {
     ClassMembersNodeBuilder.inferMethodType(
       hierarchyBuilder,
@@ -177,6 +189,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       fileUri: fileUri,
       nameOffset: nameOffset,
       nameLength: nameLength,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
   }
 
@@ -184,6 +197,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
     return classNodes[classBuilder.cls] ??= new ClassMembersNodeBuilder(
       this,
       hierarchyBuilder.getNodeFromClassBuilder(classBuilder),
+      isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
     ).build();
   }
 
@@ -196,6 +210,7 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
       hierarchyBuilder.getNodeFromExtensionTypeDeclarationBuilder(
         extensionTypeDeclarationBuilder,
       ),
+      isClosureContextLoweringEnabled: _isClosureContextLoweringEnabled,
     ).build();
   }
 
@@ -267,10 +282,12 @@ class ClassMembersBuilder implements ClassHierarchyMembers {
   static ClassMembersBuilder build(
     ClassHierarchyBuilder hierarchyBuilder,
     List<ClassBuilder> classes,
-    List<ExtensionTypeDeclarationBuilder> extensionTypeDeclarations,
-  ) {
+    List<ExtensionTypeDeclarationBuilder> extensionTypeDeclarations, {
+    required bool isClosureContextLoweringEnabled,
+  }) {
     ClassMembersBuilder membersBuilder = new ClassMembersBuilder(
       hierarchyBuilder,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
     );
     for (ClassBuilder classBuilder in classes) {
       membersBuilder.getNodeFromClassBuilder(classBuilder);

@@ -184,8 +184,7 @@ class RemoveUnusedField extends _RemoveUnused {
   }
 
   SourceRange _forFieldFormalParameter(FieldFormalParameter node) {
-    var parent = node.parent;
-    var parameter = parent is DefaultFormalParameter ? parent : node;
+    var parameter = node;
     var parameterList = parameter.parent as FormalParameterList;
 
     // (node) -> ()
@@ -263,8 +262,9 @@ class _ElementReferenceCollector extends RecursiveAstVisitor<void> {
 
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
-    var declaredElement = node.declaredFragment!.element;
-    if (declaredElement.field == element) {
+    var declaredElement = node.declaredFragment?.element;
+    if (declaredElement is FieldFormalParameterElement &&
+        declaredElement.field == element) {
       references.add(node);
     }
 

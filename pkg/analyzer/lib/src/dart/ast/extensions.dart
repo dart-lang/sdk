@@ -81,13 +81,13 @@ DartType? _writeType(AstNode node) {
 }
 
 extension ArgumentListExtension on ArgumentList {
-  /// Returns the named expression with the given [name], or `null` if none.
-  NamedExpression? byName(String name) => arguments
-      .whereType<NamedExpression>()
-      .firstWhereOrNull((e) => e.name.label.name == name);
+  /// Returns the named argument with the given [name], or `null` if none.
+  NamedArgument? byName(String name) => arguments
+      .whereType<NamedArgument>()
+      .firstWhereOrNull((e) => e.name.lexeme == name);
 
   /// Returns the argument with the given [index], or `null` if none.
-  Expression? elementAtOrNull(int index) {
+  Argument? elementAtOrNull(int index) {
     if (index < arguments.length) {
       return arguments[index];
     }
@@ -178,43 +178,16 @@ extension FormalParameterExtension on FormalParameter {
     return thisOrAncestorOfType<FunctionBody>() != null;
   }
 
-  NormalFormalParameter get notDefault {
-    switch (this) {
-      case DefaultFormalParameter self:
-        return self.parameter;
-      case NormalFormalParameter self:
-        return self;
-    }
-  }
-
   FormalParameterList get parentFormalParameterList {
-    var parent = this.parent;
-    if (parent is DefaultFormalParameter) {
-      parent = parent.parent;
-    }
     return parent as FormalParameterList;
   }
 
   AstNode get typeOrSelf {
-    var self = this;
-    if (self is SimpleFormalParameter) {
-      var type = self.type;
-      if (type != null) {
-        return type;
-      }
+    var type = this.type;
+    if (type != null) {
+      return type;
     }
-    return self;
-  }
-}
-
-extension FormalParameterImplExtension on FormalParameterImpl {
-  NormalFormalParameterImpl get notDefault {
-    switch (this) {
-      case DefaultFormalParameterImpl self:
-        return self.parameter;
-      case NormalFormalParameterImpl self:
-        return self;
-    }
+    return this;
   }
 }
 

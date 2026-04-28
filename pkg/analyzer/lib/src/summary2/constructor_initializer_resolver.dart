@@ -44,9 +44,8 @@ class ConstructorInitializerResolver {
           var initializerScope = node.formalParameterInitializerScope!;
           var analysisOptions = _libraryBuilder.kind.file.analysisOptions;
 
-          var localElementsVisitor = ElementBindingVisitor(
-            fragment.libraryFragment,
-            null,
+          var localElementsVisitor = ElementBindingVisitor.forPartialResolution(
+            fragment: fragment.libraryFragment,
           );
           for (var initializer in node.initializers) {
             localElementsVisitor.bindSubtree(

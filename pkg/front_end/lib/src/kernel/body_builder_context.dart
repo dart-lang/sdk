@@ -22,13 +22,11 @@ import '../source/source_enum_builder.dart';
 import '../source/source_extension_builder.dart';
 import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_library_builder.dart';
-import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../type_inference/context_allocation_strategy.dart';
-import '../type_inference/inference_results.dart'
-    show InitializerInferenceResult;
-import '../type_inference/type_inferrer.dart' show TypeInferrer;
+import '../type_inference/type_inferrer.dart'
+    show InferredConstructorInitializer, TypeInferrer;
 import '../util/helpers.dart';
 import 'internal_ast.dart';
 
@@ -327,6 +325,14 @@ abstract class BodyBuilderContext {
     );
   }
 
+  /// Returns `true` if the member being built is a non-late instance field
+  /// in a declaration with a primary constructor.
+  ///
+  /// Field initializers in this context have access to primary constructor
+  /// parameters and should be built as if they occur in a constructor
+  /// initializer.
+  bool get inPrimaryConstructorFieldInitializer => false;
+
   /// Returns the primary constructor parameters available in the initializer
   /// scope for instance field initializers.
   ///
@@ -365,19 +371,16 @@ abstract class BodyBuilderContext {
   }
 
   /// Infers the [initializer].
-  InitializerInferenceResult inferInitializer({
+  InferredConstructorInitializer inferInitializer({
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required ContextAllocationStrategy contextAllocationStrategy,
   }) {
     throw new UnsupportedError('${runtimeType}.inferInitializer');
-  }
-
-  // Coverage-ignore(suite): Not run.
-  /// Returns the target for using the `augmented` expression in an augmenting
-  /// member.
-  AugmentSuperTarget? get augmentSuperTarget {
-    return null;
   }
 
   /// Registers [body] as the result of the body building.
@@ -825,11 +828,6 @@ class ExpressionCompilerProcedureBodyBuildContext extends BodyBuilderContext {
          declarationBuilder,
          isDeclarationInstanceMember: isDeclarationInstanceMember,
        );
-
-  @override
-  AugmentSuperTarget? get augmentSuperTarget {
-    return null;
-  }
 
   @override
   int get memberNameOffset => _procedure.fileOffset;

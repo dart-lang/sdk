@@ -182,6 +182,7 @@ sealed class GetterEncoding implements InferredTypeListener {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   });
 }
 
@@ -466,6 +467,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -474,7 +476,10 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
+    function.scope =
+        // Coverage-ignore(suite): Not run.
+        scope?..parent = function;
+    function.thisVariable = thisVariable;
   }
 }
 
@@ -814,6 +819,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -822,6 +828,9 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
+    function.scope =
+        // Coverage-ignore(suite): Not run.
+        scope?..parent = function;
+    function.thisVariable = thisVariable;
   }
 }

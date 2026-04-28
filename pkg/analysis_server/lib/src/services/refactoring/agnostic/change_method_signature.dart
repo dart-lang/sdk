@@ -19,7 +19,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/analysis/session_helper.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
@@ -378,13 +377,7 @@ class _AvailabilityAnalyzer {
   }
 
   _Declaration? _declarationFormalParameter(FormalParameter node) {
-    FormalParameter formalParameter;
-    if (node.parent case DefaultFormalParameter result) {
-      formalParameter = result;
-    } else {
-      formalParameter = node;
-    }
-
+    var formalParameter = node;
     var formalParameterList = formalParameter.parent;
     if (formalParameterList is! FormalParameterList) {
       return null;
@@ -818,9 +811,18 @@ class _SignatureUpdater {
     String withoutRequired(
       FormalParameter existing, {
       required bool withSuper,
+      required bool withoutDefaultClause,
     }) {
-      var notDefault = existing.notDefault;
-      var requiredToken = notDefault.requiredKeyword;
+      var requiredToken = existing.requiredKeyword;
+      String textWithoutDefaultClause(FormalParameter parameter) {
+        if (parameter.defaultClause case var defaultClause?) {
+          return utils
+              .getRangeText(range.startStart(parameter, defaultClause))
+              .trimRight();
+        }
+        return utils.getNodeText(parameter);
+      }
+
       if (requiredToken != null) {
         var before = utils.getRangeText(
           range.startStart(existing, requiredToken),
@@ -831,25 +833,38 @@ class _SignatureUpdater {
         return '$before $after';
       } else {
         if (withSuper) {
-          var nameToken = notDefault.name!;
+          var nameToken = existing.name!;
           var before = utils.getRangeText(
             range.startStart(existing, nameToken),
           );
           var after = utils.getRangeText(range.startEnd(nameToken, existing));
+          if (withoutDefaultClause && existing.defaultClause != null) {
+            after = '';
+          }
           return '${before}super.$after';
         } else {
-          return utils.getNodeText(existing);
+          return withoutDefaultClause
+              ? textWithoutDefaultClause(existing)
+              : utils.getNodeText(existing);
         }
       }
     }
 
     /// Returns the code with the `required` modifier.
     String withRequired(FormalParameter existing, {required bool withSuper}) {
-      var notDefault = existing.notDefault;
-      var requiredToken = notDefault.requiredKeyword;
+      var requiredToken = existing.requiredKeyword;
+      String textWithoutDefaultClause(FormalParameter parameter) {
+        if (parameter.defaultClause case var defaultClause?) {
+          return utils
+              .getRangeText(range.startStart(parameter, defaultClause))
+              .trimRight();
+        }
+        return utils.getNodeText(parameter);
+      }
+
       if (requiredToken != null) {
         if (withSuper) {
-          var nameToken = notDefault.name!;
+          var nameToken = existing.name!;
           var before = utils.getRangeText(
             range.startStart(requiredToken.next!, nameToken),
           );
@@ -859,13 +874,16 @@ class _SignatureUpdater {
         }
       } else {
         if (withSuper) {
-          var nameToken = notDefault.name!;
+          var nameToken = existing.name!;
           var before = utils.getRangeText(
-            range.startStart(notDefault, nameToken),
+            range.startStart(existing, nameToken),
           );
           return 'required ${before}super.${nameToken.lexeme}';
         } else {
-          var after = utils.getNodeText(notDefault);
+          var after = utils.getNodeText(existing);
+          if (existing.defaultClause != null) {
+            after = textWithoutDefaultClause(existing);
+          }
           return 'required $after';
         }
       }
@@ -915,19 +933,31 @@ class _SignatureUpdater {
         }
       }
 
-      var notDefault = existing.notDefault;
+      var notDefault = existing;
       switch (update.kind) {
         case FormalParameterKind.requiredPositional:
-          var text = withoutRequired(notDefault, withSuper: update.withSuper);
+          var text = withoutRequired(
+            notDefault,
+            withSuper: update.withSuper,
+            withoutDefaultClause: true,
+          );
           requiredPositionalWrites.add(text);
         case FormalParameterKind.optionalPositional:
-          var text = withoutRequired(existing, withSuper: update.withSuper);
+          var text = withoutRequired(
+            existing,
+            withSuper: update.withSuper,
+            withoutDefaultClause: false,
+          );
           optionalPositionalWrites.add(text);
         case FormalParameterKind.requiredNamed:
           var text = withRequired(existing, withSuper: update.withSuper);
           namedWrites.add(text);
         case FormalParameterKind.optionalNamed:
-          var text = withoutRequired(existing, withSuper: update.withSuper);
+          var text = withoutRequired(
+            existing,
+            withSuper: update.withSuper,
+            withoutDefaultClause: false,
+          );
           namedWrites.add(text);
       }
     }

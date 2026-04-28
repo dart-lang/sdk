@@ -68,6 +68,25 @@ mixin M {
 ''', target: partPath);
   }
 
+  Future<void> test_ordinaryTarget_emptyBody() async {
+    await resolveTestCode('''
+mixin M;
+
+void f(M m) {
+  m + 0;
+}
+''');
+    await assertHasFix('''
+mixin M {
+  void operator +(int other) {}
+}
+
+void f(M m) {
+  m + 0;
+}
+''');
+  }
+
   Future<void> test_ordinaryTarget_instance() async {
     await resolveTestCode('''
 mixin M {}

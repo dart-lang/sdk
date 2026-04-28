@@ -17,9 +17,11 @@ class FunctionBuilder extends ir.BaseFunction
   late InstructionsBuilder _body;
 
   FunctionBuilder(
-      this.moduleBuilder, ir.FinalizableIndex index, ir.FunctionType type,
-      [String? functionName])
-      : super(moduleBuilder.module, index, type, functionName) {
+    this.moduleBuilder,
+    ir.FinalizableIndex index,
+    ir.FunctionType type, [
+    String? functionName,
+  ]) : super(moduleBuilder.module, index, type, functionName) {
     _body = InstructionsBuilder(moduleBuilder, type.inputs, type.outputs);
   }
 
@@ -31,8 +33,12 @@ class FunctionBuilder extends ir.BaseFunction
 
   @override
   ir.DefinedFunction forceBuild() => ir.DefinedFunction(
-      enclosingModule, body.build(), finalizableIndex, type, functionName)
-    ..isPure = isPure;
+    enclosingModule,
+    body.build(),
+    finalizableIndex,
+    type,
+    functionName,
+  )..isPure = isPure;
 
   @override
   String toString() => functionName ?? "#$finalizableIndex";

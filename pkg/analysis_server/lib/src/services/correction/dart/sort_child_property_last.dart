@@ -32,7 +32,7 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var childProp = _findNamedExpression(node);
+    var childProp = _findNamedArgument(node);
     if (childProp == null) {
       return;
     }
@@ -87,11 +87,11 @@ class SortChildPropertyLast extends ResolvedCorrectionProducer {
     });
   }
 
-  /// Using the [node] as the starting point, find the named expression that is
+  /// Using the [node] as the starting point, find the named argument that is
   /// for either the `child` or `children` parameter.
-  NamedExpression? _findNamedExpression(AstNode node) {
-    if (node is NamedExpression) {
-      var name = node.name.label.name;
+  NamedArgument? _findNamedArgument(AstNode node) {
+    if (node is NamedArgument) {
+      var name = node.name.lexeme;
       if (name == 'child' || name == 'children') {
         return node;
       }

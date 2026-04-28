@@ -23,30 +23,31 @@ class ConvertFlutterChildren extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var identifier = node;
-    if (identifier is SimpleIdentifier && identifier.name == 'children') {
-      var namedExpression = identifier.parent?.parent;
-      if (namedExpression is NamedExpression) {
-        var expression = namedExpression.expression;
-        if (expression is ListLiteral && expression.elements.length == 1) {
-          var widget = expression.elements[0];
-          if (widget.isWidgetExpression) {
-            var widgetText = utils.getNodeText(widget);
-            var indentOld = utils.getLinePrefix(widget.offset);
-            var indentNew = utils.getLinePrefix(namedExpression.offset);
-            widgetText = utils.replaceSourceIndent(
-              widgetText,
-              indentOld,
-              indentNew,
-            );
+    NamedArgument? namedArgument;
+    if (node is NamedArgument) {
+      namedArgument = node as NamedArgument;
+    }
+    if (namedArgument != null && namedArgument.name.lexeme == 'children') {
+      var expression = namedArgument.argumentExpression;
+      if (expression is ListLiteral && expression.elements.length == 1) {
+        var widget = expression.elements[0];
+        if (widget.isWidgetExpression) {
+          var actualNamedArgument = namedArgument;
+          var widgetText = utils.getNodeText(widget);
+          var indentOld = utils.getLinePrefix(widget.offset);
+          var indentNew = utils.getLinePrefix(namedArgument.offset);
+          widgetText = utils.replaceSourceIndent(
+            widgetText,
+            indentOld,
+            indentNew,
+          );
 
-            await builder.addDartFileEdit(file, (builder) {
-              builder.addReplacement(range.node(namedExpression), (builder) {
-                builder.write('child: ');
-                builder.write(widgetText);
-              });
+          await builder.addDartFileEdit(file, (builder) {
+            builder.addReplacement(range.node(actualNamedArgument), (builder) {
+              builder.write('child: ');
+              builder.write(widgetText);
             });
-          }
+          });
         }
       }
     }

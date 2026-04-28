@@ -940,6 +940,7 @@ discard
 discarded
 discarding
 discards
+discouraged
 discover
 discovered
 discovery
@@ -1003,6 +1004,7 @@ duration
 during
 dust
 dynamic
+dynamically
 each
 eagerly
 earlier
@@ -1197,8 +1199,10 @@ exporter
 exporters
 exporting
 exports
+expose
 exposed
 exposes
+exposing
 expressed
 expression
 expressions
@@ -1448,6 +1452,7 @@ happen
 happened
 happens
 hard
+hardcoded
 hare
 has
 hash
@@ -1845,6 +1850,7 @@ listen
 listener
 listener's
 listeners
+listing
 lists
 literal
 literal's
@@ -2253,6 +2259,7 @@ pairs
 pairwise
 paragraph
 parameter
+parameterless
 parameters
 parent
 parent's

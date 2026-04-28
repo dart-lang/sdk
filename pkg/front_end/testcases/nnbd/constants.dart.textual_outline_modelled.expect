@@ -2,13 +2,17 @@ import 'constants_lib.dart' as lib;
 
 const functionTypeLiteral = F1;
 
-const functionTypeLiteralIdentical =
-    identical(functionTypeLiteral, lib.functionTypeLiteral);
+const functionTypeLiteralIdentical = identical(
+  functionTypeLiteral,
+  lib.functionTypeLiteral,
+);
 
 const genericFunctionTypeLiteral = F2;
 
-const genericFunctionTypeLiteralIdentical =
-    identical(genericFunctionTypeLiteral, lib.genericFunctionTypeLiteral);
+const genericFunctionTypeLiteralIdentical = identical(
+  genericFunctionTypeLiteral,
+  lib.genericFunctionTypeLiteral,
+);
 
 const instance = const lib.Class<int>(0);
 
@@ -18,8 +22,10 @@ const int Function(int) partialInstantiation = lib.id;
 
 const listConcatenation = <int>[...listLiteral];
 
-const listConcatenationIdentical =
-    identical(listConcatenation, lib.listConcatenation);
+const listConcatenationIdentical = identical(
+  listConcatenation,
+  lib.listConcatenation,
+);
 
 const listLiteral = <int>[0];
 
@@ -27,8 +33,10 @@ const listLiteralIdentical = identical(listLiteral, lib.listLiteral);
 
 const mapConcatenation = <int, String>{...mapLiteral};
 
-const mapConcatenationIdentical =
-    identical(mapConcatenation, lib.mapConcatenation);
+const mapConcatenationIdentical = identical(
+  mapConcatenation,
+  lib.mapConcatenation,
+);
 
 const mapLiteral = <int, String>{0: 'foo'};
 
@@ -36,16 +44,22 @@ const mapLiteralIdentical = identical(mapLiteral, lib.mapLiteral);
 
 const objectTypeLiteral = Object;
 
-const objectTypeLiteralIdentical =
-    identical(objectTypeLiteral, lib.objectTypeLiteral);
+const objectTypeLiteralIdentical = identical(
+  objectTypeLiteral,
+  lib.objectTypeLiteral,
+);
 
-const partialInstantiationIdentical =
-    identical(partialInstantiation, lib.partialInstantiation);
+const partialInstantiationIdentical = identical(
+  partialInstantiation,
+  lib.partialInstantiation,
+);
 
 const setConcatenation = <int>{...setLiteral};
 
-const setConcatenationIdentical =
-    identical(setConcatenation, lib.setConcatenation);
+const setConcatenationIdentical = identical(
+  setConcatenation,
+  lib.setConcatenation,
+);
 
 const setLiteral = <int>{0};
 

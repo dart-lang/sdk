@@ -27,6 +27,7 @@ import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:collection/collection.dart';
 import 'package:meta/meta.dart';
 
 /// How broadly a [CorrectionProducer] can be applied.
@@ -520,23 +521,33 @@ abstract class ResolvedCorrectionProducer
   /// inferred.
   DartType? inferUndefinedExpressionType(Expression expression) {
     var parent = expression.parent;
+    if (parent is NamedArgument && parent.argumentExpression == expression) {
+      return parent.correspondingParameter?.type;
+    }
+    RecordLiteralNamedField? namedField;
     // `(myFunction(),)` or `(name: myFunction())`.
-    if (parent case NamedExpression(parent: var grandParent) && var named) {
-      parent = grandParent;
-      expression = named;
+    if (parent is RecordLiteralNamedField) {
+      namedField = parent;
+      parent = parent.parent;
     }
     if (parent is RecordLiteral) {
       var recordType = inferUndefinedExpressionType(parent);
       if (recordType is RecordType) {
-        if (expression case NamedExpression named) {
+        if (namedField != null) {
+          var name = namedField.name;
           return recordType.namedFields
-              .firstWhere((field) => field.name == named.name.label.name)
-              .type;
+              .firstWhereOrNull((field) => field.name == name.lexeme)
+              ?.type;
         } else {
-          var index = parent.fields.indexed
-              .firstWhere((record) => record.$2 == expression)
-              .$1;
-          return recordType.positionalFields[index].type;
+          var index = parent.fields
+              .whereType<Expression>()
+              .indexed
+              .firstWhereOrNull((record) => record.$2 == expression)
+              ?.$1;
+          if (index != null && index < recordType.positionalFields.length) {
+            return recordType.positionalFields[index].type;
+          }
+          return null;
         }
       }
     }
@@ -899,6 +910,10 @@ sealed class _AbstractCorrectionProducer<T extends ParsedUnitResult> {
     var method = node.thisOrAncestorOfType<MethodDeclaration>();
     if (method != null) {
       return method.body;
+    }
+    var constructorBody = node.thisOrAncestorOfType<PrimaryConstructorBody>();
+    if (constructorBody != null) {
+      return constructorBody.body;
     }
     return null;
   }

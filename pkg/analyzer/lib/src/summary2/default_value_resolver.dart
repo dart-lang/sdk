@@ -51,13 +51,12 @@ class DefaultValueResolver {
     }
   }
 
-  DefaultFormalParameterImpl? _defaultParameterNode(
+  FormalParameterImpl? _defaultParameterNode(
     FormalParameterFragmentImpl fragment,
   ) {
-    var node = _linker.getLinkingNode(fragment);
-    if (node?.parent case DefaultFormalParameterImpl defaultParent) {
-      if (defaultParent.defaultValue != null) {
-        return defaultParent;
+    if (_linker.getLinkingNode(fragment) case FormalParameterImpl node) {
+      if (node.defaultClause != null) {
+        return node;
       }
     }
     return null;
@@ -99,7 +98,7 @@ class DefaultValueResolver {
       enclosingExecutableElement: enclosingExecutableElement,
     );
     astResolver.resolveExpression(
-      () => firstNode.defaultValue!,
+      () => firstNode.defaultClause!.value,
       contextType: contextType,
     );
   }

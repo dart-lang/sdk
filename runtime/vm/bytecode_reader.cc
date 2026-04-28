@@ -574,6 +574,7 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
     kExternalCall,
     kFfiCall,
     kDeferredLibraryPrefix,
+    kAllocateClosure,
   };
 
   Object& obj = Object::Handle(Z);
@@ -765,6 +766,32 @@ intptr_t BytecodeReaderHelper::ReadConstantPool(const Function& function,
           enclosing_library.AddObject(LibraryPrefix::Cast(obj), name);
         }
         ASSERT(LibraryPrefix::Cast(obj).GetLibrary(0) == target_library.ptr());
+      } break;
+      case ConstantPoolTag::kAllocateClosure: {
+        const intptr_t closure_index = reader_.ReadUInt();
+        const intptr_t num_elements = reader_.ReadUInt();
+        const intptr_t flags = reader_.ReadUInt();
+        // AllocateClosure flags, must be in sync with ConstantAllocateClosure
+        // constants in pkg/dart2bytecode/lib/constant_pool.dart.
+        const intptr_t kHasDelayedTypeArguments = 1 << 0;
+        const intptr_t kHasInstantiatorTypeArguments = 1 << 1;
+        const intptr_t kHasFunctionTypeArguments = 1 << 2;
+        // AllocateClosure constant occupies 2 entries:
+        // function and length_and_flags.
+        obj = closures_->At(closure_index);
+        ASSERT(obj.IsFunction());
+        // Set current entry.
+        pool.SetTypeAt(i, ObjectPool::EntryType::kTaggedObject,
+                       ObjectPool::Patchability::kNotPatchable,
+                       ObjectPool::SnapshotBehavior::kNotSnapshotable);
+        pool.SetObjectAt(i, obj);
+        ++i;
+        ASSERT(i < obj_count);
+        // The second entry is used for encoded length and flags.
+        obj = Smi::New(UntaggedClosure::EncodeLengthAndFlags(
+            (flags & kHasDelayedTypeArguments) != 0,
+            (flags & kHasInstantiatorTypeArguments) != 0,
+            (flags & kHasFunctionTypeArguments) != 0, num_elements));
       } break;
       default:
         UNREACHABLE();
@@ -1130,7 +1157,8 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
         }
         return field;
       } else {
-        if ((flags & kFlagIsConstructor) != 0) {
+        const bool is_constructor = (flags & kFlagIsConstructor) != 0;
+        if (is_constructor) {
           name = ConstructorName(cls, name);
         }
         ASSERT(!name.IsNull() && name.IsSymbol());
@@ -1146,15 +1174,15 @@ ObjectPtr BytecodeReaderHelper::ReadObjectContents(uint32_t header) {
           return thread_->bytecode_loader()->GetExpressionEvaluationFunction();
         }
         FunctionPtr function = Function::null();
-        if ((flags & kFlagIsConstructor) != 0) {
-          if (cls.EnsureIsAllocateFinalized(thread_) == Error::null()) {
-            function = Resolver::ResolveFunction(Z, cls, name);
-          }
-        } else {
-          if (cls.EnsureIsFinalized(thread_) == Error::null()) {
-            function = Resolver::ResolveFunction(Z, cls, name);
-          }
+        ErrorPtr finalize_err = is_constructor
+                                    ? cls.EnsureIsAllocateFinalized(thread_)
+                                    : cls.EnsureIsFinalized(thread_);
+        if (finalize_err != Error::null()) {
+          FATAL("Unable to finalize class %s%s: %s", cls.ToCString(),
+                is_constructor ? "" : " for allocation",
+                Error::Handle(Z, finalize_err).ToErrorCString());
         }
+        function = Resolver::ResolveFunction(Z, cls, name);
         if (function == Function::null()) {
           // When requesting a getter, also return method extractors.
           if (Field::IsGetterName(name)) {

@@ -55,16 +55,6 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   _Visitor(this.rule, this.context);
 
-  (Token?, AstNode?) getParameterDetails(FormalParameter node) {
-    var parameter = node is DefaultFormalParameter ? node.parameter : node;
-    return switch (parameter) {
-      FieldFormalParameter() => (parameter.keyword, parameter.type),
-      SimpleFormalParameter() => (parameter.keyword, parameter.type),
-      SuperFormalParameter() => (parameter.keyword, parameter.type),
-      _ => (null, null),
-    };
-  }
-
   @override
   void visitDeclaredVariablePattern(DeclaredVariablePattern node) {
     var keyword = node.keyword;
@@ -85,10 +75,10 @@ class _Visitor extends SimpleAstVisitor<void> {
       // constructors is enabled.
       if (context.isFeatureEnabled(Feature.primary_constructors)) continue;
 
-      var (keyword, type) = getParameterDetails(node);
+      var keyword = node.constFinalOrVarKeyword;
       if (keyword == null) continue;
 
-      var diagnosticCode = getDiagnosticCode(type);
+      var diagnosticCode = getDiagnosticCode(node.type);
       rule.reportAtToken(keyword, diagnosticCode: diagnosticCode);
     }
   }

@@ -28,25 +28,35 @@ class StdioProcess {
       return Result<int>.pass(exitCode);
     } else {
       return Result<int>(
-          exitCode, ExpectationSet.defaultExpectations["RuntimeError"], output);
+        exitCode,
+        ExpectationSet.defaultExpectations["RuntimeError"],
+        output,
+      );
     }
   }
 
   static StreamTransformer<String, String> transformToStdio(Stdout stdio) {
     return StreamTransformer<String, String>.fromHandlers(
-        handleData: (String data, EventSink<String> sink) {
-      sink.add(data);
-      stdio.write(data);
-    });
+      handleData: (String data, EventSink<String> sink) {
+        sink.add(data);
+        stdio.write(data);
+      },
+    );
   }
 
-  static Future<StdioProcess> run(String executable, List<String> arguments,
-      {String? input,
-      Duration? timeout = const Duration(seconds: 60),
-      bool suppressOutput = true,
-      bool runInShell = false}) async {
-    Process process =
-        await Process.start(executable, arguments, runInShell: runInShell);
+  static Future<StdioProcess> run(
+    String executable,
+    List<String> arguments, {
+    String? input,
+    Duration? timeout = const Duration(seconds: 60),
+    bool suppressOutput = true,
+    bool runInShell = false,
+  }) async {
+    Process process = await Process.start(
+      executable,
+      arguments,
+      runInShell: runInShell,
+    );
     Timer? timer;
     StringBuffer sb = StringBuffer();
     if (timeout != null) {

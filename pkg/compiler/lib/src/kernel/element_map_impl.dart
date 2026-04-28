@@ -2407,7 +2407,8 @@ class KernelNativeMemberResolver {
     // js_interop_checks when `native` and `external` can be disambiguated.
     if (!hasNativeBody &&
         node.isExternal &&
-        !_nativeBasicData.isJsInteropMember(_elementMap.getMember(node))) {
+        !_nativeBasicData.isJsInteropMember(_elementMap.getMember(node)) &&
+        !(node is ir.Procedure && node.hasExternalEffectPragma)) {
       // TODO(johnniwinther): Should we change dart:html and friends to use
       //  `external` instead of the native body syntax?
       _elementMap.reporter.reportErrorMessage(

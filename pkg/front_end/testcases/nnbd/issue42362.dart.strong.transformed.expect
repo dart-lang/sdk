@@ -103,10 +103,10 @@ import "dart:core" as core;
 
 class A extends core::Object {
   final field core::int i;
-  constructor constructor1([erroneously-initialized core::int i = #C1]) → self::A
+  constructor constructor1([initializing-formal erroneously-initialized core::int i = #C1]) → self::A
     : self::A::i = i, super core::Object::•()
     ;
-  constructor constructor2({erroneously-initialized core::int i = #C1}) → self::A
+  constructor constructor2({initializing-formal erroneously-initialized core::int i = #C1}) → self::A
     : self::A::i = i, super core::Object::•()
     ;
   constructor constructor3([erroneously-initialized core::int i = #C1]) → self::A
@@ -165,10 +165,10 @@ abstract class B extends core::Object {
 }
 class C extends core::Object implements self::B {
   field core::int i;
-  constructor constructor1([erroneously-initialized core::int i = #C1]) → self::C
+  constructor constructor1([initializing-formal erroneously-initialized core::int i = #C1]) → self::C
     : self::C::i = i, super core::Object::•()
     ;
-  constructor constructor2({erroneously-initialized core::int i = #C1}) → self::C
+  constructor constructor2({initializing-formal erroneously-initialized core::int i = #C1}) → self::C
     : self::C::i = i, super core::Object::•()
     ;
   constructor constructor3([erroneously-initialized core::int i = #C1]) → self::C

@@ -27,6 +27,18 @@ flutter:
     );
   }
 
+  test_pathIsNull() {
+    assertErrors(
+      '''
+name: sample
+flutter:
+  assets:
+    - path:
+''',
+      [diag.assetNotString],
+    );
+  }
+
   test_pathIsString() {
     newFile('/sample/assets/my_icon.png', '');
     assertNoErrors('''

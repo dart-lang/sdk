@@ -72,7 +72,7 @@ This will:
       print('Note your git checkout is dirty!');
     }
 
-    final pkgDir = argResults.rest.first;
+    final pkgDir = p.normalize(argResults.rest.first);
     if (!Directory(pkgDir).existsSync()) {
       usageException('No directory $pkgDir');
     }

@@ -87,7 +87,11 @@ abstract class ConstructorEncoding {
     ConstructorFragmentDeclaration constructorDeclaration,
   );
 
-  void registerFunctionBody({required Statement? body, Scope? scope});
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  });
 
   void registerNoBodyConstructor();
 
@@ -122,6 +126,8 @@ class RegularConstructorEncoding implements ConstructorEncoding {
 
   Statement? bodyInternal;
 
+  List<Initializer>? _prependedInitializers;
+
   RegularConstructorEncoding({
     required bool isExternal,
     required bool isEnumConstructor,
@@ -129,11 +135,16 @@ class RegularConstructorEncoding implements ConstructorEncoding {
        _isEnumConstructor = isEnumConstructor;
 
   @override
-  void registerFunctionBody({required Statement? body, Scope? scope}) {
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
-    _constructor.function.scope = scope;
+    _constructor.function.scope = scope?..parent = _constructor.function;
+    _constructor.function.thisVariable = thisVariable;
   }
 
   @override
@@ -363,12 +374,17 @@ class RegularConstructorEncoding implements ConstructorEncoding {
     // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    _constructor.initializers = [];
+    if (_prependedInitializers != null) {
+      _constructor.initializers = [..._prependedInitializers!.reversed];
+    } else {
+      _constructor.initializers = [];
+    }
   }
 
   @override
   void prependInitializer(Initializer initializer) {
     initializer.parent = _constructor;
+    (_prependedInitializers ??= []).add(initializer);
     _constructor.initializers.insert(0, initializer);
   }
 
@@ -477,6 +493,8 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
 
   Statement? bodyInternal;
 
+  List<Initializer>? _prependedInitializers;
+
   /// If this procedure is an extension instance member or extension type
   /// instance member, [_thisVariable] holds the synthetically added `this`
   /// parameter.
@@ -502,11 +520,18 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  void registerFunctionBody({required Statement? body, Scope? scope}) {
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
-    _constructor.function.scope = scope;
+    _constructor.function.scope =
+        // Coverage-ignore(suite): Not run.
+        scope?..parent = _constructor.function;
+    _constructor.function.thisVariable = thisVariable;
   }
 
   @override
@@ -601,13 +626,28 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       }
 
       _thisVariable =
-          new VariableDeclarationImpl(
-              syntheticThisName,
-              isFinal: true,
+          libraryBuilder
+              .loader
+              .target
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled
+          ?
+            // Coverage-ignore(suite): Not run.
+            (new PositionalParameter(
+              cosmeticName: syntheticThisName,
               type: _computeThisType(declarationBuilder, typeArguments),
-            )
-            ..fileOffset = fileOffset
-            ..isLowered = true;
+
+              isFinal: true,
+              isLowered: true,
+            )..fileOffset = fileOffset)
+          : (new VariableDeclarationImpl(
+                syntheticThisName,
+                isFinal: true,
+                type: _computeThisType(declarationBuilder, typeArguments),
+              )
+              ..fileOffset = fileOffset
+              ..isLowered = true);
 
       List<DartType> typeParameterTypes = <DartType>[];
       for (int i = 0; i < _constructor.function.typeParameters.length; i++) {
@@ -691,15 +731,17 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
     // compile), and so we also clear them.
     // Note: this method clears both initializers from the target Kernel node
     // and internal state associated with parsing initializers.
-    _initializers = [];
-    // TODO(johnniwinther): Can these be moved here from the
-    //  [SourceConstructorBuilder]?
-    //redirectingInitializer = null;
-    //superInitializer = null;
+    if (_prependedInitializers != null) {
+      // Coverage-ignore-block(suite): Not run.
+      _initializers = [..._prependedInitializers!.reversed];
+    } else {
+      _initializers = [];
+    }
   }
 
   @override
   void prependInitializer(Initializer initializer) {
+    (_prependedInitializers ??= []).add(initializer);
     _initializers.insert(0, initializer);
   }
 

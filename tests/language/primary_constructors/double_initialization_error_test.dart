@@ -29,6 +29,5 @@ class C3(this.x) {
   this : x = 2;
   //     ^
   // [analyzer] COMPILE_TIME_ERROR.FIELD_INITIALIZED_IN_PARAMETER_AND_INITIALIZER
-  //       ^
   // [cfe] 'x' was already initialized by this constructor.
 }

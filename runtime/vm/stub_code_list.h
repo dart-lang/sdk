@@ -29,7 +29,6 @@ namespace dart {
 // List of stubs created in the VM isolate, these stubs are shared by different
 // isolates running in this dart process.
 #define VM_STUB_CODE_LIST(V)                                                   \
-  V(GetCStackPointer)                                                          \
   V(JumpToFrame)                                                               \
   V(RunExceptionHandler)                                                       \
   V(RunExceptionHandlerUnbox)                                                  \
@@ -60,10 +59,10 @@ namespace dart {
   V(AllocateFloat64x2Array)                                                    \
   V(AllocateMintSharedWithFPURegs)                                             \
   V(AllocateMintSharedWithoutFPURegs)                                          \
-  V(AllocateClosure)                                                           \
-  V(AllocateClosureGeneric)                                                    \
-  V(AllocateClosureTA)                                                         \
-  V(AllocateClosureTAGeneric)                                                  \
+  V(AllocateClosure1)                                                          \
+  V(AllocateClosure2)                                                          \
+  V(AllocateClosure3)                                                          \
+  V(AllocateClosure4)                                                          \
   V(AllocateContext)                                                           \
   V(AllocateGrowableArray)                                                     \
   V(AllocateObject)                                                            \

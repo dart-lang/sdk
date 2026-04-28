@@ -50,6 +50,14 @@ class TreeStringSink {
     }
   }
 
+  void writeHeaderFlags(Map<String, bool> flags) {
+    for (var entry in flags.entries.sortedBy((e) => e.key)) {
+      if (entry.value) {
+        write('${entry.key} ');
+      }
+    }
+  }
+
   void writeIf(bool flag, Object object) {
     if (flag) {
       write(object);

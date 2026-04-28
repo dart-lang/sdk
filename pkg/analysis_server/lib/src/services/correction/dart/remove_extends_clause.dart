@@ -27,20 +27,20 @@ class RemoveExtendsClause extends ResolvedCorrectionProducer {
     var classDeclaration = node.thisOrAncestorOfType<ClassDeclaration>();
     if (classDeclaration == null) return;
 
+    var extendsClause = classDeclaration.extendsClause;
+    if (extendsClause == null) return;
+
     await builder.addDartFileEdit(file, (builder) {
       switch (classDeclaration.body) {
         case BlockClassBody body:
           // Delete the keyword `extends`, through `{`.
           builder.addDeletion(
-            range.startStart(classDeclaration.extendsClause!, body.leftBracket),
+            range.startStart(extendsClause, body.leftBracket),
           );
         case EmptyClassBody body:
           // Delete the whitespace before `extends`, through `;`.
           builder.addDeletion(
-            range.endStart(
-              classDeclaration.extendsClause!.beginToken.previous!,
-              body.semicolon,
-            ),
+            range.endStart(extendsClause.beginToken.previous!, body.semicolon),
           );
       }
     });

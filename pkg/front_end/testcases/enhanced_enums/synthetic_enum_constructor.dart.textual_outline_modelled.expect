@@ -1,20 +1,11 @@
-enum E with M {
-  e1,
-  e2,
-  e3;
-}
+enum E with M { e1, e2, e3 }
 
-enum F {
-  f1,
-  f2,
-  f3,
-}
+enum F { f1, f2, f3 }
 
 enum G {
   g1,
   g2,
-  g3,
-  ;
+  g3;
 
   const G();
 }

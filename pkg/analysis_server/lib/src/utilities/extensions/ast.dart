@@ -9,7 +9,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/element_locator.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';

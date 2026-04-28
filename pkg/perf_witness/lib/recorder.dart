@@ -7,6 +7,7 @@ import 'dart:developer';
 import 'dart:io' as io;
 
 import 'package:args/args.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
 import 'src/common.dart';
@@ -318,9 +319,13 @@ class _Recorder {
 class Connection {
   final Stopwatch _recordingTime = Stopwatch();
   final ProcessInfo info;
+
+  @visibleForTesting
+  final io.Socket? socket;
+
   final JsonRpcPeer _endpoint;
 
-  Connection._(this.info, this._endpoint);
+  Connection._(this.info, this._endpoint, {this.socket});
 
   Future<void> startRecording(
     String outputDir, {
@@ -352,13 +357,12 @@ class Connection {
   }
 
   static Future<Connection> connectTo(String controlSocketPath) async {
-    final client = jsonRpcPeerFromSocket(
-      await UnixDomainSocket.connect(controlSocketPath),
-    );
+    final socket = await UnixDomainSocket.connect(controlSocketPath);
+    final client = jsonRpcPeerFromSocket(socket);
     final info = ProcessInfo.fromJson(
       await client.sendRequest('process.getInfo') as Map<String, Object?>,
     );
-    return Connection._(info, client);
+    return Connection._(info, client, socket: socket);
   }
 
   static Future<Connection?> _tryConnectTo(String controlSocket) async {

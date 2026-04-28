@@ -131,7 +131,7 @@ FunctionExpressionInvocation
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -179,7 +179,7 @@ FunctionExpressionInvocation
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -373,7 +373,7 @@ PropertyAccess
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -417,7 +417,7 @@ PropertyAccess
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -653,7 +653,7 @@ MethodInvocation
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -701,7 +701,7 @@ MethodInvocation
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -936,7 +936,7 @@ BinaryExpression
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: E
     argumentList: ArgumentList
       leftParenthesis: (
@@ -982,7 +982,7 @@ BinaryExpression
     importPrefix: ImportPrefixReference
       name: p
       period: .
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
     name: E
     typeArguments: TypeArgumentList
       leftBracket: <
@@ -1220,7 +1220,7 @@ AssignmentExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1276,7 +1276,7 @@ AssignmentExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1453,7 +1453,7 @@ AssignmentExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
       name: E
       argumentList: ArgumentList
         leftParenthesis: (
@@ -1510,7 +1510,7 @@ AssignmentExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
       name: E
       typeArguments: TypeArgumentList
         leftBracket: <

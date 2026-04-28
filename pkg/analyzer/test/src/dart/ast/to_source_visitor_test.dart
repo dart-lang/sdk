@@ -1053,7 +1053,7 @@ void f(x) {
     var findNode = _parseStringToFindNode('''
 void f([$code]) {}
 ''');
-    _assertSource(code, findNode.defaultParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitDefaultFormalParameter_named_noValue() {
@@ -1061,7 +1061,7 @@ void f([$code]) {}
     var findNode = _parseStringToFindNode('''
 void f({$code}) {}
 ''');
-    _assertSource(code, findNode.defaultParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitDefaultFormalParameter_named_value() {
@@ -1069,7 +1069,7 @@ void f({$code}) {}
     var findNode = _parseStringToFindNode('''
 void f({$code}) {}
 ''');
-    _assertSource(code, findNode.defaultParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitDefaultFormalParameter_positional_noValue() {
@@ -1077,7 +1077,7 @@ void f({$code}) {}
     var findNode = _parseStringToFindNode('''
 void f([$code]) {}
 ''');
-    _assertSource(code, findNode.defaultParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitDefaultFormalParameter_positional_value() {
@@ -1085,7 +1085,7 @@ void f([$code]) {}
     var findNode = _parseStringToFindNode('''
 void f([$code]) {}
 ''');
-    _assertSource(code, findNode.defaultParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitDoStatement() {
@@ -2007,7 +2007,7 @@ $code
     var findNode = _parseStringToFindNode('''
 void f($code) {}
 ''');
-    _assertSource(code, findNode.functionTypedFormalParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitFunctionTypedFormalParameter_noType() {
@@ -2015,7 +2015,7 @@ void f($code) {}
     var findNode = _parseStringToFindNode('''
 void f($code) {}
 ''');
-    _assertSource(code, findNode.functionTypedFormalParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitFunctionTypedFormalParameter_nullable() {
@@ -2023,7 +2023,7 @@ void f($code) {}
     var findNode = _parseStringToFindNode('''
 void f($code) {}
 ''');
-    _assertSource(code, findNode.functionTypedFormalParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitFunctionTypedFormalParameter_type() {
@@ -2031,7 +2031,7 @@ void f($code) {}
     var findNode = _parseStringToFindNode('''
 void f($code) {}
 ''');
-    _assertSource(code, findNode.functionTypedFormalParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitFunctionTypedFormalParameter_type_covariant() {
@@ -2041,7 +2041,7 @@ class A {
   void foo($code) {}
 }
 ''');
-    _assertSource(code, findNode.functionTypedFormalParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitFunctionTypedFormalParameter_typeParameters() {
@@ -2049,7 +2049,7 @@ class A {
     var findNode = _parseStringToFindNode('''
 void f($code) {}
 ''');
-    _assertSource(code, findNode.functionTypedFormalParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitGenericFunctionType() {
@@ -2812,7 +2812,7 @@ void f() {
   foo($code);
 }
 ''');
-    _assertSource(code, findNode.namedExpression(code));
+    _assertSource(code, findNode.namedArgument(code));
   }
 
   void test_visitNamedFormalParameter() {
@@ -2820,7 +2820,7 @@ void f() {
     var findNode = _parseStringToFindNode('''
 void f({$code}) {}
 ''');
-    _assertSource(code, findNode.defaultParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitNamedType_multipleArgs() {
@@ -3063,7 +3063,7 @@ void f() {
     var findNode = _parseStringToFindNode('''
 void f([$code]) {}
 ''');
-    _assertSource(code, findNode.defaultParameter(code));
+    _assertSource(code, findNode.formalParameter(code));
   }
 
   void test_visitPostfixExpression() {
@@ -3401,7 +3401,7 @@ final x = $code;
     var findNode = _parseStringToFindNode('''
 void f($code) {}
 ''');
-    _assertSource(code, findNode.simpleFormalParameter(code));
+    _assertSource(code, findNode.regularFormalParameter(code));
   }
 
   void test_visitSimpleFormalParameter_keyword() {
@@ -3410,7 +3410,7 @@ void f($code) {}
 // @dart = 3.10
 void f($code) {}
 ''');
-    _assertSource(code, findNode.simpleFormalParameter(code));
+    _assertSource(code, findNode.regularFormalParameter(code));
   }
 
   void test_visitSimpleFormalParameter_keyword_type() {
@@ -3419,7 +3419,7 @@ void f($code) {}
 // @dart = 3.10
 void f($code) {}
 ''');
-    _assertSource(code, findNode.simpleFormalParameter(code));
+    _assertSource(code, findNode.regularFormalParameter(code));
   }
 
   void test_visitSimpleFormalParameter_type() {
@@ -3427,7 +3427,7 @@ void f($code) {}
     var findNode = _parseStringToFindNode('''
 void f($code) {}
 ''');
-    _assertSource(code, findNode.simpleFormalParameter(code));
+    _assertSource(code, findNode.regularFormalParameter(code));
   }
 
   void test_visitSimpleFormalParameter_type_covariant() {
@@ -3437,7 +3437,7 @@ class A {
   void foo($code) {}
 }
 ''');
-    _assertSource(code, findNode.simpleFormalParameter(code));
+    _assertSource(code, findNode.regularFormalParameter(code));
   }
 
   void test_visitSimpleIdentifier() {

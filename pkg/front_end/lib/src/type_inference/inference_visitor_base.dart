@@ -42,7 +42,7 @@ import '../source/source_library_builder.dart'
 import '../source/source_member_builder.dart';
 import '../testing/id_extractor.dart';
 import '../util/helpers.dart';
-import 'closure_context.dart';
+import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
 import 'inference_results.dart';
 import 'inference_visitor.dart';
@@ -72,14 +72,14 @@ Set<Object> _computeExplicitlyTypedParameterSet(
   for (VariableDeclaration positionalParameter
       in functionExpression.function.positionalParameters) {
     int key = unnamedParameterIndex++;
-    if (!(positionalParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(positionalParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
   for (VariableDeclaration namedParameter
       in functionExpression.function.namedParameters) {
     String key = namedParameter.name!;
-    if (!(namedParameter as VariableDeclarationImpl).isImplicitlyTyped) {
+    if (!(namedParameter as InternalVariable).isImplicitlyTyped) {
       result.add(key);
     }
   }
@@ -125,6 +125,10 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     this.fileUri,
     this.expressionEvaluationHelper,
   );
+
+  static ContextAllocationStrategy createContextAllocationStrategy() {
+    return new LoopDepthAllocationStrategy();
+  }
 
   ThisVariable get internalThisVariable;
 
@@ -566,7 +570,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         break;
       case AssignabilityKind.unassignable:
         // Error: not assignable.  Perform error recovery.
-        result = _wrapUnassignableExpression(
+        result = wrapUnassignableExpression(
           expression,
           expressionType,
           contextType,
@@ -614,7 +618,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           whyNotPromoted ??= flowAnalysis.whyNotPromoted(
             flowAnalysis.getExpressionInfo(expression),
           );
-          result = _wrapUnassignableExpression(
+          result = wrapUnassignableExpression(
             expression,
             expressionType,
             contextType,
@@ -630,7 +634,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
             ),
           );
         } else {
-          result = _wrapUnassignableExpression(
+          result = wrapUnassignableExpression(
             expression,
             expressionType,
             contextType,
@@ -742,12 +746,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return errorNode;
   }
 
-  Expression _wrapUnassignableExpression(
+  Expression wrapUnassignableExpression(
     Expression expression,
     DartType expressionType,
     DartType contextType,
     Message message, {
     List<LocatedMessage>? context,
+    int? fileOffset,
   }) {
     Expression errorNode =
         new AsExpression(
@@ -762,7 +767,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 : contextType,
           )
           ..isTypeError = true
-          ..fileOffset = expression.fileOffset;
+          ..fileOffset = fileOffset ?? expression.fileOffset;
     if (contextType is! InvalidType && expressionType is! InvalidType) {
       errorNode = problemReporting.wrapInProblem(
         compilerContext: compilerContext,
@@ -2103,6 +2108,8 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
 
     // Before choosing the final types, we perform coercion and feed the
     // resulting types back into the type inference via constraint generation.
+    // See https://github.com/dart-lang/sdk/issues/33298 and
+    // https://github.com/dart-lang/sdk/issues/56666 for why this is necessary.
     for (_ArgumentInfo paramInfo in argumentsInfo) {
       ExpressionInferenceResult argumentResult = new ExpressionInferenceResult(
         paramInfo.actualType,
@@ -2419,7 +2426,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       }
     }
 
-    // Let `N'` be `N[T/S]`.  The [ClosureContext] constructor will adjust
+    // Let `N'` be `N[T/S]`.  The [BodyInferenceContext] constructor will adjust
     // accordingly if the closure is declared with `async`, `async*`, or
     // `sync*`.
     if (returnContext is! UnknownType) {
@@ -2429,7 +2436,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // Apply type inference to `B` in return context `N’`, with any references
     // to `xi` in `B` having type `Pi`.  This produces `B’`.
     bool needToSetReturnType = hasImplicitReturnType;
-    ClosureContext closureContext = new ClosureContext(
+    BodyInferenceContext bodyContext = new BodyInferenceContext(
       this,
       function.asyncMarker,
       returnContext,
@@ -2437,7 +2444,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
     StatementInferenceResult bodyResult = visitor.inferStatement(
       function.body!,
-      closureContext,
+      bodyContext,
     );
 
     // If the closure is declared with `async*` or `sync*`, let `M` be the
@@ -2446,7 +2453,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     // the least upper bound of the types of the `return` expressions in `B’`,
     // or `void` if `B’` contains no `return` expressions.
     if (needToSetReturnType) {
-      DartType inferredReturnType = closureContext.inferReturnType(
+      DartType inferredReturnType = bodyContext.inferReturnType(
         this,
         hasImplicitReturn: flowAnalysis.isReachable,
       );
@@ -2456,13 +2463,13 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       // `xi` denoted as optional or named parameters, if appropriate).
       function.returnType = inferredReturnType;
     }
-    bodyResult = closureContext.handleImplicitReturn(
+    bodyResult = bodyContext.handleImplicitReturn(
       this,
       function.body!,
       bodyResult,
       fileOffset,
     );
-    function.emittedValueType = closureContext.emittedValueType;
+    function.emittedValueType = bodyContext.emittedValueType;
 
     if (bodyResult.hasChanged) {
       function.body = bodyResult.statement..parent = function;
@@ -5520,10 +5527,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
   ScopeProviderInfo beginFunctionBodyInference(
     List<VariableDeclaration> parameters, {
     required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   });
 
-  /// Performs finishing computations after inferring the body of a function.
+  /// Finishes computations after inferring the body of a function.
   void endFunctionBodyInference(ScopeProviderInfo scopeProviderInfo);
+
+  /// Performs preliminary computations before inferring the field initializer.
+  ScopeProviderInfo beginFieldInference({
+    required ThisVariable? internalThisVariable,
+  });
+
+  /// Finishes computations after inferring the field initializer.
+  void endFieldInference(ScopeProviderInfo scopeProviderInfo);
 }
 
 /// Describes assignability kind of one type to another.
@@ -5820,11 +5836,6 @@ class _DeferredArgumentInfo extends _ArgumentInfo {
     required super.formalType,
     required this.unparenthesizedExpression,
   });
-
-  // Coverage-ignore(suite): Not run.
-  /// The argument expression (possibly wrapped in an arbitrary number of
-  /// ParenthesizedExpressions).
-  Expression get argumentExpression => argument.expression;
 }
 
 /// Extension of the shared [FunctionLiteralDependencies] logic used by the

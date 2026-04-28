@@ -42,6 +42,17 @@ class FieldFragmentBodyBuilderContext extends BodyBuilderContext {
        );
 
   @override
+  bool get inPrimaryConstructorFieldInitializer {
+    DeclarationBuilder? declarationBuilder = _builder.declarationBuilder;
+    if (declarationBuilder is SourceClassBuilder &&
+        !_declaration.isStatic &&
+        !isLateField) {
+      return declarationBuilder.hasPrimaryConstructor;
+    }
+    return false;
+  }
+
+  @override
   List<FormalParameterBuilder>?
   get primaryConstructorInitializerScopeParameters {
     DeclarationBuilder? declarationBuilder = _builder.declarationBuilder;

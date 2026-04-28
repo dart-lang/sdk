@@ -148,10 +148,8 @@ class _Visitor extends SimpleAstVisitor<void> {
       if (parameterName == null) continue;
       if (isWildcardIdentifier(parameterName.lexeme)) continue;
 
-      if (parameter is DefaultFormalParameter) {
-        parameter = parameter.parameter;
-      }
-      if (parameter is! SimpleFormalParameter) {
+      if (parameter is! RegularFormalParameter ||
+          parameter.functionTypedSuffix != null) {
         // Every type of parameter other than simple formal parameters get a type
         // one way or another:
         // * Field formal parameters have an explicit type or it is derived from
@@ -165,20 +163,20 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       if (parameter.type != null) return;
       if (overriddenMember == null) {
-        _report(parameterName, keyword: parameter.keyword);
+        _report(parameterName, keyword: parameter.constFinalOrVarKeyword);
       } else {
         if (parameter.isPositional) {
           if (overriddenMember.formalParameters.length <= i ||
               overriddenMember.formalParameters[i].isNamed) {
             // The overridden member does not have a corresponding parameter.
-            _report(parameterName, keyword: parameter.keyword);
+            _report(parameterName, keyword: parameter.constFinalOrVarKeyword);
           }
         } else {
           var overriddenParameter = overriddenMember.formalParameters
               .firstWhereOrNull((p) => p.isNamed);
           if (overriddenParameter == null) {
             // The overridden member does not have a corresponding parameter.
-            _report(parameterName, keyword: parameter.keyword);
+            _report(parameterName, keyword: parameter.constFinalOrVarKeyword);
           }
         }
       }
@@ -241,7 +239,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   void _checkSetter(MethodDeclaration node, PropertyAccessorElement element) {
     var parameter = node.parameters?.parameters.firstOrNull;
     if (parameter == null) return;
-    if (parameter is! SimpleFormalParameter) return;
+    if (parameter is! RegularFormalParameter ||
+        parameter.functionTypedSuffix != null) {
+      return;
+    }
     if (parameter.type != null) return;
 
     if (!_isOverride(node, element)) {

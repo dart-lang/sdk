@@ -761,8 +761,16 @@ mixin _ConstructorEncodingMixin
   List<TypeParameter>? get thisTypeParameters => _encoding.thisTypeParameters;
 
   @override
-  void registerFunctionBody(Statement? body, Scope? scope) {
-    _encoding.registerFunctionBody(body: body, scope: scope);
+  void registerFunctionBody(
+    Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  ) {
+    _encoding.registerFunctionBody(
+      body: body,
+      scope: scope,
+      thisVariable: thisVariable,
+    );
   }
 
   @override
@@ -1381,8 +1389,7 @@ class PrimaryConstructorDeclaration
       fileOffset: _fragment.fileOffset,
       startOffset: _fragment.startOffset,
       formalsOffset: _fragment.formalsOffset,
-      // TODO(johnniwinther): Provide `endOffset`.
-      endOffset: _fragment.formalsOffset,
+      endOffset: _fragment.endOffset,
       forAbstractClassOrEnumOrMixin: _fragment.forAbstractClassOrEnumOrMixin,
       isConst: _fragment.modifiers.isConst,
       isSynthetic: false,
@@ -1461,7 +1468,11 @@ abstract class ConstructorFragmentDeclaration {
     SourceConstructorBuilder constructorBuilder,
   );
 
-  void registerFunctionBody(Statement? body, Scope? scope);
+  void registerFunctionBody(
+    Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  );
 
   void registerNoBodyConstructor();
 

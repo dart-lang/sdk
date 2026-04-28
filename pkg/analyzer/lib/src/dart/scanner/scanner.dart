@@ -5,6 +5,7 @@
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
@@ -127,7 +128,9 @@ class Scanner {
   Token tokenize({bool reportScannerErrors = true}) {
     fasta.ScannerResult result = fasta.scanString(
       _contents,
-      configuration: buildConfig(_featureSet),
+      configuration: ExperimentalFeaturesStatus(
+        _featureSet,
+      ).buildScannerConfiguration(),
       includeComments: _preserveComments,
       languageVersionChanged: _languageVersionChanged,
     );
@@ -193,16 +196,9 @@ class Scanner {
       _overrideVersion = null;
     } else {
       _featureSet = _featureSetForOverriding.restrictToVersion(overrideVersion);
-      scanner.configuration = buildConfig(_featureSet);
+      scanner.configuration = ExperimentalFeaturesStatus(
+        _featureSet,
+      ).buildScannerConfiguration();
     }
   }
-
-  /// Return a ScannerConfiguration based upon the specified feature set.
-  static fasta.ScannerConfiguration buildConfig(FeatureSet? featureSet) =>
-      featureSet == null
-      ? fasta.ScannerConfiguration()
-      : fasta.ScannerConfiguration(
-          enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-          forAugmentationLibrary: featureSet.isEnabled(Feature.augmentations),
-        );
 }

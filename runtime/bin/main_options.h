@@ -150,7 +150,6 @@ class Options {
 
   static dart::SimpleHashMap* environment() { return environment_; }
 
-  static bool enable_vm_service() { return enable_vm_service_; }
 #if !defined(PRODUCT)
   static const char* vm_service_server_ip() { return vm_service_server_ip_; }
   static int vm_service_server_port() { return vm_service_server_port_; }
@@ -230,7 +229,6 @@ class Options {
   }
 
   // VM Service argument processing.
-  static bool enable_vm_service_;
 #if !defined(PRODUCT)
   static const char* vm_service_server_ip_;
   static int vm_service_server_port_;

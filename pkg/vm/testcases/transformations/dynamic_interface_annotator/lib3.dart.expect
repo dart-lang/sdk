@@ -98,7 +98,7 @@ static field core::Object? sfield9;
 static field core::Object? _sfield10;
 static method smethod10() → void {}
 static method _smethod11() → void {}
-static extension-type-member method H|constructor#(self::F v) → self::H% /* erasure=self::F, declared=! */ {
+static extension-type-member method H|constructor#(initializing-formal self::F v) → self::H% /* erasure=self::F, declared=! */ {
   lowered final self::H% /* erasure=self::F, declared=! */ #this = v;
   return #this;
 }

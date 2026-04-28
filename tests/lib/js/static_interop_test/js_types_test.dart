@@ -13,6 +13,11 @@ import 'package:expect/expect.dart';
 
 const isJSBackend = const bool.fromEnvironment('dart.library.html');
 
+@JS('Set')
+extension type JSSet._(JSObject _) implements JSObject, JSIterable<JSNumber> {
+  external JSSet(JSArray<JSNumber> contents);
+}
+
 @JS()
 external void eval(String code);
 
@@ -37,7 +42,11 @@ external JSFunction fun;
 external JSString doFun(JSString a, JSString b);
 
 @JS()
-external JSExportedDartFunction edf;
+external JSExportedDartFunction<JSString Function(JSString, JSString)> edf;
+
+@JS()
+external JSExportedDartFunction<JSString Function(JSObject, JSString, JSString)>
+edfWithThis;
 
 @JS()
 external JSArray arr;
@@ -153,6 +162,9 @@ external JSAny? undefinedAny;
 @JS()
 external JSAny? definedNonNullAny;
 
+@JS()
+external JSIterator<JSAny> getGenerator();
+
 class DartObject {
   String get foo => 'bar';
 }
@@ -188,17 +200,20 @@ void syncTests() {
     return (a.toDart + b.toDart).toJS;
   };
   edf = dartFunction.toJS;
+  // Should be able to assign to `JSFunction<T>`.
+  JSFunction<JSString Function(JSString, JSString)> _ = edf;
   Expect.equals('foobar', doFun('foo'.toJS, 'bar'.toJS).toDart);
-  Expect.equals(
-    'foobar',
-    (edf.toDart as JSString Function(JSString, JSString))(
-      'foo'.toJS,
-      'bar'.toJS,
-    ).toDart,
-  );
+  Expect.equals('foobar', edf.toDart('foo'.toJS, 'bar'.toJS).toDart);
   Expect.identical(edf.toDart, dartFunction);
+  // `toDart` with just `Function` should succeed.
+  Expect.identical(
+    (edf as JSExportedDartFunction<Function>).toDart,
+    dartFunction,
+  );
   // Two wrappers should not be the same.
   Expect.notEquals(edf, dartFunction.toJS);
+  // If the wrong function type, `toDart` should throw.
+  Expect.throws(() => (edf as JSExportedDartFunction<void Function()>).toDart);
   // Converting a non-function should throw.
   Expect.throws(() => ('foo'.toJS as JSExportedDartFunction).toDart);
   // `this` should be captured correctly in `toJSCaptureThis`.
@@ -207,13 +222,83 @@ void syncTests() {
     Expect.equals(this_, this__);
     return (a.toDart + b.toDart).toJS;
   };
-  edf = dartFunctionThis.toJSCaptureThis;
+  edfWithThis = dartFunctionThis.toJSCaptureThis;
   Expect.equals(
-    (edf.callAsFunction(this_, 'foo'.toJS, 'bar'.toJS) as JSString).toDart,
+    (edfWithThis.callAsFunction(this_, 'foo'.toJS, 'bar'.toJS) as JSString)
+        .toDart,
     'foobar',
   );
-  Expect.identical(edf.toDart, dartFunctionThis);
-  Expect.notEquals(edf, dartFunctionThis.toJSCaptureThis);
+  Expect.identical(edfWithThis.toDart, dartFunctionThis);
+  Expect.identical(
+    (edfWithThis as JSExportedDartFunction).toDart,
+    dartFunctionThis,
+  );
+  Expect.throws(
+    () =>
+        (edfWithThis as JSExportedDartFunction<int Function(JSString)>).toDart,
+  );
+  Expect.notEquals(edfWithThis, dartFunctionThis.toJSCaptureThis);
+
+  // [JSIterable]
+  final iterable = JSSet([1.toJS, 2.toJS].toJS);
+  final iterator = iterable.iterator;
+  Expect.isNull(iterator.returnValue);
+  Expect.isNull(iterator.throwError);
+  final result1 = iterator.next();
+  Expect.isFalse(result1.isDone);
+  Expect.equals(1.toJS, result1.value);
+  final result2 = iterator.next();
+  Expect.isFalse(result2.isDone);
+  Expect.equals(2.toJS, result2.value);
+  final result3 = iterator.next();
+  Expect.isTrue(result3.isDone);
+  Expect.isNull(result3.value);
+
+  Expect.equals(2.toJS, iterable.iterator.drop(1).next().value);
+  Expect.equals(
+    1.toJS,
+    JSIterator.fromFunctions(() => JSIteratorResult.value(1.toJS)).next().value,
+  );
+  Expect.equals(
+    1.toJS,
+    JSIterator.fromFunctions(
+      () => JSIteratorResult.done(0.toJS),
+      returnValue: () => JSIteratorResult.done(1.toJS),
+    ).returnValue!().value,
+  );
+
+  eval(r'''
+    globalThis.getGenerator = function*() {
+      yield 1;
+    }
+  ''');
+  Expect.equals(2.toJS, getGenerator().returnValue!(2.toJS).value);
+  final returnNoArg = getGenerator().returnValue!().value;
+  Expect.isTrue(
+    isJSBackend ? returnNoArg.isUndefined : returnNoArg.isUndefinedOrNull,
+  );
+  Expect.throws<JSString>(() => getGenerator().throwError!("oh no".toJS));
+
+  // Nullish errors should be caught and converted to Dart wrappers. These tests
+  // are currently failing due to https://github.com/dart-lang/sdk/issues/63109.
+
+  // Expect.throws(
+  //   () => getGenerator().throwError!(null),
+  //   (error) => !error.isA<JSAny?>(),
+  // );
+  // Expect.throws(
+  //   () => getGenerator().throwError!(),
+  //   (error) => !error.isA<JSAny?>(),
+  // );
+
+  // [JSIterable] <-> [Iterable]
+  final listFromIter = [...iterable.toDartIterable];
+  Expect.equals(2, listFromIter.length);
+  Expect.equals(1.toJS, listFromIter[0]);
+  Expect.equals(2.toJS, listFromIter[1]);
+  final iteratorFromDart = [1.toJS].toJSIterable.iterator;
+  Expect.equals(1.toJS, iteratorFromDart.next().value);
+  Expect.isTrue(iteratorFromDart.next().isDone);
 
   // [JSBoxedDartObject] <-> [Object]
   edo = DartObject().toJSBox;

@@ -119,8 +119,7 @@ class CompletionRunner {
           );
           timer.stop();
 
-          if (!identifier.inDeclarationContext() &&
-              !_isNamedExpressionName(identifier)) {
+          if (!identifier.inDeclarationContext()) {
             expectedCount++;
             suggestions = _sort(suggestions.toList());
             var index = _indexOf(suggestions, identifier.name);
@@ -252,13 +251,6 @@ class CompletionRunner {
       }
     }
     return -1;
-  }
-
-  /// Return `true` if the given [identifier] is being used as the name of a
-  /// named expression.
-  bool _isNamedExpressionName(SimpleIdentifier identifier) {
-    var parent = identifier.parent;
-    return parent is NamedExpression && parent.name.label == identifier;
   }
 
   /// Print information about the given [suggestions].

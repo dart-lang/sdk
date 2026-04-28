@@ -7,7 +7,6 @@ import 'dart:io';
 import 'package:front_end/src/api_unstable/vm.dart' as fe;
 import 'package:path/path.dart' as path;
 
-import 'dynamic_modules.dart' show DynamicModuleType;
 import 'translator.dart';
 
 /// Represents a discrete phase of dart2wasm's compilation process.
@@ -43,14 +42,8 @@ class WasmCompilerOptions {
   Uri mainUri;
   String outputFile;
   String? depFile;
-  DynamicModuleType? dynamicModuleType;
-  Uri? dynamicMainModuleUri;
-  Uri? dynamicInterfaceUri;
-  Uri? dynamicModuleMetadataFile;
   Uri? loadsIdsUri;
   Uri? programSplitConstraintsUri;
-  bool validateDynamicModules = true;
-  String? dynamicModuleLibraryPrefix;
   Map<String, String> environment = {};
   Map<fe.ExperimentalFlag, bool> feExperimentalFlags = const {};
   String? multiRootScheme;
@@ -77,12 +70,9 @@ class WasmCompilerOptions {
 
   WasmCompilerOptions({required this.mainUri, required this.outputFile});
 
-  bool get enableDynamicModules => dynamicModuleType != null;
-
   bool get useMultiModuleOpt =>
       translatorOptions.enableDeferredLoading ||
-      translatorOptions.enableMultiModuleStressTestMode ||
-      enableDynamicModules;
+      translatorOptions.enableMultiModuleStressTestMode;
 
   String moduleNameForId(String filePath, int id, {bool emitAsMain = false}) =>
       emitAsMain || id == mainModuleId
@@ -143,20 +133,17 @@ class WasmCompilerOptions {
       }
     }
 
-    if (enableDynamicModules) {
-      if (dynamicMainModuleUri == null) {
-        throw ArgumentError(
-          "--dynamic-module-main must be specified if "
-          "compiling dynamic modules.",
-        );
+    if (translatorOptions.standalone) {
+      void handleUnsupportedOption(bool enabled, String name) {
+        if (enabled) {
+          throw ArgumentError('$name is not supported with --standalone');
+        }
       }
 
-      if (dynamicInterfaceUri == null) {
-        throw ArgumentError(
-          "--dynamic-module-interface must be specified if "
-          "compiling dynamic modules.",
-        );
-      }
+      handleUnsupportedOption(
+        translatorOptions.enableDeferredLoading,
+        '--enable-deferred-loading',
+      );
     }
 
     _validatePhases();

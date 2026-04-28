@@ -43,7 +43,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (!node.staticType.isWidgetType) return;
 
     var parent = node.parent;
-    if (parent is NamedExpression && parent.name.label.name == 'child') {
+    if (parent is NamedArgument && parent.name.lexeme == 'child') {
       var args = parent.thisOrAncestorOfType<ArgumentList>();
       if (args?.arguments.length == 1) {
         var parentCreation = parent

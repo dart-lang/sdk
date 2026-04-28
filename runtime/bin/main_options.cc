@@ -273,7 +273,6 @@ bool Options::ParseArguments(int argc,
 
 // These strings must match the enum VerbosityLevel in main_options.h.
 VerbosityLevel Options::verbosity_ = kAll;
-bool Options::enable_vm_service_ = false;
 bool Options::enable_dds_ = true;
 
 void Options::PrintVersion() {
@@ -454,7 +453,6 @@ bool Options::ProcessEnableVmServiceOption(const char* arg,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe()->set_use_incremental_compiler(true);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  enable_vm_service_ = true;
   return true;
 #else
   // VM service not available in product mode.
@@ -487,7 +485,6 @@ bool Options::ProcessObserveOption(const char* arg,
 #if !defined(DART_PRECOMPILED_RUNTIME)
   dfe()->set_use_incremental_compiler(true);
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
-  enable_vm_service_ = true;
   return true;
 #else
   // VM service not available in product mode.

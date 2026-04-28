@@ -66,6 +66,19 @@ void f() async {
 ''');
   }
 
+  Future<void> test_assigned_deepMethodInvocation() async {
+    await resolveTestCode(r'''
+void f() {
+  var v = 1.toString().length;
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  1.toString().length;
+}
+''');
+  }
+
   Future<void> test_assigned_doubleParenthesised_awaitedInvocation() async {
     await resolveTestCode(r'''
 Future<int> foo() async => 0;
@@ -201,6 +214,20 @@ void f() async {
 ''');
   }
 
+  Future<void> test_assigned_inAssignment_deepMethodInvocation() async {
+    await resolveTestCode(r'''
+void f() {
+  int v;
+  v = 1.toString().length;
+}
+''');
+    await assertHasFix(r'''
+void f() {
+  1.toString().length;
+}
+''');
+  }
+
   Future<void> test_assigned_inAssignment_functionCall() async {
     await resolveTestCode(r'''
 void f() {
@@ -322,6 +349,32 @@ void f() async {
 Future<int> foo() async => 0;
 void f() async {
   (await foo());
+}
+''');
+  }
+
+  Future<void> test_assigned_postfixIncrement() async {
+    await resolveTestCode(r'''
+void f(int i) {
+  var v = i++;
+}
+''');
+    await assertHasFix(r'''
+void f(int i) {
+  i++;
+}
+''');
+  }
+
+  Future<void> test_assigned_prefixIncrement() async {
+    await resolveTestCode(r'''
+void f(int i) {
+  var v = ++i;
+}
+''');
+    await assertHasFix(r'''
+void f(int i) {
+  ++i;
 }
 ''');
   }

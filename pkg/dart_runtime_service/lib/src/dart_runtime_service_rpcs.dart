@@ -20,6 +20,8 @@ import 'utils.dart';
 typedef RpcHandlerWithNoParameters = FutureOr<RpcResponse> Function();
 typedef RpcHandlerWithParameters =
     FutureOr<RpcResponse> Function(json_rpc.Parameters);
+typedef RpcHandlerWithParametersAndClient =
+    FutureOr<RpcResponse> Function(json_rpc.Parameters, Client);
 
 typedef ServiceRpcHandler = (String, Function?);
 
@@ -70,19 +72,17 @@ final class DartRuntimeServiceRpcs {
     _backendFallbacks.addAll(backend.fallbacks);
   }
 
-  void addBackendFallbacks({
-    required List<RpcHandlerWithParameters> fallbacks,
-  }) => _backendFallbacks.addAll(fallbacks);
-
   /// Registers the set of platform-agnostic and backend RPCs for use by
   /// [client].
   void registerRpcsWithPeer(json_rpc.Peer clientPeer) {
     for (final (method, callback) in [..._commonRpcs, ..._backendRpcs]) {
       if (callback == null) continue;
       if (callback is! RpcHandlerWithNoParameters &&
-          callback is! RpcHandlerWithParameters) {
+          callback is! RpcHandlerWithParameters &&
+          callback is! RpcHandlerWithParametersAndClient) {
         throw StateError("Callback for '$method' is not valid. ($callback).");
       }
+      client.logger.info('Registering $method');
       clientPeer.registerMethod(method, (json_rpc.Parameters parameters) async {
         try {
           late RpcResponse response;
@@ -93,6 +93,10 @@ final class DartRuntimeServiceRpcs {
           } else if (callback is RpcHandlerWithParameters) {
             client.logger.info('Invoked $method (${parameters.value})');
             response = await callback(parameters);
+            client.logger.info('Response: $response');
+          } else if (callback is RpcHandlerWithParametersAndClient) {
+            client.logger.info('Invoked $method (${parameters.value})');
+            response = await callback(parameters, client);
             client.logger.info('Response: $response');
           }
           return response;

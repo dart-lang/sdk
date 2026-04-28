@@ -6,7 +6,7 @@ import 'dart:collection';
 
 /*member: dynamicIndex:Specializer=[!Index]*/
 @pragma('dart2js:noInline')
-dynamicIndex(var list) {
+dynamicIndex(list) {
   return list[0]; // This not known to be an indexable primitive.
 }
 
