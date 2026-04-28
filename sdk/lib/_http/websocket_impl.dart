@@ -602,12 +602,8 @@ class _WebSocketTransformerImpl
 
 class _WebSocketPerMessageDeflate {
   // Hard cap on the inflated size of a single permessage-deflate frame.
-  // RFC 7692 places no limit on the decompression ratio, so an attacker
-  // can submit a tiny ~98 KiB compressed frame that inflates to >100 MiB
-  // (1000x amplification has been demonstrated). Without a cap, a small
-  // number of attackers can exhaust the server's heap. 16 MiB is generous
-  // for legitimate WebSocket message sizes (the de-facto cap in browsers
-  // is much smaller) while preventing single-frame heap exhaustion.
+  // RFC 7692 places no limit on the decompression ratio, so without a cap
+  // a small compressed frame can inflate to many GiB and exhaust the heap.
   static const int _maxDecompressedFrameBytes = 16 * 1024 * 1024;
 
   bool serverNoContextTakeover;
@@ -651,19 +647,13 @@ class _WebSocketPerMessageDeflate {
       final out = decoder.processed();
       if (out == null) break;
       result.add(out);
-      // Reject decompression bombs: stop reading inflated bytes once the
-      // accumulated size exceeds the per-frame cap. The malformed peer
-      // gets a Protocol error close; the local heap is bounded.
+      // Stop once the inflated size would exceed the per-frame cap, and
+      // reset the decoder so a subsequent message starts from a clean state.
       if (result.length > _maxDecompressedFrameBytes) {
-        // Drop the partially-inflated buffer and reset the decoder so a
-        // subsequent (legitimate) message starts from a clean state.
         this.decoder = null;
         throw WebSocketException(
-          "Decompressed permessage-deflate frame would exceed "
-          "$_maxDecompressedFrameBytes bytes (compressed input was "
-          "${msg.length} bytes; ratio > "
-          "${(_maxDecompressedFrameBytes / msg.length).toStringAsFixed(0)}x). "
-          "Refusing to decompress further to avoid heap exhaustion.",
+          "Decompressed permessage-deflate frame exceeds "
+          "$_maxDecompressedFrameBytes bytes",
         );
       }
     }
