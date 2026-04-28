@@ -226,17 +226,17 @@ abstract class WebSocketTransformer
   /// If [compression] is provided, the [WebSocket] created will be configured
   /// to negotiate with the specified [CompressionOptions]. If none is specified
   /// then the [WebSocket] will be created with the default [CompressionOptions].
-  /// If [maxPayloadLength] is non-zero, frames whose declared payload exceeds
-  /// `maxPayloadLength` bytes (uncompressed) or whose decompressed permessage-
-  /// deflate payload exceeds `maxPayloadLength` bytes are rejected as a
-  /// protocol error. The default is `0` (no cap), preserving historical
-  /// behaviour. The default can be overridden globally at build time via
-  /// `-Ddart.io.default.ws.max.payload.length=<bytes>`.
+  ///
+  /// Frames with uncompressed size exceeding [maxPayloadLength] will be
+  /// rejected as a protocol error. The size is unlimited by default. Default
+  /// value can be configured globally by setting
+  /// `dart.io.default.ws.max.payload.length` value in compilation
+  /// configuration environment.
   factory WebSocketTransformer({
     /*String|Future<String>*/ Function(List<String> protocols)?
     protocolSelector,
     CompressionOptions compression = CompressionOptions.compressionDefault,
-    int maxPayloadLength = 0,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) {
     return _WebSocketTransformerImpl(
       protocolSelector,
@@ -265,7 +265,7 @@ abstract class WebSocketTransformer
     HttpRequest request, {
     Function(List<String> protocols)? protocolSelector,
     CompressionOptions compression = CompressionOptions.compressionDefault,
-    int maxPayloadLength = 0,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) {
     return _WebSocketTransformerImpl._upgrade(
       request,
@@ -344,7 +344,7 @@ abstract class WebSocket
     Map<String, dynamic>? headers,
     CompressionOptions compression = CompressionOptions.compressionDefault,
     HttpClient? customClient,
-    int maxPayloadLength = 0,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) => _WebSocketImpl.connect(
     url,
     protocols,
@@ -383,7 +383,7 @@ abstract class WebSocket
     String? protocol,
     bool? serverSide,
     CompressionOptions compression = CompressionOptions.compressionDefault,
-    int maxPayloadLength = 0,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) {
     if (serverSide == null) {
       throw ArgumentError(

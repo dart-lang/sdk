@@ -10,19 +10,9 @@ const String _serverNoContextTakeover = "server_no_context_takeover";
 const String _clientMaxWindowBits = "client_max_window_bits";
 const String _serverMaxWindowBits = "server_max_window_bits";
 
-/// Default maximum payload length for an incoming WebSocket frame.
-///
-/// `0` means "no limit" — the default — which preserves the historical
-/// behaviour of `dart:io`. A positive value caps both uncompressed and
-/// permessage-deflate-decompressed frames at that many bytes.
-///
-/// The default can be overridden globally at build time via
-/// `-Ddart.io.default.ws.max.payload.length=<bytes>`. Individual call
-/// sites can override it by passing the `maxPayloadLength` named argument
-/// to [WebSocket.connect], [WebSocket.fromUpgradedSocket],
-/// [WebSocketTransformer.upgrade], or `new WebSocketTransformer(...)`.
-const int _kDefaultMaxPayloadLength = int.fromEnvironment(
+const int _kDefaultWebSocketMaxPayloadLength = int.fromEnvironment(
   "dart.io.default.ws.max.payload.length",
+  defaultValue: 0x7fffffffffffffff,
 );
 
 // Matches _WebSocketOpcode.
@@ -113,15 +103,13 @@ class _WebSocketProtocolTransformer
   final Uint8List _maskingBytes = Uint8List(4);
   final BytesBuilder _payload = BytesBuilder(copy: false);
 
-  /// Maximum allowed payload length for an incoming data frame, in bytes.
-  /// `0` disables the cap. See [_kDefaultMaxPayloadLength].
   final int _maxPayloadLength;
 
   final _WebSocketPerMessageDeflate? _deflate;
   _WebSocketProtocolTransformer([
     this._serverSide = false,
     this._deflate,
-    this._maxPayloadLength = _kDefaultMaxPayloadLength,
+    this._maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   ]);
 
   Stream<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/> bind(
@@ -312,11 +300,7 @@ class _WebSocketProtocolTransformer
   }
 
   void _lengthDone() {
-    // Reject oversized data frames before any allocation. Control frames
-    // are already capped at 125 bytes in LEN_FIRST handling.
-    if (_maxPayloadLength > 0 &&
-        !_isControlFrame() &&
-        _len > _maxPayloadLength) {
+    if (!_isControlFrame() && (_len < 0 || _len > _maxPayloadLength)) {
       throw WebSocketException(
         "Frame payload length $_len exceeds $_maxPayloadLength",
       );
@@ -476,7 +460,7 @@ class _WebSocketTransformerImpl
   _WebSocketTransformerImpl(
     this._protocolSelector,
     this._compression, [
-    this._maxPayloadLength = _kDefaultMaxPayloadLength,
+    this._maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   ]);
 
   Stream<WebSocket> bind(Stream<HttpRequest> stream) {
@@ -520,7 +504,7 @@ class _WebSocketTransformerImpl
     HttpRequest request,
     _ProtocolSelector? protocolSelector,
     CompressionOptions compression, {
-    int maxPayloadLength = _kDefaultMaxPayloadLength,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) {
     var response = request.response;
     if (!_isUpgradeRequest(request)) {
@@ -599,7 +583,7 @@ class _WebSocketTransformerImpl
     HttpRequest request,
     HttpResponse response,
     CompressionOptions compression, {
-    int maxPayloadLength = _kDefaultMaxPayloadLength,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) {
     var extensionHeader = request.headers.value("Sec-WebSocket-Extensions");
 
@@ -670,8 +654,6 @@ class _WebSocketPerMessageDeflate {
   int serverMaxWindowBits;
   bool serverSide;
 
-  /// Maximum allowed inflated payload length, in bytes. `0` disables the cap.
-  /// See [_kDefaultMaxPayloadLength].
   int maxPayloadLength;
 
   RawZLibFilter? decoder;
@@ -683,7 +665,7 @@ class _WebSocketPerMessageDeflate {
     this.serverNoContextTakeover = false,
     this.clientNoContextTakeover = false,
     this.serverSide = false,
-    this.maxPayloadLength = _kDefaultMaxPayloadLength,
+    this.maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   });
 
   RawZLibFilter _ensureDecoder() => decoder ??= RawZLibFilter.inflateFilter(
@@ -710,9 +692,7 @@ class _WebSocketPerMessageDeflate {
       final out = decoder.processed();
       if (out == null) break;
       result.add(out);
-      // Stop once the inflated size would exceed the per-frame cap, and
-      // reset the decoder so a subsequent message starts from a clean state.
-      if (maxPayloadLength > 0 && result.length > maxPayloadLength) {
+      if (result.length > maxPayloadLength) {
         this.decoder = null;
         throw WebSocketException(
           "Decompressed permessage-deflate frame exceeds "
@@ -1141,7 +1121,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     Map<String, dynamic>? headers, {
     CompressionOptions compression = CompressionOptions.compressionDefault,
     HttpClient? customClient,
-    int maxPayloadLength = _kDefaultMaxPayloadLength,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) {
     Uri uri = Uri.parse(url);
     if (!uri.isScheme("ws") && !uri.isScheme("wss")) {
@@ -1272,7 +1252,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
   static _WebSocketPerMessageDeflate? negotiateClientCompression(
     HttpClientResponse response,
     CompressionOptions compression, {
-    int maxPayloadLength = _kDefaultMaxPayloadLength,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   }) {
     String extensionHeader =
         response.headers.value('Sec-WebSocket-Extensions') ?? "";
@@ -1314,7 +1294,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     CompressionOptions compression, [
     this._serverSide = false,
     _WebSocketPerMessageDeflate? deflate,
-    int maxPayloadLength = _kDefaultMaxPayloadLength,
+    int maxPayloadLength = _kDefaultWebSocketMaxPayloadLength,
   ]) : _controller = StreamController(sync: true) {
     _consumer = _WebSocketConsumer(this, _socket);
     _sink = _StreamSinkImpl(_consumer);

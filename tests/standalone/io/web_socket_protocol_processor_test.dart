@@ -261,25 +261,24 @@ void testUnmaskedMessage() {
   controller.add(frame);
 }
 
-// A frame whose declared payload exceeds `maxPayloadLength` must be rejected
-// as a protocol error before the payload is allocated.
 void testMaxPayloadLengthRejectsOversizedFrame() {
   asyncStart();
-  // serverSide=false (no mask required), no deflate, cap=100 bytes.
   var transformer = new _WebSocketProtocolTransformer(false, null, 100);
   var controller = new StreamController<List<int>>(sync: true);
-  controller.stream.transform(transformer).listen(
-    (_) {
-      Expect.fail("No data should be delivered for an oversized frame");
-    },
-    onError: (e) {
-      Expect.isTrue(
-        e.toString().contains("exceeds"),
-        "expected payload-length error, got: $e",
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (_) {
+          Expect.fail("No data should be delivered for an oversized frame");
+        },
+        onError: (e) {
+          Expect.isTrue(
+            e.toString().contains("exceeds"),
+            "expected payload-length error, got: $e",
+          );
+          asyncEnd();
+        },
       );
-      asyncEnd();
-    },
-  );
   var message = new Uint8List(200);
   List<int> frame = createFrame(
     true,
@@ -292,11 +291,9 @@ void testMaxPayloadLengthRejectsOversizedFrame() {
   controller.add(frame);
 }
 
-// `maxPayloadLength = 0` (the default) disables the cap, so even very large
-// frames are accepted.
-void testMaxPayloadLengthZeroAcceptsLargeFrame() {
+void testMaxPayloadLengthDefaultAcceptsLargeFrame() {
   asyncStart();
-  var transformer = new _WebSocketProtocolTransformer(false, null, 0);
+  var transformer = new _WebSocketProtocolTransformer(false, null);
   var controller = new StreamController<List<int>>(sync: true);
   var message = new Uint8List(70000)
     ..[0] = 0xAB
@@ -326,5 +323,5 @@ void main() {
   testFragmentedMessages();
   testUnmaskedMessage();
   testMaxPayloadLengthRejectsOversizedFrame();
-  testMaxPayloadLengthZeroAcceptsLargeFrame();
+  testMaxPayloadLengthDefaultAcceptsLargeFrame();
 }
