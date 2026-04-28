@@ -191,7 +191,6 @@ namespace dart {
   V(FfiLibrary, ::, _checkNotDeeplyImmutable, CheckNotDeeplyImmutable,         \
     0x34e4da90)                                                                \
   V(InternalLibrary, ClassID, getID, ClassIDgetID, 0xdc6e70ca)                 \
-  V(InternalLibrary, ::, _nativeEffect, NativeEffect, 0x61c2f399)              \
   V(InternalLibrary, ::, reachabilityFence, ReachabilityFence, 0x72f213bf)     \
   V(InternalLibrary, ::, get:has63BitSmis, Has63BitSmis, 0xf5fe3f31)           \
   V(InternalLibrary, ::, copyRangeFromUint8ListToOneByteString,                \

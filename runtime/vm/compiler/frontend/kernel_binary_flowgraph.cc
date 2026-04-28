@@ -3426,10 +3426,13 @@ Fragment StreamingFlowGraphBuilder::BuildStaticInvocation(TokenPosition* p) {
     return BuildCachableIdempotentCall(position, target);
   }
 
+  if (target.IsExternalEffect()) {
+    // AOT kernels will already have external effect calls removed by TFA.
+    return BuildExternalEffect();
+  }
+
   const auto recognized_kind = target.recognized_kind();
   switch (recognized_kind) {
-    case MethodRecognizer::kNativeEffect:
-      return BuildNativeEffect();
     case MethodRecognizer::kReachabilityFence:
       return BuildReachabilityFence();
     case MethodRecognizer::kFfiCall:
@@ -6003,7 +6006,7 @@ Fragment StreamingFlowGraphBuilder::BuildFunctionNode(
   return instructions;
 }
 
-Fragment StreamingFlowGraphBuilder::BuildNativeEffect() {
+Fragment StreamingFlowGraphBuilder::BuildExternalEffect() {
   const intptr_t argc = ReadUInt();  // Read argument count.
   ASSERT(argc == 1);                 // Native side effect to ignore.
   const intptr_t list_length = ReadListLength();  // Read types list length.

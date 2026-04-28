@@ -23,6 +23,7 @@ enum ElementTag {
   multiplyDefined,
   memberWithTypeArguments,
   elementImpl,
+  libraryImportPrefix,
   typeParameter,
   formalParameter,
 }

@@ -1430,9 +1430,9 @@ library
                   rightBracket: ] @0
                   staticType: List<E>
             #F4 isFinal isOriginDeclaration x (nameOffset:26) (firstTokenOffset:26) (offset:26)
-              element: <testLibrary>::@enum::E::@field::x::@def::0
+              element: <testLibrary>::@enum::E::@field::x
             #F5 isFinal isOriginDeclaration x (nameOffset:44) (firstTokenOffset:44) (offset:44)
-              element: <testLibrary>::@enum::E::@field::x::@def::1
+              element: <testLibrary>::@enum::E::@field::x#1
           constructors
             #F6 isCompleteDeclaration isConst isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:49) (offset:55)
               element: <testLibrary>::@enum::E::@constructor::new
@@ -1447,9 +1447,9 @@ library
             #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
             #F10 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
-              element: <testLibrary>::@enum::E::@getter::x::@def::0
+              element: <testLibrary>::@enum::E::@getter::x
             #F11 isCompleteDeclaration isOriginVariable x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
-              element: <testLibrary>::@enum::E::@getter::x::@def::1
+              element: <testLibrary>::@enum::E::@getter::x#1
   enums
     isSimplyBounded enum E
       reference: <testLibrary>::@enum::E
@@ -1473,15 +1473,15 @@ library
             expression: expression_1
           getter: <testLibrary>::@enum::E::@getter::values
         isFinal isOriginDeclaration x
-          reference: <testLibrary>::@enum::E::@field::x::@def::0
+          reference: <testLibrary>::@enum::E::@field::x
           firstFragment: #F4
           type: int
-          getter: <testLibrary>::@enum::E::@getter::x::@def::0
+          getter: <testLibrary>::@enum::E::@getter::x
         isFinal isOriginDeclaration x
-          reference: <testLibrary>::@enum::E::@field::x::@def::1
+          reference: <testLibrary>::@enum::E::@field::x#1
           firstFragment: #F5
           type: String
-          getter: <testLibrary>::@enum::E::@getter::x::@def::1
+          getter: <testLibrary>::@enum::E::@getter::x#1
       constructors
         isConst isOriginDeclaration new
           reference: <testLibrary>::@enum::E::@constructor::new
@@ -1490,7 +1490,7 @@ library
             #E0 requiredPositional hasImplicitType isFinal this.x
               firstFragment: #F7
               type: int
-              field: <testLibrary>::@enum::E::@field::x::@def::0
+              field: <testLibrary>::@enum::E::@field::x
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
@@ -1504,15 +1504,15 @@ library
           returnType: List<E>
           variable: <testLibrary>::@enum::E::@field::values
         isOriginVariable x
-          reference: <testLibrary>::@enum::E::@getter::x::@def::0
+          reference: <testLibrary>::@enum::E::@getter::x
           firstFragment: #F10
           returnType: int
-          variable: <testLibrary>::@enum::E::@field::x::@def::0
+          variable: <testLibrary>::@enum::E::@field::x
         isOriginVariable x
-          reference: <testLibrary>::@enum::E::@getter::x::@def::1
+          reference: <testLibrary>::@enum::E::@getter::x#1
           firstFragment: #F11
           returnType: String
-          variable: <testLibrary>::@enum::E::@field::x::@def::1
+          variable: <testLibrary>::@enum::E::@field::x#1
 ''');
   }
 
@@ -3752,7 +3752,7 @@ enum E {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getEnum('E')!;
-    var foo = getElementOfReference(E, ['@constructor', 'foo']);
+    var foo = getConstructorElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -3765,7 +3765,7 @@ enum E {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getEnum('E')!;
-    var foo = getElementOfReference(E, ['@field', 'foo']);
+    var foo = getFieldElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -3778,7 +3778,7 @@ enum E {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getEnum('E')!;
-    var foo = getElementOfReference(E, ['@getter', 'foo']);
+    var foo = getGetterElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -3791,7 +3791,7 @@ enum E {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getEnum('E')!;
-    var foo = getElementOfReference(E, ['@method', 'foo']);
+    var foo = getMethodElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -3804,7 +3804,7 @@ enum E{
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getEnum('E')!;
-    var foo = getElementOfReference(E, ['@setter', 'foo']);
+    var foo = getSetterElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -4048,10 +4048,10 @@ library
       element: <testLibrary>
       enums
         #F1 enum <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@enum::0
+          element: <testLibrary>::@enum::#0
           fields
             #F2 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:6) (firstTokenOffset:6) (offset:6)
-              element: <testLibrary>::@enum::0::@field::v
+              element: <testLibrary>::@enum::#0::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -4065,64 +4065,64 @@ library
                     rightParenthesis: ) @0
                   staticType: InvalidType
             #F3 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
-              element: <testLibrary>::@enum::0::@field::values
+              element: <testLibrary>::@enum::#0::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      element: <testLibrary>::@enum::0::@getter::v
+                      element: <testLibrary>::@enum::#0::@getter::v
                       staticType: InvalidType
                   rightBracket: ] @0
                   staticType: List<<null>>
           constructors
             #F4 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
-              element: <testLibrary>::@enum::0::@constructor::new
+              element: <testLibrary>::@enum::#0::@constructor::new
               typeName: null
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
-              element: <testLibrary>::@enum::0::@getter::v
+              element: <testLibrary>::@enum::#0::@getter::v
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
-              element: <testLibrary>::@enum::0::@getter::values
+              element: <testLibrary>::@enum::#0::@getter::values
   enums
     isSimplyBounded enum <null-name>
-      reference: <testLibrary>::@enum::0
+      reference: <testLibrary>::@enum::#0
       firstFragment: #F1
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
-          reference: <testLibrary>::@enum::0::@field::v
+          reference: <testLibrary>::@enum::#0::@field::v
           firstFragment: #F2
           type: InvalidType
           constantInitializer
             fragment: #F2
             expression: expression_0
-          getter: <testLibrary>::@enum::0::@getter::v
+          getter: <testLibrary>::@enum::#0::@getter::v
         isConst isOriginEnumValues isStatic values
-          reference: <testLibrary>::@enum::0::@field::values
+          reference: <testLibrary>::@enum::#0::@field::values
           firstFragment: #F3
           type: List<<null>>
           constantInitializer
             fragment: #F3
             expression: expression_1
-          getter: <testLibrary>::@enum::0::@getter::values
+          getter: <testLibrary>::@enum::#0::@getter::values
       constructors
         isConst isOriginImplicitDefault new
-          reference: <testLibrary>::@enum::0::@constructor::new
+          reference: <testLibrary>::@enum::#0::@constructor::new
           firstFragment: #F4
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
-          reference: <testLibrary>::@enum::0::@getter::v
+          reference: <testLibrary>::@enum::#0::@getter::v
           firstFragment: #F5
           returnType: InvalidType
-          variable: <testLibrary>::@enum::0::@field::v
+          variable: <testLibrary>::@enum::#0::@field::v
         isOriginVariable isStatic values
-          reference: <testLibrary>::@enum::0::@getter::values
+          reference: <testLibrary>::@enum::#0::@getter::values
           firstFragment: #F6
           returnType: List<<null>>
-          variable: <testLibrary>::@enum::0::@field::values
+          variable: <testLibrary>::@enum::#0::@field::values
 ''');
   }
 
@@ -5620,7 +5620,7 @@ library
                     rightParenthesis: ) @0
                   staticType: E
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
-              element: <testLibrary>::@enum::E::@field::0
+              element: <testLibrary>::@enum::E::@field::#0
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
@@ -5657,7 +5657,7 @@ library
             #F6 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@enum::E::@getter::v
             #F7 isCompleteDeclaration isOriginVariable isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-              element: <testLibrary>::@enum::E::@getter::1
+              element: <testLibrary>::@enum::E::@getter::#1
             #F8 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
               element: <testLibrary>::@enum::E::@getter::values
   enums
@@ -5675,13 +5675,13 @@ library
             expression: expression_0
           getter: <testLibrary>::@enum::E::@getter::v
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer <null-name>
-          reference: <testLibrary>::@enum::E::@field::0
+          reference: <testLibrary>::@enum::E::@field::#0
           firstFragment: #F3
           type: E
           constantInitializer
             fragment: #F3
             expression: expression_1
-          getter: <testLibrary>::@enum::E::@getter::1
+          getter: <testLibrary>::@enum::E::@getter::#1
         isConst isOriginEnumValues isStatic values
           reference: <testLibrary>::@enum::E::@field::values
           firstFragment: #F4
@@ -5702,10 +5702,10 @@ library
           returnType: E
           variable: <testLibrary>::@enum::E::@field::v
         isOriginVariable isStatic <null-name>
-          reference: <testLibrary>::@enum::E::@getter::1
+          reference: <testLibrary>::@enum::E::@getter::#1
           firstFragment: #F7
           returnType: E
-          variable: <testLibrary>::@enum::E::@field::0
+          variable: <testLibrary>::@enum::E::@field::#0
         isOriginVariable isStatic values
           reference: <testLibrary>::@enum::E::@getter::values
           firstFragment: #F8
@@ -11065,7 +11065,7 @@ library
           firstFragment: #F9
           returnType: List<A>
           variable: <testLibrary>::@enum::A::@field::values
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@enum::A
   exportNamespace
     A: <testLibrary>::@enum::A
@@ -11098,10 +11098,10 @@ library
       element: <testLibrary>
       enums
         #F1 isAugmentation enum A (nameOffset:13) (firstTokenOffset:0) (offset:13)
-          element: <testLibrary>::@enum::A::@def::0
+          element: <testLibrary>::@enum::A
           fields
             #F2 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-              element: <testLibrary>::@enum::A::@def::0::@field::values
+              element: <testLibrary>::@enum::A::@field::values
               initializer: expression_0
                 ListLiteral
                   leftBracket: [ @0
@@ -11109,136 +11109,136 @@ library
                   staticType: List<A>
           constructors
             #F3 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-              element: <testLibrary>::@enum::A::@def::0::@constructor::new
+              element: <testLibrary>::@enum::A::@constructor::new
               typeName: A
           getters
             #F4 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
-              element: <testLibrary>::@enum::A::@def::0::@getter::values
+              element: <testLibrary>::@enum::A::@getter::values
           methods
             #F5 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
-              element: <testLibrary>::@enum::A::@def::0::@method::foo1
+              element: <testLibrary>::@enum::A::@method::foo1
         #F6 enum A (nameOffset:43) (firstTokenOffset:38) (offset:43)
-          element: <testLibrary>::@enum::A::@def::1
+          element: <testLibrary>::@enum::A#1
           nextFragment: #F7
           fields
             #F8 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:49) (firstTokenOffset:49) (offset:49)
-              element: <testLibrary>::@enum::A::@def::1::@field::v
+              element: <testLibrary>::@enum::A#1::@field::v
               initializer: expression_1
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element: <testLibrary>::@enum::A::@def::0
+                      element: <testLibrary>::@enum::A
                       type: A
-                    element: <testLibrary>::@enum::A::@def::0::@constructor::new
+                    element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
             #F9 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
-              element: <testLibrary>::@enum::A::@def::1::@field::values
+              element: <testLibrary>::@enum::A#1::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      element: <testLibrary>::@enum::A::@def::1::@getter::v
+                      element: <testLibrary>::@enum::A#1::@getter::v
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
           constructors
             #F10 isConst isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
-              element: <testLibrary>::@enum::A::@def::1::@constructor::new
+              element: <testLibrary>::@enum::A#1::@constructor::new
               typeName: A
           getters
             #F11 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:49)
-              element: <testLibrary>::@enum::A::@def::1::@getter::v
+              element: <testLibrary>::@enum::A#1::@getter::v
             #F12 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
-              element: <testLibrary>::@enum::A::@def::1::@getter::values
+              element: <testLibrary>::@enum::A#1::@getter::values
           methods
             #F13 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:59) (firstTokenOffset:54) (offset:59)
-              element: <testLibrary>::@enum::A::@def::1::@method::foo2
+              element: <testLibrary>::@enum::A#1::@method::foo2
         #F7 isAugmentation enum A (nameOffset:85) (firstTokenOffset:72) (offset:85)
-          element: <testLibrary>::@enum::A::@def::1
+          element: <testLibrary>::@enum::A#1
           previousFragment: #F6
           methods
             #F14 isCompleteDeclaration isOriginDeclaration foo3 (nameOffset:97) (firstTokenOffset:92) (offset:97)
-              element: <testLibrary>::@enum::A::@def::1::@method::foo3
+              element: <testLibrary>::@enum::A#1::@method::foo3
   enums
     isSimplyBounded enum A
-      reference: <testLibrary>::@enum::A::@def::0
+      reference: <testLibrary>::@enum::A
       firstFragment: #F1
       supertype: Enum
       fields
         isConst isOriginEnumValues isStatic values
-          reference: <testLibrary>::@enum::A::@def::0::@field::values
+          reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F2
           type: List<A>
           constantInitializer
             fragment: #F2
             expression: expression_0
-          getter: <testLibrary>::@enum::A::@def::0::@getter::values
+          getter: <testLibrary>::@enum::A::@getter::values
       constructors
         isConst isOriginImplicitDefault new
-          reference: <testLibrary>::@enum::A::@def::0::@constructor::new
+          reference: <testLibrary>::@enum::A::@constructor::new
           firstFragment: #F3
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic values
-          reference: <testLibrary>::@enum::A::@def::0::@getter::values
+          reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F4
           returnType: List<A>
-          variable: <testLibrary>::@enum::A::@def::0::@field::values
+          variable: <testLibrary>::@enum::A::@field::values
       methods
         isOriginDeclaration foo1
-          reference: <testLibrary>::@enum::A::@def::0::@method::foo1
+          reference: <testLibrary>::@enum::A::@method::foo1
           firstFragment: #F5
           returnType: void
     isSimplyBounded enum A
-      reference: <testLibrary>::@enum::A::@def::1
+      reference: <testLibrary>::@enum::A#1
       firstFragment: #F6
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
-          reference: <testLibrary>::@enum::A::@def::1::@field::v
+          reference: <testLibrary>::@enum::A#1::@field::v
           firstFragment: #F8
           type: A
           constantInitializer
             fragment: #F8
             expression: expression_1
-          getter: <testLibrary>::@enum::A::@def::1::@getter::v
+          getter: <testLibrary>::@enum::A#1::@getter::v
         isConst isOriginEnumValues isStatic values
-          reference: <testLibrary>::@enum::A::@def::1::@field::values
+          reference: <testLibrary>::@enum::A#1::@field::values
           firstFragment: #F9
           type: List<A>
           constantInitializer
             fragment: #F9
             expression: expression_2
-          getter: <testLibrary>::@enum::A::@def::1::@getter::values
+          getter: <testLibrary>::@enum::A#1::@getter::values
       constructors
         isConst isOriginImplicitDefault new
-          reference: <testLibrary>::@enum::A::@def::1::@constructor::new
+          reference: <testLibrary>::@enum::A#1::@constructor::new
           firstFragment: #F10
           superConstructor: dart:core::@class::Enum::@constructor::new
       getters
         isOriginVariable isStatic v
-          reference: <testLibrary>::@enum::A::@def::1::@getter::v
+          reference: <testLibrary>::@enum::A#1::@getter::v
           firstFragment: #F11
           returnType: A
-          variable: <testLibrary>::@enum::A::@def::1::@field::v
+          variable: <testLibrary>::@enum::A#1::@field::v
         isOriginVariable isStatic values
-          reference: <testLibrary>::@enum::A::@def::1::@getter::values
+          reference: <testLibrary>::@enum::A#1::@getter::values
           firstFragment: #F12
           returnType: List<A>
-          variable: <testLibrary>::@enum::A::@def::1::@field::values
+          variable: <testLibrary>::@enum::A#1::@field::values
       methods
         isOriginDeclaration foo2
-          reference: <testLibrary>::@enum::A::@def::1::@method::foo2
+          reference: <testLibrary>::@enum::A#1::@method::foo2
           firstFragment: #F13
           returnType: void
         isOriginDeclaration foo3
-          reference: <testLibrary>::@enum::A::@def::1::@method::foo3
+          reference: <testLibrary>::@enum::A#1::@method::foo3
           firstFragment: #F14
           returnType: void
 ''');
@@ -18385,44 +18385,44 @@ library
           element: <testLibrary>::@class::A
       enums
         #F2 enum A (nameOffset:5) (firstTokenOffset:0) (offset:5)
-          element: <testLibrary>::@enum::A::@def::0
+          element: <testLibrary>::@enum::A
           fields
             #F3 hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic v (nameOffset:8) (firstTokenOffset:8) (offset:8)
-              element: <testLibrary>::@enum::A::@def::0::@field::v
+              element: <testLibrary>::@enum::A::@field::v
               initializer: expression_0
                 InstanceCreationExpression
                   constructorName: ConstructorName
                     type: NamedType
                       name: A @-1
-                      element: <testLibrary>::@enum::A::@def::0
+                      element: <testLibrary>::@enum::A
                       type: A
-                    element: <testLibrary>::@enum::A::@def::0::@constructor::new
+                    element: <testLibrary>::@enum::A::@constructor::new
                   argumentList: ArgumentList
                     leftParenthesis: ( @0
                     rightParenthesis: ) @0
                   staticType: A
             #F4 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@def::0::@field::values
+              element: <testLibrary>::@enum::A::@field::values
               initializer: expression_1
                 ListLiteral
                   leftBracket: [ @0
                   elements
                     SimpleIdentifier
                       token: v @-1
-                      element: <testLibrary>::@enum::A::@def::0::@getter::v
+                      element: <testLibrary>::@enum::A::@getter::v
                       staticType: A
                   rightBracket: ] @0
                   staticType: List<A>
           getters
             #F5 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
-              element: <testLibrary>::@enum::A::@def::0::@getter::v
+              element: <testLibrary>::@enum::A::@getter::v
             #F6 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:5)
-              element: <testLibrary>::@enum::A::@def::0::@getter::values
+              element: <testLibrary>::@enum::A::@getter::values
         #F7 isAugmentation enum A (nameOffset:44) (firstTokenOffset:31) (offset:44)
-          element: <testLibrary>::@enum::A::@def::1
+          element: <testLibrary>::@enum::A#1
           fields
             #F8 isConst isOriginEnumValues isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
-              element: <testLibrary>::@enum::A::@def::1::@field::values
+              element: <testLibrary>::@enum::A#1::@field::values
               initializer: expression_2
                 ListLiteral
                   leftBracket: [ @0
@@ -18430,7 +18430,7 @@ library
                   staticType: List<A>
           getters
             #F9 isCompleteDeclaration isOriginVariable isStatic values (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
-              element: <testLibrary>::@enum::A::@def::1::@getter::values
+              element: <testLibrary>::@enum::A#1::@getter::values
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -18438,57 +18438,57 @@ library
       previousFragmentOfDifferentKind: #F2
   enums
     isSimplyBounded enum A
-      reference: <testLibrary>::@enum::A::@def::0
+      reference: <testLibrary>::@enum::A
       firstFragment: #F2
       supertype: Enum
       fields
         hasImplicitType hasInitializer isConst isEnumConstant isOriginDeclaration isStatic isTypeInferredFromInitializer v
-          reference: <testLibrary>::@enum::A::@def::0::@field::v
+          reference: <testLibrary>::@enum::A::@field::v
           firstFragment: #F3
           type: A
           constantInitializer
             fragment: #F3
             expression: expression_0
-          getter: <testLibrary>::@enum::A::@def::0::@getter::v
+          getter: <testLibrary>::@enum::A::@getter::v
         isConst isOriginEnumValues isStatic values
-          reference: <testLibrary>::@enum::A::@def::0::@field::values
+          reference: <testLibrary>::@enum::A::@field::values
           firstFragment: #F4
           type: List<A>
           constantInitializer
             fragment: #F4
             expression: expression_1
-          getter: <testLibrary>::@enum::A::@def::0::@getter::values
+          getter: <testLibrary>::@enum::A::@getter::values
       getters
         isOriginVariable isStatic v
-          reference: <testLibrary>::@enum::A::@def::0::@getter::v
+          reference: <testLibrary>::@enum::A::@getter::v
           firstFragment: #F5
           returnType: A
-          variable: <testLibrary>::@enum::A::@def::0::@field::v
+          variable: <testLibrary>::@enum::A::@field::v
         isOriginVariable isStatic values
-          reference: <testLibrary>::@enum::A::@def::0::@getter::values
+          reference: <testLibrary>::@enum::A::@getter::values
           firstFragment: #F6
           returnType: List<A>
-          variable: <testLibrary>::@enum::A::@def::0::@field::values
+          variable: <testLibrary>::@enum::A::@field::values
     isSimplyBounded enum A
-      reference: <testLibrary>::@enum::A::@def::1
+      reference: <testLibrary>::@enum::A#1
       firstFragment: #F7
       previousFragmentOfDifferentKind: #F1
       supertype: Enum
       fields
         isConst isOriginEnumValues isStatic values
-          reference: <testLibrary>::@enum::A::@def::1::@field::values
+          reference: <testLibrary>::@enum::A#1::@field::values
           firstFragment: #F8
           type: List<A>
           constantInitializer
             fragment: #F8
             expression: expression_2
-          getter: <testLibrary>::@enum::A::@def::1::@getter::values
+          getter: <testLibrary>::@enum::A#1::@getter::values
       getters
         isOriginVariable isStatic values
-          reference: <testLibrary>::@enum::A::@def::1::@getter::values
+          reference: <testLibrary>::@enum::A#1::@getter::values
           firstFragment: #F9
           returnType: List<A>
-          variable: <testLibrary>::@enum::A::@def::1::@field::values
+          variable: <testLibrary>::@enum::A#1::@field::values
 ''');
   }
 

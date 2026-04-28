@@ -2,13 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/type_system_base.dart';
-import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,14 +15,7 @@ main() {
 }
 
 @reflectiveTest
-class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
-    with StringTypes {
-  @override
-  void setUp() {
-    super.setUp();
-    defineStringTypes();
-  }
-
+class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest {
   test_dynamic() {
     _equal(parseType('dynamic'), parseType('dynamic'));
     _notEqual(parseType('dynamic'), parseType('void'));
@@ -138,39 +129,13 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
   }
 
   test_interfaceType_typeArguments() {
-    void equal(TypeImpl T1, TypeImpl T2) {
-      _equal(
-        typeProvider.listElement.instantiateImpl(
-          typeArguments: [T1],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-        typeProvider.listElement.instantiateImpl(
-          typeArguments: [T2],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-      );
-    }
+    _notEqual2('List<int>', 'List<bool>');
 
-    void notEqual(TypeImpl T1, TypeImpl T2) {
-      _notEqual(
-        typeProvider.listElement.instantiateImpl(
-          typeArguments: [T1],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-        typeProvider.listElement.instantiateImpl(
-          typeArguments: [T2],
-          nullabilitySuffix: NullabilitySuffix.none,
-        ),
-      );
-    }
+    _equal2('List<int>', 'List<int>');
+    _notEqual2('List<int>', 'List<int?>');
 
-    notEqual(parseType('int'), parseType('bool'));
-
-    equal(parseType('int'), parseType('int'));
-    notEqual(parseType('int'), parseType('int?'));
-
-    notEqual(parseType('int?'), parseType('int'));
-    equal(parseType('int?'), parseType('int?'));
+    _notEqual2('List<int?>', 'List<int>');
+    _equal2('List<int?>', 'List<int?>');
   }
 
   test_never() {
@@ -233,8 +198,8 @@ class RuntimeTypeEqualityTypeTest extends AbstractTypeSystemTest
     if (result != expected) {
       fail('''
 Expected ${expected ? 'equal' : 'not equal'}.
-T1: ${typeString(T1)}
-T2: ${typeString(T2)}
+T1: $T1
+T2: $T2
 ''');
     }
 
@@ -242,8 +207,8 @@ T2: ${typeString(T2)}
     if (result != expected) {
       fail('''
 Expected ${expected ? 'equal' : 'not equal'}.
-T1: ${typeString(T1)}
-T2: ${typeString(T2)}
+T1: $T1
+T2: $T2
 ''');
     }
   }
@@ -253,7 +218,7 @@ T2: ${typeString(T2)}
   }
 
   void _equal2(String T1, String T2) {
-    _equal(typeOfString(T1), typeOfString(T2));
+    _equal(parseType(T1), parseType(T2));
   }
 
   void _notEqual(TypeImpl T1, TypeImpl T2) {
@@ -261,6 +226,6 @@ T2: ${typeString(T2)}
   }
 
   void _notEqual2(String T1, String T2) {
-    _notEqual(typeOfString(T1), typeOfString(T2));
+    _notEqual(parseType(T1), parseType(T2));
   }
 }

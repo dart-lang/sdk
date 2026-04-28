@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -110,11 +109,6 @@ class ResolveToBoundTest extends AbstractTypeSystemTest {
 
   void _check(TypeImpl type, String expectedStr) {
     var result = typeSystem.resolveToBound(type);
-    var resultStr = _typeString(result);
-    expect(resultStr, expectedStr);
-  }
-
-  String _typeString(DartType type) {
-    return type.getDisplayString();
+    expect('$result', expectedStr);
   }
 }

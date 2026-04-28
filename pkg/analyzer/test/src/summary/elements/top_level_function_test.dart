@@ -208,6 +208,27 @@ f() => 0;
     expect(f.hasImplicitReturnType, isTrue);
   }
 
+  test_function_loadLibrary_declared() async {
+    var library = await buildLibrary(r'''
+void loadLibrary() {}
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      functions
+        #F1 isCompleteDeclaration isOriginDeclaration isStatic loadLibrary (nameOffset:5) (firstTokenOffset:0) (offset:5)
+          element: <testLibrary>::@function::loadLibrary#1
+  functions
+    isOriginDeclaration isStatic loadLibrary
+      reference: <testLibrary>::@function::loadLibrary#1
+      firstFragment: #F1
+      returnType: void
+''');
+  }
+
   test_function_missingName() async {
     var library = await buildLibrary('''
 () {}
@@ -1236,7 +1257,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1305,7 +1326,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F1
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1641,7 +1662,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1685,7 +1706,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1738,7 +1759,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1782,7 +1803,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1835,7 +1856,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1879,7 +1900,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1923,7 +1944,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -1976,7 +1997,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2020,7 +2041,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2064,7 +2085,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2117,7 +2138,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2170,7 +2191,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2241,7 +2262,7 @@ library
           firstFragment: #F9
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2294,7 +2315,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2347,7 +2368,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2391,7 +2412,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2435,7 +2456,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2488,7 +2509,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2532,7 +2553,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2585,7 +2606,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2629,7 +2650,7 @@ library
           firstFragment: #F3
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2682,7 +2703,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2735,7 +2756,7 @@ library
           firstFragment: #F5
           type: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2778,7 +2799,7 @@ library
         #E0 T
           firstFragment: #F3
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo
@@ -2981,7 +3002,7 @@ library
           firstFragment: #F3
           bound: int
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
   exportNamespace
     foo: <testLibrary>::@function::foo

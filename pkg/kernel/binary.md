@@ -457,7 +457,7 @@ type Procedure extends Member {
   UInt flags (isStatic, isAbstract, isExternal, isConst,
               isExtensionMember, isSynthetic, isInternalImplementation,
               isExtensionTypeMember, hasWeakTearoffReferencePragma, IsLoweredLateField,
-              isErroneous);
+              isErroneous, isExternalEffect);
   Name name;
   List<Expression> annotations;
   MemberReference stubTarget; // May be NullReference.

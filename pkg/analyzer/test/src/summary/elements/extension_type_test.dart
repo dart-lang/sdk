@@ -948,20 +948,20 @@ library
               element: <testLibrary>::@extensionType::A::@field::it
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
-              element: <testLibrary>::@extensionType::A::@constructor::new::@def::0
+              element: <testLibrary>::@extensionType::A::@constructor::new
               typeName: A
               typeNameOffset: 15
               formalParameters
                 #F4 requiredPositional isDeclaring isFinal isOriginDeclaration this.it (nameOffset:21) (firstTokenOffset:17) (offset:21)
-                  element: <testLibrary>::@extensionType::A::@constructor::new::@def::0::@formalParameter::it
+                  element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
             #F5 isCompleteDeclaration isFactory isOriginDeclaration new (nameOffset:<null>) (firstTokenOffset:29) (offset:37)
-              element: <testLibrary>::@extensionType::A::@constructor::new::@def::1
+              element: <testLibrary>::@extensionType::A::@constructor::new#1
               factoryKeywordOffset: 29
               typeName: A
               typeNameOffset: 37
               formalParameters
                 #F6 requiredPositional isOriginDeclaration it (nameOffset:43) (firstTokenOffset:39) (offset:43)
-                  element: <testLibrary>::@extensionType::A::@constructor::new::@def::1::@formalParameter::it
+                  element: <testLibrary>::@extensionType::A::@constructor::new#1::@formalParameter::it
           getters
             #F7 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
               element: <testLibrary>::@extensionType::A::@getter::it
@@ -970,7 +970,7 @@ library
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
       representation: <testLibrary>::@extensionType::A::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new::@def::0
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         isFinal isOriginDeclaringFormalParameter it
@@ -978,10 +978,10 @@ library
           firstFragment: #F2
           type: int
           getter: <testLibrary>::@extensionType::A::@getter::it
-          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@def::0::@formalParameter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
-          reference: <testLibrary>::@extensionType::A::@constructor::new::@def::0
+          reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
           formalParameters
             #E0 requiredPositional isDeclaring isFinal this.it
@@ -989,7 +989,7 @@ library
               type: int
               field: <testLibrary>::@extensionType::A::@field::it
         isExtensionTypeMember isFactory isOriginDeclaration new
-          reference: <testLibrary>::@extensionType::A::@constructor::new::@def::1
+          reference: <testLibrary>::@extensionType::A::@constructor::new#1
           firstFragment: #F5
           formalParameters
             #E1 requiredPositional it
@@ -2127,7 +2127,7 @@ extension type E.foo(int _) {}
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtensionType('E')!;
-    var foo = getElementOfReference(E, ['@constructor', 'foo']);
+    var foo = getConstructorElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -2139,7 +2139,7 @@ extension type E(int _) {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtensionType('E')!;
-    var bar = getElementOfReference(E, ['@field', 'bar']);
+    var bar = getFieldElementOfReference(E, 'bar');
     expect(bar.name, 'bar');
   }
 
@@ -2151,7 +2151,7 @@ extension type E(int _) {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtensionType('E')!;
-    var foo = getElementOfReference(E, ['@getter', 'foo']);
+    var foo = getGetterElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -2163,7 +2163,7 @@ extension type E(int _) {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtensionType('E')!;
-    var foo = getElementOfReference(E, ['@method', 'foo']);
+    var foo = getMethodElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -2175,7 +2175,7 @@ extension type E(int _) {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtensionType('E')!;
-    var foo = getElementOfReference(E, ['@setter', 'foo']);
+    var foo = getSetterElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -2390,33 +2390,33 @@ library
       element: <testLibrary>
       extensionTypes
         #F1 extension type <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@extensionType::0
+          element: <testLibrary>::@extensionType::#0
           fields
             #F2 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
-              element: <testLibrary>::@extensionType::0::@field::it
+              element: <testLibrary>::@extensionType::#0::@field::it
           getters
             #F3 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
-              element: <testLibrary>::@extensionType::0::@getter::it
+              element: <testLibrary>::@extensionType::#0::@getter::it
   extensionTypes
     isSimplyBounded extension type <null-name>
-      reference: <testLibrary>::@extensionType::0
+      reference: <testLibrary>::@extensionType::#0
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::0::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::0::@constructor::new
+      representation: <testLibrary>::@extensionType::#0::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::#0::@constructor::new
       typeErasure: int
       fields
         isFinal isOriginDeclaringFormalParameter it
-          reference: <testLibrary>::@extensionType::0::@field::it
+          reference: <testLibrary>::@extensionType::#0::@field::it
           firstFragment: #F2
           type: int
-          getter: <testLibrary>::@extensionType::0::@getter::it
-          declaringFormalParameter: <testLibrary>::@extensionType::0::@constructor::new::@formalParameter::it
+          getter: <testLibrary>::@extensionType::#0::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::#0::@constructor::new::@formalParameter::it
       getters
         isExtensionTypeMember isOriginVariable it
-          reference: <testLibrary>::@extensionType::0::@getter::it
+          reference: <testLibrary>::@extensionType::#0::@getter::it
           firstFragment: #F3
           returnType: int
-          variable: <testLibrary>::@extensionType::0::@field::it
+          variable: <testLibrary>::@extensionType::#0::@field::it
 ''');
   }
 
@@ -2695,7 +2695,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -2708,20 +2708,20 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
@@ -2733,10 +2733,10 @@ library
               field: <null>
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F5
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -2758,7 +2758,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -2771,20 +2771,20 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
@@ -2796,10 +2796,10 @@ library
               field: <null>
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F5
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -2819,7 +2819,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -2834,20 +2834,20 @@ library
                       staticType: int
           getters
             #F5 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
@@ -2862,10 +2862,10 @@ library
               field: <null>
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F5
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -5631,7 +5631,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -5641,30 +5641,30 @@ library
               typeNameOffset: 15
           getters
             #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F4
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -5686,7 +5686,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -5696,30 +5696,30 @@ library
               typeNameOffset: 31
           getters
             #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F4
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -6162,7 +6162,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -6175,20 +6175,20 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
@@ -6200,10 +6200,10 @@ library
               superConstructorParameter: <null>
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F5
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -6225,7 +6225,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:31) (offset:31)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -6238,20 +6238,20 @@ library
                   element: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
           getters
             #F5 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
@@ -6263,10 +6263,10 @@ library
               superConstructorParameter: <null>
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F5
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -6286,7 +6286,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -6301,20 +6301,20 @@ library
                       staticType: int
           getters
             #F5 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
@@ -6329,10 +6329,10 @@ library
               superConstructorParameter: <null>
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F5
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -6480,7 +6480,7 @@ library
           element: <testLibrary>::@extensionType::A
           fields
             #F2 isFinal isOriginExtensionTypeRecoveryRepresentation <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@field::0
+              element: <testLibrary>::@extensionType::A::@field::#0
           constructors
             #F3 isCompleteDeclaration isOriginDeclaration isPrimary new (nameOffset:<null>) (firstTokenOffset:15) (offset:15)
               element: <testLibrary>::@extensionType::A::@constructor::new
@@ -6490,30 +6490,30 @@ library
               typeNameOffset: 15
           getters
             #F4 isCompleteDeclaration isOriginVariable <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@getter::1
+              element: <testLibrary>::@extensionType::A::@getter::#1
   extensionTypes
     isSimplyBounded extension type A
       reference: <testLibrary>::@extensionType::A
       firstFragment: #F1
-      representation: <testLibrary>::@extensionType::A::@field::0
+      representation: <testLibrary>::@extensionType::A::@field::#0
       primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: InvalidType
       fields
         isFinal isOriginExtensionTypeRecoveryRepresentation <null-name>
-          reference: <testLibrary>::@extensionType::A::@field::0
+          reference: <testLibrary>::@extensionType::A::@field::#0
           firstFragment: #F2
           type: InvalidType
-          getter: <testLibrary>::@extensionType::A::@getter::1
+          getter: <testLibrary>::@extensionType::A::@getter::#1
       constructors
         isExtensionTypeMember isOriginDeclaration isPrimary new
           reference: <testLibrary>::@extensionType::A::@constructor::new
           firstFragment: #F3
       getters
         isExtensionTypeMember isOriginVariable <null-name>
-          reference: <testLibrary>::@extensionType::A::@getter::1
+          reference: <testLibrary>::@extensionType::A::@getter::#1
           firstFragment: #F4
           returnType: InvalidType
-          variable: <testLibrary>::@extensionType::A::@field::0
+          variable: <testLibrary>::@extensionType::A::@field::#0
 ''');
   }
 
@@ -8029,7 +8029,7 @@ library
           firstFragment: #F9
           returnType: int
           variable: <testLibrary>::@extensionType::A::@field::it
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@extensionType::A
   exportNamespace
     A: <testLibrary>::@extensionType::A
@@ -12064,21 +12064,21 @@ library
           element: <testLibrary>::@class::A
       extensionTypes
         #F2 extension type A (nameOffset:15) (firstTokenOffset:0) (offset:15)
-          element: <testLibrary>::@extensionType::A::@def::0
+          element: <testLibrary>::@extensionType::A
           fields
             #F3 isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@def::0::@field::it
+              element: <testLibrary>::@extensionType::A::@field::it
           getters
             #F4 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:15)
-              element: <testLibrary>::@extensionType::A::@def::0::@getter::it
+              element: <testLibrary>::@extensionType::A::@getter::it
         #F5 isAugmentation extension type A (nameOffset:72) (firstTokenOffset:49) (offset:72)
-          element: <testLibrary>::@extensionType::A::@def::1
+          element: <testLibrary>::@extensionType::A#1
           fields
             #F6 isAugmentation isFinal isOriginDeclaringFormalParameter it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
-              element: <testLibrary>::@extensionType::A::@def::1::@field::it
+              element: <testLibrary>::@extensionType::A#1::@field::it
           getters
             #F7 isCompleteDeclaration isOriginVariable it (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
-              element: <testLibrary>::@extensionType::A::@def::1::@getter::it
+              element: <testLibrary>::@extensionType::A#1::@getter::it
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -12086,44 +12086,44 @@ library
       previousFragmentOfDifferentKind: #F2
   extensionTypes
     isSimplyBounded extension type A
-      reference: <testLibrary>::@extensionType::A::@def::0
+      reference: <testLibrary>::@extensionType::A
       firstFragment: #F2
-      representation: <testLibrary>::@extensionType::A::@def::0::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@def::0::@constructor::new
+      representation: <testLibrary>::@extensionType::A::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A::@constructor::new
       typeErasure: int
       fields
         isFinal isOriginDeclaringFormalParameter it
-          reference: <testLibrary>::@extensionType::A::@def::0::@field::it
+          reference: <testLibrary>::@extensionType::A::@field::it
           firstFragment: #F3
           type: int
-          getter: <testLibrary>::@extensionType::A::@def::0::@getter::it
-          declaringFormalParameter: <testLibrary>::@extensionType::A::@def::0::@constructor::new::@formalParameter::it
+          getter: <testLibrary>::@extensionType::A::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A::@constructor::new::@formalParameter::it
       getters
         isExtensionTypeMember isOriginVariable it
-          reference: <testLibrary>::@extensionType::A::@def::0::@getter::it
+          reference: <testLibrary>::@extensionType::A::@getter::it
           firstFragment: #F4
           returnType: int
-          variable: <testLibrary>::@extensionType::A::@def::0::@field::it
+          variable: <testLibrary>::@extensionType::A::@field::it
     isSimplyBounded extension type A
-      reference: <testLibrary>::@extensionType::A::@def::1
+      reference: <testLibrary>::@extensionType::A#1
       firstFragment: #F5
       previousFragmentOfDifferentKind: #F1
-      representation: <testLibrary>::@extensionType::A::@def::1::@field::it
-      primaryConstructor: <testLibrary>::@extensionType::A::@def::1::@constructor::new
+      representation: <testLibrary>::@extensionType::A#1::@field::it
+      primaryConstructor: <testLibrary>::@extensionType::A#1::@constructor::new
       typeErasure: int
       fields
         isFinal isOriginDeclaringFormalParameter it
-          reference: <testLibrary>::@extensionType::A::@def::1::@field::it
+          reference: <testLibrary>::@extensionType::A#1::@field::it
           firstFragment: #F6
           type: int
-          getter: <testLibrary>::@extensionType::A::@def::1::@getter::it
-          declaringFormalParameter: <testLibrary>::@extensionType::A::@def::1::@constructor::new::@formalParameter::it
+          getter: <testLibrary>::@extensionType::A#1::@getter::it
+          declaringFormalParameter: <testLibrary>::@extensionType::A#1::@constructor::new::@formalParameter::it
       getters
         isExtensionTypeMember isOriginVariable it
-          reference: <testLibrary>::@extensionType::A::@def::1::@getter::it
+          reference: <testLibrary>::@extensionType::A#1::@getter::it
           firstFragment: #F7
           returnType: int
-          variable: <testLibrary>::@extensionType::A::@def::1::@field::it
+          variable: <testLibrary>::@extensionType::A#1::@field::it
 ''');
   }
 

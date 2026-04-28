@@ -108,7 +108,7 @@ testFineAfterLibraryAnalyzerHook;
 // TODO(scheglov): Clean up the list of implicitly analyzed files.
 class AnalysisDriver {
   /// The version of data format, should be incremented on every format change.
-  static const int DATA_VERSION = 628;
+  static const int DATA_VERSION = 629;
 
   /// The number of exception contexts allowed to write. Once this field is
   /// zero, we stop writing any new exception contexts in this process.
@@ -893,10 +893,11 @@ class AnalysisDriver {
     // Check if the element is already computed.
     if (_pendingFileChanges.isEmpty) {
       var rootReference = libraryContext.elementFactory.rootReference;
-      var reference = rootReference.getChild('$uriObj');
-      var element = reference.element;
-      if (element is LibraryElementImpl) {
-        return LibraryElementResultImpl(element);
+      if (rootReference.libraryIfExists(uriObj) case var reference?) {
+        var element = reference.element;
+        if (element is LibraryElementImpl) {
+          return LibraryElementResultImpl(element);
+        }
       }
     }
 
@@ -2844,7 +2845,7 @@ class AnalysisDriverTestView {
   Set<String> get loadedLibraryUriSet {
     var elementFactory = driver.libraryContext.elementFactory;
     var libraryReferences = elementFactory.rootReference.children;
-    return libraryReferences.map((e) => e.name).toSet();
+    return libraryReferences.map((e) => e.uriString).toSet();
   }
 
   int get numberOfFilesToAnalyze => driver.numberOfFilesToAnalyze;

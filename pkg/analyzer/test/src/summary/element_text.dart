@@ -8,7 +8,6 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/field_name_non_promotability_info.dart';
 import 'package:analyzer/src/error/inference_error.dart';
-import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -161,18 +160,18 @@ abstract class _AbstractElementWriter {
     }
   }
 
-  void _writeExportedReferences(LibraryElementImpl e) {
-    var exportedReferences = e.exportedReferences.toList();
-    exportedReferences.sortBy((e) => e.reference.toString());
+  void _writeExportEntries(LibraryElementImpl e) {
+    var exportEntries = e.exportEntries.toList();
+    exportEntries.sortBy((e) => e.reference.debugString());
 
-    for (var exported in exportedReferences) {
+    for (var entry in exportEntries) {
       _sink.writeIndentedLine(() {
-        if (exported is ExportedReferenceDeclared) {
+        if (entry.isDeclared) {
           _sink.write('declared ');
-        } else if (exported is ExportedReferenceExported) {
-          _sink.write('exported${exported.locations} ');
+        } else {
+          _sink.write('exported${entry.locations} ');
         }
-        _elementPrinter.writeReference(exported.reference);
+        _elementPrinter.writeReference(entry.reference);
       });
     }
   }
@@ -310,9 +309,9 @@ class _Element2Writer extends _AbstractElementWriter {
       );
 
       if (configuration.withExportScope) {
-        _sink.writelnWithIndent('exportedReferences');
+        _sink.writelnWithIndent('exportEntries');
         _sink.withIndent(() {
-          _writeExportedReferences(e);
+          _writeExportEntries(e);
         });
         _sink.writelnWithIndent('exportNamespace');
         _sink.withIndent(() {

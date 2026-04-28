@@ -8,7 +8,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/type_system_base.dart';
-import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,7 +16,7 @@ main() {
 }
 
 @reflectiveTest
-class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
+class NormalizeTypeTest extends AbstractTypeSystemTest {
   test_functionType_parameter() {
     _check(
       parseType('void Function(FutureOr<Object>)'),
@@ -96,31 +95,23 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   /// `NORM(FutureOr<T>)`
   /// * let S be NORM(T)
   test_futureOr() {
-    void check(TypeImpl T, TypeImpl expected) {
-      var input = typeProvider.futureOrElement.instantiateImpl(
-        typeArguments: [T],
-        nullabilitySuffix: NullabilitySuffix.none,
-      );
-      _check(input, expected);
-    }
-
     // * if S is a top type then S
-    check(parseType('dynamic'), parseType('dynamic'));
-    check(parseType('InvalidType'), parseType('InvalidType'));
-    check(parseType('void'), parseType('void'));
-    check(parseType('Object?'), parseType('Object?'));
+    _check(parseType('FutureOr<dynamic>'), parseType('dynamic'));
+    _check(parseType('FutureOr<InvalidType>'), parseType('InvalidType'));
+    _check(parseType('FutureOr<void>'), parseType('void'));
+    _check(parseType('FutureOr<Object?>'), parseType('Object?'));
 
     // * if S is Object then S
-    check(parseType('Object'), parseType('Object'));
+    _check(parseType('FutureOr<Object>'), parseType('Object'));
 
     // * if S is Never then Future<Never>
-    check(parseType('Never'), parseType('Future<Never>'));
+    _check(parseType('FutureOr<Never>'), parseType('Future<Never>'));
 
     // * if S is Null then Future<Null>?
-    check(parseType('Null'), parseType('Future<Null>?'));
+    _check(parseType('FutureOr<Null>'), parseType('Future<Null>?'));
 
     // * else FutureOr<S>
-    check(parseType('int'), parseType('FutureOr<int>'));
+    _check(parseType('FutureOr<int>'), parseType('FutureOr<int>'));
   }
 
   test_interfaceType() {
@@ -238,7 +229,7 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
 
   void _assertNullability(TypeImpl type, NullabilitySuffix expected) {
     if (type.nullabilitySuffix != expected) {
-      fail('Expected $expected in ${typeString(type)}');
+      fail('Expected $expected in $type');
     }
   }
 
@@ -247,17 +238,14 @@ class NormalizeTypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void _check(TypeImpl T, TypeImpl expected) {
-    var expectedStr = typeString(expected);
-
     var result = typeSystem.normalize(T);
-    var resultStr = typeString(result);
     expect(
       result,
       expected,
       reason:
           '''
-expected: $expectedStr
-actual: $resultStr
+expected: $expected
+actual: $result
 ''',
     );
     _checkFormalParametersIsCovariant(result, expected);
@@ -275,8 +263,8 @@ actual: $resultStr
           fail('''
 parameter1: $parameter1, isCovariant: ${parameter1.isCovariant}
 parameter2: $parameter2, isCovariant: ${parameter2.isCovariant}
-T1: ${typeString(T1)}
-T2: ${typeString(T2)}
+T1: $T1
+T2: $T2
 ''');
         }
         _checkFormalParametersIsCovariant(parameter1.type, parameter2.type);

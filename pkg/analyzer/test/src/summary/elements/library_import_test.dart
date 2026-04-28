@@ -301,7 +301,7 @@ library
       libraryImports
         package:test/a.dart deferred as p (nameOffset:28) (firstTokenOffset:<null>) (offset:28)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @28
 ''');
   }
@@ -326,11 +326,11 @@ library
         dart:async as i2 (nameOffset:70) (firstTokenOffset:<null>) (offset:70)
         dart:async as i3 (nameOffset:117) (firstTokenOffset:<null>) (offset:117)
       prefixes
-        <testLibraryFragment>::@prefix2::i1
+        <testLibraryFragment>::@prefix::i1
           fragments: @23
-        <testLibraryFragment>::@prefix2::i2
+        <testLibraryFragment>::@prefix::i2
           fragments: @70
-        <testLibraryFragment>::@prefix2::i3
+        <testLibraryFragment>::@prefix::i3
           fragments: @117
       libraryExports
         dart:math
@@ -503,7 +503,7 @@ library
       libraryImports
         package:test/a.dart as a (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::a
+        <testLibraryFragment>::@prefix::a
           fragments: @19
       topLevelVariables
         #F1 isOriginDeclaration isStatic c (nameOffset:26) (firstTokenOffset:26) (offset:26)
@@ -557,7 +557,7 @@ library
       libraryImports
         dart:math as <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
       prefixes
-        <testLibraryFragment>::@prefix2::0
+        <testLibraryFragment>::@prefix::#0
           fragments: @null
 ''');
   }
@@ -580,7 +580,7 @@ library
       libraryImports
         package:test/test.dart as p (nameOffset:22) (firstTokenOffset:<null>) (offset:22)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @22
       classes
         #F1 class C (nameOffset:31) (firstTokenOffset:25) (offset:31)
@@ -695,6 +695,44 @@ library
           type: Stream<dynamic>
       returnType: void
       variable: <testLibrary>::@topLevelVariable::s
+''');
+  }
+
+  test_import_show_loadLibrary_declared() async {
+    newFile('$testPackageLibPath/a.dart', 'void loadLibrary() {}');
+
+    var library = await buildLibrary('''
+import "a.dart" show loadLibrary;
+final x = loadLibrary;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+          combinators
+            show: loadLibrary
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:40) (firstTokenOffset:40) (offset:40)
+          element: <testLibrary>::@topLevelVariable::x
+      getters
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+          element: <testLibrary>::@getter::x
+  topLevelVariables
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F1
+      type: void Function()
+      getter: <testLibrary>::@getter::x
+  getters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F2
+      returnType: void Function()
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -940,9 +978,9 @@ library
         dart:collection as p2 (nameOffset:55) (firstTokenOffset:<null>) (offset:55)
         dart:math as p1 (nameOffset:81) (firstTokenOffset:<null>) (offset:81)
       prefixes
-        <testLibraryFragment>::@prefix2::p1
+        <testLibraryFragment>::@prefix::p1
           fragments: @23 @81
-        <testLibraryFragment>::@prefix2::p2
+        <testLibraryFragment>::@prefix::p2
           fragments: @55
 ''');
   }

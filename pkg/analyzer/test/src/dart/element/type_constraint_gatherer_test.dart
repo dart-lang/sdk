@@ -497,52 +497,47 @@ class TypeConstraintGathererTest extends AbstractTypeSystemTest {
   }
 
   void test_interfaceType_topMerge() {
-    var testClassIndex = 0;
+    var classes = <ClassSpec>[];
 
-    void check1(
+    void addClasses(
+      int index,
       String extendsTypeArgument,
       String implementsTypeArgument,
-      String expectedConstraint,
     ) {
-      buildTestLibrary(
-        classes: [
-          ClassSpec('class A<T>'),
-          ClassSpec('class B<T> extends A<T>'),
-          ClassSpec(
-            'class ${'C$testClassIndex'} extends ${'A<$extendsTypeArgument>'} '
-            'implements ${'B<$implementsTypeArgument>'}',
-          ),
-        ],
-      );
-      testClassIndex++;
+      classes.addAll([
+        ClassSpec('class A$index<T>'),
+        ClassSpec('class B$index<T> extends A$index<T>'),
+        ClassSpec(
+          'class C$index extends A$index<$extendsTypeArgument> '
+          'implements B$index<$implementsTypeArgument>',
+        ),
+      ]);
+    }
 
-      // class B<T> extends A<T> {}
-      // class Cx extends A<> implements B<> {}
-      var C = classElement('C${testClassIndex - 1}');
+    addClasses(0, 'Object?', 'dynamic');
+    addClasses(1, 'dynamic', 'Object?');
+    addClasses(2, 'void', 'Object?');
+    addClasses(3, 'Object?', 'void');
 
+    buildTestLibrary(classes: classes);
+
+    void checkMatch(int index, String expectedConstraint) {
       withTypeParameterScope('T', (scope) {
         var T = scope.typeParameter('T');
         _checkMatch(
           [T],
-          parseType(C.name!),
-          scope.parseType('A<T>'),
+          parseType('C$index'),
+          scope.parseType('A$index<T>'),
           true,
           [expectedConstraint],
         );
       });
     }
 
-    void check(
-      String typeArgument1,
-      String typeArgument2,
-      String expectedConstraint,
-    ) {
-      check1(typeArgument1, typeArgument2, expectedConstraint);
-      check1(typeArgument2, typeArgument1, expectedConstraint);
-    }
-
-    check('Object?', 'dynamic', 'Object? <: T <: _');
-    check('void', 'Object?', 'Object? <: T <: _');
+    checkMatch(0, 'Object? <: T <: _');
+    checkMatch(1, 'Object? <: T <: _');
+    checkMatch(2, 'Object? <: T <: _');
+    checkMatch(3, 'Object? <: T <: _');
   }
 
   /// If `P` is `FutureOr<P0>` the match holds under constraint set `C1 + C2`:

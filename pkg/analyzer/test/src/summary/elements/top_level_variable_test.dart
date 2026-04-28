@@ -891,68 +891,68 @@ library
       element: <testLibrary>
       topLevelVariables
         #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo::@def::0
+          element: <testLibrary>::@topLevelVariable::foo
         #F2 hasInitializer isOriginDeclaration isStatic foo (nameOffset:17) (firstTokenOffset:17) (offset:17)
-          element: <testLibrary>::@topLevelVariable::foo::@def::1
+          element: <testLibrary>::@topLevelVariable::foo#1
       getters
         #F3 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo::@def::0
+          element: <testLibrary>::@getter::foo
         #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
-          element: <testLibrary>::@getter::foo::@def::1
+          element: <testLibrary>::@getter::foo#1
       setters
         #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo::@def::0
+          element: <testLibrary>::@setter::foo
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@def::0::@formalParameter::value
+              element: <testLibrary>::@setter::foo::@formalParameter::value
         #F7 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
-          element: <testLibrary>::@setter::foo::@def::1
+          element: <testLibrary>::@setter::foo#1
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
-              element: <testLibrary>::@setter::foo::@def::1::@formalParameter::value
+              element: <testLibrary>::@setter::foo#1::@formalParameter::value
   topLevelVariables
     hasInitializer isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::0
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
-      getter: <testLibrary>::@getter::foo::@def::0
-      setter: <testLibrary>::@setter::foo::@def::0
+      getter: <testLibrary>::@getter::foo
+      setter: <testLibrary>::@setter::foo
     hasInitializer isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::1
+      reference: <testLibrary>::@topLevelVariable::foo#1
       firstFragment: #F2
       type: int
-      getter: <testLibrary>::@getter::foo::@def::1
-      setter: <testLibrary>::@setter::foo::@def::1
+      getter: <testLibrary>::@getter::foo#1
+      setter: <testLibrary>::@setter::foo#1
   getters
     isOriginVariable isStatic foo
-      reference: <testLibrary>::@getter::foo::@def::0
+      reference: <testLibrary>::@getter::foo
       firstFragment: #F3
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
+      variable: <testLibrary>::@topLevelVariable::foo
     isOriginVariable isStatic foo
-      reference: <testLibrary>::@getter::foo::@def::1
+      reference: <testLibrary>::@getter::foo#1
       firstFragment: #F4
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::1
+      variable: <testLibrary>::@topLevelVariable::foo#1
   setters
     isOriginVariable isStatic foo
-      reference: <testLibrary>::@setter::foo::@def::0
+      reference: <testLibrary>::@setter::foo
       firstFragment: #F5
       formalParameters
         #E0 requiredPositional value
           firstFragment: #F6
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
+      variable: <testLibrary>::@topLevelVariable::foo
     isOriginVariable isStatic foo
-      reference: <testLibrary>::@setter::foo::@def::1
+      reference: <testLibrary>::@setter::foo#1
       firstFragment: #F7
       formalParameters
         #E1 requiredPositional value
           firstFragment: #F8
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::1
+      variable: <testLibrary>::@topLevelVariable::foo#1
 ''');
   }
 
@@ -970,14 +970,14 @@ library
       element: <testLibrary>
       topLevelVariables
         #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo::@def::0
+          element: <testLibrary>::@topLevelVariable::foo
         #F2 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:21)
-          element: <testLibrary>::@topLevelVariable::foo::@def::1
+          element: <testLibrary>::@topLevelVariable::foo#1
       getters
         #F3 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@getter::foo::@def::0
+          element: <testLibrary>::@getter::foo
         #F4 isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:21) (firstTokenOffset:13) (offset:21)
-          element: <testLibrary>::@getter::foo::@def::1
+          element: <testLibrary>::@getter::foo#1
       setters
         #F5 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::foo
@@ -986,27 +986,27 @@ library
               element: <testLibrary>::@setter::foo::@formalParameter::value
   topLevelVariables
     hasInitializer isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::0
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
-      getter: <testLibrary>::@getter::foo::@def::0
+      getter: <testLibrary>::@getter::foo
       setter: <testLibrary>::@setter::foo
     isOriginGetterSetter isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::1
+      reference: <testLibrary>::@topLevelVariable::foo#1
       firstFragment: #F2
       type: int
-      getter: <testLibrary>::@getter::foo::@def::1
+      getter: <testLibrary>::@getter::foo#1
   getters
     isOriginVariable isStatic foo
-      reference: <testLibrary>::@getter::foo::@def::0
+      reference: <testLibrary>::@getter::foo
       firstFragment: #F3
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
+      variable: <testLibrary>::@topLevelVariable::foo
     isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@getter::foo::@def::1
+      reference: <testLibrary>::@getter::foo#1
       firstFragment: #F4
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::1
+      variable: <testLibrary>::@topLevelVariable::foo#1
   setters
     isOriginVariable isStatic foo
       reference: <testLibrary>::@setter::foo
@@ -1016,7 +1016,7 @@ library
           firstFragment: #F6
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
+      variable: <testLibrary>::@topLevelVariable::foo
 ''');
   }
 
@@ -1034,60 +1034,60 @@ library
       element: <testLibrary>
       topLevelVariables
         #F1 hasInitializer isOriginDeclaration isStatic foo (nameOffset:4) (firstTokenOffset:4) (offset:4)
-          element: <testLibrary>::@topLevelVariable::foo::@def::0
+          element: <testLibrary>::@topLevelVariable::foo
         #F2 isOriginGetterSetter isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
-          element: <testLibrary>::@topLevelVariable::foo::@def::1
+          element: <testLibrary>::@topLevelVariable::foo#1
       getters
         #F3 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::foo
       setters
         #F4 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-          element: <testLibrary>::@setter::foo::@def::0
+          element: <testLibrary>::@setter::foo
           formalParameters
             #F5 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
-              element: <testLibrary>::@setter::foo::@def::0::@formalParameter::value
+              element: <testLibrary>::@setter::foo::@formalParameter::value
         #F6 hasImplicitReturnType isCompleteDeclaration isOriginDeclaration isStatic foo (nameOffset:17) (firstTokenOffset:13) (offset:17)
-          element: <testLibrary>::@setter::foo::@def::1
+          element: <testLibrary>::@setter::foo#1
           formalParameters
             #F7 requiredPositional isOriginDeclaration _ (nameOffset:25) (firstTokenOffset:21) (offset:25)
-              element: <testLibrary>::@setter::foo::@def::1::@formalParameter::_
+              element: <testLibrary>::@setter::foo#1::@formalParameter::_
   topLevelVariables
     hasInitializer isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::0
+      reference: <testLibrary>::@topLevelVariable::foo
       firstFragment: #F1
       type: int
       getter: <testLibrary>::@getter::foo
-      setter: <testLibrary>::@setter::foo::@def::0
+      setter: <testLibrary>::@setter::foo
     isOriginGetterSetter isStatic foo
-      reference: <testLibrary>::@topLevelVariable::foo::@def::1
+      reference: <testLibrary>::@topLevelVariable::foo#1
       firstFragment: #F2
       type: int
-      setter: <testLibrary>::@setter::foo::@def::1
+      setter: <testLibrary>::@setter::foo#1
   getters
     isOriginVariable isStatic foo
       reference: <testLibrary>::@getter::foo
       firstFragment: #F3
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
+      variable: <testLibrary>::@topLevelVariable::foo
   setters
     isOriginVariable isStatic foo
-      reference: <testLibrary>::@setter::foo::@def::0
+      reference: <testLibrary>::@setter::foo
       firstFragment: #F4
       formalParameters
         #E0 requiredPositional value
           firstFragment: #F5
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::0
+      variable: <testLibrary>::@topLevelVariable::foo
     isOriginDeclaration isStatic foo
-      reference: <testLibrary>::@setter::foo::@def::1
+      reference: <testLibrary>::@setter::foo#1
       firstFragment: #F6
       formalParameters
         #E1 requiredPositional _
           firstFragment: #F7
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::foo::@def::1
+      variable: <testLibrary>::@topLevelVariable::foo#1
 ''');
   }
 
@@ -2145,12 +2145,12 @@ library
         #F1 isOriginDeclaration isStatic a (nameOffset:8) (firstTokenOffset:8) (offset:8)
           element: <testLibrary>::@topLevelVariable::a
         #F2 isOriginDeclaration isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:10) (offset:10)
-          element: <testLibrary>::@topLevelVariable::0
+          element: <testLibrary>::@topLevelVariable::#0
       getters
         #F3 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@getter::a
         #F4 isCompleteDeclaration isOriginVariable isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@getter::1
+          element: <testLibrary>::@getter::#1
       setters
         #F5 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
           element: <testLibrary>::@setter::a
@@ -2158,10 +2158,10 @@ library
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:8)
               element: <testLibrary>::@setter::a::@formalParameter::value
         #F7 isCompleteDeclaration isOriginVariable isStatic <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-          element: <testLibrary>::@setter::2
+          element: <testLibrary>::@setter::#2
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
-              element: <testLibrary>::@setter::2::@formalParameter::value
+              element: <testLibrary>::@setter::#2::@formalParameter::value
   topLevelVariables
     isOriginDeclaration isStatic a
       reference: <testLibrary>::@topLevelVariable::a
@@ -2170,11 +2170,11 @@ library
       getter: <testLibrary>::@getter::a
       setter: <testLibrary>::@setter::a
     isOriginDeclaration isStatic <null-name>
-      reference: <testLibrary>::@topLevelVariable::0
+      reference: <testLibrary>::@topLevelVariable::#0
       firstFragment: #F2
       type: Object?
-      getter: <testLibrary>::@getter::1
-      setter: <testLibrary>::@setter::2
+      getter: <testLibrary>::@getter::#1
+      setter: <testLibrary>::@setter::#2
   getters
     isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
@@ -2182,10 +2182,10 @@ library
       returnType: Object?
       variable: <testLibrary>::@topLevelVariable::a
     isOriginVariable isStatic <null-name>
-      reference: <testLibrary>::@getter::1
+      reference: <testLibrary>::@getter::#1
       firstFragment: #F4
       returnType: Object?
-      variable: <testLibrary>::@topLevelVariable::0
+      variable: <testLibrary>::@topLevelVariable::#0
   setters
     isOriginVariable isStatic a
       reference: <testLibrary>::@setter::a
@@ -2197,14 +2197,14 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::a
     isOriginVariable isStatic <null-name>
-      reference: <testLibrary>::@setter::2
+      reference: <testLibrary>::@setter::#2
       firstFragment: #F7
       formalParameters
         #E1 requiredPositional value
           firstFragment: #F8
           type: Object?
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::0
+      variable: <testLibrary>::@topLevelVariable::#0
 ''');
   }
 
@@ -2911,7 +2911,7 @@ library
       previousFragmentOfDifferentKind: #F1
       returnType: int
       variable: <testLibrary>::@topLevelVariable::A
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::A
   exportNamespace
     A: <testLibrary>::@getter::A
@@ -2958,7 +2958,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F3
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3000,7 +3000,7 @@ library
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3042,7 +3042,7 @@ library
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3147,7 +3147,7 @@ library
           element: package:test/a.dart::@getter::a3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3194,7 +3194,7 @@ library
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3241,7 +3241,7 @@ library
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3278,7 +3278,7 @@ library
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3334,7 +3334,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -3395,7 +3395,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -3456,7 +3456,7 @@ library
           element: dart:core::@getter::deprecated
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3559,7 +3559,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -3603,7 +3603,7 @@ library
       firstFragment: #F2
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -3664,7 +3664,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::A
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@class::A
     declared <testLibrary>::@setter::A
   exportNamespace
@@ -3720,7 +3720,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F4
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@function::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -3778,7 +3778,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -3836,7 +3836,7 @@ library
           type: double
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -3956,7 +3956,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@setter::foo
   exportNamespace
     foo=: <testLibrary>::@setter::foo
@@ -4016,7 +4016,7 @@ library
           type: int
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@setter::foo
   exportNamespace
     foo=: <testLibrary>::@setter::foo
@@ -4076,7 +4076,7 @@ library
           type: int
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@setter::foo
   exportNamespace
     foo=: <testLibrary>::@setter::foo
@@ -4120,7 +4120,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@setter::foo
   exportNamespace
     foo=: <testLibrary>::@setter::foo
@@ -4172,7 +4172,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@setter::foo
   exportNamespace
     foo=: <testLibrary>::@setter::foo
@@ -4234,7 +4234,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -4309,7 +4309,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -4431,7 +4431,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -4489,7 +4489,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -4562,7 +4562,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::A
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::A
     declared <testLibrary>::@setter::A
   exportNamespace
@@ -4628,7 +4628,7 @@ library
       reference: <testLibrary>::@function::foo
       firstFragment: #F5
       returnType: void
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -4672,7 +4672,7 @@ library
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -4736,7 +4736,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -4802,7 +4802,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -4858,7 +4858,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -4909,7 +4909,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@setter::foo
   exportNamespace
     foo=: <testLibrary>::@setter::foo
@@ -4968,7 +4968,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -5029,7 +5029,7 @@ library
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -5136,7 +5136,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace
@@ -5180,7 +5180,7 @@ library
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
   exportNamespace
     foo: <testLibrary>::@getter::foo
@@ -5239,7 +5239,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::foo
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::foo
     declared <testLibrary>::@setter::foo
   exportNamespace

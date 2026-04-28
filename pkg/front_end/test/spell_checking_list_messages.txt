@@ -66,6 +66,7 @@ finality
 float32x
 float64x
 flutter_runner
+function(object
 function.tojs
 futureor
 github.com

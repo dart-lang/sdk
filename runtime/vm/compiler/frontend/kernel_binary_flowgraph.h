@@ -375,8 +375,8 @@ class StreamingFlowGraphBuilder : public KernelReaderHelper {
   Fragment BuildFunctionNode(intptr_t local_function_id,
                              intptr_t func_decl_offset);
 
-  // Build flow graph for '_nativeEffect'.
-  Fragment BuildNativeEffect();
+  // Build flow graph for 'external-effect' methods.
+  Fragment BuildExternalEffect();
 
   // Build the call-site manually, to avoid doing initialization checks
   // for late fields.

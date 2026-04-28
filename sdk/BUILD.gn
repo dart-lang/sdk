@@ -13,6 +13,7 @@
 # or ":copy_libraries" may delete/overwrite your addition, and the build will
 # fail.
 
+import("../build/config/gclient_args.gni")
 import("../build/dart/copy_tree.gni")
 import("../build/executable_suffix.gni")
 import("../sdk_args.gni")
@@ -310,7 +311,8 @@ copy_tree("copy_prebuilt_devtools") {
 
 # This action compiles the devtools app from sources.
 action("build_devtools") {
-  output = "$root_out_dir/$dart_sdk_output/web/devtools_app"
+  visibility = [ ":create_common_sdk" ]
+  output = "$root_out_dir/$dart_sdk_output/bin/resources/devtools"
   outputs = [ output ]
   script = "../tools/build_devtools.py"
   args = [
@@ -881,7 +883,6 @@ group("create_common_sdk") {
     ":copy_headers",
     ":copy_libraries_specification",
     ":copy_license",
-    ":copy_prebuilt_devtools",
     ":copy_readme",
     ":copy_sdk_packages_yaml",
     ":copy_vm_dill_files",
@@ -890,6 +891,12 @@ group("create_common_sdk") {
     ":write_revision_file",
     ":write_version_file",
   ]
+
+  if (build_devtools_from_sources) {
+    public_deps += [ ":build_devtools" ]
+  } else {
+    public_deps += [ ":copy_prebuilt_devtools" ]
+  }
 
   # We do not support AOT on ia32 and should therefore not add the
   # dart native compilation files since there is no AOT compiler/runtime

@@ -5,6 +5,8 @@
 import 'dart:collection' show LinkedHashMap;
 
 import 'package:collection/collection.dart';
+import 'package:front_end/src/api_prototype/external_effect.dart'
+    show ExternalEffect;
 import 'package:kernel/ast.dart';
 import 'package:kernel/type_environment.dart';
 import 'package:wasm_builder/wasm_builder.dart' as w;
@@ -1625,6 +1627,9 @@ abstract class AstCodeGenerator
     StaticInvocation node,
     w.ValueType expectedType,
   ) {
+    if (ExternalEffect.isExternalEffect(node)) {
+      return voidMarker;
+    }
     w.ValueType? intrinsicResult = intrinsifier.generateStaticIntrinsic(node);
     if (intrinsicResult != null) return intrinsicResult;
 

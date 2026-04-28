@@ -455,9 +455,15 @@ class ChangeBuilderImpl implements ChangeBuilder {
   /// Update the offsets of any positions that occur at or after the given
   /// [offset] such that the positions are offset by the given [delta].
   /// Positions occur in linked edit groups and as the post-change selection.
-  void _updatePositions(int offset, int delta) {
+  void _updatePositions({
+    required String filePath,
+    required int offset,
+    required int delta,
+  }) {
     void updatePosition(Position position) {
-      if (position.offset >= offset && !_lockedPositions.contains(position)) {
+      if (position.file == filePath &&
+          position.offset >= offset &&
+          !_lockedPositions.contains(position)) {
         position.offset = position.offset + delta;
       }
     }
@@ -471,6 +477,11 @@ class ChangeBuilderImpl implements ChangeBuilder {
     if (selection != null) {
       updatePosition(selection);
     }
+    // TODO(brianwilkerson): If the selection range is not in the file at the
+    //  [filePath], it will be updated when it shouldn't be. This appears to not
+    //  be a problem in practice, probably because we only set the selection
+    //  range when all of the edits are in the same file. To fix the bug we need
+    //  to keep track of which file the selection range is in.
     var selectionRange = _selectionRange;
     if (selectionRange != null) {
       if (selectionRange.offset >= offset) {
@@ -547,7 +558,10 @@ class EditBuilderImpl implements EditBuilder {
       var end = offset + _buffer.length;
       var length = end - start;
       if (length != 0) {
-        var position = Position(fileEditBuilder.fileEdit.file, start);
+        var position = Position(
+          fileEditBuilder.fileEdit.file,
+          start + fileEditBuilder._deltaToOffset(start),
+        );
         fileEditBuilder.changeBuilder._lockedPositions.add(position);
         var group = fileEditBuilder.changeBuilder.getLinkedEditGroup(groupName);
         group.addPosition(position, length);
@@ -780,7 +794,11 @@ class FileEditBuilderImpl implements FileEditBuilder {
     fileEdit.add(edit, insertBeforeExisting: insertBeforeExisting);
     _revertData._addedEdits.add(edit);
     var delta = _editDelta(edit);
-    changeBuilder._updatePositions(edit.offset, delta);
+    changeBuilder._updatePositions(
+      filePath: fileEdit.file,
+      offset: edit.offset,
+      delta: delta,
+    );
     changeBuilder._lockedPositions.clear();
     changeBuilder.modificationCount++;
   }

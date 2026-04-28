@@ -9601,6 +9601,13 @@ bool Function::IsCachableIdempotent() const {
   return InVmTests(*this);
 }
 
+bool Function::IsExternalEffect() const {
+  if (!has_pragma()) return false;
+
+  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                             *this, Symbols::external_effect());
+}
+
 bool Function::IsFfiCallClosure() const {
   if (!IsNonImplicitClosureFunction()) return false;
   if (!has_pragma()) return false;

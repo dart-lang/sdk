@@ -279,7 +279,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibrary>::@extension::0::@method::call
+  element: <testLibrary>::@extension::#0::@method::call
   staticInvokeType: int Function()
   staticType: int
 ''');
@@ -305,7 +305,7 @@ FunctionExpressionInvocation
   argumentList: ArgumentList
     leftParenthesis: (
     rightParenthesis: )
-  element: <testLibrary>::@extension::0::@method::call
+  element: <testLibrary>::@extension::#0::@method::call
   staticInvokeType: int Function()
   staticType: int
 ''');

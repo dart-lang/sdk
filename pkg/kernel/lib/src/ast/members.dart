@@ -1092,6 +1092,7 @@ class Procedure extends Member implements GenericFunction {
   static const int FlagExtensionTypeMember = 1 << 7;
   static const int FlagHasWeakTearoffReferencePragma = 1 << 8;
   static const int FlagErroneous = 1 << 9;
+  static const int FlagHasExternalEffectPragma = 1 << 10;
 
   bool get isStatic => flags & FlagStatic != 0;
 
@@ -1241,6 +1242,14 @@ class Procedure extends Member implements GenericFunction {
     flags = value
         ? (flags | FlagHasWeakTearoffReferencePragma)
         : (flags & ~FlagHasWeakTearoffReferencePragma);
+  }
+
+  bool get hasExternalEffectPragma => flags & FlagHasExternalEffectPragma != 0;
+
+  void set hasExternalEffectPragma(bool value) {
+    flags = value
+        ? (flags | FlagHasExternalEffectPragma)
+        : (flags & ~FlagHasExternalEffectPragma);
   }
 
   @override

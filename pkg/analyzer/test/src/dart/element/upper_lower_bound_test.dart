@@ -11,7 +11,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/type_system_base.dart';
-import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -30,14 +29,14 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   static final Map<String, StackTrace> _isMoreTopChecked = {};
 
   void isBottom(TypeImpl type) {
-    expect(type.isBottom, isTrue, reason: typeString(type));
+    expect(type.isBottom, isTrue, reason: '$type');
   }
 
   void isMoreBottom(TypeImpl T, TypeImpl S) {
     _assertIsBottomOrNull(T);
     _assertIsBottomOrNull(S);
 
-    var str = '${typeString(T)} vs ${typeString(S)}';
+    var str = '$T vs $S';
     _checkUniqueTypeStr(_isMoreBottomChecked, str);
 
     expect(typeSystem.isMoreBottom(T, S), isTrue, reason: str);
@@ -47,21 +46,21 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     _assertIsTopOrObject(T);
     _assertIsTopOrObject(S);
 
-    var str = '${typeString(T)} vs ${typeString(S)}';
+    var str = '$T vs $S';
     _checkUniqueTypeStr(_isMoreTopChecked, str);
 
     expect(typeSystem.isMoreTop(T, S), isTrue, reason: str);
   }
 
   void isNotBottom(TypeImpl type) {
-    expect(type.isBottom, isFalse, reason: typeString(type));
+    expect(type.isBottom, isFalse, reason: '$type');
   }
 
   void isNotMoreBottom(TypeImpl T, TypeImpl S) {
     _assertIsBottomOrNull(T);
     _assertIsBottomOrNull(S);
 
-    var str = '${typeString(T)} vs ${typeString(S)}';
+    var str = '$T vs $S';
     _checkUniqueTypeStr(_isMoreBottomChecked, str);
 
     expect(typeSystem.isMoreBottom(T, S), isFalse, reason: str);
@@ -71,34 +70,34 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     _assertIsTopOrObject(T);
     _assertIsTopOrObject(S);
 
-    var str = '${typeString(T)} vs ${typeString(S)}';
+    var str = '$T vs $S';
     _checkUniqueTypeStr(_isMoreTopChecked, str);
 
     expect(typeSystem.isMoreTop(T, S), isFalse, reason: str);
   }
 
   void isNotNull(TypeImpl type) {
-    expect(typeSystem.isNull(type), isFalse, reason: typeString(type));
+    expect(typeSystem.isNull(type), isFalse, reason: '$type');
   }
 
   void isNotObject(TypeImpl type) {
-    expect(typeSystem.isObject(type), isFalse, reason: typeString(type));
+    expect(typeSystem.isObject(type), isFalse, reason: '$type');
   }
 
   void isNotTop(TypeImpl type) {
-    expect(typeSystem.isTop(type), isFalse, reason: typeString(type));
+    expect(typeSystem.isTop(type), isFalse, reason: '$type');
   }
 
   void isNull(TypeImpl type) {
-    expect(typeSystem.isNull(type), isTrue, reason: typeString(type));
+    expect(typeSystem.isNull(type), isTrue, reason: '$type');
   }
 
   void isObject(TypeImpl type) {
-    expect(typeSystem.isObject(type), isTrue, reason: typeString(type));
+    expect(typeSystem.isObject(type), isTrue, reason: '$type');
   }
 
   void isTop(TypeImpl type) {
-    expect(typeSystem.isTop(type), isTrue, reason: typeString(type));
+    expect(typeSystem.isTop(type), isTrue, reason: '$type');
   }
 
   test_isBottom() {
@@ -374,11 +373,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
   /// [TypeSystemImpl.isMoreBottom] can be used only for `BOTTOM` or `NULL`
   /// types. No need to check other types.
   void _assertIsBottomOrNull(TypeImpl type) {
-    expect(
-      type.isBottom || typeSystem.isNull(type),
-      isTrue,
-      reason: typeString(type),
-    );
+    expect(type.isBottom || typeSystem.isNull(type), isTrue, reason: '$type');
   }
 
   /// [TypeSystemImpl.isMoreTop] can be used only for `TOP` or `OBJECT`
@@ -387,7 +382,7 @@ class BoundsHelperPredicatesTest extends _BoundsTestBase {
     expect(
       typeSystem.isTop(type) || typeSystem.isObject(type),
       isTrue,
-      reason: typeString(type),
+      reason: '$type',
     );
   }
 
@@ -1055,7 +1050,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(parseType('void'), parseType('FutureOr<int>'));
     check(parseType('void'), parseType('Never'));
     check(parseType('void'), parseFunctionType('void Function()'));
-    check(parseType('void'), typeOfString('(int, int)'));
+    check(parseType('void'), parseType('(int, int)'));
 
     check(parseType('dynamic'), parseType('Object'));
     check(parseType('dynamic'), parseType('int'));
@@ -1064,7 +1059,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(parseType('dynamic'), parseType('FutureOr<int>'));
     check(parseType('dynamic'), parseType('Never'));
     check(parseType('dynamic'), parseFunctionType('void Function()'));
-    check(parseType('dynamic'), typeOfString('(int, int)'));
+    check(parseType('dynamic'), parseType('(int, int)'));
 
     check(parseType('InvalidType'), parseType('Object'));
     check(parseType('InvalidType'), parseType('int'));
@@ -1073,7 +1068,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(parseType('InvalidType'), parseType('FutureOr<int>'));
     check(parseType('InvalidType'), parseType('Never'));
     check(parseType('InvalidType'), parseFunctionType('void Function()'));
-    check(parseType('InvalidType'), typeOfString('(int, int)'));
+    check(parseType('InvalidType'), parseType('(int, int)'));
 
     check(parseType('Object?'), parseType('Object'));
     check(parseType('Object?'), parseType('int'));
@@ -1082,7 +1077,7 @@ class LowerBoundTest extends _BoundsTestBase {
     check(parseType('Object?'), parseType('FutureOr<int>'));
     check(parseType('Object?'), parseType('Never'));
     check(parseType('Object?'), parseFunctionType('void Function()'));
-    check(parseType('Object?'), typeOfString('(int, int)'));
+    check(parseType('Object?'), parseType('(int, int)'));
 
     check(parseType('FutureOr<void>'), parseType('int'));
     check(parseType('FutureOr<void>?'), parseType('int'));
@@ -1149,10 +1144,10 @@ class LowerBoundTest extends _BoundsTestBase {
     TypeImpl expected, {
     bool checkSubtype = true,
   }) {
-    var expectedStr = typeString(expected);
+    var expectedStr = '$expected';
 
     var result = typeSystem.greatestLowerBound(T1, T2);
-    var resultStr = typeString(result);
+    var resultStr = '$result';
     expect(
       result,
       expected,
@@ -1171,7 +1166,7 @@ actual: $resultStr
 
     // Check for symmetry.
     result = typeSystem.greatestLowerBound(T2, T1);
-    resultStr = typeString(result);
+    resultStr = '$result';
     expect(
       result,
       expected,
@@ -1184,11 +1179,7 @@ actual: $resultStr
   }
 
   void _checkGreatestLowerBound2(String T1, String T2, String expected) {
-    _checkGreatestLowerBound(
-      typeOfString(T1),
-      typeOfString(T2),
-      typeOfString(expected),
-    );
+    _checkGreatestLowerBound(parseType(T1), parseType(T2), parseType(expected));
   }
 }
 
@@ -1198,20 +1189,17 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
     var T1 = parseFunctionType(
       'void Function(void Function(String, int, int))',
     );
-    expect(typeString(T1), 'void Function(void Function(String, int, int))');
+    expect('$T1', 'void Function(void Function(String, int, int))');
 
     var T2 = parseFunctionType(
       'void Function(void Function(int, double, num))',
     );
-    expect(typeString(T2), 'void Function(void Function(int, double, num))');
+    expect('$T2', 'void Function(void Function(int, double, num))');
 
     var expected = parseFunctionType(
       'void Function(void Function(Object, num, num))',
     );
-    expect(
-      typeString(expected),
-      'void Function(void Function(Object, num, num))',
-    );
+    expect('$expected', 'void Function(void Function(Object, num, num))');
 
     _checkLeastUpperBound(T1, T2, expected);
   }
@@ -1221,7 +1209,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       'void Function(void Function(void Function(String, int, int)))',
     );
     expect(
-      typeString(T1),
+      '$T1',
       'void Function(void Function(void Function(String, int, int)))',
     );
 
@@ -1229,7 +1217,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       'void Function(void Function(void Function(int, double, num)))',
     );
     expect(
-      typeString(T2),
+      '$T2',
       'void Function(void Function(void Function(int, double, num)))',
     );
 
@@ -1237,7 +1225,7 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       'void Function(void Function(void Function(Never, Never, int)))',
     );
     expect(
-      typeString(expected),
+      '$expected',
       'void Function(void Function(void Function(Never, Never, int)))',
     );
 
@@ -1501,12 +1489,12 @@ class UpperBound_FunctionTypes_Test extends _BoundsTestBase {
       var T2 = parseFunctionType('U Function<U extends num>()');
       {
         var result = typeSystem.leastUpperBound(T1, T2);
-        var resultStr = typeString(result);
+        var resultStr = '$result';
         expect(resultStr, 'T Function<T extends num>()');
       }
       {
         var result = typeSystem.leastUpperBound(T2, T1);
-        var resultStr = typeString(result);
+        var resultStr = '$result';
         expect(resultStr, 'U Function<U extends num>()');
       }
     }
@@ -2751,34 +2739,28 @@ class UpperBoundTest extends _BoundsTestBase {
 }
 
 @reflectiveTest
-class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
-  @override
-  void setUp() {
-    super.setUp();
-    defineStringTypes();
-  }
-
+class _BoundsTestBase extends AbstractTypeSystemTest {
   void _assertBottom(TypeImpl type) {
     if (!type.isBottom) {
-      fail('isBottom must be true: ${typeString(type)}');
+      fail('isBottom must be true: $type');
     }
   }
 
   void _assertNotBottom(TypeImpl type) {
     if (type.isBottom) {
-      fail('isBottom must be false: ${typeString(type)}');
+      fail('isBottom must be false: $type');
     }
   }
 
   void _assertNotNull(TypeImpl type) {
     if (typeSystem.isNull(type)) {
-      fail('isNull must be false: ${typeString(type)}');
+      fail('isNull must be false: $type');
     }
   }
 
   void _assertNotObject(TypeImpl type) {
     if (typeSystem.isObject(type)) {
-      fail('isObject must be false: ${typeString(type)}');
+      fail('isObject must be false: $type');
     }
   }
 
@@ -2791,19 +2773,19 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
 
   void _assertNotTop(TypeImpl type) {
     if (typeSystem.isTop(type)) {
-      fail('isTop must be false: ${typeString(type)}');
+      fail('isTop must be false: $type');
     }
   }
 
   void _assertNull(TypeImpl type) {
     if (!typeSystem.isNull(type)) {
-      fail('isNull must be true: ${typeString(type)}');
+      fail('isNull must be true: $type');
     }
   }
 
   void _assertNullability(TypeImpl type, NullabilitySuffix expected) {
     if (type.nullabilitySuffix != expected) {
-      fail('Expected $expected in ${typeString(type)}');
+      fail('Expected $expected in $type');
     }
   }
 
@@ -2817,21 +2799,21 @@ class _BoundsTestBase extends AbstractTypeSystemTest with StringTypes {
 
   void _assertObject(TypeImpl type) {
     if (!typeSystem.isObject(type)) {
-      fail('isObject must be true: ${typeString(type)}');
+      fail('isObject must be true: $type');
     }
   }
 
   void _assertTop(TypeImpl type) {
     if (!typeSystem.isTop(type)) {
-      fail('isTop must be true: ${typeString(type)}');
+      fail('isTop must be true: $type');
     }
   }
 
   void _checkLeastUpperBound(TypeImpl T1, TypeImpl T2, TypeImpl expected) {
-    var expectedStr = typeString(expected);
+    var expectedStr = '$expected';
 
     var result = typeSystem.leastUpperBound(T1, T2);
-    var resultStr = typeString(result);
+    var resultStr = '$result';
     expect(
       result,
       expected,
@@ -2848,7 +2830,7 @@ actual: $resultStr
 
     // Check for symmetry.
     result = typeSystem.leastUpperBound(T2, T1);
-    resultStr = typeString(result);
+    resultStr = '$result';
     expect(
       result,
       expected,
@@ -2861,10 +2843,6 @@ actual: $resultStr
   }
 
   void _checkLeastUpperBound2(String T1, String T2, String expected) {
-    _checkLeastUpperBound(
-      typeOfString(T1),
-      typeOfString(T2),
-      typeOfString(expected),
-    );
+    _checkLeastUpperBound(parseType(T1), parseType(T2), parseType(expected));
   }
 }

@@ -14,7 +14,6 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
-import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -31,22 +30,6 @@ class ElementBuilder {
   }) {
     _buildTopFragments(topFragments);
     _buildInstanceElementMembers(parentChildFragments);
-  }
-
-  /// The [kind] is for example `@method`.
-  Reference _addInstanceReference(
-    InstanceElementImpl element,
-    String kind,
-    String? name,
-  ) {
-    var refName = libraryBuilder.getReferenceName(name);
-    return element.reference!.getChild(kind).addChild(refName);
-  }
-
-  /// The [kind] is for example `@topLevelVariable`.
-  Reference _addTopReference(String kind, String? name) {
-    var refName = libraryBuilder.getReferenceName(name);
-    return libraryBuilder.reference.getChild(kind).addChild(refName);
   }
 
   void _buildInstanceElementMembers(
@@ -217,7 +200,7 @@ class ElementBuilder {
     }
 
     var element = ClassElementImpl(
-      _addTopReference('@class', fragment.name),
+      libraryBuilder.references.declareClass(fragment.name),
       fragment,
     );
 
@@ -249,7 +232,7 @@ class ElementBuilder {
     }
 
     var element = EnumElementImpl(
-      _addTopReference('@enum', fragment.name),
+      libraryBuilder.references.declareEnum(fragment.name),
       fragment,
     );
 
@@ -281,7 +264,7 @@ class ElementBuilder {
     }
 
     var element = ExtensionElementImpl(
-      _addTopReference('@extension', fragment.name),
+      libraryBuilder.references.declareExtension(fragment.name),
       fragment,
     );
 
@@ -313,7 +296,7 @@ class ElementBuilder {
     }
 
     var element = ExtensionTypeElementImpl(
-      _addTopReference('@extensionType', fragment.name),
+      libraryBuilder.references.declareExtensionType(fragment.name),
       fragment,
     );
 
@@ -352,10 +335,9 @@ class ElementBuilder {
 
     var element = ConstructorElementImpl(
       name: fragment.name,
-      reference: _addInstanceReference(
-        interfaceElement,
-        '@constructor',
-        fragment.name,
+      reference: libraryBuilder.references.declareMemberConstructor(
+        container: interfaceElement.reference,
+        name: fragment.name,
       ),
       firstFragment: fragment,
     );
@@ -400,10 +382,9 @@ class ElementBuilder {
     }
 
     var fieldElement = FieldElementImpl(
-      reference: _addInstanceReference(
-        instanceElement,
-        '@field',
-        fieldFragment.name,
+      reference: libraryBuilder.references.declareMemberField(
+        container: instanceElement.reference,
+        name: fieldFragment.name,
       ),
       firstFragment: fieldFragment,
     );
@@ -421,7 +402,10 @@ class ElementBuilder {
       instanceFragment.addGetter(getterFragment);
 
       var getterElement = GetterElementImpl(
-        _addInstanceReference(instanceElement, '@getter', fieldFragment.name),
+        libraryBuilder.references.declareMemberGetter(
+          container: instanceElement.reference,
+          name: fieldFragment.name,
+        ),
         getterFragment,
       );
       instanceElement.addGetter(getterElement);
@@ -447,7 +431,10 @@ class ElementBuilder {
       setterFragment.formalParameters = [valueFragment];
 
       var setterElement = SetterElementImpl(
-        _addInstanceReference(instanceElement, '@setter', fieldFragment.name),
+        libraryBuilder.references.declareMemberSetter(
+          container: instanceElement.reference,
+          name: fieldFragment.name,
+        ),
         setterFragment,
       );
       instanceElement.addSetter(setterElement);
@@ -480,7 +467,10 @@ class ElementBuilder {
 
     // Not augmentation, create new element.
     var getterElement = GetterElementImpl(
-      _addInstanceReference(instanceElement, '@getter', getterFragment.name),
+      libraryBuilder.references.declareMemberGetter(
+        container: instanceElement.reference,
+        name: getterFragment.name,
+      ),
       getterFragment,
     );
     if (getterFragment.isAugmentation && lastFragment != null) {
@@ -513,10 +503,9 @@ class ElementBuilder {
       instanceFragment.addField(fieldFragment);
 
       lastFieldElement = FieldElementImpl(
-        reference: _addInstanceReference(
-          instanceElement,
-          '@field',
-          getterFragment.name,
+        reference: libraryBuilder.references.declareMemberField(
+          container: instanceElement.reference,
+          name: getterFragment.name,
         ),
 
         firstFragment: fieldFragment,
@@ -555,10 +544,9 @@ class ElementBuilder {
 
     var element = MethodElementImpl(
       name: fragment.name,
-      reference: _addInstanceReference(
-        instanceElement,
-        '@method',
-        fragment.lookupName,
+      reference: libraryBuilder.references.declareMemberMethod(
+        container: instanceElement.reference,
+        name: fragment.lookupName,
       ),
       firstFragment: fragment,
     );
@@ -591,7 +579,10 @@ class ElementBuilder {
 
     // Not augmentation, create new element.
     var setterElement = SetterElementImpl(
-      _addInstanceReference(instanceElement, '@setter', setterFragment.name),
+      libraryBuilder.references.declareMemberSetter(
+        container: instanceElement.reference,
+        name: setterFragment.name,
+      ),
       setterFragment,
     );
     if (setterFragment.isAugmentation && lastFragment != null) {
@@ -614,10 +605,9 @@ class ElementBuilder {
       instanceFragment.addField(fieldFragment);
 
       lastFieldElement = FieldElementImpl(
-        reference: _addInstanceReference(
-          instanceElement,
-          '@field',
-          setterFragment.name,
+        reference: libraryBuilder.references.declareMemberField(
+          container: instanceElement.reference,
+          name: setterFragment.name,
         ),
         firstFragment: fieldFragment,
       );
@@ -647,7 +637,7 @@ class ElementBuilder {
     }
 
     var element = MixinElementImpl(
-      _addTopReference('@mixin', fragment.name),
+      libraryBuilder.references.declareMixin(fragment.name),
       fragment,
     );
 
@@ -684,7 +674,7 @@ class ElementBuilder {
     }
 
     var element = TopLevelFunctionElementImpl(
-      _addTopReference('@function', fragment.name),
+      libraryBuilder.references.declareTopLevelFunction(fragment.name),
       fragment,
     );
 
@@ -713,15 +703,15 @@ class ElementBuilder {
     }
 
     // Not augmentation, create new element.
-    var getterElement = GetterElementImpl(
-      _addTopReference('@getter', getterFragment.name),
-      getterFragment,
+    var getterReference = libraryBuilder.references.declareGetter(
+      getterFragment.name,
     );
+    var getterElement = GetterElementImpl(getterReference, getterFragment);
     if (getterFragment.isAugmentation && lastFragment != null) {
       getterElement.previousFragmentOfDifferentKind = lastFragment;
     }
     libraryElement.addGetter(getterElement);
-    libraryBuilder.declare(getterElement, getterElement.reference);
+    libraryBuilder.declare(getterElement, getterReference);
 
     // If `getter` is already set, this is a compile-time error.
     // Reset to `null`, so create a new variable.
@@ -738,7 +728,7 @@ class ElementBuilder {
       libraryFragment.addTopLevelVariable(variableFragment);
 
       lastVariableElement = TopLevelVariableElementImpl(
-        _addTopReference('@topLevelVariable', getterFragment.name),
+        libraryBuilder.references.declareTopLevelVariable(getterFragment.name),
         variableFragment,
       );
       libraryElement.addTopLevelVariable(lastVariableElement);
@@ -766,15 +756,15 @@ class ElementBuilder {
     }
 
     // Not augmentation, create new element.
-    var setterElement = SetterElementImpl(
-      _addTopReference('@setter', setterFragment.name),
-      setterFragment,
+    var setterReference = libraryBuilder.references.declareSetter(
+      setterFragment.name,
     );
+    var setterElement = SetterElementImpl(setterReference, setterFragment);
     if (setterFragment.isAugmentation && lastFragment != null) {
       setterElement.previousFragmentOfDifferentKind = lastFragment;
     }
     libraryElement.addSetter(setterElement);
-    libraryBuilder.declare(setterElement, setterElement.reference);
+    libraryBuilder.declare(setterElement, setterReference);
 
     // If `setter` is already set, this is a compile-time error.
     // Reset to `null`, so create a new variable.
@@ -791,7 +781,7 @@ class ElementBuilder {
       libraryFragment.addTopLevelVariable(variableFragment);
 
       lastVariableElement = TopLevelVariableElementImpl(
-        _addTopReference('@topLevelVariable', setterFragment.name),
+        libraryBuilder.references.declareTopLevelVariable(setterFragment.name),
         variableFragment,
       );
       libraryElement.addTopLevelVariable(lastVariableElement);
@@ -817,7 +807,7 @@ class ElementBuilder {
     }
 
     var variableElement = TopLevelVariableElementImpl(
-      _addTopReference('@topLevelVariable', variableFragment.name),
+      libraryBuilder.references.declareTopLevelVariable(variableFragment.name),
       variableFragment,
     );
     if (variableFragment.isAugmentation && lastFragment != null) {
@@ -834,12 +824,12 @@ class ElementBuilder {
         ..isStatic = true;
       libraryFragment.addGetter(getterFragment);
 
-      var getterElement = GetterElementImpl(
-        _addTopReference('@getter', variableFragment.name),
-        getterFragment,
+      var getterReference = libraryBuilder.references.declareGetter(
+        variableFragment.name,
       );
+      var getterElement = GetterElementImpl(getterReference, getterFragment);
       libraryElement.addGetter(getterElement);
-      libraryBuilder.declare(getterElement, getterElement.reference);
+      libraryBuilder.declare(getterElement, getterReference);
 
       variableElement.getter = getterElement;
       getterElement.variable = variableElement;
@@ -861,12 +851,12 @@ class ElementBuilder {
       );
       setterFragment.formalParameters = [valueFragment];
 
-      var setterElement = SetterElementImpl(
-        _addTopReference('@setter', variableFragment.name),
-        setterFragment,
+      var setterReference = libraryBuilder.references.declareSetter(
+        variableFragment.name,
       );
+      var setterElement = SetterElementImpl(setterReference, setterFragment);
       libraryElement.addSetter(setterElement);
-      libraryBuilder.declare(setterElement, setterElement.reference);
+      libraryBuilder.declare(setterElement, setterReference);
 
       FormalParameterElementImpl(valueFragment);
 
@@ -882,7 +872,7 @@ class ElementBuilder {
     libraryFragment.addTypeAlias(fragment);
 
     var element = TypeAliasElementImpl(
-      _addTopReference('@typeAlias', fragment.name),
+      libraryBuilder.references.declareTypeAlias(fragment.name),
       fragment,
     );
 

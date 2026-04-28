@@ -53,19 +53,15 @@ class IsAlwaysExhaustiveTest extends AbstractTypeSystemTest {
 
   test_extensionType() {
     buildTestLibrary(
-      extensionTypes: [ExtensionTypeSpec('extension type A(bool it)')],
+      extensionTypes: [
+        ExtensionTypeSpec('extension type A(bool it)'),
+        ExtensionTypeSpec('extension type B(bool? it)'),
+        ExtensionTypeSpec('extension type C(int it)'),
+      ],
     );
     isAlwaysExhaustive(parseType('A'));
-
-    buildTestLibrary(
-      extensionTypes: [ExtensionTypeSpec('extension type A(bool? it)')],
-    );
-    isAlwaysExhaustive(parseType('A'));
-
-    buildTestLibrary(
-      extensionTypes: [ExtensionTypeSpec('extension type A(int it)')],
-    );
-    isNotAlwaysExhaustive(parseType('A'));
+    isAlwaysExhaustive(parseType('B'));
+    isNotAlwaysExhaustive(parseType('C'));
   }
 
   test_futureOr() {

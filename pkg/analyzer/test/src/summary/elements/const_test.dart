@@ -2331,7 +2331,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -2344,7 +2344,7 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix::p
                   name: C @40
                   typeArguments: TypeArgumentList
                     leftBracket: < @41
@@ -2762,7 +2762,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -2775,7 +2775,7 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix::p
                   name: C @40
                   typeArguments: TypeArgumentList
                     leftBracket: < @41
@@ -3018,7 +3018,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -3031,7 +3031,7 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix::p
                   name: C @40
                   element: package:test/a.dart::@class::C
                   type: C
@@ -3203,7 +3203,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -3216,7 +3216,7 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix::p
                   name: C @40
                   element: package:test/a.dart::@class::C
                   type: C
@@ -3266,7 +3266,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -3279,7 +3279,7 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix::p
                   name: C @40
                   element: <null>
                   type: InvalidType
@@ -3584,7 +3584,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -3597,7 +3597,7 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix::p
                   name: C @40
                   element: package:test/a.dart::@class::C
                   type: C
@@ -3689,7 +3689,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -3702,7 +3702,7 @@ library
                   importPrefix: ImportPrefixReference
                     name: p @38
                     period: . @39
-                    element: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix::p
                   name: C @40
                   element: <null>
                   type: InvalidType
@@ -4028,7 +4028,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:32) (firstTokenOffset:32) (offset:32)
@@ -4039,7 +4039,7 @@ library
                 target: PrefixedIdentifier
                   prefix: SimpleIdentifier
                     token: p @36
-                    element: <testLibraryFragment>::@prefix2::p
+                    element: <testLibraryFragment>::@prefix::p
                     staticType: null
                   period: . @37
                   identifier: SimpleIdentifier
@@ -4263,7 +4263,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -4273,7 +4273,7 @@ library
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @32
-                  element: <testLibraryFragment>::@prefix2::p
+                  element: <testLibraryFragment>::@prefix::p
                   staticType: null
                 period: . @33
                 identifier: SimpleIdentifier
@@ -6077,7 +6077,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -6087,7 +6087,7 @@ library
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @32
-                  element: <testLibraryFragment>::@prefix2::p
+                  element: <testLibraryFragment>::@prefix::p
                   staticType: null
                 period: . @33
                 identifier: SimpleIdentifier
@@ -6282,7 +6282,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -6292,7 +6292,7 @@ library
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @32
-                  element: <testLibraryFragment>::@prefix2::p
+                  element: <testLibraryFragment>::@prefix::p
                   staticType: null
                 period: . @33
                 identifier: SimpleIdentifier
@@ -6586,7 +6586,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -6595,7 +6595,7 @@ library
             PrefixedIdentifier
               prefix: SimpleIdentifier
                 token: p @32
-                element: <testLibraryFragment>::@prefix2::p
+                element: <testLibraryFragment>::@prefix::p
                 staticType: null
               period: . @33
               identifier: SimpleIdentifier
@@ -6764,7 +6764,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic B (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -6774,7 +6774,7 @@ library
               leftOperand: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @32
-                  element: <testLibraryFragment>::@prefix2::p
+                  element: <testLibraryFragment>::@prefix::p
                   staticType: null
                 period: . @33
                 identifier: SimpleIdentifier
@@ -7370,7 +7370,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic vClass (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -7381,7 +7381,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @37
                   period: . @38
-                  element: <testLibraryFragment>::@prefix2::p
+                  element: <testLibraryFragment>::@prefix::p
                 name: C @39
                 element: package:test/a.dart::@class::C
                 type: C
@@ -7394,7 +7394,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @56
                   period: . @57
-                  element: <testLibraryFragment>::@prefix2::p
+                  element: <testLibraryFragment>::@prefix::p
                 name: E @58
                 element: package:test/a.dart::@enum::E
                 type: E
@@ -7407,7 +7407,7 @@ library
                 importPrefix: ImportPrefixReference
                   name: p @88
                   period: . @89
-                  element: <testLibraryFragment>::@prefix2::p
+                  element: <testLibraryFragment>::@prefix::p
                 name: F @90
                 element: package:test/a.dart::@typeAlias::F
                 type: dynamic Function(int, String)
@@ -7637,7 +7637,7 @@ library
       libraryImports
         package:test/foo.dart as p (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @21
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic V (nameOffset:30) (firstTokenOffset:30) (offset:30)
@@ -7647,7 +7647,7 @@ library
               target: PrefixedIdentifier
                 prefix: SimpleIdentifier
                   token: p @34
-                  element: <testLibraryFragment>::@prefix2::p
+                  element: <testLibraryFragment>::@prefix::p
                   staticType: null
                 period: . @35
                 identifier: SimpleIdentifier
@@ -9904,7 +9904,7 @@ library
       libraryImports
         package:test/a.dart as p (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @19
       topLevelVariables
         #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic v (nameOffset:28) (firstTokenOffset:28) (offset:28)
@@ -9919,7 +9919,7 @@ library
                     importPrefix: ImportPrefixReference
                       name: p @39
                       period: . @40
-                      element: <testLibraryFragment>::@prefix2::p
+                      element: <testLibraryFragment>::@prefix::p
                     name: C @41
                     element: package:test/a.dart::@class::C
                     type: C

@@ -25,7 +25,7 @@ import 'package:analyzer/src/summary2/export.dart';
 import 'package:analyzer/src/summary2/reference.dart';
 
 class BundleWriter {
-  late final _BundleWriterReferences _references;
+  late final ReferenceTableWriter _references;
 
   /// The declaration sink - any data that can be read without a need to
   /// have any other elements to be available. For example declarations of
@@ -65,7 +65,7 @@ class BundleWriter {
   final List<_Library> _libraries = [];
 
   BundleWriter() {
-    _references = _BundleWriterReferences();
+    _references = ReferenceTableWriter();
   }
 
   BundleWriterResult finish() {
@@ -79,9 +79,7 @@ class BundleWriter {
     });
 
     var referencesOffset = _sink.offset;
-    _sink.writeUint30List(_references._referenceParents);
-    _sink.writeStringList(_references._referenceNames);
-    _references._clearIndexes();
+    _references.write(_sink);
 
     var stringTableOffset = _stringTableBuilder.write(_sink);
 
@@ -103,7 +101,7 @@ class BundleWriter {
     _writeFeatureSet(libraryElement.featureSet);
     libraryElement.writeFlags(_sink);
     _writeLanguageVersion(libraryElement.languageVersion);
-    _writeExportedReferences(libraryElement.exportedReferences);
+    _writeExportEntries(libraryElement.exportEntries);
     _sink.writeUint30List(libraryElement.nameUnion.mask);
     _writeLoadLibraryFunctionReferences(libraryElement);
 
@@ -308,18 +306,11 @@ class BundleWriter {
     });
   }
 
-  void _writeExportedReferences(List<ExportedReference> elements) {
-    _sink.writeList(elements, (exported) {
-      var index = _references._indexOfReference(exported.reference);
-      switch (exported) {
-        case ExportedReferenceDeclared():
-          _sink.writeByte(0);
-          _sink.writeUint30(index);
-        case ExportedReferenceExported():
-          _sink.writeByte(1);
-          _sink.writeUint30(index);
-          _sink.writeList(exported.locations, _writeExportLocation);
-      }
+  void _writeExportEntries(List<ExportEntry> elements) {
+    _sink.writeList(elements, (entry) {
+      _sink.writeStringReference(entry.name);
+      _references.writeReference(_sink, entry.reference);
+      _sink.writeList(entry.locations, _writeExportLocation);
     });
   }
 
@@ -611,7 +602,7 @@ class BundleWriter {
   void _writeLibraryImportPrefixFragment(PrefixFragmentImpl? fragment) {
     _sink.writeOptionalObject(fragment, (fragment) {
       _writeFragmentName(fragment);
-      _writeReference(fragment.element.reference);
+      _sink.writeStringReference(fragment.element.localId);
       _sink.writeBool(fragment.isDeferred);
     });
   }
@@ -739,8 +730,7 @@ class BundleWriter {
   }
 
   void _writeReference(Reference reference) {
-    var index = _references._indexOfReference(reference);
-    _sink.writeUint30(index);
+    _references.writeReference(_sink, reference);
   }
 
   /// Invoke this after writing enough information to create an element, but
@@ -915,12 +905,12 @@ class BundleWriterResult {
 }
 
 class ResolutionSink extends BinaryWriter {
-  final _BundleWriterReferences _references;
+  final ReferenceTableWriter _references;
   final _LocalElementIndexer localElements = _LocalElementIndexer();
 
   ResolutionSink({
     required super.stringTableBuilder,
-    required _BundleWriterReferences references,
+    required ReferenceTableWriter references,
   }) : _references = references;
 
   void withTypeParameters(
@@ -963,11 +953,14 @@ class ResolutionSink extends BinaryWriter {
         var index = enclosingElement.formalParameters.indexOf(element);
         assert(index >= 0);
         writeUint30(index);
+      case PrefixElementImpl():
+        writeEnum(ElementTag.libraryImportPrefix);
+        writeUri(element.firstFragment.enclosingFragment.source.uri);
+        writeStringReference(element.localId);
       case ElementImpl():
         writeEnum(ElementTag.elementImpl);
         var reference = element.reference!;
-        var referenceIndex = _references._indexOfReference(reference);
-        writeUint30(referenceIndex);
+        _references.writeReference(this, reference);
       default:
         throw StateError('${element.runtimeType}');
     }
@@ -1175,43 +1168,6 @@ class UnitToWriteAst {
   final CompilationUnit node;
 
   UnitToWriteAst({required this.node});
-}
-
-class _BundleWriterReferences {
-  /// References used in all libraries being linked.
-  /// Element references in nodes are indexes in this list.
-  final List<Reference?> _references = [null];
-
-  final List<int> _referenceParents = [0];
-  final List<String> _referenceNames = [''];
-
-  /// We need indexes for references during linking, but once we are done,
-  /// we must clear indexes to make references ready for linking a next bundle.
-  void _clearIndexes() {
-    for (var reference in _references) {
-      if (reference != null) {
-        reference.index = null;
-      }
-    }
-  }
-
-  int _indexOfReference(Reference reference) {
-    var index = reference.index;
-    if (index != null) return index;
-
-    if (reference.parent case var parent?) {
-      var parentIndex = _indexOfReference(parent);
-      _referenceParents.add(parentIndex);
-      _referenceNames.add(reference.name);
-
-      index = _references.length;
-      reference.index = index;
-      _references.add(reference);
-      return index;
-    } else {
-      return 0;
-    }
-  }
 }
 
 class _Library {

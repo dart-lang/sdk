@@ -171,9 +171,8 @@ external void reachabilityFence(Object? object);
 // This function can be used to encode native side effects.
 //
 // The function call and it's argument are removed in flow graph construction.
-@pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Internal_nativeEffect")
-external void _nativeEffect(Object object);
+@pragma("external-effect")
+external void _nativeEffect(Object? object);
 
 // Collection of functions which should only be used for testing purposes.
 abstract class VMInternalsForTesting {

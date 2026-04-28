@@ -17,7 +17,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/mock_sdk_elements.dart';
 
 class TestAnalysisContext implements AnalysisContext {
-  final Reference rootReference = Reference.root();
+  final RootReference rootReference = RootReference();
 
   @override
   final SourceFactory sourceFactory = _MockSourceFactory();

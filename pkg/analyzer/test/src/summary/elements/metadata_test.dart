@@ -143,7 +143,7 @@ library
       libraryImports
         package:test/a.dart as a (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::a
+        <testLibraryFragment>::@prefix::a
           fragments: @19
       classes
         #F1 class C (nameOffset:39) (firstTokenOffset:22) (offset:39)
@@ -853,7 +853,7 @@ library
       libraryImports
         package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
         #F1 class C (nameOffset:48) (firstTokenOffset:26) (offset:48)
@@ -893,7 +893,7 @@ library
       libraryImports
         package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
         #F1 class C (nameOffset:48) (firstTokenOffset:26) (offset:48)
@@ -933,7 +933,7 @@ library
       libraryImports
         package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
         #F1 class C (nameOffset:52) (firstTokenOffset:26) (offset:52)
@@ -1229,7 +1229,7 @@ library
       libraryImports
         package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
         #F1 class C (nameOffset:42) (firstTokenOffset:26) (offset:42)
@@ -1269,7 +1269,7 @@ library
       libraryImports
         package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
         #F1 class C (nameOffset:42) (firstTokenOffset:26) (offset:42)
@@ -1309,7 +1309,7 @@ library
       libraryImports
         package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
         #F1 class C (nameOffset:46) (firstTokenOffset:26) (offset:46)
@@ -5801,7 +5801,7 @@ library
       libraryImports
         package:test/a.dart as a (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::a
+        <testLibraryFragment>::@prefix::a
           fragments: @19
       classes
         #F1 class C (nameOffset:33) (firstTokenOffset:22) (offset:33)
@@ -7055,54 +7055,54 @@ library
       element: <testLibrary>
       extensions
         #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@extension::0
+          element: <testLibrary>::@extension::#0
           fields
             #F2 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic foo (nameOffset:44) (firstTokenOffset:44) (offset:44)
-              element: <testLibrary>::@extension::0::@field::foo
+              element: <testLibrary>::@extension::#0::@field::foo
               metadata
                 Annotation
                   atSign: @ @24
                   name: SimpleIdentifier
                     token: foo @25
-                    element: <testLibrary>::@extension::0::@getter::foo
+                    element: <testLibrary>::@extension::#0::@getter::foo
                     staticType: null
-                  element: <testLibrary>::@extension::0::@getter::foo
+                  element: <testLibrary>::@extension::#0::@getter::foo
               initializer: expression_0
                 IntegerLiteral
                   literal: 0 @50
                   staticType: int
           getters
             #F3 isCompleteDeclaration isOriginVariable isStatic foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:44)
-              element: <testLibrary>::@extension::0::@getter::foo
+              element: <testLibrary>::@extension::#0::@getter::foo
   extensions
     extension <null-name>
-      reference: <testLibrary>::@extension::0
+      reference: <testLibrary>::@extension::#0
       firstFragment: #F1
       extendedType: Object
       onDeclaration: dart:core::@class::Object
       fields
         hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer foo
-          reference: <testLibrary>::@extension::0::@field::foo
+          reference: <testLibrary>::@extension::#0::@field::foo
           firstFragment: #F2
           metadata
             Annotation
               atSign: @ @24
               name: SimpleIdentifier
                 token: foo @25
-                element: <testLibrary>::@extension::0::@getter::foo
+                element: <testLibrary>::@extension::#0::@getter::foo
                 staticType: null
-              element: <testLibrary>::@extension::0::@getter::foo
+              element: <testLibrary>::@extension::#0::@getter::foo
           type: int
           constantInitializer
             fragment: #F2
             expression: expression_0
-          getter: <testLibrary>::@extension::0::@getter::foo
+          getter: <testLibrary>::@extension::#0::@getter::foo
       getters
         isOriginVariable isStatic foo
-          reference: <testLibrary>::@extension::0::@getter::foo
+          reference: <testLibrary>::@extension::#0::@getter::foo
           firstFragment: #F3
           returnType: int
-          variable: <testLibrary>::@extension::0::@field::foo
+          variable: <testLibrary>::@extension::#0::@field::foo
 ''');
   }
 
@@ -7126,7 +7126,7 @@ library
       libraryImports
         package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @21
       classes
         #F1 class C (nameOffset:41) (firstTokenOffset:26) (offset:41)
@@ -7345,7 +7345,7 @@ library
       libraryImports
         dart:async as foo (nameOffset:23) (firstTokenOffset:<null>) (offset:23)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @23
       classes
         #F1 class C (nameOffset:43) (firstTokenOffset:28) (offset:43)
@@ -7404,7 +7404,7 @@ library
       libraryImports
         dart:async as foo (nameOffset:23) (firstTokenOffset:<null>) (offset:23)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @23
       classes
         #F1 class C (nameOffset:49) (firstTokenOffset:28) (offset:49)
@@ -7437,7 +7437,7 @@ library
       libraryImports
         dart:async as foo (nameOffset:23) (firstTokenOffset:<null>) (offset:23)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @23
       classes
         #F1 class C (nameOffset:52) (firstTokenOffset:28) (offset:52)
@@ -7496,7 +7496,7 @@ library
       libraryImports
         dart:async as foo (nameOffset:23) (firstTokenOffset:<null>) (offset:23)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @23
       classes
         #F1 class C (nameOffset:45) (firstTokenOffset:28) (offset:45)

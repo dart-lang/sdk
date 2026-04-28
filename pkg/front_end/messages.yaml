@@ -7757,3 +7757,46 @@ anonymousMethodWrongParameterTypeCfe:
   experiments: anonymous-methods
   statement:
     - '"".(int i) => 1;'
+
+dartExternalEffectNotMethod:
+  parameters: none
+  problemMessage: "The 'external-effect' pragma can only be applied to methods."
+  correctionMessage: "Try removing the pragma or applying it to a method."
+  script: |
+    @pragma('external-effect')
+    external int get foo;
+
+dartExternalEffectIncorrectType:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'"
+  correctionMessage: "Try correcting the type of the function."
+  script: |
+    @pragma('external-effect')
+    external void foo(int x);
+
+dartExternalEffectNotStatic:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must be static."
+  correctionMessage: "Try making the function static."
+  script: |
+    class C {
+      @pragma('external-effect')
+      external void foo(Object? x);
+    }
+
+dartExternalEffectNotExternal:
+  parameters: none
+  problemMessage: "A function annotated with the 'external-effect' pragma must be external."
+  correctionMessage: "Try making the function external."
+  script: |
+    @pragma('external-effect')
+    void foo(Object? x) {}
+
+dartExternalEffectMalformedPragma:
+  parameters: none
+  problemMessage: "The 'external-effect' pragma must be applied as a String literal."
+  correctionMessage: "Try inlining the 'external-string' argument to the pragma."
+  script: |
+    const bar = 'external-effect';
+    @pragma(bar)
+    external void foo(Object? x);

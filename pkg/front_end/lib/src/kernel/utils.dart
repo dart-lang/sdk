@@ -14,6 +14,7 @@ import 'package:front_end/src/base/scope.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
 import 'package:kernel/clone.dart';
+import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/text/ast_to_text.dart';
 import 'package:kernel/src/printer.dart';
 
@@ -379,3 +380,51 @@ class _DummyExtensionScope implements ExtensionScope {
 }
 
 final Argument dummyArgument = new PositionalArgument(dummyExpression);
+
+bool isOutlineAnnotatedWithPragma(
+  Annotatable node,
+  CoreTypes coreTypes,
+  String pragmaName,
+) {
+  List<Expression> annotations = node.annotations;
+  for (int i = 0; i < annotations.length; i++) {
+    Expression annotation = annotations[i];
+    if (annotation is RedirectingFactoryInvocation &&
+        annotation
+                .redirectingFactoryTarget
+                .function
+                .redirectingFactoryTarget!
+                .target ==
+            coreTypes.pragmaConstructor) {
+      Expression name = annotation.expression.arguments.positional[0];
+      if (name is StringLiteral && name.value == pragmaName) {
+        return true;
+      }
+    }
+  }
+  return false;
+}
+
+bool isAnnotatedWithPragma(
+  Annotatable node,
+  CoreTypes coreTypes,
+  String pragmaName,
+) {
+  List<Expression> annotations = node.annotations;
+  for (int i = 0; i < annotations.length; i++) {
+    Expression annotation = annotations[i];
+    if (annotation is ConstantExpression) {
+      Constant constant = annotation.constant;
+      if (constant is InstanceConstant) {
+        if (constant.classNode == coreTypes.pragmaClass) {
+          Constant? name =
+              constant.fieldValues[coreTypes.pragmaName.fieldReference];
+          if (name is StringConstant && name.value == pragmaName) {
+            return true;
+          }
+        }
+      }
+    }
+  }
+  return false;
+}

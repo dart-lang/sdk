@@ -609,7 +609,7 @@ math.Random? r;
     var node = findNode.importPrefixReference('math.Random');
     var element = ElementLocator.locate(node);
     _assertElement(element, r'''
-<testLibraryFragment>::@prefix2::math
+<testLibraryFragment>::@prefix::math
 ''');
   }
 

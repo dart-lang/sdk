@@ -159,9 +159,9 @@ BinaryExpression
   operator: +
   rightOperand: IntegerLiteral
     literal: 0
-    correspondingParameter: <testLibrary>::@extension::0::@method::+::@formalParameter::other
+    correspondingParameter: <testLibrary>::@extension::#0::@method::+::@formalParameter::other
     staticType: int
-  element: <testLibrary>::@extension::0::@method::+
+  element: <testLibrary>::@extension::#0::@method::+
   staticInvokeType: int Function(int)
   staticType: int
 ''');

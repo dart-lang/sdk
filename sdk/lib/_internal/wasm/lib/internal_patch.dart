@@ -66,8 +66,8 @@ void reachabilityFence(Object? object) {}
 external void exportWasmFunction(Function object);
 
 // This function can be used to encode native side effects.
-@pragma("wasm:intrinsic")
-external void _nativeEffect(Object object);
+@pragma("external-effect")
+external void _nativeEffect(Object? object);
 
 // Thomas Wang 64-bit mix.
 // https://gist.github.com/badboy/6267743

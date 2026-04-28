@@ -311,10 +311,13 @@ class JavaScriptFunction extends LegacyJavaScriptObject implements Function {}
 final _functionToJSPropertyName = r'_$dart_dartClosure';
 final functionToJSProperty = JS('!', "Symbol($_functionToJSPropertyName)");
 
-/// Returns whether [f] is a wrapped Dart function through `dart:js_interop`'s
-/// conversion methods.
-bool isJSExportedDartFunction(JavaScriptFunction f) =>
-    JS('', '#.#', f, functionToJSProperty) != null;
+/// Returns whether [f] is a wrapped Dart function of type [T] through
+/// `dart:js_interop`'s conversion methods.
+bool isJSExportedDartFunction<T extends Function>(JavaScriptFunction f) {
+  final function = JS('', '#.#', f, functionToJSProperty);
+  // We set this value so we know it always `is Function`.
+  return function != null && T == Function ? true : function is T;
+}
 
 /// Interceptor for JavaScript BigInt primitive values, i.e. values `x` for
 /// which `typeof x == "bigint"`.

@@ -2,8 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/nullability_suffix.dart';
-import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
@@ -47,7 +45,6 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     _check(
       parseType('int Function(int Function(Object?))'),
       'int Function(int Function(Never))',
-      typeStr: 'int Function(int Function(Object?))',
     );
 
     _check(parseType('int'), 'int');
@@ -64,26 +61,12 @@ class ReplaceTopBottomTest extends AbstractTypeSystemTest {
     buildTestLibrary(
       typeAliases: [TypeAliasSpec('typedef F<inout T> = T Function(T)')],
     );
-    var F = typeAliasElement('F');
 
-    var F_dynamic = F.instantiateImpl(
-      typeArguments: [parseType('dynamic')],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-    _check(F_dynamic, 'Never Function(Never)');
+    _check(parseType('F<dynamic>'), 'Never Function(Never)');
   }
 
-  void _check(TypeImpl type, String expectedStr, {String? typeStr}) {
-    if (typeStr != null) {
-      expect(_typeString(type), typeStr);
-    }
-
+  void _check(TypeImpl type, String expectedStr) {
     var result = typeSystem.replaceTopAndBottom(type);
-    var resultStr = _typeString(result);
-    expect(resultStr, expectedStr);
-  }
-
-  String _typeString(DartType type) {
-    return type.getDisplayString();
+    expect('$result', expectedStr);
   }
 }

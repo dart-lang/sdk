@@ -6,6 +6,8 @@ import 'dart:convert';
 import 'dart:developer';
 import 'dart:math' as math;
 
+import 'package:front_end/src/api_prototype/external_effect.dart'
+    show ExternalEffect;
 import 'package:kernel/ast.dart' hide Component, FunctionDeclaration;
 import 'package:kernel/ast.dart' as ast show Component, FunctionDeclaration;
 import 'package:kernel/class_hierarchy.dart' show ClassHierarchy;
@@ -1087,11 +1089,6 @@ class BytecodeGenerator extends RecursiveVisitor {
   late Procedure reachabilityFence = libraryIndex.getTopLevelProcedure(
     'dart:_internal',
     'reachabilityFence',
-  );
-
-  late Procedure nativeEffect = libraryIndex.getTopLevelProcedure(
-    'dart:_internal',
-    '_nativeEffect',
   );
 
   late Procedure iterableIterator = libraryIndex.getProcedure(
@@ -4006,6 +4003,11 @@ class BytecodeGenerator extends RecursiveVisitor {
 
   @override
   void visitStaticInvocation(StaticInvocation node) {
+    if (ExternalEffect.isExternalEffect(node)) {
+      // Skip over AST of the argument, return null.
+      asm.emitPushNull();
+      return;
+    }
     if (node.isConst) {
       _genPushConstExpr(node);
       return;
@@ -4017,10 +4019,6 @@ class BytecodeGenerator extends RecursiveVisitor {
       // Just evaluate argument.
       assert(args.named.isEmpty);
       _generateNode(args.positional.single);
-      return;
-    } else if (target == nativeEffect) {
-      // Skip over AST of the argument, return null.
-      asm.emitPushNull();
       return;
     } else if (target == ffiCall) {
       assert(args.named.isEmpty);

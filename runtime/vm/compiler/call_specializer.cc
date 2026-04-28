@@ -1236,12 +1236,12 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     instantiator_type_args = flow_graph()->constant_null();
     function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
-    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).ptr();
+    type = AbstractType::Cast(call->ArgumentValueAt(1)->BoundConstant()).ptr();
   } else {
     ASSERT(call->ArgumentCount() == 4);
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
-    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).ptr();
+    type = AbstractType::Cast(call->ArgumentValueAt(3)->BoundConstant()).ptr();
   }
 
   if (TryOptimizeInstanceOfUsingStaticTypes(call, type)) {

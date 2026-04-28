@@ -22871,7 +22871,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
     exportNamespace
       A: package:test/a.dart::@class::A
@@ -22903,7 +22903,7 @@ class _B2 {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
     exportNamespace
       A: package:test/a.dart::@class::A
@@ -22975,7 +22975,7 @@ class C {}
       isSimplyBounded class C
         constructors
           isOriginImplicitDefault new
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
       declared <testLibrary>::@class::C
@@ -23022,7 +23022,7 @@ class C {}
       isSimplyBounded class C
         constructors
           isOriginImplicitDefault new
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
       declared <testLibrary>::@class::C
@@ -23091,7 +23091,7 @@ class B {}
       isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
     exportNamespace
@@ -23162,7 +23162,7 @@ class C {}
       isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       exported[(0, 0)] package:test/a.dart::@class::C
       declared <testLibrary>::@class::B
@@ -23265,7 +23265,7 @@ export 'b.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A1
       exported[(0, 0)] package:test/a.dart::@class::A2
       exported[(0, 0)] package:test/a.dart::@class::A3
@@ -23361,7 +23361,7 @@ class A3 {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A2
       exported[(0, 0)] package:test/a.dart::@class::A3
       exported[(0, 0)] package:test/b.dart::@class::B
@@ -23574,7 +23574,7 @@ export 'b.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       exported[(0, 0)] package:test/b.dart::@class::B
     exportNamespace
@@ -23610,7 +23610,7 @@ class A2 {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       exported[(0, 0)] package:test/b.dart::@class::B
     exportNamespace
@@ -23665,10 +23665,10 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A::@def::1
+    exportEntries
+      exported[(0, 0)] package:test/a.dart::@class::A#1
     exportNamespace
-      A: package:test/a.dart::@class::A::@def::1
+      A: package:test/a.dart::@class::A#1
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -23724,11 +23724,11 @@ class B {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A::@def::1
+    exportEntries
+      exported[(0, 0)] package:test/a.dart::@class::A#1
       exported[(0, 0)] package:test/a.dart::@class::B
     exportNamespace
-      A: package:test/a.dart::@class::A::@def::1
+      A: package:test/a.dart::@class::A#1
       B: package:test/a.dart::@class::B
 ''',
     );
@@ -23899,7 +23899,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@enum::E
     exportNamespace
       E: package:test/a.dart::@enum::E
@@ -23961,7 +23961,7 @@ enum _E2 {v}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@enum::E
     exportNamespace
       E: package:test/a.dart::@enum::E
@@ -24016,7 +24016,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24047,7 +24047,7 @@ extension _E2 on int {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24112,7 +24112,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24158,7 +24158,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24230,7 +24230,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24276,7 +24276,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24348,7 +24348,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24387,7 +24387,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24442,7 +24442,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E1
     exportNamespace
       E1: package:test/a.dart::@extension::E1
@@ -24500,7 +24500,7 @@ extension E2 on int {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E1
       exported[(0, 0)] package:test/a.dart::@extension::E2
     exportNamespace
@@ -24564,7 +24564,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E1
       exported[(0, 0)] package:test/a.dart::@extension::E2
     exportNamespace
@@ -24616,7 +24616,7 @@ extension E1 on int {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E1
     exportNamespace
       E1: package:test/a.dart::@extension::E1
@@ -24678,7 +24678,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24719,7 +24719,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24786,7 +24786,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24829,7 +24829,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24896,7 +24896,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24932,7 +24932,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25000,7 +25000,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25052,7 +25052,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25130,7 +25130,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25182,7 +25182,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25260,7 +25260,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25302,7 +25302,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25373,7 +25373,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extensionType::E
     exportNamespace
       E: package:test/a.dart::@extensionType::E
@@ -25421,7 +25421,7 @@ extension type _E2(int it) {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extensionType::E
     exportNamespace
       E: package:test/a.dart::@extensionType::E
@@ -25476,7 +25476,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@mixin::M
     exportNamespace
       M: package:test/a.dart::@mixin::M
@@ -25508,7 +25508,7 @@ mixin _M2 {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@mixin::M
     exportNamespace
       M: package:test/a.dart::@mixin::M
@@ -25561,7 +25561,7 @@ export ':';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25590,7 +25590,7 @@ final a = 1;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25642,7 +25642,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25699,7 +25699,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -25755,7 +25755,7 @@ export 'a.dart' hide b;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25788,7 +25788,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25842,7 +25842,7 @@ export 'a.dart' hide c;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25901,7 +25901,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -25957,7 +25957,7 @@ export 'a.dart' show a;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25990,7 +25990,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26044,7 +26044,7 @@ export 'a.dart' show a, b;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26103,7 +26103,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -26160,7 +26160,7 @@ export 'a.dart' show a, b hide c;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26220,7 +26220,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -26274,7 +26274,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26307,7 +26307,7 @@ final _b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26366,7 +26366,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -26417,7 +26417,7 @@ final a = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26475,7 +26475,7 @@ export 'a.dart' show a;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26504,7 +26504,7 @@ final a = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26563,7 +26563,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -26622,7 +26622,7 @@ final c = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::c
     exportNamespace
@@ -26704,7 +26704,7 @@ final x = a;
     topLevelVariables
       hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
-    exportedReferences
+    exportEntries
       declared <testLibrary>::@getter::x
     exportNamespace
       x: <testLibrary>::@getter::x
@@ -26785,7 +26785,7 @@ final a = 1.2;
     topLevelVariables
       hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: double
-    exportedReferences
+    exportEntries
       declared <testLibrary>::@getter::x
     exportNamespace
       x: <testLibrary>::@getter::x
@@ -26838,7 +26838,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@typeAlias::A
     exportNamespace
       A: package:test/a.dart::@typeAlias::A
@@ -26868,7 +26868,7 @@ typedef _A2 = int;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@typeAlias::A
     exportNamespace
       A: package:test/a.dart::@typeAlias::A

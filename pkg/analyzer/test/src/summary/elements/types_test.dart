@@ -1673,7 +1673,7 @@ library
       libraryImports
         dart:async as ppp (nameOffset:23) (firstTokenOffset:<null>) (offset:23)
       prefixes
-        <testLibraryFragment>::@prefix2::ppp
+        <testLibraryFragment>::@prefix::ppp
           fragments: @23
       classes
         #F1 class C (nameOffset:34) (firstTokenOffset:28) (offset:34)
@@ -2920,7 +2920,7 @@ library
       libraryImports
         dart:core as core (nameOffset:22) (firstTokenOffset:<null>) (offset:22)
       prefixes
-        <testLibraryFragment>::@prefix2::core
+        <testLibraryFragment>::@prefix::core
           fragments: @22
       topLevelVariables
         #F1 isOriginDeclaration isStatic c (nameOffset:35) (firstTokenOffset:35) (offset:35)

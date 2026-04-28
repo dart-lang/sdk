@@ -17,7 +17,7 @@ import 'package:analyzer/src/summary2/reference.dart';
 /// Creates a set of mock libraries from the given specifications.
 Map<String, LibraryElementImpl> buildLibrariesFromSpec({
   required engine.AnalysisContext analysisContext,
-  required Reference rootReference,
+  required RootReference rootReference,
   required AnalysisSessionImpl analysisSession,
   required Map<String, LibrarySpec> specs,
   Map<String, LibraryElementImpl> externalLibraries = const {},
@@ -168,14 +168,14 @@ class _ClassDeclaration {
           _MethodDeclaration.fromSpec(methodSpec),
       ];
 
-  void createElement(_LibraryBuilder builder) {
+  void createElement({required LibraryReference libraryReference}) {
     fragment = ClassFragmentImpl(name: header.name)
       ..typeParameters = typeParameters.createFragments()
       ..isAbstract = header.isAbstract
       ..isSealed = header.isSealed;
 
     element = ClassElementImpl(
-      builder.rootReference.getChild('@class').getChild(header.name),
+      libraryReference.declareClass(header.name),
       fragment,
     );
 
@@ -236,9 +236,7 @@ class _ConstructorDeclaration {
 
     element = ConstructorElementImpl(
       name: header.name,
-      reference: classElement.reference
-          .getChild('@constructor')
-          .getChild(header.name),
+      reference: classElement.reference.declareConstructor(header.name),
       firstFragment: fragment,
     );
   }
@@ -263,7 +261,7 @@ class _EnumDeclaration {
 
   _EnumDeclaration._(this.spec, this.header);
 
-  void createElement(_LibraryBuilder builder) {
+  void createElement({required LibraryReference libraryReference}) {
     fragment = EnumFragmentImpl(name: header.name);
 
     fragment.fields = [
@@ -274,7 +272,7 @@ class _EnumDeclaration {
     ];
 
     element = EnumElementImpl(
-      builder.rootReference.getChild('@enum').getChild(header.name),
+      libraryReference.declareEnum(header.name),
       fragment,
     );
   }
@@ -324,7 +322,7 @@ class _ExtensionTypeDeclaration {
   _ExtensionTypeDeclaration._(this.spec, this.header)
     : typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
-  void createElement(_LibraryBuilder builder) {
+  void createElement({required LibraryReference libraryReference}) {
     var fieldFragment = FieldFragmentImpl(name: header.representationName)
       ..isOriginDeclaringFormalParameter = true;
 
@@ -333,14 +331,12 @@ class _ExtensionTypeDeclaration {
       ..fields = [fieldFragment];
 
     element = ExtensionTypeElementImpl(
-      builder.rootReference.getChild('@extensionType').getChild(header.name),
+      libraryReference.declareExtensionType(header.name),
       fragment,
     );
 
     var fieldElement = FieldElementImpl(
-      reference: element.reference
-          .getChild('@field')
-          .getChild(header.representationName),
+      reference: element.reference.declareField(header.representationName),
       firstFragment: fieldFragment,
     );
 
@@ -419,7 +415,7 @@ class _FormalParameterDeclarations {
 /// This allows inter-library dependencies and cycles (e.g., `dart:core` and
 /// `dart:async` referencing each other).
 class _LibraryBuilder {
-  final Reference rootReference;
+  final RootReference rootReference;
   final engine.AnalysisContext analysisContext;
   final AnalysisSessionImpl analysisSession;
   final Map<String, LibraryElementImpl> externalLibraries;
@@ -488,6 +484,7 @@ class _LibraryDeclaration {
 
   late final LibraryFragmentImpl fragment;
   late final LibraryElementImpl element;
+  late final LibraryReference reference;
 
   _LibraryDeclaration.fromSpec(this.spec)
     : classes = [
@@ -519,6 +516,7 @@ class _LibraryDeclaration {
     var librarySource = builder.analysisContext.sourceFactory.forUri(
       libraryUriStr,
     )!;
+    reference = builder.rootReference.getOrCreateLibrary(Uri.parse(spec.uri));
 
     element = LibraryElementImpl(
       builder.analysisContext,
@@ -528,6 +526,8 @@ class _LibraryDeclaration {
       0,
       FeatureSet.latestLanguageVersion(),
     );
+    element.reference = reference;
+    reference.element = element;
 
     fragment = LibraryFragmentImpl(
       library: element,
@@ -538,37 +538,37 @@ class _LibraryDeclaration {
     element.firstFragment = fragment;
 
     for (var classDeclaration in classes) {
-      classDeclaration.createElement(builder);
+      classDeclaration.createElement(libraryReference: reference);
       fragment.addClass(classDeclaration.fragment);
       element.addClass(classDeclaration.element);
     }
 
     for (var mixinDeclaration in mixins) {
-      mixinDeclaration.createElement(builder);
+      mixinDeclaration.createElement(libraryReference: reference);
       fragment.addMixin(mixinDeclaration.fragment);
       element.addMixin(mixinDeclaration.element);
     }
 
     for (var enumDeclaration in enums) {
-      enumDeclaration.createElement(builder);
+      enumDeclaration.createElement(libraryReference: reference);
       fragment.addEnum(enumDeclaration.fragment);
       element.addEnum(enumDeclaration.element);
     }
 
     for (var extensionTypeDeclaration in extensionTypes) {
-      extensionTypeDeclaration.createElement(builder);
+      extensionTypeDeclaration.createElement(libraryReference: reference);
       fragment.addExtensionType(extensionTypeDeclaration.fragment);
       element.addExtensionType(extensionTypeDeclaration.element);
     }
 
     for (var typeAliasDeclaration in typeAliases) {
-      typeAliasDeclaration.createElement(builder);
+      typeAliasDeclaration.createElement(libraryReference: reference);
       fragment.addTypeAlias(typeAliasDeclaration.fragment);
       element.addTypeAlias(typeAliasDeclaration.element);
     }
 
     for (var functionDeclaration in functions) {
-      functionDeclaration.createElement(builder);
+      functionDeclaration.createElement(libraryReference: reference);
       fragment.addFunction(functionDeclaration.fragment);
       element.addTopLevelFunction(functionDeclaration.element);
     }
@@ -624,9 +624,7 @@ class _MethodDeclaration {
 
     element = MethodElementImpl(
       name: header.name,
-      reference: classElement.reference
-          .getChild('@method')
-          .getChild(header.name),
+      reference: classElement.reference.declareMethod(header.name),
       firstFragment: fragment,
     );
   }
@@ -656,12 +654,12 @@ class _MixinDeclaration {
   _MixinDeclaration._(this.spec, this.header)
     : typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
-  void createElement(_LibraryBuilder builder) {
+  void createElement({required LibraryReference libraryReference}) {
     fragment = MixinFragmentImpl(name: header.name)
       ..typeParameters = typeParameters.createFragments();
 
     element = MixinElementImpl(
-      builder.rootReference.getChild('@mixin').getChild(header.name),
+      libraryReference.declareMixin(header.name),
       fragment,
     );
   }
@@ -1665,13 +1663,13 @@ class _TopLevelFunctionDeclaration {
     : formalParameters = _FormalParameterDeclarations(header.formalParameters),
       typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
-  void createElement(_LibraryBuilder builder) {
+  void createElement({required LibraryReference libraryReference}) {
     fragment = TopLevelFunctionFragmentImpl(name: header.name)
       ..typeParameters = typeParameters.createFragments()
       ..formalParameters = formalParameters.createFragments();
 
     element = TopLevelFunctionElementImpl(
-      builder.rootReference.getChild('@function').getChild(header.name),
+      libraryReference.declareTopLevelFunction(header.name),
       fragment,
     );
   }
@@ -1701,12 +1699,12 @@ class _TypeAliasDeclaration {
   _TypeAliasDeclaration._(this.spec, this.header)
     : typeParameters = _TypeParameterDeclarations(header.typeParameters);
 
-  void createElement(_LibraryBuilder builder) {
+  void createElement({required LibraryReference libraryReference}) {
     fragment = TypeAliasFragmentImpl(name: header.name, firstTokenOffset: null)
       ..typeParameters = typeParameters.createFragments();
 
     element = TypeAliasElementImpl(
-      builder.rootReference.getChild('@typeAlias').getChild(header.name),
+      libraryReference.declareTypeAlias(header.name),
       fragment,
     );
   }

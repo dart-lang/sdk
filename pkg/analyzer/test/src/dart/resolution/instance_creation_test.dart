@@ -924,7 +924,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
       name: Foo
       element: package:test/a.dart::@class::Foo
       type: Foo<dynamic>
@@ -1025,7 +1025,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: p
         period: .
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
       name: Foo
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1317,7 +1317,7 @@ InstanceCreationExpression
   constructorName: ConstructorName
     type: NamedType
       name: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       type: InvalidType
     element: <null>
   argumentList: ArgumentList
@@ -1366,7 +1366,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element2: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::@class::A
@@ -1435,7 +1435,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element2: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::@class::A
@@ -1484,7 +1484,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::@class::A
       type: A
@@ -1539,7 +1539,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element2: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::@class::A
@@ -1594,7 +1594,7 @@ InstanceCreationExpression
         name: prefix
         period: .
         element: <testLibraryFragment>::@prefix::prefix
-        element2: <testLibraryFragment>::@prefix2::prefix
+        element2: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::<fragment>::@class::A
       element2: package:test/a.dart::@class::A
@@ -1632,7 +1632,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1692,7 +1692,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       typeArguments: TypeArgumentList
         leftBracket: <
@@ -1745,7 +1745,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::@class::A
       type: A
@@ -1788,7 +1788,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: A
       element: package:test/a.dart::@class::A
       type: A
@@ -1832,7 +1832,7 @@ InstanceCreationExpression
       importPrefix: ImportPrefixReference
         name: prefix
         period: .
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
       name: Foo
       element: <null>
       type: InvalidType

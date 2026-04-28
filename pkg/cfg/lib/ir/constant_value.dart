@@ -399,3 +399,28 @@ final class UnboxedDoubleConstant extends UnboxedConstant {
   ast.DartType getType(StaticTypeContext context) =>
       context.typeEnvironment.coreTypes.doubleNonNullableRawType;
 }
+
+/// Synthetic constant representing undefined value of a local variable.
+class UndefinedConstant extends ast.AuxiliaryConstant {
+  UndefinedConstant();
+
+  @override
+  void visitChildren(ast.Visitor v) {}
+
+  @override
+  void toTextInternal(ast_printer.AstPrinter printer) {
+    printer.write('#undefined');
+  }
+
+  @override
+  String toString() => toStringInternal();
+
+  @override
+  int get hashCode => 2053;
+
+  @override
+  bool operator ==(Object other) => other is UndefinedConstant;
+
+  @override
+  ast.DartType getType(StaticTypeContext context) => const ast.DynamicType();
+}

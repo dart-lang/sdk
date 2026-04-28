@@ -403,6 +403,18 @@ class _HttpParser extends Stream<_HttpIncoming> {
     }
     headers._mutable = false;
 
+    // RFC 7230 section 3.3.3 rule 3: if a request has a Transfer-Encoding
+    // header and chunked is not the final coding, the message body length
+    // cannot be determined; close the connection to avoid request smuggling.
+    if (_messageType == _MessageType.REQUEST &&
+        _transferEncoding &&
+        !_chunked) {
+      throw HttpException(
+        "Invalid Transfer-Encoding header: chunked must be the final "
+        "transfer coding in requests (RFC 7230 section 3.3.3 rule 3).",
+      );
+    }
+
     _transferLength = headers.contentLength;
     // Ignore the Content-Length header if Transfer-Encoding
     // is chunked (RFC 2616 section 4.4)
@@ -770,14 +782,13 @@ class _HttpParser extends Stream<_HttpIncoming> {
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
               // RFC 7230 section 3.3.1: Transfer-Encoding can be a
-              // comma-separated list (e.g. "gzip, chunked"). Check each
-              // token individually to avoid CL/TE request smuggling.
+              // comma-separated list (e.g. "gzip, chunked") and can be split
+              // across multiple header lines. "chunked" must appear as the
+              // last value in the last header line, otherwise the request
+              // is malformed. This will be validated in _headersEnd.
               List<String> tokens = _tokenizeFieldValue(headerValue);
-              for (var token in tokens) {
-                if (token.trim().toLowerCase() == "chunked") {
-                  _chunked = true;
-                  break;
-                }
+              if (tokens.isNotEmpty) {
+                _chunked = tokens.last.trim().toLowerCase() == "chunked";
               }
               _contentLength = false;
             }

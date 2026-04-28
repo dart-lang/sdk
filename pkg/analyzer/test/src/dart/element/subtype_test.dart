@@ -2,14 +2,12 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/type_system_base.dart';
-import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -19,45 +17,33 @@ main() {
 }
 
 @reflectiveTest
-class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
-  void isNotSubtype(TypeImpl T0, TypeImpl T1, {String? strT0, String? strT1}) {
-    assertExpectedString(T0, strT0);
-    assertExpectedString(T1, strT1);
-    expect(typeSystem.isSubtypeOf(T0, T1), isFalse);
+class SubtypeTest extends AbstractTypeSystemTest {
+  void isNotSubtype(TypeImpl T0, TypeImpl T1) {
+    expect(
+      typeSystem.isSubtypeOf(T0, T1),
+      isFalse,
+      reason: 'Expected not subtype: $T0 <: $T1',
+    );
   }
 
   void isNotSubtype2(String strT0, String strT1) {
-    isNotSubtype(
-      _parseTestType(strT0),
-      _parseTestType(strT1),
-      strT0: strT0,
-      strT1: strT1,
-    );
+    isNotSubtype(parseType(strT0), parseType(strT1));
   }
 
   void isNotSubtype3({required String strT0, required String strT1}) {
     isNotSubtype2(strT0, strT1);
   }
 
-  void isSubtype(TypeImpl T0, TypeImpl T1, {String? strT0, String? strT1}) {
-    assertExpectedString(T0, strT0);
-    assertExpectedString(T1, strT1);
-    expect(typeSystem.isSubtypeOf(T0, T1), isTrue);
-  }
-
-  void isSubtype2(String strT0, String strT1) {
-    isSubtype(
-      _parseTestType(strT0),
-      _parseTestType(strT1),
-      strT0: strT0,
-      strT1: strT1,
+  void isSubtype(TypeImpl T0, TypeImpl T1) {
+    expect(
+      typeSystem.isSubtypeOf(T0, T1),
+      isTrue,
+      reason: 'Expected subtype: $T0 <: $T1',
     );
   }
 
-  @override
-  void setUp() {
-    super.setUp();
-    defineStringTypes();
+  void isSubtype2(String strT0, String strT1) {
+    isSubtype(parseType(strT0), parseType(strT1));
   }
 
   test_extensionType_implementsNotNullable() {
@@ -606,12 +592,7 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   test_futureOr_14() {
-    isSubtype(
-      parseType('Null'),
-      parseType('Future<int>?'),
-      strT0: 'Null',
-      strT1: 'Future<int>?',
-    );
+    isSubtype(parseType('Null'), parseType('Future<int>?'));
   }
 
   test_futureOr_15() {
@@ -632,23 +613,13 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
 
   test_futureOr_19() {
     withTypeParameterScope('E', (scope) {
-      isSubtype(
-        scope.parseType('E'),
-        scope.parseType('FutureOr<E>'),
-        strT0: 'E',
-        strT1: 'FutureOr<E>',
-      );
+      isSubtype(scope.parseType('E'), scope.parseType('FutureOr<E>'));
     });
   }
 
   test_futureOr_20() {
     withTypeParameterScope('E', (scope) {
-      isNotSubtype(
-        scope.parseType('E'),
-        _parseTestType('FutureOr<String>'),
-        strT0: 'E',
-        strT1: 'FutureOr<String>',
-      );
+      isNotSubtype(scope.parseType('E'), parseType('FutureOr<String>'));
     });
   }
 
@@ -666,45 +637,25 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
 
   test_futureOr_24() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & int',
-        strT1: 'FutureOr<num>',
-      );
+      isSubtype(scope.parseType('T & int'), parseType('FutureOr<num>'));
     });
   }
 
   test_futureOr_25() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & Future<num>'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & Future<num>',
-        strT1: 'FutureOr<num>',
-      );
+      isSubtype(scope.parseType('T & Future<num>'), parseType('FutureOr<num>'));
     });
   }
 
   test_futureOr_26() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & Future<int>'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & Future<int>',
-        strT1: 'FutureOr<num>',
-      );
+      isSubtype(scope.parseType('T & Future<int>'), parseType('FutureOr<num>'));
     });
   }
 
   test_futureOr_27() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        scope.parseType('T & num'),
-        _parseTestType('FutureOr<int>'),
-        strT0: 'T & num',
-        strT1: 'FutureOr<int>',
-      );
+      isNotSubtype(scope.parseType('T & num'), parseType('FutureOr<int>'));
     });
   }
 
@@ -712,9 +663,7 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
     withTypeParameterScope('T', (scope) {
       isNotSubtype(
         scope.parseType('T & Future<num>'),
-        _parseTestType('FutureOr<int>'),
-        strT0: 'T & Future<num>',
-        strT1: 'FutureOr<int>',
+        parseType('FutureOr<int>'),
       );
     });
   }
@@ -723,9 +672,7 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
     withTypeParameterScope('T', (scope) {
       isNotSubtype(
         scope.parseType('T & FutureOr<num>'),
-        _parseTestType('FutureOr<int>'),
-        strT0: 'T & FutureOr<num>',
-        strT1: 'FutureOr<int>',
+        parseType('FutureOr<int>'),
       );
     });
   }
@@ -735,208 +682,104 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   test_interfaceType_01() {
-    isSubtype(parseType('int'), parseType('int'), strT0: 'int', strT1: 'int');
+    isSubtype(parseType('int'), parseType('int'));
   }
 
   test_interfaceType_02() {
-    isSubtype(parseType('int'), parseType('num'), strT0: 'int', strT1: 'num');
+    isSubtype(parseType('int'), parseType('num'));
   }
 
   test_interfaceType_03() {
-    isSubtype(
-      parseType('int'),
-      parseType('Comparable<num>'),
-      strT0: 'int',
-      strT1: 'Comparable<num>',
-    );
+    isSubtype(parseType('int'), parseType('Comparable<num>'));
   }
 
   test_interfaceType_04() {
-    isSubtype(
-      parseType('int'),
-      parseType('Object'),
-      strT0: 'int',
-      strT1: 'Object',
-    );
+    isSubtype(parseType('int'), parseType('Object'));
   }
 
   test_interfaceType_05() {
-    isSubtype(
-      parseType('double'),
-      parseType('num'),
-      strT0: 'double',
-      strT1: 'num',
-    );
+    isSubtype(parseType('double'), parseType('num'));
   }
 
   test_interfaceType_06() {
-    isNotSubtype(
-      parseType('int'),
-      parseType('double'),
-      strT0: 'int',
-      strT1: 'double',
-    );
+    isNotSubtype(parseType('int'), parseType('double'));
   }
 
   test_interfaceType_07() {
-    isNotSubtype(
-      parseType('int'),
-      parseType('Comparable<int>'),
-      strT0: 'int',
-      strT1: 'Comparable<int>',
-    );
+    isNotSubtype(parseType('int'), parseType('Comparable<int>'));
   }
 
   test_interfaceType_08() {
-    isNotSubtype(
-      parseType('int'),
-      parseType('Iterable<int>'),
-      strT0: 'int',
-      strT1: 'Iterable<int>',
-    );
+    isNotSubtype(parseType('int'), parseType('Iterable<int>'));
   }
 
   test_interfaceType_09() {
-    isNotSubtype(
-      parseType('Comparable<int>'),
-      parseType('Iterable<int>'),
-      strT0: 'Comparable<int>',
-      strT1: 'Iterable<int>',
-    );
+    isNotSubtype(parseType('Comparable<int>'), parseType('Iterable<int>'));
   }
 
   test_interfaceType_10() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<int>'),
-      strT0: 'List<int>',
-      strT1: 'List<int>',
-    );
+    isSubtype(parseType('List<int>'), parseType('List<int>'));
   }
 
   test_interfaceType_11() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      parseType('Iterable<int>'),
-      strT0: 'List<int>',
-      strT1: 'Iterable<int>',
-    );
+    isSubtype(parseType('List<int>'), parseType('Iterable<int>'));
   }
 
   test_interfaceType_12() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<num>'),
-      strT0: 'List<int>',
-      strT1: 'List<num>',
-    );
+    isSubtype(parseType('List<int>'), parseType('List<num>'));
   }
 
   test_interfaceType_13() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      parseType('Iterable<num>'),
-      strT0: 'List<int>',
-      strT1: 'Iterable<num>',
-    );
+    isSubtype(parseType('List<int>'), parseType('Iterable<num>'));
   }
 
   test_interfaceType_14() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<Object>'),
-      strT0: 'List<int>',
-      strT1: 'List<Object>',
-    );
+    isSubtype(parseType('List<int>'), parseType('List<Object>'));
   }
 
   test_interfaceType_15() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      parseType('Iterable<Object>'),
-      strT0: 'List<int>',
-      strT1: 'Iterable<Object>',
-    );
+    isSubtype(parseType('List<int>'), parseType('Iterable<Object>'));
   }
 
   test_interfaceType_16() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      parseType('Object'),
-      strT0: 'List<int>',
-      strT1: 'Object',
-    );
+    isSubtype(parseType('List<int>'), parseType('Object'));
   }
 
   test_interfaceType_17() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<Comparable<Object>>'),
-      strT0: 'List<int>',
-      strT1: 'List<Comparable<Object>>',
-    );
+    isSubtype(parseType('List<int>'), parseType('List<Comparable<Object>>'));
   }
 
   test_interfaceType_18() {
-    isSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<Comparable<num>>'),
-      strT0: 'List<int>',
-      strT1: 'List<Comparable<num>>',
-    );
+    isSubtype(parseType('List<int>'), parseType('List<Comparable<num>>'));
   }
 
   test_interfaceType_19() {
     isSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<Comparable<Comparable<num>>>'),
-      strT0: 'List<int>',
-      strT1: 'List<Comparable<Comparable<num>>>',
+      parseType('List<int>'),
+      parseType('List<Comparable<Comparable<num>>>'),
     );
   }
 
   test_interfaceType_20() {
-    isNotSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<double>'),
-      strT0: 'List<int>',
-      strT1: 'List<double>',
-    );
+    isNotSubtype(parseType('List<int>'), parseType('List<double>'));
   }
 
   test_interfaceType_21() {
-    isNotSubtype(
-      _parseTestType('List<int>'),
-      parseType('Iterable<double>'),
-      strT0: 'List<int>',
-      strT1: 'Iterable<double>',
-    );
+    isNotSubtype(parseType('List<int>'), parseType('Iterable<double>'));
   }
 
   test_interfaceType_22() {
-    isNotSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('Comparable<int>'),
-      strT0: 'List<int>',
-      strT1: 'Comparable<int>',
-    );
+    isNotSubtype(parseType('List<int>'), parseType('Comparable<int>'));
   }
 
   test_interfaceType_23() {
-    isNotSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<Comparable<int>>'),
-      strT0: 'List<int>',
-      strT1: 'List<Comparable<int>>',
-    );
+    isNotSubtype(parseType('List<int>'), parseType('List<Comparable<int>>'));
   }
 
   test_interfaceType_24() {
     isNotSubtype(
-      _parseTestType('List<int>'),
-      _parseTestType('List<Comparable<Comparable<int>>>'),
-      strT0: 'List<int>',
-      strT1: 'List<Comparable<Comparable<int>>>',
+      parseType('List<int>'),
+      parseType('List<Comparable<Comparable<int>>>'),
     );
   }
 
@@ -944,79 +787,37 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
     buildTestLibrary(
       classes: [ClassSpec('class I'), ClassSpec('class A implements I')],
     );
-    var I = classElement('I');
-    var A = classElement('A');
 
-    var A_none = A.instantiateImpl(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-    var I_none = I.instantiateImpl(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_none, I_none, strT0: 'A', strT1: 'I');
-    isNotSubtype(I_none, A_none, strT0: 'I', strT1: 'A');
+    isSubtype(parseType('A'), parseType('I'));
+    isNotSubtype(parseType('I'), parseType('A'));
   }
 
   test_interfaceType_26_mixins() {
     buildTestLibrary(
       classes: [ClassSpec('class M'), ClassSpec('class A with M')],
     );
-    var M = classElement('M');
-    var A = classElement('A');
 
-    var A_none = A.instantiateImpl(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-    var M_none = M.instantiateImpl(
-      typeArguments: const [],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_none, M_none, strT0: 'A', strT1: 'M');
-    isNotSubtype(M_none, A_none, strT0: 'M', strT1: 'A');
+    isSubtype(parseType('A'), parseType('M'));
+    isNotSubtype(parseType('M'), parseType('A'));
   }
 
   test_interfaceType_27() {
-    isSubtype(
-      parseType('num'),
-      parseType('Object'),
-      strT0: 'num',
-      strT1: 'Object',
-    );
+    isSubtype(parseType('num'), parseType('Object'));
   }
 
   test_interfaceType_28() {
-    isSubtype(
-      parseType('num'),
-      parseType('Object'),
-      strT0: 'num',
-      strT1: 'Object',
-    );
+    isSubtype(parseType('num'), parseType('Object'));
   }
 
   test_interfaceType_39() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isSubtype(
-        scope.parseType('List<T & int>'),
-        scope.parseType('List<T>'),
-        strT0: 'List<T & int>, T extends Object?',
-        strT1: 'List<T>, T extends Object?',
-      );
+      isSubtype(scope.parseType('List<T & int>'), scope.parseType('List<T>'));
     });
   }
 
   test_interfaceType_40() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isSubtype(
-        scope.parseType('List<T & int?>'),
-        scope.parseType('List<T>'),
-        strT0: 'List<T & int?>, T extends Object?',
-        strT1: 'List<T>, T extends Object?',
-      );
+      isSubtype(scope.parseType('List<T & int?>'), scope.parseType('List<T>'));
     });
   }
 
@@ -1035,8 +836,8 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
     // var A_none = parseInterfaceType('A');
     // var I_none = parseInterfaceType('I');
     //
-    // isSubtype(A_none, I_none, strT0: 'A', strT1: 'I');
-    // isNotSubtype(I_none, A_none, strT0: 'I', strT1: 'A');
+    // isSubtype(A_none, I_none);
+    // isNotSubtype(I_none, A_none);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -1054,65 +855,32 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
     // var A_none = parseInterfaceType('A');
     // var M_none = parseInterfaceType('M');
     //
-    // isSubtype(A_none, M_none, strT0: 'A', strT1: 'M');
-    // isNotSubtype(M_none, A_none, strT0: 'M', strT1: 'A');
+    // isSubtype(A_none, M_none);
+    // isNotSubtype(M_none, A_none);
   }
 
   test_interfaceType_contravariant() {
     buildTestLibrary(classes: [ClassSpec('class A<in T>')]);
-    var A = classElement('A');
 
-    var A_num = A.instantiateImpl(
-      typeArguments: [parseType('num')],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    var A_int = A.instantiateImpl(
-      typeArguments: [parseType('int')],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
-    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
-    isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
+    isSubtype(parseType('A<num>'), parseType('A<int>'));
+    isSubtype(parseType('A<num>'), parseType('A<num>'));
+    isNotSubtype(parseType('A<int>'), parseType('A<num>'));
   }
 
   test_interfaceType_covariant() {
     buildTestLibrary(classes: [ClassSpec('class A<out T>')]);
-    var A = classElement('A');
 
-    var A_num = A.instantiateImpl(
-      typeArguments: [parseType('num')],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    var A_int = A.instantiateImpl(
-      typeArguments: [parseType('int')],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
-    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
-    isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
+    isSubtype(parseType('A<int>'), parseType('A<num>'));
+    isSubtype(parseType('A<num>'), parseType('A<num>'));
+    isNotSubtype(parseType('A<num>'), parseType('A<int>'));
   }
 
   test_interfaceType_invariant() {
     buildTestLibrary(classes: [ClassSpec('class A<inout T>')]);
-    var A = classElement('A');
 
-    var A_num = A.instantiateImpl(
-      typeArguments: [parseType('num')],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    var A_int = A.instantiateImpl(
-      typeArguments: [parseType('int')],
-      nullabilitySuffix: NullabilitySuffix.none,
-    );
-
-    isSubtype(A_num, A_num, strT0: "A<num>", strT1: "A<num>");
-    isNotSubtype(A_int, A_num, strT0: "A<int>", strT1: "A<num>");
-    isNotSubtype(A_num, A_int, strT0: "A<num>", strT1: "A<int>");
+    isSubtype(parseType('A<num>'), parseType('A<num>'));
+    isNotSubtype(parseType('A<int>'), parseType('A<num>'));
+    isNotSubtype(parseType('A<num>'), parseType('A<int>'));
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -1130,8 +898,8 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
     // var M_none = parseInterfaceType('M');
     // var I_none = parseInterfaceType('I');
     //
-    // isSubtype(M_none, I_none, strT0: 'M', strT1: 'I');
-    // isNotSubtype(I_none, M_none, strT0: 'I', strT1: 'M');
+    // isSubtype(M_none, I_none);
+    // isNotSubtype(I_none, M_none);
   }
 
   @SkippedTest() // TODO(scheglov): implement augmentation
@@ -1149,8 +917,8 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
     // var M_none = parseInterfaceType('M');
     // var C_none = parseInterfaceType('C');
     //
-    // isSubtype(M_none, C_none, strT0: 'M', strT1: 'C');
-    // isNotSubtype(C_none, M_none, strT0: 'C', strT1: 'M');
+    // isSubtype(M_none, C_none);
+    // isNotSubtype(C_none, M_none);
   }
 
   test_invalidType() {
@@ -1313,287 +1081,117 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
 
   test_multi_futureOr_typeParameter() {
     withTypeParameterScope('E extends Object', (scope) {
-      isSubtype(
-        scope.parseType('E'),
-        scope.parseType('FutureOr<E>'),
-        strT0: 'E, E extends Object',
-        strT1: 'FutureOr<E>, E extends Object',
-      );
+      isSubtype(scope.parseType('E'), scope.parseType('FutureOr<E>'));
     });
 
     withTypeParameterScope('E extends Object', (scope) {
-      isSubtype(
-        scope.parseType('E?'),
-        scope.parseType('FutureOr<E>?'),
-        strT0: 'E?, E extends Object',
-        strT1: 'FutureOr<E>?, E extends Object',
-      );
-      isSubtype(
-        scope.parseType('E?'),
-        scope.parseType('FutureOr<E?>'),
-        strT0: 'E?, E extends Object',
-        strT1: 'FutureOr<E?>, E extends Object',
-      );
-      isNotSubtype(
-        scope.parseType('E?'),
-        scope.parseType('FutureOr<E>'),
-        strT0: 'E?, E extends Object',
-        strT1: 'FutureOr<E>, E extends Object',
-      );
+      isSubtype(scope.parseType('E?'), scope.parseType('FutureOr<E>?'));
+      isSubtype(scope.parseType('E?'), scope.parseType('FutureOr<E?>'));
+      isNotSubtype(scope.parseType('E?'), scope.parseType('FutureOr<E>'));
     });
 
     withTypeParameterScope('E extends Object?', (scope) {
-      isSubtype(
-        scope.parseType('E'),
-        scope.parseType('FutureOr<E>?'),
-        strT0: 'E, E extends Object?',
-        strT1: 'FutureOr<E>?, E extends Object?',
-      );
-      isSubtype(
-        scope.parseType('E'),
-        scope.parseType('FutureOr<E?>'),
-        strT0: 'E, E extends Object?',
-        strT1: 'FutureOr<E?>, E extends Object?',
-      );
-      isSubtype(
-        scope.parseType('E'),
-        scope.parseType('FutureOr<E>'),
-        strT0: 'E, E extends Object?',
-        strT1: 'FutureOr<E>, E extends Object?',
-      );
+      isSubtype(scope.parseType('E'), scope.parseType('FutureOr<E>?'));
+      isSubtype(scope.parseType('E'), scope.parseType('FutureOr<E?>'));
+      isSubtype(scope.parseType('E'), scope.parseType('FutureOr<E>'));
     });
 
     withTypeParameterScope('E extends Object', (scope) {
-      isNotSubtype(
-        scope.parseType('E'),
-        _parseTestType('FutureOr<String>'),
-        strT0: 'E, E extends Object',
-        strT1: 'FutureOr<String>',
-      );
+      isNotSubtype(scope.parseType('E'), parseType('FutureOr<String>'));
     });
 
     withTypeParameterScope('E extends String', (scope) {
-      isSubtype(
-        scope.parseType('E?'),
-        _parseTestType('FutureOr<String>?'),
-        strT0: 'E?, E extends String',
-        strT1: 'FutureOr<String>?',
-      );
-      isSubtype(
-        scope.parseType('E?'),
-        _parseTestType('FutureOr<String?>'),
-        strT0: 'E?, E extends String',
-        strT1: 'FutureOr<String?>',
-      );
-      isNotSubtype(
-        scope.parseType('E?'),
-        _parseTestType('FutureOr<String>'),
-        strT0: 'E?, E extends String',
-        strT1: 'FutureOr<String>',
-      );
+      isSubtype(scope.parseType('E?'), parseType('FutureOr<String>?'));
+      isSubtype(scope.parseType('E?'), parseType('FutureOr<String?>'));
+      isNotSubtype(scope.parseType('E?'), parseType('FutureOr<String>'));
     });
 
     withTypeParameterScope('E extends String?', (scope) {
-      isSubtype(
-        scope.parseType('E'),
-        _parseTestType('FutureOr<String>?'),
-        strT0: 'E, E extends String?',
-        strT1: 'FutureOr<String>?',
-      );
-      isSubtype(
-        scope.parseType('E'),
-        _parseTestType('FutureOr<String?>'),
-        strT0: 'E, E extends String?',
-        strT1: 'FutureOr<String?>',
-      );
-      isNotSubtype(
-        scope.parseType('E'),
-        _parseTestType('FutureOr<String>'),
-        strT0: 'E, E extends String?',
-        strT1: 'FutureOr<String>',
-      );
+      isSubtype(scope.parseType('E'), parseType('FutureOr<String>?'));
+      isSubtype(scope.parseType('E'), parseType('FutureOr<String?>'));
+      isNotSubtype(scope.parseType('E'), parseType('FutureOr<String>'));
     });
   }
 
   test_multi_futureOr_typeParameter_promotion() {
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & int, T extends Object',
-        strT1: 'FutureOr<num>',
-      );
-      isSubtype(
-        scope.parseType('T & int'),
-        _parseTestType('FutureOr<num?>'),
-        strT0: 'T & int, T extends Object',
-        strT1: 'FutureOr<num?>',
-      );
-      isSubtype(
-        scope.parseType('T & int'),
-        _parseTestType('FutureOr<num>?'),
-        strT0: 'T & int, T extends Object',
-        strT1: 'FutureOr<num>?',
-      );
+      isSubtype(scope.parseType('T & int'), parseType('FutureOr<num>'));
+      isSubtype(scope.parseType('T & int'), parseType('FutureOr<num?>'));
+      isSubtype(scope.parseType('T & int'), parseType('FutureOr<num>?'));
     });
 
     withTypeParameterScope('T extends Object?', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & int, T extends Object?',
-        strT1: 'FutureOr<num>',
-      );
-      isSubtype(
-        scope.parseType('T & int'),
-        _parseTestType('FutureOr<num?>'),
-        strT0: 'T & int, T extends Object?',
-        strT1: 'FutureOr<num?>',
-      );
-      isSubtype(
-        scope.parseType('T & int'),
-        _parseTestType('FutureOr<num>?'),
-        strT0: 'T & int, T extends Object?',
-        strT1: 'FutureOr<num>?',
-      );
+      isSubtype(scope.parseType('T & int'), parseType('FutureOr<num>'));
+      isSubtype(scope.parseType('T & int'), parseType('FutureOr<num?>'));
+      isSubtype(scope.parseType('T & int'), parseType('FutureOr<num>?'));
     });
 
     withTypeParameterScope('T extends Object?', (scope) {
-      isNotSubtype(
-        scope.parseType('T & int?'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & int?, T extends Object?',
-        strT1: 'FutureOr<num>',
-      );
-      isSubtype(
-        scope.parseType('T & int?'),
-        _parseTestType('FutureOr<num?>'),
-        strT0: 'T & int?, T extends Object?',
-        strT1: 'FutureOr<num?>',
-      );
-      isSubtype(
-        scope.parseType('T & int?'),
-        _parseTestType('FutureOr<num>?'),
-        strT0: 'T & int?, T extends Object?',
-        strT1: 'FutureOr<num>?',
-      );
+      isNotSubtype(scope.parseType('T & int?'), parseType('FutureOr<num>'));
+      isSubtype(scope.parseType('T & int?'), parseType('FutureOr<num?>'));
+      isSubtype(scope.parseType('T & int?'), parseType('FutureOr<num>?'));
     });
 
     withTypeParameterScope('T extends Object?, S extends T', (scope) {
-      isNotSubtype(
-        scope.parseType('T & S'),
-        _parseTestType('FutureOr<Object>'),
-        strT0: 'T & S, T extends Object?',
-        strT1: 'FutureOr<Object>',
-      );
-      isSubtype(
-        scope.parseType('T & S'),
-        _parseTestType('FutureOr<Object?>'),
-        strT0: 'T & S, T extends Object?',
-        strT1: 'FutureOr<Object?>',
-      );
-      isSubtype(
-        scope.parseType('T & S'),
-        _parseTestType('FutureOr<Object>?'),
-        strT0: 'T & S, T extends Object?',
-        strT1: 'FutureOr<Object>?',
-      );
+      isNotSubtype(scope.parseType('T & S'), parseType('FutureOr<Object>'));
+      isSubtype(scope.parseType('T & S'), parseType('FutureOr<Object?>'));
+      isSubtype(scope.parseType('T & S'), parseType('FutureOr<Object>?'));
     });
 
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        scope.parseType('T & Future<num>'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & Future<num>, T extends Object',
-        strT1: 'FutureOr<num>',
-      );
-      isSubtype(
-        scope.parseType('T & Future<int>'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & Future<int>, T extends Object',
-        strT1: 'FutureOr<num>',
-      );
+      isSubtype(scope.parseType('T & Future<num>'), parseType('FutureOr<num>'));
+      isSubtype(scope.parseType('T & Future<int>'), parseType('FutureOr<num>'));
     });
 
     withTypeParameterScope('T extends Object', (scope) {
+      isSubtype(scope.parseType('T & Future<int>'), parseType('FutureOr<num>'));
       isSubtype(
         scope.parseType('T & Future<int>'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & Future<int>, T extends Object',
-        strT1: 'FutureOr<num>',
+        parseType('FutureOr<num?>'),
       );
       isSubtype(
         scope.parseType('T & Future<int>'),
-        _parseTestType('FutureOr<num?>'),
-        strT0: 'T & Future<int>, T extends Object',
-        strT1: 'FutureOr<num?>',
-      );
-      isSubtype(
-        scope.parseType('T & Future<int>'),
-        _parseTestType('FutureOr<num>?'),
-        strT0: 'T & Future<int>, T extends Object',
-        strT1: 'FutureOr<num>?',
+        parseType('FutureOr<num>?'),
       );
     });
 
     withTypeParameterScope('T extends Object?', (scope) {
+      isSubtype(scope.parseType('T & Future<int>'), parseType('FutureOr<num>'));
       isSubtype(
         scope.parseType('T & Future<int>'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & Future<int>, T extends Object?',
-        strT1: 'FutureOr<num>',
+        parseType('FutureOr<num?>'),
       );
       isSubtype(
         scope.parseType('T & Future<int>'),
-        _parseTestType('FutureOr<num?>'),
-        strT0: 'T & Future<int>, T extends Object?',
-        strT1: 'FutureOr<num?>',
-      );
-      isSubtype(
-        scope.parseType('T & Future<int>'),
-        _parseTestType('FutureOr<num>?'),
-        strT0: 'T & Future<int>, T extends Object?',
-        strT1: 'FutureOr<num>?',
+        parseType('FutureOr<num>?'),
       );
 
       isNotSubtype(
         scope.parseType('T & Future<int>?'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & Future<int>?, T extends Object?',
-        strT1: 'FutureOr<num>',
+        parseType('FutureOr<num>'),
       );
       isSubtype(
         scope.parseType('T & Future<int>?'),
-        _parseTestType('FutureOr<num?>'),
-        strT0: 'T & Future<int>?, T extends Object?',
-        strT1: 'FutureOr<num?>',
+        parseType('FutureOr<num?>'),
       );
       isSubtype(
         scope.parseType('T & Future<int>?'),
-        _parseTestType('FutureOr<num>?'),
-        strT0: 'T & Future<int>?, T extends Object?',
-        strT1: 'FutureOr<num>?',
+        parseType('FutureOr<num>?'),
       );
     });
 
     withTypeParameterScope('T extends Object', (scope) {
       isNotSubtype(
         scope.parseType('T & Future<int?>'),
-        _parseTestType('FutureOr<num>'),
-        strT0: 'T & Future<int?>, T extends Object',
-        strT1: 'FutureOr<num>',
+        parseType('FutureOr<num>'),
       );
       isSubtype(
         scope.parseType('T & Future<int?>'),
-        _parseTestType('FutureOr<num?>'),
-        strT0: 'T & Future<int?>, T extends Object',
-        strT1: 'FutureOr<num?>',
+        parseType('FutureOr<num?>'),
       );
       isNotSubtype(
         scope.parseType('T & Future<int?>'),
-        _parseTestType('FutureOr<num>?'),
-        strT0: 'T & Future<int?>, T extends Object',
-        strT1: 'FutureOr<num>?',
+        parseType('FutureOr<num>?'),
       );
     });
   }
@@ -1718,379 +1316,179 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
 
   test_multi_typeParameter_promotion() {
     withTypeParameterScope('T extends int', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T & int'),
-        strT0: 'T, T extends int',
-        strT1: 'T & int, T extends int',
-      );
-      isNotSubtype(
-        scope.parseType('T?'),
-        scope.parseType('T & int'),
-        strT0: 'T?, T extends int',
-        strT1: 'T & int, T extends int',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T & int'));
+      isNotSubtype(scope.parseType('T?'), scope.parseType('T & int'));
     });
 
     withTypeParameterScope('T extends int?', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        scope.parseType('T & int'),
-        strT0: 'T, T extends int?',
-        strT1: 'T & int, T extends int?',
-      );
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T & int?'),
-        strT0: 'T, T extends int?',
-        strT1: 'T & int?, T extends int?',
-      );
-      isNotSubtype(
-        scope.parseType('T?'),
-        scope.parseType('T & int?'),
-        strT0: 'T?, T extends int?',
-        strT1: 'T & int?, T extends int?',
-      );
+      isNotSubtype(scope.parseType('T'), scope.parseType('T & int'));
+      isSubtype(scope.parseType('T'), scope.parseType('T & int?'));
+      isNotSubtype(scope.parseType('T?'), scope.parseType('T & int?'));
     });
 
     withTypeParameterScope('T extends num', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T'),
-        strT0: 'T, T extends num',
-        strT1: 'T, T extends num',
-      );
-      isSubtype(
-        scope.parseType('T?'),
-        scope.parseType('T?'),
-        strT0: 'T?, T extends num',
-        strT1: 'T?, T extends num',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T'));
+      isSubtype(scope.parseType('T?'), scope.parseType('T?'));
     });
 
     withTypeParameterScope('T extends num?', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T'),
-        strT0: 'T, T extends num?',
-        strT1: 'T, T extends num?',
-      );
-      isSubtype(
-        scope.parseType('T?'),
-        scope.parseType('T?'),
-        strT0: 'T?, T extends num?',
-        strT1: 'T?, T extends num?',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T'));
+      isSubtype(scope.parseType('T?'), scope.parseType('T?'));
     });
   }
 
   test_never_01() {
-    isSubtype(
-      parseType('Never'),
-      parseType('Never'),
-      strT0: 'Never',
-      strT1: 'Never',
-    );
+    isSubtype(parseType('Never'), parseType('Never'));
   }
 
   test_never_02() {
-    isSubtype(
-      parseType('Never'),
-      parseType('num'),
-      strT0: 'Never',
-      strT1: 'num',
-    );
+    isSubtype(parseType('Never'), parseType('num'));
   }
 
   test_never_04() {
-    isSubtype(
-      parseType('Never'),
-      parseType('num?'),
-      strT0: 'Never',
-      strT1: 'num?',
-    );
+    isSubtype(parseType('Never'), parseType('num?'));
   }
 
   test_never_05() {
-    isNotSubtype(
-      parseType('num'),
-      parseType('Never'),
-      strT0: 'num',
-      strT1: 'Never',
-    );
+    isNotSubtype(parseType('num'), parseType('Never'));
   }
 
   test_never_06() {
-    isSubtype(
-      parseType('Never'),
-      _parseTestType('List<int>'),
-      strT0: 'Never',
-      strT1: 'List<int>',
-    );
+    isSubtype(parseType('Never'), parseType('List<int>'));
   }
 
   test_never_09() {
-    isNotSubtype(
-      parseType('num'),
-      parseType('Never'),
-      strT0: 'num',
-      strT1: 'Never',
-    );
+    isNotSubtype(parseType('num'), parseType('Never'));
   }
 
   test_never_15() {
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        parseType('Never'),
-        scope.parseType('T & num'),
-        strT0: 'Never',
-        strT1: 'T & num, T extends Object',
-      );
+      isSubtype(parseType('Never'), scope.parseType('T & num'));
     });
   }
 
   test_never_16() {
     withTypeParameterScope('T extends Object', (scope) {
-      isNotSubtype(
-        scope.parseType('T & num'),
-        parseType('Never'),
-        strT0: 'T & num, T extends Object',
-        strT1: 'Never',
-      );
+      isNotSubtype(scope.parseType('T & num'), parseType('Never'));
     });
   }
 
   test_never_17() {
     withTypeParameterScope('T extends Never', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        parseType('Never'),
-        strT0: 'T, T extends Never',
-        strT1: 'Never',
-      );
+      isSubtype(scope.parseType('T'), parseType('Never'));
     });
   }
 
   test_never_18() {
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        scope.parseType('T & Never'),
-        parseType('Never'),
-        strT0: 'T & Never, T extends Object',
-        strT1: 'Never',
-      );
+      isSubtype(scope.parseType('T & Never'), parseType('Never'));
     });
   }
 
   test_never_19() {
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        parseType('Never'),
-        scope.parseType('T?'),
-        strT0: 'Never',
-        strT1: 'T?, T extends Object',
-      );
+      isSubtype(parseType('Never'), scope.parseType('T?'));
     });
   }
 
   test_never_20() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isSubtype(
-        parseType('Never'),
-        scope.parseType('T?'),
-        strT0: 'Never',
-        strT1: 'T?, T extends Object?',
-      );
+      isSubtype(parseType('Never'), scope.parseType('T?'));
     });
   }
 
   test_never_21() {
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        parseType('Never'),
-        scope.parseType('T'),
-        strT0: 'Never',
-        strT1: 'T, T extends Object',
-      );
+      isSubtype(parseType('Never'), scope.parseType('T'));
     });
   }
 
   test_never_22() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isSubtype(
-        parseType('Never'),
-        scope.parseType('T'),
-        strT0: 'Never',
-        strT1: 'T, T extends Object?',
-      );
+      isSubtype(parseType('Never'), scope.parseType('T'));
     });
   }
 
   test_never_23() {
     withTypeParameterScope('T extends Never', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        parseType('Never'),
-        strT0: 'T, T extends Never',
-        strT1: 'Never',
-      );
+      isSubtype(scope.parseType('T'), parseType('Never'));
     });
   }
 
   test_never_24() {
     withTypeParameterScope('T extends Never?', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        parseType('Never'),
-        strT0: 'T, T extends Never?',
-        strT1: 'Never',
-      );
+      isNotSubtype(scope.parseType('T'), parseType('Never'));
     });
   }
 
   test_never_25() {
     withTypeParameterScope('T extends Never', (scope) {
-      isNotSubtype(
-        scope.parseType('T?'),
-        parseType('Never'),
-        strT0: 'T?, T extends Never',
-        strT1: 'Never',
-      );
+      isNotSubtype(scope.parseType('T?'), parseType('Never'));
     });
   }
 
   test_never_26() {
     withTypeParameterScope('T extends Never?', (scope) {
-      isNotSubtype(
-        scope.parseType('T?'),
-        parseType('Never'),
-        strT0: 'T?, T extends Never?',
-        strT1: 'Never',
-      );
+      isNotSubtype(scope.parseType('T?'), parseType('Never'));
     });
   }
 
   test_never_27() {
     withTypeParameterScope('T extends Object', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        parseType('Never'),
-        strT0: 'T, T extends Object',
-        strT1: 'Never',
-      );
+      isNotSubtype(scope.parseType('T'), parseType('Never'));
     });
   }
 
   test_never_28() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        parseType('Never'),
-        strT0: 'T, T extends Object?',
-        strT1: 'Never',
-      );
+      isNotSubtype(scope.parseType('T'), parseType('Never'));
     });
   }
 
   test_never_29() {
-    isSubtype(
-      parseType('Never'),
-      parseType('Null'),
-      strT0: 'Never',
-      strT1: 'Null',
-    );
+    isSubtype(parseType('Never'), parseType('Null'));
   }
 
   test_null_01() {
-    isNotSubtype(
-      parseType('Null'),
-      parseType('Never'),
-      strT0: 'Null',
-      strT1: 'Never',
-    );
+    isNotSubtype(parseType('Null'), parseType('Never'));
   }
 
   test_null_02() {
-    isNotSubtype(
-      parseType('Null'),
-      parseType('Object'),
-      strT0: 'Null',
-      strT1: 'Object',
-    );
+    isNotSubtype(parseType('Null'), parseType('Object'));
   }
 
   test_null_03() {
-    isSubtype(
-      parseType('Null'),
-      parseType('void'),
-      strT0: 'Null',
-      strT1: 'void',
-    );
+    isSubtype(parseType('Null'), parseType('void'));
   }
 
   test_null_04() {
-    isSubtype(
-      parseType('Null'),
-      parseType('dynamic'),
-      strT0: 'Null',
-      strT1: 'dynamic',
-    );
+    isSubtype(parseType('Null'), parseType('dynamic'));
   }
 
   test_null_05() {
-    isNotSubtype(
-      parseType('Null'),
-      parseType('double'),
-      strT0: 'Null',
-      strT1: 'double',
-    );
+    isNotSubtype(parseType('Null'), parseType('double'));
   }
 
   test_null_06() {
-    isSubtype(
-      parseType('Null'),
-      parseType('double?'),
-      strT0: 'Null',
-      strT1: 'double?',
-    );
+    isSubtype(parseType('Null'), parseType('double?'));
   }
 
   test_null_07() {
-    isNotSubtype(
-      parseType('Null'),
-      _parseTestType('Comparable<Object>'),
-      strT0: 'Null',
-      strT1: 'Comparable<Object>',
-    );
+    isNotSubtype(parseType('Null'), parseType('Comparable<Object>'));
   }
 
   test_null_08() {
     withTypeParameterScope('T extends Object', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T'),
-        strT0: 'Null',
-        strT1: 'T, T extends Object',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T'));
     });
   }
 
   test_null_09() {
-    isSubtype(
-      parseType('Null'),
-      parseType('Null'),
-      strT0: 'Null',
-      strT1: 'Null',
-    );
+    isSubtype(parseType('Null'), parseType('Null'));
   }
 
   test_null_10() {
-    isNotSubtype(
-      parseType('Null'),
-      _parseTestType('List<int>'),
-      strT0: 'Null',
-      strT1: 'List<int>',
-    );
+    isNotSubtype(parseType('Null'), parseType('List<int>'));
   }
 
   test_null_13() {
@@ -2107,184 +1505,99 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
 
   test_null_16() {
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        parseType('Null'),
-        scope.parseType('(T & num)?'),
-        strT0: 'Null',
-        strT1: '(T & num)?, T extends Object',
-      );
+      isSubtype(parseType('Null'), scope.parseType('(T & num)?'));
     });
   }
 
   test_null_17() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T & num'),
-        strT0: 'Null',
-        strT1: 'T & num, T extends Object?',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T & num'));
     });
   }
 
   test_null_18() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T & num?'),
-        strT0: 'Null',
-        strT1: 'T & num?, T extends Object?',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T & num?'));
     });
   }
 
   test_null_19() {
     withTypeParameterScope('T extends Object', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T & num'),
-        strT0: 'Null',
-        strT1: 'T & num, T extends Object',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T & num'));
     });
   }
 
   test_null_20() {
     withTypeParameterScope('T extends Object?, S extends T', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T & S'),
-        strT0: 'Null',
-        strT1: 'T & S, T extends Object?',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T & S'));
     });
   }
 
   test_null_21() {
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        parseType('Null'),
-        scope.parseType('T?'),
-        strT0: 'Null',
-        strT1: 'T?, T extends Object',
-      );
+      isSubtype(parseType('Null'), scope.parseType('T?'));
     });
   }
 
   test_null_22() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isSubtype(
-        parseType('Null'),
-        scope.parseType('T?'),
-        strT0: 'Null',
-        strT1: 'T?, T extends Object?',
-      );
+      isSubtype(parseType('Null'), scope.parseType('T?'));
     });
   }
 
   test_null_23() {
     withTypeParameterScope('T extends Object', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T'),
-        strT0: 'Null',
-        strT1: 'T, T extends Object',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T'));
     });
   }
 
   test_null_24() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T'),
-        strT0: 'Null',
-        strT1: 'T, T extends Object?',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T'));
     });
   }
 
   test_null_25() {
     withTypeParameterScope('T extends Null', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        parseType('Null'),
-        strT0: 'T, T extends Null',
-        strT1: 'Null',
-      );
+      isSubtype(scope.parseType('T'), parseType('Null'));
     });
   }
 
   test_null_26() {
     withTypeParameterScope('T extends Null', (scope) {
-      isSubtype(
-        scope.parseType('T?'),
-        parseType('Null'),
-        strT0: 'T?, T extends Null',
-        strT1: 'Null',
-      );
+      isSubtype(scope.parseType('T?'), parseType('Null'));
     });
   }
 
   test_null_27() {
     withTypeParameterScope('T extends Object', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        parseType('Null'),
-        strT0: 'T, T extends Object',
-        strT1: 'Null',
-      );
+      isNotSubtype(scope.parseType('T'), parseType('Null'));
     });
   }
 
   test_null_28() {
     withTypeParameterScope('T extends Object?', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        parseType('Null'),
-        strT0: 'T, T extends Object?',
-        strT1: 'Null',
-      );
+      isNotSubtype(scope.parseType('T'), parseType('Null'));
     });
   }
 
   test_null_29() {
-    isSubtype(
-      parseType('Null'),
-      _parseTestType('Comparable<Object>?'),
-      strT0: 'Null',
-      strT1: 'Comparable<Object>?',
-    );
+    isSubtype(parseType('Null'), parseType('Comparable<Object>?'));
   }
 
   test_null_30() {
-    isNotSubtype(
-      parseType('Null'),
-      parseType('Object'),
-      strT0: 'Null',
-      strT1: 'Object',
-    );
+    isNotSubtype(parseType('Null'), parseType('Object'));
   }
 
   test_nullabilitySuffix_01() {
-    isSubtype(parseType('int'), parseType('int'), strT0: 'int', strT1: 'int');
-    isSubtype(parseType('int'), parseType('int?'), strT0: 'int', strT1: 'int?');
+    isSubtype(parseType('int'), parseType('int'));
+    isSubtype(parseType('int'), parseType('int?'));
 
-    isNotSubtype(
-      parseType('int?'),
-      parseType('int'),
-      strT0: 'int?',
-      strT1: 'int',
-    );
-    isSubtype(
-      parseType('int?'),
-      parseType('int?'),
-      strT0: 'int?',
-      strT1: 'int?',
-    );
+    isNotSubtype(parseType('int?'), parseType('int'));
+    isSubtype(parseType('int?'), parseType('int?'));
 
-    isSubtype(parseType('int'), parseType('int'), strT0: 'int', strT1: 'int');
-    isSubtype(parseType('int'), parseType('int?'), strT0: 'int', strT1: 'int?');
+    isSubtype(parseType('int'), parseType('int'));
+    isSubtype(parseType('int'), parseType('int?'));
   }
 
   test_nullabilitySuffix_05() {
@@ -2292,16 +1605,11 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   test_nullabilitySuffix_11() {
-    isSubtype(
-      parseType('int?'),
-      parseType('int?'),
-      strT0: 'int?',
-      strT1: 'int?',
-    );
+    isSubtype(parseType('int?'), parseType('int?'));
   }
 
   test_nullabilitySuffix_12() {
-    isSubtype(parseType('int'), parseType('int'), strT0: 'int', strT1: 'int');
+    isSubtype(parseType('int'), parseType('int'));
   }
 
   test_nullabilitySuffix_13() {
@@ -2320,36 +1628,26 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   test_nullabilitySuffix_16() {
-    var type = _parseTestType('List<int>?');
-    isSubtype(type, type, strT0: 'List<int>?', strT1: 'List<int>?');
+    var type = parseType('List<int>?');
+    isSubtype(type, type);
   }
 
   test_nullabilitySuffix_17() {
-    var type = _parseTestType('List<int?>?');
-    isSubtype(type, type, strT0: 'List<int?>?', strT1: 'List<int?>?');
+    var type = parseType('List<int?>?');
+    isSubtype(type, type);
   }
 
   test_nullabilitySuffix_18() {
     withTypeParameterScope('T extends Object', (scope) {
       var type = scope.parseType('T & int?');
-      isSubtype(
-        type,
-        type,
-        strT0: 'T & int?, T extends Object',
-        strT1: 'T & int?, T extends Object',
-      );
+      isSubtype(type, type);
     });
   }
 
   test_nullabilitySuffix_19() {
     withTypeParameterScope('T extends Object', (scope) {
       var type = scope.parseType('(T & int?)?');
-      isSubtype(
-        type,
-        type,
-        strT0: '(T & int?)?, T extends Object',
-        strT1: '(T & int?)?, T extends Object',
-      );
+      isSubtype(type, type);
     });
   }
 
@@ -2438,44 +1736,19 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
   /// The class `Record` is a subtype of `Object` and `dynamic`, and a
   /// supertype of `Never`.
   test_recordClass() {
-    isSubtype(
-      parseType('Record'),
-      parseType('Object'),
-      strT0: 'Record',
-      strT1: 'Object',
-    );
+    isSubtype(parseType('Record'), parseType('Object'));
 
-    isSubtype(
-      parseType('Record'),
-      parseType('dynamic'),
-      strT0: 'Record',
-      strT1: 'dynamic',
-    );
+    isSubtype(parseType('Record'), parseType('dynamic'));
 
-    isSubtype(
-      parseType('Never'),
-      parseType('Record'),
-      strT0: 'Never',
-      strT1: 'Record',
-    );
+    isSubtype(parseType('Never'), parseType('Record'));
   }
 
   test_special_01() {
-    isNotSubtype(
-      parseType('dynamic'),
-      parseType('int'),
-      strT0: 'dynamic',
-      strT1: 'int',
-    );
+    isNotSubtype(parseType('dynamic'), parseType('int'));
   }
 
   test_special_02() {
-    isNotSubtype(
-      parseType('void'),
-      parseType('int'),
-      strT0: 'void',
-      strT1: 'int',
-    );
+    isNotSubtype(parseType('void'), parseType('int'));
   }
 
   test_special_03() {
@@ -2491,84 +1764,39 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   test_special_07() {
-    isSubtype(
-      parseType('Object'),
-      parseType('Object'),
-      strT0: 'Object',
-      strT1: 'Object',
-    );
+    isSubtype(parseType('Object'), parseType('Object'));
   }
 
   test_special_08() {
-    isSubtype(
-      parseType('Object'),
-      parseType('dynamic'),
-      strT0: 'Object',
-      strT1: 'dynamic',
-    );
+    isSubtype(parseType('Object'), parseType('dynamic'));
   }
 
   test_special_09() {
-    isSubtype(
-      parseType('Object'),
-      parseType('void'),
-      strT0: 'Object',
-      strT1: 'void',
-    );
+    isSubtype(parseType('Object'), parseType('void'));
   }
 
   test_special_10() {
-    isNotSubtype(
-      parseType('dynamic'),
-      parseType('Object'),
-      strT0: 'dynamic',
-      strT1: 'Object',
-    );
+    isNotSubtype(parseType('dynamic'), parseType('Object'));
   }
 
   test_special_11() {
-    isSubtype(
-      parseType('dynamic'),
-      parseType('dynamic'),
-      strT0: 'dynamic',
-      strT1: 'dynamic',
-    );
+    isSubtype(parseType('dynamic'), parseType('dynamic'));
   }
 
   test_special_12() {
-    isSubtype(
-      parseType('dynamic'),
-      parseType('void'),
-      strT0: 'dynamic',
-      strT1: 'void',
-    );
+    isSubtype(parseType('dynamic'), parseType('void'));
   }
 
   test_special_13() {
-    isNotSubtype(
-      parseType('void'),
-      parseType('Object'),
-      strT0: 'void',
-      strT1: 'Object',
-    );
+    isNotSubtype(parseType('void'), parseType('Object'));
   }
 
   test_special_14() {
-    isSubtype(
-      parseType('void'),
-      parseType('dynamic'),
-      strT0: 'void',
-      strT1: 'dynamic',
-    );
+    isSubtype(parseType('void'), parseType('dynamic'));
   }
 
   test_special_15() {
-    isSubtype(
-      parseType('void'),
-      parseType('void'),
-      strT0: 'void',
-      strT1: 'void',
-    );
+    isSubtype(parseType('void'), parseType('void'));
   }
 
   test_top_03() {
@@ -2592,8 +1820,6 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isSubtype(
         scope.parseType('T & void Function()'),
         parseFunctionType('void Function()'),
-        strT0: 'T & void Function()',
-        strT1: 'void Function()',
       );
     });
   }
@@ -2603,8 +1829,6 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isSubtype(
         scope.parseType('T & void Function()'),
         parseFunctionType('dynamic Function()'),
-        strT0: 'T & void Function()',
-        strT1: 'dynamic Function()',
       );
     });
   }
@@ -2614,8 +1838,6 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isNotSubtype(
         scope.parseType('T & void Function()'),
         parseFunctionType('Object Function()'),
-        strT0: 'T & void Function()',
-        strT1: 'Object Function()',
       );
     });
   }
@@ -2625,8 +1847,6 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isSubtype(
         scope.parseType('T & void Function(void)'),
         parseFunctionType('void Function(void)'),
-        strT0: 'T & void Function(void)',
-        strT1: 'void Function(void)',
       );
     });
   }
@@ -2636,8 +1856,6 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isSubtype(
         scope.parseType('T & void Function(void)'),
         parseFunctionType('dynamic Function(dynamic)'),
-        strT0: 'T & void Function(void)',
-        strT1: 'dynamic Function(dynamic)',
       );
     });
   }
@@ -2647,8 +1865,6 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isNotSubtype(
         scope.parseType('T & void Function(void)'),
         parseFunctionType('Object Function(Object)'),
-        strT0: 'T & void Function(void)',
-        strT1: 'Object Function(Object)',
       );
     });
   }
@@ -2658,8 +1874,6 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isSubtype(
         scope.parseType('T & void Function(void)'),
         parseFunctionType('dynamic Function(Iterable<int>)'),
-        strT0: 'T & void Function(void)',
-        strT1: 'dynamic Function(Iterable<int>)',
       );
     });
   }
@@ -2669,8 +1883,6 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isNotSubtype(
         scope.parseType('T & void Function(void)'),
         parseFunctionType('Object Function(int)'),
-        strT0: 'T & void Function(void)',
-        strT1: 'Object Function(int)',
       );
     });
   }
@@ -2680,488 +1892,266 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isNotSubtype(
         scope.parseType('T & void Function(void)'),
         parseFunctionType('int Function(int)'),
-        strT0: 'T & void Function(void)',
-        strT1: 'int Function(int)',
       );
     });
   }
 
   test_top_15() {
     withTypeParameterScope('T extends void Function()', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        parseFunctionType('void Function()'),
-        strT0: 'T, T extends void Function()',
-        strT1: 'void Function()',
-      );
+      isSubtype(scope.parseType('T'), parseFunctionType('void Function()'));
     });
   }
 
   test_top_16() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        parseFunctionType('void Function()'),
-        strT0: 'T',
-        strT1: 'void Function()',
-      );
+      isNotSubtype(scope.parseType('T'), parseFunctionType('void Function()'));
     });
   }
 
   test_top_17() {
-    isNotSubtype(
-      parseType('void'),
-      parseFunctionType('void Function()'),
-      strT0: 'void',
-      strT1: 'void Function()',
-    );
+    isNotSubtype(parseType('void'), parseFunctionType('void Function()'));
   }
 
   test_top_18() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        parseType('dynamic'),
-        scope.parseType('T'),
-        strT0: 'dynamic',
-        strT1: 'T',
-      );
+      isNotSubtype(parseType('dynamic'), scope.parseType('T'));
     });
   }
 
   test_top_19() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        scope.parseType('Iterable<T>'),
-        scope.parseType('T'),
-        strT0: 'Iterable<T>',
-        strT1: 'T',
-      );
+      isNotSubtype(scope.parseType('Iterable<T>'), scope.parseType('T'));
     });
   }
 
   test_top_21() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        parseFunctionType('void Function()'),
-        scope.parseType('T'),
-        strT0: 'void Function()',
-        strT1: 'T',
-      );
+      isNotSubtype(parseFunctionType('void Function()'), scope.parseType('T'));
     });
   }
 
   test_top_22() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        scope.parseType('FutureOr<T>'),
-        scope.parseType('T'),
-        strT0: 'FutureOr<T>',
-        strT1: 'T',
-      );
+      isNotSubtype(scope.parseType('FutureOr<T>'), scope.parseType('T'));
     });
   }
 
   test_top_23() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        parseType('void'),
-        scope.parseType('T'),
-        strT0: 'void',
-        strT1: 'T',
-      );
+      isNotSubtype(parseType('void'), scope.parseType('T'));
     });
   }
 
   test_top_24() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        parseType('void'),
-        scope.parseType('T & void'),
-        strT0: 'void',
-        strT1: 'T & void',
-      );
+      isNotSubtype(parseType('void'), scope.parseType('T & void'));
     });
   }
 
   test_top_25() {
     withTypeParameterScope('T extends void', (scope) {
-      isNotSubtype(
-        parseType('void'),
-        scope.parseType('T & void'),
-        strT0: 'void',
-        strT1: 'T & void, T extends void',
-      );
+      isNotSubtype(parseType('void'), scope.parseType('T & void'));
     });
   }
 
   test_typeParameter_01() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        scope.parseType('T & int'),
-        strT0: 'T & int',
-        strT1: 'T & int',
-      );
+      isSubtype(scope.parseType('T & int'), scope.parseType('T & int'));
     });
   }
 
   test_typeParameter_02() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        scope.parseType('T & num'),
-        strT0: 'T & int',
-        strT1: 'T & num',
-      );
+      isSubtype(scope.parseType('T & int'), scope.parseType('T & num'));
     });
   }
 
   test_typeParameter_03() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & num'),
-        scope.parseType('T & num'),
-        strT0: 'T & num',
-        strT1: 'T & num',
-      );
+      isSubtype(scope.parseType('T & num'), scope.parseType('T & num'));
     });
   }
 
   test_typeParameter_04() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        scope.parseType('T & num'),
-        scope.parseType('T & int'),
-        strT0: 'T & num',
-        strT1: 'T & int',
-      );
+      isNotSubtype(scope.parseType('T & num'), scope.parseType('T & int'));
     });
   }
 
   test_typeParameter_05() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T & num'),
-        strT0: 'Null',
-        strT1: 'T & num',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T & num'));
     });
   }
 
   test_typeParameter_06() {
     withTypeParameterScope('T extends int', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        scope.parseType('T'),
-        strT0: 'T & int, T extends int',
-        strT1: 'T, T extends int',
-      );
+      isSubtype(scope.parseType('T & int'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_07() {
     withTypeParameterScope('T extends num', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        scope.parseType('T'),
-        strT0: 'T & int, T extends num',
-        strT1: 'T, T extends num',
-      );
+      isSubtype(scope.parseType('T & int'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_08() {
     withTypeParameterScope('T extends num', (scope) {
-      isSubtype(
-        scope.parseType('T & num'),
-        scope.parseType('T'),
-        strT0: 'T & num, T extends num',
-        strT1: 'T, T extends num',
-      );
+      isSubtype(scope.parseType('T & num'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_09() {
     withTypeParameterScope('T extends int', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T & int'),
-        strT0: 'T, T extends int',
-        strT1: 'T & int, T extends int',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T & int'));
     });
   }
 
   test_typeParameter_10() {
     withTypeParameterScope('T extends int', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T & num'),
-        strT0: 'T, T extends int',
-        strT1: 'T & num, T extends int',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T & num'));
     });
   }
 
   test_typeParameter_11() {
     withTypeParameterScope('T extends num', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        scope.parseType('T & int'),
-        strT0: 'T, T extends num',
-        strT1: 'T & int, T extends num',
-      );
+      isNotSubtype(scope.parseType('T'), scope.parseType('T & int'));
     });
   }
 
   test_typeParameter_12() {
     withTypeParameterScope('T extends num', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T'),
-        strT0: 'T, T extends num',
-        strT1: 'T, T extends num',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_13() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T'),
-        strT0: 'T',
-        strT1: 'T',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_14() {
     withTypeParameterScope('S, T', (scope) {
-      isNotSubtype(
-        scope.parseType('S'),
-        scope.parseType('T'),
-        strT0: 'S',
-        strT1: 'T',
-      );
+      isNotSubtype(scope.parseType('S'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_15() {
     withTypeParameterScope('T extends Object', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T'),
-        strT0: 'T, T extends Object',
-        strT1: 'T, T extends Object',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_16() {
     withTypeParameterScope('S extends Object, T extends Object', (scope) {
-      isNotSubtype(
-        scope.parseType('S'),
-        scope.parseType('T'),
-        strT0: 'S, S extends Object',
-        strT1: 'T, T extends Object',
-      );
+      isNotSubtype(scope.parseType('S'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_17() {
     withTypeParameterScope('T extends dynamic', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('T'),
-        strT0: 'T, T extends dynamic',
-        strT1: 'T, T extends dynamic',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_18() {
     withTypeParameterScope('S extends dynamic, T extends dynamic', (scope) {
-      isNotSubtype(
-        scope.parseType('S'),
-        scope.parseType('T'),
-        strT0: 'S, S extends dynamic',
-        strT1: 'T, T extends dynamic',
-      );
+      isNotSubtype(scope.parseType('S'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_19() {
     withTypeParameterScope('S, T extends S', (scope) {
-      isNotSubtype(
-        scope.parseType('S'),
-        scope.parseType('T'),
-        strT0: 'S',
-        strT1: 'T, T extends S',
-      );
+      isNotSubtype(scope.parseType('S'), scope.parseType('T'));
 
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('S'),
-        strT0: 'T, T extends S',
-        strT1: 'S',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('S'));
     });
   }
 
   test_typeParameter_20() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        parseType('int'),
-        strT0: 'T & int',
-        strT1: 'int',
-      );
+      isSubtype(scope.parseType('T & int'), parseType('int'));
     });
   }
 
   test_typeParameter_21() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & int'),
-        parseType('num'),
-        strT0: 'T & int',
-        strT1: 'num',
-      );
+      isSubtype(scope.parseType('T & int'), parseType('num'));
     });
   }
 
   test_typeParameter_22() {
     withTypeParameterScope('T', (scope) {
-      isSubtype(
-        scope.parseType('T & num'),
-        parseType('num'),
-        strT0: 'T & num',
-        strT1: 'num',
-      );
+      isSubtype(scope.parseType('T & num'), parseType('num'));
     });
   }
 
   test_typeParameter_23() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        scope.parseType('T & num'),
-        parseType('int'),
-        strT0: 'T & num',
-        strT1: 'int',
-      );
+      isNotSubtype(scope.parseType('T & num'), parseType('int'));
     });
   }
 
   test_typeParameter_24() {
     withTypeParameterScope('S, T', (scope) {
-      isNotSubtype(
-        scope.parseType('S & num'),
-        scope.parseType('T'),
-        strT0: 'S & num',
-        strT1: 'T',
-      );
+      isNotSubtype(scope.parseType('S & num'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_25() {
     withTypeParameterScope('S, T', (scope) {
-      isNotSubtype(
-        scope.parseType('S & num'),
-        scope.parseType('T & num'),
-        strT0: 'S & num',
-        strT1: 'T & num',
-      );
+      isNotSubtype(scope.parseType('S & num'), scope.parseType('T & num'));
     });
   }
 
   test_typeParameter_26() {
     withTypeParameterScope('S extends int', (scope) {
-      isSubtype(
-        scope.parseType('S'),
-        parseType('int'),
-        strT0: 'S, S extends int',
-        strT1: 'int',
-      );
+      isSubtype(scope.parseType('S'), parseType('int'));
     });
   }
 
   test_typeParameter_27() {
     withTypeParameterScope('S extends int', (scope) {
-      isSubtype(
-        scope.parseType('S'),
-        parseType('num'),
-        strT0: 'S, S extends int',
-        strT1: 'num',
-      );
+      isSubtype(scope.parseType('S'), parseType('num'));
     });
   }
 
   test_typeParameter_28() {
     withTypeParameterScope('S extends num', (scope) {
-      isSubtype(
-        scope.parseType('S'),
-        parseType('num'),
-        strT0: 'S, S extends num',
-        strT1: 'num',
-      );
+      isSubtype(scope.parseType('S'), parseType('num'));
     });
   }
 
   test_typeParameter_29() {
     withTypeParameterScope('S extends num', (scope) {
-      isNotSubtype(
-        scope.parseType('S'),
-        parseType('int'),
-        strT0: 'S, S extends num',
-        strT1: 'int',
-      );
+      isNotSubtype(scope.parseType('S'), parseType('int'));
     });
   }
 
   test_typeParameter_30() {
     withTypeParameterScope('S extends num, T', (scope) {
-      isNotSubtype(
-        scope.parseType('S'),
-        scope.parseType('T'),
-        strT0: 'S, S extends num',
-        strT1: 'T',
-      );
+      isNotSubtype(scope.parseType('S'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_31() {
     withTypeParameterScope('S extends num, T', (scope) {
-      isNotSubtype(
-        scope.parseType('S'),
-        scope.parseType('T & num'),
-        strT0: 'S, S extends num',
-        strT1: 'T & num',
-      );
+      isNotSubtype(scope.parseType('S'), scope.parseType('T & num'));
     });
   }
 
   test_typeParameter_32() {
     withTypeParameterScope('T extends dynamic', (scope) {
-      isNotSubtype(
-        parseType('dynamic'),
-        scope.parseType('T & dynamic'),
-        strT0: 'dynamic',
-        strT1: 'T & dynamic, T extends dynamic',
-      );
+      isNotSubtype(parseType('dynamic'), scope.parseType('T & dynamic'));
     });
   }
 
   test_typeParameter_33() {
     withTypeParameterScope('T', (scope) {
       var tFunction = scope.parseType('T Function()');
-      isNotSubtype(
-        tFunction,
-        scope.parseType('T & T Function()'),
-        strT0: 'T Function()',
-        strT1: 'T & T Function()',
-      );
+      isNotSubtype(tFunction, scope.parseType('T & T Function()'));
     });
   }
 
@@ -3170,31 +2160,19 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
       isNotSubtype(
         scope.parseType('FutureOr<T & String>'),
         scope.parseType('T & String'),
-        strT0: 'FutureOr<T & String>',
-        strT1: 'T & String',
       );
     });
   }
 
   test_typeParameter_35() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        parseType('Null'),
-        scope.parseType('T'),
-        strT0: 'Null',
-        strT1: 'T',
-      );
+      isNotSubtype(parseType('Null'), scope.parseType('T'));
     });
   }
 
   test_typeParameter_36() {
     withTypeParameterScope('T extends num', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        parseType('num'),
-        strT0: 'T, T extends num',
-        strT1: 'num',
-      );
+      isSubtype(scope.parseType('T'), parseType('num'));
     });
   }
 
@@ -3202,103 +2180,52 @@ class SubtypeTest extends AbstractTypeSystemTest with StringTypes {
     withTypeParameterScope('T extends Object?', (scope) {
       var type = scope.parseType('T & num?');
 
-      isNotSubtype(
-        type,
-        parseType('num'),
-        strT0: 'T & num?, T extends Object?',
-        strT1: 'num',
-      );
-      isSubtype(
-        type,
-        parseType('num?'),
-        strT0: 'T & num?, T extends Object?',
-        strT1: 'num?',
-      );
+      isNotSubtype(type, parseType('num'));
+      isSubtype(type, parseType('num?'));
     });
   }
 
   test_typeParameter_38() {
     withTypeParameterScope('T extends num', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        parseType('Object'),
-        strT0: 'T, T extends num',
-        strT1: 'Object',
-      );
+      isSubtype(scope.parseType('T'), parseType('Object'));
     });
   }
 
   test_typeParameter_39() {
     withTypeParameterScope('T extends num', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        parseType('Object'),
-        strT0: 'T, T extends num',
-        strT1: 'Object',
-      );
+      isSubtype(scope.parseType('T'), parseType('Object'));
     });
   }
 
   test_typeParameter_40() {
     withTypeParameterScope('T extends num', (scope) {
-      isNotSubtype(
-        scope.parseType('T?'),
-        parseType('Object'),
-        strT0: 'T?, T extends num',
-        strT1: 'Object',
-      );
+      isNotSubtype(scope.parseType('T?'), parseType('Object'));
     });
   }
 
   test_typeParameter_41() {
     withTypeParameterScope('T extends num?', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        parseType('Object'),
-        strT0: 'T, T extends num?',
-        strT1: 'Object',
-      );
+      isNotSubtype(scope.parseType('T'), parseType('Object'));
     });
   }
 
   test_typeParameter_42() {
     withTypeParameterScope('T extends num?', (scope) {
-      isNotSubtype(
-        scope.parseType('T?'),
-        parseType('Object'),
-        strT0: 'T?, T extends num?',
-        strT1: 'Object',
-      );
+      isNotSubtype(scope.parseType('T?'), parseType('Object'));
     });
   }
 
   test_typeParameter_43() {
     withTypeParameterScope('T', (scope) {
-      isNotSubtype(
-        scope.parseType('T'),
-        parseType('Object'),
-        strT0: 'T',
-        strT1: 'Object',
-      );
+      isNotSubtype(scope.parseType('T'), parseType('Object'));
     });
   }
 
   @FailingTest(issue: 'https://github.com/dart-lang/language/issues/433')
   test_typeParameter_44() {
     withTypeParameterScope('T extends FutureOr<T>', (scope) {
-      isSubtype(
-        scope.parseType('T'),
-        scope.parseType('FutureOr<T>'),
-        strT0: 'T, T extends FutureOr<T>',
-        strT1: 'FutureOr<T>, T extends FutureOr<T>',
-      );
+      isSubtype(scope.parseType('T'), scope.parseType('FutureOr<T>'));
     });
-  }
-
-  TypeImpl _parseTestType(String str) {
-    var type = parseType(str);
-    assertExpectedString(type, str);
-    return type;
   }
 }
 
@@ -3535,12 +2462,10 @@ class SubtypingCompoundTest extends AbstractTypeSystemTest {
   }
 
   void _checkIsNotSubtypeOf(TypeImpl type1, TypeImpl type2) {
-    var strType1 = _typeStr(type1);
-    var strType2 = _typeStr(type2);
     expect(
       typeSystem.isSubtypeOf(type1, type2),
       false,
-      reason: '$strType1 was not supposed to be a subtype of $strType2',
+      reason: '$type1 was not supposed to be a subtype of $type2',
     );
   }
 
@@ -3550,21 +2475,15 @@ class SubtypingCompoundTest extends AbstractTypeSystemTest {
   }
 
   void _checkIsSubtypeOf(TypeImpl type1, TypeImpl type2) {
-    var strType1 = _typeStr(type1);
-    var strType2 = _typeStr(type2);
     expect(
       typeSystem.isSubtypeOf(type1, type2),
       true,
-      reason: '$strType1 is not a subtype of $strType2',
+      reason: '$type1 is not a subtype of $type2',
     );
   }
 
   void _checkUnrelated(TypeImpl type1, TypeImpl type2) {
     _checkIsNotSubtypeOf(type1, type2);
     _checkIsNotSubtypeOf(type2, type1);
-  }
-
-  static String _typeStr(TypeImpl type) {
-    return type.getDisplayString();
   }
 }

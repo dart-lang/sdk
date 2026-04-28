@@ -11,6 +11,18 @@
   cookie-dates _should_ have, but the RFC specifies a very
   permissive algorithm for what should be accepted.
 
+#### `dart:js_interop`
+
+- `JSFunction` and `JSExportedDartFunction` are now generic.
+  `JSExportedDartFunction<T>.toDart` now casts the original wrapped function to
+  the type argument `T`. Calls to `isA<JSExportedDartFunction<T>>` now also
+  check that the wrapped function is a `T`. Otherwise, this type argument is
+  purely descriptive and intended for increased static type safety. Importantly,
+  the runtime types of `JSFunction` and `JSExportedDartFunction` do not change.
+  See [#56905][] for more details.
+
+[#54557]: https://github.com/dart-lang/sdk/issues/54557
+
 ## 3.12.0
 
 **Released on:** Unreleased

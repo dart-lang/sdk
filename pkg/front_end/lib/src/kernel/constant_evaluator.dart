@@ -24,6 +24,7 @@ import 'package:_fe_analyzer_shared/src/exhaustiveness/exhaustive.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/space.dart';
 import 'package:_fe_analyzer_shared/src/exhaustiveness/static_type.dart';
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
+import 'package:front_end/src/kernel/external_effect.dart' show ExternalEffect;
 import 'package:kernel/ast.dart';
 import 'package:kernel/core_types.dart';
 import 'package:kernel/src/find_type_visitor.dart';
@@ -363,6 +364,18 @@ class ConstantsTransformer extends RemovingTransformer {
           StaticWeakReferences.validateWeakReferenceDeclaration(
             parent,
             constantEvaluator.errorReporter,
+          );
+        }
+
+        if (ExternalEffect.isAnnotatedWithExternalEffect(
+          parent,
+          typeEnvironment.coreTypes,
+        )) {
+          ExternalEffect.validatePragma(
+            parent,
+            typeEnvironment.coreTypes,
+            constantEvaluator.errorReporter,
+            checkHasFlag: true,
           );
         }
       }

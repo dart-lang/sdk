@@ -1118,9 +1118,7 @@ class InheritanceManager3 {
     if (executable is InternalMethodElement) {
       var fragmentName = executable.name ?? '';
 
-      var elementReference = class_.reference!
-          .getChild('@method')
-          .getChild(fragmentName);
+      var elementReference = class_.reference.getOrCreateMethod(fragmentName);
       if (elementReference.element case MethodElementImpl result) {
         return result;
       }
@@ -1153,9 +1151,7 @@ class InheritanceManager3 {
 
     if (executable is SetterElementImpl) {
       var fragmentName = executable.name ?? '';
-      var setterReference = class_.reference!
-          .getChild('@setter')
-          .getChild(fragmentName);
+      var setterReference = class_.reference.getOrCreateSetter(fragmentName);
       if (setterReference.element case SetterElementImpl result) {
         return result;
       }
@@ -1179,9 +1175,7 @@ class InheritanceManager3 {
       resultField.isOriginGetterSetter = true;
 
       var elementName = executable.name!;
-      var fieldReference = class_.reference!
-          .getChild('@field')
-          .getChild(elementName);
+      var fieldReference = class_.reference.getOrCreateField(elementName);
       assert(fieldReference.element == null);
       FieldElementImpl(reference: fieldReference, firstFragment: resultField);
 
@@ -1230,9 +1224,9 @@ class InheritanceManager3 {
     if (firstElement is InternalMethodElement) {
       var fragmentName = firstElement.firstFragment.name!;
 
-      var elementReference = targetClass.reference!
-          .getChild('@method')
-          .getChild(fragmentName);
+      var elementReference = targetClass.reference.getOrCreateMethod(
+        fragmentName,
+      );
       if (elementReference.element case MethodElementImpl result) {
         return result;
       }
@@ -1271,9 +1265,9 @@ class InheritanceManager3 {
       PropertyAccessorFragmentImpl resultFragment;
       PropertyAccessorElementImpl resultElement;
       if (firstElement is InternalGetterElement) {
-        var elementReference = targetClass.reference!
-            .getChild('@getter')
-            .getChild(fragmentName);
+        var elementReference = targetClass.reference.getOrCreateGetter(
+          fragmentName,
+        );
         if (elementReference.element case GetterElementImpl result) {
           return result;
         }
@@ -1285,9 +1279,9 @@ class InheritanceManager3 {
         var result = GetterElementImpl(elementReference, fragment);
         resultElement = result;
       } else {
-        var elementReference = targetClass.reference!
-            .getChild('@setter')
-            .getChild(fragmentName);
+        var elementReference = targetClass.reference.getOrCreateSetter(
+          fragmentName,
+        );
         if (elementReference.element case SetterElementImpl result) {
           return result;
         }
@@ -1315,9 +1309,9 @@ class InheritanceManager3 {
       field.enclosingFragment = targetClass.firstFragment;
 
       var elementName = firstElement.name!;
-      var elementReference = targetClass.reference!
-          .getChild('@field')
-          .getChild(elementName);
+      var elementReference = targetClass.reference.getOrCreateField(
+        elementName,
+      );
       assert(elementReference.element == null);
       var fieldElement = FieldElementImpl(
         reference: elementReference,

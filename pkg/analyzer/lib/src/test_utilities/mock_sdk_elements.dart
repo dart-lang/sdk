@@ -81,7 +81,7 @@ class MockSdkElements {
 
   factory MockSdkElements(
     engine.AnalysisContext analysisContext,
-    Reference rootReference,
+    RootReference rootReference,
     AnalysisSessionImpl analysisSession,
   ) {
     var libraries = buildLibrariesFromSpec(

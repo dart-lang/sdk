@@ -4142,10 +4142,10 @@ library
       element: <testLibrary>
       typeAliases
         #F1 <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@typeAlias::0
+          element: <testLibrary>::@typeAlias::#0
   typeAliases
     isSimplyBounded <null-name>
-      reference: <testLibrary>::@typeAlias::0
+      reference: <testLibrary>::@typeAlias::#0
       firstFragment: #F1
       aliasedType: int
 ''');

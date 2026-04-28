@@ -914,7 +914,7 @@ unitElementResult
   path: /home/test/lib/test.dart
   uri: package:test/test.dart
   element
-    library: root::package:test/test.dart
+    library: package:test/test.dart
     classes: A, B
 ''');
   }
@@ -935,7 +935,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/test.dart
+    library: package:test/test.dart
     classes: A, B
 ''');
   }
@@ -952,7 +952,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/a.dart
+    library: package:test/a.dart
     classes: A, B
 ''');
   }
@@ -974,7 +974,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/test.dart
+    library: package:test/test.dart
     classes: A, B
 ''');
   }
@@ -991,7 +991,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/a.dart
+    library: package:test/a.dart
     classes: A, B
 ''');
   }
@@ -1008,7 +1008,7 @@ unitElementResult
   path: /home/test/lib/a.dart
   uri: package:test/a.dart
   element
-    library: root::package:test/a.dart
+    library: package:test/a.dart
     classes: A, B
 ''');
   }

@@ -286,7 +286,6 @@ enum StaticIntrinsic {
   setIdentityHashField('dart:_object_helper', null, 'setIdentityHashField'),
   unsafeCast('dart:_internal', null, 'unsafeCast'),
   unsafeCastOpaque('dart:_internal', null, 'unsafeCastOpaque'),
-  nativeEffect('dart:_internal', null, '_nativeEffect'),
   floatToIntBits('dart:_internal', null, 'floatToIntBits'),
   intBitsToFloat('dart:_internal', null, 'intBitsToFloat'),
   doubleToIntBits('dart:_internal', null, 'doubleToIntBits'),
@@ -1440,9 +1439,6 @@ class Intrinsifier {
         // Just evaluate the operand and let the context convert it to the
         // expected type.
         return codeGen.translateExpression(operand, typeOfExp(operand));
-      case StaticIntrinsic.nativeEffect:
-        // Ignore argument
-        return translator.voidMarker;
       case StaticIntrinsic.floatToIntBits:
         codeGen.translateExpression(
           node.arguments.positional.single,

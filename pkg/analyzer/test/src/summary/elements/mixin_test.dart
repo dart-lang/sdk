@@ -1693,7 +1693,7 @@ mixin M {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var M = library.getMixin('M')!;
-    var foo = getElementOfReference(M, ['@field', 'foo']);
+    var foo = getFieldElementOfReference(M, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -1705,7 +1705,7 @@ mixin M {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var M = library.getMixin('M')!;
-    var foo = getElementOfReference(M, ['@getter', 'foo']);
+    var foo = getGetterElementOfReference(M, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -1717,7 +1717,7 @@ mixin M {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var M = library.getMixin('M')!;
-    var foo = getElementOfReference(M, ['@method', 'foo']);
+    var foo = getMethodElementOfReference(M, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -1729,7 +1729,7 @@ mixin M {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var M = library.getMixin('M')!;
-    var foo = getElementOfReference(M, ['@setter', 'foo']);
+    var foo = getSetterElementOfReference(M, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -1912,10 +1912,10 @@ library
       element: <testLibrary>
       mixins
         #F1 mixin <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@mixin::0
+          element: <testLibrary>::@mixin::#0
   mixins
     isSimplyBounded mixin <null-name>
-      reference: <testLibrary>::@mixin::0
+      reference: <testLibrary>::@mixin::#0
       firstFragment: #F1
       superclassConstraints
         Object
@@ -2238,7 +2238,7 @@ library
       firstFragment: #F1
       superclassConstraints
         Object
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@mixin::A
   exportNamespace
     A: <testLibrary>::@mixin::A
@@ -2268,45 +2268,45 @@ library
       element: <testLibrary>
       mixins
         #F1 isAugmentation mixin A (nameOffset:14) (firstTokenOffset:0) (offset:14)
-          element: <testLibrary>::@mixin::A::@def::0
+          element: <testLibrary>::@mixin::A
           methods
             #F2 isCompleteDeclaration isOriginDeclaration foo1 (nameOffset:25) (firstTokenOffset:20) (offset:25)
-              element: <testLibrary>::@mixin::A::@def::0::@method::foo1
+              element: <testLibrary>::@mixin::A::@method::foo1
         #F3 mixin A (nameOffset:44) (firstTokenOffset:38) (offset:44)
-          element: <testLibrary>::@mixin::A::@def::1
+          element: <testLibrary>::@mixin::A#1
           nextFragment: #F4
           methods
             #F5 isCompleteDeclaration isOriginDeclaration foo2 (nameOffset:55) (firstTokenOffset:50) (offset:55)
-              element: <testLibrary>::@mixin::A::@def::1::@method::foo2
+              element: <testLibrary>::@mixin::A#1::@method::foo2
         #F4 isAugmentation mixin A (nameOffset:82) (firstTokenOffset:68) (offset:82)
-          element: <testLibrary>::@mixin::A::@def::1
+          element: <testLibrary>::@mixin::A#1
           previousFragment: #F3
           methods
             #F6 isCompleteDeclaration isOriginDeclaration foo3 (nameOffset:93) (firstTokenOffset:88) (offset:93)
-              element: <testLibrary>::@mixin::A::@def::1::@method::foo3
+              element: <testLibrary>::@mixin::A#1::@method::foo3
   mixins
     isSimplyBounded mixin A
-      reference: <testLibrary>::@mixin::A::@def::0
+      reference: <testLibrary>::@mixin::A
       firstFragment: #F1
       superclassConstraints
         Object
       methods
         isOriginDeclaration foo1
-          reference: <testLibrary>::@mixin::A::@def::0::@method::foo1
+          reference: <testLibrary>::@mixin::A::@method::foo1
           firstFragment: #F2
           returnType: void
     isSimplyBounded mixin A
-      reference: <testLibrary>::@mixin::A::@def::1
+      reference: <testLibrary>::@mixin::A#1
       firstFragment: #F3
       superclassConstraints
         Object
       methods
         isOriginDeclaration foo2
-          reference: <testLibrary>::@mixin::A::@def::1::@method::foo2
+          reference: <testLibrary>::@mixin::A#1::@method::foo2
           firstFragment: #F5
           returnType: void
         isOriginDeclaration foo3
-          reference: <testLibrary>::@mixin::A::@def::1::@method::foo3
+          reference: <testLibrary>::@mixin::A#1::@method::foo3
           firstFragment: #F6
           returnType: void
 ''');
@@ -4532,9 +4532,9 @@ library
               typeName: A
       mixins
         #F3 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
-          element: <testLibrary>::@mixin::A::@def::0
+          element: <testLibrary>::@mixin::A
         #F4 isAugmentation mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
-          element: <testLibrary>::@mixin::A::@def::1
+          element: <testLibrary>::@mixin::A#1
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -4546,12 +4546,12 @@ library
           firstFragment: #F2
   mixins
     isSimplyBounded mixin A
-      reference: <testLibrary>::@mixin::A::@def::0
+      reference: <testLibrary>::@mixin::A
       firstFragment: #F3
       superclassConstraints
         Object
     isSimplyBounded mixin A
-      reference: <testLibrary>::@mixin::A::@def::1
+      reference: <testLibrary>::@mixin::A#1
       firstFragment: #F4
       previousFragmentOfDifferentKind: #F1
       superclassConstraints

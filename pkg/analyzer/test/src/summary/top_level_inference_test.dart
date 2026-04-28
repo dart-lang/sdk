@@ -7237,11 +7237,11 @@ library
         #F3 hasImplicitType hasInitializer isOriginDeclaration isStatic vIncInt (nameOffset:37) (firstTokenOffset:37) (offset:37)
           element: <testLibrary>::@topLevelVariable::vIncInt
         #F4 hasImplicitType hasInitializer isOriginDeclaration isStatic vDecInt (nameOffset:59) (firstTokenOffset:59) (offset:59)
-          element: <testLibrary>::@topLevelVariable::vDecInt::@def::0
+          element: <testLibrary>::@topLevelVariable::vDecInt
         #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic vIncDouble (nameOffset:81) (firstTokenOffset:81) (offset:81)
           element: <testLibrary>::@topLevelVariable::vIncDouble
         #F6 hasImplicitType hasInitializer isOriginDeclaration isStatic vDecInt (nameOffset:109) (firstTokenOffset:109) (offset:109)
-          element: <testLibrary>::@topLevelVariable::vDecInt::@def::1
+          element: <testLibrary>::@topLevelVariable::vDecInt#1
       getters
         #F7 isCompleteDeclaration isOriginVariable isStatic vInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::vInt
@@ -7250,11 +7250,11 @@ library
         #F9 isCompleteDeclaration isOriginVariable isStatic vIncInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
           element: <testLibrary>::@getter::vIncInt
         #F10 isCompleteDeclaration isOriginVariable isStatic vDecInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
-          element: <testLibrary>::@getter::vDecInt::@def::0
+          element: <testLibrary>::@getter::vDecInt
         #F11 isCompleteDeclaration isOriginVariable isStatic vIncDouble (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
           element: <testLibrary>::@getter::vIncDouble
         #F12 isCompleteDeclaration isOriginVariable isStatic vDecInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-          element: <testLibrary>::@getter::vDecInt::@def::1
+          element: <testLibrary>::@getter::vDecInt#1
       setters
         #F13 isCompleteDeclaration isOriginVariable isStatic vInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::vInt
@@ -7272,20 +7272,20 @@ library
             #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:37)
               element: <testLibrary>::@setter::vIncInt::@formalParameter::value
         #F19 isCompleteDeclaration isOriginVariable isStatic vDecInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
-          element: <testLibrary>::@setter::vDecInt::@def::0
+          element: <testLibrary>::@setter::vDecInt
           formalParameters
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:59)
-              element: <testLibrary>::@setter::vDecInt::@def::0::@formalParameter::value
+              element: <testLibrary>::@setter::vDecInt::@formalParameter::value
         #F21 isCompleteDeclaration isOriginVariable isStatic vIncDouble (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
           element: <testLibrary>::@setter::vIncDouble
           formalParameters
             #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:81)
               element: <testLibrary>::@setter::vIncDouble::@formalParameter::value
         #F23 isCompleteDeclaration isOriginVariable isStatic vDecInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-          element: <testLibrary>::@setter::vDecInt::@def::1
+          element: <testLibrary>::@setter::vDecInt#1
           formalParameters
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:109)
-              element: <testLibrary>::@setter::vDecInt::@def::1::@formalParameter::value
+              element: <testLibrary>::@setter::vDecInt#1::@formalParameter::value
   topLevelVariables
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer vInt
       reference: <testLibrary>::@topLevelVariable::vInt
@@ -7306,11 +7306,11 @@ library
       getter: <testLibrary>::@getter::vIncInt
       setter: <testLibrary>::@setter::vIncInt
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer vDecInt
-      reference: <testLibrary>::@topLevelVariable::vDecInt::@def::0
+      reference: <testLibrary>::@topLevelVariable::vDecInt
       firstFragment: #F4
       type: int
-      getter: <testLibrary>::@getter::vDecInt::@def::0
-      setter: <testLibrary>::@setter::vDecInt::@def::0
+      getter: <testLibrary>::@getter::vDecInt
+      setter: <testLibrary>::@setter::vDecInt
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer vIncDouble
       reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: #F5
@@ -7318,11 +7318,11 @@ library
       getter: <testLibrary>::@getter::vIncDouble
       setter: <testLibrary>::@setter::vIncDouble
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer vDecInt
-      reference: <testLibrary>::@topLevelVariable::vDecInt::@def::1
+      reference: <testLibrary>::@topLevelVariable::vDecInt#1
       firstFragment: #F6
       type: double
-      getter: <testLibrary>::@getter::vDecInt::@def::1
-      setter: <testLibrary>::@setter::vDecInt::@def::1
+      getter: <testLibrary>::@getter::vDecInt#1
+      setter: <testLibrary>::@setter::vDecInt#1
   getters
     isOriginVariable isStatic vInt
       reference: <testLibrary>::@getter::vInt
@@ -7340,20 +7340,20 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vIncInt
     isOriginVariable isStatic vDecInt
-      reference: <testLibrary>::@getter::vDecInt::@def::0
+      reference: <testLibrary>::@getter::vDecInt
       firstFragment: #F10
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::0
+      variable: <testLibrary>::@topLevelVariable::vDecInt
     isOriginVariable isStatic vIncDouble
       reference: <testLibrary>::@getter::vIncDouble
       firstFragment: #F11
       returnType: double
       variable: <testLibrary>::@topLevelVariable::vIncDouble
     isOriginVariable isStatic vDecInt
-      reference: <testLibrary>::@getter::vDecInt::@def::1
+      reference: <testLibrary>::@getter::vDecInt#1
       firstFragment: #F12
       returnType: double
-      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::1
+      variable: <testLibrary>::@topLevelVariable::vDecInt#1
   setters
     isOriginVariable isStatic vInt
       reference: <testLibrary>::@setter::vInt
@@ -7383,14 +7383,14 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::vIncInt
     isOriginVariable isStatic vDecInt
-      reference: <testLibrary>::@setter::vDecInt::@def::0
+      reference: <testLibrary>::@setter::vDecInt
       firstFragment: #F19
       formalParameters
         #E3 requiredPositional value
           firstFragment: #F20
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::0
+      variable: <testLibrary>::@topLevelVariable::vDecInt
     isOriginVariable isStatic vIncDouble
       reference: <testLibrary>::@setter::vIncDouble
       firstFragment: #F21
@@ -7401,14 +7401,14 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::vIncDouble
     isOriginVariable isStatic vDecInt
-      reference: <testLibrary>::@setter::vDecInt::@def::1
+      reference: <testLibrary>::@setter::vDecInt#1
       firstFragment: #F23
       formalParameters
         #E5 requiredPositional value
           firstFragment: #F24
           type: double
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::1
+      variable: <testLibrary>::@topLevelVariable::vDecInt#1
 ''');
   }
 
@@ -7453,11 +7453,11 @@ library
         #F3 hasImplicitType hasInitializer isOriginDeclaration isStatic vIncInt (nameOffset:41) (firstTokenOffset:41) (offset:41)
           element: <testLibrary>::@topLevelVariable::vIncInt
         #F4 hasImplicitType hasInitializer isOriginDeclaration isStatic vDecInt (nameOffset:66) (firstTokenOffset:66) (offset:66)
-          element: <testLibrary>::@topLevelVariable::vDecInt::@def::0
+          element: <testLibrary>::@topLevelVariable::vDecInt
         #F5 hasImplicitType hasInitializer isOriginDeclaration isStatic vIncDouble (nameOffset:91) (firstTokenOffset:91) (offset:91)
           element: <testLibrary>::@topLevelVariable::vIncDouble
         #F6 hasImplicitType hasInitializer isOriginDeclaration isStatic vDecInt (nameOffset:122) (firstTokenOffset:122) (offset:122)
-          element: <testLibrary>::@topLevelVariable::vDecInt::@def::1
+          element: <testLibrary>::@topLevelVariable::vDecInt#1
       getters
         #F7 isCompleteDeclaration isOriginVariable isStatic vInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@getter::vInt
@@ -7466,11 +7466,11 @@ library
         #F9 isCompleteDeclaration isOriginVariable isStatic vIncInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
           element: <testLibrary>::@getter::vIncInt
         #F10 isCompleteDeclaration isOriginVariable isStatic vDecInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
-          element: <testLibrary>::@getter::vDecInt::@def::0
+          element: <testLibrary>::@getter::vDecInt
         #F11 isCompleteDeclaration isOriginVariable isStatic vIncDouble (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
           element: <testLibrary>::@getter::vIncDouble
         #F12 isCompleteDeclaration isOriginVariable isStatic vDecInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:122)
-          element: <testLibrary>::@getter::vDecInt::@def::1
+          element: <testLibrary>::@getter::vDecInt#1
       setters
         #F13 isCompleteDeclaration isOriginVariable isStatic vInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:4)
           element: <testLibrary>::@setter::vInt
@@ -7488,20 +7488,20 @@ library
             #F18 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@setter::vIncInt::@formalParameter::value
         #F19 isCompleteDeclaration isOriginVariable isStatic vDecInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
-          element: <testLibrary>::@setter::vDecInt::@def::0
+          element: <testLibrary>::@setter::vDecInt
           formalParameters
             #F20 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
-              element: <testLibrary>::@setter::vDecInt::@def::0::@formalParameter::value
+              element: <testLibrary>::@setter::vDecInt::@formalParameter::value
         #F21 isCompleteDeclaration isOriginVariable isStatic vIncDouble (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
           element: <testLibrary>::@setter::vIncDouble
           formalParameters
             #F22 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
               element: <testLibrary>::@setter::vIncDouble::@formalParameter::value
         #F23 isCompleteDeclaration isOriginVariable isStatic vDecInt (nameOffset:<null>) (firstTokenOffset:<null>) (offset:122)
-          element: <testLibrary>::@setter::vDecInt::@def::1
+          element: <testLibrary>::@setter::vDecInt#1
           formalParameters
             #F24 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:122)
-              element: <testLibrary>::@setter::vDecInt::@def::1::@formalParameter::value
+              element: <testLibrary>::@setter::vDecInt#1::@formalParameter::value
   topLevelVariables
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer vInt
       reference: <testLibrary>::@topLevelVariable::vInt
@@ -7522,11 +7522,11 @@ library
       getter: <testLibrary>::@getter::vIncInt
       setter: <testLibrary>::@setter::vIncInt
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer vDecInt
-      reference: <testLibrary>::@topLevelVariable::vDecInt::@def::0
+      reference: <testLibrary>::@topLevelVariable::vDecInt
       firstFragment: #F4
       type: int
-      getter: <testLibrary>::@getter::vDecInt::@def::0
-      setter: <testLibrary>::@setter::vDecInt::@def::0
+      getter: <testLibrary>::@getter::vDecInt
+      setter: <testLibrary>::@setter::vDecInt
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer vIncDouble
       reference: <testLibrary>::@topLevelVariable::vIncDouble
       firstFragment: #F5
@@ -7534,11 +7534,11 @@ library
       getter: <testLibrary>::@getter::vIncDouble
       setter: <testLibrary>::@setter::vIncDouble
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer vDecInt
-      reference: <testLibrary>::@topLevelVariable::vDecInt::@def::1
+      reference: <testLibrary>::@topLevelVariable::vDecInt#1
       firstFragment: #F6
       type: double
-      getter: <testLibrary>::@getter::vDecInt::@def::1
-      setter: <testLibrary>::@setter::vDecInt::@def::1
+      getter: <testLibrary>::@getter::vDecInt#1
+      setter: <testLibrary>::@setter::vDecInt#1
   getters
     isOriginVariable isStatic vInt
       reference: <testLibrary>::@getter::vInt
@@ -7556,20 +7556,20 @@ library
       returnType: int
       variable: <testLibrary>::@topLevelVariable::vIncInt
     isOriginVariable isStatic vDecInt
-      reference: <testLibrary>::@getter::vDecInt::@def::0
+      reference: <testLibrary>::@getter::vDecInt
       firstFragment: #F10
       returnType: int
-      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::0
+      variable: <testLibrary>::@topLevelVariable::vDecInt
     isOriginVariable isStatic vIncDouble
       reference: <testLibrary>::@getter::vIncDouble
       firstFragment: #F11
       returnType: double
       variable: <testLibrary>::@topLevelVariable::vIncDouble
     isOriginVariable isStatic vDecInt
-      reference: <testLibrary>::@getter::vDecInt::@def::1
+      reference: <testLibrary>::@getter::vDecInt#1
       firstFragment: #F12
       returnType: double
-      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::1
+      variable: <testLibrary>::@topLevelVariable::vDecInt#1
   setters
     isOriginVariable isStatic vInt
       reference: <testLibrary>::@setter::vInt
@@ -7599,14 +7599,14 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::vIncInt
     isOriginVariable isStatic vDecInt
-      reference: <testLibrary>::@setter::vDecInt::@def::0
+      reference: <testLibrary>::@setter::vDecInt
       firstFragment: #F19
       formalParameters
         #E3 requiredPositional value
           firstFragment: #F20
           type: int
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::0
+      variable: <testLibrary>::@topLevelVariable::vDecInt
     isOriginVariable isStatic vIncDouble
       reference: <testLibrary>::@setter::vIncDouble
       firstFragment: #F21
@@ -7617,14 +7617,14 @@ library
       returnType: void
       variable: <testLibrary>::@topLevelVariable::vIncDouble
     isOriginVariable isStatic vDecInt
-      reference: <testLibrary>::@setter::vDecInt::@def::1
+      reference: <testLibrary>::@setter::vDecInt#1
       firstFragment: #F23
       formalParameters
         #E5 requiredPositional value
           firstFragment: #F24
           type: double
       returnType: void
-      variable: <testLibrary>::@topLevelVariable::vDecInt::@def::1
+      variable: <testLibrary>::@topLevelVariable::vDecInt#1
 ''');
   }
 

@@ -3100,7 +3100,7 @@ library
       libraryImports
         package:test/foo.dart as foo (nameOffset:21) (firstTokenOffset:<null>) (offset:21)
       prefixes
-        <testLibraryFragment>::@prefix2::foo
+        <testLibraryFragment>::@prefix::foo
           fragments: @21
       topLevelVariables
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic a1 (nameOffset:30) (firstTokenOffset:30) (offset:30)
@@ -3619,7 +3619,7 @@ library
       libraryImports
         package:test/a.dart deferred as a (nameOffset:28) (firstTokenOffset:<null>) (offset:28)
       prefixes
-        <testLibraryFragment>::@prefix2::a
+        <testLibraryFragment>::@prefix::a
           fragments: @28
       topLevelVariables
         #F1 hasImplicitType hasInitializer isOriginDeclaration isStatic x (nameOffset:35) (firstTokenOffset:35) (offset:35)
@@ -5077,13 +5077,13 @@ library
       element: <testLibrary>
       extensions
         #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@extension::0
+          element: <testLibrary>::@extension::#0
           fields
             #F2 isOriginGetterSetter foo (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
-              element: <testLibrary>::@extension::0::@field::foo
+              element: <testLibrary>::@extension::#0::@field::foo
           getters
             #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:32) (firstTokenOffset:24) (offset:32)
-              element: <testLibrary>::@extension::0::@getter::foo
+              element: <testLibrary>::@extension::#0::@getter::foo
       topLevelVariables
         #F4 hasImplicitType hasInitializer isOriginDeclaration isStatic v (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::v
@@ -5098,22 +5098,22 @@ library
               element: <testLibrary>::@setter::v::@formalParameter::value
   extensions
     extension <null-name>
-      reference: <testLibrary>::@extension::0
+      reference: <testLibrary>::@extension::#0
       firstFragment: #F1
       extendedType: String
       onDeclaration: dart:core::@class::String
       fields
         isOriginGetterSetter foo
-          reference: <testLibrary>::@extension::0::@field::foo
+          reference: <testLibrary>::@extension::#0::@field::foo
           firstFragment: #F2
           type: int
-          getter: <testLibrary>::@extension::0::@getter::foo
+          getter: <testLibrary>::@extension::#0::@getter::foo
       getters
         isOriginDeclaration foo
-          reference: <testLibrary>::@extension::0::@getter::foo
+          reference: <testLibrary>::@extension::#0::@getter::foo
           firstFragment: #F3
           returnType: int
-          variable: <testLibrary>::@extension::0::@field::foo
+          variable: <testLibrary>::@extension::#0::@field::foo
   topLevelVariables
     hasImplicitType hasInitializer isOriginDeclaration isStatic isTypeInferredFromInitializer v
       reference: <testLibrary>::@topLevelVariable::v

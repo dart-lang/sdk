@@ -525,6 +525,7 @@ namespace dart {
   V(dyn_module_implicitly_callable, "dyn-module:implicitly-callable")          \
   V(dyn_module_can_be_used_as_type, "dyn-module:can-be-used-as-type")          \
   V(executable, "executable")                                                  \
+  V(external_effect, "external-effect")                                        \
   V(get, "get")                                                                \
   V(isLeaf, "isLeaf")                                                          \
   V(isPaused, "isPaused")                                                      \

@@ -160,9 +160,21 @@ class EraseNonJSInteropTypes extends ExtensionTypeErasure {
     if (_keepUserInteropTypes
         ? _isJsInteropType(type, _InteropTypeKind.any)
         : _isJsInteropType(type, _InteropTypeKind.dartJsInteropType)) {
-      // Nullability and generics on interop types are ignored for this lint. In
-      // order to just compare the interfaces themselves, we use `thisType`.
-      return type.element.thisType;
+      // Nullability and generics on interop types are ignored for this lint.
+      // In order to just compare the interfaces themselves, we replace type
+      // args with their bounds and treat the type as non-nullable.
+      // TODO(srujzs): We shouldn't ignore generics when doing an `is` check.
+      // https://github.com/dart-lang/sdk/issues/63248
+      var typeArguments = <TypeImpl>[];
+      for (var typeParam in type.element.typeParameters) {
+        typeArguments.add(typeParam.bound ?? DynamicTypeImpl.instance);
+      }
+      return createInterfaceType(
+        type: type,
+        newAlias: type.alias,
+        newTypeArguments: typeArguments,
+        newNullability: NullabilitySuffix.none,
+      );
     } else {
       // TODO(scheglov): remove this cast
       var jsType = _jsTypeForStaticInterop(type) as TypeImpl?;
@@ -326,10 +338,10 @@ class _Visitor extends SimpleAstVisitor<void> {
         erasedRight,
         _InteropTypeKind.dartJsInteropType,
       );
+
       // If there's already an invalid check in this `canBeSubtypeOf` check, we
       // are already going to lint, so only continue checking if we haven't
       // found an issue.
-
       if (lintCode == null && leftIsInteropType || rightIsInteropType) {
         if (!_isWasmIncompatibleJsInterop(erasedLeft) &&
             !_isWasmIncompatibleJsInterop(erasedRight)) {

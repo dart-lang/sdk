@@ -2054,7 +2054,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: $3
-    element: <testLibrary>::@extension::0::@getter::$3
+    element: <testLibrary>::@extension::#0::@getter::$3
     staticType: bool
   staticType: bool
 ''');

@@ -8,7 +8,6 @@ import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../../generated/type_system_base.dart';
-import 'string_types.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -17,14 +16,13 @@ main() {
 }
 
 @reflectiveTest
-class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
+class RecursiveTypeVisitorTest extends AbstractTypeSystemTest {
   late final _MockRecursiveVisitor visitor;
 
   @override
   void setUp() {
     super.setUp();
     visitor = _MockRecursiveVisitor();
-    defineStringTypes();
   }
 
   void test_callsDefaultBehavior() {
@@ -74,39 +72,38 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_interfaceType_typeParameter() {
-    var type = typeProvider.listType(parseType('int'));
+    var type = parseType('List<int>');
     expect(type.accept(visitor), true);
     visitor.assertVisitedType(parseType('int'));
   }
 
   void test_interfaceType_typeParameters() {
-    var type = typeProvider.mapType(parseType('int'), parseType('String'));
+    var type = parseType('Map<int, String>');
     expect(type.accept(visitor), true);
     visitor.assertVisitedTypes([parseType('int'), parseType('String')]);
   }
 
   void test_interfaceType_typeParameters_nested() {
-    var innerList = typeProvider.listType(parseType('int'));
-    var outerList = typeProvider.listType(innerList);
-    expect(outerList.accept(visitor), true);
+    var type = parseType('List<List<int>>');
+    expect(type.accept(visitor), true);
     visitor.assertVisitedType(parseType('int'));
   }
 
   void test_recordType_named() {
-    var type = typeOfString('({int f1, double f2})');
+    var type = parseRecordType('({int f1, double f2})');
     expect(type.accept(visitor), true);
     visitor.assertVisitedType(parseType('int'));
     visitor.assertVisitedType(parseType('double'));
   }
 
   void test_recordType_named_dollarIdentifier() {
-    var type = typeOfString(r'({int $1})');
+    var type = parseRecordType(r'({int $1})');
     expect(type.accept(visitor), true);
     visitor.assertVisitedType(parseType('int'));
   }
 
   void test_recordType_positional() {
-    var type = typeOfString('(int, double)');
+    var type = parseRecordType('(int, double)');
     expect(type.accept(visitor), true);
     visitor.assertVisitedType(parseType('int'));
     visitor.assertVisitedType(parseType('double'));
@@ -144,24 +141,21 @@ class RecursiveTypeVisitorTest extends AbstractTypeSystemTest with StringTypes {
   }
 
   void test_stopVisiting_nested() {
-    var innerType = typeProvider.mapType(parseType('int'), parseType('String'));
-    var outerList = typeProvider.listType(innerType);
+    var outerList = parseType('List<Map<int, String>>');
     visitor.stopOnType = parseType('int');
     expect(outerList.accept(visitor), false);
     visitor.assertNotVisitedType(parseType('String'));
   }
 
   void test_stopVisiting_nested_parent() {
-    var innerTypeStop = typeProvider.listType(parseType('int'));
-    var innerTypeSkipped = typeProvider.listType(parseType('String'));
-    var outerType = typeProvider.mapType(innerTypeStop, innerTypeSkipped);
+    var outerType = parseType('Map<List<int>, List<String>>');
     visitor.stopOnType = parseType('int');
     expect(outerType.accept(visitor), false);
     visitor.assertNotVisitedType(parseType('String'));
   }
 
   void test_stopVisiting_typeParameters() {
-    var type = typeProvider.mapType(parseType('int'), parseType('String'));
+    var type = parseType('Map<int, String>');
     visitor.stopOnType = parseType('int');
     expect(type.accept(visitor), false);
     visitor.assertVisitedType(parseType('int'));

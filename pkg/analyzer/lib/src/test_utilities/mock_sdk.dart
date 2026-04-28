@@ -1788,6 +1788,14 @@ extension type JSNumber._(num _) implements JSAny {}
 @JS('Object')
 extension type JSObject._(Object _) implements JSAny {}
 
+@JS('Function')
+extension type JSFunction<T extends Function>._(JSObject _)
+    implements JSObject {}
+
+@JS('Function')
+extension type JSExportedDartFunction<T extends Function>._(JSObject _)
+    implements JSFunction<T> {}
+
 @JS('Array')
 extension type JSArray<T extends JSAny?>._(List _) implements JSObject {}
 

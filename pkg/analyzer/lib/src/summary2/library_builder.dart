@@ -62,7 +62,7 @@ class LibraryBuilder {
   final Linker linker;
   final LibraryFileKind kind;
   final Uri uri;
-  final Reference reference;
+  final LibraryReference reference;
   final LibraryElementImpl element;
   final List<LinkingUnit> units;
 
@@ -80,7 +80,7 @@ class LibraryBuilder {
       Map.identity();
 
   /// Local declarations.
-  final Map<String, Reference> _declaredReferences = {};
+  final Map<String, ExportableReference> _declaredReferences = {};
 
   /// The export scope of the library.
   ExportScope exportScope = ExportScope();
@@ -88,8 +88,12 @@ class LibraryBuilder {
   /// The `export` directives that export this library.
   final List<Export> exports = [];
 
-  /// The identifier of the reference used for unnamed fragments.
-  int _nextUnnamedId = 0;
+  late final LibraryReferenceBuilder references = LibraryReferenceBuilder(
+    reference,
+  );
+
+  /// The identifier used for unnamed local constructs such as prefixes.
+  int _nextLocalReferenceId = 0;
 
   /// The fields that were speculatively created as [FieldFragmentImpl],
   /// but we want to clear [VariableFragmentImpl.constantInitializer] for it
@@ -135,15 +139,9 @@ class LibraryBuilder {
         if (exportedBuilder != null) {
           exportedBuilder.exports.add(export);
         } else {
-          var exportedReferences = exportedLibrary.exportedReferences;
-          for (var exported in exportedReferences) {
-            var reference = exported.reference;
-            var name = reference.elementName;
-            if (reference.isSetter) {
-              export.addToExportScope('$name=', exported);
-            } else {
-              export.addToExportScope(name, exported);
-            }
+          var exportEntries = exportedLibrary.exportEntries;
+          for (var entry in exportEntries) {
+            export.addToExportScope(entry);
           }
         }
       }
@@ -169,9 +167,7 @@ class LibraryBuilder {
       classElement.constructors = [
         ConstructorElementImpl(
           name: fragment.name,
-          reference: classElement.reference
-              .getChild('@constructor')
-              .addChild('new'),
+          reference: classElement.reference.declareConstructor('new'),
           firstFragment: fragment,
         ),
       ];
@@ -247,9 +243,7 @@ class LibraryBuilder {
 
       var constructorElement = ConstructorElementImpl(
         name: constructorFragment.name,
-        reference: enumElement.reference
-            .getChild('@constructor')
-            .addChild('new'),
+        reference: enumElement.reference.declareConstructor('new'),
         firstFragment: constructorFragment,
       );
       enumElement.addConstructor(constructorElement);
@@ -260,7 +254,6 @@ class LibraryBuilder {
     exportScope = ExportScope();
     _declaredReferences.forEach((name, reference) {
       if (name.startsWith('_')) return;
-      if (reference.isPrefix) return;
       exportScope.declare(name, reference);
     });
   }
@@ -291,14 +284,10 @@ class LibraryBuilder {
     ).perform();
   }
 
-  void declare(Element element, Reference reference) {
+  void declare(Element element, ExportableReference reference) {
     if (element.lookupName case var lookupName?) {
       _declaredReferences[lookupName] = reference;
     }
-  }
-
-  String getReferenceName(String? name) {
-    return name ?? '${_nextUnnamedId++}';
   }
 
   void replaceConstFieldsIfNoConstConstructor() {
@@ -401,13 +390,12 @@ class LibraryBuilder {
   }
 
   void storeExportScope() {
-    element.exportedReferences = exportScope.toReferences();
+    element.exportEntries = exportScope.toExportEntries();
 
     var definedNames = <String, Element>{};
-    for (var entry in exportScope.map.entries) {
-      var reference = entry.value.reference;
-      var element = linker.elementFactory.elementOfReference3(reference);
-      definedNames[entry.key] = element;
+    for (var entry in exportScope.entriesByName.values) {
+      var element = linker.elementFactory.elementOfReference3(entry.reference);
+      definedNames[entry.name] = element;
     }
 
     var namespace = Namespace(definedNames);
@@ -623,24 +611,10 @@ class LibraryBuilder {
       isDeferred: isDeferred,
     )..offset = offset;
 
-    var refName = getReferenceName(unlinkedName?.name);
-    var reference = this.reference
-        .getChild('@fragment')
-        .getChild('${libraryFragment.source.uri}')
-        .getChild('@prefix2')
-        .getChild(refName);
-    var element = reference.element as PrefixElementImpl?;
-
-    if (element == null) {
-      element = PrefixElementImpl(
-        reference: reference,
-        firstFragment: fragment,
-      );
-    } else {
-      element.addFragment(fragment);
-    }
-
-    fragment.element = element;
+    libraryFragment.bindLibraryImportPrefixElement(
+      id: unlinkedName?.name ?? '#${_nextLocalReferenceId++}',
+      fragment: fragment,
+    );
     return fragment;
   }
 
@@ -721,29 +695,24 @@ class LibraryBuilder {
 
   /// We want to have stable references for `loadLibrary` function. But we
   /// cannot create the function itself right now, because the type provider
-  /// might be not available yet. So, we create references together with the
-  /// library, and create the fragment and element later.
-  void _createLoadLibraryReferences() {
-    var name = TopLevelFunctionElement.LOAD_LIBRARY_NAME;
-
-    var elementContainer = reference.getChild('@function');
-    var elementReference = elementContainer.addChild(name);
-
+  /// might be not available yet. So, we reserve the reference right now,
+  /// before any other declarations, and create the fragment and element later.
+  void _createLoadLibraryReference() {
     element.loadLibraryProvider = LoadLibraryFunctionProvider(
-      elementReference: elementReference,
+      elementReference: references.declareTopLevelFunction(
+        TopLevelFunctionElement.LOAD_LIBRARY_NAME,
+      ),
     );
   }
 
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
-    if (reference.name == 'dart:core') {
-      var dynamicRef = reference.getChild('dynamic');
-      dynamicRef.element = DynamicElementImpl.instance;
-      declare(DynamicElementImpl.instance, dynamicRef);
+    if (reference.uriString == 'dart:core') {
+      reference.dynamicRef.element = DynamicElementImpl.instance;
+      declare(DynamicElementImpl.instance, reference.dynamicRef);
 
-      var neverRef = reference.getChild('Never');
-      neverRef.element = NeverElementImpl.instance;
-      declare(NeverElementImpl.instance, neverRef);
+      reference.neverRef.element = NeverElementImpl.instance;
+      declare(NeverElementImpl.instance, reference.neverRef);
     }
   }
 
@@ -756,8 +725,7 @@ class LibraryBuilder {
     var rootReference = linker.rootReference;
 
     var libraryFile = inputLibrary.file;
-    var libraryUriStr = libraryFile.uriStr;
-    var libraryReference = rootReference.getChild(libraryUriStr);
+    var libraryReference = rootReference.getOrCreateLibrary(libraryFile.uri);
 
     var libraryUnitNode = performance.run('libraryFile', (performance) {
       return libraryFile.parse(performance: performance, scanComments: false);
@@ -824,7 +792,7 @@ class LibraryBuilder {
       units: linkingUnits,
     );
 
-    builder._createLoadLibraryReferences();
+    builder._createLoadLibraryReference();
     elementFactory.setLibraryTypeSystem(libraryElement);
 
     linker.builders[builder.uri] = builder;

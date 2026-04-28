@@ -54,10 +54,10 @@ class BundleReader {
     var stringsOffset = _reader.readUint32();
     _reader.initStringTableAt(stringsOffset);
 
-    var referenceReader = _ReferenceReader(
-      elementFactory,
-      _reader,
-      referencesOffset,
+    _reader.offset = referencesOffset;
+    var referenceReader = ReferenceTableReader(
+      reader: _reader,
+      rootReference: elementFactory.rootReference,
     );
 
     _reader.offset = librariesOffset;
@@ -70,7 +70,7 @@ class BundleReader {
 
     for (var libraryHeader in libraryHeaderList) {
       var uri = libraryHeader.uri;
-      var reference = elementFactory.rootReference.getChild('$uri');
+      var reference = elementFactory.rootReference.getOrCreateLibrary(uri);
       libraryMap[uri] = LibraryReader._(
         elementFactory: elementFactory,
         reader: _reader,
@@ -92,8 +92,8 @@ class LibraryReader {
   final Uri uri;
   final Map<Uri, Uint8List> _unitsInformativeBytes;
   final int _baseResolutionOffset;
-  final _ReferenceReader _referenceReader;
-  final Reference _reference;
+  final ReferenceTableReader _referenceReader;
+  final LibraryReference _reference;
   final int _offset;
   final LibraryManifestHandle? manifest;
 
@@ -108,8 +108,8 @@ class LibraryReader {
     required this.uri,
     required Map<Uri, Uint8List> unitsInformativeBytes,
     required int baseResolutionOffset,
-    required _ReferenceReader referenceReader,
-    required Reference reference,
+    required ReferenceTableReader referenceReader,
+    required LibraryReference reference,
     required int offset,
     required this.manifest,
   }) : _elementFactory = elementFactory,
@@ -146,16 +146,14 @@ class LibraryReader {
     _libraryElement.readFlags(_reader);
     _libraryElement.languageVersion = _readLanguageVersion();
 
-    _libraryElement.exportedReferences = _reader.readTypedList(
-      _readExportedReference,
-    );
+    _libraryElement.exportEntries = _reader.readTypedList(_readExportEntry);
 
     _libraryElement.nameUnion = ElementNameUnion.read(_reader.readUint30List());
 
     _libraryElement.manifest = manifest;
 
     _libraryElement.loadLibraryProvider = LoadLibraryFunctionProvider(
-      elementReference: _readReference(),
+      elementReference: _referenceReader.readTopLevelReference(_reader),
     );
 
     // Read the library units.
@@ -205,7 +203,7 @@ class LibraryReader {
 
       _libraryElement.exportNamespace = _elementFactory.buildExportNamespace(
         _libraryElement.uri,
-        _libraryElement.exportedReferences,
+        _libraryElement.exportEntries,
       );
     });
 
@@ -236,9 +234,9 @@ class LibraryReader {
 
   /// These elements are implicitly declared in `dart:core`.
   void _declareDartCoreDynamicNever() {
-    if (_reference.name == 'dart:core') {
-      _reference.getChild('dynamic').element = DynamicElementImpl.instance;
-      _reference.getChild('Never').element = NeverElementImpl.instance;
+    if (_reference.uriString == 'dart:core') {
+      _reference.dynamicRef.element = DynamicElementImpl.instance;
+      _reference.neverRef.element = NeverElementImpl.instance;
     }
   }
 
@@ -257,7 +255,7 @@ class LibraryReader {
 
   void _readClassElements() {
     _libraryElement.classes = _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readMemberContainerReference(_reader);
       var fragments = _readFragmentsById<ClassFragmentImpl>();
       var element = ClassElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -337,7 +335,7 @@ class LibraryReader {
 
   List<ConstructorElementImpl> _readConstructorElements() {
     return _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readMemberReference(_reader);
       var fragments = _readFragmentsById<ConstructorFragmentImpl>();
       var element = ConstructorElementImpl(
         name: fragments.first.name,
@@ -455,7 +453,7 @@ class LibraryReader {
 
   void _readEnumElements() {
     _libraryElement.enums = _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readMemberContainerReference(_reader);
       var fragments = _readFragmentsById<EnumFragmentImpl>();
       var element = EnumElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -524,22 +522,12 @@ class LibraryReader {
     });
   }
 
-  ExportedReference _readExportedReference() {
-    var kind = _reader.readByte();
-    if (kind == 0) {
-      var index = _reader.readUint30();
-      var reference = _referenceReader.referenceOfIndex(index);
-      return ExportedReferenceDeclared(reference: reference);
-    } else if (kind == 1) {
-      var index = _reader.readUint30();
-      var reference = _referenceReader.referenceOfIndex(index);
-      return ExportedReferenceExported(
-        reference: reference,
-        locations: _reader.readTypedList(_readExportLocation),
-      );
-    } else {
-      throw StateError('kind: $kind');
-    }
+  ExportEntry _readExportEntry() {
+    return ExportEntry(
+      name: _reader.readStringReference(),
+      reference: _referenceReader.readExportableReference(_reader),
+      locations: _reader.readTypedList(_readExportLocation),
+    );
   }
 
   ExportLocation _readExportLocation() {
@@ -551,7 +539,7 @@ class LibraryReader {
 
   void _readExtensionElements() {
     _libraryElement.extensions = _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readMemberContainerReference(_reader);
       var fragments = _readFragmentsById<ExtensionFragmentImpl>();
       var element = ExtensionElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -618,7 +606,7 @@ class LibraryReader {
 
   void _readExtensionTypeElements() {
     _libraryElement.extensionTypes = _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readMemberContainerReference(_reader);
       var fragments = _readFragmentsById<ExtensionTypeFragmentImpl>();
       var element = ExtensionTypeElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -696,7 +684,7 @@ class LibraryReader {
 
   List<FieldElementImpl> _readFieldElements() {
     return _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readMemberReference(_reader);
       var fragments = _readFragmentsById<FieldFragmentImpl>();
       var element = FieldElementImpl(
         reference: reference,
@@ -836,7 +824,7 @@ class LibraryReader {
 
   List<GetterElementImpl> _readGetterElements() {
     return _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readDeclarationReference(_reader);
       var fragments = _readFragmentsById<GetterFragmentImpl>();
       var element = GetterElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -951,7 +939,7 @@ class LibraryReader {
 
     libraryFragment.readFlags(_reader);
 
-    libraryFragment.libraryImports = _readLibraryImports();
+    libraryFragment.libraryImports = _readLibraryImports(libraryFragment);
     libraryFragment.libraryExports = _readLibraryExports();
 
     libraryFragment.classes = _readClassFragments();
@@ -971,10 +959,12 @@ class LibraryReader {
     return libraryFragment;
   }
 
-  PrefixFragmentImpl? _readLibraryImportPrefixFragment() {
+  PrefixFragmentImpl? _readLibraryImportPrefixFragment(
+    LibraryFragmentImpl libraryFragment,
+  ) {
     return _reader.readOptionalObject(() {
       var fragmentName = _readFragmentName();
-      var reference = _readReference();
+      var id = _reader.readStringReference();
       var isDeferred = _reader.readBool();
       var fragment = PrefixFragmentImpl(
         name: fragmentName,
@@ -982,29 +972,23 @@ class LibraryReader {
         nameOffset: null,
         isDeferred: isDeferred,
       );
-
-      var element = reference.element as PrefixElementImpl?;
-      if (element == null) {
-        element = PrefixElementImpl(
-          reference: reference,
-          firstFragment: fragment,
-        );
-      } else {
-        element.addFragment(fragment);
-      }
-
-      fragment.element = element;
+      libraryFragment.bindLibraryImportPrefixElement(
+        id: id,
+        fragment: fragment,
+      );
       return fragment;
     });
   }
 
-  List<LibraryImportImpl> _readLibraryImports() {
+  List<LibraryImportImpl> _readLibraryImports(
+    LibraryFragmentImpl libraryFragment,
+  ) {
     return _reader.readTypedList(() {
       return LibraryImportImpl(
         isSynthetic: _reader.readBool(),
         combinators: _reader.readTypedList(_readNamespaceCombinator),
         importKeywordOffset: -1,
-        prefix: _readLibraryImportPrefixFragment(),
+        prefix: _readLibraryImportPrefixFragment(libraryFragment),
         uri: _readDirectiveUri(),
       );
     });
@@ -1012,7 +996,7 @@ class LibraryReader {
 
   List<MethodElementImpl> _readMethodElements() {
     return _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readMemberReference(_reader);
       var fragments = _readFragmentsById<MethodFragmentImpl>();
       var element = MethodElementImpl(
         name: fragments.first.name,
@@ -1073,7 +1057,7 @@ class LibraryReader {
 
   void _readMixinElements() {
     _libraryElement.mixins = _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readMemberContainerReference(_reader);
       var fragments = _readFragmentsById<MixinFragmentImpl>();
       var element = MixinElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -1165,7 +1149,9 @@ class LibraryReader {
 
   /// Read the reference of a non-local element.
   Reference? _readOptionalReference() {
-    return _reader.readOptionalObject(() => _readReference());
+    return _reader.readOptionalObject(
+      () => _referenceReader.readReference(_reader),
+    );
   }
 
   List<PartIncludeImpl> _readPartIncludes() {
@@ -1175,15 +1161,9 @@ class LibraryReader {
     });
   }
 
-  /// Read the reference of a non-local element.
-  Reference _readReference() {
-    var referenceIndex = _reader.readUint30();
-    return _referenceReader.referenceOfIndex(referenceIndex);
-  }
-
   List<SetterElementImpl> _readSetterElements() {
     return _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readDeclarationReference(_reader);
       var fragments = _readFragmentsById<SetterFragmentImpl>();
       var element = SetterElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -1261,7 +1241,7 @@ class LibraryReader {
 
   void _readTopLevelFunctionElements() {
     _libraryElement.topLevelFunctions = _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readTopLevelReference(_reader);
       var fragments = _readFragmentsById<TopLevelFunctionFragmentImpl>();
       var element = TopLevelFunctionElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -1315,7 +1295,7 @@ class LibraryReader {
 
   void _readTopLevelVariableElements() {
     _libraryElement.topLevelVariables = _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readTopLevelReference(_reader);
       var fragments = _readFragmentsById<TopLevelVariableFragmentImpl>();
       var element = TopLevelVariableElementImpl(reference, fragments.first);
       element.linkFragments(fragments);
@@ -1355,7 +1335,7 @@ class LibraryReader {
 
   void _readTypeAliasElements() {
     _libraryElement.typeAliases = _reader.readTypedList(() {
-      var reference = _readReference();
+      var reference = _referenceReader.readTopLevelReference(_reader);
       var fragment = _readFragmentById<TypeAliasFragmentImpl>();
       var element = TypeAliasElementImpl(reference, fragment);
       element.readFlags(_reader);
@@ -1433,7 +1413,9 @@ class LibraryReader {
 
   void _readVariableGetterSetterLinking() {
     _reader.readTypedList(() {
-      var variable = _readReference().element as PropertyInducingElementImpl;
+      var variable =
+          _referenceReader.readReference(_reader).element
+              as PropertyInducingElementImpl;
 
       var optionalGetter = _readOptionalReference()?.element;
       if (optionalGetter != null) {
@@ -1471,7 +1453,7 @@ class LibraryReader {
 /// Helper for reading elements and types from their binary encoding.
 class ResolutionReader {
   final LinkedElementFactory _elementFactory;
-  final _ReferenceReader _referenceReader;
+  final ReferenceTableReader _referenceReader;
   final BinaryReader _reader;
 
   late LibraryFragmentImpl currentLibraryFragment;
@@ -1533,9 +1515,14 @@ class ResolutionReader {
           return elementImpl.substitute(substitution);
         }
       case ElementTag.elementImpl:
-        var referenceIndex = _reader.readUint30();
-        var reference = _referenceReader.referenceOfIndex(referenceIndex);
+        var reference = _referenceReader.readReference(_reader);
         return _elementFactory.elementOfReference3(reference);
+      case ElementTag.libraryImportPrefix:
+        var fragmentUri = _reader.readUri();
+        var prefixId = _reader.readStringReference();
+        return currentLibraryFragment.element.fragments
+            .singleWhere((fragment) => fragment.source.uri == fragmentUri)
+            .libraryImportPrefixById(prefixId)!;
       case ElementTag.typeParameter:
         var index = _reader.readUint30();
         return _localElements[index] as TypeParameterElementImpl;
@@ -1870,45 +1857,4 @@ class _LibraryHeader {
   final int offset;
 
   _LibraryHeader({required this.uri, required this.offset});
-}
-
-class _ReferenceReader {
-  final LinkedElementFactory elementFactory;
-  final BinaryReader _reader;
-  late final Uint32List _parents;
-  late final Uint32List _names;
-  late final List<Reference?> _references;
-
-  _ReferenceReader(this.elementFactory, this._reader, int offset) {
-    _reader.offset = offset;
-    _parents = _reader.readUint30List();
-    _names = _reader.readUint30List();
-    assert(_parents.length == _names.length);
-
-    _references = List.filled(_names.length, null);
-  }
-
-  Reference referenceOfIndex(int index) {
-    var reference = _references[index];
-    if (reference != null) {
-      return reference;
-    }
-
-    if (index == 0) {
-      reference = elementFactory.rootReference;
-      _references[index] = reference;
-      return reference;
-    }
-
-    var nameIndex = _names[index];
-    var name = _reader.stringOfIndex(nameIndex);
-
-    var parentIndex = _parents[index];
-    var parent = referenceOfIndex(parentIndex);
-
-    reference = parent.getChild(name);
-    _references[index] = reference;
-
-    return reference;
-  }
 }

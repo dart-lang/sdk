@@ -2047,6 +2047,47 @@ Message _withArgumentsCyclicTypedef({required String name}) {
 }
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectIncorrectType = const MessageCode(
+  "DartExternalEffectIncorrectType",
+  problemMessage:
+      """A function annotated with the 'external-effect' pragma must have the type 'void Function(Object?)'""",
+  correctionMessage: """Try correcting the type of the function.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectMalformedPragma = const MessageCode(
+  "DartExternalEffectMalformedPragma",
+  problemMessage:
+      """The 'external-effect' pragma must be applied as a String literal.""",
+  correctionMessage:
+      """Try inlining the 'external-string' argument to the pragma.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectNotExternal = const MessageCode(
+  "DartExternalEffectNotExternal",
+  problemMessage:
+      """A function annotated with the 'external-effect' pragma must be external.""",
+  correctionMessage: """Try making the function external.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectNotMethod = const MessageCode(
+  "DartExternalEffectNotMethod",
+  problemMessage:
+      """The 'external-effect' pragma can only be applied to methods.""",
+  correctionMessage: """Try removing the pragma or applying it to a method.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode dartExternalEffectNotStatic = const MessageCode(
+  "DartExternalEffectNotStatic",
+  problemMessage:
+      """A function annotated with the 'external-effect' pragma must be static.""",
+  correctionMessage: """Try making the function static.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode dartFfiLibraryInDart2Wasm = const MessageCode(
   "DartFfiLibraryInDart2Wasm",
   problemMessage: """'dart:ffi' can't be imported when compiling to Wasm.""",

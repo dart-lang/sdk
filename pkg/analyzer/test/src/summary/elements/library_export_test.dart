@@ -29,7 +29,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart::@class::C
@@ -52,7 +52,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart::@class::C
@@ -78,7 +78,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/foo.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/foo.dart::@class::A
   exportNamespace
     A: package:test/foo.dart::@class::A
@@ -107,7 +107,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/foo_io.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/foo_io.dart::@class::A
   exportNamespace
     A: package:test/foo_io.dart::@class::A
@@ -136,7 +136,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/foo_html.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/foo_html.dart::@class::A
   exportNamespace
     A: package:test/foo_html.dart::@class::A
@@ -177,7 +177,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F2
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::A
     declared <testLibrary>::@class::X
   exportNamespace
@@ -198,7 +198,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@function::f
   exportNamespace
     f: package:test/a.dart::@function::f
@@ -240,7 +240,7 @@ library
         package:test/a.dart
           combinators
             hide: A, C
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::B
     exported[(0, 0)] package:test/a.dart::@class::D
   exportNamespace
@@ -271,7 +271,7 @@ library
           combinators
             hide: A
             show: C
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
     C: package:test/a.dart::@class::C
@@ -324,7 +324,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F2
-  exportedReferences
+  exportEntries
     exported[(0, 0), (0, 1)] package:test/a.dart::@class::A
     exported[(0, 0)] package:test/b.dart::@class::B
     exported[(0, 1)] package:test/c.dart::@class::C
@@ -349,7 +349,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@setter::f
   exportNamespace
     f=: package:test/a.dart::@setter::f
@@ -377,7 +377,7 @@ library
         package:test/a.dart
           combinators
             show: A, C
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@class::A
     exported[(0, 0)] package:test/a.dart::@class::C
   exportNamespace
@@ -403,7 +403,7 @@ library
         package:test/a.dart
           combinators
             show: f
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@getter::f
     exported[(0, 0)] package:test/a.dart::@setter::f
   exportNamespace
@@ -424,7 +424,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@typeAlias::F
   exportNamespace
     F: package:test/a.dart::@typeAlias::F
@@ -459,7 +459,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@getter::x
     exported[(0, 0)] package:test/a.dart::@setter::x
   exportNamespace
@@ -480,7 +480,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart::@getter::x
@@ -499,7 +499,7 @@ library
       element: <testLibrary>
       libraryExports
         package:test/a.dart
-  exportedReferences
+  exportEntries
     exported[(0, 0)] package:test/a.dart::@getter::x
   exportNamespace
     x: package:test/a.dart::@getter::x
@@ -667,7 +667,7 @@ library
       libraryExports
         package:test/a.dart
         package:test/b.dart
-  exportedReferences
+  exportEntries
   exportNamespace
 ''');
   }
@@ -722,7 +722,7 @@ library
             synthetic @-1
               reference: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
               enclosingElement3: <testLibrary>::@fragment::package:test/a.dart::@class::B
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@fragment::package:test/a.dart::@class::B
     declared <testLibraryFragment>::@class::A
   exportNamespace
@@ -775,7 +775,7 @@ library
       constructors
         synthetic new
           firstFragment: <testLibrary>::@fragment::package:test/a.dart::@class::B::@constructor::new
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@fragment::package:test/a.dart::@class::B
     declared <testLibraryFragment>::@class::A
   exportNamespace
@@ -861,7 +861,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F4
-  exportedReferences
+  exportEntries
     exported[(1, 0)] package:test/a.dart::@class::A
     exported[(2, 0)] package:test/b.dart::@class::B1
     exported[(2, 0)] package:test/b.dart::@class::B2
@@ -930,7 +930,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F3
-  exportedReferences
+  exportEntries
     exported[(1, 0)] package:test/a.dart::@class::A1
     exported[(1, 0)] package:test/a.dart::@class::A3
     declared <testLibrary>::@class::X
@@ -994,7 +994,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F3
-  exportedReferences
+  exportEntries
     exported[(1, 0)] package:test/a.dart::@class::A1
     exported[(1, 0)] package:test/a.dart::@class::A3
     declared <testLibrary>::@class::X
@@ -1053,7 +1053,7 @@ library
           enclosingElement3: <testLibrary>::@fragment::package:test/a.dart
           superclassConstraints
             Object
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@fragment::package:test/a.dart::@mixin::B
     declared <testLibraryFragment>::@mixin::A
   exportNamespace
@@ -1094,7 +1094,7 @@ library
       firstFragment: <testLibrary>::@fragment::package:test/a.dart::@mixin::B
       superclassConstraints
         Object
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@fragment::package:test/a.dart::@mixin::B
     declared <testLibraryFragment>::@mixin::A
   exportNamespace
@@ -1190,7 +1190,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::B::@constructor::new
           firstFragment: #F8
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@class::A
     declared <testLibrary>::@class::B
     declared <testLibrary>::@class::C
@@ -1272,7 +1272,7 @@ library
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::X::@constructor::new
           firstFragment: #F3
-  exportedReferences
+  exportEntries
     exported[(1, 0)] package:test/a.dart::@class::A
     exported[(2, 0)] package:test/b.dart::@class::B
     declared <testLibrary>::@class::X
@@ -1345,7 +1345,7 @@ library
           type: int
       returnType: void
       variable: <testLibrary>::@topLevelVariable::a
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::a
     declared <testLibrary>::@setter::a
   exportNamespace
@@ -1406,7 +1406,7 @@ library
       firstFragment: #F3
       returnType: int
       variable: <testLibrary>::@topLevelVariable::a
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@getter::a
   exportNamespace
     a: <testLibrary>::@getter::a

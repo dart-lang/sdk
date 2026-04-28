@@ -31,7 +31,7 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  element: <testLibraryFragment>::@prefix2::p
+  element: <testLibraryFragment>::@prefix::p
   staticType: InvalidType
 ''');
   }
@@ -66,7 +66,7 @@ ForStatement
     inKeyword: in
     iterable: SimpleIdentifier
       token: p
-      element: <testLibraryFragment>::@prefix2::p
+      element: <testLibraryFragment>::@prefix::p
       staticType: InvalidType
   rightParenthesis: )
   body: Block
@@ -114,7 +114,7 @@ InstanceCreationExpression
         correspondingParameter: ParameterMember
           baseElement: <testLibrary>::@class::C::@constructor::new::@formalParameter::a
           substitution: {T: dynamic}
-        element: <testLibraryFragment>::@prefix2::p
+        element: <testLibraryFragment>::@prefix::p
         staticType: InvalidType
     rightParenthesis: )
   staticType: C<dynamic>
@@ -134,7 +134,7 @@ main() {
     assertResolvedNodeText(node, r'''
 SimpleIdentifier
   token: p
-  element: <testLibraryFragment>::@prefix2::p
+  element: <testLibraryFragment>::@prefix::p
   staticType: null
 ''');
   }

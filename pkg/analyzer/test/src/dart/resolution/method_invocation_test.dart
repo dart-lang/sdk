@@ -1696,7 +1696,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@prefix2::p
+    element: <testLibraryFragment>::@prefix::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2122,7 +2122,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2154,7 +2154,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: null
   operator: ?.
   methodName: SimpleIdentifier
@@ -2186,7 +2186,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: foo
-    element: <testLibraryFragment>::@prefix2::foo
+    element: <testLibraryFragment>::@prefix::foo
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (
@@ -2243,7 +2243,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -2789,7 +2789,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: p
-    element: <testLibraryFragment>::@prefix2::p
+    element: <testLibraryFragment>::@prefix::p
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3429,7 +3429,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3464,7 +3464,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3811,7 +3811,7 @@ main() {
 MethodInvocation
   target: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   operator: .
   methodName: SimpleIdentifier
@@ -3860,7 +3860,7 @@ FunctionExpressionInvocation
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -5331,7 +5331,7 @@ FunctionExpressionInvocation
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -5381,7 +5381,7 @@ MethodInvocation
   target: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -6909,7 +6909,7 @@ main() {
 MethodInvocation
   methodName: SimpleIdentifier
     token: math
-    element: <testLibraryFragment>::@prefix2::math
+    element: <testLibraryFragment>::@prefix::math
     staticType: InvalidType
   argumentList: ArgumentList
     leftParenthesis: (

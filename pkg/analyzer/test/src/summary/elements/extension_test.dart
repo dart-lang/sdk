@@ -211,7 +211,7 @@ extension E on int {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtension('E')!;
-    var foo = getElementOfReference(E, ['@field', 'foo']);
+    var foo = getFieldElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -223,7 +223,7 @@ extension E on int {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtension('E')!;
-    var foo = getElementOfReference(E, ['@getter', 'foo']);
+    var foo = getGetterElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -235,7 +235,7 @@ extension E on int {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtension('E')!;
-    var foo = getElementOfReference(E, ['@method', 'foo']);
+    var foo = getMethodElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -247,7 +247,7 @@ extension E on int {
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
     var E = library.getExtension('E')!;
-    var foo = getElementOfReference(E, ['@setter', 'foo']);
+    var foo = getSetterElementOfReference(E, 'foo');
     expect(foo.name, 'foo');
   }
 
@@ -1230,10 +1230,10 @@ library
       element: <testLibrary>
       extensions
         #F1 extension <null-name> (nameOffset:<null>) (firstTokenOffset:0) (offset:0)
-          element: <testLibrary>::@extension::0
+          element: <testLibrary>::@extension::#0
   extensions
     extension <null-name>
-      reference: <testLibrary>::@extension::0
+      reference: <testLibrary>::@extension::#0
       firstFragment: #F1
       extendedType: int
       onDeclaration: dart:core::@class::int
@@ -1275,7 +1275,7 @@ library
       firstFragment: #F1
       extendedType: int
       onDeclaration: dart:core::@class::int
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@extension::A
   exportNamespace
     A: <testLibrary>::@extension::A
@@ -2973,9 +2973,9 @@ library
           element: <testLibrary>::@class::A
       extensions
         #F2 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
-          element: <testLibrary>::@extension::A::@def::0
+          element: <testLibrary>::@extension::A
         #F3 isAugmentation extension A (nameOffset:61) (firstTokenOffset:43) (offset:61)
-          element: <testLibrary>::@extension::A::@def::1
+          element: <testLibrary>::@extension::A#1
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -2983,12 +2983,12 @@ library
       previousFragmentOfDifferentKind: #F2
   extensions
     extension A
-      reference: <testLibrary>::@extension::A::@def::0
+      reference: <testLibrary>::@extension::A
       firstFragment: #F2
       extendedType: int
       onDeclaration: dart:core::@class::int
     extension A
-      reference: <testLibrary>::@extension::A::@def::1
+      reference: <testLibrary>::@extension::A#1
       firstFragment: #F3
       previousFragmentOfDifferentKind: #F1
       extendedType: InvalidType
@@ -3023,7 +3023,7 @@ library
       firstFragment: #F1
       extendedType: int
       onDeclaration: dart:core::@class::int
-  exportedReferences
+  exportEntries
     declared <testLibrary>::@extension::A
   exportNamespace
     A: <testLibrary>::@extension::A

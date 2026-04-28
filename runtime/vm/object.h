@@ -3699,6 +3699,10 @@ class Function : public Object {
 
   bool IsCachableIdempotent() const;
 
+  // Whether this function represents an external effect and should be dropped
+  // from codegen.
+  bool IsExternalEffect() const;
+
   // Whether this function's |recognized_kind| requires optimization.
   bool RecognizedKindForceOptimize() const;
 
@@ -4192,7 +4196,8 @@ class Function : public Object {
   V(WasExecutedBit)                                                            \
   V(ProhibitsInstructionHoisting)                                              \
   V(ProhibitsBoundsCheckGeneralization)                                        \
-  V(IsDynamicallyOverridden)
+  V(IsDynamicallyOverridden)                                                   \
+  V(IsRedirectingFactory)
 
   enum StateBits {
 #define DECLARE_FLAG_POS(Name) k##Name##Pos,
@@ -4268,8 +4273,7 @@ class Function : public Object {
   V(HasPragma, has_pragma)                                                     \
   V(IsSynthetic, is_synthetic)                                                 \
   V(IsExtensionMember, is_extension_member)                                    \
-  V(IsExtensionTypeMember, is_extension_type_member)                           \
-  V(IsRedirectingFactory, is_redirecting_factory)
+  V(IsExtensionTypeMember, is_extension_type_member)
 // Bit that is updated after function is constructed, has to be updated in
 // concurrent-safe manner.
 #define FOR_EACH_FUNCTION_VOLATILE_KIND_BIT(V) V(Inlinable, is_inlinable)

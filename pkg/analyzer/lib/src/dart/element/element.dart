@@ -136,7 +136,7 @@ class BindPatternVariableFragmentImpl extends PatternVariableFragmentImpl
 class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final MemberContainerReference reference;
 
   @override
   final ClassFragmentImpl _firstFragment;
@@ -530,9 +530,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
 
       var constructorElement = ConstructorElementImpl(
         name: constructorFragment.name,
-        reference: reference
-            .getChild('@constructor')
-            .getChild(constructorFragment.name),
+        reference: reference.getOrCreateConstructor(constructorFragment.name),
         firstFragment: constructorFragment,
       );
       constructorElement.hasEnclosingTypeParameterReference =
@@ -759,7 +757,7 @@ class ConstructorElementImpl extends ExecutableElementImpl
     implements ConstantEvaluationTarget {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final MemberReference reference;
 
   @override
   @trackedIncludedInId
@@ -2280,7 +2278,7 @@ abstract class ElementImpl implements Element {
 class EnumElementImpl extends InterfaceElementImpl implements EnumElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final MemberContainerReference reference;
 
   @override
   final EnumFragmentImpl _firstFragment;
@@ -2829,7 +2827,7 @@ class ExtensionElementImpl extends InstanceElementImpl
     implements ExtensionElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final MemberContainerReference reference;
 
   @override
   final ExtensionFragmentImpl _firstFragment;
@@ -3053,7 +3051,7 @@ class ExtensionTypeElementImpl extends InterfaceElementImpl
     implements ExtensionTypeElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final MemberContainerReference reference;
 
   @override
   final ExtensionTypeFragmentImpl _firstFragment;
@@ -3205,7 +3203,7 @@ class FieldElementImpl extends PropertyInducingElementImpl
     with InternalFieldElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final MemberReference reference;
 
   @override
   final FieldFragmentImpl _firstFragment;
@@ -4723,7 +4721,7 @@ class GetterElementImpl extends PropertyAccessorElementImpl
     with InternalGetterElement {
   @override
   @trackedIncludedInId
-  Reference reference;
+  DeclarationReference reference;
 
   @override
   final GetterFragmentImpl _firstFragment;
@@ -5039,6 +5037,9 @@ sealed class InstanceElementImpl extends ElementImpl
   String? get name {
     return _firstFragment.name;
   }
+
+  @override
+  MemberContainerReference get reference;
 
   @override
   @trackedDirectlyOpaque
@@ -6479,7 +6480,7 @@ class LibraryElementImpl extends ElementImpl
 
   @override
   @trackedIncludedInId
-  Reference? reference;
+  LibraryReference? reference;
 
   MetadataImpl _metadata = MetadataImpl(const []);
 
@@ -6506,7 +6507,7 @@ class LibraryElementImpl extends ElementImpl
   late TypeSystemImpl typeSystem;
 
   @trackedInternal
-  late List<ExportedReference> exportedReferences;
+  late List<ExportEntry> exportEntries;
 
   /// The union of names for all searchable elements in this library.
   @trackedInternal
@@ -7271,11 +7272,11 @@ class LibraryElementImpl extends ElementImpl
     return true;
   }
 
-  /// Return `true` if [reference] comes only from deprecated exports.
+  /// Return `true` if [entry] comes only from deprecated exports.
   @trackedInternal
-  bool isFromDeprecatedExport(ExportedReference reference) {
-    if (reference is ExportedReferenceExported) {
-      for (var location in reference.locations) {
+  bool isFromDeprecatedExport(ExportEntry entry) {
+    if (entry.isReExported) {
+      for (var location in entry.locations) {
         var fragment = _fragmentAt(location.fragmentIndex);
         var export = fragment.libraryExports[location.exportIndex];
         if (!export.metadata.hasDeprecated) {
@@ -7454,7 +7455,10 @@ class LibraryFragmentImpl extends FragmentImpl
   List<LibraryImportImpl> _libraryImports = _Sentinel.libraryImport;
 
   /// The cached list of prefixes from [prefixes].
-  List<PrefixElementImpl>? _libraryImportPrefixes2;
+  List<PrefixElementImpl>? _libraryImportPrefixes;
+
+  /// Library import prefix elements keyed by their fragment-local id.
+  final Map<String, PrefixElementImpl> _libraryImportPrefixesById = {};
 
   /// The parts included by this unit.
   List<PartIncludeImpl> _parts = const <PartIncludeImpl>[];
@@ -7730,7 +7734,7 @@ class LibraryFragmentImpl extends FragmentImpl
 
   @override
   List<PrefixElementImpl> get prefixes {
-    return _libraryImportPrefixes2 ??= _buildLibraryImportPrefixes();
+    return _libraryImportPrefixes ??= _buildLibraryImportPrefixes();
   }
 
   @override
@@ -7861,6 +7865,34 @@ class LibraryFragmentImpl extends FragmentImpl
     }
     _typeAliases.add(fragment);
     fragment.enclosingFragment = this;
+  }
+
+  /// Binds the given [fragment] to a [PrefixElementImpl] identified by a
+  /// fragment-local [id].
+  ///
+  /// If a prefix element with the given [id] does not exist yet, it is created
+  /// with the [fragment] as its first fragment. Otherwise, the [fragment] is
+  /// added to the existing element.
+  PrefixElementImpl bindLibraryImportPrefixElement({
+    required String id,
+    required PrefixFragmentImpl fragment,
+  }) {
+    var element = _libraryImportPrefixesById[id];
+    if (element == null) {
+      element = PrefixElementImpl(localId: id, firstFragment: fragment);
+      _libraryImportPrefixesById[id] = element;
+    } else {
+      element.addFragment(fragment);
+    }
+    fragment.element = element;
+    _libraryImportPrefixes = null;
+    return element;
+  }
+
+  /// Returns the [PrefixElementImpl] identified by the given fragment-local
+  /// [id], or `null` if no such element has been bound yet.
+  PrefixElementImpl? libraryImportPrefixById(String id) {
+    return _libraryImportPrefixesById[id];
   }
 
   /// Indicates whether it is unnecessary to report an undefined identifier
@@ -8000,7 +8032,7 @@ class LibraryImportImpl extends ElementDirectiveImpl implements LibraryImport {
 
 /// The provider for the lazily created `loadLibrary` function.
 final class LoadLibraryFunctionProvider {
-  final Reference elementReference;
+  final TopLevelReference elementReference;
   TopLevelFunctionElementImpl? _element;
 
   LoadLibraryFunctionProvider({required this.elementReference});
@@ -8592,7 +8624,7 @@ class MethodElementImpl extends ExecutableElementImpl
     with InternalMethodElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final MemberReference reference;
 
   @override
   @trackedIncludedInId
@@ -8885,7 +8917,7 @@ class MethodFragmentImpl extends ExecutableFragmentImpl
 class MixinElementImpl extends InterfaceElementImpl implements MixinElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final MemberContainerReference reference;
 
   @override
   final MixinFragmentImpl _firstFragment;
@@ -9492,8 +9524,12 @@ class PatternVariableFragmentImpl extends LocalVariableFragmentImpl
 }
 
 class PrefixElementImpl extends ElementImpl implements PrefixElement {
-  @override
-  final Reference reference;
+  /// A fragment-local id used to merge and restore this library import prefix.
+  ///
+  /// This is usually the declared prefix name. When a prefix fragment does not
+  /// have a usable name, we assign a synthetic `#...` id instead.
+  @trackedIncludedInId
+  final String localId;
 
   @override
   final PrefixFragmentImpl _firstFragment;
@@ -9504,12 +9540,10 @@ class PrefixElementImpl extends ElementImpl implements PrefixElement {
   PrefixScope? _scope;
 
   PrefixElementImpl({
-    required this.reference,
+    required this.localId,
     required PrefixFragmentImpl firstFragment,
   }) : _firstFragment = firstFragment,
-       lastFragment = firstFragment {
-    reference.element = this;
-  }
+       lastFragment = firstFragment;
 
   @override
   Null get enclosingElement => null;
@@ -10072,7 +10106,7 @@ class SetterElementImpl extends PropertyAccessorElementImpl
     with InternalSetterElement {
   @override
   @trackedIncludedInId
-  Reference reference;
+  DeclarationReference reference;
 
   @override
   final SetterFragmentImpl _firstFragment;
@@ -10435,7 +10469,7 @@ class TopLevelFunctionElementImpl extends ExecutableElementImpl
     implements TopLevelFunctionElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final TopLevelReference reference;
 
   @override
   final TopLevelFunctionFragmentImpl _firstFragment;
@@ -10660,7 +10694,7 @@ class TopLevelVariableElementImpl extends PropertyInducingElementImpl
     implements TopLevelVariableElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final TopLevelReference reference;
 
   @override
   final TopLevelVariableFragmentImpl _firstFragment;
@@ -10810,7 +10844,7 @@ class TypeAliasElementImpl extends ElementImpl
     implements TypeAliasElement {
   @override
   @trackedIncludedInId
-  final Reference reference;
+  final TopLevelReference reference;
 
   @override
   final TypeAliasFragmentImpl _firstFragment;

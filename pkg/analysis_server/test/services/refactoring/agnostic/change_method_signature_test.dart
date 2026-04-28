@@ -127,26 +127,14 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   String _referenceToString(Reference reference) {
     var selfLibrary = refactoringContext.resolvedLibraryResult.element;
     var selfUriStr = '${selfLibrary.uri}';
-
-    var name = reference.name;
-    if (name == selfUriStr) {
-      name = 'self';
-    }
-
-    var parent =
-        reference.parent ?? (throw StateError('Should not go past libraries'));
-
-    // A library.
-    if (parent.parent == null) {
-      return name;
-    }
-
-    // A unit of the self library.
-    if (parent.name == '@unit' && name == 'self') {
-      return 'self';
-    }
-
-    return '${_referenceToString(parent)}::$name';
+    return reference.debugString(
+      formatLibraryUri: (uriString) {
+        if (uriString == selfUriStr) {
+          return 'self';
+        }
+        return uriString;
+      },
+    );
   }
 }
 
