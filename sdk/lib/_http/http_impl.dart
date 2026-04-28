@@ -3066,35 +3066,26 @@ class _HttpClient implements HttpClient {
             subdomain.host.endsWith("." + domain.host)));
   }
 
+  static bool _isSameOrigin(Uri a, Uri b) {
+    return a.isScheme(b.scheme) && a.host == b.host && a.port == b.port;
+  }
+
   // Only visible for testing.
   static bool shouldCopyHeaderOnRedirect(
     String headerKey, {
     required Uri originalUrl,
     required Uri redirectUrl,
   }) {
-    // Credential-carrying headers MUST NOT cross a host boundary, including
-    // a redirect to a subdomain. Browsers and other HTTP clients (curl,
-    // libcurl, Python requests, fetch) strip these on any host change, and
-    // RFC 6265 host-only cookies (no Domain attribute) MUST NOT be sent to
-    // subdomains. Subdomains can be attacker-controlled (user-content
-    // subdomains on shared apex domains, *.user-domain on Heroku /
-    // GitHub-Pages-style hosts, S3 bucket subdomains), so forwarding a
-    // bearer token or host-only cookie there is a credential leak.
+    // It is only safe to copy sensitive headers when redirecting to the
+    // same origin (RFC 6454 section 4).
     const sensitiveHeaders = [
       "authorization",
       "www-authenticate",
       "cookie",
       "cookie2",
     ];
-    if (sensitiveHeaders.contains(headerKey.toLowerCase())) {
-      // Only copy to the EXACT same scheme:host:port.
-      return redirectUrl.isScheme(originalUrl.scheme) &&
-          redirectUrl.port == originalUrl.port &&
-          redirectUrl.host == originalUrl.host;
-    }
-    // Non-sensitive headers preserve the existing behaviour and follow the
-    // redirect.
-    return true;
+    return !sensitiveHeaders.contains(headerKey.toLowerCase()) ||
+        _isSameOrigin(redirectUrl, originalUrl);
   }
 
   Future<_HttpClientRequest> _openUrlFromRequest(
