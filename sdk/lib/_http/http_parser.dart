@@ -404,20 +404,14 @@ class _HttpParser extends Stream<_HttpIncoming> {
     headers._mutable = false;
 
     // RFC 7230 section 3.3.3 rule 3: if a request has a Transfer-Encoding
-    // header and the chunked transfer coding is NOT the final encoding, the
-    // message body length cannot be determined reliably; the server MUST
-    // respond with 400 and close the connection. Without this, a request
-    // like `Transfer-Encoding: gzip` + `Content-Length: 38` causes the
-    // parser to drop Content-Length, set _transferLength=0, and parse the
-    // attacker-supplied body bytes as the next request on the same
-    // connection (CL/TE request smuggling against an RFC-compliant proxy
-    // that honours Content-Length when Transfer-Encoding is unknown).
+    // header and chunked is not the final coding, the message body length
+    // cannot be determined; close the connection to avoid request smuggling.
     if (_messageType == _MessageType.REQUEST &&
         _transferEncoding &&
         !_chunked) {
       throw HttpException(
-        "Invalid Transfer-Encoding header. RFC 7230 section 3.3.3 rule 3 "
-        "requires chunked to be the final transfer coding in requests.",
+        "Invalid Transfer-Encoding header: chunked must be the final "
+        "transfer coding in requests (RFC 7230 section 3.3.3 rule 3).",
       );
     }
 
@@ -788,12 +782,10 @@ class _HttpParser extends Stream<_HttpIncoming> {
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
               // RFC 7230 section 3.3.1: Transfer-Encoding can be a
-              // comma-separated list (e.g. "gzip, chunked"). RFC 7230
-              // section 3.2.2 also lets recipients combine multiple
-              // Transfer-Encoding header lines into one, so the per-line
-              // tokens must be tracked across calls — `_chunked` reflects
-              // the LAST coding seen so far. Final-coding validation runs
-              // in `_headersEnd` once all header lines are accumulated.
+              // comma-separated list (e.g. "gzip, chunked") and can be split
+              // across multiple header lines. "chunked" must appear as the
+              // last value in the last header line, otherwise the request
+              // is malformed. This will be validated in _headersEnd.
               List<String> tokens = _tokenizeFieldValue(headerValue);
               if (tokens.isNotEmpty) {
                 _chunked = tokens.last.trim().toLowerCase() == "chunked";
