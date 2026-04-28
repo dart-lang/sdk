@@ -8,8 +8,6 @@ class _CryptoUtils {
   static Uint8List getRandomBytes(int count) {
     final Uint8List result = Uint8List(count);
     for (int i = 0; i < count; i++) {
-      // `nextInt` returns a value in `[0, max)`. To get a uniform random byte
-      // in `[0, 255]`, the bound must be `256`.
       result[i] = Random.secure().nextInt(256);
     }
     return result;
