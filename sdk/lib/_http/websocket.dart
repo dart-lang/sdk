@@ -226,12 +226,23 @@ abstract class WebSocketTransformer
   /// If [compression] is provided, the [WebSocket] created will be configured
   /// to negotiate with the specified [CompressionOptions]. If none is specified
   /// then the [WebSocket] will be created with the default [CompressionOptions].
+  /// If [maxPayloadLength] is non-zero, frames whose declared payload exceeds
+  /// `maxPayloadLength` bytes (uncompressed) or whose decompressed permessage-
+  /// deflate payload exceeds `maxPayloadLength` bytes are rejected as a
+  /// protocol error. The default is `0` (no cap), preserving historical
+  /// behaviour. The default can be overridden globally at build time via
+  /// `-Ddart.io.default.ws.max.payload.length=<bytes>`.
   factory WebSocketTransformer({
     /*String|Future<String>*/ Function(List<String> protocols)?
     protocolSelector,
     CompressionOptions compression = CompressionOptions.compressionDefault,
+    int maxPayloadLength = 0,
   }) {
-    return _WebSocketTransformerImpl(protocolSelector, compression);
+    return _WebSocketTransformerImpl(
+      protocolSelector,
+      compression,
+      maxPayloadLength,
+    );
   }
 
   /// Upgrades an [HttpRequest] to a [WebSocket] connection. If the
@@ -249,15 +260,18 @@ abstract class WebSocketTransformer
   /// If [compression] is provided, the [WebSocket] created will be configured
   /// to negotiate with the specified [CompressionOptions]. If none is specified
   /// then the [WebSocket] will be created with the default [CompressionOptions].
+  /// See [WebSocketTransformer] for [maxPayloadLength].
   static Future<WebSocket> upgrade(
     HttpRequest request, {
     Function(List<String> protocols)? protocolSelector,
     CompressionOptions compression = CompressionOptions.compressionDefault,
+    int maxPayloadLength = 0,
   }) {
     return _WebSocketTransformerImpl._upgrade(
       request,
       protocolSelector,
       compression,
+      maxPayloadLength: maxPayloadLength,
     );
   }
 
@@ -323,18 +337,21 @@ abstract class WebSocket
   ///
   /// If the `url` contains user information this will be passed as basic
   /// authentication when setting up the connection.
+  /// See [WebSocketTransformer] for [maxPayloadLength].
   static Future<WebSocket> connect(
     String url, {
     Iterable<String>? protocols,
     Map<String, dynamic>? headers,
     CompressionOptions compression = CompressionOptions.compressionDefault,
     HttpClient? customClient,
+    int maxPayloadLength = 0,
   }) => _WebSocketImpl.connect(
     url,
     protocols,
     headers,
     compression: compression,
     customClient: customClient,
+    maxPayloadLength: maxPayloadLength,
   );
 
   @Deprecated(
@@ -360,11 +377,13 @@ abstract class WebSocket
   /// If [compression] is provided, the [WebSocket] created will be configured
   /// to negotiate with the specified [CompressionOptions]. If none is specified
   /// then the [WebSocket] will be created with the default [CompressionOptions].
+  /// See [WebSocketTransformer] for [maxPayloadLength].
   factory WebSocket.fromUpgradedSocket(
     Socket socket, {
     String? protocol,
     bool? serverSide,
     CompressionOptions compression = CompressionOptions.compressionDefault,
+    int maxPayloadLength = 0,
   }) {
     if (serverSide == null) {
       throw ArgumentError(
@@ -377,6 +396,8 @@ abstract class WebSocket
       protocol,
       compression,
       serverSide,
+      null,
+      maxPayloadLength,
     );
   }
 

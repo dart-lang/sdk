@@ -10,6 +10,21 @@ const String _serverNoContextTakeover = "server_no_context_takeover";
 const String _clientMaxWindowBits = "client_max_window_bits";
 const String _serverMaxWindowBits = "server_max_window_bits";
 
+/// Default maximum payload length for an incoming WebSocket frame.
+///
+/// `0` means "no limit" — the default — which preserves the historical
+/// behaviour of `dart:io`. A positive value caps both uncompressed and
+/// permessage-deflate-decompressed frames at that many bytes.
+///
+/// The default can be overridden globally at build time via
+/// `-Ddart.io.default.ws.max.payload.length=<bytes>`. Individual call
+/// sites can override it by passing the `maxPayloadLength` named argument
+/// to [WebSocket.connect], [WebSocket.fromUpgradedSocket],
+/// [WebSocketTransformer.upgrade], or `new WebSocketTransformer(...)`.
+const int _kDefaultMaxPayloadLength = int.fromEnvironment(
+  "dart.io.default.ws.max.payload.length",
+);
+
 // Matches _WebSocketOpcode.
 class _WebSocketMessageType {
   static const int NONE = 0;
@@ -65,13 +80,6 @@ class _WebSocketProtocolTransformer
           dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/
         >
     implements EventSink<List<int>> {
-  // Hard cap on a single data frame's declared payload length. RFC 6455
-  // allows 64-bit lengths up to 2^63 bytes, so without a cap a peer can
-  // advertise an arbitrarily large frame and force the receiver to
-  // accumulate the payload into `_payload` until OOM. Larger logical
-  // messages can still be sent via multi-frame fragmentation.
-  static const int _maxFrameLength = 16 * 1024 * 1024;
-
   static const int START = 0;
   static const int LEN_FIRST = 1;
   static const int LEN_REST = 2;
@@ -105,8 +113,16 @@ class _WebSocketProtocolTransformer
   final Uint8List _maskingBytes = Uint8List(4);
   final BytesBuilder _payload = BytesBuilder(copy: false);
 
+  /// Maximum allowed payload length for an incoming data frame, in bytes.
+  /// `0` disables the cap. See [_kDefaultMaxPayloadLength].
+  final int _maxPayloadLength;
+
   final _WebSocketPerMessageDeflate? _deflate;
-  _WebSocketProtocolTransformer([this._serverSide = false, this._deflate]);
+  _WebSocketProtocolTransformer([
+    this._serverSide = false,
+    this._deflate,
+    this._maxPayloadLength = _kDefaultMaxPayloadLength,
+  ]);
 
   Stream<dynamic /*List<int>|_WebSocketPing|_WebSocketPong*/> bind(
     Stream<List<int>> stream,
@@ -298,9 +314,11 @@ class _WebSocketProtocolTransformer
   void _lengthDone() {
     // Reject oversized data frames before any allocation. Control frames
     // are already capped at 125 bytes in LEN_FIRST handling.
-    if (!_isControlFrame() && _len > _maxFrameLength) {
+    if (_maxPayloadLength > 0 &&
+        !_isControlFrame() &&
+        _len > _maxPayloadLength) {
       throw WebSocketException(
-        "Frame payload length $_len exceeds $_maxFrameLength",
+        "Frame payload length $_len exceeds $_maxPayloadLength",
       );
     }
     if (_masked) {
@@ -453,13 +471,23 @@ class _WebSocketTransformerImpl
   );
   final _ProtocolSelector? _protocolSelector;
   final CompressionOptions _compression;
+  final int _maxPayloadLength;
 
-  _WebSocketTransformerImpl(this._protocolSelector, this._compression);
+  _WebSocketTransformerImpl(
+    this._protocolSelector,
+    this._compression, [
+    this._maxPayloadLength = _kDefaultMaxPayloadLength,
+  ]);
 
   Stream<WebSocket> bind(Stream<HttpRequest> stream) {
     stream.listen(
       (request) {
-        _upgrade(request, _protocolSelector, _compression)
+        _upgrade(
+              request,
+              _protocolSelector,
+              _compression,
+              maxPayloadLength: _maxPayloadLength,
+            )
             .then((WebSocket webSocket) => _controller.add(webSocket))
             .catchError(_controller.addError);
       },
@@ -491,8 +519,9 @@ class _WebSocketTransformerImpl
   static Future<WebSocket> _upgrade(
     HttpRequest request,
     _ProtocolSelector? protocolSelector,
-    CompressionOptions compression,
-  ) {
+    CompressionOptions compression, {
+    int maxPayloadLength = _kDefaultMaxPayloadLength,
+  }) {
     var response = request.response;
     if (!_isUpgradeRequest(request)) {
       // Send error response.
@@ -519,7 +548,12 @@ class _WebSocketTransformerImpl
         response.headers.add("Sec-WebSocket-Protocol", protocol);
       }
 
-      var deflate = _negotiateCompression(request, response, compression);
+      var deflate = _negotiateCompression(
+        request,
+        response,
+        compression,
+        maxPayloadLength: maxPayloadLength,
+      );
 
       response.headers.contentLength = 0;
       return response.detachSocket().then<WebSocket>(
@@ -529,6 +563,7 @@ class _WebSocketTransformerImpl
           compression,
           true,
           deflate,
+          maxPayloadLength,
         ),
       );
     }
@@ -563,8 +598,9 @@ class _WebSocketTransformerImpl
   static _WebSocketPerMessageDeflate? _negotiateCompression(
     HttpRequest request,
     HttpResponse response,
-    CompressionOptions compression,
-  ) {
+    CompressionOptions compression, {
+    int maxPayloadLength = _kDefaultMaxPayloadLength,
+  }) {
     var extensionHeader = request.headers.value("Sec-WebSocket-Extensions");
 
     extensionHeader ??= "";
@@ -586,6 +622,7 @@ class _WebSocketTransformerImpl
         serverMaxWindowBits: info.maxWindowBits,
         clientMaxWindowBits: info.maxWindowBits,
         serverSide: true,
+        maxPayloadLength: maxPayloadLength,
       );
 
       return deflate;
@@ -633,6 +670,10 @@ class _WebSocketPerMessageDeflate {
   int serverMaxWindowBits;
   bool serverSide;
 
+  /// Maximum allowed inflated payload length, in bytes. `0` disables the cap.
+  /// See [_kDefaultMaxPayloadLength].
+  int maxPayloadLength;
+
   RawZLibFilter? decoder;
   RawZLibFilter? encoder;
 
@@ -642,6 +683,7 @@ class _WebSocketPerMessageDeflate {
     this.serverNoContextTakeover = false,
     this.clientNoContextTakeover = false,
     this.serverSide = false,
+    this.maxPayloadLength = _kDefaultMaxPayloadLength,
   });
 
   RawZLibFilter _ensureDecoder() => decoder ??= RawZLibFilter.inflateFilter(
@@ -668,6 +710,15 @@ class _WebSocketPerMessageDeflate {
       final out = decoder.processed();
       if (out == null) break;
       result.add(out);
+      // Stop once the inflated size would exceed the per-frame cap, and
+      // reset the decoder so a subsequent message starts from a clean state.
+      if (maxPayloadLength > 0 && result.length > maxPayloadLength) {
+        this.decoder = null;
+        throw WebSocketException(
+          "Decompressed permessage-deflate frame exceeds "
+          "$maxPayloadLength bytes",
+        );
+      }
     }
 
     if ((serverSide && clientNoContextTakeover) ||
@@ -1090,6 +1141,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     Map<String, dynamic>? headers, {
     CompressionOptions compression = CompressionOptions.compressionDefault,
     HttpClient? customClient,
+    int maxPayloadLength = _kDefaultMaxPayloadLength,
   }) {
     Uri uri = Uri.parse(url);
     if (!uri.isScheme("ws") && !uri.isScheme("wss")) {
@@ -1201,6 +1253,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
           _WebSocketPerMessageDeflate? deflate = negotiateClientCompression(
             response,
             compression,
+            maxPayloadLength: maxPayloadLength,
           );
 
           return response.detachSocket().then<WebSocket>(
@@ -1210,6 +1263,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
               compression,
               false,
               deflate,
+              maxPayloadLength,
             ),
           );
         });
@@ -1217,8 +1271,9 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
 
   static _WebSocketPerMessageDeflate? negotiateClientCompression(
     HttpClientResponse response,
-    CompressionOptions compression,
-  ) {
+    CompressionOptions compression, {
+    int maxPayloadLength = _kDefaultMaxPayloadLength,
+  }) {
     String extensionHeader =
         response.headers.value('Sec-WebSocket-Extensions') ?? "";
 
@@ -1246,6 +1301,7 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
         serverMaxWindowBits: getWindowBits(_serverMaxWindowBits),
         clientNoContextTakeover: clientNoContextTakeover,
         serverNoContextTakeover: serverNoContextTakeover,
+        maxPayloadLength: maxPayloadLength,
       );
     }
 
@@ -1258,13 +1314,18 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
     CompressionOptions compression, [
     this._serverSide = false,
     _WebSocketPerMessageDeflate? deflate,
+    int maxPayloadLength = _kDefaultMaxPayloadLength,
   ]) : _controller = StreamController(sync: true) {
     _consumer = _WebSocketConsumer(this, _socket);
     _sink = _StreamSinkImpl(_consumer);
     _readyState = WebSocket.open;
     _deflate = deflate;
 
-    var transformer = _WebSocketProtocolTransformer(_serverSide, deflate);
+    var transformer = _WebSocketProtocolTransformer(
+      _serverSide,
+      deflate,
+      maxPayloadLength,
+    );
     var subscription = _subscription = transformer
         .bind(_socket)
         .listen(
