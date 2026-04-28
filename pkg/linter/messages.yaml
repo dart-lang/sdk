@@ -838,10 +838,9 @@ LinterLintCode:
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a `catch` clause doesn't
-      have an `on` clause to specify the type of exception being caught.
-      Catching all exceptions without filtering by type can mask unexpected
-      errors and make debugging more difficult.
+      The analyzer produces this diagnostic when a `catch` clause lacks an
+      `on` clause to specify the exception type. Catching all exceptions
+      can mask unexpected errors and make debugging more difficult.
 
       #### Example
 
