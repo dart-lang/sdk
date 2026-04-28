@@ -12382,7 +12382,7 @@ LinterLintCode:
       experimental: "3.6"
       stable: "3.11"
     categories: [style]
-    hasPublishedDocs: true
+    hasPublishedDocs: false
     documentation: |-
       #### Description
 
@@ -12395,10 +12395,16 @@ LinterLintCode:
 
       #### Example
 
-      The following code produces this diagnostic:
+      The following code produces this diagnostic because the type of `x` is
+      non-obvious: it's inferred from the return type of `f`, which requires
+      looking at the declaration of `f`:
 
       ```dart
-      var desserts = [!genericFunctionDeclaredFarAway(<num>[42], 'Something')!];
+      List<Map<String, int>> f() => [];
+
+      void g() {
+        var [!x!] = f();
+      }
       ```
 
       #### Common fixes
@@ -12406,7 +12412,11 @@ LinterLintCode:
       Add an explicit type annotation:
 
       ```dart
-      List<List<Ingredient>> desserts = genericFunctionDeclaredFarAway(<num>[42], 'Something');
+      List<Map<String, int>> f() => [];
+
+      void g() {
+        List<Map<String, int>> x = f();
+      }
       ```
     deprecatedDetails: |-
       Do type annotate initialized local variables when
