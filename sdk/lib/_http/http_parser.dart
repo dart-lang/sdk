@@ -1112,30 +1112,32 @@ class _HttpParser extends Stream<_HttpIncoming> {
     value.length = length;
   }
 
+  static bool _isOWS(int c) {
+    return c == _CharCode.SP || c == _CharCode.HT;
+  }
+
   static List<String> _tokenizeFieldValue(String headerValue) {
-    // Split a list-valued header on `,` and trim leading/trailing OWS from
-    // each token. RFC 9110 §5.6.1 specifies that list values are
-    // comma-separated with optional OWS around each comma; OWS is
-    // `*( SP / HTAB )` per RFC 9110 §5.6.3.
+    int length = headerValue.length;
     List<String> tokens = <String>[];
+    // First non-OWS character of the token. Note that headerValue is already
+    // trimmed from start and end so we don't need to skip characters at start.
     int start = 0;
-    while (true) {
-      int comma = headerValue.indexOf(',', start);
-      int end = comma == -1 ? headerValue.length : comma;
-      while (start < end) {
-        int c = headerValue.codeUnitAt(start);
-        if (c != _CharCode.SP && c != _CharCode.HT) break;
-        start++;
+    while (start < length) {
+      int end = start + 1;
+      while (end < length && headerValue.codeUnitAt(end) != _CharCode.COMMA) {
+        end++;
       }
-      while (end > start) {
-        int c = headerValue.codeUnitAt(end - 1);
-        if (c != _CharCode.SP && c != _CharCode.HT) break;
+      int comma = end;
+      while (start < end && _isOWS(headerValue.codeUnitAt(end - 1))) {
         end--;
       }
       tokens.add(headerValue.substring(start, end));
-      if (comma == -1) return tokens;
       start = comma + 1;
+      while (start < length && _isOWS(headerValue.codeUnitAt(start))) {
+        start++;
+      }
     }
+    return tokens;
   }
 
   static int _toLowerCaseByte(int x) {
