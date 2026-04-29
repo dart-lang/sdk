@@ -220,6 +220,8 @@ class _WebSocketProtocolTransformer
           if (_masked) {
             _unmask(index, payloadLength, buffer);
           }
+          // Control frames can be interleaved with fragmented message frames,
+          // so we have to accumulate control payload into a separate buffer.
           (_isControlFrame() ? _controlPayload : _payload).add(
             Uint8List.view(
               buffer.buffer,
