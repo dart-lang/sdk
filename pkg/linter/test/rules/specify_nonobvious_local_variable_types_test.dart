@@ -95,6 +95,31 @@ f() {
 ''');
   }
 
+  test_functionReturn_nonObviousType() async {
+    await assertDiagnostics(
+      r'''
+List<Map<String, int>> f() => [];
+
+void g() {
+  var x = f();
+  print(x);
+}
+''',
+      [lint(48, 11)],
+    );
+  }
+
+  test_functionReturn_nonObviousType_ok() async {
+    await assertNoDiagnostics(r'''
+List<Map<String, int>> f() => [];
+
+void g() {
+  List<Map<String, int>> x = f();
+  print(x);
+}
+''');
+  }
+
   test_genericInvocation_paramIsType() async {
     await assertDiagnostics(
       r'''

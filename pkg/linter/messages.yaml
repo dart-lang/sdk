@@ -12544,6 +12544,7 @@ LinterLintCode:
 
       void g() {
         var [!x!] = f();
+        print(x);
       }
       ```
 
@@ -12556,6 +12557,7 @@ LinterLintCode:
 
       void g() {
         List<Map<String, int>> x = f();
+        print(x);
       }
       ```
     deprecatedDetails: |-
