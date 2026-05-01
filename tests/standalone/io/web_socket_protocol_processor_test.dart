@@ -262,7 +262,6 @@ void testUnmaskedMessage() {
 }
 
 void testControlFrameDuringFragmentedMessage() {
-  asyncStart();
   var transformer = new _WebSocketProtocolTransformer();
   var controller = new StreamController<List<int>>(sync: true);
 
@@ -271,6 +270,7 @@ void testControlFrameDuringFragmentedMessage() {
 
   List<int> receivedData = [];
   int controlFrameCount = 0;
+  bool done = false;
   controller.stream
       .transform(transformer)
       .listen(
@@ -282,9 +282,7 @@ void testControlFrameDuringFragmentedMessage() {
           }
         },
         onDone: () {
-          Expect.listEquals(dataMessage, receivedData);
-          Expect.equals(1, controlFrameCount);
-          asyncEnd();
+          done = true;
         },
       );
 
@@ -294,6 +292,10 @@ void testControlFrameDuringFragmentedMessage() {
   controller.add(createFrame(true, 0x09, null, pingPayload, 0, 4));
   controller.add(createFrame(true, 0x00, null, dataMessage, 5, 5));
   controller.close();
+
+  Expect.isTrue(done);
+  Expect.listEquals(dataMessage, receivedData);
+  Expect.equals(1, controlFrameCount);
 }
 
 void main() {
