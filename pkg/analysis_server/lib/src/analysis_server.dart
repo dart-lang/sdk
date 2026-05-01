@@ -1152,6 +1152,10 @@ abstract class AnalysisServer {
     await performanceLogger?.shutdown();
     completeLspUninitialization();
 
+    // Stop the analysis driver scheduler to break the infinite loop
+    // and prevent continuous CPU usage when idle
+    analysisDriverScheduler.stop();
+    
     await analysisDriverSchedulerEventsSubscription?.cancel();
     analysisDriverSchedulerEventsSubscription = null;
 

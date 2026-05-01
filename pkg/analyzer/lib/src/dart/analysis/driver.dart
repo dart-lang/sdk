@@ -2585,6 +2585,7 @@ class AnalysisDriverScheduler {
   );
 
   bool _started = false;
+  bool _stopped = false;
 
   /// The operations performance accumulated so far.
   ///
@@ -2697,6 +2698,15 @@ class AnalysisDriverScheduler {
     _run();
   }
 
+  /// Stop the scheduler and break the infinite analysis loop.
+  /// 
+  /// This method should be called during shutdown to prevent the scheduler
+  /// from continuing to run and consume CPU resources when the server is idle.
+  void stop() {
+    _stopped = true;
+    _hasWork.notify(); // Wake up the scheduler to check the stopped flag
+  }
+
   /// Return a future that will be completed the next time the status is idle.
   ///
   /// If the status is currently idle, the returned future will be signaled
@@ -2714,7 +2724,7 @@ class AnalysisDriverScheduler {
     var workDuration = Duration.zero;
 
     PerformanceLogSection? analysisSection;
-    while (true) {
+    while (!_stopped) {
       // Wait for other async work if needed to satisfy `_microscondsWorkPerWait`.
       if (workDuration.inMicroseconds > _microsecondsWorkPerWait) {
         var waits = workDuration.inMicroseconds ~/ _microsecondsWorkPerWait;
@@ -2777,6 +2787,12 @@ class AnalysisDriverScheduler {
 
       // Schedule one more cycle.
       _hasWork.notify();
+    }
+    
+    // Clean up resources when stopped
+    if (_stopped) {
+      analysisSection?.exit();
+      await eventsController.close();
     }
   }
 
