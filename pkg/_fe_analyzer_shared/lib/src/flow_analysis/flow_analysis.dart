@@ -1099,6 +1099,14 @@ abstract class FlowAnalysis<
   @visibleForTesting
   SsaNode? ssaNodeForTesting(Variable variable);
 
+  /// Call this method after visiting an `await` expression or `yield`
+  /// statement.
+  ///
+  /// Both of these constructs have the effect of suspending the execution of
+  /// the current function and allowing other code to execute, so flow analysis
+  /// may need to demote some variables.
+  void suspension();
+
   /// Call this method just after visiting a `case` or `default` body.
   ///
   /// See [switchStatement_expressionEnd] for details.
@@ -2418,6 +2426,11 @@ class FlowAnalysisDebug<
       'storeExpressionInfo($expression, $expressionInfo)',
       () => _wrapped.storeExpressionInfo(expression, expressionInfo),
     );
+  }
+
+  @override
+  void suspension() {
+    _wrap('suspension()', () => _wrapped.suspension());
   }
 
   @override
@@ -5183,6 +5196,12 @@ class _FlowAnalysisImpl<
   /// anonymous method, if there is one. Otherwise `null`.
   _AnonymousBlockContext? _anonymousBlockContext;
 
+  /// Stack of [AssignedVariablesNodeInfo] for any local function, function
+  /// expression, or late variable initializer expression that encloses the
+  /// point in flow control that's currently being analyzed.
+  final List<AssignedVariablesNodeInfo> _enclosingFunctionExpressionInfoStack =
+      [];
+
   _FlowAnalysisImpl(
     this.operations,
     this._assignedVariables, {
@@ -5604,6 +5623,7 @@ class _FlowAnalysisImpl<
     assert(_current.reachable.parent == null);
     assert(_unmatched == null);
     assert(_scrutineeReference == null);
+    assert(_enclosingFunctionExpressionInfoStack.isEmpty);
   }
 
   @override
@@ -6499,6 +6519,27 @@ class _FlowAnalysisImpl<
   }
 
   @override
+  void suspension() {
+    // During an async suspension or yield, other code may execute. If the
+    // current point in flow control is inside a local function, this means that
+    // enclosing functions may resume executing.
+    //
+    // Therefore, any variables that are read within the current local function,
+    // and written to anywhere, but not declared in the current local function,
+    // might potentially get written to, blowing away any promotions that are
+    // currently in effect.
+    if (_enclosingFunctionExpressionInfoStack case [..., var info]) {
+      _current = _current.conservativeJoin(
+        this,
+        info.read
+            .intersection(_assignedVariables.anywhere.written)
+            .difference(info.declared),
+        const [],
+      );
+    }
+  }
+
+  @override
   bool switchStatement_afterCase() {
     _SwitchStatementContext context = _stack.last as _SwitchStatementContext;
     bool isLocallyReachable = _current.reachable.locallyReachable;
@@ -7168,6 +7209,7 @@ class _FlowAnalysisImpl<
 
   void _functionExpression_begin(Node node) {
     AssignedVariablesNodeInfo info = _assignedVariables.getInfoForNode(node);
+    _enclosingFunctionExpressionInfoStack.add(info);
     _current = _current.conservativeJoin(this, const [], info.written);
     _stack.add(
       new _FunctionExpressionContext(_current, _anonymousBlockContext),
@@ -7183,6 +7225,7 @@ class _FlowAnalysisImpl<
   void _functionExpression_end() {
     _FunctionExpressionContext context =
         _stack.removeLast() as _FunctionExpressionContext;
+    _enclosingFunctionExpressionInfoStack.removeLast();
     _current = context._previous;
     _anonymousBlockContext = context._previousAnonymousBlockContext;
   }

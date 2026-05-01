@@ -4,13 +4,8 @@
 
 import 'dart:io';
 
-import 'package:analyzer/diagnostic/diagnostic.dart';
-import 'package:analyzer/error/error.dart';
-import 'package:analyzer/source/error_processor.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/sdk.dart';
@@ -357,11 +352,6 @@ flutter:
 class OptionsTest extends BaseTest {
   String get analysisOptionsYaml => file_paths.analysisOptionsYaml;
 
-  List<ErrorProcessor> get processors => analysisOptions.errorProcessors;
-
-  ErrorProcessor processorFor(Diagnostic diagnostic) =>
-      processors.firstWhere((p) => p.appliesTo(diagnostic));
-
   /// If a file is specified explicitly, it should be analyzed, even if
   /// it is excluded. Excludes work when an including directory is specified.
   Future<void> test_analysisOptions_excluded_requested() async {
@@ -426,38 +416,18 @@ class OptionsTest extends BaseTest {
 
   Future<void> test_basic_filters() async {
     await _driveBasic();
-    expect(processors, hasLength(3));
+
+    var stdout = bulletToDash(outSink);
 
     // unused_local_variable: ignore
-    var unused_local_variable = Diagnostic.tmp(
-      source: TestSource(),
-      offset: 0,
-      length: 1,
-      diagnosticCode: diag.unusedLocalVariable,
-      arguments: [
-        ['x'],
-      ],
-    );
-    expect(processorFor(unused_local_variable).severity, isNull);
+    expect(stdout, isNot(contains('Unused local variable')));
 
-    // assignment_of_do_not_store: error
-    var assignment_of_do_not_store = Diagnostic.tmp(
-      source: TestSource(),
-      offset: 0,
-      length: 1,
-      diagnosticCode: diag.assignmentOfDoNotStore,
-      arguments: [
-        ['x'],
-      ],
-    );
-    expect(
-      processorFor(assignment_of_do_not_store).severity,
-      DiagnosticSeverity.ERROR,
-    );
-    expect(
-      bulletToDash(outSink),
-      contains('error - The body might complete normally'),
-    );
+    // dead_code: error
+    expect(stdout, contains('error - Dead code'));
+
+    // undefined_function: warning
+    expect(stdout, contains("warning - The function 'bar' isn't defined."));
+
     expect(outSink.toString(), contains('1 error and 1 warning found.'));
   }
 
@@ -500,14 +470,4 @@ class OptionsTest extends BaseTest {
     );
     expect(outSink.toString(), contains('1 error found.'));
   }
-}
-
-class TestSource implements Source {
-  TestSource();
-
-  @override
-  String get fullName => '/package/lib/test.dart';
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

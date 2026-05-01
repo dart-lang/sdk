@@ -2853,11 +2853,9 @@ class Breakpoint extends Obj {
     this.enabled,
     this.resolved,
     this.location,
-    required String id,
+    super.id,
     this.isSyntheticAsyncContinuation,
-  }) : super(
-          id: id,
-        );
+  });
 
   Breakpoint._fromJson(super.json)
       : breakpointNumber = json['breakpointNumber'] ?? -1,
@@ -2920,12 +2918,10 @@ class ClassRef extends ObjRef {
   ClassRef({
     this.name,
     this.library,
-    required String id,
+    super.id,
     this.location,
     this.typeParameters,
-  }) : super(
-          id: id,
-        );
+  });
 
   ClassRef._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -3063,16 +3059,14 @@ class Class extends Obj implements ClassRef {
     this.fields,
     this.functions,
     this.subclasses,
-    required String id,
+    super.id,
     this.location,
     this.typeParameters,
     this.error,
     this.superClass,
     this.superType,
     this.mixin,
-  }) : super(
-          id: id,
-        );
+  });
 
   Class._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -3263,11 +3257,9 @@ class CodeRef extends ObjRef {
   CodeRef({
     this.name,
     this.kind,
-    required String id,
+    super.id,
     this.function,
-  }) : super(
-          id: id,
-        );
+  });
 
   CodeRef._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -3322,11 +3314,9 @@ class Code extends Obj implements CodeRef {
   Code({
     this.name,
     this.kind,
-    required String id,
+    super.id,
     this.function,
-  }) : super(
-          id: id,
-        );
+  });
 
   Code._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -3367,10 +3357,8 @@ class ContextRef extends ObjRef {
 
   ContextRef({
     this.length,
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   ContextRef._fromJson(super.json)
       : length = json['length'] ?? -1,
@@ -3416,11 +3404,9 @@ class Context extends Obj implements ContextRef {
   Context({
     this.length,
     this.variables,
-    required String id,
+    super.id,
     this.parent,
-  }) : super(
-          id: id,
-        );
+  });
 
   Context._fromJson(super.json)
       : length = json['length'] ?? -1,
@@ -3732,10 +3718,8 @@ class ErrorRef extends ObjRef {
   ErrorRef({
     this.kind,
     this.message,
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   ErrorRef._fromJson(super.json)
       : kind = json['kind'] ?? '',
@@ -3790,12 +3774,10 @@ class Error extends Obj implements ErrorRef {
   Error({
     this.kind,
     this.message,
-    required String id,
+    super.id,
     this.exception,
     this.stacktrace,
-  }) : super(
-          id: id,
-        );
+  });
 
   Error._fromJson(super.json)
       : kind = json['kind'] ?? '',
@@ -4263,11 +4245,9 @@ class FieldRef extends ObjRef {
     this.isConst,
     this.isFinal,
     this.isStatic,
-    required String id,
+    super.id,
     this.location,
-  }) : super(
-          id: id,
-        );
+  });
 
   FieldRef._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -4369,12 +4349,10 @@ class Field extends Obj implements FieldRef {
     this.isConst,
     this.isFinal,
     this.isStatic,
-    required String id,
+    super.id,
     this.location,
     this.staticValue,
-  }) : super(
-          id: id,
-        );
+  });
 
   Field._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -4616,11 +4594,9 @@ class FuncRef extends ObjRef {
     this.isAbstract,
     this.isGetter,
     this.isSetter,
-    required String id,
+    super.id,
     this.location,
-  }) : super(
-          id: id,
-        );
+  });
 
   FuncRef._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -4735,12 +4711,10 @@ class Func extends Obj implements FuncRef {
     this.isGetter,
     this.isSetter,
     this.signature,
-    required String id,
+    super.id,
     this.location,
     this.code,
-  }) : super(
-          id: id,
-        );
+  });
 
   Func._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -5009,7 +4983,7 @@ class InstanceRef extends ObjRef {
     this.kind,
     this.identityHashCode,
     this.classRef,
-    required String id,
+    super.id,
     this.valueAsString,
     this.valueAsStringIsTruncated,
     this.length,
@@ -5027,9 +5001,7 @@ class InstanceRef extends ObjRef {
     this.allocationLocation,
     this.debugName,
     this.label,
-  }) : super(
-          id: id,
-        );
+  });
 
   InstanceRef._fromJson(super.json)
       : kind = json['kind'] ?? '',
@@ -5526,7 +5498,7 @@ class Instance extends Obj implements InstanceRef {
     this.kind,
     this.identityHashCode,
     this.classRef,
-    required String id,
+    super.id,
     this.valueAsString,
     this.valueAsStringIsTruncated,
     this.length,
@@ -5567,7 +5539,6 @@ class Instance extends Obj implements InstanceRef {
     this.token,
     this.detach,
   }) : super(
-          id: id,
           classRef: classRef,
         );
 
@@ -6263,10 +6234,8 @@ class LibraryRef extends ObjRef {
   LibraryRef({
     this.name,
     this.uri,
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   LibraryRef._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -6336,10 +6305,8 @@ class Library extends Obj implements LibraryRef {
     this.variables,
     this.functions,
     this.classes,
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   Library._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -7614,10 +7581,8 @@ class ScriptRef extends ObjRef {
 
   ScriptRef({
     this.uri,
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   ScriptRef._fromJson(super.json)
       : uri = json['uri'] ?? '',
@@ -7702,14 +7667,12 @@ class Script extends Obj implements ScriptRef {
   Script({
     this.uri,
     this.library,
-    required String id,
+    super.id,
     this.lineOffset,
     this.columnOffset,
     this.source,
     this.tokenPosTable,
-  }) : super(
-          id: id,
-        );
+  });
 
   Script._fromJson(super.json)
       : uri = json['uri'] ?? '',
@@ -8311,10 +8274,8 @@ class TypeArgumentsRef extends ObjRef {
 
   TypeArgumentsRef({
     this.name,
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   TypeArgumentsRef._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -8359,10 +8320,8 @@ class TypeArguments extends Obj implements TypeArgumentsRef {
   TypeArguments({
     this.name,
     this.types,
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   TypeArguments._fromJson(super.json)
       : name = json['name'] ?? '',
@@ -8398,10 +8357,8 @@ class TypeParametersRef extends ObjRef {
       json == null ? null : TypeParametersRef._fromJson(json);
 
   TypeParametersRef({
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   TypeParametersRef._fromJson(super.json) : super._fromJson();
 
@@ -8444,10 +8401,8 @@ class TypeParameters extends Obj implements TypeParametersRef {
     this.names,
     this.bounds,
     this.defaults,
-    required String id,
-  }) : super(
-          id: id,
-        );
+    super.id,
+  });
 
   TypeParameters._fromJson(super.json)
       : names = createServiceObject(json['names'], const ['InstanceRef'])

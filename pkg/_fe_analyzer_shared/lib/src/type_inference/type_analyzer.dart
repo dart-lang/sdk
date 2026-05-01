@@ -427,6 +427,8 @@ mixin TypeAnalyzer<
     );
     // Stack: (operand)
 
+    flow.suspension();
+
     // Let T_1 be the static type of m_1.
     SharedTypeView t1 = m1.type;
 
@@ -2453,6 +2455,7 @@ mixin TypeAnalyzer<
     );
     // Stack: (operand)
 
+    flow.suspension();
     return new YieldStatementResult(operandType: operandResult.type);
   }
 

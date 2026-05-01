@@ -63,6 +63,7 @@ class Types with StandardBounds {
   }
 
   IsSubtypeOf performSubtypeCheck(DartType s, DartType t) {
+    if (s == t) return const IsSubtypeOf.success();
     switch ((s, t)) {
       // TODO(johnniwinther,cstefantsova): Ensure complete handling of
       // InvalidType in the subtype relation.

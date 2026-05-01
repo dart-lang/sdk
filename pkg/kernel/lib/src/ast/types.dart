@@ -525,7 +525,8 @@ sealed class DartType extends Node implements SharedType {
   R accept1<R, A>(DartTypeVisitor1<R, A> v, A arg);
 
   @override
-  bool operator ==(Object other) => equals(other, null);
+  bool operator ==(Object other) =>
+      identical(this, other) || equals(other, null);
 
   /// The nullability declared on the type.
   ///
@@ -1747,7 +1748,8 @@ class NamedType extends Node
   DartType get typeShared => type;
 
   @override
-  bool operator ==(Object other) => equals(other, null);
+  bool operator ==(Object other) =>
+      identical(this, other) || equals(other, null);
 
   bool equals(Object other, Assumptions? assumptions) {
     return other is NamedType &&
@@ -2236,9 +2238,6 @@ class StructuralParameterType extends DartType {
 
   @override
   void visitChildren(Visitor v) {}
-
-  @override
-  bool operator ==(Object other) => equals(other, null);
 
   @override
   bool equals(Object other, Assumptions? assumptions) {
