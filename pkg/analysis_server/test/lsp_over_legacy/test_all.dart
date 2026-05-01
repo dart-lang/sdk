@@ -16,6 +16,7 @@ import 'document_symbols_test.dart' as document_symbols;
 import 'edit_argument_test.dart' as edit_argument;
 import 'editable_arguments_test.dart' as editable_arguments;
 import 'execute_command_test.dart' as execute_command;
+import 'flutter_widget_previews_test.dart' as flutter_widget_previews;
 import 'format_test.dart' as format;
 import 'hover_test.dart' as hover;
 import 'implementation_test.dart' as implementation;
@@ -40,6 +41,7 @@ void main() {
     edit_argument.main();
     editable_arguments.main();
     execute_command.main();
+    flutter_widget_previews.main();
     format.main();
     hover.main();
     implementation.main();

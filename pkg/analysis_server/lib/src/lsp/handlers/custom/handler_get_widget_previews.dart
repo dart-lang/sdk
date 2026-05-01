@@ -6,7 +6,6 @@ import 'package:analysis_server/lsp_protocol/protocol.dart' hide Element;
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
-import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/services/flutter/widget_previews.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 
@@ -31,14 +30,13 @@ class FlutterWidgetPreviewsHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
-    var lspServer = server as LspAnalysisServer;
     var path = pathOfDoc(params);
     if (path.isError) {
       return failure(path);
     }
 
     var pathResult = path.resultOrNull!;
-    var result = await lspServer.getResolvedUnit(pathResult);
+    var result = await server.getResolvedUnit(pathResult);
     if (result == null) {
       return success(null);
     }
@@ -58,7 +56,7 @@ class FlutterWidgetPreviewsHandler
       for (var unitPath in libraryElement.fragments.map(
         (f) => f.source.fullName,
       )) {
-        var resolvedUnit = await lspServer.getResolvedUnit(unitPath);
+        var resolvedUnit = await server.getResolvedUnit(unitPath);
         if (resolvedUnit != null) {
           flutterWidgetPreviewDetector.findPreviews(resolvedUnit, graph: graph);
         }
@@ -69,12 +67,12 @@ class FlutterWidgetPreviewsHandler
         if (processed.contains(dependency.uri)) continue;
 
         var depPath = dependency.path;
-        var driver = lspServer.getAnalysisDriver(depPath);
+        var driver = server.getAnalysisDriver(depPath);
         if (driver == null || !driver.addedFiles.contains(depPath)) {
           continue;
         }
 
-        var depResult = await lspServer.getResolvedUnit(depPath);
+        var depResult = await server.getResolvedUnit(depPath);
         if (depResult != null) {
           await buildGraph(depResult);
         }
@@ -114,14 +112,13 @@ class WorkspaceFlutterWidgetPreviewsHandler
     MessageInfo message,
     CancellationToken token,
   ) async {
-    var lspServer = server as LspAnalysisServer;
     var graph = <Uri, LibraryPreviewNode>{};
     var processedLibraries = <Uri>{};
     var flutterWidgetPreviewDetector = FlutterWidgetPreviewDetector();
 
-    for (var driver in lspServer.driverMap.values) {
+    for (var driver in server.driverMap.values) {
       for (var file in driver.addedFiles) {
-        var libraryResult = await lspServer.getResolvedLibrary(file);
+        var libraryResult = await server.getResolvedLibrary(file);
         if (libraryResult != null) {
           var uri = libraryResult.element.uri;
           if (processedLibraries.contains(uri)) continue;
