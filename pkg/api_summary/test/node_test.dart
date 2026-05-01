@@ -4,7 +4,7 @@
 
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:analyzer_utilities/src/api_summary/src/node.dart';
+import 'package:api_summary/src/node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 

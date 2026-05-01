@@ -13,6 +13,7 @@ import 'package:analyzer/src/dart/analysis/file_state.dart';
 import 'package:analyzer/src/dart/analysis/library_graph.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/analysis/status.dart';
+import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/error/inference_error.dart';
 import 'package:analyzer/src/fine/library_manifest.dart';
 import 'package:analyzer/src/fine/lookup_name.dart';
@@ -1795,6 +1796,19 @@ class LibraryManifestPrinter extends ManifestPrinter {
       }
     }
 
+    void writeParameterDeclarationForm(ManifestFunctionFormalParameter field) {
+      // TODO(scheglov): Update the manifest printer output to show the
+      // declaration form directly.
+      switch (field.declarationForm) {
+        case FormalParameterDeclarationForm.regular:
+          break;
+        case FormalParameterDeclarationForm.fieldFormal:
+          sink.write('this ');
+        case FormalParameterDeclarationForm.superFormal:
+          sink.write('super ');
+      }
+    }
+
     switch (type) {
       case ManifestDynamicType():
         sink.writeln('dynamic');
@@ -1805,8 +1819,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
           sink.writeElements('positional', type.positional, (field) {
             sink.writeIndent();
             sink.writeIf(field.isRequired, 'required ');
-            sink.writeIf(field.isInitializingFormal, 'this ');
-            sink.writeIf(field.isSuperFormal, 'super ');
+            writeParameterDeclarationForm(field);
             _writeType(field.type);
             sink.withIndent(() {
               _writeNode('defaultValue', field.defaultValue);
@@ -1815,8 +1828,7 @@ class LibraryManifestPrinter extends ManifestPrinter {
           sink.writeElements('named', type.named, (field) {
             sink.writeWithIndent('${field.name}: ');
             sink.writeIf(field.isRequired, 'required ');
-            sink.writeIf(field.isInitializingFormal, 'this ');
-            sink.writeIf(field.isSuperFormal, 'super ');
+            writeParameterDeclarationForm(field);
             _writeType(field.type);
             sink.withIndent(() {
               _writeNode('defaultValue', field.defaultValue);

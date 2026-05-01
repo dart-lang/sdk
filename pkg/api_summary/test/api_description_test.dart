@@ -8,13 +8,13 @@ import 'dart:core';
 
 import 'package:analyzer/dart/analysis/analysis_context.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_utilities/src/api_summary/src/api_description.dart';
-import 'package:analyzer_utilities/src/api_summary/src/api_summary_customizer.dart';
-import 'package:analyzer_utilities/src/api_summary/src/node.dart';
+import 'package:api_summary/src/api_description.dart';
+import 'package:api_summary/src/api_summary_customizer.dart';
+import 'package:api_summary/src/node.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utilities.dart';
+import 'test_utils.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -141,8 +141,8 @@ dart:core:
   }
 
   Future<void> test_field_experimental() async {
-    // Marking a field as experimental causes its corresponding getter and setter
-    // to be marked as experimental in the summary.
+    // Marking a field as experimental causes its corresponding getter and
+    // setter to be marked as experimental in the summary.
     var summary = await _build({
       '$testPackageLibPath/file.dart': '''
 import 'package:meta/meta.dart';

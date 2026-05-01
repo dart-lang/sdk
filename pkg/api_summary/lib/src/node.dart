@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+/// @docImport 'unique_namer.dart';
+library;
+
 import 'package:collection/collection.dart';
 
 /// Outputs the contents of [nodes] to [sink], prepending [prefix] to every

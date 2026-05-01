@@ -17,6 +17,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/string_source.dart';
 
@@ -83,7 +84,7 @@ ParseStringResult parseString({
   var source = StringSource(content, path ?? '');
   var diagnosticCollector = RecordingDiagnosticListener();
   var diagnosticReporter = DiagnosticReporter(diagnosticCollector, source);
-  var scanner = Scanner(content, diagnosticReporter)
+  var scanner = Scanner(content, diagnosticReporter.report)
     ..configureFeatures(
       featureSetForOverriding: featureSet,
       featureSet: featureSet,

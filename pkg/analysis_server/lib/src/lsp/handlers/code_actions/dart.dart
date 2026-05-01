@@ -145,7 +145,7 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
 
       late List<Assist> assists;
       if (performance != null) {
-        var performanceTracker = AssistPerformance();
+        var performanceTracker = AssistPerformance(performance);
         assists = await computeAssists(
           context,
           performance: performanceTracker,
@@ -312,7 +312,9 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
     }
 
     var refactorActions = <CodeAction>[];
-    var performanceTracker = RefactoringPerformance();
+    var performanceTracker = RefactoringPerformance(
+      performance as OperationPerformanceImpl?,
+    );
 
     try {
       // New interactive refactors.

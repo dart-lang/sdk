@@ -584,6 +584,7 @@ class SubstitutedFormalParameterElementImpl
   @override
   bool get isCovariant => baseElement.isCovariant;
 
+  @Deprecated('Use element is FieldFormalParameterElement instead')
   @override
   bool get isInitializingFormal => baseElement.isInitializingFormal;
 
@@ -611,6 +612,7 @@ class SubstitutedFormalParameterElementImpl
   @override
   bool get isRequiredPositional => baseElement.isRequiredPositional;
 
+  @Deprecated('Use element is SuperFormalParameterElement instead')
   @override
   bool get isSuperFormal => baseElement.isSuperFormal;
 

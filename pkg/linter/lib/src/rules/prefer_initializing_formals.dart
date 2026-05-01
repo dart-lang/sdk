@@ -85,7 +85,7 @@ class _ConstructorChecker {
       var parameter = parameterFragment.element;
       // TODO(rnystrom): Handle declaring parameters for primary constructors
       // here too.
-      if (parameter.isInitializingFormal) {
+      if (parameter is FieldFormalParameterElement) {
         _initializingParameters.add(parameter);
       }
     }

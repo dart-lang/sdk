@@ -5,13 +5,13 @@
 // ignore_for_file: non_constant_identifier_names
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_utilities/src/api_summary/src/extensions.dart';
-import 'package:analyzer_utilities/src/api_summary/src/member_sorting.dart';
+import 'package:api_summary/src/extensions.dart';
+import 'package:api_summary/src/member_sorting.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utilities.dart';
+import 'test_utils.dart';
 
 void main() {
   defineReflectiveSuite(() {
@@ -183,12 +183,12 @@ typedef Z3 = int;
     required List<String> expectedOrder,
   }) {
     expect(
-      elements.sortedBy((e) => MemberSortKey(e)).map((e) => e.apiName).toList(),
+      elements.sortedBy(MemberSortKey.new).map((e) => e.apiName).toList(),
       expectedOrder,
     );
     expect(
       elements.reversed
-          .sortedBy((e) => MemberSortKey(e))
+          .sortedBy(MemberSortKey.new)
           .map((e) => e.apiName)
           .toList(),
       expectedOrder,

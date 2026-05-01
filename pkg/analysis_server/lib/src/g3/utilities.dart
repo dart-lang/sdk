@@ -14,6 +14,7 @@ import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/generated/parser.dart' as p;
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer_plugin/src/utilities/formatter.dart';
@@ -59,7 +60,7 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
     flags: [],
   );
   var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
-  var scanner = Scanner(contents, diagnosticReporter)
+  var scanner = Scanner(contents, diagnosticReporter.report)
     ..configureFeatures(
       featureSetForOverriding: FeatureSet.latestLanguageVersion(),
       featureSet: featureSet,

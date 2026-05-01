@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer_utilities/src/api_summary/src/extensions.dart';
+import 'extensions.dart';
 
 /// Object that will have a unique string representation within the context of a
 /// given [UniqueNamer] instance.
@@ -21,9 +21,9 @@ class UniqueName {
   /// [UniqueName] from other ones with the same [_nameHint].
   int? _disambiguator;
 
-  UniqueName(UniqueNamer uniqueNamer, this._nameHint) {
+  UniqueName(UniqueNamer uniqueNamer, this._nameHint)
     // The uniqueness guarantee depends on `_nameHint` not containing an `@`.
-    assert(!_nameHint.contains('@'));
+    : assert(!_nameHint.contains('@')) {
     var conflicts = uniqueNamer._conflicts[_nameHint] ??= [];
     if (conflicts.length == 1) {
       conflicts[0]._disambiguator = 1;

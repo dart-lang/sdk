@@ -4,11 +4,11 @@
 
 // ignore_for_file: non_constant_identifier_names
 
-import 'package:analyzer_utilities/src/api_summary/src/extensions.dart';
+import 'package:api_summary/src/extensions.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../utilities.dart';
+import 'test_utils.dart';
 
 void main() {
   defineReflectiveSuite(() {

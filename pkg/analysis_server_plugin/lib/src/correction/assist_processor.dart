@@ -50,15 +50,20 @@ class AssistProcessor {
       defaultEol: producer.defaultEol,
     );
     try {
-      if (_performance != null) {
-        var startTime = _timer.elapsedMilliseconds;
+      var startTime = _performance != null ? _timer.elapsedMilliseconds : 0;
+      if (_performance?.operationPerformance case var operationPerformance?) {
+        await operationPerformance.runAsync(
+          producer.runtimeType.toString(),
+          (_) async => await producer.compute(builder),
+        );
+      } else {
         await producer.compute(builder);
+      }
+      if (_performance != null) {
         _performance.producerTimings.add((
           className: producer.runtimeType.toString(),
           elapsedTime: _timer.elapsedMilliseconds - startTime,
         ));
-      } else {
-        await producer.compute(builder);
       }
 
       var change = builder.sourceChange;

@@ -11,8 +11,6 @@ import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -22,17 +20,11 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     var tokens = <Token>[];
-    var scanner =
-        Scanner(
-          text,
-          DiagnosticReporter(
-            DiagnosticListener.nullListener,
-            _SourceMock.instance,
-          ),
-        )..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+    var scanner = Scanner(text, (_) {})
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     var token = scanner.tokenize();
     while (!token.isEof) {
       tokens.add(token);
@@ -232,11 +224,4 @@ class StatementAnalyzer extends SelectionAnalyzer {
     var rangeText = fullText.substring(range.offset, range.end);
     return _getTokens(rangeText, resolveResult.unit.featureSet).isNotEmpty;
   }
-}
-
-class _SourceMock implements Source {
-  static final Source instance = _SourceMock();
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

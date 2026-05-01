@@ -37,8 +37,7 @@ sealed class ManifestFunctionFormalParameter {
   final ManifestMetadata metadata;
   final bool isRequired;
   final bool isCovariant;
-  final bool isInitializingFormal;
-  final bool isSuperFormal;
+  final FormalParameterDeclarationForm declarationForm;
   final ManifestType type;
   final ManifestNode? defaultValue;
 
@@ -46,8 +45,7 @@ sealed class ManifestFunctionFormalParameter {
     required this.metadata,
     required this.isRequired,
     required this.isCovariant,
-    required this.isInitializingFormal,
-    required this.isSuperFormal,
+    required this.declarationForm,
     required this.type,
     required this.defaultValue,
   });
@@ -56,8 +54,7 @@ sealed class ManifestFunctionFormalParameter {
     return metadata.match(context, element.metadata) &&
         element.isRequired == isRequired &&
         element.isCovariant == isCovariant &&
-        element.isInitializingFormal == isInitializingFormal &&
-        element.isSuperFormal == isSuperFormal &&
+        element.declarationForm == declarationForm &&
         type.match(context, element.type) &&
         defaultValue.match(context, element.constantInitializer);
   }
@@ -66,8 +63,7 @@ sealed class ManifestFunctionFormalParameter {
     metadata.write(writer);
     writer.writeBool(isRequired);
     writer.writeBool(isCovariant);
-    writer.writeBool(isInitializingFormal);
-    writer.writeBool(isSuperFormal);
+    writer.writeEnum(declarationForm);
     type.write(writer);
     defaultValue.writeOptional(writer);
   }
@@ -85,8 +81,7 @@ class ManifestFunctionNamedFormalParameter
       metadata: ManifestMetadata.encode(context, element.metadata),
       isRequired: element.isRequired,
       isCovariant: element.isCovariant,
-      isInitializingFormal: element.isInitializingFormal,
-      isSuperFormal: element.isSuperFormal,
+      declarationForm: element.declarationForm,
       type: element.type.encode(context),
       defaultValue: element.constantInitializer?.encode(context),
       name: element.name ?? '',
@@ -98,8 +93,7 @@ class ManifestFunctionNamedFormalParameter
       metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
       isCovariant: reader.readBool(),
-      isInitializingFormal: reader.readBool(),
-      isSuperFormal: reader.readBool(),
+      declarationForm: reader.readEnum(FormalParameterDeclarationForm.values),
       type: ManifestType.read(reader),
       defaultValue: ManifestNode.readOptional(reader),
       name: reader.readStringReference(),
@@ -110,8 +104,7 @@ class ManifestFunctionNamedFormalParameter
     required super.metadata,
     required super.isRequired,
     required super.isCovariant,
-    required super.isInitializingFormal,
-    required super.isSuperFormal,
+    required super.declarationForm,
     required super.type,
     required super.defaultValue,
     required this.name,
@@ -141,8 +134,7 @@ class ManifestFunctionPositionalFormalParameter
       metadata: ManifestMetadata.encode(context, element.metadata),
       isRequired: element.isRequiredPositional,
       isCovariant: element.isCovariant,
-      isInitializingFormal: element.isInitializingFormal,
-      isSuperFormal: element.isSuperFormal,
+      declarationForm: element.declarationForm,
       type: element.type.encode(context),
       defaultValue: element.constantInitializer?.encode(context),
     );
@@ -153,8 +145,7 @@ class ManifestFunctionPositionalFormalParameter
       metadata: ManifestMetadata.read(reader),
       isRequired: reader.readBool(),
       isCovariant: reader.readBool(),
-      isInitializingFormal: reader.readBool(),
-      isSuperFormal: reader.readBool(),
+      declarationForm: reader.readEnum(FormalParameterDeclarationForm.values),
       type: ManifestType.read(reader),
       defaultValue: ManifestNode.readOptional(reader),
     );
@@ -164,8 +155,7 @@ class ManifestFunctionPositionalFormalParameter
     required super.metadata,
     required super.isRequired,
     required super.isCovariant,
-    required super.isInitializingFormal,
-    required super.isSuperFormal,
+    required super.declarationForm,
     required super.type,
     required super.defaultValue,
   });

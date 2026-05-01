@@ -3379,7 +3379,7 @@ class _InstanceCreationEvaluator {
             isRuntimeException: isEvaluationException,
           );
         }
-        if (baseParameter.isInitializingFormal) {
+        if (baseParameter is FieldFormalParameterElement) {
           var field = (parameter as FieldFormalParameterElement).field;
           if (field != null) {
             var fieldType = field.type as TypeImpl;

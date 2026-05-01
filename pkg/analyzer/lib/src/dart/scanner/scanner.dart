@@ -10,13 +10,10 @@ import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -36,17 +33,14 @@ class Scanner {
   @visibleForTesting
   static bool preserveCommentsDefaultForTesting = true;
 
-  final Source source;
-
   /// The text to be scanned.
   final String _contents;
 
   /// The offset of the first character from the reader.
   final int _readerOffset;
 
-  /// The diagnostic listener that will be informed of any diagnostics that are
-  /// found during the scan.
-  final DiagnosticReporter _diagnosticReporter;
+  /// The callback to report diagnostics.
+  final void Function(LocatedDiagnostic) reportError;
 
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.
@@ -64,29 +58,23 @@ class Scanner {
 
   /// Initializes a scanner to scan the given [contents].
   ///
-  /// The [diagnosticReporter] will be informed of any errors that are found.
-  factory Scanner(String contents, DiagnosticReporter diagnosticReporter) =>
-      Scanner.fasta(diagnosticReporter, contents: contents);
-
-  factory Scanner.fasta(
-    DiagnosticReporter diagnosticReporter, {
-    String? contents,
-    int offset = -1,
-  }) {
-    return Scanner._(
-      diagnosticReporter.source,
-      contents ?? diagnosticReporter.source.stringContents,
-      offset,
-      diagnosticReporter,
-    );
+  /// The [reportError] callback will be informed of any errors that are found.
+  factory Scanner(
+    String contents,
+    void Function(LocatedDiagnostic) reportError,
+  ) {
+    return Scanner.fasta(reportError, contents: contents);
   }
 
-  Scanner._(
-    this.source,
-    this._contents,
-    this._readerOffset,
-    this._diagnosticReporter,
-  );
+  factory Scanner.fasta(
+    void Function(LocatedDiagnostic) reportError, {
+    required String contents,
+    int offset = -1,
+  }) {
+    return Scanner._(contents, offset, reportError);
+  }
+
+  Scanner._(this._contents, this._readerOffset, this.reportError);
 
   /// The features associated with this scanner.
   ///
@@ -115,10 +103,6 @@ class Scanner {
   }) {
     _featureSetForOverriding = featureSetForOverriding;
     _featureSet = featureSet;
-  }
-
-  void reportError(LocatedDiagnostic locatedDiagnostic) {
-    _diagnosticReporter.report(locatedDiagnostic);
   }
 
   /// The fasta parser handles error tokens produced by the scanner
@@ -185,7 +169,7 @@ class Scanner {
 
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
-      _diagnosticReporter.report(
+      reportError(
         diag.invalidLanguageVersionOverrideGreater
             .withArguments(
               latestMajor: latestVersion.major,

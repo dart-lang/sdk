@@ -9,13 +9,14 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
-import 'package:analyzer_utilities/src/api_summary/src/api_summary_customizer.dart';
-import 'package:analyzer_utilities/src/api_summary/src/extensions.dart';
-import 'package:analyzer_utilities/src/api_summary/src/member_sorting.dart';
-import 'package:analyzer_utilities/src/api_summary/src/node.dart';
-import 'package:analyzer_utilities/src/api_summary/src/unique_namer.dart';
-import 'package:analyzer_utilities/src/api_summary/src/uri_sorting.dart';
 import 'package:collection/collection.dart';
+
+import 'api_summary_customizer.dart';
+import 'extensions.dart';
+import 'member_sorting.dart';
+import 'node.dart';
+import 'unique_namer.dart';
+import 'uri_sorting.dart';
 
 /// Data structure keeping track of a package's API while walking it to produce
 /// `api.txt`.
@@ -244,7 +245,7 @@ class ApiDescription {
     var parentheticals = <List<Object?>>[];
     switch (element) {
       case TypeAliasElement(:var aliasedType, :var typeParameters):
-        List<Object?> description = ['type alias'];
+        var description = <Object?>['type alias'];
         if (typeParameters.isNotEmpty) {
           description.addAll(
             typeParameters
@@ -261,7 +262,7 @@ class ApiDescription {
             :var supertype,
             :var interfaces,
           ):
-            List<Object?> instanceDescription = [
+            var instanceDescription = <Object?>[
               switch (element) {
                 ClassElement() => 'class',
                 EnumElement() => 'enum',
@@ -388,7 +389,7 @@ class ApiDescription {
       case TopLevelFunctionElement(:var type):
         parentheticals.add(['function: ', ..._describeType(type)]);
       case ExecutableElement(:var isStatic):
-        String maybeStatic = isStatic ? 'static ' : '';
+        var maybeStatic = isStatic ? 'static ' : '';
         switch (element) {
           case GetterElement(:var type):
             parentheticals.add([
@@ -433,7 +434,7 @@ class ApiDescription {
     }
   }
 
-  /// Appends information to [node] describing [element].
+  /// Appends information to [node] describing [library].
   void _dumpLibrary(LibraryElement library, Node<MemberSortKey> node) {
     var uri = library.uri;
     node.text.addAll([uri, ':']);

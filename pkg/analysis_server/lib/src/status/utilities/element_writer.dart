@@ -86,7 +86,7 @@ class ElementWriter with TreeWriter {
       },
       if (element is FormalParameterElement) ...{
         'defaultValueCode': ?element.defaultValueCode,
-        'isInitializingFormal': element.isInitializingFormal,
+        'isInitializingFormal': element is FieldFormalParameterElement,
         if (element.isRequiredPositional)
           'parameterKind': 'required-positional'
         else if (element.isRequiredNamed)

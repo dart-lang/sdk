@@ -1374,6 +1374,7 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   bool get isCovariant;
 
   /// Whether the parameter is an initializing formal parameter.
+  @Deprecated('Use element is FieldFormalParameterElement instead')
   bool get isInitializingFormal;
 
   /// Whether the parameter is a named parameter.
@@ -1426,6 +1427,7 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   bool get isRequiredPositional;
 
   /// Whether the parameter is a super formal parameter.
+  @Deprecated('Use element is SuperFormalParameterElement instead')
   bool get isSuperFormal;
 
   /// The type parameters defined by this parameter.

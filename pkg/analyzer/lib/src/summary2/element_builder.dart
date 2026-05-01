@@ -210,9 +210,8 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
-        lastFragments: lastFragment.typeParameters,
-        fragments: fragment.typeParameters,
-        add: fragment.addTypeParameter,
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
       return;
     }
@@ -241,9 +240,8 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
-        lastFragments: lastFragment.typeParameters,
-        fragments: fragment.typeParameters,
-        add: fragment.addTypeParameter,
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       return;
@@ -273,9 +271,8 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
-        lastFragments: lastFragment.typeParameters,
-        fragments: fragment.typeParameters,
-        add: fragment.addTypeParameter,
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       return;
@@ -305,9 +302,8 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
-        lastFragments: lastFragment.typeParameters,
-        fragments: fragment.typeParameters,
-        add: fragment.addTypeParameter,
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       return;
@@ -338,9 +334,8 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
-        lastFragments: lastFragment.typeParameters,
-        fragments: fragment.typeParameters,
-        add: fragment.addTypeParameter,
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       fragment.formalParameters = _linkFormalParameters(
@@ -549,9 +544,8 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
-        lastFragments: lastFragment.typeParameters,
-        fragments: fragment.typeParameters,
-        add: fragment.addTypeParameter,
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       fragment.formalParameters = _linkFormalParameters(
@@ -654,9 +648,8 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
-        lastFragments: lastFragment.typeParameters,
-        fragments: fragment.typeParameters,
-        add: fragment.addTypeParameter,
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       return;
@@ -687,9 +680,8 @@ class ElementBuilder {
       lastFragment.addFragment(fragment);
 
       _linkTypeParameters(
-        lastFragments: lastFragment.typeParameters,
-        fragments: fragment.typeParameters,
-        add: fragment.addTypeParameter,
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       fragment.formalParameters = _linkFormalParameters(
@@ -931,19 +923,19 @@ class ElementBuilder {
             nameOffset: null,
             parameterKind: previousParameter.parameterKind,
             privateName: previousParameter.privateName,
-          )..isOriginPreviousFragmentOfEnclosing = true;
+          )..isOriginOtherFragmentOfEnclosing = true;
         case SuperFormalParameterFragmentImpl():
           return SuperFormalParameterFragmentImpl(
             name: previousParameter.name,
             nameOffset: null,
             parameterKind: previousParameter.parameterKind,
-          )..isOriginPreviousFragmentOfEnclosing = true;
+          )..isOriginOtherFragmentOfEnclosing = true;
         default:
           return FormalParameterFragmentImpl(
             name: previousParameter.name,
             nameOffset: null,
             parameterKind: previousParameter.parameterKind,
-          )..isOriginPreviousFragmentOfEnclosing = true;
+          )..isOriginOtherFragmentOfEnclosing = true;
       }
     }
 
@@ -1015,32 +1007,89 @@ class ElementBuilder {
   }
 
   void _linkTypeParameters({
-    required List<TypeParameterFragmentImpl> lastFragments,
-    required List<TypeParameterFragmentImpl> fragments,
-    required void Function(TypeParameterFragmentImpl) add,
+    required FragmentImpl previousFragment,
+    required FragmentImpl currentFragment,
   }) {
-    // Trim extra type parameters.
-    if (lastFragments.length < fragments.length) {
-      // Recovery: phases that use AST, get fragment and expect element.
-      // TODO(scheglov): switch these phases to fragments
-      for (var i = lastFragments.length; i < fragments.length; i++) {
-        TypeParameterElementImpl(firstFragment: fragments[i]);
+    List<TypeParameterFragmentImpl> getTypeParameterFragments(
+      FragmentImpl fragment,
+    ) {
+      switch (fragment) {
+        case InstanceFragmentImpl instance:
+          return instance.typeParameters;
+        case ExecutableFragmentImpl executable:
+          return executable.typeParameters;
+        default:
+          throw StateError('${fragment.runtimeType}');
       }
-      fragments.length = lastFragments.length;
     }
 
-    // Synthesize missing type parameters.
-    if (lastFragments.length > fragments.length) {
-      for (var i = fragments.length; i < lastFragments.length; i++) {
-        add(
-          TypeParameterFragmentImpl.synthetic(name: lastFragments[i].name)
-            ..isOriginPreviousFragmentOfEnclosing = true,
+    void addTypeParameterFragment(
+      FragmentImpl fragment,
+      TypeParameterFragmentImpl typeParameter,
+    ) {
+      switch (fragment) {
+        case InstanceFragmentImpl():
+          fragment.typeParameters = [...fragment.typeParameters, typeParameter];
+        case ExecutableFragmentImpl():
+          fragment.typeParameters = [...fragment.typeParameters, typeParameter];
+        default:
+          throw StateError('${fragment.runtimeType}');
+      }
+    }
+
+    var previousTypeParameters = getTypeParameterFragments(previousFragment);
+    var currentTypeParameters = getTypeParameterFragments(currentFragment);
+
+    // Grow all previous fragments if current fragment has more type parameters.
+    if (previousTypeParameters.length < currentTypeParameters.length) {
+      var fragmentsToGrow = currentFragment.precedingFragments
+          .toList()
+          .reversed;
+      for (
+        var i = previousTypeParameters.length;
+        i < currentTypeParameters.length;
+        i++
+      ) {
+        var name = currentTypeParameters[i].name;
+
+        TypeParameterFragmentImpl? previousSyntheticTypeParameter;
+        for (var fragmentToGrow in fragmentsToGrow) {
+          var syntheticTypeParameter = TypeParameterFragmentImpl(name: name)
+            ..isOriginOtherFragmentOfEnclosing = true;
+          addTypeParameterFragment(fragmentToGrow, syntheticTypeParameter);
+
+          if (previousSyntheticTypeParameter == null) {
+            TypeParameterElementImpl(firstFragment: syntheticTypeParameter);
+          } else {
+            previousSyntheticTypeParameter.addFragment(syntheticTypeParameter);
+          }
+
+          previousSyntheticTypeParameter = syntheticTypeParameter;
+        }
+      }
+    }
+
+    // Synthesize missing type parameters in current fragment.
+    if (previousTypeParameters.length > currentTypeParameters.length) {
+      for (
+        var i = currentTypeParameters.length;
+        i < previousTypeParameters.length;
+        i++
+      ) {
+        addTypeParameterFragment(
+          currentFragment,
+          TypeParameterFragmentImpl(name: previousTypeParameters[i].name)
+            ..isOriginOtherFragmentOfEnclosing = true,
         );
       }
     }
 
-    for (var i = 0; i < lastFragments.length; i++) {
-      lastFragments[i].addFragment(fragments[i]);
+    // Refresh lists after growing.
+    previousTypeParameters = getTypeParameterFragments(previousFragment);
+    currentTypeParameters = getTypeParameterFragments(currentFragment);
+
+    for (var i = 0; i < previousTypeParameters.length; i++) {
+      previousTypeParameters[i].addFragment(currentTypeParameters[i]);
     }
   }
 

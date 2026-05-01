@@ -1795,33 +1795,44 @@ library
         #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
           element: <testLibrary>::@mixin::A
           nextFragment: #F2
-          methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
-              element: <testLibrary>::@mixin::A::@method::foo
+          typeParameters
+            #F3 isOriginOtherFragmentOfEnclosing T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E0 T
               nextFragment: #F4
-            #F5 isCompleteDeclaration isOriginDeclaration bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
+          methods
+            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@mixin::A::@method::foo
+              nextFragment: #F6
+            #F7 isCompleteDeclaration isOriginDeclaration bar (nameOffset:33) (firstTokenOffset:28) (offset:33)
               element: <testLibrary>::@mixin::A::@method::bar
         #F2 isAugmentation mixin A (nameOffset:59) (firstTokenOffset:45) (offset:59)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
-          methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
-              element: <testLibrary>::@mixin::A::@method::foo
+          typeParameters
+            #F4 T (nameOffset:61) (firstTokenOffset:61) (offset:61)
+              element: #E0 T
               previousFragment: #F3
+          methods
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:81) (firstTokenOffset:68) (offset:81)
+              element: <testLibrary>::@mixin::A::@method::foo
+              previousFragment: #F5
   mixins
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
       firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
       superclassConstraints
         Object
       methods
         isOriginDeclaration foo
           reference: <testLibrary>::@mixin::A::@method::foo
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: void
         isOriginDeclaration bar
           reference: <testLibrary>::@mixin::A::@method::bar
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: void
 ''');
   }
@@ -2339,6 +2350,92 @@ library
 ''');
   }
 
+  test_method_augmentation_chain_typeParameters_count_112() async {
+    var library = await buildLibrary(r'''
+mixin A {
+  void foo<T>() {}
+}
+augment mixin A {
+  augment void foo<T>() {}
+}
+augment mixin A {
+  augment void foo<T, U>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@mixin::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 isAugmentation mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F1
+          nextFragment: #F9
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+              element: <testLibrary>::@mixin::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F10
+              typeParameters
+                #F6 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F11
+                #F8 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 isAugmentation mixin A (nameOffset:92) (firstTokenOffset:78) (offset:92)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F2
+          methods
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
+              element: <testLibrary>::@mixin::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F11 T (nameOffset:115) (firstTokenOffset:115) (offset:115)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F12 U (nameOffset:118) (firstTokenOffset:118) (offset:118)
+                  element: #E1 U
+                  previousFragment: #F8
+  mixins
+    isSimplyBounded mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      superclassConstraints
+        Object
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@mixin::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+          returnType: void
+''');
+  }
+
   test_method_augmentation_chain_typeParameters_count_121() async {
     var library = await buildLibrary(r'''
 mixin A {
@@ -2371,31 +2468,41 @@ library
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
+                #F7 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: #E1 U
+                  nextFragment: #F8
         #F2 isAugmentation mixin A (nameOffset:44) (firstTokenOffset:30) (offset:44)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
-          nextFragment: #F7
+          nextFragment: #F9
           methods
             #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F3
-              nextFragment: #F8
+              nextFragment: #F10
               typeParameters
                 #F6 T (nameOffset:67) (firstTokenOffset:67) (offset:67)
                   element: #E0 T
                   previousFragment: #F5
-                  nextFragment: #F9
-        #F7 isAugmentation mixin A (nameOffset:93) (firstTokenOffset:79) (offset:93)
+                  nextFragment: #F11
+                #F8 U (nameOffset:70) (firstTokenOffset:70) (offset:70)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 isAugmentation mixin A (nameOffset:93) (firstTokenOffset:79) (offset:93)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           methods
-            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
               element: <testLibrary>::@mixin::A::@method::foo
               previousFragment: #F4
               typeParameters
-                #F9 T (nameOffset:116) (firstTokenOffset:116) (offset:116)
+                #F11 T (nameOffset:116) (firstTokenOffset:116) (offset:116)
                   element: #E0 T
                   previousFragment: #F6
+                #F12 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:112)
+                  element: #E1 U
+                  previousFragment: #F8
   mixins
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -2409,6 +2516,192 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_typeParameters_count_123() async {
+    var library = await buildLibrary(r'''
+mixin A {
+  void foo<T>() {}
+}
+augment mixin A {
+  augment void foo<T, U>() {}
+}
+augment mixin A {
+  augment void foo<T, U, V>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@mixin::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: #E1 U
+                  nextFragment: #F8
+                #F9 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: #E2 V
+                  nextFragment: #F10
+        #F2 isAugmentation mixin A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F1
+          nextFragment: #F11
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+              element: <testLibrary>::@mixin::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F12
+              typeParameters
+                #F6 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F13
+                #F8 U (nameOffset:71) (firstTokenOffset:71) (offset:71)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F14
+                #F10 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                  element: #E2 V
+                  previousFragment: #F9
+                  nextFragment: #F15
+        #F11 isAugmentation mixin A (nameOffset:95) (firstTokenOffset:81) (offset:95)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F2
+          methods
+            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
+              element: <testLibrary>::@mixin::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F13 T (nameOffset:118) (firstTokenOffset:118) (offset:118)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F14 U (nameOffset:121) (firstTokenOffset:121) (offset:121)
+                  element: #E1 U
+                  previousFragment: #F8
+                #F15 V (nameOffset:124) (firstTokenOffset:124) (offset:124)
+                  element: #E2 V
+                  previousFragment: #F10
+  mixins
+    isSimplyBounded mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      superclassConstraints
+        Object
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@mixin::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+            #E2 V
+              firstFragment: #F9
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_typeParameters_count_211() async {
+    var library = await buildLibrary(r'''
+mixin A {
+  void foo<T, U>() {}
+}
+augment mixin A {
+  augment void foo<T>() {}
+}
+augment mixin A {
+  augment void foo<T>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@mixin::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 isAugmentation mixin A (nameOffset:48) (firstTokenOffset:34) (offset:48)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F1
+          nextFragment: #F9
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:67) (firstTokenOffset:54) (offset:67)
+              element: <testLibrary>::@mixin::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F10
+              typeParameters
+                #F6 T (nameOffset:71) (firstTokenOffset:71) (offset:71)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F11
+                #F8 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 isAugmentation mixin A (nameOffset:95) (firstTokenOffset:81) (offset:95)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F2
+          methods
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
+              element: <testLibrary>::@mixin::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F11 T (nameOffset:118) (firstTokenOffset:118) (offset:118)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F12 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:114)
+                  element: #E1 U
+                  previousFragment: #F8
+  mixins
+    isSimplyBounded mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      superclassConstraints
+        Object
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@mixin::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -2462,7 +2755,7 @@ library
                   element: #E0 T
                   previousFragment: #F5
                   nextFragment: #F11
-                #F8 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+                #F8 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
                   element: #E1 U
                   previousFragment: #F7
                   nextFragment: #F12
@@ -5325,6 +5618,68 @@ library
 ''');
   }
 
+  test_mixin_typeParameters_augmentation_chain_count_112() async {
+    var library = await buildLibrary(r'''
+mixin A<T> {}
+augment mixin A<T> {}
+augment mixin A<T, U> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 isAugmentation mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F1
+          nextFragment: #F7
+          typeParameters
+            #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F8
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation mixin A (nameOffset:50) (firstTokenOffset:36) (offset:50)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F2
+          typeParameters
+            #F8 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
+              element: #E0 T
+              previousFragment: #F4
+            #F9 U (nameOffset:55) (firstTokenOffset:55) (offset:55)
+              element: #E1 U
+              previousFragment: #F6
+  mixins
+    isSimplyBounded mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+      superclassConstraints
+        Object
+''');
+  }
+
   test_mixin_typeParameters_augmentation_chain_count_121() async {
     var library = await buildLibrary(r'''
 mixin A<T> {}
@@ -5347,22 +5702,32 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E1 U
+              nextFragment: #F6
         #F2 isAugmentation mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
           element: <testLibrary>::@mixin::A
           previousFragment: #F1
-          nextFragment: #F5
+          nextFragment: #F7
           typeParameters
             #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
               previousFragment: #F3
-              nextFragment: #F6
-        #F5 isAugmentation mixin A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+              nextFragment: #F8
+            #F6 U (nameOffset:33) (firstTokenOffset:33) (offset:33)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation mixin A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@mixin::A
           previousFragment: #F2
           typeParameters
-            #F6 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
+            #F8 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
               element: #E0 T
               previousFragment: #F4
+            #F9 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: #E1 U
+              previousFragment: #F6
   mixins
     isSimplyBounded mixin A
       reference: <testLibrary>::@mixin::A
@@ -5370,6 +5735,144 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+      superclassConstraints
+        Object
+''');
+  }
+
+  test_mixin_typeParameters_augmentation_chain_count_123() async {
+    var library = await buildLibrary(r'''
+mixin A<T> {}
+augment mixin A<T, U> {}
+augment mixin A<T, U, V> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E1 U
+              nextFragment: #F6
+            #F7 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E2 V
+              nextFragment: #F8
+        #F2 isAugmentation mixin A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F1
+          nextFragment: #F9
+          typeParameters
+            #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F10
+            #F6 U (nameOffset:33) (firstTokenOffset:33) (offset:33)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F11
+            #F8 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: #E2 V
+              previousFragment: #F7
+              nextFragment: #F12
+        #F9 isAugmentation mixin A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F2
+          typeParameters
+            #F10 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
+              element: #E0 T
+              previousFragment: #F4
+            #F11 U (nameOffset:58) (firstTokenOffset:58) (offset:58)
+              element: #E1 U
+              previousFragment: #F6
+            #F12 V (nameOffset:61) (firstTokenOffset:61) (offset:61)
+              element: #E2 V
+              previousFragment: #F8
+  mixins
+    isSimplyBounded mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+        #E2 V
+          firstFragment: #F7
+      superclassConstraints
+        Object
+''');
+  }
+
+  test_mixin_typeParameters_augmentation_chain_count_211() async {
+    var library = await buildLibrary(r'''
+mixin A<T, U> {}
+augment mixin A<T> {}
+augment mixin A<T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      mixins
+        #F1 mixin A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@mixin::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 isAugmentation mixin A (nameOffset:31) (firstTokenOffset:17) (offset:31)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F1
+          nextFragment: #F7
+          typeParameters
+            #F4 T (nameOffset:33) (firstTokenOffset:33) (offset:33)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F8
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation mixin A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+          element: <testLibrary>::@mixin::A
+          previousFragment: #F2
+          typeParameters
+            #F8 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
+              element: #E0 T
+              previousFragment: #F4
+            #F9 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: #E1 U
+              previousFragment: #F6
+  mixins
+    isSimplyBounded mixin A
+      reference: <testLibrary>::@mixin::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
       superclassConstraints
         Object
 ''');
@@ -5409,7 +5912,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F8
-            #F6 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9

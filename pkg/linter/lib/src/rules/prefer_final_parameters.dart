@@ -9,6 +9,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; //ignore: implementation_imports
 import 'package:pub_semver/pub_semver.dart' show Version;
@@ -90,7 +91,7 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
         var declaredElement = param.declaredFragment?.element;
         if (declaredElement != null &&
-            !declaredElement.isInitializingFormal &&
+            declaredElement is! FieldFormalParameterElement &&
             !declaredElement.isWildcardVariable &&
             !body.isPotentiallyMutatedInScope(declaredElement)) {
           rule.reportAtNode(param, arguments: [param.name!.lexeme]);

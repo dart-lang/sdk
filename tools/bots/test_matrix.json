@@ -2932,7 +2932,7 @@
           "name": "unit tests",
           "arguments": [
             "-nanalyzer-unittest-asserts-${mode}-${system}",
-            "pkg/(analyzer|analysis_server|analysis_server_plugin|analyzer_cli|analyzer_plugin)"
+            "pkg/(analyzer|analysis_server|analysis_server_plugin|analyzer_cli|analyzer_plugin|api_summary)"
           ],
           "shards": 9,
           "fileset": "analyzer_unit_tests"
@@ -3013,6 +3013,13 @@
           "arguments": [
             "-nanalyzer-unittest-asserts-${mode}-${system}",
             "pkg/analyzer_plugin"
+          ]
+        },
+        {
+          "name": "api_summary unit tests",
+          "arguments": [
+            "-nanalyzer-unittest-asserts-${mode}-${system}",
+            "pkg/api_summary"
           ]
         },
         {

@@ -32,6 +32,7 @@ import 'package:analyzer/src/dart/analysis/unlinked_unit_store.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/dartdoc/dartdoc_directive_info.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/exception/exception.dart';
 import 'package:analyzer/src/generated/parser.dart';
 import 'package:analyzer/src/generated/source.dart' show SourceFactory;
@@ -619,7 +620,7 @@ class FileState {
       performance.getDataInt('length').add(code.length);
 
       var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
-      Scanner scanner = Scanner(code, diagnosticReporter)
+      Scanner scanner = Scanner(code, diagnosticReporter.report)
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet.restrictToVersion(packageLanguageVersion),

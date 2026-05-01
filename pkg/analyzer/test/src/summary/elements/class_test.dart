@@ -1545,14 +1545,17 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing T2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E1 T2
+              nextFragment: #F6
           constructors
-            #F5 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F6 class I1 (nameOffset:34) (firstTokenOffset:28) (offset:34)
+        #F8 class I1 (nameOffset:34) (firstTokenOffset:28) (offset:34)
           element: <testLibrary>::@class::I1
           constructors
-            #F7 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
+            #F9 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:34)
               element: <testLibrary>::@class::I1::@constructor::new
               typeName: I1
         #F2 isAugmentation class A (nameOffset:55) (firstTokenOffset:41) (offset:55)
@@ -1562,13 +1565,16 @@ library
             #F4 T (nameOffset:57) (firstTokenOffset:57) (offset:57)
               element: #E0 T
               previousFragment: #F3
-        #F8 class I2 (nameOffset:91) (firstTokenOffset:85) (offset:91)
+            #F6 T2 (nameOffset:60) (firstTokenOffset:60) (offset:60)
+              element: #E1 T2
+              previousFragment: #F5
+        #F10 class I2 (nameOffset:91) (firstTokenOffset:85) (offset:91)
           element: <testLibrary>::@class::I2
           typeParameters
-            #F9 E (nameOffset:94) (firstTokenOffset:94) (offset:94)
-              element: #E1 E
+            #F11 E (nameOffset:94) (firstTokenOffset:94) (offset:94)
+              element: #E2 E
           constructors
-            #F10 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+            #F12 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
               element: <testLibrary>::@class::I2::@constructor::new
               typeName: I2
   classes
@@ -1578,30 +1584,32 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
+        #E1 T2
+          firstFragment: #F5
       interfaces
         I1
-        I2<InvalidType>
+        I2<T2>
       constructors
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::A::@constructor::new
-          firstFragment: #F5
+          firstFragment: #F7
     isSimplyBounded class I1
       reference: <testLibrary>::@class::I1
-      firstFragment: #F6
+      firstFragment: #F8
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::I1::@constructor::new
-          firstFragment: #F7
+          firstFragment: #F9
     isSimplyBounded class I2
       reference: <testLibrary>::@class::I2
-      firstFragment: #F8
+      firstFragment: #F10
       typeParameters
-        #E1 E
-          firstFragment: #F9
+        #E2 E
+          firstFragment: #F11
       constructors
         hasEnclosingTypeParameterReference isOriginImplicitDefault new
           reference: <testLibrary>::@class::I2::@constructor::new
-          firstFragment: #F10
+          firstFragment: #F12
 ''');
   }
 
@@ -4946,6 +4954,66 @@ library
 ''');
   }
 
+  test_class_typeParameters_augmentation_chain_count_112() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+augment class A<T> {}
+augment class A<T, U> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 isAugmentation class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F7
+          typeParameters
+            #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F8
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation class A (nameOffset:50) (firstTokenOffset:36) (offset:50)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          typeParameters
+            #F8 T (nameOffset:52) (firstTokenOffset:52) (offset:52)
+              element: #E0 T
+              previousFragment: #F4
+            #F9 U (nameOffset:55) (firstTokenOffset:55) (offset:55)
+              element: #E1 U
+              previousFragment: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+''');
+  }
+
   test_class_typeParameters_augmentation_chain_count_121() async {
     var library = await buildLibrary(r'''
 class A<T> {}
@@ -4968,22 +5036,32 @@ library
             #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
               element: #E0 T
               nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E1 U
+              nextFragment: #F6
         #F2 isAugmentation class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F5
+          nextFragment: #F7
           typeParameters
             #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
               element: #E0 T
               previousFragment: #F3
-              nextFragment: #F6
-        #F5 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+              nextFragment: #F8
+            #F6 U (nameOffset:33) (firstTokenOffset:33) (offset:33)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           typeParameters
-            #F6 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
+            #F8 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
               element: #E0 T
               previousFragment: #F4
+            #F9 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: #E1 U
+              previousFragment: #F6
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -4991,6 +5069,140 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+''');
+  }
+
+  test_class_typeParameters_augmentation_chain_count_123() async {
+    var library = await buildLibrary(r'''
+class A<T> {}
+augment class A<T, U> {}
+augment class A<T, U, V> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E1 U
+              nextFragment: #F6
+            #F7 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:6)
+              element: #E2 V
+              nextFragment: #F8
+        #F2 isAugmentation class A (nameOffset:28) (firstTokenOffset:14) (offset:28)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F9
+          typeParameters
+            #F4 T (nameOffset:30) (firstTokenOffset:30) (offset:30)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F10
+            #F6 U (nameOffset:33) (firstTokenOffset:33) (offset:33)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F11
+            #F8 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+              element: #E2 V
+              previousFragment: #F7
+              nextFragment: #F12
+        #F9 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          typeParameters
+            #F10 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
+              element: #E0 T
+              previousFragment: #F4
+            #F11 U (nameOffset:58) (firstTokenOffset:58) (offset:58)
+              element: #E1 U
+              previousFragment: #F6
+            #F12 V (nameOffset:61) (firstTokenOffset:61) (offset:61)
+              element: #E2 V
+              previousFragment: #F8
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+        #E2 V
+          firstFragment: #F7
+''');
+  }
+
+  test_class_typeParameters_augmentation_chain_count_211() async {
+    var library = await buildLibrary(r'''
+class A<T, U> {}
+augment class A<T> {}
+augment class A<T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:8) (firstTokenOffset:8) (offset:8)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 U (nameOffset:11) (firstTokenOffset:11) (offset:11)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 isAugmentation class A (nameOffset:31) (firstTokenOffset:17) (offset:31)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F7
+          typeParameters
+            #F4 T (nameOffset:33) (firstTokenOffset:33) (offset:33)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F8
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation class A (nameOffset:53) (firstTokenOffset:39) (offset:53)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          typeParameters
+            #F8 T (nameOffset:55) (firstTokenOffset:55) (offset:55)
+              element: #E0 T
+              previousFragment: #F4
+            #F9 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:53)
+              element: #E1 U
+              previousFragment: #F6
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
 ''');
   }
 
@@ -5028,7 +5240,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F8
-            #F6 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9
@@ -12462,7 +12674,7 @@ library
               typeNameOffset: 61
               periodOffset: 62
               formalParameters
-                #F5 optionalNamed isOriginPreviousFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+                #F5 optionalNamed isOriginOtherFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -12582,7 +12794,7 @@ library
               typeNameOffset: 61
               periodOffset: 62
               formalParameters
-                #F5 optionalNamed isOriginPreviousFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+                #F5 optionalNamed isOriginOtherFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -12642,7 +12854,7 @@ library
               typeNameOffset: 61
               periodOffset: 62
               formalParameters
-                #F5 optionalPositional isOriginPreviousFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+                #F5 optionalPositional isOriginOtherFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -12702,7 +12914,7 @@ library
               typeNameOffset: 61
               periodOffset: 62
               formalParameters
-                #F5 optionalPositional isOriginPreviousFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
+                #F5 optionalPositional isOriginOtherFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:63)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -12882,7 +13094,7 @@ library
               typeNameOffset: 70
               periodOffset: 71
               formalParameters
-                #F5 requiredNamed isOriginPreviousFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+                #F5 requiredNamed isOriginOtherFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -12942,7 +13154,7 @@ library
               typeNameOffset: 70
               periodOffset: 71
               formalParameters
-                #F5 requiredNamed isOriginPreviousFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+                #F5 requiredNamed isOriginOtherFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -13002,7 +13214,7 @@ library
               typeNameOffset: 59
               periodOffset: 60
               formalParameters
-                #F5 requiredPositional isOriginPreviousFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+                #F5 requiredPositional isOriginOtherFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -13122,7 +13334,7 @@ library
               typeNameOffset: 59
               periodOffset: 60
               formalParameters
-                #F5 requiredPositional isOriginPreviousFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
+                #F5 requiredPositional isOriginOtherFragmentOfEnclosing p1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:61)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
               previousFragment: #F3
@@ -13518,7 +13730,7 @@ library
                 #F5 optionalPositional isOriginDeclaration p1 (nameOffset:82) (firstTokenOffset:78) (offset:82)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
-                #F7 optionalPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
+                #F7 optionalPositional isOriginOtherFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:71)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
                   previousFragment: #F6
               previousFragment: #F3
@@ -13926,7 +14138,7 @@ library
                 #F5 requiredNamed isOriginDeclaration n1 (nameOffset:109) (firstTokenOffset:96) (offset:109)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F4
-                #F7 requiredNamed isOriginPreviousFragmentOfEnclosing n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+                #F7 requiredNamed isOriginOtherFragmentOfEnclosing n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F6
               previousFragment: #F3
@@ -14074,7 +14286,7 @@ library
                 #F5 requiredNamed isOriginDeclaration n1 (nameOffset:109) (firstTokenOffset:96) (offset:109)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F4
-                #F7 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
+                #F7 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:89)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
                   previousFragment: #F6
               previousFragment: #F3
@@ -15480,13 +15692,13 @@ library
                 #F5 requiredPositional isOriginDeclaration p1 (nameOffset:115) (firstTokenOffset:111) (offset:115)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p1
                   previousFragment: #F4
-                #F7 requiredPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+                #F7 requiredPositional isOriginOtherFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::p2
                   previousFragment: #F6
                 #F9 requiredNamed isOriginDeclaration n1 (nameOffset:133) (firstTokenOffset:120) (offset:133)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F8
-                #F11 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
+                #F11 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:105)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
                   previousFragment: #F10
               previousFragment: #F3
@@ -16141,7 +16353,7 @@ library
                 #F5 requiredPositional isOriginDeclaration n1 (nameOffset:79) (firstTokenOffset:75) (offset:79)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n1
                   previousFragment: #F4
-                #F7 requiredPositional isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
+                #F7 requiredPositional isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:69)
                   element: <testLibrary>::@class::A::@constructor::named::@formalParameter::n2
                   previousFragment: #F6
               previousFragment: #F3
@@ -34195,7 +34407,7 @@ library
                 #F6 optionalPositional isOriginDeclaration p1 (nameOffset:66) (firstTokenOffset:62) (offset:66)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
                   previousFragment: #F5
-                #F8 optionalPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
+                #F8 optionalPositional isOriginOtherFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:57)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
                   previousFragment: #F7
   classes
@@ -34579,7 +34791,7 @@ library
                 #F6 requiredNamed isOriginDeclaration n1 (nameOffset:93) (firstTokenOffset:80) (offset:93)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F5
-                #F8 requiredNamed isOriginPreviousFragmentOfEnclosing n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+                #F8 requiredNamed isOriginOtherFragmentOfEnclosing n1 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F7
   classes
@@ -34719,7 +34931,7 @@ library
                 #F6 requiredNamed isOriginDeclaration n1 (nameOffset:93) (firstTokenOffset:80) (offset:93)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F5
-                #F8 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
+                #F8 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:75)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
                   previousFragment: #F7
   classes
@@ -35249,13 +35461,13 @@ library
                 #F6 requiredPositional isOriginDeclaration p1 (nameOffset:99) (firstTokenOffset:95) (offset:99)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p1
                   previousFragment: #F5
-                #F8 requiredPositional isOriginPreviousFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+                #F8 requiredPositional isOriginOtherFragmentOfEnclosing p2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::p2
                   previousFragment: #F7
                 #F10 requiredNamed isOriginDeclaration n1 (nameOffset:117) (firstTokenOffset:104) (offset:117)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F9
-                #F12 requiredNamed isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
+                #F12 requiredNamed isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:91)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
                   previousFragment: #F11
   classes
@@ -35401,7 +35613,7 @@ library
                 #F6 requiredPositional isOriginDeclaration n1 (nameOffset:63) (firstTokenOffset:59) (offset:63)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n1
                   previousFragment: #F5
-                #F8 requiredPositional isOriginPreviousFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
+                #F8 requiredPositional isOriginOtherFragmentOfEnclosing n2 (nameOffset:<null>) (firstTokenOffset:<null>) (offset:55)
                   element: <testLibrary>::@class::A::@method::foo::@formalParameter::n2
                   previousFragment: #F7
   classes
@@ -36049,13 +36261,13 @@ library
   test_method_augmentation_chain_typeParameters_count_111() async {
     var library = await buildLibrary(r'''
 class A {
-  void foo<T>(){}
+  void foo<T>() {}
 }
 augment class A {
-  augment void foo<T>(){}
+  augment void foo<T>() {}
 }
 augment class A {
-  augment void foo<T>(){}
+  augment void foo<T>() {}
 }
 ''');
 
@@ -36078,29 +36290,29 @@ library
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
-        #F2 isAugmentation class A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+        #F2 isAugmentation class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           nextFragment: #F7
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F3
               nextFragment: #F8
               typeParameters
-                #F6 T (nameOffset:67) (firstTokenOffset:67) (offset:67)
+                #F6 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
                   element: #E0 T
                   previousFragment: #F5
                   nextFragment: #F9
-        #F7 isAugmentation class A (nameOffset:90) (firstTokenOffset:76) (offset:90)
+        #F7 isAugmentation class A (nameOffset:92) (firstTokenOffset:78) (offset:92)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           methods
-            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:109) (firstTokenOffset:96) (offset:109)
+            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F4
               typeParameters
-                #F9 T (nameOffset:113) (firstTokenOffset:113) (offset:113)
+                #F9 T (nameOffset:115) (firstTokenOffset:115) (offset:115)
                   element: #E0 T
                   previousFragment: #F6
   classes
@@ -36114,6 +36326,90 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_typeParameters_count_112() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T>() {}
+}
+augment class A {
+  augment void foo<T>() {}
+}
+augment class A {
+  augment void foo<T, U>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 isAugmentation class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F9
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F10
+              typeParameters
+                #F6 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F11
+                #F8 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 isAugmentation class A (nameOffset:92) (firstTokenOffset:78) (offset:92)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          methods
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:111) (firstTokenOffset:98) (offset:111)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F11 T (nameOffset:115) (firstTokenOffset:115) (offset:115)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F12 U (nameOffset:118) (firstTokenOffset:118) (offset:118)
+                  element: #E1 U
+                  previousFragment: #F8
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
           returnType: void
 ''');
   }
@@ -36121,13 +36417,13 @@ library
   test_method_augmentation_chain_typeParameters_count_121() async {
     var library = await buildLibrary(r'''
 class A {
-  void foo<T>(){}
+  void foo<T>() {}
 }
 augment class A {
-  augment void foo<T, U>(){}
+  augment void foo<T, U>() {}
 }
 augment class A {
-  augment void foo<T>(){}
+  augment void foo<T>() {}
 }
 ''');
 
@@ -36150,31 +36446,41 @@ library
                 #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
                   element: #E0 T
                   nextFragment: #F6
-        #F2 isAugmentation class A (nameOffset:44) (firstTokenOffset:30) (offset:44)
+                #F7 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 isAugmentation class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
           element: <testLibrary>::@class::A
           previousFragment: #F1
-          nextFragment: #F7
+          nextFragment: #F9
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:63) (firstTokenOffset:50) (offset:63)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F3
-              nextFragment: #F8
+              nextFragment: #F10
               typeParameters
-                #F6 T (nameOffset:67) (firstTokenOffset:67) (offset:67)
+                #F6 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
                   element: #E0 T
                   previousFragment: #F5
-                  nextFragment: #F9
-        #F7 isAugmentation class A (nameOffset:93) (firstTokenOffset:79) (offset:93)
+                  nextFragment: #F11
+                #F8 U (nameOffset:71) (firstTokenOffset:71) (offset:71)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 isAugmentation class A (nameOffset:95) (firstTokenOffset:81) (offset:95)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           methods
-            #F8 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F4
               typeParameters
-                #F9 T (nameOffset:116) (firstTokenOffset:116) (offset:116)
+                #F11 T (nameOffset:118) (firstTokenOffset:118) (offset:118)
                   element: #E0 T
                   previousFragment: #F6
+                #F12 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:114)
+                  element: #E1 U
+                  previousFragment: #F8
   classes
     isSimplyBounded class A
       reference: <testLibrary>::@class::A
@@ -36186,20 +36492,118 @@ library
           typeParameters
             #E0 T
               firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
           returnType: void
 ''');
   }
 
-  test_method_augmentation_chain_typeParameters_count_212() async {
+  test_method_augmentation_chain_typeParameters_count_123() async {
     var library = await buildLibrary(r'''
 class A {
-  void foo<T, U>(){}
+  void foo<T>() {}
 }
 augment class A {
-  augment void foo<T>(){}
+  augment void foo<T, U>() {}
 }
 augment class A {
-  augment void foo<T, U>(){}
+  augment void foo<T, U, V>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: #E1 U
+                  nextFragment: #F8
+                #F9 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:17)
+                  element: #E2 V
+                  nextFragment: #F10
+        #F2 isAugmentation class A (nameOffset:45) (firstTokenOffset:31) (offset:45)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F11
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:64) (firstTokenOffset:51) (offset:64)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F12
+              typeParameters
+                #F6 T (nameOffset:68) (firstTokenOffset:68) (offset:68)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F13
+                #F8 U (nameOffset:71) (firstTokenOffset:71) (offset:71)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F14
+                #F10 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:64)
+                  element: #E2 V
+                  previousFragment: #F9
+                  nextFragment: #F15
+        #F11 isAugmentation class A (nameOffset:95) (firstTokenOffset:81) (offset:95)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          methods
+            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F13 T (nameOffset:118) (firstTokenOffset:118) (offset:118)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F14 U (nameOffset:121) (firstTokenOffset:121) (offset:121)
+                  element: #E1 U
+                  previousFragment: #F8
+                #F15 V (nameOffset:124) (firstTokenOffset:124) (offset:124)
+                  element: #E2 V
+                  previousFragment: #F10
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+            #E2 V
+              firstFragment: #F9
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_typeParameters_count_211() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T, U>() {}
+}
+augment class A {
+  augment void foo<T>() {}
+}
+augment class A {
+  augment void foo<T>() {}
 }
 ''');
 
@@ -36225,36 +36629,120 @@ library
                 #F7 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
                   element: #E1 U
                   nextFragment: #F8
-        #F2 isAugmentation class A (nameOffset:47) (firstTokenOffset:33) (offset:47)
+        #F2 isAugmentation class A (nameOffset:48) (firstTokenOffset:34) (offset:48)
           element: <testLibrary>::@class::A
           previousFragment: #F1
           nextFragment: #F9
           methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:66) (firstTokenOffset:53) (offset:66)
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:67) (firstTokenOffset:54) (offset:67)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F3
               nextFragment: #F10
               typeParameters
-                #F6 T (nameOffset:70) (firstTokenOffset:70) (offset:70)
+                #F6 T (nameOffset:71) (firstTokenOffset:71) (offset:71)
                   element: #E0 T
                   previousFragment: #F5
                   nextFragment: #F11
-                #F8 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:66)
+                #F8 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
                   element: #E1 U
                   previousFragment: #F7
                   nextFragment: #F12
-        #F9 isAugmentation class A (nameOffset:93) (firstTokenOffset:79) (offset:93)
+        #F9 isAugmentation class A (nameOffset:95) (firstTokenOffset:81) (offset:95)
           element: <testLibrary>::@class::A
           previousFragment: #F2
           methods
-            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:112) (firstTokenOffset:99) (offset:112)
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
               element: <testLibrary>::@class::A::@method::foo
               previousFragment: #F4
               typeParameters
-                #F11 T (nameOffset:116) (firstTokenOffset:116) (offset:116)
+                #F11 T (nameOffset:118) (firstTokenOffset:118) (offset:118)
                   element: #E0 T
                   previousFragment: #F6
-                #F12 U (nameOffset:119) (firstTokenOffset:119) (offset:119)
+                #F12 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:114)
+                  element: #E1 U
+                  previousFragment: #F8
+  classes
+    isSimplyBounded class A
+      reference: <testLibrary>::@class::A
+      firstFragment: #F1
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@class::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_typeParameters_count_212() async {
+    var library = await buildLibrary(r'''
+class A {
+  void foo<T, U>() {}
+}
+augment class A {
+  augment void foo<T>() {}
+}
+augment class A {
+  augment void foo<T, U>() {}
+}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      classes
+        #F1 class A (nameOffset:6) (firstTokenOffset:0) (offset:6)
+          element: <testLibrary>::@class::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:17) (firstTokenOffset:12) (offset:17)
+              element: <testLibrary>::@class::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:21) (firstTokenOffset:21) (offset:21)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 U (nameOffset:24) (firstTokenOffset:24) (offset:24)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 isAugmentation class A (nameOffset:48) (firstTokenOffset:34) (offset:48)
+          element: <testLibrary>::@class::A
+          previousFragment: #F1
+          nextFragment: #F9
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:67) (firstTokenOffset:54) (offset:67)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F10
+              typeParameters
+                #F6 T (nameOffset:71) (firstTokenOffset:71) (offset:71)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F11
+                #F8 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:67)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 isAugmentation class A (nameOffset:95) (firstTokenOffset:81) (offset:95)
+          element: <testLibrary>::@class::A
+          previousFragment: #F2
+          methods
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:114) (firstTokenOffset:101) (offset:114)
+              element: <testLibrary>::@class::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F11 T (nameOffset:118) (firstTokenOffset:118) (offset:118)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F12 U (nameOffset:121) (firstTokenOffset:121) (offset:121)
                   element: #E1 U
                   previousFragment: #F8
   classes

@@ -1524,7 +1524,7 @@ class ResolutionReader {
         var prefixId = _reader.readStringReference();
         return currentLibraryFragment.element.fragments
             .singleWhere((fragment) => fragment.source.uri == fragmentUri)
-            .libraryImportPrefixById(prefixId)!;
+            .libraryImportPrefixById(prefixId);
       case ElementTag.typeParameter:
         var index = _reader.readUint30();
         return _localElements[index] as TypeParameterElementImpl;

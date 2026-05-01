@@ -231,16 +231,12 @@ ScannerResult tokenize(Source source) {
   var featureSet = FeatureSet.latestLanguageVersion();
   // TODO(sigmund): is there a way to scan from a random-access-file without
   // first converting to String?
-  var scanner =
-      Scanner(
-          contents,
-          DiagnosticReporter(DiagnosticListener.nullListener, source),
-        )
-        ..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        )
-        ..preserveComments = false;
+  var scanner = Scanner(contents, (_) {})
+    ..configureFeatures(
+      featureSetForOverriding: featureSet,
+      featureSet: featureSet,
+    )
+    ..preserveComments = false;
   var token = scanner.tokenize();
   scanTimer.stop();
   return ScannerResult(token, scanner.lineStarts, scanner.overrideVersion);

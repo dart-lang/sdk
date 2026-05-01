@@ -57494,146 +57494,6 @@ class A {
     );
   }
 
-  test_manifest_class_constructor_formalParameter_isInitializingFormal() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  final int x;
-  A.foo1(this.x);
-  A.foo2(int x): this.x = x;
-  A.foo3(this.x);
-  A.foo4(int x): this.x = x;
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H0
-    declaredClasses
-      A: #M0
-        declaredFields
-          x: #M1
-        declaredGetters
-          x: #M2
-        declaredConstructors
-          foo1: #M3
-          foo2: #M4
-          foo3: #M5
-          foo4: #M6
-        interface: #M7
-          map
-            x: #M2
-          implemented
-            x: #M2
-    exportMapId: #M8
-    exportMap
-      A: #M0
-''',
-      updatedCode: r'''
-class A {
-  final int x;
-  A.foo1(this.x);
-  A.foo2(int x): this.x = x;
-  A.foo3(int x): this.x = x;
-  A.foo4(this.x);
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H1
-    declaredClasses
-      A: #M0
-        declaredFields
-          x: #M1
-        declaredGetters
-          x: #M2
-        declaredConstructors
-          foo1: #M3
-          foo2: #M4
-          foo3: #M9
-          foo4: #M10
-        interface: #M7
-          map
-            x: #M2
-          implemented
-            x: #M2
-    exportMapId: #M8
-    exportMap
-      A: #M0
-''',
-    );
-  }
-
-  test_manifest_class_constructor_formalParameter_isSuperFormal() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  A(int x);
-}
-
-class B extends A {
-  B.foo1(super.x);
-  B.foo2(int x) : super(x);
-  B.foo3(super.x);
-  B.foo4(int x) : super(x);
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H0
-    declaredClasses
-      A: #M0
-        interface: #M1
-      B: #M2
-        declaredConstructors
-          foo1: #M3
-          foo2: #M4
-          foo3: #M5
-          foo4: #M6
-        interface: #M7
-    exportMapId: #M8
-    exportMap
-      A: #M0
-      B: #M2
-''',
-      updatedCode: r'''
-class A {
-  A(int x);
-}
-
-class B extends A {
-  B.foo1(super.x);
-  B.foo2(int x) : super(x);
-  B.foo3(int x) : super(x);
-  B.foo4(super.x);
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H1
-    declaredClasses
-      A: #M0
-        interface: #M1
-      B: #M2
-        declaredConstructors
-          foo1: #M3
-          foo2: #M4
-          foo3: #M9
-          foo4: #M10
-        interface: #M7
-    exportMapId: #M8
-    exportMap
-      A: #M0
-      B: #M2
-''',
-    );
-  }
-
   test_manifest_class_constructor_formalParameter_optionalNamed_defaultValue() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -57810,6 +57670,146 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_formalParameter_requiredNamed_fieldFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int x;
+  A.foo1({required this.x});
+  A.foo2({required int x}): this.x = x;
+  A.foo3({required this.x});
+  A.foo4({required int x}): this.x = x;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+    exportMapId: #M8
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class A {
+  final int x;
+  A.foo1({required this.x});
+  A.foo2({required int x}): this.x = x;
+  A.foo3({required int x}): this.x = x;
+  A.foo4({required this.x});
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M9
+          foo4: #M10
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+    exportMapId: #M8
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_requiredNamed_superFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A({required int x});
+}
+
+class B extends A {
+  B.foo1({required super.x});
+  B.foo2({required int x}) : super(x: x);
+  B.foo3({required super.x});
+  B.foo4({required int x}) : super(x: x);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M0
+      B: #M2
+''',
+      updatedCode: r'''
+class A {
+  A({required int x});
+}
+
+class B extends A {
+  B.foo1({required super.x});
+  B.foo2({required int x}) : super(x: x);
+  B.foo3({required int x}) : super(x: x);
+  B.foo4({required super.x});
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M9
+          foo4: #M10
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M0
+      B: #M2
+''',
+    );
+  }
+
   test_manifest_class_constructor_formalParameter_requiredPositional() async {
     configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(
@@ -57894,6 +57894,146 @@ class A {
     exportMapId: #M3
     exportMap
       A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_requiredPositional_fieldFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int x;
+  A.foo1(this.x);
+  A.foo2(int x): this.x = x;
+  A.foo3(this.x);
+  A.foo4(int x): this.x = x;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+    exportMapId: #M8
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class A {
+  final int x;
+  A.foo1(this.x);
+  A.foo2(int x): this.x = x;
+  A.foo3(int x): this.x = x;
+  A.foo4(this.x);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M9
+          foo4: #M10
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+    exportMapId: #M8
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_requiredPositional_superFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B.foo1(super.x);
+  B.foo2(int x) : super(x);
+  B.foo3(super.x);
+  B.foo4(int x) : super(x);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M0
+      B: #M2
+''',
+      updatedCode: r'''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B.foo1(super.x);
+  B.foo2(int x) : super(x);
+  B.foo3(int x) : super(x);
+  B.foo4(super.x);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M9
+          foo4: #M10
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M0
+      B: #M2
 ''',
     );
   }

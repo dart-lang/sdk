@@ -8,8 +8,6 @@ import 'package:analysis_server_plugin/src/utilities/extensions/string_extension
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
@@ -456,14 +454,11 @@ class TokenUtils {
   static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
       var tokens = <Token>[];
-      var scanner =
-          Scanner(
-            s,
-            DiagnosticReporter(DiagnosticListener.nullListener, _SourceMock()),
-          )..configureFeatures(
-            featureSetForOverriding: featureSet,
-            featureSet: featureSet,
-          );
+      var scanner = Scanner(s, (_) {})
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
       var token = scanner.tokenize();
       while (!token.isEof) {
         tokens.add(token);
@@ -523,9 +518,4 @@ class _InvertedCondition {
 
   static _InvertedCondition _simple(String source) =>
       _InvertedCondition(2147483647, source);
-}
-
-class _SourceMock implements Source {
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

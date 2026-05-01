@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/parser/token_stream_rewriter.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
@@ -14,7 +13,6 @@ import 'package:analyzer/src/generated/element_walker.dart';
 import 'package:analyzer/src/utilities/extensions/collection.dart';
 
 class ElementBindingVisitor extends RecursiveAstVisitor<void> {
-  final CompilationUnitImpl? _compilationUnit;
   final LibraryFragmentImpl _libraryFragment;
   final DiagnosticReporter? _errorReporter;
 
@@ -33,18 +31,16 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   ElementHolder _elementHolder;
 
   ElementBindingVisitor.forAnalysis({
-    required CompilationUnitImpl unit,
     required LibraryFragmentImpl fragment,
     required DiagnosticReporter reporter,
     required ElementWalker walker,
-  }) : this._(unit, fragment, reporter, walker);
+  }) : this._(fragment, reporter, walker);
 
   ElementBindingVisitor.forPartialResolution({
     required LibraryFragmentImpl fragment,
-  }) : this._(null, fragment, null, null);
+  }) : this._(fragment, null, null);
 
   ElementBindingVisitor._(
-    this._compilationUnit,
     this._libraryFragment,
     this._errorReporter,
     this._elementWalker,
@@ -154,17 +150,9 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _checkAndRewriteTypeParameters(
+      firstTypeParameters: fragment.element.firstFragment.typeParameters,
       nameOrKeywordToken: node.namePart.typeName,
       typeParameterList: node.namePart.typeParameters,
-      typeParameterFragments: fragment.typeParameters,
-      setTypeParameterList: (newTypeParameters) {
-        switch (node.namePart) {
-          case NameWithTypeParametersImpl namePart:
-            namePart.typeParameters = newTypeParameters;
-          case PrimaryConstructorDeclarationImpl primaryConstructor:
-            primaryConstructor.typeParameters = newTypeParameters;
-        }
-      },
     );
 
     _withElementWalker(ElementWalker.forClass(fragment), () {
@@ -282,17 +270,9 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _checkAndRewriteTypeParameters(
+      firstTypeParameters: fragment.element.firstFragment.typeParameters,
       nameOrKeywordToken: node.namePart.typeName,
       typeParameterList: node.namePart.typeParameters,
-      typeParameterFragments: fragment.typeParameters,
-      setTypeParameterList: (newTypeParameters) {
-        switch (node.namePart) {
-          case NameWithTypeParametersImpl namePart:
-            namePart.typeParameters = newTypeParameters;
-          case PrimaryConstructorDeclarationImpl primaryConstructor:
-            primaryConstructor.typeParameters = newTypeParameters;
-        }
-      },
     );
 
     _withElementWalker(ElementWalker.forEnum(fragment), () {
@@ -319,12 +299,9 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _checkAndRewriteTypeParameters(
+      firstTypeParameters: fragment.element.firstFragment.typeParameters,
       nameOrKeywordToken: node.name ?? node.extensionKeyword,
       typeParameterList: node.typeParameters,
-      typeParameterFragments: fragment.typeParameters,
-      setTypeParameterList: (newTypeParameters) {
-        node.typeParameters = newTypeParameters;
-      },
     );
 
     _withElementWalker(ElementWalker.forExtension(fragment), () {
@@ -342,12 +319,9 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _checkAndRewriteTypeParameters(
+      firstTypeParameters: fragment.element.firstFragment.typeParameters,
       nameOrKeywordToken: node.primaryConstructor.typeName,
       typeParameterList: node.primaryConstructor.typeParameters,
-      typeParameterFragments: fragment.typeParameters,
-      setTypeParameterList: (newTypeParameters) {
-        node.primaryConstructor.typeParameters = newTypeParameters;
-      },
     );
 
     _withElementWalker(ElementWalker.forExtensionType(fragment), () {
@@ -412,12 +386,9 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
 
       if (_elementWalker != null) {
         _checkAndRewriteTypeParameters(
+          firstTypeParameters: fragment.element.firstFragment.typeParameters,
           nameOrKeywordToken: node.name,
           typeParameterList: node.functionExpression.typeParameters,
-          typeParameterFragments: fragment.typeParameters,
-          setTypeParameterList: (newTypeParameters) {
-            node.functionExpression.typeParameters = newTypeParameters;
-          },
         );
 
         _withElementWalker(ElementWalker.forExecutable(fragment), () {
@@ -611,12 +582,9 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _checkAndRewriteTypeParameters(
+      firstTypeParameters: fragment.element.firstFragment.typeParameters,
       nameOrKeywordToken: node.name,
       typeParameterList: node.typeParameters,
-      typeParameterFragments: fragment.typeParameters,
-      setTypeParameterList: (newTypeParameters) {
-        node.typeParameters = newTypeParameters;
-      },
     );
 
     node.returnType?.accept(this);
@@ -640,12 +608,9 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
     _setOrCreateMetadataElements(fragment, node.metadata);
 
     _checkAndRewriteTypeParameters(
+      firstTypeParameters: fragment.element.firstFragment.typeParameters,
       nameOrKeywordToken: node.name,
       typeParameterList: node.typeParameters,
-      typeParameterFragments: fragment.typeParameters,
-      setTypeParameterList: (newTypeParameters) {
-        node.typeParameters = newTypeParameters;
-      },
     );
 
     _withElementWalker(ElementWalker.forMixin(fragment), () {
@@ -831,9 +796,9 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   }
 
   /// Checks that the number of type parameters in [typeParameterList] matches
-  /// the number of [typeParameterFragments] for this declaration.
+  /// the number of [firstTypeParameters] for this declaration.
   ///
-  /// The number of fragments in [typeParameterFragments] is equal to the
+  /// The number of fragments in [firstTypeParameters] is equal to the
   /// number of type parameters in the introductory declaration.
   ///
   /// If they don't match, reports [diag.augmentationTypeParameterCount].
@@ -842,65 +807,36 @@ class ElementBindingVisitor extends RecursiveAstVisitor<void> {
   /// from the AST and token stream, and added to the compilation unit's
   /// `invalidNodes`.
   void _checkAndRewriteTypeParameters({
+    required List<TypeParameterFragmentImpl> firstTypeParameters,
     required Token nameOrKeywordToken,
     required TypeParameterListImpl? typeParameterList,
-    required List<TypeParameterFragmentImpl> typeParameterFragments,
-    required void Function(TypeParameterListImpl?) setTypeParameterList,
   }) {
+    var introductoryCount = firstTypeParameters
+        .takeWhile((p) => !p.isOriginOtherFragmentOfEnclosing)
+        .length;
+
     // If no type parameter nodes, but introductory has type parameters.
     if (typeParameterList == null) {
-      if (typeParameterFragments.isNotEmpty) {
-        _errorReporter?.atOffset(
-          offset: nameOrKeywordToken.end,
-          length: 1,
-          diagnosticCode: diag.augmentationTypeParameterCount,
+      if (introductoryCount != 0) {
+        _errorReporter?.atToken(
+          nameOrKeywordToken,
+          diag.augmentationTypeParameterCount,
         );
       }
       return;
     }
 
     // If the number of type parameters does not match, it is an error.
-    if (typeParameterList.typeParameters.length !=
-        typeParameterFragments.length) {
-      _errorReporter?.atOffset(
-        offset: typeParameterList.leftBracket.offset,
-        length: 1,
-        diagnosticCode: diag.augmentationTypeParameterCount,
+    if (typeParameterList.typeParameters.length > introductoryCount) {
+      _errorReporter?.atToken(
+        typeParameterList.typeParameters[introductoryCount].name,
+        diag.augmentationTypeParameterCount,
       );
-    }
-
-    // If the augmentation has more type parameters than the introductory
-    // declaration, we excise the extra ones from the AST and token stream.
-    if (typeParameterList.typeParameters.length >
-        typeParameterFragments.length) {
-      var keepCount = typeParameterFragments.length;
-      if (keepCount == 0) {
-        // Drop the entire type parameter list.
-        TokenStreamRewriterImpl().dropRange(
-          nameOrKeywordToken,
-          typeParameterList.rightBracket.next!,
-        );
-        _compilationUnit?.invalidNodes.add(typeParameterList);
-        setTypeParameterList(null);
-      } else {
-        // Drop the extra type parameters.
-        var keptNodes = typeParameterList.typeParameters.sublist(0, keepCount);
-        var excisedNodes = typeParameterList.typeParameters.sublist(keepCount);
-        TokenStreamRewriterImpl().dropRange(
-          keptNodes.last.endToken,
-          typeParameterList.rightBracket,
-        );
-
-        _compilationUnit?.invalidNodes.addAll(excisedNodes);
-
-        setTypeParameterList(
-          TypeParameterListImpl(
-            leftBracket: typeParameterList.leftBracket,
-            typeParameters: keptNodes,
-            rightBracket: typeParameterList.rightBracket,
-          ),
-        );
-      }
+    } else if (typeParameterList.typeParameters.length < introductoryCount) {
+      _errorReporter?.atToken(
+        typeParameterList.rightBracket,
+        diag.augmentationTypeParameterCount,
+      );
     }
   }
 

@@ -6,10 +6,12 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
+import '../dart/resolution/node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(AugmentationTypeParameterCountTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -21,7 +23,7 @@ class AugmentationTypeParameterCountTest extends PubPackageResolutionTest {
 class A {}
 augment class A<T> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 26, 1)],
+      [error(diag.augmentationTypeParameterCount, 27, 1)],
     );
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
@@ -30,12 +32,18 @@ ClassDeclaration
   classKeyword: class
   namePart: NameWithTypeParameters
     typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@27
+            defaultType: dynamic
+      rightBracket: >
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@25
-invalidNodes
-  TypeParameterListImpl [26, 29)
 ''');
   }
 
@@ -45,7 +53,7 @@ invalidNodes
 class A<T> {}
 augment class A {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 28, 1)],
     );
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
@@ -94,7 +102,7 @@ ClassDeclaration
 class A<T> {}
 augment class A<T, U> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 33, 1)],
     );
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
@@ -110,13 +118,15 @@ ClassDeclaration
           name: T
           declaredFragment: <testLibraryFragment> T@30
             defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@33
+            defaultType: dynamic
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@28
-invalidNodes
-  TypeParameterImpl [33, 34)
 ''');
   }
 
@@ -126,7 +136,7 @@ invalidNodes
 class A<T> {}
 augment class A<T, U, V> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 33, 1)],
     );
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
@@ -142,14 +152,19 @@ ClassDeclaration
           name: T
           declaredFragment: <testLibraryFragment> T@30
             defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@33
+            defaultType: dynamic
+        TypeParameter
+          name: V
+          declaredFragment: <testLibraryFragment> V@36
+            defaultType: dynamic
       rightBracket: >
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@28
-invalidNodes
-  TypeParameterImpl [33, 34)
-  TypeParameterImpl [36, 37)
 ''');
   }
 
@@ -159,7 +174,7 @@ invalidNodes
 class A<T, U> {}
 augment class A<T> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 32, 1)],
+      [error(diag.augmentationTypeParameterCount, 34, 1)],
     );
     var node = findNode.classDeclaration('augment class A');
     assertResolvedNodeText(node, r'''
@@ -193,7 +208,7 @@ augment class A {
   augment void foo<T>();
 }
 ''',
-      [error(diag.augmentationTypeParameterCount, 64, 1)],
+      [error(diag.augmentationTypeParameterCount, 65, 1)],
     );
     var node = findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
@@ -204,6 +219,14 @@ MethodDeclaration
     element: <null>
     type: void
   name: foo
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@65
+          defaultType: dynamic
+    rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
     rightParenthesis: )
@@ -211,9 +234,7 @@ MethodDeclaration
     semicolon: ;
   declaredFragment: <testLibraryFragment> foo@61
     element: <testLibrary>::@class::A::@method::foo
-      type: void Function()
-invalidNodes
-  TypeParameterListImpl [64, 67)
+      type: void Function<T>()
 ''');
   }
 
@@ -264,7 +285,7 @@ augment class A {
   augment void foo<T, U>();
 }
 ''',
-      [error(diag.augmentationTypeParameterCount, 67, 1)],
+      [error(diag.augmentationTypeParameterCount, 71, 1)],
     );
     var node = findNode.methodDeclaration('augment void foo');
     assertResolvedNodeText(node, r'''
@@ -282,6 +303,10 @@ MethodDeclaration
         name: T
         declaredFragment: <testLibraryFragment> T@68
           defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@71
+          defaultType: dynamic
     rightBracket: >
   parameters: FormalParameterList
     leftParenthesis: (
@@ -290,9 +315,7 @@ MethodDeclaration
     semicolon: ;
   declaredFragment: <testLibraryFragment> foo@64
     element: <testLibrary>::@class::A::@method::foo
-      type: void Function<T>()
-invalidNodes
-  TypeParameterImpl [71, 72)
+      type: void Function<T, U>()
 ''');
   }
 
@@ -302,7 +325,7 @@ invalidNodes
 enum A {v}
 augment enum A<T> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 25, 1)],
+      [error(diag.augmentationTypeParameterCount, 26, 1)],
     );
     var node = findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
@@ -311,12 +334,18 @@ EnumDeclaration
   enumKeyword: enum
   namePart: NameWithTypeParameters
     typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@26
+            defaultType: dynamic
+      rightBracket: >
   body: BlockEnumBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@24
-invalidNodes
-  TypeParameterListImpl [25, 28)
 ''');
   }
 
@@ -326,7 +355,7 @@ invalidNodes
 enum A<T> {v}
 augment enum A {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 28, 1)],
+      [error(diag.augmentationTypeParameterCount, 27, 1)],
     );
     var node = findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
@@ -375,7 +404,7 @@ EnumDeclaration
 enum A<T> {v}
 augment enum A<T, U> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 28, 1)],
+      [error(diag.augmentationTypeParameterCount, 32, 1)],
     );
     var node = findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
@@ -391,13 +420,15 @@ EnumDeclaration
           name: T
           declaredFragment: <testLibraryFragment> T@29
             defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@32
+            defaultType: dynamic
       rightBracket: >
   body: BlockEnumBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@27
-invalidNodes
-  TypeParameterImpl [32, 33)
 ''');
   }
 
@@ -407,7 +438,7 @@ invalidNodes
 enum A<T, U> {v}
 augment enum A<T> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 31, 1)],
+      [error(diag.augmentationTypeParameterCount, 33, 1)],
     );
     var node = findNode.enumDeclaration('augment enum A');
     assertResolvedNodeText(node, r'''
@@ -437,7 +468,7 @@ EnumDeclaration
 extension A on int {}
 augment extension A<T> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 41, 1)],
+      [error(diag.augmentationTypeParameterCount, 42, 1)],
     );
     var node = findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
@@ -445,12 +476,18 @@ ExtensionDeclaration
   augmentKeyword: augment
   extensionKeyword: extension
   name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@42
+          defaultType: dynamic
+    rightBracket: >
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@40
-invalidNodes
-  TypeParameterListImpl [41, 44)
 ''');
   }
 
@@ -460,7 +497,7 @@ invalidNodes
 extension A<T> on int {}
 augment extension A {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 44, 1)],
+      [error(diag.augmentationTypeParameterCount, 43, 1)],
     );
     var node = findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
@@ -507,7 +544,7 @@ ExtensionDeclaration
 extension A<T> on int {}
 augment extension A<T, U> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 44, 1)],
+      [error(diag.augmentationTypeParameterCount, 48, 1)],
     );
     var node = findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
@@ -522,13 +559,15 @@ ExtensionDeclaration
         name: T
         declaredFragment: <testLibraryFragment> T@45
           defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@48
+          defaultType: dynamic
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@43
-invalidNodes
-  TypeParameterImpl [48, 49)
 ''');
   }
 
@@ -538,7 +577,7 @@ invalidNodes
 extension A<T, U> on int {}
 augment extension A<T> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 47, 1)],
+      [error(diag.augmentationTypeParameterCount, 49, 1)],
     );
     var node = findNode.extensionDeclaration('augment extension A');
     assertResolvedNodeText(node, r'''
@@ -567,7 +606,7 @@ ExtensionDeclaration
 extension type A(int it) {}
 augment extension type A<T>(int it) {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 52, 1)],
+      [error(diag.augmentationTypeParameterCount, 53, 1)],
     );
     var node = findNode.extensionTypeDeclaration('augment extension type A');
     assertResolvedNodeText(node, r'''
@@ -577,6 +616,14 @@ ExtensionTypeDeclaration
   typeKeyword: type
   primaryConstructor: PrimaryConstructorDeclaration
     typeName: A
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@53
+            defaultType: dynamic
+      rightBracket: >
     formalParameters: FormalParameterList
       leftParenthesis: (
       parameter: RegularFormalParameter
@@ -592,13 +639,11 @@ ExtensionTypeDeclaration
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A Function(int)
+        type: A<T> Function(int)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@51
-invalidNodes
-  TypeParameterListImpl [52, 55)
 ''');
   }
 
@@ -608,7 +653,7 @@ invalidNodes
 extension type A<T>(int it) {}
 augment extension type A(int it) {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 55, 1)],
+      [error(diag.augmentationTypeParameterCount, 54, 1)],
     );
     var node = findNode.extensionTypeDeclaration('augment extension type A');
     assertResolvedNodeText(node, r'''
@@ -691,7 +736,7 @@ ExtensionTypeDeclaration
 extension type A<T>(int it) {}
 augment extension type A<T, U>(int it) {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 55, 1)],
+      [error(diag.augmentationTypeParameterCount, 59, 1)],
     );
     var node = findNode.extensionTypeDeclaration('augment extension type A');
     assertResolvedNodeText(node, r'''
@@ -707,6 +752,10 @@ ExtensionTypeDeclaration
         TypeParameter
           name: T
           declaredFragment: <testLibraryFragment> T@56
+            defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@59
             defaultType: dynamic
       rightBracket: >
     formalParameters: FormalParameterList
@@ -724,13 +773,11 @@ ExtensionTypeDeclaration
       rightParenthesis: )
     declaredFragment: <testLibraryFragment> new@null
       element: <testLibrary>::@extensionType::A::@constructor::new
-        type: A<T> Function(int)
+        type: A<T, U> Function(int)
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@54
-invalidNodes
-  TypeParameterImpl [59, 60)
 ''');
   }
 
@@ -740,7 +787,7 @@ invalidNodes
 extension type A<T, U>(int it) {}
 augment extension type A<T>(int it) {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 58, 1)],
+      [error(diag.augmentationTypeParameterCount, 60, 1)],
     );
     var node = findNode.extensionTypeDeclaration('augment extension type A');
     assertResolvedNodeText(node, r'''
@@ -787,7 +834,7 @@ ExtensionTypeDeclaration
 mixin A {}
 augment mixin A<T> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 26, 1)],
+      [error(diag.augmentationTypeParameterCount, 27, 1)],
     );
     var node = findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
@@ -795,12 +842,18 @@ MixinDeclaration
   augmentKeyword: augment
   mixinKeyword: mixin
   name: A
+  typeParameters: TypeParameterList
+    leftBracket: <
+    typeParameters
+      TypeParameter
+        name: T
+        declaredFragment: <testLibraryFragment> T@27
+          defaultType: dynamic
+    rightBracket: >
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@25
-invalidNodes
-  TypeParameterListImpl [26, 29)
 ''');
   }
 
@@ -810,7 +863,7 @@ invalidNodes
 mixin A<T> {}
 augment mixin A {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 28, 1)],
     );
     var node = findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
@@ -857,7 +910,7 @@ MixinDeclaration
 mixin A<T> {}
 augment mixin A<T, U> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 33, 1)],
     );
     var node = findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
@@ -872,13 +925,15 @@ MixinDeclaration
         name: T
         declaredFragment: <testLibraryFragment> T@30
           defaultType: dynamic
+      TypeParameter
+        name: U
+        declaredFragment: <testLibraryFragment> U@33
+          defaultType: dynamic
     rightBracket: >
   body: BlockClassBody
     leftBracket: {
     rightBracket: }
   declaredFragment: <testLibraryFragment> A@28
-invalidNodes
-  TypeParameterImpl [33, 34)
 ''');
   }
 
@@ -888,7 +943,7 @@ invalidNodes
 mixin A<T, U> {}
 augment mixin A<T> {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 32, 1)],
+      [error(diag.augmentationTypeParameterCount, 34, 1)],
     );
     var node = findNode.mixinDeclaration('augment mixin A');
     assertResolvedNodeText(node, r'''
@@ -917,7 +972,7 @@ MixinDeclaration
 void f() {}
 augment void f<T>() {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 26, 1)],
+      [error(diag.augmentationTypeParameterCount, 27, 1)],
     );
     var node = findNode.functionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
@@ -929,6 +984,14 @@ FunctionDeclaration
     type: void
   name: f
   functionExpression: FunctionExpression
+    typeParameters: TypeParameterList
+      leftBracket: <
+      typeParameters
+        TypeParameter
+          name: T
+          declaredFragment: <testLibraryFragment> T@27
+            defaultType: dynamic
+      rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
       rightParenthesis: )
@@ -938,13 +1001,11 @@ FunctionDeclaration
         rightBracket: }
     declaredFragment: <testLibraryFragment> f@25
       element: <testLibrary>::@function::f
-        type: void Function()
-    staticType: void Function()
+        type: void Function<T>()
+    staticType: void Function<T>()
   declaredFragment: <testLibraryFragment> f@25
     element: <testLibrary>::@function::f
-      type: void Function()
-invalidNodes
-  TypeParameterListImpl [26, 29)
+      type: void Function<T>()
 ''');
   }
 
@@ -994,7 +1055,7 @@ FunctionDeclaration
 void f<T>() {}
 augment void f<T, U>() {}
 ''',
-      [error(diag.augmentationTypeParameterCount, 29, 1)],
+      [error(diag.augmentationTypeParameterCount, 33, 1)],
     );
     var node = findNode.functionDeclaration('augment void f');
     assertResolvedNodeText(node, r'''
@@ -1013,6 +1074,10 @@ FunctionDeclaration
           name: T
           declaredFragment: <testLibraryFragment> T@30
             defaultType: dynamic
+        TypeParameter
+          name: U
+          declaredFragment: <testLibraryFragment> U@33
+            defaultType: dynamic
       rightBracket: >
     parameters: FormalParameterList
       leftParenthesis: (
@@ -1023,13 +1088,11 @@ FunctionDeclaration
         rightBracket: }
     declaredFragment: <testLibraryFragment> f@28
       element: <testLibrary>::@function::f
-        type: void Function<T>()
-    staticType: void Function<T>()
+        type: void Function<T, U>()
+    staticType: void Function<T, U>()
   declaredFragment: <testLibraryFragment> f@28
     element: <testLibrary>::@function::f
-      type: void Function<T>()
-invalidNodes
-  TypeParameterImpl [33, 34)
+      type: void Function<T, U>()
 ''');
   }
 }

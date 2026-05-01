@@ -46,7 +46,8 @@ base class ApiSummaryCustomizer {
   /// Called after [initialScanComplete] to determine if details about an
   /// element should be shown in the API summary.
   ///
-  /// The default behavior is to show details about elements in [topLevelPublicElements].
+  /// The default behavior is to show details about elements in
+  /// [topLevelPublicElements].
   bool shouldShowDetails(Element element) =>
       topLevelPublicElements.contains(element);
 }

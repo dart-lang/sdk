@@ -1,5 +1,6 @@
-name: analyzer_utilities
-# This package is not intended for consumption on pub.dev. DO NOT publish.
+name: api_summary
+version: 0.1.0-wip
+description: Creates an API summary for a package.
 publish_to: none
 
 environment:
@@ -10,17 +11,11 @@ resolution: workspace
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dependencies:
   analyzer: any
-  analyzer_testing: any
-  api_summary: any
   collection: any
-  package_config: any
-  path: any
-  pub_semver: any
-  source_span: any
-  test: any
-  yaml: any
 
 # Use 'any' constraints here; we get our versions from the DEPS file.
 dev_dependencies:
-  analyzer_plugin: any
-  lints: any
+  analyzer_testing: any
+  dart_flutter_team_lints: any
+  test: any
+  test_reflective_loader: any

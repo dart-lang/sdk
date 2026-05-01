@@ -790,7 +790,7 @@ class DispatchTable {
   void output() {
     final mainModule = translator.mainModule.module;
 
-    int calculateStrideWithHelper(
+    int calculateStrideWidthHelper(
       Reference target,
       int start, {
       required bool includeNull,
@@ -803,8 +803,9 @@ class DispatchTable {
         if (next == target) return true;
 
         // Any call to the dispatch table will succeed. If there's an empty slot
-        // in the table, we are guaranteed no calls will invoke it. That in return
-        // means its safe to put any entry in there, as it will not be used.
+        // in the table, we are guaranteed no calls will invoke it. That in
+        // return means its safe to put any entry in there, as it will not be
+        // used.
         //
         // => If putting an entry in there makes the stride larger and allows us
         //    to use `table.fill` we'll do so.
@@ -846,13 +847,13 @@ class DispatchTable {
         }
 
         final includeArbitraryNonMainEntries = targetInMain;
-        final strideWidth = calculateStrideWithHelper(
+        final strideWidth = calculateStrideWidthHelper(
           target,
           start,
           includeNull: true,
           includeArbitraryNonMainEntries: includeArbitraryNonMainEntries,
         );
-        final strideWidthOnlyTarget = calculateStrideWithHelper(
+        final strideWidthOnlyTarget = calculateStrideWidthHelper(
           target,
           start,
           includeNull: false,

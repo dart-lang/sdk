@@ -108,15 +108,15 @@ class TypesBuilder {
     }
   }
 
-  FunctionTypeImpl _buildFunctionType(
-    TypeParameterListImpl? typeParameterList,
-    TypeAnnotationImpl? returnTypeNode,
-    FormalParameterList parameterList,
-    NullabilitySuffix nullabilitySuffix,
-  ) {
+  FunctionTypeImpl _buildFunctionType({
+    required TypeParameterListImpl? typeParameterList,
+    required TypeAnnotationImpl? returnTypeNode,
+    required FormalParameterList formalParameterList,
+    required NullabilitySuffix nullabilitySuffix,
+  }) {
     var returnType = returnTypeNode?.type ?? _dynamicType;
     var typeParameters = _typeParameters(typeParameterList);
-    var formalParameters = _formalParameters(parameterList);
+    var formalParameters = _formalParameters(formalParameterList);
 
     return FunctionTypeImpl(
       typeParameters: typeParameters.map((f) => f.asElement2).toList(),
@@ -259,10 +259,12 @@ class TypesBuilder {
     var functionTypedSuffix = node.functionTypedSuffix;
     if (functionTypedSuffix case var functionTypedSuffix?) {
       var type = _buildFunctionType(
-        functionTypedSuffix.typeParameters,
-        node.type,
-        functionTypedSuffix.formalParameters,
-        _nullability(node, functionTypedSuffix.question != null),
+        typeParameterList: functionTypedSuffix.typeParameters,
+        returnTypeNode: node.type,
+        formalParameterList: functionTypedSuffix.formalParameters,
+        nullabilitySuffix: functionTypedSuffix.question != null
+            ? NullabilitySuffix.question
+            : NullabilitySuffix.none,
       );
       fragment.element.type = type;
     } else {
@@ -299,10 +301,10 @@ class TypesBuilder {
   void _functionTypeAlias(FunctionTypeAliasImpl node) {
     var fragment = node.declaredFragment!;
     fragment.element.aliasedType = _buildFunctionType(
-      null,
-      node.returnType,
-      node.parameters,
-      NullabilitySuffix.none,
+      typeParameterList: null,
+      returnTypeNode: node.returnType,
+      formalParameterList: node.parameters,
+      nullabilitySuffix: NullabilitySuffix.none,
     );
   }
 
@@ -361,14 +363,6 @@ class TypesBuilder {
     ];
   }
 
-  NullabilitySuffix _nullability(AstNode node, bool hasQuestion) {
-    if (hasQuestion) {
-      return NullabilitySuffix.question;
-    } else {
-      return NullabilitySuffix.none;
-    }
-  }
-
   void _regularFormalParameter(RegularFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
     if (fragment.previousFragment != null) {
@@ -379,10 +373,12 @@ class TypesBuilder {
     var functionTypedSuffix = node.functionTypedSuffix;
     if (functionTypedSuffix case var functionTypedSuffix?) {
       element.type = _buildFunctionType(
-        functionTypedSuffix.typeParameters,
-        node.type,
-        functionTypedSuffix.formalParameters,
-        _nullability(node, functionTypedSuffix.question != null),
+        typeParameterList: functionTypedSuffix.typeParameters,
+        returnTypeNode: node.type,
+        formalParameterList: functionTypedSuffix.formalParameters,
+        nullabilitySuffix: functionTypedSuffix.question != null
+            ? NullabilitySuffix.question
+            : NullabilitySuffix.none,
       );
       return;
     }
@@ -425,10 +421,12 @@ class TypesBuilder {
     var functionTypedSuffix = node.functionTypedSuffix;
     if (functionTypedSuffix case var functionTypedSuffix?) {
       var type = _buildFunctionType(
-        functionTypedSuffix.typeParameters,
-        node.type,
-        functionTypedSuffix.formalParameters,
-        _nullability(node, functionTypedSuffix.question != null),
+        typeParameterList: functionTypedSuffix.typeParameters,
+        returnTypeNode: node.type,
+        formalParameterList: functionTypedSuffix.formalParameters,
+        nullabilitySuffix: functionTypedSuffix.question != null
+            ? NullabilitySuffix.question
+            : NullabilitySuffix.none,
       );
       fragment.element.type = type;
     } else {

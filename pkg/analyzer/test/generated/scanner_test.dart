@@ -9,6 +9,7 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
+import 'package:analyzer/src/error/listener.dart';
 import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
@@ -75,14 +76,15 @@ class LineInfoTest with ResourceProviderMixin {
   void test_linestarts() {
     String source = "var\r\ni\n=\n1;\n";
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    Scanner scanner =
-        Scanner(
-          source,
-          DiagnosticReporter(listener, FileSource(newFile('/test.dart', ''))),
-        )..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+    var diagnosticReporter = DiagnosticReporter(
+      listener,
+      FileSource(newFile('/test.dart', '')),
+    );
+    Scanner scanner = Scanner(source, diagnosticReporter.report)
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     var token = scanner.tokenize();
     expect(token.lexeme, 'var');
     var lineStarts = scanner.lineStarts;
@@ -95,14 +97,15 @@ class LineInfoTest with ResourceProviderMixin {
     // See https://github.com/dart-lang/sdk/issues/30320
     String source = '<!-- @Component(';
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    Scanner scanner =
-        Scanner(
-          source,
-          DiagnosticReporter(listener, FileSource(newFile('/test.dart', ''))),
-        )..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+    var diagnosticReporter = DiagnosticReporter(
+      listener,
+      FileSource(newFile('/test.dart', '')),
+    );
+    Scanner scanner = Scanner(source, diagnosticReporter.report)
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     Token token = scanner.tokenize(reportScannerErrors: false);
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next!;
@@ -141,7 +144,8 @@ class LineInfoTest with ResourceProviderMixin {
 
   Token _scanWithListener(String source, GatheringDiagnosticListener listener) {
     var testSource = FileSource(newFile('/test.dart', ''));
-    Scanner scanner = Scanner(source, DiagnosticReporter(listener, testSource))
+    var diagnosticReporter = DiagnosticReporter(listener, testSource);
+    Scanner scanner = Scanner(source, diagnosticReporter.report)
       ..configureFeatures(
         featureSetForOverriding: featureSet,
         featureSet: featureSet,
@@ -202,7 +206,8 @@ class ScannerTest with ResourceProviderMixin {
     var path = convertPath('/test/lib/a.dart');
     var source = StringSource(content, path);
     var diagnosticCollector = RecordingDiagnosticListener();
-    return Scanner(content, DiagnosticReporter(diagnosticCollector, source));
+    var diagnosticReporter = DiagnosticReporter(diagnosticCollector, source);
+    return Scanner(content, diagnosticReporter.report);
   }
 }
 

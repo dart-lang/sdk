@@ -3667,7 +3667,7 @@ package:analyzer/dart/element/element.dart:
     fragments (getter: List<FormalParameterFragment>)
     hasDefaultValue (getter: bool)
     isCovariant (getter: bool)
-    isInitializingFormal (getter: bool)
+    isInitializingFormal (getter: bool, deprecated)
     isNamed (getter: bool)
     isOptional (getter: bool)
     isOptionalNamed (getter: bool)
@@ -3676,7 +3676,7 @@ package:analyzer/dart/element/element.dart:
     isRequired (getter: bool)
     isRequiredNamed (getter: bool)
     isRequiredPositional (getter: bool)
-    isSuperFormal (getter: bool)
+    isSuperFormal (getter: bool, deprecated)
     typeParameters (getter: List<TypeParameterElement>)
     appendToWithoutDelimiters (method: void Function(StringBuffer))
   FormalParameterFragment (class extends Object implements VariableFragment, LocalFragment, abstract):

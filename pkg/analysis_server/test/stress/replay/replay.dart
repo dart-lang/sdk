@@ -11,9 +11,7 @@ import 'dart:math' as math;
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/token.dart';
-import 'package:analyzer/error/listener.dart' as error;
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/scanner/scanner.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/glob.dart';
@@ -219,17 +217,11 @@ class Driver {
   List<int> _getBreakOffsets(String text) {
     var breakOffsets = <int>[];
     var featureSet = FeatureSet.latestLanguageVersion();
-    var scanner =
-        Scanner(
-          text,
-          error.DiagnosticReporter(
-            error.DiagnosticListener.nullListener,
-            _TestSource(),
-          ),
-        )..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet,
-        );
+    var scanner = Scanner(text, (_) {})
+      ..configureFeatures(
+        featureSetForOverriding: featureSet,
+        featureSet: featureSet,
+      );
     var token = scanner.tokenize();
     // TODO(brianwilkerson): Randomize. Sometimes add zero (0) as a break point.
     while (!token.isEof) {
@@ -619,12 +611,4 @@ class Statistics {
     }
     return '$seconds.$milliseconds';
   }
-}
-
-class _TestSource implements Source {
-  @override
-  String get fullName => '/package/lib/test.dart';
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
 }

@@ -1088,6 +1088,68 @@ library
 ''');
   }
 
+  test_extension_typeParameters_augmentation_chain_count_112() async {
+    var library = await buildLibrary(r'''
+extension A<T> on int {}
+augment extension A<T> {}
+augment extension A<T, U> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 isAugmentation extension A (nameOffset:43) (firstTokenOffset:25) (offset:43)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F7
+          typeParameters
+            #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F8
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation extension A (nameOffset:69) (firstTokenOffset:51) (offset:69)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          typeParameters
+            #F8 T (nameOffset:71) (firstTokenOffset:71) (offset:71)
+              element: #E0 T
+              previousFragment: #F4
+            #F9 U (nameOffset:74) (firstTokenOffset:74) (offset:74)
+              element: #E1 U
+              previousFragment: #F6
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+''');
+  }
+
   test_extension_typeParameters_augmentation_chain_count_121() async {
     var library = await buildLibrary(r'''
 extension A<T> on int {}
@@ -1110,22 +1172,32 @@ library
             #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
               element: #E0 T
               nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: #E1 U
+              nextFragment: #F6
         #F2 isAugmentation extension A (nameOffset:43) (firstTokenOffset:25) (offset:43)
           element: <testLibrary>::@extension::A
           previousFragment: #F1
-          nextFragment: #F5
+          nextFragment: #F7
           typeParameters
             #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
               element: #E0 T
               previousFragment: #F3
-              nextFragment: #F6
-        #F5 isAugmentation extension A (nameOffset:72) (firstTokenOffset:54) (offset:72)
+              nextFragment: #F8
+            #F6 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation extension A (nameOffset:72) (firstTokenOffset:54) (offset:72)
           element: <testLibrary>::@extension::A
           previousFragment: #F2
           typeParameters
-            #F6 T (nameOffset:74) (firstTokenOffset:74) (offset:74)
+            #F8 T (nameOffset:74) (firstTokenOffset:74) (offset:74)
               element: #E0 T
               previousFragment: #F4
+            #F9 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+              element: #E1 U
+              previousFragment: #F6
   extensions
     extension A
       reference: <testLibrary>::@extension::A
@@ -1133,6 +1205,144 @@ library
       typeParameters
         #E0 T
           firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+''');
+  }
+
+  test_extension_typeParameters_augmentation_chain_count_123() async {
+    var library = await buildLibrary(r'''
+extension A<T> on int {}
+augment extension A<T, U> {}
+augment extension A<T, U, V> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: #E1 U
+              nextFragment: #F6
+            #F7 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: #E2 V
+              nextFragment: #F8
+        #F2 isAugmentation extension A (nameOffset:43) (firstTokenOffset:25) (offset:43)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F9
+          typeParameters
+            #F4 T (nameOffset:45) (firstTokenOffset:45) (offset:45)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F10
+            #F6 U (nameOffset:48) (firstTokenOffset:48) (offset:48)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F11
+            #F8 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:43)
+              element: #E2 V
+              previousFragment: #F7
+              nextFragment: #F12
+        #F9 isAugmentation extension A (nameOffset:72) (firstTokenOffset:54) (offset:72)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          typeParameters
+            #F10 T (nameOffset:74) (firstTokenOffset:74) (offset:74)
+              element: #E0 T
+              previousFragment: #F4
+            #F11 U (nameOffset:77) (firstTokenOffset:77) (offset:77)
+              element: #E1 U
+              previousFragment: #F6
+            #F12 V (nameOffset:80) (firstTokenOffset:80) (offset:80)
+              element: #E2 V
+              previousFragment: #F8
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
+        #E2 V
+          firstFragment: #F7
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+''');
+  }
+
+  test_extension_typeParameters_augmentation_chain_count_211() async {
+    var library = await buildLibrary(r'''
+extension A<T, U> on int {}
+augment extension A<T> {}
+augment extension A<T> {}
+''');
+
+    configuration.withConstructors = false;
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          typeParameters
+            #F3 T (nameOffset:12) (firstTokenOffset:12) (offset:12)
+              element: #E0 T
+              nextFragment: #F4
+            #F5 U (nameOffset:15) (firstTokenOffset:15) (offset:15)
+              element: #E1 U
+              nextFragment: #F6
+        #F2 isAugmentation extension A (nameOffset:46) (firstTokenOffset:28) (offset:46)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F7
+          typeParameters
+            #F4 T (nameOffset:48) (firstTokenOffset:48) (offset:48)
+              element: #E0 T
+              previousFragment: #F3
+              nextFragment: #F8
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+              element: #E1 U
+              previousFragment: #F5
+              nextFragment: #F9
+        #F7 isAugmentation extension A (nameOffset:72) (firstTokenOffset:54) (offset:72)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          typeParameters
+            #F8 T (nameOffset:74) (firstTokenOffset:74) (offset:74)
+              element: #E0 T
+              previousFragment: #F4
+            #F9 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:72)
+              element: #E1 U
+              previousFragment: #F6
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
+        #E1 U
+          firstFragment: #F5
       extendedType: int
       onDeclaration: dart:core::@class::int
 ''');
@@ -1172,7 +1382,7 @@ library
               element: #E0 T
               previousFragment: #F3
               nextFragment: #F8
-            #F6 isOriginPreviousFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
+            #F6 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:46)
               element: #E1 U
               previousFragment: #F5
               nextFragment: #F9
@@ -2663,33 +2873,44 @@ library
         #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
           element: <testLibrary>::@extension::A
           nextFragment: #F2
-          methods
-            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
-              element: <testLibrary>::@extension::A::@method::foo
+          typeParameters
+            #F3 isOriginOtherFragmentOfEnclosing T (nameOffset:<null>) (firstTokenOffset:<null>) (offset:10)
+              element: #E0 T
               nextFragment: #F4
-            #F5 isCompleteDeclaration isOriginDeclaration bar (nameOffset:44) (firstTokenOffset:39) (offset:44)
+          methods
+            #F5 isCompleteDeclaration isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+              nextFragment: #F6
+            #F7 isCompleteDeclaration isOriginDeclaration bar (nameOffset:44) (firstTokenOffset:39) (offset:44)
               element: <testLibrary>::@extension::A::@method::bar
         #F2 isAugmentation extension A (nameOffset:74) (firstTokenOffset:56) (offset:74)
           element: <testLibrary>::@extension::A
           previousFragment: #F1
-          methods
-            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
-              element: <testLibrary>::@extension::A::@method::foo
+          typeParameters
+            #F4 T (nameOffset:76) (firstTokenOffset:76) (offset:76)
+              element: #E0 T
               previousFragment: #F3
+          methods
+            #F6 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:96) (firstTokenOffset:83) (offset:96)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F5
   extensions
     extension A
       reference: <testLibrary>::@extension::A
       firstFragment: #F1
+      typeParameters
+        #E0 T
+          firstFragment: #F3
       extendedType: int
       onDeclaration: dart:core::@class::int
       methods
         isOriginDeclaration foo
           reference: <testLibrary>::@extension::A::@method::foo
-          firstFragment: #F3
+          firstFragment: #F5
           returnType: void
         isOriginDeclaration bar
           reference: <testLibrary>::@extension::A::@method::bar
-          firstFragment: #F5
+          firstFragment: #F7
           returnType: void
 ''');
   }
@@ -2806,6 +3027,273 @@ library
         isOriginDeclaration foo
           reference: <testLibrary>::@extension::A::@method::foo
           firstFragment: #F3
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_typeParameters_count_112() async {
+    var library = await buildLibrary(r'''
+extension A on int {
+  void foo<T>() {}
+}
+augment extension A {
+  augment void foo<T>() {}
+}
+augment extension A {
+  augment void foo<T, U>() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 isAugmentation extension A (nameOffset:60) (firstTokenOffset:42) (offset:60)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F9
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:79) (firstTokenOffset:66) (offset:79)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F10
+              typeParameters
+                #F6 T (nameOffset:83) (firstTokenOffset:83) (offset:83)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F11
+                #F8 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 isAugmentation extension A (nameOffset:111) (firstTokenOffset:93) (offset:111)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          methods
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:130) (firstTokenOffset:117) (offset:130)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F11 T (nameOffset:134) (firstTokenOffset:134) (offset:134)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F12 U (nameOffset:137) (firstTokenOffset:137) (offset:137)
+                  element: #E1 U
+                  previousFragment: #F8
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@extension::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_typeParameters_count_123() async {
+    var library = await buildLibrary(r'''
+extension A on int {
+  void foo<T>() {}
+}
+augment extension A {
+  augment void foo<T, U>() {}
+}
+augment extension A {
+  augment void foo<T, U, V>() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+                  element: #E1 U
+                  nextFragment: #F8
+                #F9 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:28)
+                  element: #E2 V
+                  nextFragment: #F10
+        #F2 isAugmentation extension A (nameOffset:60) (firstTokenOffset:42) (offset:60)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F11
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:79) (firstTokenOffset:66) (offset:79)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F12
+              typeParameters
+                #F6 T (nameOffset:83) (firstTokenOffset:83) (offset:83)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F13
+                #F8 U (nameOffset:86) (firstTokenOffset:86) (offset:86)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F14
+                #F10 isOriginOtherFragmentOfEnclosing V (nameOffset:<null>) (firstTokenOffset:<null>) (offset:79)
+                  element: #E2 V
+                  previousFragment: #F9
+                  nextFragment: #F15
+        #F11 isAugmentation extension A (nameOffset:114) (firstTokenOffset:96) (offset:114)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          methods
+            #F12 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:133) (firstTokenOffset:120) (offset:133)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F13 T (nameOffset:137) (firstTokenOffset:137) (offset:137)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F14 U (nameOffset:140) (firstTokenOffset:140) (offset:140)
+                  element: #E1 U
+                  previousFragment: #F8
+                #F15 V (nameOffset:143) (firstTokenOffset:143) (offset:143)
+                  element: #E2 V
+                  previousFragment: #F10
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@extension::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
+            #E2 V
+              firstFragment: #F9
+          returnType: void
+''');
+  }
+
+  test_method_augmentation_chain_typeParameters_count_211() async {
+    var library = await buildLibrary(r'''
+extension A on int {
+  void foo<T, U>() {}
+}
+augment extension A {
+  augment void foo<T>() {}
+}
+augment extension A {
+  augment void foo<T>() {}
+}
+''');
+
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      extensions
+        #F1 extension A (nameOffset:10) (firstTokenOffset:0) (offset:10)
+          element: <testLibrary>::@extension::A
+          nextFragment: #F2
+          methods
+            #F3 isCompleteDeclaration isOriginDeclaration foo (nameOffset:28) (firstTokenOffset:23) (offset:28)
+              element: <testLibrary>::@extension::A::@method::foo
+              nextFragment: #F4
+              typeParameters
+                #F5 T (nameOffset:32) (firstTokenOffset:32) (offset:32)
+                  element: #E0 T
+                  nextFragment: #F6
+                #F7 U (nameOffset:35) (firstTokenOffset:35) (offset:35)
+                  element: #E1 U
+                  nextFragment: #F8
+        #F2 isAugmentation extension A (nameOffset:63) (firstTokenOffset:45) (offset:63)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F1
+          nextFragment: #F9
+          methods
+            #F4 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:82) (firstTokenOffset:69) (offset:82)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F3
+              nextFragment: #F10
+              typeParameters
+                #F6 T (nameOffset:86) (firstTokenOffset:86) (offset:86)
+                  element: #E0 T
+                  previousFragment: #F5
+                  nextFragment: #F11
+                #F8 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:82)
+                  element: #E1 U
+                  previousFragment: #F7
+                  nextFragment: #F12
+        #F9 isAugmentation extension A (nameOffset:114) (firstTokenOffset:96) (offset:114)
+          element: <testLibrary>::@extension::A
+          previousFragment: #F2
+          methods
+            #F10 isAugmentation isCompleteDeclaration isOriginDeclaration foo (nameOffset:133) (firstTokenOffset:120) (offset:133)
+              element: <testLibrary>::@extension::A::@method::foo
+              previousFragment: #F4
+              typeParameters
+                #F11 T (nameOffset:137) (firstTokenOffset:137) (offset:137)
+                  element: #E0 T
+                  previousFragment: #F6
+                #F12 isOriginOtherFragmentOfEnclosing U (nameOffset:<null>) (firstTokenOffset:<null>) (offset:133)
+                  element: #E1 U
+                  previousFragment: #F8
+  extensions
+    extension A
+      reference: <testLibrary>::@extension::A
+      firstFragment: #F1
+      extendedType: int
+      onDeclaration: dart:core::@class::int
+      methods
+        isOriginDeclaration foo
+          reference: <testLibrary>::@extension::A::@method::foo
+          firstFragment: #F3
+          typeParameters
+            #E0 T
+              firstFragment: #F5
+            #E1 U
+              firstFragment: #F7
           returnType: void
 ''');
   }

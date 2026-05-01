@@ -481,8 +481,8 @@ class BundleWriter {
   void _writeFormalParameterFragment(FormalParameterFragmentImpl fragment) {
     _writeFragmentId(fragment);
     _writeFragmentName(fragment);
-    _sink.writeBool(fragment.isInitializingFormal);
-    _sink.writeBool(fragment.isSuperFormal);
+    _sink.writeBool(fragment is FieldFormalParameterFragmentImpl);
+    _sink.writeBool(fragment is SuperFormalParameterFragmentImpl);
     _sink._writeFormalParameterFragmentKind(fragment);
 
     if (fragment is FieldFormalParameterFragmentImpl) {

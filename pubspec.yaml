@@ -19,6 +19,7 @@ workspace:
   - pkg/analysis_server_client
   - pkg/analysis_server_plugin
   - pkg/analyzer
+  - pkg/api_summary
   - pkg/analyzer_cli
   - pkg/analyzer_plugin
   - pkg/analyzer_testing

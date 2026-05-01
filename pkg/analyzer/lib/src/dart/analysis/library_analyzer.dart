@@ -178,7 +178,6 @@ class LibraryAnalyzer {
       );
       parsedUnit.accept(
         ElementBindingVisitor.forAnalysis(
-          unit: parsedUnit,
           fragment: libraryFragment,
           reporter: DiagnosticReporter(diagnosticListener, file.source),
           walker: elementWalker,
@@ -825,7 +824,6 @@ class LibraryAnalyzer {
     );
     unit.accept(
       ElementBindingVisitor.forAnalysis(
-        unit: unit,
         fragment: libraryFragment,
         reporter: fileAnalysis.diagnosticReporter,
         walker: elementWalker,

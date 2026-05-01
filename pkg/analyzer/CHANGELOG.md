@@ -1,6 +1,8 @@
 ## 13.1.0-dev
 
 * Deprecate `PackageConfigFileBuilder` in `package:analyzer/utilities/package_config_file_builder.dart`. Use `package:analyzer_testing/package_config_file_builder.dart` instead.
+* Deprecate `isInitializingFormal` in `FormalParameterElement`. Use type checks (`element is FieldFormalParameterElement`) instead.
+* Deprecate `isSuperFormal` in `FormalParameterElement`. Use type checks (`element is SuperFormalParameterElement`) instead.
 
 ## 13.0.0
 
