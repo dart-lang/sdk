@@ -736,6 +736,31 @@ bool _canParseUri(
   return true;
 }
 
+bool _canParseWorkspaceEdit(
+    Map<String, Object?> map, LspJsonReporter reporter, String fieldName,
+    {required bool allowsUndefined, required bool allowsNull}) {
+  reporter.push(fieldName);
+  try {
+    if (!allowsUndefined && !map.containsKey(fieldName)) {
+      reporter.reportError('must not be undefined');
+      return false;
+    }
+    final value = map[fieldName];
+    final nullCheck = allowsNull || allowsUndefined;
+    if (!nullCheck && value == null) {
+      reporter.reportError('must not be null');
+      return false;
+    }
+    if ((!nullCheck || value != null) &&
+        !WorkspaceEdit.canParse(value, reporter)) {
+      return false;
+    }
+  } finally {
+    reporter.pop();
+  }
+  return true;
+}
+
 Either2<int, String> _eitherIntString(Object? value) {
   return value is int
       ? Either2.t1(value)
@@ -1249,6 +1274,132 @@ class DartDiagnosticServer implements ToJsonable {
     final port = portJson as int;
     return DartDiagnosticServer(
       port: port,
+    );
+  }
+}
+
+class DartMigrateParams implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartMigrateParams.canParse,
+    DartMigrateParams.fromJson,
+  );
+
+  /// The URIs of the directories (packages or workspaces) to migrate.
+  /// Individual file URIs are not supported.
+  final List<DocumentUri> uris;
+
+  DartMigrateParams({
+    required this.uris,
+  });
+
+  @override
+  int get hashCode => lspHashCode(uris);
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartMigrateParams &&
+        other.runtimeType == DartMigrateParams &&
+        const DeepCollectionEquality().equals(uris, other.uris);
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['uris'] = uris.map((uri) => uri.toString()).toList();
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      return _canParseListUri(obj, reporter, 'uris',
+          allowsUndefined: false, allowsNull: false);
+    } else {
+      reporter.reportError('must be of type DartMigrateParams');
+      return false;
+    }
+  }
+
+  static DartMigrateParams fromJson(Map<String, Object?> json) {
+    final urisJson = json['uris'];
+    final uris = (urisJson as List<Object?>)
+        .map((item) => Uri.parse(item as String))
+        .toList();
+    return DartMigrateParams(
+      uris: uris,
+    );
+  }
+}
+
+class DartMigrateResult implements ToJsonable {
+  static const jsonHandler = LspJsonHandler(
+    DartMigrateResult.canParse,
+    DartMigrateResult.fromJson,
+  );
+
+  /// The edits to be applied to the workspace.
+  final WorkspaceEdit? edit;
+
+  /// A summary of the migration results, detailing which fixes succeeded, which
+  /// fixes failed to be applied, and the new SDK version constraint applied to
+  /// the pubspec.yaml.
+  final String? summary;
+
+  DartMigrateResult({
+    this.edit,
+    this.summary,
+  });
+  @override
+  int get hashCode => Object.hash(
+        edit,
+        summary,
+      );
+
+  @override
+  bool operator ==(Object other) {
+    return other is DartMigrateResult &&
+        other.runtimeType == DartMigrateResult &&
+        edit == other.edit &&
+        summary == other.summary;
+  }
+
+  @override
+  Map<String, Object?> toJson() {
+    var result = <String, Object?>{};
+    result['edit'] = edit?.toJson();
+    result['summary'] = summary;
+    return result;
+  }
+
+  @override
+  String toString() => jsonEncoder.convert(toJson());
+
+  static bool canParse(Object? obj, LspJsonReporter reporter) {
+    if (obj is Map<String, Object?>) {
+      if (!_canParseWorkspaceEdit(obj, reporter, 'edit',
+          allowsUndefined: false, allowsNull: true)) {
+        return false;
+      }
+      return _canParseString(obj, reporter, 'summary',
+          allowsUndefined: false, allowsNull: true);
+    } else {
+      reporter.reportError('must be of type DartMigrateResult');
+      return false;
+    }
+  }
+
+  static DartMigrateResult fromJson(Map<String, Object?> json) {
+    final editJson = json['edit'];
+    final edit = editJson != null
+        ? WorkspaceEdit.fromJson(editJson as Map<String, Object?>)
+        : null;
+    final summaryJson = json['summary'];
+    final summary = summaryJson as String?;
+    return DartMigrateResult(
+      edit: edit,
+      summary: summary,
     );
   }
 }

@@ -14157,7 +14157,7 @@ CompileTimeErrorCode:
   nullableTypeInExtendsClause:
     type: compileTimeError
     parameters: none
-    problemMessage: "A class can't extend a nullable type."
+    problemMessage: "Nullable types can't be extended."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     documentation: |-
@@ -14195,13 +14195,13 @@ CompileTimeErrorCode:
   nullableTypeInImplementsClause:
     type: compileTimeError
     parameters: none
-    problemMessage: "A class, mixin, or extension type can't implement a nullable type."
+    problemMessage: "Nullable types can't be implemented."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     documentation: |-
       #### Description
 
-      The analyzer produces this diagnostic when a class, mixin, or
+      The analyzer produces this diagnostic when a class, enum, mixin, or
       extension type declaration has an `implements` clause, and an
       interface is followed by a `?`.
 
@@ -14234,7 +14234,7 @@ CompileTimeErrorCode:
   nullableTypeInOnClause:
     type: compileTimeError
     parameters: none
-    problemMessage: "A mixin can't have a nullable type as a superclass constraint."
+    problemMessage: "Nullable types can't be used as a superclass constraint."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     documentation: |-
@@ -14273,7 +14273,7 @@ CompileTimeErrorCode:
   nullableTypeInWithClause:
     type: compileTimeError
     parameters: none
-    problemMessage: "A class or mixin can't mix in a nullable type."
+    problemMessage: "Nullable types can't be mixed in."
     correctionMessage: Try removing the question mark.
     hasPublishedDocs: true
     documentation: |-

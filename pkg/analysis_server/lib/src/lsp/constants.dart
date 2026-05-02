@@ -163,6 +163,7 @@ abstract final class CustomMethods {
   );
   static const summary = Method('dart/textDocument/summary');
   static const super_ = Method('dart/textDocument/super');
+  static const migrate = Method('dart/workspace/migrate');
   static const imports = Method('dart/textDocument/imports');
 
   /// Method for requesting the set of editable arguments at a location in a

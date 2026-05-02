@@ -722,6 +722,35 @@ List<LspEntity> getCustomClasses() {
     interface('DocumentSummary', [
       field('summary', type: 'String', canBeNull: true),
     ]),
+
+    // Types for `dart/workspace/migrate`.
+    interface('DartMigrateParams', [
+      field(
+        'uris',
+        type: 'DocumentUri',
+        array: true,
+        comment:
+            'The URIs of the directories (packages or workspaces) to migrate. '
+            'Individual file URIs are not supported.',
+      ),
+    ]),
+    interface('DartMigrateResult', [
+      field(
+        'summary',
+        type: 'String',
+        canBeNull: true,
+        comment:
+            'A summary of the migration results, detailing which fixes '
+            'succeeded, which fixes failed to be applied, and the new '
+            'SDK version constraint applied to the pubspec.yaml.',
+      ),
+      field(
+        'edit',
+        type: 'WorkspaceEdit',
+        canBeNull: true,
+        comment: 'The edits to be applied to the workspace.',
+      ),
+    ]),
   ];
   return customTypes;
 }

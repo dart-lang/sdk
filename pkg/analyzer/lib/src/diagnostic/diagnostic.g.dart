@@ -12849,7 +12849,7 @@ nullableTypeInCatchClause = DiagnosticWithoutArgumentsImpl(
 const DiagnosticWithoutArguments nullableTypeInExtendsClause =
     DiagnosticWithoutArgumentsImpl(
       name: 'nullable_type_in_extends_clause',
-      problemMessage: "A class can't extend a nullable type.",
+      problemMessage: "Nullable types can't be extended.",
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
@@ -12861,8 +12861,7 @@ const DiagnosticWithoutArguments nullableTypeInExtendsClause =
 const DiagnosticWithoutArguments nullableTypeInImplementsClause =
     DiagnosticWithoutArgumentsImpl(
       name: 'nullable_type_in_implements_clause',
-      problemMessage:
-          "A class, mixin, or extension type can't implement a nullable type.",
+      problemMessage: "Nullable types can't be implemented.",
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
@@ -12875,7 +12874,7 @@ const DiagnosticWithoutArguments nullableTypeInOnClause =
     DiagnosticWithoutArgumentsImpl(
       name: 'nullable_type_in_on_clause',
       problemMessage:
-          "A mixin can't have a nullable type as a superclass constraint.",
+          "Nullable types can't be used as a superclass constraint.",
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,
@@ -12887,7 +12886,7 @@ const DiagnosticWithoutArguments nullableTypeInOnClause =
 const DiagnosticWithoutArguments nullableTypeInWithClause =
     DiagnosticWithoutArgumentsImpl(
       name: 'nullable_type_in_with_clause',
-      problemMessage: "A class or mixin can't mix in a nullable type.",
+      problemMessage: "Nullable types can't be mixed in.",
       correctionMessage: "Try removing the question mark.",
       hasPublishedDocs: true,
       type: DiagnosticType.COMPILE_TIME_ERROR,

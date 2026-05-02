@@ -295,6 +295,20 @@ Returns: `FlutterWidgetPreviews | null`
 
 Returns the set of detected Flutter Widget Previews in the analyzed project.
 
+### dart/workspace/migrate Method
+
+Direction: Client -> Server
+Params: `DartMigrateParams`
+Returns: `DartMigrateResult`
+
+Migrates the provided pub workspace folders or non-pub workspace packages to the
+latest Dart version. For packages that are part of a pub workspace, only the
+workspace root should be passed. Migrating individual packages within a
+workspace independently is not supported.
+
+The response includes a summary of the results and a `WorkspaceEdit` containing
+the changes to be applied.
+
 ### dart/openUri Notification
 
 Direction: Server -> Client
