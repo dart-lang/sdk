@@ -456,6 +456,10 @@ class _InterfaceAddress extends _InternetAddress implements InterfaceAddress {
     }
     return InternetAddress.fromRawAddress(bytes);
   }
+
+  String toString() {
+    return "InterfaceAddress('$address', ${type.name}, $prefixLength)";
+  }
 }
 
 class _NetworkInterface implements NetworkInterface {
