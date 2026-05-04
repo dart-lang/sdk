@@ -127,7 +127,7 @@ intptr_t SocketBase::ReceiveMessage(intptr_t fd,
   int flags = 0;
 #ifdef MSG_CMSG_CLOEXEC
   // MSG_CMSG_CLOEXEC is not supported on macOS.
-  flags &= MSG_CMSG_CLOEXEC;
+  flags |= MSG_CMSG_CLOEXEC;
 #endif
   ssize_t read_bytes = TEMP_FAILURE_RETRY(recvmsg(fd, &msg, flags));
   if ((sync == kAsync) && (read_bytes == -1) && (errno == EWOULDBLOCK)) {
