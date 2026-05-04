@@ -298,14 +298,19 @@ void testMaxPayloadLengthDefaultAcceptsLargeFrame() {
   var message = new Uint8List(70000)
     ..[0] = 0xAB
     ..[69999] = 0xCD;
-  WebSocketMessageCollector mc = new WebSocketMessageCollector(
-    controller.stream.transform(transformer),
-    message,
-  );
-  mc.onClosed = () {
-    Expect.equals(1, mc.messageCount);
-    asyncEnd();
-  };
+  int messageCount = 0;
+  controller.stream
+      .transform(transformer)
+      .listen(
+        (buffer) {
+          Expect.listEquals(message, buffer);
+          messageCount++;
+        },
+        onDone: () {
+          Expect.equals(1, messageCount);
+          asyncEnd();
+        },
+      );
   List<int> frame = createFrame(
     true,
     FRAME_OPCODE_BINARY,
