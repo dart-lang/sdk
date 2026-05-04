@@ -1819,11 +1819,14 @@ abstract base class MoveOp {}
 /// e.g. for every two successive [ParallelMove] instructions it is guaranteed
 /// that `instr.stage.index < instr.next.stage.index`.
 enum ParallelMoveStage {
+  // Control flow moves at the beginning of basic block.
+  control,
   // Move fixed output of the instruction to its desired location.
   // Moves which split live ranges between instructions.
-  // Also control flow moves at the beginning of basic block.
+  // Spill a non-fixed output of the instruction.
   output,
-  // Spill output of the instruction.
+  // Spill output of the instruction in case of a fixed location
+  // (output is defined only after [ParallelMoveStage.output]).
   spill,
   // Move instruction inputs to their fixed locations.
   // Moves which split live ranges at the next instructions.

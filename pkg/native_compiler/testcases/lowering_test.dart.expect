@@ -14,19 +14,19 @@ B0 = EntryBlock()
   v2 = Parameter(this)   # RA: param[1] <- ()
   v3 = Parameter(x)   # RA: param[2] <- ()
   ParallelMove output(param[2] -> vloc:R6, param[1] -> vloc:R0, param[0] -> vloc:R5)
-  v20 = LoadInstanceField(C.#typeArguments, v2)   # RA: R2 <- (R0)
-  ParallelMove spill(R2 -> stack[0])
-  ParallelMove input(vloc:R6 -> R0, vloc:R2 -> R2, NullConstant(null) -> R1, R2 -> R9)
+  v20 = LoadInstanceField(C.#typeArguments, v2)   # RA: R9 <- (R0)
+  ParallelMove output(R9 -> stack[0])
+  ParallelMove input(vloc:R6 -> R0, vloc:R9 -> R2, NullConstant(null) -> R1)
   v10 = TypeTest(v3, v20, v9, List<C.T%>)   # RA: R7 <- (R0, R2, R1) temps: [R8, R3, R4]
   ParallelMove output(R7 -> vloc:R7)
   DirectCall print(v10)   # RA: R0 <- (R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(param[0] -> R1, param[2] -> R5)
-  ParallelMove input(vloc:R5 -> R0, NullConstant(null) -> R2, vloc:R1 -> R1, R1 -> R6)
+  ParallelMove output(param[0] -> R5, param[2] -> R6)
+  ParallelMove input(vloc:R6 -> R0, NullConstant(null) -> R2, vloc:R5 -> R1)
   v13 = TypeTest(v3, v9, v1, List<C.typeParameters.U%>)   # RA: R7 <- (R0, R2, R1) temps: [R8, R3, R4]
   ParallelMove output(R7 -> vloc:R7)
   DirectCall print(v13)   # RA: R0 <- (R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(param[0] -> R3, param[2] -> R1, stack[0] -> R2)
-  ParallelMove input(vloc:R1 -> R0, vloc:R2 -> R2, vloc:R3 -> R1)
+  ParallelMove output(param[0] -> R1, param[2] -> R3, stack[0] -> R2)
+  ParallelMove input(vloc:R3 -> R0, vloc:R2 -> R2, vloc:R1 -> R1)
   v16 = TypeCast(v3, v20, v1, Map<C.T%, C.typeParameters.U%>)   # RA: R0 <- (R0, R2, R1) temps: [R8, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v16)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
@@ -57,7 +57,7 @@ B0 = EntryBlock() dominates:(B9, B11, B8)
   v30 = UnboxInt(v1)   # RA: R0 <- (R0)
   v31 = UnboxInt(v2)   # RA: R1 <- (R1)
   v7 = Comparison int & == 0(v30, v31)   # RA: R0 <- (R0, R1)
-  ParallelMove spill(R0 -> stack[0])
+  ParallelMove output(R0 -> stack[0])
   Branch(v7, true: B8, false: B9)   # RA: (R0)
 B8 = TargetBlock() idom:B0
   DirectCall print(v13)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
@@ -86,7 +86,7 @@ B0 = EntryBlock() dominates:(B11, B13, B10)
   v20 = UnboxInt(v1)   # RA: R0 <- (R0)
   v21 = UnboxInt(v2)   # RA: R1 <- (R1)
   v7 = Comparison int & == 0(v20, v21)   # RA: R0 <- (R0, R1)
-  ParallelMove spill(R0 -> stack[0])
+  ParallelMove output(R0 -> stack[0])
   Branch(v7, true: B10, false: B11)   # RA: (R0)
 B10 = TargetBlock() idom:B0
   DirectCall print(v15)   # RA: R0 <- (-) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
@@ -110,7 +110,7 @@ B0 = EntryBlock() dominates:(B8, B14, B16, B7)
   v35 = UnboxInt(v1)   # RA: R0 <- (R0)
   v36 = UnboxInt(v2)   # RA: R1 <- (R1)
   v6 = Comparison int >(v35, v36)   # RA: R0 <- (R0, R1)
-  ParallelMove spill(R0 -> stack[0])
+  ParallelMove output(R0 -> stack[0])
   Branch(v6, true: B7, false: B8)   # RA: (R0)
 B7 = TargetBlock() idom:B0
   Goto(B16)
@@ -208,13 +208,13 @@ B0 = EntryBlock()
   v24 = Constant(9)
   v1 = Parameter(#functionTypeParameters)   # RA: param[0] <- ()
   v2 = Parameter(x)   # RA: param[1] <- ()
-  ParallelMove output(param[1] -> vloc:R0, param[0] -> vloc:R1)
+  ParallelMove output(param[1] -> vloc:param[1], param[0] -> vloc:R0)
   v7 = DirectCall _GrowableList.(v5, v6)   # RA: R0 <- (-, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v7)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(param[0] -> R1)
   v10 = TypeArguments(v9, v1, <listLiterals.T%>)   # RA: R0 <- (-, R1)
-  ParallelMove spill(R0 -> stack[0])
+  ParallelMove output(R0 -> stack[0])
   v11 = DirectCall _GrowableList.(v10, v6)   # RA: R0 <- (R0, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v11)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
@@ -281,13 +281,13 @@ B0 = EntryBlock()
   v3 = Parameter(value)   # RA: param[2] <- ()
   v4 = Parameter(key2)   # RA: param[3] <- ()
   v5 = Parameter(value2)   # RA: param[4] <- ()
-  ParallelMove output(param[4] -> vloc:R3, param[3] -> vloc:R2, param[2] -> vloc:R1, param[1] -> vloc:R0, param[0] -> vloc:R4)
+  ParallelMove output(param[4] -> vloc:param[4], param[3] -> vloc:param[3], param[2] -> vloc:param[2], param[1] -> vloc:param[1], param[0] -> vloc:R0)
   v32 = DirectCall Map._fromLiteral(v8, v31)   # RA: R0 <- (-, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v32)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(param[0] -> R1)
   v12 = TypeArguments(v11, v1, <mapLiterals.S%, mapLiterals.T%>)   # RA: R0 <- (-, R1)
-  ParallelMove spill(R0 -> stack[0])
+  ParallelMove output(R0 -> stack[0])
   v33 = DirectCall Map._fromLiteral(v12, v31)   # RA: R0 <- (R0, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v33)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
@@ -337,8 +337,8 @@ B0 = EntryBlock()
   v1 = Parameter(x)   # RA: param[0] <- ()
   v2 = Parameter(s)   # RA: param[1] <- ()
   v3 = Parameter(o)   # RA: param[2] <- ()
-  ParallelMove output(param[2] -> vloc:R2, param[1] -> vloc:R1, param[0] -> vloc:R0)
-  v17 = DirectCall _StringBase._interpolateSingle(v3)   # RA: R0 <- (R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[2] -> vloc:R0, param[1] -> vloc:param[1], param[0] -> vloc:param[0])
+  v17 = DirectCall _StringBase._interpolateSingle(v3)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   DirectCall print(v17)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   v19 = AllocateList(v18)   # RA: R0 <- (-) temps: [R1, R2, R3]

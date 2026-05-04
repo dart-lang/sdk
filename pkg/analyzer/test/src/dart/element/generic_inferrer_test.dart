@@ -5,14 +5,13 @@
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/generated/source.dart';
 import 'package:analyzer/src/test_utilities/test_library_builder.dart';
-import 'package:path/path.dart' show toUri;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -356,10 +355,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }) {
     var listener = RecordingDiagnosticListener();
 
-    var reporter = DiagnosticReporter(
-      listener,
-      NonExistingSource('/test.dart', toUri('/test.dart')),
-    );
+    var file = newFile('/test.dart', '');
+    var fileSource = FileSource(file);
+    var reporter = DiagnosticReporter(listener, fileSource);
 
     var inferrer = typeSystem.setupGenericTypeInference(
       typeParameters: ft.typeParameters,

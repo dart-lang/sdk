@@ -4,6 +4,12 @@
 
 ### Libraries
 
+#### `dart:async`
+
+- Added `Future.pause` as alternative to `Future.delayed` with no callback.
+- Added `List.unmodifiableOf` with better typing than `List.unmodifiable`.
+- Added `Map.unmodifiableOf` with better typing than `Map.unmodifiable`.
+
 #### `dart:io`
 
 - The cookie-date parser now uses the correct algorithm again.

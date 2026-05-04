@@ -71,10 +71,28 @@ int compareAny(dynamic a, dynamic b) {
 
 class _Future<T> {}
 
-class BroadcastStreamController {
+abstract class BroadcastStreamController {
   _Future<void>? _doneFuture;
   _Future<void> ensureDoneFuture() => _doneFuture ??= _Future<void>();
+
+  bool get _mayAddEvent;
+  Error _addEventError();
+  void _addError(Object error, StackTrace stackTrace);
+
+  void addError(Object error, [StackTrace? stackTrace]) {
+    if (!_mayAddEvent) throw _addEventError();
+    AsyncError(:error, :stackTrace) = _interceptUserError(error, stackTrace);
+    _addError(error, stackTrace);
+  }
 }
+
+final class AsyncError implements Error {
+  final Object error;
+  final StackTrace stackTrace;
+  AsyncError(this.error, this.stackTrace);
+}
+
+external AsyncError _interceptUserError(Object error, StackTrace? stackTrace);
 
 abstract class _AsBroadcastStreamController<T> {
   bool get isClosed;
@@ -126,6 +144,25 @@ class AsBroadcastStream<T> extends Stream<T> {
       onDone,
       cancelOnError ?? false,
     );
+  }
+}
+
+class _StreamControllerAddStreamState<T> {
+  dynamic _varData;
+}
+
+class _PendingEvents<T> {}
+
+abstract class StreamController<T> {
+  Object? _varData;
+  bool get _isAddingStream;
+
+  _PendingEvents<T>? get pendingEvents {
+    if (!_isAddingStream) {
+      return _varData as dynamic;
+    }
+    _StreamControllerAddStreamState<T> state = _varData as dynamic;
+    return state._varData;
   }
 }
 
@@ -239,5 +276,190 @@ external String _joinReplaceAllResult(
   int length,
   bool replacementStringsAreOneByte,
 );
+
+// dart:convert::_ChunkedJsonParser
+
+abstract class ChunkedJsonParser {
+  static const int MINUS = 0x2d;
+  static const int DECIMALPOINT = 0x2e;
+  static const int CHAR_0 = 0x30;
+  static const int CHAR_9 = 0x39;
+  static const int CHAR_e = 0x65;
+  static const int NUM_SIGN = 0; // After initial '-'.
+  static const int NUM_ZERO = 4; // After '0' as first digit.
+  static const int NUM_DIGIT = 8; // After digit, no '.' or 'e' seen.
+  static const int NUM_DOT = 12; // After '.'.
+  static const int NUM_DOT_DIGIT = 16; // After a decimal digit (after '.').
+  static const int NUM_E = 20; // After 'e' or 'E'.
+  static const int NUM_E_SIGN = 24; // After '-' or '+' after 'e' or 'E'.
+  static const int NUM_E_DIGIT = 28; // After exponent digit.
+  static const int NUM_SUCCESS = 32; // Never stored as partial state.
+  static const POWERS_OF_TEN = [];
+
+  int parseNumber(int char, int position) {
+    // Also called on any unexpected character.
+    // Format:
+    //  '-'?('0'|[1-9][0-9]*)('.'[0-9]+)?([eE][+-]?[0-9]+)?
+    var start = position;
+    int length = chunkEnd;
+    // Collects an int value while parsing. Used for both an integer literal,
+    // and the exponent part of a double literal.
+    // Stored as negative to ensure we can represent -2^63.
+    var intValue = 0;
+    var doubleValue = 0.0; // Collect double value while parsing.
+    // 1 if there is no leading -, -1 if there is.
+    var sign = 1;
+    var isDouble = false;
+    // Break this block when the end of the number literal is reached.
+    // At that time, position points to the next character, and isDouble
+    // is set if the literal contains a decimal point or an exponential.
+    if (char == MINUS) {
+      sign = -1;
+      position++;
+      if (position == length) return beginChunkNumber(NUM_SIGN, start);
+      char = _getCharUnsafe(position);
+    }
+    int digit = char ^ CHAR_0;
+    if (digit > 9) {
+      if (sign < 0) {
+        fail(position, "Missing expected digit");
+      } else {
+        // If it doesn't even start out as a numeral.
+        fail(position);
+      }
+    }
+    if (digit == 0) {
+      position++;
+      if (position == length) return beginChunkNumber(NUM_ZERO, start);
+      char = _getCharUnsafe(position);
+      digit = char ^ CHAR_0;
+      // If starting with zero, next character must not be digit.
+      if (digit <= 9) fail(position);
+    } else {
+      var digitCount = 0;
+      do {
+        if (digitCount >= 18) {
+          // Check for overflow.
+          // Is 1 if digit is 8 or 9 and sign == 0, or digit is 9 and sign < 0;
+          int highDigit = digit >> 3;
+          if (sign < 0) highDigit &= digit;
+          if (digitCount == 19 || intValue - highDigit < -922337203685477580) {
+            isDouble = true;
+            // Big value that we know is not trusted to be exact later,
+            // forcing reparsing using `double.parse`.
+            doubleValue = 9223372036854775808.0;
+          }
+        }
+        intValue = 10 * intValue - digit;
+        digitCount++;
+        position++;
+        if (position == length) return beginChunkNumber(NUM_DIGIT, start);
+        char = _getCharUnsafe(position);
+        digit = char ^ CHAR_0;
+      } while (digit <= 9);
+    }
+    if (char == DECIMALPOINT) {
+      if (!isDouble) {
+        isDouble = true;
+        doubleValue = (intValue == 0) ? 0.0 : -intValue.toDouble();
+      }
+      intValue = 0;
+      position++;
+      if (position == length) return beginChunkNumber(NUM_DOT, start);
+      char = _getCharUnsafe(position);
+      digit = char ^ CHAR_0;
+      if (digit > 9) fail(position);
+      do {
+        doubleValue = 10.0 * doubleValue + digit;
+        intValue -= 1;
+        position++;
+        if (position == length) return beginChunkNumber(NUM_DOT_DIGIT, start);
+        char = _getCharUnsafe(position);
+        digit = char ^ CHAR_0;
+      } while (digit <= 9);
+    }
+    if ((char | 0x20) == CHAR_e) {
+      if (!isDouble) {
+        isDouble = true;
+        doubleValue = (intValue == 0) ? 0.0 : -intValue.toDouble();
+        intValue = 0;
+      }
+      position++;
+      if (position == length) return beginChunkNumber(NUM_E, start);
+      char = _getCharUnsafe(position);
+      var expSign = 1;
+      var exponent = 0;
+      if (((char + 1) | 2) == 0x2e /*+ or -*/ ) {
+        expSign = 0x2C - char; // -1 for MINUS, +1 for PLUS
+        position++;
+        if (position == length) return beginChunkNumber(NUM_E_SIGN, start);
+        char = _getCharUnsafe(position);
+      }
+      digit = char ^ CHAR_0;
+      if (digit > 9) {
+        fail(position, "Missing expected digit");
+      }
+      var exponentOverflow = false;
+      do {
+        exponent = 10 * exponent + digit;
+        if (exponent > 400) exponentOverflow = true;
+        position++;
+        if (position == length) return beginChunkNumber(NUM_E_DIGIT, start);
+        char = _getCharUnsafe(position);
+        digit = char ^ CHAR_0;
+      } while (digit <= 9);
+      if (exponentOverflow) {
+        if (doubleValue == 0.0 || expSign < 0) {
+          listener.handleNumber(sign < 0 ? -0.0 : 0.0);
+        } else {
+          listener.handleNumber(
+            sign < 0 ? double.negativeInfinity : double.infinity,
+          );
+        }
+        return position;
+      }
+      intValue += expSign * exponent;
+    }
+    if (!isDouble) {
+      int bitFlag = -(sign + 1) >> 1; // 0 if sign == -1, -1 if sign == 1
+      // Negate if bitFlag is -1 by doing ~intValue + 1
+      listener.handleNumber((intValue ^ bitFlag) - bitFlag);
+      return position;
+    }
+    // Double values at or above this value (2 ** 53) may have lost precision.
+    // Only trust results that are below this value.
+    const maxExactDouble = 9007199254740992.0;
+    if (doubleValue < maxExactDouble) {
+      var exponent = intValue;
+      double signedMantissa = doubleValue * sign;
+      if (exponent >= -22) {
+        if (exponent < 0) {
+          listener.handleNumber(signedMantissa / POWERS_OF_TEN[-exponent]);
+          return position;
+        }
+        if (exponent == 0) {
+          listener.handleNumber(signedMantissa);
+          return position;
+        }
+        if (exponent <= 22) {
+          listener.handleNumber(signedMantissa * POWERS_OF_TEN[exponent]);
+          return position;
+        }
+      }
+    }
+    // If the value is outside the range +/-maxExactDouble or
+    // exponent is outside the range +/-22, then we can't trust simple double
+    // arithmetic to get the exact result, so we use the system double parsing.
+    listener.handleNumber(parseDouble(start, position));
+    return position;
+  }
+
+  dynamic get listener;
+  int get chunkEnd;
+  int beginChunkNumber(int state, int start);
+  int _getCharUnsafe(int position);
+  Never fail(int position, [String? message]);
+  double parseDouble(int start, int end);
+}
 
 void main() {}

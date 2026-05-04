@@ -93,7 +93,6 @@ bool _printDtd = false;
 
 File? _residentCompilerInfoFile;
 
-@entrypoint
 /// Sets the resident compiler info file, which is used to configure the
 /// service to utilize a resident compiler.
 ///
@@ -101,6 +100,7 @@ File? _residentCompilerInfoFile;
 /// was supplied on the command line, the CLI argument should be forwarded as
 /// the argument to [residentCompilerInfoFilePathArgumentFromCli]. If neither
 /// option was supplied, the argument to this parameter should be null.
+@entrypoint
 // ignore: unused_element
 void _populateResidentCompilerInfoFile(
   String? residentCompilerInfoFilePathArgumentFromCli,
@@ -124,6 +124,7 @@ Future<void> main([List<String> args = const []]) async {
       autoStart: _autoStart,
       serveDevTools: _serveDevtools,
       enableServicePortFallback: _enableServicePortFallback,
+      host: _ip,
     ),
     backendBuilder: (frontend) => DartRuntimeServiceVMBackend(
       frontend: frontend,

@@ -33,19 +33,49 @@ B8 = TargetBlock() idom:B0
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[0])
   DirectCall _Future.(v13)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(param[0] -> R1, stack[0] -> R2)
-  InterfaceCall setter BroadcastStreamController._doneFuture(v1, v13)   # RA: R0 <- (R1, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[0] -> R1, stack[0] -> R0)
+  InterfaceCall setter BroadcastStreamController._doneFuture(v1, v13)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(stack[0] -> R1)
   Goto(B17)
 B9 = TargetBlock() idom:B0
   v20 = TypeCast(v3, _Future<void>, unchecked)   # RA: R1 <- (R0)
-  ParallelMove spill(R1 -> stack[0])
+  ParallelMove output(R1 -> stack[0])
   Goto(B17)
 B17 = JoinBlock(B9, B8) idom:B0
   v25 = Phi(v20, v13)   # RA: R1 <- (R1, R1)
-  ParallelMove spill(R1 -> stack[0])
+  ParallelMove output(R1 -> stack[0])
   ParallelMove input(vloc:R1 -> R0)
   Return(v25)   # RA: (R0)
+
+--- BroadcastStreamController.addError
+B0 = EntryBlock() dominates:(B7, B6)
+  v14 = Constant(null)
+  v1 = Parameter(this)   # RA: R0 <- ()
+  v2 = Parameter(error)   # RA: R1 <- ()
+  v3 = Parameter(stackTrace)   # RA: R2 <- ()
+  ParallelMove output(R2 -> vloc:R0, R1 -> vloc:stack[1], R0 -> vloc:stack[0])
+  ParallelMove spill(R0 -> stack[2])
+  v5 = InterfaceCall getter BroadcastStreamController._mayAddEvent(v1)   # RA: R0 <- (stack[0]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  Branch(v5, true: B6, false: B7)   # RA: (R0)
+B6 = TargetBlock() idom:B0
+  ParallelMove output(stack[1] -> R0, stack[2] -> R1)
+  v17 = DirectCall _interceptUserError(v2, v3)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[3])
+  v20 = InterfaceCall getter AsyncError.error(v17)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[3] -> R1)
+  ParallelMove spill(R0 -> stack[4])
+  v23 = InterfaceCall getter AsyncError.stackTrace(v17)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1, stack[4] -> R2)
+  InterfaceCall BroadcastStreamController._addError(v1, v20, v23)   # RA: R0 <- (R1, R2, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v14)   # RA: (R0)
+B7 = TargetBlock() idom:B0
+  ParallelMove control(stack[0] -> R1)
+  v12 = InterfaceCall BroadcastStreamController._addEventError(v1)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  Throw(v12)   # RA: (R0)
 
 --- getter BroadcastStreamController._doneFuture
 B0 = EntryBlock()
@@ -64,6 +94,85 @@ B0 = EntryBlock()
   StoreInstanceField(BroadcastStreamController._doneFuture, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
   ParallelMove input(NullConstant(null) -> R0)
   Return(v6)   # RA: (R0)
+
+--- AsyncError.
+B0 = EntryBlock()
+  v12 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(error)   # RA: param[1] <- ()
+  v3 = Parameter(stackTrace)   # RA: param[2] <- ()
+  ParallelMove output(param[2] -> vloc:R2, param[1] -> vloc:R1, param[0] -> vloc:R0)
+  StoreInstanceField(AsyncError.error, v1, v2)   # RA: (R0, R1) temps: [R3, R4]
+  StoreInstanceField(AsyncError.stackTrace, v1, v3)   # RA: (R0, R2) temps: [R1, R3]
+  DirectCall Object.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v12)   # RA: (R0)
+
+--- getter AsyncError._stackTrace
+B0 = EntryBlock()
+  v4 = Constant(SymbolConstant(#_stackTrace))
+  v5 = Constant(1)
+  v6 = Constant(ListConstant(const <Type>[]))
+  v7 = Constant(ListConstant(const <dynamic>[]))
+  v8 = Constant(<Symbol, dynamic>)
+  v9 = Constant(MapConstant(const <Symbol, dynamic>{}))
+  Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R5)
+  v3 = AllocateObject _InvocationMirror()   # RA: R0 <- () temps: [R1, R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[0])
+  v10 = DirectCall Map.unmodifiable(v8, v9)   # RA: R0 <- (-, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[1], stack[0] -> R0)
+  DirectCall _InvocationMirror._withType(v3, v4, v5, v6, v7, v10)   # RA: R0 <- (R0, -, -, -, -, stack[1]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[0] -> R1, stack[0] -> R2)
+  v12 = DirectCall NoSuchMethodError.withInvocation(v1, v3)   # RA: R0 <- (R1, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  Throw(v12)   # RA: (R0)
+
+--- setter AsyncError._stackTrace
+B0 = EntryBlock()
+  v5 = Constant(SymbolConstant(#_stackTrace=))
+  v6 = Constant(2)
+  v7 = Constant(ListConstant(const <Type>[]))
+  v8 = Constant(<dynamic>)
+  v12 = Constant(<Symbol, dynamic>)
+  v13 = Constant(MapConstant(const <Symbol, dynamic>{}))
+  Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(value)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R6, param[0] -> vloc:R5)
+  v4 = AllocateObject _InvocationMirror()   # RA: R0 <- () temps: [R1, R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[0])
+  v10 = DirectCall _GrowableList._literal1(v8, v2)   # RA: R0 <- (-, R6) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  v11 = DirectCall List.unmodifiable(v8, v10)   # RA: R0 <- (-, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[1])
+  v14 = DirectCall Map.unmodifiable(v12, v13)   # RA: R0 <- (-, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[2], stack[0] -> R0, stack[1] -> R1)
+  DirectCall _InvocationMirror._withType(v4, v5, v6, v7, v11, v14)   # RA: R0 <- (R0, -, -, -, R1, stack[2]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[0] -> R1, stack[0] -> R2)
+  v16 = DirectCall NoSuchMethodError.withInvocation(v1, v4)   # RA: R0 <- (R1, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  Throw(v16)   # RA: (R0)
+
+--- getter AsyncError.error
+B0 = EntryBlock()
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v3 = LoadInstanceField(AsyncError.error, v1)   # RA: R0 <- (R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v3)   # RA: (R0)
+
+--- getter AsyncError.stackTrace
+B0 = EntryBlock()
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v3 = LoadInstanceField(AsyncError.stackTrace, v1)   # RA: R0 <- (R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v3)   # RA: (R0)
 
 --- _AsBroadcastStreamController.
 B0 = EntryBlock()
@@ -117,9 +226,9 @@ B0 = EntryBlock() dominates:(B15, B25, B14)
   v3 = Parameter(onError)   # RA: R2 <- ()
   v4 = Parameter(onDone)   # RA: R3 <- ()
   v5 = Parameter(cancelOnError)   # RA: R5 <- ()
-  ParallelMove output(R5 -> vloc:R5, R3 -> vloc:R3, R2 -> vloc:R2, R1 -> vloc:R1, R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[0], R1 -> stack[1], R2 -> stack[2], R3 -> stack[3], R5 -> stack[4])
-  v9 = InterfaceCall getter AsBroadcastStream._controller(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R5 -> vloc:R0, R3 -> vloc:stack[3], R2 -> vloc:stack[2], R1 -> vloc:stack[1], R0 -> vloc:stack[0])
+  ParallelMove spill(R0 -> stack[4])
+  v9 = InterfaceCall getter AsBroadcastStream._controller(v1)   # RA: R0 <- (stack[0]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   CompareAndBranch ==(v9, v12, true: B14, false: B15)   # RA: (R0, -)
 B14 = TargetBlock() idom:B0
@@ -128,7 +237,7 @@ B15 = TargetBlock() idom:B0 dominates:(B21, B20)
   ParallelMove output(stack[0] -> R1)
   v80 = LoadInstanceField(Stream.#typeArguments, v1)   # RA: R2 <- (R1)
   v18 = TypeCast(v9, v80, v12, _AsBroadcastStreamController<AsBroadcastStream.T%>, unchecked)   # RA: R0 <- (R0, R2, -)
-  ParallelMove spill(R0 -> stack[5])
+  ParallelMove output(R0 -> stack[5])
   v19 = InterfaceCall getter _AsBroadcastStreamController.isClosed(v18)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   Branch(v19, true: B20, false: B21)   # RA: (R0)
@@ -147,16 +256,15 @@ B25 = JoinBlock(B20, B14) idom:B0
   ParallelMove input(vloc:R1 -> R0)
   Return(v29)   # RA: (R0)
 B21 = TargetBlock() idom:B15 dominates:(B37, B49, B36)
-  ParallelMove output(stack[0] -> R0, stack[3] -> R1)
+  ParallelMove control(stack[0] -> R0, stack[3] -> R1)
   v34 = InterfaceCall getter AsBroadcastStream._subscription(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   CompareAndBranch ==(v34, v12, true: B36, false: B37)   # RA: (R0, -)
 B36 = TargetBlock() idom:B21
   ParallelMove output(stack[0] -> R0)
   v41 = InterfaceCall getter AsBroadcastStream._source(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, stack[5] -> R1)
-  ParallelMove spill(R0 -> stack[7])
-  v44 = InterfaceCall tear-off _AsBroadcastStreamController.add(v18)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[7], stack[5] -> R0)
+  v44 = InterfaceCall tear-off _AsBroadcastStreamController.add(v18)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0, stack[7] -> R1)
   v46 = InterfaceCall Stream.listen(v41, v44)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
@@ -170,7 +278,6 @@ B37 = TargetBlock() idom:B21
 B49 = JoinBlock(B37, B36) idom:B21 dominates:(B64, B68, B63)
   Phi(v12, v46)   # RA: R1 <- (-, R1)
   ParallelMove output(stack[4] -> R0)
-  ParallelMove spill(R1 -> stack[8])
   CompareAndBranch ==(v5, v12, true: B63, false: B64)   # RA: (R0, -)
 B63 = TargetBlock() idom:B49
   ParallelMove input(BoolConstant(false) -> R0)
@@ -227,6 +334,109 @@ B0 = EntryBlock()
   v2 = Parameter(#value)   # RA: param[1] <- ()
   ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
   StoreInstanceField(AsBroadcastStream._subscription, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v8)   # RA: (R0)
+
+--- _StreamControllerAddStreamState.
+B0 = EntryBlock()
+  v5 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  ParallelMove input(NullConstant(null) -> vloc:R1)
+  StoreInstanceField(_StreamControllerAddStreamState._varData, v1, v5)   # RA: (R0, R1) temps: [R2, R3]
+  DirectCall Object.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v5)   # RA: (R0)
+
+--- getter _StreamControllerAddStreamState._varData
+B0 = EntryBlock()
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = LoadInstanceField(_StreamControllerAddStreamState._varData, v1)   # RA: R0 <- (R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v5)   # RA: (R0)
+
+--- setter _StreamControllerAddStreamState._varData
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(#value)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  StoreInstanceField(_StreamControllerAddStreamState._varData, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v8)   # RA: (R0)
+
+--- _PendingEvents.
+B0 = EntryBlock()
+  v6 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  DirectCall Object.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v6)   # RA: (R0)
+
+--- StreamController.
+B0 = EntryBlock()
+  v5 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  ParallelMove input(NullConstant(null) -> vloc:R1)
+  StoreInstanceField(StreamController._varData, v1, v5)   # RA: (R0, R1) temps: [R2, R3]
+  DirectCall Object.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v5)   # RA: (R0)
+
+--- getter StreamController.pendingEvents
+B0 = EntryBlock() dominates:(B7, B6)
+  v13 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = InterfaceCall getter StreamController._isAddingStream(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  Branch(v5, true: B6, false: B7)   # RA: (R0)
+B6 = TargetBlock() idom:B0
+  ParallelMove output(param[0] -> R0)
+  v17 = InterfaceCall getter StreamController._varData(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, param[0] -> R1)
+  v25 = LoadInstanceField(StreamController.#typeArguments, v1)   # RA: R5 <- (R1)
+  ParallelMove output(R5 -> stack[0])
+  ParallelMove input(vloc:R0 -> R0, vloc:R5 -> R2, NullConstant(null) -> R1)
+  v18 = TypeCast(v17, v25, v13, _StreamControllerAddStreamState<StreamController.T%>)   # RA: R0 <- (R0, R2, R1) temps: [R8, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  v21 = InterfaceCall getter _StreamControllerAddStreamState._varData(v18)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R2)
+  ParallelMove input(vloc:R0 -> R0, vloc:R2 -> R2, NullConstant(null) -> R1)
+  v22 = TypeCast(v21, v25, v13, _PendingEvents<StreamController.T%>?)   # RA: R0 <- (R0, R2, R1) temps: [R8, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v22)   # RA: (R0)
+B7 = TargetBlock() idom:B0
+  ParallelMove control(param[0] -> R1)
+  ParallelMove output(R1 -> R0)
+  v12 = InterfaceCall getter StreamController._varData(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, param[0] -> R1)
+  v26 = LoadInstanceField(StreamController.#typeArguments, v1)   # RA: R2 <- (R1)
+  ParallelMove input(vloc:R0 -> R0, vloc:R2 -> R2, NullConstant(null) -> R1)
+  v14 = TypeCast(v12, v26, v13, _PendingEvents<StreamController.T%>?)   # RA: R0 <- (R0, R2, R1) temps: [R8, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v14)   # RA: (R0)
+
+--- getter StreamController._varData
+B0 = EntryBlock()
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = LoadInstanceField(StreamController._varData, v1)   # RA: R0 <- (R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v5)   # RA: (R0)
+
+--- setter StreamController._varData
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(#value)   # RA: param[1] <- ()
+  ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
+  StoreInstanceField(StreamController._varData, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
   ParallelMove input(NullConstant(null) -> R0)
   Return(v8)   # RA: (R0)
 
@@ -293,9 +503,9 @@ B0 = EntryBlock() dominates:(B11, B10)
   v2 = Parameter(other)   # RA: R1 <- ()
   v3 = Parameter(compare)   # RA: R2 <- ()
   v4 = Parameter(isValidKey)   # RA: R3 <- ()
-  ParallelMove output(R3 -> vloc:R3, R2 -> vloc:R2, R1 -> vloc:R0, R0 -> vloc:R1)
-  ParallelMove spill(R0 -> stack[0])
-  ParallelMove input(vloc:R0 -> R0, NullConstant(null) -> R2, vloc:R1 -> R1, R1 -> R5, R0 -> R6, R2 -> R9, R3 -> R10)
+  ParallelMove output(R3 -> vloc:R10, R2 -> vloc:R9, R1 -> vloc:R6, R0 -> vloc:R5)
+  ParallelMove spill(R6 -> stack[0])
+  ParallelMove input(vloc:R6 -> R0, NullConstant(null) -> R2, vloc:R5 -> R1)
   v9 = TypeTest(v2, v8, v1, Map<SplayTreeMap.from.K%, SplayTreeMap.from.V%>)   # RA: R7 <- (R0, R2, R1) temps: [R8, R3, R4]
   ParallelMove output(R7 -> vloc:R7)
   Branch(v9, true: B10, false: B11)   # RA: (R7)
@@ -329,7 +539,8 @@ B0 = EntryBlock()
   v4 = Parameter(isValidKey)   # RA: R3 <- ()
   ParallelMove output(R3 -> vloc:R3, R2 -> vloc:R2, R0 -> vloc:R0)
   v8 = TypeArguments(v7, v1, <SplayTreeMap.of.K%, SplayTreeMap.of.V%>)   # RA: R1 <- (-, R0)
-  ParallelMove input(vloc:R1 -> R1, R2 -> R5, R3 -> R6)
+  ParallelMove output(R2 -> R5, R3 -> R6)
+  ParallelMove input(vloc:R1 -> R1)
   v9 = AllocateObject SplayTreeMap<SplayTreeMap.of.K%, SplayTreeMap.of.V%>(v8)   # RA: R0 <- (R1) temps: [R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[0])
@@ -373,6 +584,775 @@ B0 = EntryBlock()
   StoreInstanceField(SplayTreeMap.isValidKey, v1, v2)   # RA: (R0, R1) temps: [R2, R3]
   ParallelMove input(NullConstant(null) -> R0)
   Return(v8)   # RA: (R0)
+
+--- ChunkedJsonParser.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  DirectCall Object.(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v4)   # RA: (R0)
+
+--- ChunkedJsonParser.parseNumber
+B0 = EntryBlock() dominates:(B21, B23, B20)
+  v9 = Constant(0)
+  v11 = Constant(0.0)
+  v13 = Constant(1)
+  v15 = Constant(false)
+  Constant(45)
+  Constant(48)
+  Constant(9)
+  v66 = Constant("Missing expected digit")
+  v92 = Constant(4)
+  Constant(18)
+  Constant(3)
+  Constant(19)
+  Constant(922337203685477580)
+  v163 = Constant(true)
+  v165 = Constant(9223372036854776000.0)
+  Constant(10)
+  v190 = Constant(8)
+  Constant(46)
+  v252 = Constant(12)
+  Constant(10.0)
+  v298 = Constant(16)
+  Constant(32)
+  Constant(101)
+  v362 = Constant(20)
+  Constant(2)
+  Constant(44)
+  v398 = Constant(24)
+  Constant(400)
+  v451 = Constant(28)
+  v511 = Constant(-Infinity)
+  v515 = Constant(Infinity)
+  Constant(9007199254740992.0)
+  Constant(22)
+  v585 = Constant(ListConstant(const <dynamic>[]))
+  v684 = Constant(-1)
+  v686 = Constant(-0.0)
+  Constant(-22)
+  Constant(-922337203685477580)
+  v725 = Constant(UnboxedIntConstant(45))
+  v727 = Constant(UnboxedIntConstant(1))
+  v732 = Constant(UnboxedIntConstant(48))
+  v733 = Constant(UnboxedIntConstant(9))
+  v735 = Constant(UnboxedIntConstant(0))
+  v742 = Constant(UnboxedIntConstant(18))
+  v743 = Constant(UnboxedIntConstant(3))
+  v745 = Constant(UnboxedIntConstant(19))
+  v746 = Constant(UnboxedIntConstant(-922337203685477580))
+  v747 = Constant(UnboxedIntConstant(10))
+  v752 = Constant(UnboxedIntConstant(46))
+  v753 = Constant(UnboxedDoubleConstant(0.0))
+  v759 = Constant(UnboxedDoubleConstant(10.0))
+  v760 = Constant(UnboxedIntConstant(-1))
+  v766 = Constant(UnboxedIntConstant(32))
+  v767 = Constant(UnboxedIntConstant(101))
+  v771 = Constant(UnboxedIntConstant(2))
+  v772 = Constant(UnboxedIntConstant(44))
+  v778 = Constant(UnboxedIntConstant(400))
+  v785 = Constant(UnboxedDoubleConstant(9007199254740992.0))
+  v787 = Constant(UnboxedIntConstant(-22))
+  v793 = Constant(UnboxedIntConstant(22))
+  v1 = Parameter(this)   # RA: param[0] <- ()
+  v2 = Parameter(char)   # RA: param[1] <- ()
+  v3 = Parameter(position)   # RA: param[2] <- ()
+  ParallelMove output(param[2] -> vloc:param[2], param[1] -> vloc:stack[0], param[0] -> vloc:R0)
+  v7 = InterfaceCall getter ChunkedJsonParser.chunkEnd(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1)
+  ParallelMove spill(R0 -> stack[1])
+  v724 = UnboxInt(v2)   # RA: R2 <- (R1)
+  CompareAndBranch int ==(v724, v725, true: B20, false: B21)   # RA: (R2, -)
+B20 = TargetBlock() idom:B0 dominates:(B34, B33)
+  ParallelMove output(param[2] -> R1)
+  v726 = UnboxInt(v3)   # RA: R2 <- (R1)
+  v28 = BinaryIntOp +(v726, v727)   # RA: R2 <- (R2, -)
+  ParallelMove output(R2 -> stack[2])
+  v728 = UnboxInt(v7)   # RA: R3 <- (R0)
+  CompareAndBranch int ==(v28, v728, true: B33, false: B34)   # RA: (R2, R3)
+B33 = TargetBlock() idom:B20
+  ParallelMove output(param[0] -> R3)
+  v40 = InterfaceCall ChunkedJsonParser.beginChunkNumber(v1, v9, v3)   # RA: R0 <- (R3, -, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v40)   # RA: (R0)
+B34 = TargetBlock() idom:B20
+  ParallelMove control(param[0] -> R3)
+  v729 = BoxInt(v28)   # RA: R7 <- (R2) temps: [R6, R4, R5]
+  ParallelMove output(R3 -> R0)
+  v44 = InterfaceCall ChunkedJsonParser._getCharUnsafe(v1, v729)   # RA: R0 <- (R0, R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R1, stack[2] -> R0)
+  ParallelMove spill(R1 -> stack[0])
+  ParallelMove input(param[2] -> R2, IntConstant(-1) -> R3)
+  Goto(B23)
+B21 = TargetBlock() idom:B0
+  ParallelMove output(param[2] -> R2)
+  v730 = UnboxInt(v3)   # RA: R0 <- (R2)
+  ParallelMove output(R0 -> stack[2])
+  ParallelMove input(IntConstant(1) -> R3)
+  Goto(B23)
+B23 = JoinBlock(B21, B34) idom:B0 dominates:(B55, B57, B54)
+  v662 = Phi(v13, v684)   # RA: R3 <- (-, -)
+  v639 = Phi(v730, v28)   # RA: R0 <- (R0, R0)
+  v635 = Phi(v2, v44)   # RA: R1 <- (R1, R1)
+  ParallelMove output(R1 -> stack[0], R0 -> stack[2], R3 -> stack[3])
+  v731 = UnboxInt(v635)   # RA: R1 <- (R1)
+  v49 = BinaryIntOp ^(v731, v732)   # RA: R1 <- (R1, -)
+  ParallelMove output(R1 -> stack[4])
+  CompareAndBranch int >(v49, v733, true: B54, false: B55)   # RA: (R1, -)
+B54 = TargetBlock() idom:B23 dominates:(B62, B68, B61)
+  v734 = UnboxInt(v662)   # RA: R4 <- (R3)
+  CompareAndBranch int <(v734, v735, true: B61, false: B62)   # RA: (R4, -)
+B61 = TargetBlock() idom:B54
+  v736 = BoxInt(v639)   # RA: R7 <- (R0) temps: [R6, R5, R4]
+  ParallelMove output(param[0] -> R0)
+  InterfaceCall ChunkedJsonParser.fail(v1, v736, v66)   # RA: R0 <- (R0, R7, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  Goto(B68)
+B62 = TargetBlock() idom:B54
+  ParallelMove output(stack[2] -> R3)
+  v737 = BoxInt(v639)   # RA: R4 <- (R3) temps: [R2, R1, R0]
+  ParallelMove output(param[0] -> R0)
+  InterfaceCall ChunkedJsonParser.fail(v1, v737)   # RA: R0 <- (R0, R4) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  Goto(B68)
+B68 = JoinBlock(B62, B61) idom:B54
+  Goto(B57)
+B55 = TargetBlock() idom:B23
+  Goto(B57)
+B57 = JoinBlock(B55, B68) idom:B23 dominates:(B78, B114, B77)
+  ParallelMove output(stack[4] -> R0)
+  CompareAndBranch int ==(v49, v735, true: B77, false: B78)   # RA: (R0, -)
+B77 = TargetBlock() idom:B57 dominates:(B87, B86)
+  ParallelMove output(stack[2] -> R0)
+  v81 = BinaryIntOp +(v639, v727)   # RA: R0 <- (R0, -)
+  ParallelMove output(stack[1] -> R1, R0 -> stack[2])
+  v738 = UnboxInt(v7)   # RA: R2 <- (R1)
+  CompareAndBranch int ==(v81, v738, true: B86, false: B87)   # RA: (R0, R2)
+B86 = TargetBlock() idom:B77
+  ParallelMove output(param[0] -> R3, param[2] -> R2)
+  v94 = InterfaceCall ChunkedJsonParser.beginChunkNumber(v1, v92, v3)   # RA: R0 <- (R3, -, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v94)   # RA: (R0)
+B87 = TargetBlock() idom:B77 dominates:(B106, B108, B105)
+  ParallelMove control(param[0] -> R3, param[2] -> R2)
+  v739 = BoxInt(v81)   # RA: R7 <- (R0) temps: [R6, R4, R5]
+  ParallelMove output(R3 -> R0)
+  v98 = InterfaceCall ChunkedJsonParser._getCharUnsafe(v1, v739)   # RA: R0 <- (R0, R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[5])
+  v740 = UnboxInt(v98)   # RA: R1 <- (R0)
+  v101 = BinaryIntOp ^(v740, v732)   # RA: R1 <- (R1, -)
+  CompareAndBranch int <=(v101, v733, true: B105, false: B106)   # RA: (R1, -)
+B105 = TargetBlock() idom:B87
+  ParallelMove output(stack[2] -> R4)
+  v741 = BoxInt(v81)   # RA: R5 <- (R4) temps: [R1, R2, R3]
+  ParallelMove output(param[0] -> R0)
+  InterfaceCall ChunkedJsonParser.fail(v1, v741)   # RA: R0 <- (R0, R5) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  Goto(B108)
+B106 = TargetBlock() idom:B87
+  Goto(B108)
+B108 = JoinBlock(B106, B105) idom:B87
+  ParallelMove output(stack[5] -> R0, stack[2] -> R1)
+  ParallelMove input(BoolConstant(false) -> R4, DoubleConstant(0.0) -> R3, UnboxedIntConstant(0) -> R5, R0 -> R2)
+  Goto(B114)
+B78 = TargetBlock() idom:B57 dominates:(B117)
+  ParallelMove control(stack[2] -> R1)
+  ParallelMove input(UnboxedIntConstant(0) -> R4, BoolConstant(false) -> R3, DoubleConstant(0.0) -> R2, UnboxedIntConstant(0) -> R5)
+  Goto(B117)
+B117 = JoinBlock(B78, B203) idom:B78 dominates:(B123, B125, B122) loop-header (depth:1 body:(B117, B123, B125, B185, B203, B122, B134, B136, B147, B156, ..., B146, B133) back-edges:(B203))
+  v674 = Phi(v735, v176)   # RA: R4 <- (-, R2)
+  v673 = Phi(v49, v199)   # RA: R0 <- (R0, R0)
+  v665 = Phi(v15, v664)   # RA: R3 <- (-, R4)
+  v655 = Phi(v11, v654)   # RA: R2 <- (-, R3)
+  v651 = Phi(v735, v173)   # RA: R5 <- (-, R5)
+  v646 = Phi(v639, v179)   # RA: R1 <- (R1, R1)
+  ParallelMove output(R1 -> stack[2], R5 -> stack[9], R2 -> stack[6], R3 -> stack[7], R0 -> stack[4], R4 -> stack[8])
+  CompareAndBranch int >=(v674, v742, true: B122, false: B123)   # RA: (R4, -)
+B122 = TargetBlock() idom:B117 dominates:(B134, B136, B133) in-loop:B117
+  v129 = BinaryIntOp >>(v673, v743)   # RA: R6 <- (R0, -)
+  ParallelMove output(stack[3] -> R7)
+  v744 = UnboxInt(v662)   # RA: R8 <- (R7)
+  CompareAndBranch int <(v744, v735, true: B133, false: B134)   # RA: (R8, -)
+B133 = TargetBlock() idom:B122 in-loop:B117
+  v140 = BinaryIntOp &(v129, v673)   # RA: R6 <- (R6, R0)
+  Goto(B136)
+B134 = TargetBlock() idom:B122 in-loop:B117
+  Goto(B136)
+B136 = JoinBlock(B134, B133) idom:B122 dominates:(B147, B158, B160, B146) in-loop:B117
+  v675 = Phi(v129, v140)   # RA: R6 <- (R6, R6)
+  CompareAndBranch int ==(v674, v745, true: B146, false: B147)   # RA: (R4, -)
+B146 = TargetBlock() idom:B136 in-loop:B117
+  Goto(B160)
+B147 = TargetBlock() idom:B136 dominates:(B156, B155) in-loop:B117
+  v151 = BinaryIntOp -(v651, v675)   # RA: R6 <- (R5, R6)
+  CompareAndBranch int <(v151, v746, true: B155, false: B156)   # RA: (R6, -)
+B155 = TargetBlock() idom:B147 in-loop:B117
+  Goto(B160)
+B160 = JoinBlock(B155, B146) idom:B136 in-loop:B117
+  ParallelMove input(BoolConstant(true) -> R3, DoubleConstant(9223372036854776000.0) -> R2)
+  Goto(B158)
+B156 = TargetBlock() idom:B147 in-loop:B117
+  Goto(B158)
+B158 = JoinBlock(B156, B160) idom:B136 in-loop:B117
+  v663 = Phi(v665, v163)   # RA: R3 <- (R3, -)
+  v653 = Phi(v655, v165)   # RA: R2 <- (R2, -)
+  ParallelMove output(R2 -> stack[6], R3 -> stack[7])
+  Goto(B125)
+B123 = TargetBlock() idom:B117 in-loop:B117
+  ParallelMove control(stack[3] -> R7)
+  Goto(B125)
+B125 = JoinBlock(B123, B158) idom:B117 dominates:(B185, B184) in-loop:B117
+  v664 = Phi(v665, v663)   # RA: R3 <- (R3, R3)
+  v654 = Phi(v655, v653)   # RA: R2 <- (R2, R2)
+  ParallelMove output(R2 -> stack[6], R3 -> stack[7])
+  v171 = BinaryIntOp *(v651, v747)   # RA: R5 <- (R5, -)
+  v173 = BinaryIntOp -(v171, v673)   # RA: R5 <- (R5, R0)
+  ParallelMove output(R5 -> stack[9])
+  v176 = BinaryIntOp +(v674, v727)   # RA: R4 <- (R4, -)
+  ParallelMove output(R4 -> stack[8])
+  v179 = BinaryIntOp +(v646, v727)   # RA: R1 <- (R1, -)
+  ParallelMove output(stack[1] -> R0, R1 -> stack[2])
+  v748 = UnboxInt(v7)   # RA: R6 <- (R0)
+  CompareAndBranch int ==(v179, v748, true: B184, false: B185)   # RA: (R1, R6)
+B185 = TargetBlock() idom:B125 dominates:(B204, B203) in-loop:B117
+  v749 = BoxInt(v179)   # RA: R10 <- (R1) temps: [R8, R9, R6]
+  ParallelMove output(param[0] -> R0)
+  v196 = InterfaceCall ChunkedJsonParser._getCharUnsafe(v1, v749)   # RA: R0 <- (R0, R10) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove spill(R0 -> stack[5])
+  v750 = UnboxInt(v196)   # RA: R1 <- (R0)
+  ParallelMove output(R0 -> R2)
+  v199 = BinaryIntOp ^(v750, v732)   # RA: R0 <- (R1, -)
+  ParallelMove output(R0 -> stack[4])
+  CompareAndBranch int <=(v199, v733, true: B203, false: B204)   # RA: (R0, -)
+B203 = TargetBlock() idom:B185 in-loop:B117
+  ParallelMove output(stack[2] -> R1, stack[9] -> R5, stack[6] -> R3, stack[7] -> R4, stack[8] -> R2)
+  ParallelMove input(R2 -> R4, R4 -> R3, R3 -> R2)
+  Goto(B117)
+B204 = TargetBlock() idom:B185
+  ParallelMove control(stack[9] -> R5, stack[2] -> R1, stack[6] -> R3, stack[7] -> R4)
+  Goto(B114)
+B114 = JoinBlock(B204, B108) idom:B57 dominates:(B212, B214, B211)
+  v666 = Phi(v664, v15)   # RA: R4 <- (R4, -)
+  v656 = Phi(v654, v11)   # RA: R3 <- (R3, -)
+  v652 = Phi(v173, v735)   # RA: R5 <- (R5, -)
+  v640 = Phi(v179, v81)   # RA: R1 <- (R1, R1)
+  v636 = Phi(v196, v98)   # RA: R2 <- (R2, R0)
+  ParallelMove output(R2 -> stack[5], R1 -> stack[2], R5 -> stack[9], R3 -> stack[6], R4 -> stack[7])
+  v751 = UnboxInt(v636)   # RA: R0 <- (R2)
+  CompareAndBranch int ==(v751, v752, true: B211, false: B212)   # RA: (R0, -)
+B211 = TargetBlock() idom:B114 dominates:(B218, B220, B217)
+  Branch(v666, true: B217, false: B218)   # RA: (R4)
+B217 = TargetBlock() idom:B211
+  v754 = UnboxDouble(v656)   # RA: V0 <- (R3)
+  ParallelMove output(V0 -> stack[19])
+  Goto(B220)
+B218 = TargetBlock() idom:B211 dominates:(B226, B229, B225)
+  CompareAndBranch int ==(v652, v735, true: B225, false: B226)   # RA: (R5, -)
+B225 = TargetBlock() idom:B218
+  ParallelMove input(UnboxedDoubleConstant(0.0) -> V0)
+  Goto(B229)
+B226 = TargetBlock() idom:B218
+  v232 = UnaryIntOp toDouble(v652)   # RA: V0 <- (R5)
+  v233 = UnaryDoubleOp -(v232)   # RA: V0 <- (V0)
+  ParallelMove output(V0 -> stack[19])
+  Goto(B229)
+B229 = JoinBlock(B226, B225) idom:B218
+  v676 = Phi(v233, v753)   # RA: V0 <- (V0, -)
+  ParallelMove output(V0 -> stack[19])
+  ParallelMove input(BoolConstant(true) -> R4)
+  Goto(B220)
+B220 = JoinBlock(B229, B217) idom:B211 dominates:(B247, B246)
+  v667 = Phi(v163, v666)   # RA: R4 <- (-, R4)
+  v659 = Phi(v676, v754)   # RA: V0 <- (V0, V0)
+  ParallelMove output(V0 -> stack[19], R4 -> stack[7])
+  v241 = BinaryIntOp +(v640, v727)   # RA: R1 <- (R1, -)
+  ParallelMove output(stack[1] -> R0, R1 -> stack[2])
+  v755 = UnboxInt(v7)   # RA: R2 <- (R0)
+  CompareAndBranch int ==(v241, v755, true: B246, false: B247)   # RA: (R1, R2)
+B246 = TargetBlock() idom:B220
+  ParallelMove output(param[0] -> R3, param[2] -> R2)
+  v254 = InterfaceCall ChunkedJsonParser.beginChunkNumber(v1, v252, v3)   # RA: R0 <- (R3, -, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v254)   # RA: (R0)
+B247 = TargetBlock() idom:B220 dominates:(B266, B268, B265)
+  ParallelMove control(param[0] -> R3, param[2] -> R2)
+  v756 = BoxInt(v241)   # RA: R8 <- (R1) temps: [R5, R6, R7]
+  ParallelMove output(R3 -> R0)
+  v258 = InterfaceCall ChunkedJsonParser._getCharUnsafe(v1, v756)   # RA: R0 <- (R0, R8) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  v757 = UnboxInt(v258)   # RA: R0 <- (R0)
+  v261 = BinaryIntOp ^(v757, v732)   # RA: R0 <- (R0, -)
+  ParallelMove output(R0 -> stack[10])
+  CompareAndBranch int >(v261, v733, true: B265, false: B266)   # RA: (R0, -)
+B265 = TargetBlock() idom:B247
+  ParallelMove output(stack[2] -> R4)
+  v758 = BoxInt(v241)   # RA: R5 <- (R4) temps: [R3, R2, R1]
+  ParallelMove output(param[0] -> R0)
+  InterfaceCall ChunkedJsonParser.fail(v1, v758)   # RA: R0 <- (R0, R5) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  Goto(B268)
+B266 = TargetBlock() idom:B247
+  Goto(B268)
+B268 = JoinBlock(B266, B265) idom:B247 dominates:(B274)
+  ParallelMove output(stack[2] -> R1, stack[19] -> V0, stack[10] -> R0)
+  ParallelMove input(UnboxedIntConstant(0) -> R5)
+  Goto(B274)
+B274 = JoinBlock(B268, B311) idom:B268 dominates:(B293, B292) loop-header (depth:1 body:(B274, B293, B311) back-edges:(B311))
+  v671 = Phi(v261, v307)   # RA: R0 <- (R0, R0)
+  v658 = Phi(v659, v281)   # RA: V0 <- (V0, V0)
+  v648 = Phi(v735, v685)   # RA: R5 <- (-, R1)
+  v642 = Phi(v241, v287)   # RA: R1 <- (R1, R4)
+  ParallelMove output(R1 -> stack[2], R5 -> stack[9], V0 -> stack[19], R0 -> stack[10])
+  ParallelMove input(UnboxedDoubleConstant(10.0) -> vloc:V1)
+  v278 = BinaryDoubleOp *(v658, v759)   # RA: V0 <- (V0, V1)
+  v280 = UnaryIntOp toDouble(v671)   # RA: V1 <- (R0)
+  v281 = BinaryDoubleOp +(v278, v280)   # RA: V0 <- (V0, V1)
+  ParallelMove output(V0 -> stack[19])
+  v685 = BinaryIntOp +(v648, v760)   # RA: R5 <- (R5, -)
+  ParallelMove output(R5 -> stack[9])
+  v287 = BinaryIntOp +(v642, v727)   # RA: R1 <- (R1, -)
+  ParallelMove output(stack[1] -> R0, R1 -> stack[2])
+  v761 = UnboxInt(v7)   # RA: R2 <- (R0)
+  CompareAndBranch int ==(v287, v761, true: B292, false: B293)   # RA: (R1, R2)
+B293 = TargetBlock() idom:B274 dominates:(B312, B311) in-loop:B274
+  v762 = BoxInt(v287)   # RA: R6 <- (R1) temps: [R2, R3, R4]
+  ParallelMove output(param[0] -> R0)
+  v304 = InterfaceCall ChunkedJsonParser._getCharUnsafe(v1, v762)   # RA: R0 <- (R0, R6) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R2)
+  ParallelMove spill(R2 -> stack[5])
+  v763 = UnboxInt(v304)   # RA: R0 <- (R2)
+  v307 = BinaryIntOp ^(v763, v732)   # RA: R0 <- (R0, -)
+  ParallelMove output(R0 -> stack[10])
+  CompareAndBranch int <=(v307, v733, true: B311, false: B312)   # RA: (R0, -)
+B311 = TargetBlock() idom:B293 in-loop:B274
+  ParallelMove output(stack[2] -> R4, stack[9] -> R1, stack[19] -> V0)
+  ParallelMove input(R1 -> R5, R4 -> R1)
+  Goto(B274)
+B312 = TargetBlock() idom:B293
+  ParallelMove control(stack[19] -> V0, stack[2] -> R4, stack[9] -> R1)
+  ParallelMove output(stack[7] -> R0)
+  ParallelMove input(param[0] -> R6, param[2] -> R5)
+  Goto(B214)
+B292 = TargetBlock() idom:B274
+  ParallelMove output(param[0] -> R6, param[2] -> R5)
+  v300 = InterfaceCall ChunkedJsonParser.beginChunkNumber(v1, v298, v3)   # RA: R0 <- (R6, -, R5) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v300)   # RA: (R0)
+B212 = TargetBlock() idom:B114
+  ParallelMove control(param[0] -> R6, param[2] -> R5, R1 -> R4, R5 -> R1, R4 -> R0)
+  v764 = UnboxDouble(v656)   # RA: V0 <- (R3)
+  ParallelMove output(V0 -> stack[19])
+  Goto(B214)
+B214 = JoinBlock(B212, B312) idom:B114 dominates:(B322, B324, B321)
+  v668 = Phi(v666, v667)   # RA: R0 <- (R0, R0)
+  v657 = Phi(v764, v281)   # RA: V0 <- (V0, V0)
+  v647 = Phi(v652, v685)   # RA: R1 <- (R1, R1)
+  v641 = Phi(v640, v287)   # RA: R4 <- (R4, R4)
+  v637 = Phi(v636, v304)   # RA: R2 <- (R2, R2)
+  ParallelMove output(R2 -> stack[5], R4 -> stack[2], R1 -> stack[9], V0 -> stack[19], R0 -> stack[7])
+  v765 = UnboxInt(v637)   # RA: R2 <- (R2)
+  v318 = BinaryIntOp |(v765, v766)   # RA: R2 <- (R2, -)
+  CompareAndBranch int ==(v318, v767, true: B321, false: B322)   # RA: (R2, -)
+B321 = TargetBlock() idom:B214 dominates:(B328, B330, B327)
+  Branch(v668, true: B327, false: B328)   # RA: (R0)
+B327 = TargetBlock() idom:B321
+  Goto(B330)
+B328 = TargetBlock() idom:B321 dominates:(B336, B339, B335)
+  CompareAndBranch int ==(v647, v735, true: B335, false: B336)   # RA: (R1, -)
+B335 = TargetBlock() idom:B328
+  ParallelMove input(UnboxedDoubleConstant(0.0) -> V0)
+  Goto(B339)
+B336 = TargetBlock() idom:B328
+  v342 = UnaryIntOp toDouble(v647)   # RA: V0 <- (R1)
+  v343 = UnaryDoubleOp -(v342)   # RA: V0 <- (V0)
+  ParallelMove output(V0 -> stack[19])
+  Goto(B339)
+B339 = JoinBlock(B336, B335) idom:B328
+  v677 = Phi(v343, v753)   # RA: V0 <- (V0, -)
+  ParallelMove output(V0 -> stack[19])
+  ParallelMove input(BoolConstant(true) -> R0, UnboxedIntConstant(0) -> R1)
+  Goto(B330)
+B330 = JoinBlock(B339, B327) idom:B321 dominates:(B357, B356)
+  v669 = Phi(v163, v668)   # RA: R0 <- (-, R0)
+  v660 = Phi(v677, v657)   # RA: V0 <- (V0, V0)
+  v650 = Phi(v735, v647)   # RA: R1 <- (-, R1)
+  ParallelMove output(R1 -> stack[9], V0 -> stack[19], R0 -> stack[7])
+  v351 = BinaryIntOp +(v641, v727)   # RA: R4 <- (R4, -)
+  ParallelMove output(stack[1] -> R2, R4 -> stack[2])
+  v768 = UnboxInt(v7)   # RA: R3 <- (R2)
+  CompareAndBranch int ==(v351, v768, true: B356, false: B357)   # RA: (R4, R3)
+B356 = TargetBlock() idom:B330
+  v364 = InterfaceCall ChunkedJsonParser.beginChunkNumber(v1, v362, v3)   # RA: R0 <- (R6, -, R5) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v364)   # RA: (R0)
+B357 = TargetBlock() idom:B330 dominates:(B378, B380, B377)
+  v769 = BoxInt(v351)   # RA: R9 <- (R4) temps: [R3, R7, R8]
+  ParallelMove output(R6 -> R0)
+  v368 = InterfaceCall ChunkedJsonParser._getCharUnsafe(v1, v769)   # RA: R0 <- (R0, R9) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  v770 = UnboxInt(v368)   # RA: R1 <- (R0)
+  v373 = BinaryIntOp +(v770, v727)   # RA: R1 <- (R1, -)
+  v375 = BinaryIntOp |(v373, v771)   # RA: R1 <- (R1, -)
+  CompareAndBranch int ==(v375, v752, true: B377, false: B378)   # RA: (R1, -)
+B377 = TargetBlock() idom:B357 dominates:(B393, B392)
+  v773 = UnboxInt(v368)   # RA: R0 <- (R0)
+  ParallelMove input(UnboxedIntConstant(44) -> vloc:R1)
+  v384 = BinaryIntOp -(v772, v773)   # RA: R0 <- (R1, R0)
+  ParallelMove output(R0 -> stack[11], stack[2] -> R1)
+  v387 = BinaryIntOp +(v351, v727)   # RA: R1 <- (R1, -)
+  ParallelMove output(stack[1] -> R2, R1 -> stack[2])
+  v774 = UnboxInt(v7)   # RA: R3 <- (R2)
+  CompareAndBranch int ==(v387, v774, true: B392, false: B393)   # RA: (R1, R3)
+B392 = TargetBlock() idom:B377
+  ParallelMove output(param[0] -> R4, param[2] -> R3)
+  v400 = InterfaceCall ChunkedJsonParser.beginChunkNumber(v1, v398, v3)   # RA: R0 <- (R4, -, R3) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v400)   # RA: (R0)
+B393 = TargetBlock() idom:B377
+  ParallelMove control(param[0] -> R4, param[2] -> R3)
+  v775 = BoxInt(v387)   # RA: R8 <- (R1) temps: [R7, R6, R5]
+  ParallelMove output(R4 -> R0)
+  v404 = InterfaceCall ChunkedJsonParser._getCharUnsafe(v1, v775)   # RA: R0 <- (R0, R8) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[2] -> R2, stack[11] -> R1)
+  Goto(B380)
+B378 = TargetBlock() idom:B357
+  ParallelMove control(stack[2] -> R2)
+  ParallelMove input(UnboxedIntConstant(1) -> R1)
+  Goto(B380)
+B380 = JoinBlock(B378, B393) idom:B357 dominates:(B413, B415, B412)
+  v678 = Phi(v727, v384)   # RA: R1 <- (-, R1)
+  v643 = Phi(v351, v387)   # RA: R2 <- (R2, R2)
+  v638 = Phi(v368, v404)   # RA: R0 <- (R0, R0)
+  ParallelMove output(R2 -> stack[2], R1 -> stack[11])
+  v776 = UnboxInt(v638)   # RA: R0 <- (R0)
+  v408 = BinaryIntOp ^(v776, v732)   # RA: R0 <- (R0, -)
+  ParallelMove output(R0 -> stack[12])
+  CompareAndBranch int >(v408, v733, true: B412, false: B413)   # RA: (R0, -)
+B412 = TargetBlock() idom:B380
+  v777 = BoxInt(v643)   # RA: R6 <- (R2) temps: [R5, R4, R3]
+  ParallelMove output(param[0] -> R0)
+  InterfaceCall ChunkedJsonParser.fail(v1, v777, v66)   # RA: R0 <- (R0, R6, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  Goto(B415)
+B413 = TargetBlock() idom:B380
+  Goto(B415)
+B415 = JoinBlock(B413, B412) idom:B380 dominates:(B422)
+  ParallelMove output(stack[2] -> R0, stack[12] -> R1)
+  ParallelMove input(BoolConstant(false) -> R3, UnboxedIntConstant(0) -> R2)
+  Goto(B422)
+B422 = JoinBlock(B415, B464) idom:B415 dominates:(B433, B435, B432) loop-header (depth:1 body:(B422, B433, B435, B446, B464, B432) back-edges:(B464))
+  v681 = Phi(v15, v680)   # RA: R3 <- (-, R3)
+  v679 = Phi(v735, v427)   # RA: R2 <- (-, R2)
+  v672 = Phi(v408, v460)   # RA: R1 <- (R1, R1)
+  v645 = Phi(v643, v440)   # RA: R0 <- (R0, R0)
+  ParallelMove output(R0 -> stack[2], R1 -> stack[12], R2 -> stack[13], R3 -> stack[14])
+  v425 = BinaryIntOp *(v679, v747)   # RA: R2 <- (R2, -)
+  v427 = BinaryIntOp +(v425, v672)   # RA: R2 <- (R2, R1)
+  ParallelMove output(R2 -> stack[13])
+  CompareAndBranch int >(v427, v778, true: B432, false: B433)   # RA: (R2, -)
+B432 = TargetBlock() idom:B422 in-loop:B422
+  ParallelMove input(BoolConstant(true) -> R3)
+  Goto(B435)
+B433 = TargetBlock() idom:B422 in-loop:B422
+  Goto(B435)
+B435 = JoinBlock(B433, B432) idom:B422 dominates:(B446, B445) in-loop:B422
+  v680 = Phi(v681, v163)   # RA: R3 <- (R3, -)
+  ParallelMove output(R3 -> stack[14])
+  v440 = BinaryIntOp +(v645, v727)   # RA: R0 <- (R0, -)
+  ParallelMove output(stack[1] -> R1, R0 -> stack[2])
+  v779 = UnboxInt(v7)   # RA: R4 <- (R1)
+  CompareAndBranch int ==(v440, v779, true: B445, false: B446)   # RA: (R0, R4)
+B446 = TargetBlock() idom:B435 dominates:(B465, B464) in-loop:B422
+  v780 = BoxInt(v440)   # RA: R7 <- (R0) temps: [R5, R4, R6]
+  ParallelMove output(R1 -> R0)
+  v457 = InterfaceCall ChunkedJsonParser._getCharUnsafe(v1, v780)   # RA: R0 <- (param[0], R7) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  v781 = UnboxInt(v457)   # RA: R0 <- (R0)
+  v460 = BinaryIntOp ^(v781, v732)   # RA: R1 <- (R0, -)
+  ParallelMove output(R1 -> stack[12])
+  CompareAndBranch int <=(v460, v733, true: B464, false: B465)   # RA: (R1, -)
+B464 = TargetBlock() idom:B446 in-loop:B422
+  ParallelMove output(stack[2] -> R0, stack[13] -> R2, stack[14] -> R3)
+  Goto(B422)
+B465 = TargetBlock() idom:B446 dominates:(B470, B469)
+  ParallelMove control(stack[13] -> R2, stack[2] -> R0, stack[14] -> R3)
+  Branch(v680, true: B469, false: B470)   # RA: (R3)
+B469 = TargetBlock() idom:B465 dominates:(B477, B502, B484, B476)
+  ParallelMove output(stack[19] -> V1)
+  ParallelMove input(UnboxedDoubleConstant(0.0) -> vloc:V0)
+  v475 = Comparison double ==(v660, v753)   # RA: R1 <- (V1, V0)
+  Branch(v475, true: B476, false: B477)   # RA: (R1)
+B476 = TargetBlock() idom:B469
+  Goto(B484)
+B477 = TargetBlock() idom:B469 dominates:(B482, B481)
+  ParallelMove output(stack[11] -> R1)
+  CompareAndBranch int <(v678, v735, true: B481, false: B482)   # RA: (R1, -)
+B481 = TargetBlock() idom:B477
+  Goto(B484)
+B484 = JoinBlock(B481, B476) idom:B469 dominates:(B492, B496, B491)
+  ParallelMove output(param[0] -> R0)
+  v488 = InterfaceCall getter ChunkedJsonParser.listener(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[3] -> R1)
+  v782 = UnboxInt(v662)   # RA: R1 <- (R1)
+  CompareAndBranch int <(v782, v735, true: B491, false: B492)   # RA: (R1, -)
+B491 = TargetBlock() idom:B484
+  ParallelMove input(DoubleConstant(-0.0) -> R1)
+  Goto(B496)
+B492 = TargetBlock() idom:B484
+  ParallelMove input(DoubleConstant(0.0) -> R1)
+  Goto(B496)
+B496 = JoinBlock(B492, B491) idom:B484
+  v682 = Phi(v11, v686)   # RA: R1 <- (-, -)
+  DynamicCall handleNumber(v488, v682)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  Goto(B502)
+B482 = TargetBlock() idom:B477 dominates:(B509, B513, B508)
+  ParallelMove control(param[0] -> R0, stack[3] -> R1)
+  v505 = InterfaceCall getter ChunkedJsonParser.listener(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[3] -> R3)
+  v783 = UnboxInt(v662)   # RA: R1 <- (R3)
+  CompareAndBranch int <(v783, v735, true: B508, false: B509)   # RA: (R1, -)
+B508 = TargetBlock() idom:B482
+  ParallelMove input(DoubleConstant(-Infinity) -> R1)
+  Goto(B513)
+B509 = TargetBlock() idom:B482
+  ParallelMove input(DoubleConstant(Infinity) -> R1)
+  Goto(B513)
+B513 = JoinBlock(B509, B508) idom:B482
+  v683 = Phi(v515, v511)   # RA: R1 <- (-, -)
+  DynamicCall handleNumber(v505, v683)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  Goto(B502)
+B502 = JoinBlock(B513, B496) idom:B469
+  ParallelMove output(stack[2] -> R4)
+  v784 = BoxInt(v440)   # RA: R3 <- (R4) temps: [R1, R2, R0]
+  ParallelMove input(vloc:R3 -> R0)
+  Return(v784)   # RA: (R0)
+B470 = TargetBlock() idom:B465
+  ParallelMove control(param[0] -> R0, R0 -> R4, stack[19] -> V1, stack[3] -> R3, stack[11] -> R1)
+  v526 = BinaryIntOp *(v678, v427)   # RA: R1 <- (R1, R2)
+  ParallelMove output(stack[9] -> R2)
+  v527 = BinaryIntOp +(v650, v526)   # RA: R2 <- (R2, R1)
+  ParallelMove output(R2 -> stack[9], stack[7] -> R1)
+  ParallelMove input(param[2] -> R5)
+  Goto(B324)
+B445 = TargetBlock() idom:B435
+  ParallelMove control(param[0] -> R0)
+  ParallelMove output(param[2] -> R5)
+  v453 = InterfaceCall ChunkedJsonParser.beginChunkNumber(v1, v451, v3)   # RA: R0 <- (R0, -, R5) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v453)   # RA: (R0)
+B322 = TargetBlock() idom:B214
+  ParallelMove control(R6 -> R0, R1 -> R2, V0 -> V1, stack[3] -> R3, R0 -> R1)
+  Goto(B324)
+B324 = JoinBlock(B322, B470) idom:B214 dominates:(B532, B531)
+  v670 = Phi(v668, v669)   # RA: R1 <- (R1, R1)
+  v661 = Phi(v657, v660)   # RA: V1 <- (V1, V1)
+  v649 = Phi(v647, v527)   # RA: R2 <- (R2, R2)
+  v644 = Phi(v641, v440)   # RA: R4 <- (R4, R4)
+  ParallelMove output(R4 -> stack[2], R2 -> stack[9], V1 -> stack[19], R1 -> stack[7])
+  Branch(v670, true: B531, false: B532)   # RA: (R1)
+B531 = TargetBlock() idom:B324 dominates:(B555, B557, B554)
+  ParallelMove input(UnboxedDoubleConstant(9007199254740992.0) -> vloc:V0)
+  v553 = Comparison double <(v661, v785)   # RA: R1 <- (V1, V0)
+  Branch(v553, true: B554, false: B555)   # RA: (R1)
+B554 = TargetBlock() idom:B531 dominates:(B571, B573, B570)
+  v786 = UnboxInt(v662)   # RA: R1 <- (R3)
+  v563 = UnaryIntOp toDouble(v786)   # RA: V0 <- (R1)
+  v564 = BinaryDoubleOp *(v661, v563)   # RA: V0 <- (V1, V0)
+  ParallelMove output(V0 -> stack[20])
+  CompareAndBranch int >=(v649, v787, true: B570, false: B571)   # RA: (R2, -)
+B570 = TargetBlock() idom:B554 dominates:(B578, B577)
+  CompareAndBranch int <(v649, v735, true: B577, false: B578)   # RA: (R2, -)
+B577 = TargetBlock() idom:B570
+  v583 = InterfaceCall getter ChunkedJsonParser.listener(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[9] -> R1)
+  ParallelMove spill(R0 -> stack[15])
+  v587 = UnaryIntOp -(v649)   # RA: R1 <- (R1)
+  v788 = BoxInt(v587)   # RA: R1 <- (R1) temps: [R4, R2, R3]
+  v588 = InterfaceCall List.[](v585, v788)   # RA: R0 <- (-, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  v589 = TypeCast(v588, num)   # RA: R0 <- (R0) temps: [R8, R3, R4]
+  ParallelMove output(R0 -> vloc:R1, stack[20] -> V0)
+  v789 = BoxDouble(v564)   # RA: R4 <- (V0) temps: [R0, R3, R2]
+  v590 = InterfaceCall double./(v789, v589)   # RA: R0 <- (R4, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[15] -> R1)
+  DynamicCall handleNumber(v583, v590)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R4)
+  v790 = BoxInt(v644)   # RA: R0 <- (R4) temps: [R3, R2, R1]
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v790)   # RA: (R0)
+B578 = TargetBlock() idom:B570 dominates:(B597, B596)
+  ParallelMove control(R2 -> R1)
+  CompareAndBranch int ==(v649, v735, true: B596, false: B597)   # RA: (R1, -)
+B596 = TargetBlock() idom:B578
+  v602 = InterfaceCall getter ChunkedJsonParser.listener(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R3, stack[20] -> V0)
+  v791 = BoxDouble(v564)   # RA: R4 <- (V0) temps: [R0, R1, R2]
+  DynamicCall handleNumber(v602, v791)   # RA: R0 <- (R3, R4) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R4)
+  v792 = BoxInt(v644)   # RA: R3 <- (R4) temps: [R2, R1, R0]
+  ParallelMove input(vloc:R3 -> R0)
+  Return(v792)   # RA: (R0)
+B597 = TargetBlock() idom:B578 dominates:(B610, B609)
+  CompareAndBranch int <=(v649, v793, true: B609, false: B610)   # RA: (R1, -)
+B609 = TargetBlock() idom:B597
+  v615 = InterfaceCall getter ChunkedJsonParser.listener(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[9] -> R4)
+  ParallelMove spill(R0 -> stack[16])
+  v794 = BoxInt(v649)   # RA: R4 <- (R4) temps: [R2, R1, R3]
+  v618 = InterfaceCall List.[](v585, v794)   # RA: R0 <- (-, R4) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  v619 = TypeCast(v618, num)   # RA: R0 <- (R0) temps: [R8, R3, R4]
+  ParallelMove output(R0 -> vloc:R2, stack[20] -> V0)
+  v795 = BoxDouble(v564)   # RA: R4 <- (V0) temps: [R1, R3, R0]
+  v620 = InterfaceCall double.*(v795, v619)   # RA: R0 <- (R4, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[16] -> R1)
+  DynamicCall handleNumber(v615, v620)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R4)
+  v796 = BoxInt(v644)   # RA: R0 <- (R4) temps: [R3, R2, R1]
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v796)   # RA: (R0)
+B610 = TargetBlock() idom:B597
+  Goto(B573)
+B571 = TargetBlock() idom:B554
+  Goto(B573)
+B573 = JoinBlock(B571, B610) idom:B554
+  Goto(B557)
+B555 = TargetBlock() idom:B531
+  Goto(B557)
+B557 = JoinBlock(B555, B573) idom:B531
+  v627 = InterfaceCall getter ChunkedJsonParser.listener(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R2, stack[2] -> R4)
+  ParallelMove spill(R2 -> stack[17])
+  v797 = BoxInt(v644)   # RA: R5 <- (R4) temps: [R1, R3, R0]
+  ParallelMove output(param[0] -> R1, param[2] -> R0)
+  v631 = InterfaceCall ChunkedJsonParser.parseDouble(v1, v3, v797)   # RA: R0 <- (R1, R0, R5) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[17] -> R1)
+  DynamicCall handleNumber(v627, v631)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R5)
+  v798 = BoxInt(v644)   # RA: R3 <- (R5) temps: [R2, R1, R0]
+  ParallelMove input(vloc:R3 -> R0)
+  Return(v798)   # RA: (R0)
+B532 = TargetBlock() idom:B324
+  ParallelMove control(R0 -> R1, R4 -> R5, R2 -> R4)
+  v799 = UnboxInt(v662)   # RA: R0 <- (R3)
+  v537 = BinaryIntOp +(v799, v727)   # RA: R0 <- (R0, -)
+  v538 = UnaryIntOp -(v537)   # RA: R0 <- (R0)
+  v539 = BinaryIntOp >>(v538, v727)   # RA: R0 <- (R0, -)
+  ParallelMove output(R0 -> stack[18])
+  v542 = InterfaceCall getter ChunkedJsonParser.listener(v1)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0, stack[18] -> R2, stack[9] -> R1)
+  v545 = BinaryIntOp ^(v649, v539)   # RA: R1 <- (R1, R2)
+  v547 = BinaryIntOp -(v545, v539)   # RA: R1 <- (R1, R2)
+  v800 = BoxInt(v547)   # RA: R1 <- (R1) temps: [R4, R3, R2]
+  DynamicCall handleNumber(v542, v800)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R4)
+  v801 = BoxInt(v644)   # RA: R3 <- (R4) temps: [R2, R1, R0]
+  ParallelMove input(vloc:R3 -> R0)
+  Return(v801)   # RA: (R0)
+B184 = TargetBlock() idom:B125
+  ParallelMove control(param[0] -> R1, param[2] -> R0)
+  v192 = InterfaceCall ChunkedJsonParser.beginChunkNumber(v1, v190, v3)   # RA: R0 <- (R1, -, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R0)
+  ParallelMove input(vloc:R0 -> R0)
+  Return(v192)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.MINUS
+B0 = EntryBlock()
+  v1 = Constant(45)
+  ParallelMove input(IntConstant(45) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.DECIMALPOINT
+B0 = EntryBlock()
+  v1 = Constant(46)
+  ParallelMove input(IntConstant(46) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.CHAR_0
+B0 = EntryBlock()
+  v1 = Constant(48)
+  ParallelMove input(IntConstant(48) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.CHAR_9
+B0 = EntryBlock()
+  v1 = Constant(57)
+  ParallelMove input(IntConstant(57) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.CHAR_e
+B0 = EntryBlock()
+  v1 = Constant(101)
+  ParallelMove input(IntConstant(101) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_SIGN
+B0 = EntryBlock()
+  v1 = Constant(0)
+  ParallelMove input(IntConstant(0) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_ZERO
+B0 = EntryBlock()
+  v1 = Constant(4)
+  ParallelMove input(IntConstant(4) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_DIGIT
+B0 = EntryBlock()
+  v1 = Constant(8)
+  ParallelMove input(IntConstant(8) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_DOT
+B0 = EntryBlock()
+  v1 = Constant(12)
+  ParallelMove input(IntConstant(12) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_DOT_DIGIT
+B0 = EntryBlock()
+  v1 = Constant(16)
+  ParallelMove input(IntConstant(16) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_E
+B0 = EntryBlock()
+  v1 = Constant(20)
+  ParallelMove input(IntConstant(20) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_E_SIGN
+B0 = EntryBlock()
+  v1 = Constant(24)
+  ParallelMove input(IntConstant(24) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_E_DIGIT
+B0 = EntryBlock()
+  v1 = Constant(28)
+  ParallelMove input(IntConstant(28) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.NUM_SUCCESS
+B0 = EntryBlock()
+  v1 = Constant(32)
+  ParallelMove input(IntConstant(32) -> R0)
+  Return(v1)   # RA: (R0)
+
+--- field-init ChunkedJsonParser.POWERS_OF_TEN
+B0 = EntryBlock()
+  v1 = Constant(ListConstant(const <dynamic>[]))
+  ParallelMove input(ListConstant(const <dynamic>[]) -> R0)
+  Return(v1)   # RA: (R0)
 
 --- combine
 B0 = EntryBlock()
@@ -455,8 +1435,8 @@ B0 = EntryBlock()
   v18 = Parameter(arg18)   # RA: param[17] <- ()
   v19 = Parameter(arg19)   # RA: param[18] <- ()
   v20 = Parameter(seed)   # RA: param[19] <- ()
-  ParallelMove output(param[19] -> vloc:R0, param[18] -> vloc:R25, param[17] -> vloc:R23, param[16] -> vloc:R20, param[15] -> vloc:R19, param[14] -> vloc:R14, param[13] -> vloc:param[13], param[12] -> vloc:R12, param[11] -> vloc:R11, param[10] -> vloc:R10, param[9] -> vloc:R9, param[8] -> vloc:R8, param[7] -> vloc:R7, param[6] -> vloc:R6, param[5] -> vloc:R5, param[4] -> vloc:R4, param[3] -> vloc:R3, param[2] -> vloc:R2, param[1] -> vloc:R1, param[0] -> vloc:R13)
-  v25 = DirectCall combine(v20, v1)   # RA: R0 <- (R0, R13) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[19] -> vloc:R2, param[18] -> vloc:R0, param[17] -> vloc:param[17], param[16] -> vloc:param[16], param[15] -> vloc:param[15], param[14] -> vloc:param[14], param[13] -> vloc:param[13], param[12] -> vloc:param[12], param[11] -> vloc:param[11], param[10] -> vloc:param[10], param[9] -> vloc:param[9], param[8] -> vloc:param[8], param[7] -> vloc:param[7], param[6] -> vloc:param[6], param[5] -> vloc:param[5], param[4] -> vloc:param[4], param[3] -> vloc:param[3], param[2] -> vloc:param[2], param[1] -> vloc:param[1], param[0] -> vloc:R1)
+  v25 = DirectCall combine(v20, v1)   # RA: R0 <- (R2, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0, param[1] -> R1)
   v29 = DirectCall combine(v25, v2)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0, param[2] -> R1)
@@ -506,14 +1486,22 @@ B0 = EntryBlock()
   ParallelMove output(param[1] -> vloc:R1, param[0] -> vloc:R0)
   ParallelMove input(vloc:R0 -> R0)
   v4 = TypeCast(v1, Comparable<dynamic>)   # RA: R0 <- (R0) temps: [R8, R3, R4]
-  ParallelMove output(R0 -> vloc:R0)
-  ParallelMove input(vloc:R1 -> R0, R0 -> R1)
+  ParallelMove output(R0 -> vloc:R2)
+  ParallelMove input(vloc:R1 -> R0)
   v6 = TypeCast(v2, Comparable<dynamic>)   # RA: R0 <- (R0) temps: [R8, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
-  v7 = DirectCall Comparable.compare(v4, v6)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  v7 = DirectCall Comparable.compare(v4, v6)   # RA: R0 <- (R2, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove input(vloc:R0 -> R0)
   Return(v7)   # RA: (R0)
+
+--- _interceptUserError
+B0 = EntryBlock()
+  v3 = Constant(null)
+  Parameter(error)   # RA: param[0] <- ()
+  Parameter(stackTrace)   # RA: param[1] <- ()
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v3)   # RA: (R0)
 
 --- rootRunBinary
 B0 = EntryBlock() dominates:(B13, B12)
@@ -526,10 +1514,10 @@ B0 = EntryBlock() dominates:(B13, B12)
   v4 = Parameter(f)   # RA: param[3] <- ()
   v5 = Parameter(arg1)   # RA: param[4] <- ()
   v6 = Parameter(arg2)   # RA: param[5] <- ()
-  ParallelMove output(param[5] -> vloc:R5, param[4] -> vloc:R4, param[3] -> vloc:R3, param[2] -> vloc:R2)
+  ParallelMove output(param[5] -> vloc:R0, param[4] -> vloc:param[4], param[3] -> vloc:param[3], param[2] -> vloc:param[2])
   v9 = LoadStaticField(Zone._current)   # RA: R0 <- () temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, param[2] -> R1)
-  v11 = DirectCall identical(v9, v3)   # RA: R0 <- (R0, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[0], param[2] -> R0)
+  v11 = DirectCall identical(v9, v3)   # RA: R0 <- (stack[0], R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   Branch(v11, true: B12, false: B13)   # RA: (R0)
 B12 = TargetBlock() idom:B0
@@ -539,8 +1527,9 @@ B12 = TargetBlock() idom:B0
   ParallelMove input(vloc:R0 -> R0)
   Return(v20)   # RA: (R0)
 B13 = TargetBlock() idom:B0 dominates:(B25, B24)
-  ParallelMove output(param[2] -> R0, param[3] -> R1, param[4] -> R2, param[5] -> R5)
-  ParallelMove input(vloc:R0 -> R0, R0 -> R6)
+  ParallelMove control(param[3] -> R1, param[4] -> R2, param[5] -> R5)
+  ParallelMove output(param[2] -> R6)
+  ParallelMove input(vloc:R6 -> R0)
   v23 = TypeTest(v3, _Zone)   # RA: R7 <- (R0) temps: [R8, R3, R4]
   ParallelMove output(R7 -> vloc:R7)
   Branch(v23, true: B24, false: B25)   # RA: (R7)
@@ -548,34 +1537,34 @@ B24 = TargetBlock() idom:B13 dominates:(B41, B40)
   v37 = TypeCast(v3, _Zone, unchecked)   # RA: R0 <- (R6)
   v38 = DirectCall Zone._enter(v37)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[0])
+  ParallelMove spill(R0 -> stack[1])
   TryEntry(try-body: B40, catch-block: B41)
 B40 = TargetBlock() exception-handler:B41 idom:B24 dominates:(B47)
-  ParallelMove output(param[3] -> R1, param[4] -> R2, param[5] -> R3)
-  v46 = ClosureCall(v4, v5, v6)   # RA: R0 <- (R1, R2, R3) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[3] -> R0, param[4] -> R1, param[5] -> R2)
+  v46 = ClosureCall(v4, v5, v6)   # RA: R0 <- (R0, R1, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[1])
+  ParallelMove spill(R0 -> stack[2])
   Goto(B47)
 B47 = JoinBlock(B40) idom:B40
-  ParallelMove output(stack[0] -> R1)
-  DirectCall Zone._leave(v38)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(stack[1] -> R1)
+  ParallelMove output(stack[1] -> R0)
+  DirectCall Zone._leave(v38)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[2] -> R1)
   ParallelMove input(vloc:R1 -> R0)
   Return(v46)   # RA: (R0)
 B41 = CatchBlock() idom:B24
-  v49 = Parameter(#exception)   # RA: R0 <- ()
+  v49 = Parameter(#exception)   # RA: R1 <- ()
   v50 = Parameter(#stackTrace)   # RA: R2 <- ()
-  ParallelMove output(stack[0] -> R1)
-  ParallelMove spill(R0 -> stack[2], R2 -> stack[3])
-  DirectCall Zone._leave(v38)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(stack[2] -> R1, stack[3] -> R2)
+  ParallelMove control(stack[1] -> R0)
+  ParallelMove output(R1 -> stack[3], R2 -> stack[4])
+  DirectCall Zone._leave(v38)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[3] -> R1, stack[4] -> R2)
   Throw(v49, v50)   # RA: (R1, R2)
 B25 = TargetBlock() idom:B13
   v29 = AllocateObject ArgumentError()   # RA: R0 <- () temps: [R1, R2, R3, R4]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[4])
+  ParallelMove spill(R0 -> stack[5])
   DirectCall ArgumentError.value(v29, v3, v31, v32)   # RA: R0 <- (R0, R6, -, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(stack[4] -> R1)
+  ParallelMove output(stack[5] -> R1)
   Throw(v29)   # RA: (R1)
 
 --- replaceAll
@@ -588,13 +1577,12 @@ B0 = EntryBlock() dominates:(B16, B45, B15)
   v1 = Parameter(thisString)   # RA: param[0] <- ()
   v2 = Parameter(pattern)   # RA: param[1] <- ()
   v3 = Parameter(replacement)   # RA: param[2] <- ()
-  ParallelMove output(param[2] -> vloc:R1, param[1] -> vloc:R0, param[0] -> vloc:R2)
+  ParallelMove output(param[2] -> vloc:param[2], param[1] -> vloc:param[1], param[0] -> vloc:R0)
   v7 = DirectCall _GrowableList.(v6, v4)   # RA: R0 <- (-, -) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, param[2] -> R1)
-  ParallelMove spill(R0 -> stack[0])
-  v11 = InterfaceCall getter String.length(v3)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[0], param[2] -> R0)
+  v11 = InterfaceCall getter String.length(v3)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[5])
+  ParallelMove spill(R0 -> stack[6])
   v148 = UnboxInt(v11)   # RA: R1 <- (R0)
   CompareAndBranch int ==(v148, v149, true: B15, false: B16)   # RA: (R1, -)
 B15 = TargetBlock() idom:B0 dominates:(B23)
@@ -603,89 +1591,87 @@ B15 = TargetBlock() idom:B0 dominates:(B23)
   ParallelMove output(R0 -> vloc:R0)
   v21 = InterfaceCall getter Iterable.iterator(v20)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[1])
+  ParallelMove spill(R0 -> stack[3])
   ParallelMove input(UnboxedIntConstant(0) -> R2, IntConstant(0) -> R1)
   Goto(B23)
 B23 = JoinBlock(B15, B27) idom:B15 dominates:(B28, B27) loop-header (depth:1 body:(B23, B27) back-edges:(B27))
   v141 = Phi(v149, v39)   # RA: R2 <- (-, R0)
-  v138 = Phi(v4, v42)   # RA: R1 <- (-, R2)
-  ParallelMove spill(R1 -> stack[2], R2 -> stack[3])
+  v138 = Phi(v4, v42)   # RA: R1 <- (-, R1)
+  ParallelMove output(R1 -> stack[1], R2 -> stack[2])
   v26 = InterfaceCall Iterator.moveNext(v21)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   Branch(v26, true: B27, false: B28)   # RA: (R0)
 B27 = TargetBlock() idom:B23 in-loop:B23
-  ParallelMove output(stack[1] -> R0)
+  ParallelMove output(stack[3] -> R0)
   v31 = InterfaceCall getter Iterator.current(v21)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove spill(R0 -> stack[4])
   v37 = InterfaceCall getter Match.start(v31)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1, stack[2] -> R2)
-  v38 = DirectCall _addReplaceSlice(v7, v138, v37)   # RA: R0 <- (R1, R2, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[5], stack[0] -> R0, stack[1] -> R1)
+  v38 = DirectCall _addReplaceSlice(v7, v138, v37)   # RA: R0 <- (R0, R1, stack[5]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   v150 = UnboxInt(v38)   # RA: R0 <- (R0)
-  ParallelMove output(stack[3] -> R1)
+  ParallelMove output(stack[2] -> R1)
   v39 = BinaryIntOp +(v141, v150)   # RA: R1 <- (R1, R0)
-  ParallelMove output(stack[4] -> R0)
-  ParallelMove spill(R1 -> stack[3])
+  ParallelMove output(stack[4] -> R0, R1 -> stack[2])
   v42 = InterfaceCall getter Match.end(v31)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R2, stack[3] -> R0)
-  ParallelMove spill(R2 -> stack[2])
-  ParallelMove input(stack[1] -> R0, R0 -> R2, R2 -> R1)
+  ParallelMove output(R0 -> vloc:R1, stack[2] -> R0)
+  ParallelMove spill(R1 -> stack[1])
+  ParallelMove input(stack[3] -> R0, R0 -> R2)
   Goto(B23)
 B28 = TargetBlock() idom:B23
-  ParallelMove output(stack[2] -> R2, stack[3] -> R0)
+  ParallelMove control(stack[1] -> R1, stack[2] -> R0)
   Goto(B45)
 B16 = TargetBlock() idom:B0 dominates:(B52)
-  ParallelMove output(param[0] -> R2, param[1] -> R1)
-  v49 = InterfaceCall Pattern.allMatches(v2, v1)   # RA: R0 <- (R1, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove control(param[1] -> R1)
+  ParallelMove output(param[0] -> R0)
+  v49 = InterfaceCall Pattern.allMatches(v2, v1)   # RA: R0 <- (R1, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   v50 = InterfaceCall getter Iterable.iterator(v49)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[6])
-  ParallelMove input(R0 -> R1, UnboxedIntConstant(0) -> R0, IntConstant(0) -> R2)
+  ParallelMove spill(R0 -> stack[7])
+  ParallelMove input(R0 -> R2, UnboxedIntConstant(0) -> R0, IntConstant(0) -> R1)
   Goto(B52)
 B52 = JoinBlock(B16, B56) idom:B16 dominates:(B57, B56) loop-header (depth:1 body:(B52, B56) back-edges:(B56))
   v143 = Phi(v149, v75)   # RA: R0 <- (-, R0)
-  v140 = Phi(v4, v78)   # RA: R2 <- (-, R2)
-  ParallelMove spill(R2 -> stack[2], R0 -> stack[3])
-  v55 = InterfaceCall Iterator.moveNext(v50)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  v140 = Phi(v4, v78)   # RA: R1 <- (-, R1)
+  ParallelMove output(R2 -> R0, R1 -> stack[1], R0 -> stack[2])
+  v55 = InterfaceCall Iterator.moveNext(v50)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   Branch(v55, true: B56, false: B57)   # RA: (R0)
 B56 = TargetBlock() idom:B52 in-loop:B52
-  ParallelMove output(stack[6] -> R0)
+  ParallelMove output(stack[7] -> R0)
   v60 = InterfaceCall getter Iterator.current(v50)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[7])
+  ParallelMove spill(R0 -> stack[8])
   v66 = InterfaceCall getter Match.start(v60)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1, stack[2] -> R2)
-  v67 = DirectCall _addReplaceSlice(v7, v140, v66)   # RA: R0 <- (R1, R2, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[9], stack[0] -> R0, stack[1] -> R1)
+  v67 = DirectCall _addReplaceSlice(v7, v140, v66)   # RA: R0 <- (R0, R1, stack[9]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   v151 = UnboxInt(v67)   # RA: R0 <- (R0)
-  ParallelMove output(stack[3] -> R1)
+  ParallelMove output(stack[2] -> R1)
   v68 = BinaryIntOp +(v143, v151)   # RA: R0 <- (R1, R0)
-  ParallelMove output(param[2] -> R1, stack[0] -> R2)
-  ParallelMove spill(R0 -> stack[8])
-  InterfaceCall List.add(v7, v3)   # RA: R0 <- (R2, R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(stack[5] -> R2)
+  ParallelMove output(stack[0] -> R0, R0 -> stack[10])
+  InterfaceCall List.add(v7, v3)   # RA: R0 <- (R0, param[2]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(stack[6] -> R2)
   v152 = UnboxInt(v11)   # RA: R0 <- (R2)
-  ParallelMove output(stack[8] -> R1)
+  ParallelMove output(stack[10] -> R1)
   v75 = BinaryIntOp +(v68, v152)   # RA: R1 <- (R1, R0)
-  ParallelMove output(stack[7] -> R0)
-  ParallelMove spill(R1 -> stack[3])
-  v78 = InterfaceCall getter Match.end(v60)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R2, stack[3] -> R0)
-  ParallelMove spill(R2 -> stack[2])
-  ParallelMove input(stack[6] -> R1)
+  ParallelMove output(R2 -> R0, R1 -> stack[2])
+  v78 = InterfaceCall getter Match.end(v60)   # RA: R0 <- (stack[8]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:R1, stack[2] -> R0)
+  ParallelMove spill(R1 -> stack[1])
+  ParallelMove input(stack[7] -> R2)
   Goto(B52)
 B57 = TargetBlock() idom:B52
-  ParallelMove output(stack[2] -> R2, stack[3] -> R0)
+  ParallelMove control(stack[1] -> R1, stack[2] -> R0)
   Goto(B45)
 B45 = JoinBlock(B57, B28) idom:B0 dominates:(B85, B92, B84)
   v142 = Phi(v143, v141)   # RA: R0 <- (R0, R0)
-  v139 = Phi(v140, v138)   # RA: R2 <- (R2, R2)
-  ParallelMove spill(R2 -> stack[2], R0 -> stack[3])
-  v153 = UnboxInt(v139)   # RA: R1 <- (R2)
-  CompareAndBranch int ==(v153, v149, true: B84, false: B85)   # RA: (R1, -)
+  v139 = Phi(v140, v138)   # RA: R1 <- (R1, R1)
+  ParallelMove output(R1 -> stack[1], R0 -> stack[2])
+  v153 = UnboxInt(v139)   # RA: R2 <- (R1)
+  CompareAndBranch int ==(v153, v149, true: B84, false: B85)   # RA: (R2, -)
 B84 = TargetBlock() idom:B45 dominates:(B90, B89)
   CompareAndBranch int ==(v142, v149, true: B89, false: B90)   # RA: (R0, -)
 B89 = TargetBlock() idom:B84
@@ -693,35 +1679,35 @@ B89 = TargetBlock() idom:B84
   ParallelMove input(vloc:R0 -> R0)
   Return(v1)   # RA: (R0)
 B90 = TargetBlock() idom:B84
-  ParallelMove output(param[0] -> R1)
+  ParallelMove control(param[0] -> R2)
   Goto(B92)
 B85 = TargetBlock() idom:B45
-  ParallelMove output(param[0] -> R1)
+  ParallelMove control(param[0] -> R2)
   Goto(B92)
 B92 = JoinBlock(B85, B90) idom:B45 dominates:(B110, B123, B109)
-  v101 = InterfaceCall getter String.length(v1)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
-  ParallelMove output(R0 -> vloc:R0, stack[0] -> R1, stack[2] -> R2)
-  v102 = DirectCall _addReplaceSlice(v7, v139, v101)   # RA: R0 <- (R1, R2, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R2 -> R0)
+  v101 = InterfaceCall getter String.length(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(R0 -> vloc:stack[11], stack[0] -> R0, stack[1] -> R1)
+  v102 = DirectCall _addReplaceSlice(v7, v139, v101)   # RA: R0 <- (R0, R1, stack[11]) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   v154 = UnboxInt(v102)   # RA: R0 <- (R0)
-  ParallelMove output(stack[3] -> R1)
+  ParallelMove output(stack[2] -> R1)
   v103 = BinaryIntOp +(v142, v154)   # RA: R0 <- (R1, R0)
-  ParallelMove output(param[2] -> R1)
-  ParallelMove spill(R0 -> stack[9])
-  v106 = DirectCall _isOneByte(v3)   # RA: R0 <- (R1) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[2] -> R0, R0 -> stack[12])
+  v106 = DirectCall _isOneByte(v3)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
-  ParallelMove spill(R0 -> stack[10])
+  ParallelMove spill(R0 -> stack[13])
   Branch(v106, true: B109, false: B110)   # RA: (R0)
 B109 = TargetBlock() idom:B92 dominates:(B116, B115)
-  ParallelMove output(stack[9] -> R1)
+  ParallelMove output(stack[12] -> R1)
   CompareAndBranch int <(v103, v155, true: B115, false: B116)   # RA: (R1, -)
 B115 = TargetBlock() idom:B109 dominates:(B121, B120)
-  ParallelMove output(param[0] -> R2)
-  v119 = DirectCall _isOneByte(v1)   # RA: R0 <- (R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove output(param[0] -> R0)
+  v119 = DirectCall _isOneByte(v1)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   Branch(v119, true: B120, false: B121)   # RA: (R0)
 B120 = TargetBlock() idom:B115
-  ParallelMove output(stack[9] -> R3)
+  ParallelMove output(stack[12] -> R3)
   v156 = BoxInt(v103)   # RA: R3 <- (R3) temps: [R0, R1, R2]
   ParallelMove output(param[0] -> R1, stack[0] -> R0)
   v130 = DirectCall _joinReplaceAllOneByteResult(v1, v7, v156)   # RA: R0 <- (R1, R0, R3) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
@@ -729,17 +1715,17 @@ B120 = TargetBlock() idom:B115
   ParallelMove input(vloc:R0 -> R0)
   Return(v130)   # RA: (R0)
 B121 = TargetBlock() idom:B115
-  ParallelMove output(param[0] -> R1, stack[0] -> R0, stack[9] -> R3)
+  ParallelMove control(param[0] -> R1, stack[0] -> R0, stack[12] -> R3)
   Goto(B123)
 B116 = TargetBlock() idom:B109
-  ParallelMove output(param[0] -> R1, stack[0] -> R0, R1 -> R3)
+  ParallelMove control(param[0] -> R1, stack[0] -> R0, R1 -> R3)
   Goto(B123)
 B110 = TargetBlock() idom:B92
-  ParallelMove output(param[0] -> R1, stack[0] -> R0, stack[9] -> R3)
+  ParallelMove control(param[0] -> R1, stack[0] -> R0, stack[12] -> R3)
   Goto(B123)
 B123 = JoinBlock(B110, B116, B121) idom:B92
   v157 = BoxInt(v103)   # RA: R3 <- (R3) temps: [R2, R4, R5]
-  ParallelMove output(stack[10] -> R2)
+  ParallelMove output(stack[13] -> R2)
   v136 = DirectCall _joinReplaceAllResult(v1, v7, v157, v106)   # RA: R0 <- (R1, R0, R3, R2) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
   ParallelMove output(R0 -> vloc:R0)
   ParallelMove input(vloc:R0 -> R0)

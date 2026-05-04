@@ -25,22 +25,22 @@ class TestResultOutcome {
   });
 
   String toRecordJson() => _encoder.convert({
-        'name': '$suiteName/$testName',
-        'configuration': configuration,
-        'suite': suiteName,
-        'test_name': testName,
-        'time_ms': elapsedTime.inMilliseconds,
-        'expected': expectedResult,
-        'result': matchedExpectations ? 'Pass' : 'Fail',
-        'matches': matchedExpectations,
-      });
+    'name': '$suiteName/$testName',
+    'configuration': configuration,
+    'suite': suiteName,
+    'test_name': testName,
+    'time_ms': elapsedTime.inMilliseconds,
+    'expected': expectedResult,
+    'result': matchedExpectations ? 'Pass' : 'Fail',
+    'matches': matchedExpectations,
+  });
 
   String toLogJson() => _encoder.convert({
-        'name': '$suiteName/$testName',
-        'configuration': configuration,
-        'result': matchedExpectations ? 'Pass' : 'Fail',
-        'log': testOutput,
-      });
+    'name': '$suiteName/$testName',
+    'configuration': configuration,
+    'result': matchedExpectations ? 'Pass' : 'Fail',
+    'log': testOutput,
+  });
 }
 
 /// Escapes backslashes in [unescaped].
@@ -83,11 +83,14 @@ class ReloadTestConfiguration {
   ReloadTestConfiguration._(this.excludedPlatforms, this.expectedErrors);
 
   factory ReloadTestConfiguration() => ReloadTestConfiguration._(
-      const <RuntimePlatforms>{}, const <int, String>{});
+    const <RuntimePlatforms>{},
+    const <int, String>{},
+  );
 
   factory ReloadTestConfiguration.fromJsonFile(Uri file) {
-    final Map<String, dynamic> jsonData =
-        jsonDecode(File.fromUri(file).readAsStringSync());
+    final Map<String, dynamic> jsonData = jsonDecode(
+      File.fromUri(file).readAsStringSync(),
+    );
     final excludedPlatforms = <RuntimePlatforms>{};
     final rawExcludedPlatforms = jsonData['exclude'];
     if (rawExcludedPlatforms != null) {
@@ -104,9 +107,6 @@ class ReloadTestConfiguration {
         expectedErrors[int.parse(entry.key)] = entry.value as String;
       }
     }
-    return ReloadTestConfiguration._(
-      excludedPlatforms,
-      expectedErrors,
-    );
+    return ReloadTestConfiguration._(excludedPlatforms, expectedErrors);
   }
 }

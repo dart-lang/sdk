@@ -399,16 +399,19 @@ abstract interface class Future<T> {
   ///
   /// If [computation] returns a future,
   /// the future returned by this constructor will complete with the value or
-  /// error of that future.
+  /// error of that future, which may not be available until even later.
   ///
   /// If the duration is 0 or less,
   /// it completes no sooner than in the next event-loop iteration,
   /// after all microtasks have run.
+  /// (The waiting for the delay uses a [Timer] created in the current zone.)
   ///
-  /// If [computation] is omitted,
-  /// it will be treated as if [computation] was `() => null`,
+  /// The computation must not be omitted, and must not be null.
+  /// Use [Future.pause] instead if you just want to wait for duration.
+  /// Until that is reflected in the signature, if [computation] is omitted,
+  /// then [T] must be nullable.
+  /// Then the computation will be treated as if it was `() => null`,
   /// and the future will eventually complete with the `null` value.
-  /// In that case, [T] must be nullable.
   ///
   /// If calling [computation] throws, the created future will complete with the
   /// error.
@@ -418,11 +421,16 @@ abstract interface class Future<T> {
   ///
   /// Example:
   /// ```dart
-  /// Future.delayed(const Duration(seconds: 1), () {
-  ///   print('One second has passed.'); // Prints after 1 second.
+  /// var now = DateTime.now();
+  /// var later = await Future.delayed(const Duration(seconds: 1), () {
+  ///   return DateTime.timestamp();
   /// });
+  /// print(now.difference(later)); // At least a second.
   /// ```
-  factory Future.delayed(Duration duration, [FutureOr<T> computation()?]) {
+  factory Future.delayed(
+    Duration duration, [
+    FutureOr<T> Function()? computation,
+  ]) {
     if (computation == null && !typeAcceptsNull<T>()) {
       throw ArgumentError.value(
         null,
@@ -444,6 +452,19 @@ abstract interface class Future<T> {
         }
         result._complete(computationResult);
       }
+    });
+    return result;
+  }
+
+  /// Creates a [Future] that completes with no result after [duration].
+  ///
+  /// Like [Future.delayed], but does not perform any action,
+  /// and cannot complete with an error.
+  @Since("3.13")
+  static Future<void> pause([Duration duration = Duration.zero]) {
+    var result = _Future<void>();
+    Zone._current.createTimer(duration, () {
+      result._completeWithValue(null);
     });
     return result;
   }

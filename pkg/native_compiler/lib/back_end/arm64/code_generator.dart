@@ -510,13 +510,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
         }
       } else {
         final loc = inputLoc(instr, i);
-        switch (loc) {
-          case Register():
-            reg = loc;
-            break;
-          // TODO: support other locations.
-          default:
-            throw 'Unimplemented passing arg from ${loc.runtimeType} $loc';
+        if (loc is Register) {
+          reg = loc;
+        } else {
+          reg = getTempReg();
+          generateMove(loc, reg);
         }
       }
       if (pendingReg == invalidReg) {

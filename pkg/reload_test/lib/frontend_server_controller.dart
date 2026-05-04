@@ -24,10 +24,7 @@ class CompilerOutput {
 
   /// Output for a 'reject' response.
   factory CompilerOutput.rejectOutput() {
-    return CompilerOutput(
-      outputDillPath: '',
-      errorCount: 0,
-    );
+    return CompilerOutput(outputDillPath: '', errorCount: 0);
   }
 
   final String outputDillPath;
@@ -102,16 +99,26 @@ class HotReloadFrontendServerController {
 
   FrontendServerState _state = FrontendServerState.awaitingResult;
 
-  HotReloadFrontendServerController._(this.frontendServerArgs, this.input,
-      this.output, this.compileCommandOutputChannel, this.synchronizer);
+  HotReloadFrontendServerController._(
+    this.frontendServerArgs,
+    this.input,
+    this.output,
+    this.compileCommandOutputChannel,
+    this.synchronizer,
+  );
 
   factory HotReloadFrontendServerController(List<String> frontendServerArgs) {
     var input = StreamController<List<int>>();
     var output = StreamController<List<int>>();
     var compileCommandOutputChannel = StreamController<CompilerOutput>();
     var synchronizer = StreamIterator(compileCommandOutputChannel.stream);
-    return HotReloadFrontendServerController._(frontendServerArgs, input,
-        output, compileCommandOutputChannel, synchronizer);
+    return HotReloadFrontendServerController._(
+      frontendServerArgs,
+      input,
+      output,
+      compileCommandOutputChannel,
+      synchronizer,
+    );
   }
 
   /// Runs the Frontend Server in-memory in incremental mode.
@@ -126,70 +133,77 @@ class HotReloadFrontendServerController {
         .transform(utf8.decoder)
         .transform(const LineSplitter())
         .listen((String s) {
-      if (debug) print('Frontend Server Response: $s');
-      switch (_state) {
-        case FrontendServerState.awaitingReject:
-          if (!s.startsWith(frontEndResponsePrefix)) {
-            throw Exception('Unexpected Frontend Server response: $s');
+          if (debug) print('Frontend Server Response: $s');
+          switch (_state) {
+            case FrontendServerState.awaitingReject:
+              if (!s.startsWith(frontEndResponsePrefix)) {
+                throw Exception('Unexpected Frontend Server response: $s');
+              }
+              _boundaryKey = s.substring(frontEndResponsePrefix.length);
+              _state = FrontendServerState.awaitingRejectKey;
+              break;
+            case FrontendServerState.awaitingRejectKey:
+              if (s != _boundaryKey) {
+                throw Exception(
+                  'Unexpected Frontend Server response for reject '
+                  '(expected just a key): $s',
+                );
+              }
+              _state = FrontendServerState.finished;
+              compileCommandOutputChannel.add(CompilerOutput.rejectOutput());
+              _clearState();
+              break;
+            case FrontendServerState.awaitingResult:
+              if (!s.startsWith(frontEndResponsePrefix)) {
+                throw Exception('Unexpected Frontend Server response: $s');
+              }
+              _boundaryKey = s.substring(frontEndResponsePrefix.length);
+              _state = FrontendServerState.awaitingKey;
+              break;
+            case FrontendServerState.awaitingKey:
+              // Advance to the next state when we encounter a lone boundary
+              // key.
+              if (s == _boundaryKey) {
+                _state = FrontendServerState.collectingResultSources;
+              } else {
+                accumulatedOutput.add(s);
+              }
+            case FrontendServerState.collectingResultSources:
+              // Stop and record the result when we encounter a boundary key.
+              if (s.startsWith(_boundaryKey)) {
+                final compilationReportOutput = s.split(' ');
+                final outputDillPath = compilationReportOutput[1];
+                final errorCount = int.parse(compilationReportOutput[2]);
+                // The FrontendServer accumulates all errors seen so far, so we
+                // need to correct for errors from previous compilations.
+                final actualErrorCount = errorCount - totalErrors;
+                final compilerOutput = CompilerOutput(
+                  outputDillPath: outputDillPath,
+                  errorCount: actualErrorCount,
+                  sources: sources,
+                  outputText: accumulatedOutput.join('\n'),
+                );
+                totalErrors = errorCount;
+                _state = FrontendServerState.finished;
+                compileCommandOutputChannel.add(compilerOutput);
+                _clearState();
+              } else if (s.startsWith('+')) {
+                sources.add(Uri.parse(s.substring(1)));
+              } else if (s.startsWith('-')) {
+                sources.remove(Uri.parse(s.substring(1)));
+              } else {
+                throw Exception(
+                  "Unexpected Frontend Server response "
+                  "(expected '+' or '-')'): $s",
+                );
+              }
+              break;
+            case FrontendServerState.finished:
+              throw StateError(
+                'Frontend Server reached an unexpected state: $s',
+              );
           }
-          _boundaryKey = s.substring(frontEndResponsePrefix.length);
-          _state = FrontendServerState.awaitingRejectKey;
-          break;
-        case FrontendServerState.awaitingRejectKey:
-          if (s != _boundaryKey) {
-            throw Exception('Unexpected Frontend Server response for reject '
-                '(expected just a key): $s');
-          }
-          _state = FrontendServerState.finished;
-          compileCommandOutputChannel.add(CompilerOutput.rejectOutput());
-          _clearState();
-          break;
-        case FrontendServerState.awaitingResult:
-          if (!s.startsWith(frontEndResponsePrefix)) {
-            throw Exception('Unexpected Frontend Server response: $s');
-          }
-          _boundaryKey = s.substring(frontEndResponsePrefix.length);
-          _state = FrontendServerState.awaitingKey;
-          break;
-        case FrontendServerState.awaitingKey:
-          // Advance to the next state when we encounter a lone boundary key.
-          if (s == _boundaryKey) {
-            _state = FrontendServerState.collectingResultSources;
-          } else {
-            accumulatedOutput.add(s);
-          }
-        case FrontendServerState.collectingResultSources:
-          // Stop and record the result when we encounter a boundary key.
-          if (s.startsWith(_boundaryKey)) {
-            final compilationReportOutput = s.split(' ');
-            final outputDillPath = compilationReportOutput[1];
-            final errorCount = int.parse(compilationReportOutput[2]);
-            // The FrontendServer accumulates all errors seen so far, so we
-            // need to correct for errors from previous compilations.
-            final actualErrorCount = errorCount - totalErrors;
-            final compilerOutput = CompilerOutput(
-              outputDillPath: outputDillPath,
-              errorCount: actualErrorCount,
-              sources: sources,
-              outputText: accumulatedOutput.join('\n'),
-            );
-            totalErrors = errorCount;
-            _state = FrontendServerState.finished;
-            compileCommandOutputChannel.add(compilerOutput);
-            _clearState();
-          } else if (s.startsWith('+')) {
-            sources.add(Uri.parse(s.substring(1)));
-          } else if (s.startsWith('-')) {
-            sources.remove(Uri.parse(s.substring(1)));
-          } else {
-            throw Exception("Unexpected Frontend Server response "
-                "(expected '+' or '-')'): $s");
-          }
-          break;
-        case FrontendServerState.finished:
-          throw StateError('Frontend Server reached an unexpected state: $s');
-      }
-    });
+        });
 
     frontendServerExitCode = starter(
       frontendServerArgs,
@@ -225,10 +239,12 @@ class HotReloadFrontendServerController {
     sendAccept();
   }
 
-  Future<CompilerOutput> sendRecompile(String entrypointPath,
-      {List<String> invalidatedFiles = const [],
-      String boundaryKey = fakeBoundaryKey,
-      required bool recompileRestart}) async {
+  Future<CompilerOutput> sendRecompile(
+    String entrypointPath, {
+    List<String> invalidatedFiles = const [],
+    String boundaryKey = fakeBoundaryKey,
+    required bool recompileRestart,
+  }) async {
     // Currently the `FrontendCompiler` used in this test suite clears errors
     // before performing a recompile but not an initial compile. Since we reuse
     // the same instance and issue an initial compile request for each test we
@@ -239,7 +255,8 @@ class HotReloadFrontendServerController {
     if (!started) throw Exception('Frontend Server has not been started yet.');
     _state = FrontendServerState.awaitingResult;
     final instruction = recompileRestart ? 'recompile-restart' : 'recompile';
-    final command = '$instruction $entrypointPath $boundaryKey\n'
+    final command =
+        '$instruction $entrypointPath $boundaryKey\n'
         '${invalidatedFiles.join('\n')}\n$boundaryKey\n';
     if (debug) print('Sending instruction to Frontend Server:\n$command');
     input.add(command.codeUnits);
@@ -247,14 +264,18 @@ class HotReloadFrontendServerController {
     return synchronizer.current;
   }
 
-  Future<void> sendRecompileAndAccept(String entrypointPath,
-      {List<String> invalidatedFiles = const [],
-      String boundaryKey = fakeBoundaryKey,
-      required bool recompileRestart}) async {
-    await sendRecompile(entrypointPath,
-        invalidatedFiles: invalidatedFiles,
-        boundaryKey: boundaryKey,
-        recompileRestart: recompileRestart);
+  Future<void> sendRecompileAndAccept(
+    String entrypointPath, {
+    List<String> invalidatedFiles = const [],
+    String boundaryKey = fakeBoundaryKey,
+    required bool recompileRestart,
+  }) async {
+    await sendRecompile(
+      entrypointPath,
+      invalidatedFiles: invalidatedFiles,
+      boundaryKey: boundaryKey,
+      recompileRestart: recompileRestart,
+    );
     sendAccept();
   }
 

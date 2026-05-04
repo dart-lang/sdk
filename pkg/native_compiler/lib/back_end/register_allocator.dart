@@ -549,12 +549,15 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       int fixedRegister =
           (preferredRegisterUse.constraint as PhysicalRegister).index;
       int freeUntil = firstIntersectionWithAllocated(range, fixedRegister);
-      if (freeUntil > preferredRegisterUse.pos) {
+      if (toSplitPosition(freeUntil) > preferredRegisterUse.pos) {
+        // Split [range] if register is not free for the whole duration of the [range].
         if (freeUntil < range.end) {
           if (trace) {
             print('Split $range at $freeUntil');
           }
-          addToUnhandled(range.splitAt(freeUntil));
+          addToUnhandled(
+            splitBetween(range, preferredRegisterUse.pos, freeUntil),
+          );
         }
         if (trace) {
           print(
@@ -571,7 +574,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     for (var reg = 0; reg < _allocated.length; ++reg) {
       if (_allocated[reg] == null) continue;
       int intersection = firstIntersectionWithAllocated(range, reg);
-      if (intersection > freeUntil) {
+      if (toSplitPosition(intersection) > freeUntil) {
         candidate = reg;
         freeUntil = intersection;
       }
@@ -589,7 +592,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       if (trace) {
         print('Split $range at $freeUntil');
       }
-      addToUnhandled(range.splitAt(freeUntil));
+      addToUnhandled(splitBetween(range, range.start, freeUntil));
     }
     if (trace) {
       print('Allocating $range to free ${_registerLocations[candidate]}');
@@ -613,6 +616,29 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       }
     }
     return pos;
+  }
+
+  // Find the nearest valid position for live range splitting which doesn't exceed [pos].
+  int toSplitPosition(int pos) {
+    if (pos.isOdd) {
+      // Positions between instructions are always valid.
+      return pos;
+    }
+    final instr = instructionByPos(pos);
+    if (instr is Block || instr == instr.block!.lastInstruction) {
+      // Block start or end positions are valid for splitting.
+      return pos;
+    }
+    return pos - 1;
+  }
+
+  LiveRange splitBetween(LiveRange range, int start, int end) {
+    assert(start < end);
+    // TODO: figure out more optimal split position using loop boundaries.
+    final pos = toSplitPosition(end);
+    assert(pos >= start);
+    assert(pos <= end);
+    return range.splitAt(pos);
   }
 
   /// Add [tail] to the [_unhandled] list after splitting.
@@ -690,6 +716,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       inspectAllocatedRegister(reg);
     }
 
+    assert(bestFreeUntil <= bestBlockedAt);
+
     int firstUsePos = unallocated.uses.isEmpty
         ? unallocated.start
         : unallocated.uses.last.pos;
@@ -755,13 +783,13 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       if (trace) {
         print('Split $allocated at $spillPos');
       }
-      if (spillPos == allocated.start) {
+      if (toSplitPosition(spillPos) <= allocated.start) {
         if (trace) {
           print('Spill evicted $allocated');
         }
         spillLiveRange(allocated);
       } else {
-        spillLiveRange(allocated.splitAt(spillPos));
+        spillLiveRange(splitBetween(allocated, allocated.start, spillPos));
         if (trace) {
           print('Finish evicted $allocated at ${_registerLocations[reg]}');
         }
@@ -772,22 +800,22 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       final restorePos = (spillPos < intersection)
           ? math.min(intersection, usePos)
           : usePos;
-      if (spillPos == allocated.start) {
+      if (toSplitPosition(spillPos) <= allocated.start) {
         if (trace) {
           print('Split $allocated at $restorePos');
         }
         assert(restorePos > allocated.start);
-        addToUnhandled(allocated.splitAt(restorePos));
+        addToUnhandled(splitBetween(allocated, spillPos, restorePos));
         spillLiveRange(allocated);
       } else {
         if (trace) {
           print('Split $allocated at $spillPos');
         }
-        final rangeToSpill = allocated.splitAt(spillPos);
+        final rangeToSpill = splitBetween(allocated, allocated.start, spillPos);
         if (trace) {
           print('Split $rangeToSpill at $restorePos');
         }
-        addToUnhandled(rangeToSpill.splitAt(restorePos));
+        addToUnhandled(splitBetween(rangeToSpill, spillPos, restorePos));
         spillLiveRange(rangeToSpill);
         if (trace) {
           print('Finish evicted $allocated at ${_registerLocations[reg]}');
@@ -869,17 +897,34 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           spillSlot is! ParameterStackLocation &&
           i < graph.instructions.length) {
         Instruction instr = graph.instructions[i];
-        if (instr is Phi) {
-          instr = (instr.block as JoinBlock).phis.last;
-        }
-        liveRange = liveRange.findSplitChildAt(instructionPos(instr) + 1);
-        if (liveRange.allocatedLocation is! StackLocation) {
-          _insertMoveBefore(
-            _nextInstruction(instr),
-            ParallelMoveStage.spill,
-            liveRange.allocatedLocation!,
-            spillSlot,
+        if ((instr as Definition).hasUses) {
+          if (instr is Phi) {
+            instr = (instr.block as JoinBlock).phis.last;
+          }
+          final definitionPos = _liveRanges[i]!.definitionPos;
+          assert(definitionPos >= 0);
+          assert(
+            definitionPos == instructionPos(instr) ||
+                definitionPos == instructionPos(instr) + 1,
           );
+          LiveRange splitChild = liveRange.findSplitChildAt(definitionPos);
+          ParallelMoveStage stage = definitionPos.isOdd
+              ? ParallelMoveStage.spill
+              : ParallelMoveStage.output;
+          if (splitChild.allocatedLocation is! SpillSlot) {
+            _insertMoveBefore(
+              _nextInstruction(instr),
+              stage,
+              splitChild.allocatedLocation!,
+              spillSlot,
+            );
+            if (trace) {
+              print(
+                'Insert spill move at $definitionPos (${stage.name} before ${IrToText.instruction(_nextInstruction(instr))})'
+                ' $splitChild ${splitChild.allocatedLocation} => $spillSlot',
+              );
+            }
+          }
         }
       }
     }
@@ -899,7 +944,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           stage = ParallelMoveStage.input;
         } else {
           insertionPoint = _nextInstruction(block);
-          stage = ParallelMoveStage.output;
+          stage = ParallelMoveStage.control;
         }
         final predEnd = blockEndPos(pred);
         // Insert moves between split live ranges at control flow edges
@@ -1020,6 +1065,9 @@ class LiveRange {
   // Spill slot assigned to this live range (and all its split siblings).
   StackLocation? spillSlot;
 
+  // Position of the Definition for this live range.
+  int definitionPos = -1;
+
   // Used for the currently tracked live ranges (both active and inactive).
   // Index in [intervals].
   int currentInterval = 0;
@@ -1039,6 +1087,7 @@ class LiveRange {
 
   /// Cut the last use interval to start at [pos].
   void defineAt(int pos) {
+    definitionPos = pos;
     if (intervals.isEmpty) {
       // Value is defined but not used.
       // Add synthetic interval. Make sure the intermediate point between
@@ -1128,7 +1177,6 @@ class LiveRange {
 
   LiveRange get splitParent => splitFrom ?? this;
 
-  // TODO: figure out more optimal split position using loop boundaries.
   LiveRange splitAt(int pos) {
     assert(pos > start);
     assert(!isPhysical);

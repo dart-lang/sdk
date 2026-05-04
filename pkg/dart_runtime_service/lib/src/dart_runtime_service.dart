@@ -8,6 +8,7 @@ import 'dart:io';
 
 import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
+import 'package:pool/pool.dart';
 import 'package:shelf/shelf.dart' as shelf;
 import 'package:shelf/shelf_io.dart' as io;
 import 'package:stream_channel/stream_channel.dart';
@@ -141,7 +142,7 @@ class DartRuntimeService {
     clientsGetter: () => clients,
   );
 
-  // TODO(bkonyi): this should be protected by a mutex.
+  final _serverLock = Pool(1);
   HttpServer? _server;
 
   /// Returns true if the HTTP server is active.
@@ -176,7 +177,9 @@ class DartRuntimeService {
   Future<void> shutdown() async {
     await backend.clearState();
     await backend.shutdown();
-    await _shutdownServer();
+    try {
+      await _shutdownServer();
+    } on DartRuntimeServiceServerNotRunning catch (_) {}
     await clientManager.shutdown();
     Logger.root.clearListeners();
   }
@@ -198,7 +201,6 @@ class DartRuntimeService {
       );
       silenceServiceOutput = silenceOutput;
     }
-    // TODO(bkonyi): verify there's no race conditions
     if (!enable && isServerRunning) {
       await _shutdownServer();
     } else if (enable && !isServerRunning) {
@@ -209,7 +211,6 @@ class DartRuntimeService {
   /// Toggles the state of the HTTP server, enabling it if it's not running and
   /// disabling it if it is running.
   Future<void> toggleServer() async {
-    // TODO(bkonyi): verify there's no race conditions
     if (isServerRunning) {
       await _shutdownServer();
     } else {
@@ -230,72 +231,80 @@ class DartRuntimeService {
     );
   }
 
-  Future<void> _startServer() async {
-    if (_server != null) {
-      _logger.warning(
-        "Attempted to start the HTTP server, but it's already running.",
-      );
-      throw const DartRuntimeServiceServerAlreadyRunning();
-    }
-    // TODO(bkonyi): support IPv6
-    final host = InternetAddress.loopbackIPv4.host;
+  Future<void> _startServer() {
+    return _serverLock.withResource(() async {
+      if (_server != null) {
+        _logger.warning(
+          "Attempted to start the HTTP server, but it's already running.",
+        );
+        throw const DartRuntimeServiceServerAlreadyRunning();
+      }
+      final hostStr = config.host ?? InternetAddress.loopbackIPv4.host;
+      final host =
+          InternetAddress.tryParse(hostStr) ??
+          (await InternetAddress.lookup(hostStr)).first;
 
-    _logger.info('Starting the Dart Runtime Service.');
-    late String errorMessage;
-    final server = await runZonedGuarded(
-      () async {
-        try {
-          final handlers = _handlers();
-          _logger.info('Attempting to bind to $host:${config.port}');
-          return await io.serve(handlers, host, config.port);
-        } on SocketException catch (e) {
-          errorMessage = e.message;
-          if (e.osError != null) {
-            errorMessage += ' (${e.osError!.message})';
+      _logger.info('Starting the Dart Runtime Service.');
+      late String errorMessage;
+      final server = await runZonedGuarded(
+        () async {
+          try {
+            final handlers = _handlers();
+            _logger.info(
+              'Attempting to bind to ${host.address}:${config.port}',
+            );
+            return await io.serve(handlers, host, config.port);
+          } on SocketException catch (e) {
+            errorMessage = e.message;
+            if (e.osError != null) {
+              errorMessage += ' (${e.osError!.message})';
+            }
+            errorMessage += ': ${e.address?.host}:${e.port}';
+            return null;
           }
-          errorMessage += ': ${e.address?.host}:${e.port}';
-          return null;
-        }
-      },
-      (e, st) {
-        _logger.warning('Asynchronous error: $e\n$st');
-      },
-    );
+        },
+        (e, st) {
+          _logger.warning('Asynchronous error: $e\n$st');
+        },
+      );
 
-    if (server == null) {
-      final message = 'Failed to start server: $errorMessage';
-      _logger.warning(message);
-      throw DartRuntimeServiceFailedToStartException(message: errorMessage);
-    }
+      if (server == null) {
+        final message = 'Failed to start server: $errorMessage';
+        _logger.warning(message);
+        throw DartRuntimeServiceFailedToStartException(message: errorMessage);
+      }
 
-    _server = server;
-    _uri = Uri(
-      scheme: 'ws',
-      host: host,
-      port: server.port,
-      path: authCode != null ? '/$authCode' : '',
-    );
-    await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
-    _logger.info(
-      'Dart Runtime Service HTTP server started successfully and is listening '
-      'at $uri.',
-    );
+      _server = server;
+      _uri = Uri(
+        scheme: 'ws',
+        host: host.host,
+        port: server.port,
+        path: authCode != null ? '/$authCode' : '',
+      );
+      await backend.onServerStarted(httpUri: httpUri, wsUri: uri);
+      _logger.info(
+        'Dart Runtime Service HTTP server started successfully and is '
+        'listening at $uri.',
+      );
+    });
   }
 
-  Future<void> _shutdownServer() async {
-    final server = _server;
-    if (server == null) {
-      _logger.warning(
-        "Attempting to shut down the HTTP server, but it's not "
-        'running.',
-      );
-      throw const DartRuntimeServiceServerNotRunning();
-    }
-    _logger.info('Dart Runtime Service HTTP server is shutting down.');
-    _server = null;
-    _uri = null;
-    await server.close();
-    await backend.onServerShutdown();
+  Future<void> _shutdownServer() {
+    return _serverLock.withResource(() async {
+      final server = _server;
+      if (server == null) {
+        _logger.warning(
+          "Attempting to shut down the HTTP server, but it's not "
+          'running.',
+        );
+        throw const DartRuntimeServiceServerNotRunning();
+      }
+      _logger.info('Dart Runtime Service HTTP server is shutting down.');
+      _server = null;
+      _uri = null;
+      await server.close();
+      await backend.onServerShutdown();
+    });
   }
 
   /// Send a [StreamEvent] to subscribed clients.

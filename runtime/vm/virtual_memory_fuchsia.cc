@@ -93,17 +93,16 @@ void VirtualMemory::Init() {
 
   page_size_ = CalculatePageSize();
 
+#if !defined(DART_PRECOMPILED_RUNTIME)
   // If VmexResource is unavailable or does not return a valid handle then
   // this will be observed as failures from vmo_replace_as_executable below.
   zx::resource vmex_resource;
   fuchsia::kernel::VmexResourceSyncPtr vmex_resource_svc;
-  zx_status_t status = fdio_service_connect(
-      "/svc/fuchsia.kernel.VmexResource",
-      vmex_resource_svc.NewRequest().TakeChannel().release());
-  ASSERT(status == ZX_OK);
-  status = vmex_resource_svc->Get(&vmex_resource);
-  ASSERT(status == ZX_OK);
+  fdio_service_connect("/svc/fuchsia.kernel.VmexResource",
+                       vmex_resource_svc.NewRequest().TakeChannel().release());
+  vmex_resource_svc->Get(&vmex_resource);
   vmex_resource_ = vmex_resource.release();
+#endif
 }
 
 void VirtualMemory::Cleanup() {

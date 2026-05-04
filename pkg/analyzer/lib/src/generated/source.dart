@@ -5,9 +5,7 @@
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/source.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
-import 'package:path/path.dart' as path;
 
 /// Instances of the class `DartUriResolver` resolve `dart` URI's.
 class DartUriResolver extends UriResolver {
@@ -44,47 +42,6 @@ class DartUriResolver extends UriResolver {
   /// @param uri the URI being tested
   /// @return `true` if the given URI is a `dart:` URI
   static bool isDartUri(Uri uri) => uri.isScheme(DART_SCHEME);
-}
-
-/// An implementation of an non-existing [Source].
-class NonExistingSource extends Source {
-  static final unknown = NonExistingSource(
-    '/unknown.dart',
-    path.toUri('/unknown.dart'),
-  );
-
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  NonExistingSource(this.fullName, this.uri);
-
-  @override
-  TimestampedData<String> get contents {
-    throw UnsupportedError('$fullName does not exist.');
-  }
-
-  @override
-  int get hashCode => fullName.hashCode;
-
-  @override
-  String get shortName => path.basename(fullName);
-
-  @override
-  bool operator ==(Object other) {
-    if (other is NonExistingSource) {
-      return other.uri == uri && other.fullName == fullName;
-    }
-    return false;
-  }
-
-  @override
-  bool exists() => false;
-
-  @override
-  String toString() => 'NonExistingSource($uri, $fullName)';
 }
 
 /// Instances of the class `SourceFactory` resolve possibly relative URI's

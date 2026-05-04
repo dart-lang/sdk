@@ -2051,11 +2051,19 @@ class KernelSsaGraphBuilder extends ir.VisitorDefault<void>
       if (_buildSpecialRuntimeEqualsMethod(function, functionNode)) return;
     }
 
-    // `external` functions in `dart:_foreign_helper` are queued for compilation
-    // in a modular or staged compile, so just generate an empty function. The
-    // actual call sites for these methods are recognized and replaced, so the
-    // method generated here is never called.
-    if (_commonElements.isForeignHelper(function)) {
+    final member = _elementMap.getMemberContextNode(function);
+
+    // `external` functions in `dart:_foreign_helper` or annotated with
+    // `@pragma('external-effect')` are queued for compilation in a modular or
+    // staged compile, so just generate an empty function. The actual call sites
+    // for these methods are recognized and replaced, so the method generated
+    // here is never called.
+    if (_commonElements.isForeignHelper(function) ||
+        (member != null &&
+            ir.ExternalEffect.isAnnotatedWithExternalEffect(
+              member,
+              closedWorld.elementMap.coreTypes,
+            ))) {
       _openFunction(
         function,
         functionNode: functionNode,

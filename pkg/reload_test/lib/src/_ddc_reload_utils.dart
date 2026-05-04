@@ -36,7 +36,8 @@ external _DartDevEmbedder get _dartDevEmbedder;
 
 @JS('\$injectedFilesAndLibrariesToReload')
 external JSArray<JSArray<JSString>>? injectedFilesAndLibrariesToReload(
-    JSNumber requestedFileGeneration);
+  JSNumber requestedFileGeneration,
+);
 
 @JS('\$dartLoader')
 external _DartLoader get _dartLoader;
@@ -51,8 +52,10 @@ Future<void> hotRestart() async {
     generation: _ddcLoader.intendedHotRestartGeneration,
     status: Status.restarted,
   );
-  print('${HotReloadReceipt.hotReloadReceiptTag}'
-      '${jsonEncode(restartReceipt.toJson())}');
+  print(
+    '${HotReloadReceipt.hotReloadReceiptTag}'
+    '${jsonEncode(restartReceipt.toJson())}',
+  );
   await _dartDevEmbedder.hotRestart().toDart;
 }
 
@@ -68,24 +71,29 @@ int _hotReloadFileGeneration = 0;
 
 Future<void> hotReload({bool expectRejection = false}) async {
   _hotReloadFileGeneration++;
-  final generationFileInfo =
-      injectedFilesAndLibrariesToReload(_hotReloadFileGeneration.toJS);
+  final generationFileInfo = injectedFilesAndLibrariesToReload(
+    _hotReloadFileGeneration.toJS,
+  );
   final HotReloadReceipt reloadStatus = expectRejection
       ? _rejectNextGeneration(generationFileInfo)
       : await _reloadNextGeneration(generationFileInfo);
   // Write reload receipt with a leading tag to be recognized by the reload
   // suite runner and validated.
-  print('${HotReloadReceipt.hotReloadReceiptTag}'
-      '${jsonEncode(reloadStatus.toJson())}');
+  print(
+    '${HotReloadReceipt.hotReloadReceiptTag}'
+    '${jsonEncode(reloadStatus.toJson())}',
+  );
 }
 
 HotReloadReceipt _rejectNextGeneration(
-    JSArray<JSArray<JSString>>? generationFileInfo) {
+  JSArray<JSArray<JSString>>? generationFileInfo,
+) {
   if (generationFileInfo != null) {
     throw Exception(
-        'Generation $_hotReloadFileGeneration was not rejected at compile '
-        'time. Verify the calls of `hotReload(expectRejection: true)` in the '
-        'test source match the rejected generation files.');
+      'Generation $_hotReloadFileGeneration was not rejected at compile '
+      'time. Verify the calls of `hotReload(expectRejection: true)` in the '
+      'test source match the rejected generation files.',
+    );
   }
   // This reload wasn't expected to find any files so this is OK.
   // * The correct reason for rejection was already validated at compile time
@@ -100,16 +108,19 @@ HotReloadReceipt _rejectNextGeneration(
 }
 
 Future<HotReloadReceipt> _reloadNextGeneration(
-    JSArray<JSArray<JSString>>? generationFileInfo) async {
+  JSArray<JSArray<JSString>>? generationFileInfo,
+) async {
   if (generationFileInfo == null) {
     throw Exception(
-        'No compiled files found for generation $_hotReloadFileGeneration. '
-        'Verify the calls of `hotReload()` in the test match the accepted '
-        'generation source files.');
+      'No compiled files found for generation $_hotReloadFileGeneration. '
+      'Verify the calls of `hotReload()` in the test match the accepted '
+      'generation source files.',
+    );
   }
   await (_dartDevEmbedder.hotReload(
-          generationFileInfo[0], generationFileInfo[1]))
-      .toDart;
+    generationFileInfo[0],
+    generationFileInfo[1],
+  )).toDart;
   return HotReloadReceipt(
     generation: _hotReloadFileGeneration,
     status: Status.accepted,

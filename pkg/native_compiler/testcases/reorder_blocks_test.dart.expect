@@ -71,7 +71,7 @@ B0 = EntryBlock() dominates:(B3)
   Goto(B3)
 B3 = JoinBlock(B0, B30) idom:B0 dominates:(B9, B8) loop-header (depth:1 body:(B3, B8, B12, B17, B30, B16, B24, B23) back-edges:(B30))
   v44 = Phi(v49, v39)   # RA: R0 <- (-, R0)
-  ParallelMove spill(R0 -> stack[0])
+  ParallelMove output(R0 -> stack[0])
   CompareAndBranch int <(v44, v50, true: B8, false: B9)   # RA: (R0, -)
 B8 = TargetBlock() idom:B3 dominates:(B12) in-loop:B3
   ParallelMove input(UnboxedIntConstant(0) -> R1)
@@ -93,7 +93,7 @@ B17 = TargetBlock() idom:B12 in-loop:B3
 B30 = JoinBlock(B17, B23) idom:B12 in-loop:B3
   ParallelMove output(stack[0] -> R0)
   v39 = BinaryIntOp +(v44, v51)   # RA: R0 <- (R0, -)
-  ParallelMove spill(R0 -> stack[0])
+  ParallelMove output(R0 -> stack[0])
   Goto(B3)
 B9 = TargetBlock() idom:B3
   ParallelMove input(NullConstant(null) -> R0)

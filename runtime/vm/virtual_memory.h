@@ -142,6 +142,7 @@ class VirtualMemory {
   bool vm_owns_region() const { return reserved_.pointer() != nullptr; }
 
   static VirtualMemory* ForImagePage(void* pointer, uword size);
+  static VirtualMemory* Adopt(void* pointer, uword size);
 
  private:
   static intptr_t CalculatePageSize();

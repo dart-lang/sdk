@@ -1694,7 +1694,7 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-${system}-${mode}-${arch}",
-            "-j4",
+            "-j8",
             "ffi"
           ]
         },
@@ -1702,7 +1702,7 @@
           "name": "vm tests",
           "arguments": [
             "-nvm-aot-${system}-${mode}-${arch}",
-            "-j4",
+            "-j8",
             "ffi"
           ]
         }

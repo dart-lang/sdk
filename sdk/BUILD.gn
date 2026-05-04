@@ -384,7 +384,10 @@ if (dart_target_arch != "ia32" && dart_target_arch != "x86") {
     deps = [ "../runtime/bin:dart" ]
     src_dir = get_label_info("../runtime/bin:dart", "root_out_dir")
     sources = [ "$src_dir/${dart_stripped_binary}${executable_suffix}" ]
-    outputs = [ "$root_out_dir/$dart_sdk_output/bin/dart${executable_suffix}" ]
+    if (_has_dot_sym) {
+      sources += [ "$src_dir/dart.sym" ]
+    }
+    outputs = [ "$root_out_dir/$dart_sdk_output/bin/{{source_file_part}}" ]
   }
 } else {
   copy("copy_dart") {
@@ -406,6 +409,16 @@ copy("copy_dart_aotruntime") {
   outputs = [
     "$root_out_dir/$dart_sdk_output/bin/dartaotruntime${executable_suffix}",
   ]
+}
+if (_has_dot_sym) {
+  copy("copy_dart_aotruntime_sym") {
+    visibility = [ ":group_dart2native" ]
+    deps = [ "../runtime/bin:dartaotruntime_product" ]
+    src_dir =
+        get_label_info("../runtime/bin:dartaotruntime_product", "root_out_dir")
+    sources = [ "$src_dir/dartaotruntime_product${executable_suffix}.sym" ]
+    outputs = [ "$root_out_dir/$dart_sdk_output/bin/dartaotruntime.sym" ]
+  }
 }
 
 copy_sanitizer_deps = []
@@ -501,6 +514,9 @@ group("group_dart2native") {
            ":copy_gen_snapshot",
            ":copy_vm_platform_product",
          ] + copy_sanitizer_deps
+  if (_has_dot_sym) {
+    deps += [ ":copy_dart_aotruntime_sym" ]
+  }
 }
 
 # A template for copying the things in _platform_sdk_scripts and

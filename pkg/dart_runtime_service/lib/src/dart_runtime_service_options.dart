@@ -15,6 +15,7 @@ class DartRuntimeServiceOptions {
     this.autoStart = true,
     this.serveDevTools = false,
     this.enableServicePortFallback = false,
+    this.host,
   });
 
   /// If true, enables log output for the service.
@@ -52,6 +53,11 @@ class DartRuntimeServiceOptions {
   /// is unavailable.
   final bool enableServicePortFallback;
 
+  /// The host the service should attempt to bind to.
+  ///
+  /// If null, defaults to loopback IPv4 address.
+  final String? host;
+
   DartRuntimeServiceOptions copyWith({
     bool? enableLogging,
     int? port,
@@ -61,6 +67,7 @@ class DartRuntimeServiceOptions {
     bool? autoStart,
     bool? serveDevTools,
     bool? enableServicePortFallback,
+    String? host,
   }) {
     return DartRuntimeServiceOptions(
       enableLogging: enableLogging ?? this.enableLogging,
@@ -72,6 +79,7 @@ class DartRuntimeServiceOptions {
       serveDevTools: serveDevTools ?? this.serveDevTools,
       enableServicePortFallback:
           enableServicePortFallback ?? this.enableServicePortFallback,
+      host: host ?? this.host,
     );
   }
 }
