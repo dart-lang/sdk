@@ -9,27 +9,6 @@ import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer/src/generated/sdk.dart' show DartSdk;
 import 'package:path/path.dart' as path;
 
-/// Base class providing implementations for the methods in [Source] that don't
-/// require filesystem access.
-abstract class BasicSource extends Source {
-  @override
-  final Uri uri;
-
-  BasicSource(this.uri);
-
-  @override
-  String get fullName => '$uri';
-
-  @override
-  int get hashCode => uri.hashCode;
-
-  @override
-  String get shortName => path.basename(fullName);
-
-  @override
-  bool operator ==(Object other) => other is Source && other.uri == uri;
-}
-
 /// Instances of the class `DartUriResolver` resolve `dart` URI's.
 class DartUriResolver extends UriResolver {
   /// The name of the `dart` scheme.
