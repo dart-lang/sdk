@@ -319,9 +319,11 @@ void testMaxPayloadLengthDefaultAcceptsLargeFrame() {
 }
 
 void main() {
+  asyncStart();
   testFullMessages();
   testFragmentedMessages();
   testUnmaskedMessage();
   testMaxPayloadLengthRejectsOversizedFrame();
   testMaxPayloadLengthDefaultAcceptsLargeFrame();
+  asyncEnd();
 }
