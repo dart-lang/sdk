@@ -216,6 +216,7 @@ class CoreTypesUtil {
   final Procedure jsValueUnboxTarget;
   final Procedure numToIntTarget;
   final Class wasmExternRefClass;
+  final Class wasmVoidClass;
   final Class wasmArrayClass;
   final Class wasmArrayRefClass;
   final Procedure wrapDartFunctionTarget;
@@ -501,6 +502,7 @@ class CoreTypesUtil {
         'WasmExternRef',
         'get:nullRef',
       ),
+      wasmVoidClass = coreTypes.index.getClass('dart:_wasm', 'WasmVoid'),
       wasmArrayClass = coreTypes.index.getClass('dart:_wasm', 'WasmArray'),
       wasmArrayRefClass = coreTypes.index.getClass(
         'dart:_wasm',
@@ -770,10 +772,13 @@ class CoreTypesUtil {
   /// the user.
   Expression castInvocationForReturn(
     Expression invocation,
-    DartType expectedType,
-  ) {
+    DartType expectedType, {
+    bool onlyHandleNull = false,
+  }) {
     Expression expression;
-    if (expectedType is VoidType) {
+    if (expectedType is VoidType ||
+        expectedType is InterfaceType &&
+            expectedType.classNode == wasmVoidClass) {
       // Technically a `void` return value can still be used, by casting the
       // return type to `dynamic` or `Object?`. However this case should be
       // extremely rare, and `dartifyRaw` overhead for return values that should
@@ -784,6 +789,7 @@ class CoreTypesUtil {
         NullLiteral(),
       );
     }
+    if (onlyHandleNull) return invocation;
 
     if (isJSValueType(expectedType)) {
       // Casts are expensive, so we stick to a null-assertion if needed. If

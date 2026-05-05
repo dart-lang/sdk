@@ -2,25 +2,12 @@ Part 0
   ImportSet
      - pkg/compiler/test/custom_split/data/just_fuse/lib1.dart prefix: b1
      - pkg/compiler/test/custom_split/data/just_fuse/lib2.dart prefix: b2
-  References
-     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_010_0
-     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_100_0
-     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_110_0
-     - pkg/compiler/test/custom_split/data/just_fuse/lib_010_0.dart::@methods::g_010_0
-     - pkg/compiler/test/custom_split/data/just_fuse/lib_100_0.dart::@methods::g_100_0
-  Constants
-     - StringConstant("0100")
-     - StringConstant("1000")
-     - StringConstant("1100")
-
-Part 1
-  ImportSet
-     - pkg/compiler/test/custom_split/data/just_fuse/lib1.dart prefix: b1
-     - pkg/compiler/test/custom_split/data/just_fuse/lib2.dart prefix: b2
      - pkg/compiler/test/custom_split/data/just_fuse/lib3.dart prefix: b3
      - pkg/compiler/test/custom_split/data/just_fuse/lib4.dart prefix: b4
   References
      - dart:_boxed_int::BoxedInt::@methods::toRadixString
+     - dart:_string::@methods::dart:_string::_JS_Inline_22
+     - dart:_string::@methods::dart:_string::_JS_Inline_30
      - dart:_string::@methods::dart:_string::_jsIdentical
      - dart:_string::@methods::dart:_string::_jsStringToUpperCase
      - dart:_string::@methods::jsStringFromCharCodeArray
@@ -86,6 +73,21 @@ Part 1
      - StringConstant("at index ")
      - StringConstant("equals")
      - StringConstant("radix")
+
+Part 1
+  ImportSet
+     - pkg/compiler/test/custom_split/data/just_fuse/lib1.dart prefix: b1
+     - pkg/compiler/test/custom_split/data/just_fuse/lib2.dart prefix: b2
+  References
+     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_010_0
+     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_100_0
+     - pkg/compiler/test/custom_split/data/just_fuse/libImport.dart::@methods::f_110_0
+     - pkg/compiler/test/custom_split/data/just_fuse/lib_010_0.dart::@methods::g_010_0
+     - pkg/compiler/test/custom_split/data/just_fuse/lib_100_0.dart::@methods::g_100_0
+  Constants
+     - StringConstant("0100")
+     - StringConstant("1000")
+     - StringConstant("1100")
 
 Part 2
   ImportSet

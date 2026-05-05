@@ -91,9 +91,7 @@ class InteropTransformer extends Transformer {
   Procedure visitProcedure(Procedure node) {
     if (!_interopSpecializerFactory.maybeSpecializeProcedure(node)) {
       _staticTypeContext.enterMember(node);
-      _inlineExpander.enterProcedure();
       node.transformChildren(this);
-      _inlineExpander.exitProcedure(node);
       _staticTypeContext.leaveMember(node);
     }
     return node;

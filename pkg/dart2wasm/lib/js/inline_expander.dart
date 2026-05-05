@@ -12,74 +12,16 @@ import 'util.dart';
 class InlineExpander {
   final StatefulStaticTypeContext _staticTypeContext;
   final CoreTypesUtil _util;
-  bool _replaceProcedureWithInlineJS = false;
   static int _counter = 0;
 
   InlineExpander(this._staticTypeContext, this._util);
 
-  void enterProcedure() {
-    // Under very restricted circumstances, we will make a procedure
-    // external and clear it's body. See the description on
-    // [expand] for more details.
-    _replaceProcedureWithInlineJS = false;
-  }
-
-  void exitProcedure(Procedure node) {
-    if (_replaceProcedureWithInlineJS) {
-      node.isStatic = true;
-      node.isExternal = true;
-      node.function.body = null;
-      _replaceProcedureWithInlineJS = false;
-    }
-  }
-
-  Procedure? _tryGetEnclosingProcedure(TreeNode? node) {
-    while (node is! Procedure) {
-      node = node?.parent;
-      if (node == null) {
-        return null;
-      }
-    }
-    return node;
-  }
-
-  /// We will replace the enclosing procedure if:
-  ///   1) The enclosing procedure is static.
-  ///   2) The enclosing procedure has a body with a single statement, and that
-  ///      statement is just a [StaticInvocation] of the inline JS helper.
-  ///   3) All of the arguments to `inlineJS` are [VariableGet]s. (this is
-  ///      checked by [_expandInlineJS]).
-  bool _shouldReplaceEnclosingProcedure(StaticInvocation node) {
-    Procedure? enclosingProcedure = _tryGetEnclosingProcedure(node);
-    if (enclosingProcedure == null) {
-      return false;
-    }
-    Statement enclosingBody = enclosingProcedure.function.body!;
-    Expression? expression;
-    if (enclosingBody is ReturnStatement) {
-      expression = enclosingBody.expression;
-    } else if (enclosingBody is Block && enclosingBody.statements.length == 1) {
-      Statement statement = enclosingBody.statements.single;
-      if (statement is ExpressionStatement) {
-        expression = statement.expression;
-      } else if (statement is ReturnStatement) {
-        expression = statement.expression;
-      }
-    }
-    return expression == node;
-  }
-
-  /// Calls to the `JS` helper are replaced in one of two ways:
-  ///   1) By a static invocation to an external stub method that imports
-  ///      the JS function.
-  ///   2) Under restricted circumstances the entire enclosing procedure will be
-  ///      replaced by an external stub method that imports the JS function. See
-  ///      [_shouldReplaceEnclosingProcedure] for more details.
+  /// Calls to the `JS` helper are replaced by a static invocation to an
+  /// external stub method that imports the JS function.
   Expression expand(StaticInvocation node) {
     Arguments arguments = node.arguments;
     List<Expression> originalArguments = arguments.positional.sublist(1);
     List<VariableDeclaration> dartPositionalParameters = [];
-    bool allArgumentsAreGet = true;
     for (int j = 0; j < originalArguments.length; j++) {
       Expression originalArgument = originalArguments[j];
       String parameterString = 'x$j';
@@ -91,9 +33,6 @@ class InlineExpander {
           isSynthesized: true,
         ),
       );
-      if (originalArgument is! VariableGet) {
-        allArgumentsAreGet = false;
-      }
     }
 
     Expression templateArgument = arguments.positional.first;
@@ -114,29 +53,30 @@ class InlineExpander {
       constant as StringConstant;
       codeTemplate = constant.value;
     }
-    _replaceProcedureWithInlineJS =
-        allArgumentsAreGet && _shouldReplaceEnclosingProcedure(node);
     Procedure dartProcedure;
     Expression result;
-    if (_replaceProcedureWithInlineJS) {
-      dartProcedure = _tryGetEnclosingProcedure(node)!;
-      result = InvalidExpression("Unreachable");
-    } else {
-      dartProcedure = makeInteropProcedure(
-        _staticTypeContext.enclosingLibrary,
-        '_JS_Inline_${_counter++}',
-        node.location!.file,
-        FunctionNode(
-          null,
-          positionalParameters: dartPositionalParameters,
-          returnType: arguments.types.single,
-        ),
-        isExternal: true,
-      );
-      result = StaticInvocation(dartProcedure, Arguments(originalArguments));
+    DartType resultType = arguments.types.single;
+    if (resultType is VoidType) {
+      resultType = InterfaceType(_util.wasmVoidClass, Nullability.nonNullable);
     }
+    dartProcedure = makeInteropProcedure(
+      _staticTypeContext.enclosingLibrary,
+      '_JS_Inline_${_counter++}',
+      node.location!.file,
+      FunctionNode(
+        null,
+        positionalParameters: dartPositionalParameters,
+        returnType: resultType,
+      ),
+      isExternal: true,
+    );
+    result = StaticInvocation(dartProcedure, Arguments(originalArguments));
     JsCodeData(codeTemplate).applyToMember(dartProcedure, _util.coreTypes);
-    return result;
+    return _util.castInvocationForReturn(
+      result,
+      resultType,
+      onlyHandleNull: true,
+    );
   }
 
   // The `JS<foo>("...some js code ...", arg0, arg1)` expressions will produce
