@@ -45,14 +45,14 @@ import '$import2' as js2;
 class A {
   external get foo;
 
-  external A(var foo);
+  external A(foo);
 }
 
 @js2.JS('BClass')
 class B {
   external get foo;
 
-  external B(var foo);
+  external B(foo);
 }
 
 @js1.JS()

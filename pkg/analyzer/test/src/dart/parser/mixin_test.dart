@@ -254,7 +254,7 @@ MixinDeclaration
 mixin M;
 ''');
     parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 23, 1),
+      error(diag.experimentNotEnabled, 23, 1),
     ]);
 
     var node = parseResult.findNode.singleMixinDeclaration;

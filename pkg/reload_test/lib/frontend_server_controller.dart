@@ -193,8 +193,8 @@ class HotReloadFrontendServerController {
                 sources.remove(Uri.parse(s.substring(1)));
               } else {
                 throw Exception(
-                  "Unexpected Frontend Server response "
-                  "(expected '+' or '-')'): $s",
+                  "Unexpected Frontend Server response (expected '+' or '-'): "
+                  "$s",
                 );
               }
               break;

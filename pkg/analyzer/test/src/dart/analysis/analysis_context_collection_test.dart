@@ -424,6 +424,7 @@ analysisOptions
       nonfunction-type-aliases
       null-aware-elements
       patterns
+      primary-constructors
       private-named-parameters
       records
       sealed-class
@@ -507,6 +508,7 @@ analysisOptions
       nonfunction-type-aliases
       null-aware-elements
       patterns
+      primary-constructors
       private-named-parameters
       records
       sealed-class

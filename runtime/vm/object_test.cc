@@ -3360,7 +3360,7 @@ TEST_CASE(StackTraceFormat) {
       "  }\n"
       "}\n"
       "\n"
-      "set globalVar(var value) {\n"
+      "set globalVar(value) {\n"
       "  new _OtherClass._named();\n"
       "}\n"
       "\n"

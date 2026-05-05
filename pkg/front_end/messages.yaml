@@ -6616,6 +6616,7 @@ enumNonConstConstructor:
   parameters: none
   problemMessage: "Generative enum constructors must be marked as 'const'."
   script: |
+    // @dart=3.11
     enum Foo {
       bar;
 
@@ -7484,14 +7485,20 @@ implementMultipleExtensionTypeMembers:
 representationFieldModifier:
   parameters: none
   problemMessage: "Representation fields can't have modifiers."
-  script: |
-    extension type E(final int foo) {}
+  script:
+    - |
+      // @dart=3.11
+      extension type E(final int foo) {}
+    - |
+      extension type E(var int foo) {}
 
 expectedRepresentationType:
   parameters: none
   problemMessage: "Expected a representation type."
-  script: |
-    extension type E(var foo) {}
+  script:
+    - |
+      // @dart=3.11
+      extension type E(var foo) {}
 
 expectedRepresentationField:
   parameters: none
@@ -7535,6 +7542,7 @@ representationFieldTrailingComma:
   parameters: none
   problemMessage: "The representation field can't have a trailing comma."
   script: |
+    // @dart=3.11
     extension type E(int foo,) {}
 
 wrongTypeParameterVarianceInSuperinterface:
@@ -7555,12 +7563,14 @@ namedParametersInExtensionTypeDeclaration:
   parameters: none
   problemMessage: "Extension type declarations can't have named parameters."
   script: |
+    // @dart=3.11
     extension type E(int foo, {dynamic bar}) {}
 
 optionalParametersInExtensionTypeDeclaration:
   parameters: none
   problemMessage: "Extension type declarations can't have optional parameters."
   script: |
+    // @dart=3.11
     extension type E(int foo, [dynamic bar]) {}
 
 classImplementsDeferredClass:

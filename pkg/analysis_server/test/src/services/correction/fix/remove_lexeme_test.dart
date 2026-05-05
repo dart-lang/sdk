@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -21,13 +20,6 @@ void main() {
 
 @reflectiveTest
 class RemoveLexemeAvoidFinalParameters extends FixProcessorLintTest {
-  @override
-  List<String> get experiments => super.experiments
-      .where(
-        (experiment) => experiment != Feature.primary_constructors.enableString,
-      )
-      .toList();
-
   @override
   FixKind get kind => DartFixKind.removeLexeme;
 
@@ -863,13 +855,6 @@ class C {}
 
 @reflectiveTest
 class RemoveLexemeVarWithNoTypeAnnotationTest extends FixProcessorLintTest {
-  @override
-  List<String> get experiments => super.experiments
-      .where(
-        (experiment) => experiment != Feature.primary_constructors.enableString,
-      )
-      .toList();
-
   @override
   FixKind get kind => DartFixKind.removeLexeme;
 

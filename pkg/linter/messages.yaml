@@ -1586,6 +1586,7 @@ LinterLintCode:
       parameter `a` is marked as `final`:
 
       ```dart
+      // @dart=3.12
       void f([!final!] String a) {
         print(a);
       }
@@ -1595,6 +1596,7 @@ LinterLintCode:
       closure parameter `a` is marked as `final`:
 
       ```dart
+      // @dart=3.12
       var f = ([!final!] int a) => print(a);
       ```
 
@@ -10248,6 +10250,7 @@ LinterLintCode:
       isn't a `final` parameter:
 
       ```dart
+      // @dart=3.12
       String f([!String s!]) => s;
       ```
 
@@ -10256,6 +10259,7 @@ LinterLintCode:
       Add the modifier `final` to the parameter:
 
       ```dart
+      // @dart=3.12
       String f(final String s) => s;
       ```
     deprecatedDetails: |-
@@ -17513,6 +17517,7 @@ LinterLintCode:
       parameter `x` is declared with `var`:
 
       ```dart
+      // @dart=3.12
       void f([!var!] x) {
         print(x);
       }
@@ -17522,6 +17527,7 @@ LinterLintCode:
       initializing formal parameter `x` is declared with `var`:
 
       ```dart
+      // @dart=3.12
       class C {
         int x;
 

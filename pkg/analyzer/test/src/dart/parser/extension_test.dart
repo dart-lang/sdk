@@ -213,7 +213,7 @@ ExtensionDeclaration
 extension E on int;
 ''');
     parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 34, 1),
+      error(diag.experimentNotEnabled, 34, 1),
     ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;

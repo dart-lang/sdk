@@ -417,7 +417,7 @@ enum E;
 
     await assertErrorsInCode(code, [
       error(diag.enumWithoutConstants, 21, 1),
-      error(diag.experimentNotEnabledOffByDefault, 22, 1),
+      error(diag.experimentNotEnabled, 22, 1),
     ]);
 
     var node = findNode.singleEnumDeclaration;

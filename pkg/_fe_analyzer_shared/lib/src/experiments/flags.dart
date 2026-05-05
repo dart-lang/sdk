@@ -236,9 +236,9 @@ enum ExperimentalFlag {
 
   primaryConstructors(
     name: 'primary-constructors',
-    isEnabledByDefault: false,
+    isEnabledByDefault: true,
     isExpired: false,
-    experimentEnabledVersion: defaultLanguageVersion,
+    experimentEnabledVersion: const Version(3, 13),
     experimentReleasedVersion: const Version(3, 12),
   ),
 

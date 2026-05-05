@@ -54,7 +54,7 @@ ISOLATE_UNIT_TEST_CASE(IRTest_EliminateWriteBarrier) {
   // clang-format off
   const char* kScript = R"(
       class Container<T> {
-        operator []=(var index, var value) {
+        operator []=(index, value) {
           return data[index] = value;
         }
 

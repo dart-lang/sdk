@@ -1495,14 +1495,15 @@ constructorWithWrongName:
   analyzerCode: invalidConstructorName
   hasPublishedDocs: false
   script:
-    - >-
+    - |
       class A { B.foo() {} }
-    - >-
+    - |
+      // @dart=3.11
       class A {
         factory B() => new A.internal();
         A.internal();
       }
-    - >-
+    - |
       class A {
         factory B.foo() => new A.internal();
         A.internal();

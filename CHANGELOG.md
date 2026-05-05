@@ -2,6 +2,70 @@
 
 **Released on:** Unreleased
 
+### Language
+
+Dart 3.13 adds [primary constructors][primary-constructor-spec] to the language.
+To use this feature, set your package's [SDK constraint][language version] lower
+bound to 3.13 or greater (`sdk: '^3.13.0'`).
+
+#### Primary constructors
+
+The primary constructors feature is a brevity feature. There are no new
+semantics, but it allows us to express declarations in a less verbose way.
+
+This feature allows one constructor and a set of instance variables to be
+specified in the header of a declaration.
+
+Currently a declaration with a constructor and some fields is written as:
+
+```dart
+// Current syntax.
+class Point {
+  int x;
+  int y;
+  Point(this.x, this.y);
+}
+```
+
+Now you can write:
+
+```dart
+class Point(var int x, var int y);
+```
+
+If a primary constructor needs an initializer list or a body, they can be
+specified inside the class using the `this` body syntax:
+
+```dart
+class Point(var int x, var int y) {
+  this : assert(x >= 0) {
+    print('Point created at $x, $y');
+  }
+}
+```
+
+As part of this feature, you can also use the `new` and `factory` keywords to
+declare constructors in the class body without repeating the class name:
+```dart
+class Point {
+  int x, y;
+
+  // Equivalent to Point(this.x, this.y)
+  new(this.x, this.y);
+
+  // Equivalent to Point.origin()
+  new origin() : x = 0, y = 0;
+
+  // Equivalent to factory Point.clone(Point other)
+  factory clone(Point other) => Point(other.x, other.y);
+}
+```
+
+To learn more about the feature, check out the
+[feature specification][primary-constructor-spec].
+
+[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
+
 ### Libraries
 
 #### `dart:async`

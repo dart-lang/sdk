@@ -212,7 +212,7 @@ class C(final int x);
       [
         error(diag.experimentNotEnabled, 23, 1),
         lint(24, 5),
-        error(diag.experimentNotEnabledOffByDefault, 36, 1),
+        error(diag.experimentNotEnabled, 36, 1),
       ],
     );
   }

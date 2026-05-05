@@ -92,7 +92,7 @@ mixin M;
 ''';
 
     await assertErrorsInCode(code, [
-      error(diag.experimentNotEnabledOffByDefault, 23, 1),
+      error(diag.experimentNotEnabled, 23, 1),
     ]);
 
     var node = findNode.singleMixinDeclaration;

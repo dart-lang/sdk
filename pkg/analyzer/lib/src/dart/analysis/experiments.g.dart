@@ -604,7 +604,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.primary_constructors,
     documentation: 'Less verbose constructors.',
     experimentalReleaseVersion: Version.parse('3.12.0'),
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.13.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -866,7 +866,7 @@ class IsEnabledByDefault {
   static const bool patterns = true;
 
   /// Default state of the experiment "primary-constructors"
-  static const bool primary_constructors = false;
+  static const bool primary_constructors = true;
 
   /// Default state of the experiment "private-named-parameters"
   static const bool private_named_parameters = true;

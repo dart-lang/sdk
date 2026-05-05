@@ -582,7 +582,7 @@ EnumDeclaration
 enum E;
 ''');
     parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 22, 1),
+      error(diag.experimentNotEnabled, 22, 1),
     ]);
 
     var node = parseResult.findNode.singleEnumDeclaration;

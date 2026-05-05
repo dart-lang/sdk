@@ -164,10 +164,6 @@ features:
   static-extensions:
     help: "Extensions with static capabilities."
 
-  primary-constructors:
-    help: "Less verbose constructors."
-    experimentalReleaseVersion: '3.12.0'
-
   anonymous-methods:
     help: "Anonymous methods."
     # TODO(eernst): Enable this when the feature is implemented.
@@ -188,6 +184,16 @@ features:
 #
 # Shipped flags should be marked retired the following stable release.
 #
+  primary-constructors:
+    enabledIn: '3.13.0'
+    help: "Less verbose constructors."
+    experimentalReleaseVersion: '3.12.0'
+    validation: |
+      class C(var String x);
+      main() {
+        print(C('feature enabled').x);
+      }
+
   private-named-parameters:
     enabledIn: '3.12.0'
     help: "Allow named parameters with private names that refer to fields."
