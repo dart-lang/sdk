@@ -49,15 +49,25 @@ String simpleShellSingleQuote(String string) {
 }
 
 /// Runs a process and exits likewise if the process exits non-zero.
-Future<ProcessResult> runProcess(String executable, List<String> arguments,
-    {bool runInShell = false}) async {
-  var processResult =
-      await Process.run(executable, arguments, runInShell: runInShell);
+Future<ProcessResult> runProcess(
+  String executable,
+  List<String> arguments, {
+  bool runInShell = false,
+}) async {
+  var processResult = await Process.run(
+    executable,
+    arguments,
+    runInShell: runInShell,
+  );
   if (processResult.exitCode != 0) {
-    var command =
-        [executable, ...arguments].map(simpleShellSingleQuote).join(" ");
-    throw Exception("Command exited ${processResult.exitCode}: $command\n"
-        "${processResult.stdout}\n${processResult.stderr}");
+    var command = [
+      executable,
+      ...arguments,
+    ].map(simpleShellSingleQuote).join(" ");
+    throw Exception(
+      "Command exited ${processResult.exitCode}: $command\n"
+      "${processResult.stdout}\n${processResult.stderr}",
+    );
   }
   return processResult;
 }
@@ -65,15 +75,23 @@ Future<ProcessResult> runProcess(String executable, List<String> arguments,
 /// Runs a process and exits likewise if the process exits non-zero, but let the
 /// child process inherit out stdio handles.
 Future<ProcessResult> runProcessInheritStdio(
-    String executable, List<String> arguments,
-    {bool runInShell = false}) async {
-  var process = await Process.start(executable, arguments,
-      mode: ProcessStartMode.inheritStdio, runInShell: runInShell);
+  String executable,
+  List<String> arguments, {
+  bool runInShell = false,
+}) async {
+  var process = await Process.start(
+    executable,
+    arguments,
+    mode: ProcessStartMode.inheritStdio,
+    runInShell: runInShell,
+  );
   var exitCode = await process.exitCode;
   var processResult = ProcessResult(process.pid, exitCode, "", "");
   if (processResult.exitCode != 0) {
-    var command =
-        [executable, ...arguments].map(simpleShellSingleQuote).join(" ");
+    var command = [
+      executable,
+      ...arguments,
+    ].map(simpleShellSingleQuote).join(" ");
     throw Exception("Command exited ${processResult.exitCode}: $command");
   }
   return processResult;
@@ -81,18 +99,22 @@ Future<ProcessResult> runProcessInheritStdio(
 
 /// Finds the branch of a builder given the list of branches.
 String branchOfBuilder(String builder, List<String> branches) {
-  return branches.where((branch) => branch != "main").firstWhere(
-      (branch) => builder.endsWith("-$branch"),
-      orElse: () => "main");
+  return branches
+      .where((branch) => branch != "main")
+      .firstWhere(
+        (branch) => builder.endsWith("-$branch"),
+        orElse: () => "main",
+      );
 }
 
 /// Finds the named configuration to test according to the test matrix
 /// information and the command line options.
 Map<String, Set<Builder>>? resolveNamedConfigurations(
-    TestMatrix testMatrix,
-    String requestedBranch,
-    List<String> requestedNamedConfigurations,
-    String? requestedBuilder) {
+  TestMatrix testMatrix,
+  String requestedBranch,
+  List<String> requestedNamedConfigurations,
+  String? requestedBuilder,
+) {
   var testedConfigurations = <String, Set<Builder>>{};
   var foundBuilder = false;
   for (var builder in testMatrix.builders) {
@@ -104,8 +126,10 @@ Map<String, Set<Builder>>? resolveNamedConfigurations(
       if (requestedBuilder == null) {
         continue;
       }
-      stderr.writeln("error: Builder $requestedBuilder is on branch $branch "
-          "rather than $requestedBranch");
+      stderr.writeln(
+        "error: Builder $requestedBuilder is on branch $branch "
+        "rather than $requestedBranch",
+      );
       stderr.writeln("error: To compare with that branch, use: -B $branch");
       return null;
     }
@@ -133,8 +157,10 @@ Map<String, Set<Builder>>? resolveNamedConfigurations(
   if (requestedBuilder != null &&
       requestedNamedConfigurations.isEmpty &&
       testedConfigurations.isEmpty) {
-    stderr.writeln("error: Builder $requestedBuilder isn't testing any named "
-        "configurations");
+    stderr.writeln(
+      "error: Builder $requestedBuilder isn't testing any named "
+      "configurations",
+    );
     return null;
   }
   if (requestedNamedConfigurations.isNotEmpty) {
@@ -144,8 +170,10 @@ Map<String, Set<Builder>>? resolveNamedConfigurations(
         var builder = requestedBuilder != null
             ? "builder $requestedBuilder"
             : "any builder";
-        stderr.writeln("error: The named configuration "
-            "$requestedConfiguration isn't tested on $builder");
+        stderr.writeln(
+          "error: The named configuration "
+          "$requestedConfiguration isn't tested on $builder",
+        );
         hasUntestedConfiguration = true;
       }
     }
@@ -160,16 +188,21 @@ Map<String, Set<Builder>>? resolveNamedConfigurations(
 /// Locates the merge base between head and the [branch] on the given [remote].
 Future<String> findMergeBase(String? remote, String? branch) async {
   var arguments = ["merge-base", "$remote/$branch", "HEAD"];
-  var result =
-      await Process.run("git", arguments, runInShell: Platform.isWindows);
+  var result = await Process.run(
+    "git",
+    arguments,
+    runInShell: Platform.isWindows,
+  );
 
   var stdout = result.stdout as String;
   var stderr = result.stderr as String;
 
   if (result.exitCode != 0) {
-    throw Exception("Failed to run: git ${arguments.join(' ')}\n"
-        "stdout:\n$stdout\n"
-        "stderr:\n$stderr\n");
+    throw Exception(
+      "Failed to run: git ${arguments.join(' ')}\n"
+      "stdout:\n$stdout\n"
+      "stderr:\n$stderr\n",
+    );
   }
   return LineSplitter.split(stdout).first;
 }
@@ -201,18 +234,20 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
       "builder": {
         "project": "dart",
         "bucket": "ci.sandbox",
-        "builder": builder
+        "builder": builder,
       },
       "tags": [
         {
           "key": "buildset",
-          "value": "commit/gitiles/dart.googlesource.com/sdk/+/$commit"
-        }
-      ]
-    }
+          "value": "commit/gitiles/dart.googlesource.com/sdk/+/$commit",
+        },
+      ],
+    },
   });
   var requestUrl = Uri.https(
-      "cr-buildbucket.appspot.com", "prpc/buildbucket.v2.Builds/SearchBuilds");
+    "cr-buildbucket.appspot.com",
+    "prpc/buildbucket.v2.Builds/SearchBuilds",
+  );
   var client = HttpClient();
   var request = await client.postUrl(requestUrl);
   request.headers.add(HttpHeaders.acceptHeader, ContentType.json.mimeType);
@@ -226,7 +261,8 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   var builds = object["builds"] as List<dynamic>?;
   if (builds == null || builds.isEmpty) {
     throw NoResultsForCommitException(
-        "Builder $builder hasn't built commit $commit");
+      "Builder $builder hasn't built commit $commit",
+    );
   }
   var build = builds.last;
   var buildNumber = build["number"] as int;
@@ -238,13 +274,16 @@ Future<BuildSearchResult> searchForBuild(String builder, String commit) async {
   if ((await lsGsutil(resultsPath)).isEmpty ||
       (await lsGsutil(flakyPath)).isEmpty) {
     throw NoResultsForCommitException(
-        "Build $buildNumber did not upload results");
+      "Build $buildNumber did not upload results",
+    );
   }
   return BuildSearchResult(buildNumber, commit);
 }
 
 Future<BuildSearchResult> searchForApproximateBuild(
-    String builder, String commit) async {
+  String builder,
+  String commit,
+) async {
   try {
     return await searchForBuild(builder, commit);
   } on NoResultsForCommitException catch (e) {
@@ -254,32 +293,40 @@ Future<BuildSearchResult> searchForApproximateBuild(
       "rev-list",
       "$commit~$limit..$commit~1",
       "--first-parent",
-      "--topo-order"
+      "--topo-order",
     ];
     var processResult = await Process.run("git", arguments, runInShell: true);
     if (processResult.exitCode != 0) {
-      throw Exception("Failed to list potential commits: git $arguments\n"
-          "exitCode: ${processResult.exitCode}\n"
-          "stdout: ${processResult.stdout}\n"
-          "stdout: ${processResult.stderr}\n");
+      throw Exception(
+        "Failed to list potential commits: git $arguments\n"
+        "exitCode: ${processResult.exitCode}\n"
+        "stdout: ${processResult.stdout}\n"
+        "stdout: ${processResult.stderr}\n",
+      );
     }
-    for (var fallbackCommit
-        in LineSplitter.split(processResult.stdout as String)) {
+    for (var fallbackCommit in LineSplitter.split(
+      processResult.stdout as String,
+    )) {
       try {
         return await searchForBuild(builder, fallbackCommit);
       } catch (e) {
         print(
-            "Warning: Searching for inexact baseline build: $e, continuing...");
+          "Warning: Searching for inexact baseline build: $e, continuing...",
+        );
       }
     }
     throw NoResultsForCommitException(
-        "Failed to locate approximate baseline results for "
-        "$commit in past $limit commits");
+      "Failed to locate approximate baseline results for "
+      "$commit in past $limit commits",
+    );
   }
 }
 
-void overrideConfiguration(Map<String, Map<String, dynamic>> results,
-    String configuration, String? newConfiguration) {
+void overrideConfiguration(
+  Map<String, Map<String, dynamic>> results,
+  String configuration,
+  String? newConfiguration,
+) {
   results.forEach((String key, Map<String, dynamic> result) {
     if (result["configuration"] == configuration) {
       result["configuration"] = newConfiguration;
@@ -316,35 +363,56 @@ See the documentation at https://goto.google.com/dart-status-file-free-workflow
 
 Future<void> runTests(List<String> args) async {
   var parser = ArgParser();
-  parser.addOption("builder",
-      abbr: "b", help: "Run tests like on the given builder");
-  parser.addOption("branch",
-      abbr: "B",
-      help: "Select the builders building this branch",
-      defaultsTo: "main");
+  parser.addOption(
+    "builder",
+    abbr: "b",
+    help: "Run tests like on the given builder",
+  );
+  parser.addOption(
+    "branch",
+    abbr: "B",
+    help: "Select the builders building this branch",
+    defaultsTo: "main",
+  );
   parser.addOption("commit", abbr: "C", help: "Compare with this commit");
-  parser.addFlag("deflake",
-      help: "Re-run failing newly tests $deflakingCount times.");
-  parser.addFlag("report-flakes",
-      help: "Report test failures for tests known to be flaky.\n"
-          "This ignores all flakiness data from CI but flakes\n"
-          "detected by --deflake will remain hidden");
-  parser.addFlag("list-configurations",
-      help: "Output list of configurations.", negatable: false);
-  parser.addMultiOption("named-configuration",
-      abbr: "n",
-      help: "The named test configuration(s) that supplies the\nvalues for all "
-          "test options, specifying how tests\nshould be run.");
-  parser.addOption("local-configuration",
-      abbr: "N",
-      help: "Use a different named configuration for local\ntesting than the "
-          "named configuration the baseline\nresults were downloaded for. The "
-          "results may be\ninexact if the baseline configuration is "
-          "different.");
-  parser.addOption("remote",
-      abbr: "R",
-      help: "Compare with this remote and git branch",
-      defaultsTo: "origin");
+  parser.addFlag(
+    "deflake",
+    help: "Re-run failing newly tests $deflakingCount times.",
+  );
+  parser.addFlag(
+    "report-flakes",
+    help:
+        "Report test failures for tests known to be flaky.\n"
+        "This ignores all flakiness data from CI but flakes\n"
+        "detected by --deflake will remain hidden",
+  );
+  parser.addFlag(
+    "list-configurations",
+    help: "Output list of configurations.",
+    negatable: false,
+  );
+  parser.addMultiOption(
+    "named-configuration",
+    abbr: "n",
+    help:
+        "The named test configuration(s) that supplies the\nvalues for all "
+        "test options, specifying how tests\nshould be run.",
+  );
+  parser.addOption(
+    "local-configuration",
+    abbr: "N",
+    help:
+        "Use a different named configuration for local\ntesting than the "
+        "named configuration the baseline\nresults were downloaded for. The "
+        "results may be\ninexact if the baseline configuration is "
+        "different.",
+  );
+  parser.addOption(
+    "remote",
+    abbr: "R",
+    help: "Compare with this remote and git branch",
+    defaultsTo: "origin",
+  );
   parser.addFlag("help", help: "Show the program usage.", negatable: false);
 
   ArgResults options;
@@ -366,27 +434,34 @@ Future<void> runTests(List<String> args) async {
   }
 
   var requestedBuilder = options["builder"] as String?;
-  var requestedNamedConfigurations =
-      (options["named-configuration"] as List).cast<String>();
+  var requestedNamedConfigurations = (options["named-configuration"] as List)
+      .cast<String>();
   var localConfiguration = options["local-configuration"] as String?;
 
   if (requestedBuilder == null && requestedNamedConfigurations.isEmpty) {
-    printUsage(parser,
-        error: "Please specify either a configuration (-n) or "
-            "a builder (-b)");
+    printUsage(
+      parser,
+      error:
+          "Please specify either a configuration (-n) or "
+          "a builder (-b)",
+    );
     return;
   }
 
   if (localConfiguration != null && requestedNamedConfigurations.length > 1) {
-    printUsage(parser,
-        error: "Local configuration (-N) can only be used with a"
-            " single named configuration (-n)");
+    printUsage(
+      parser,
+      error:
+          "Local configuration (-N) can only be used with a"
+          " single named configuration (-n)",
+    );
     return;
   }
 
   // Locate gsutil.py.
-  gsutilPy =
-      Platform.script.resolve("../third_party/gsutil/gsutil.py").toFilePath();
+  gsutilPy = Platform.script
+      .resolve("../third_party/gsutil/gsutil.py")
+      .toFilePath();
 
   // Load the test matrix.
   var testMatrixPath = Platform.script.resolve("bots/test_matrix.json");
@@ -394,10 +469,11 @@ Future<void> runTests(List<String> args) async {
   // Determine what named configuration to run and which builders to download
   // existing results from.
   var testedConfigurations = resolveNamedConfigurations(
-      testMatrix,
-      options["branch"] as String,
-      requestedNamedConfigurations,
-      requestedBuilder);
+    testMatrix,
+    options["branch"] as String,
+    requestedNamedConfigurations,
+    requestedBuilder,
+  );
   if (testedConfigurations == null) {
     // No valid configuration could be found. The error has already been
     // reported by [resolveConfigurations].
@@ -405,8 +481,9 @@ Future<void> runTests(List<String> args) async {
     return;
   }
   var namedConfigurations = testedConfigurations.keys.toSet().toList();
-  var builders =
-      testedConfigurations.values.expand((builders) => builders).toSet();
+  var builders = testedConfigurations.values
+      .expand((builders) => builders)
+      .toSet();
 
   // Print information about the resolved builders to compare with.
   for (var namedConfiguration in namedConfigurations) {
@@ -415,26 +492,34 @@ Future<void> runTests(List<String> args) async {
         ? "builder ${testedBuilders.single.name}"
         : "builders${testedBuilders.map((b) => "\n  ${b.name}").join()}";
     if (localConfiguration != null) {
-      print("Testing named configuration $localConfiguration "
-          "compared with configuration $namedConfiguration "
-          "on $onWhichBuilders");
+      print(
+        "Testing named configuration $localConfiguration "
+        "compared with configuration $namedConfiguration "
+        "on $onWhichBuilders",
+      );
     } else {
-      print("Testing named configuration $namedConfiguration "
-          "compared with $onWhichBuilders");
+      print(
+        "Testing named configuration $namedConfiguration "
+        "compared with $onWhichBuilders",
+      );
     }
   }
 
   // Use given commit or find out where the current HEAD branched.
-  var commit = options["commit"] as String? ??
+  var commit =
+      options["commit"] as String? ??
       await findMergeBase(
-          options["remote"] as String?, options["branch"] as String?);
+        options["remote"] as String?,
+        options["branch"] as String?,
+      );
   print("Base commit is $commit");
 
   // Store the downloaded results and our test results in a temporary directory.
   var outDirectory = await Directory.systemTemp.createTemp("test.dart.");
   try {
     var tasks = <Future>[];
-    var needsConfigurationOverride = localConfiguration != null &&
+    var needsConfigurationOverride =
+        localConfiguration != null &&
         localConfiguration != namedConfigurations.single;
     var needsMerge = builders.length > 1;
     var inexactBuilds = <String, String>{};
@@ -453,24 +538,36 @@ Future<void> runTests(List<String> args) async {
 
       // Use the buildbucket API to search for builds of the right commit.
       print("Finding build on builder $builderName to compare with...");
-      var buildSearchResult =
-          await searchForApproximateBuild(builderName, commit);
+      var buildSearchResult = await searchForApproximateBuild(
+        builderName,
+        commit,
+      );
       if (buildSearchResult.commit != commit) {
-        print("Warning: Using commit ${buildSearchResult.commit} "
-            "as baseline instead of $commit for $builderName");
+        print(
+          "Warning: Using commit ${buildSearchResult.commit} "
+          "as baseline instead of $commit for $builderName",
+        );
         inexactBuilds[builderName] = buildSearchResult.commit;
       }
 
       var buildNumber = buildSearchResult.build.toString();
-      print("Downloading results from builder $builderName "
-          "build $buildNumber...");
-      tasks.add(cpGsutil(
+      print(
+        "Downloading results from builder $builderName "
+        "build $buildNumber...",
+      );
+      tasks.add(
+        cpGsutil(
           buildFileCloudPath(builderName, buildNumber, "results.json"),
-          "${outDirectory.path}/$previousFileName"));
+          "${outDirectory.path}/$previousFileName",
+        ),
+      );
       if (!(options["report-flakes"] as bool)) {
-        tasks.add(cpGsutil(
+        tasks.add(
+          cpGsutil(
             buildFileCloudPath(builderName, buildNumber, "flaky.json"),
-            "${outDirectory.path}/$flakyFileName"));
+            "${outDirectory.path}/$flakyFileName",
+          ),
+        );
       }
     }
 
@@ -481,19 +578,16 @@ Future<void> runTests(List<String> args) async {
     print("".padLeft(80, "="));
     print("Running tests");
     print("".padLeft(80, "="));
-    await runProcessInheritStdio(
-        "python3",
-        [
-          "tools/test.py",
-          "--named-configuration=${configurationsToRun.join(",")}",
-          "--output-directory=${outDirectory.path}",
-          "--clean-exit",
-          "--silent-failures",
-          "--write-results",
-          "--write-logs",
-          ...options.rest,
-        ],
-        runInShell: Platform.isWindows);
+    await runProcessInheritStdio("python3", [
+      "tools/test.py",
+      "--named-configuration=${configurationsToRun.join(",")}",
+      "--output-directory=${outDirectory.path}",
+      "--clean-exit",
+      "--silent-failures",
+      "--write-results",
+      "--write-logs",
+      ...options.rest,
+    ], runInShell: Platform.isWindows);
     // Wait for the downloads and the test run to complete.
     await Future.wait(tasks);
     // Merge the results and flaky data downloaded from the builders.
@@ -502,20 +596,28 @@ Future<void> runTests(List<String> args) async {
     if (needsMerge || needsConfigurationOverride) {
       for (var i = 0; i < downloadNumber; ++i) {
         previousFileName = needsMerge ? "previous-$i.json" : "previous.json";
-        var results =
-            await loadResultsMap("${outDirectory.path}/$previousFileName");
+        var results = await loadResultsMap(
+          "${outDirectory.path}/$previousFileName",
+        );
         if (needsConfigurationOverride) {
           overrideConfiguration(
-              results, namedConfigurations.single, localConfiguration);
+            results,
+            namedConfigurations.single,
+            localConfiguration,
+          );
         }
         mergedResults.addAll(results);
         if (!(options["report-flakes"] as bool)) {
           flakyFileName = needsMerge ? "flaky-$i.json" : "flaky.json";
-          var flakyTests =
-              await loadResultsMap("${outDirectory.path}/$flakyFileName");
+          var flakyTests = await loadResultsMap(
+            "${outDirectory.path}/$flakyFileName",
+          );
           if (needsConfigurationOverride) {
             overrideConfiguration(
-                flakyTests, namedConfigurations.single, localConfiguration);
+              flakyTests,
+              namedConfigurations.single,
+              localConfiguration,
+            );
           }
           mergedFlaky.addAll(flakyTests);
         }
@@ -524,14 +626,16 @@ Future<void> runTests(List<String> args) async {
     // Write out the merged results for the builders.
     if (needsMerge || needsConfigurationOverride) {
       await File("${outDirectory.path}/previous.json").writeAsString(
-          mergedResults.values.map((data) => "${jsonEncode(data)}\n").join(""));
+        mergedResults.values.map((data) => "${jsonEncode(data)}\n").join(""),
+      );
     }
     // Ensure that there is a flaky.json even if it wasn't downloaded.
     if (needsMerge ||
         needsConfigurationOverride ||
         options["report-flakes"] as bool) {
       await File("${outDirectory.path}/flaky.json").writeAsString(
-          mergedFlaky.values.map((data) => "${jsonEncode(data)}\n").join(""));
+        mergedFlaky.values.map((data) => "${jsonEncode(data)}\n").join(""),
+      );
     }
     // Deflake results of the tests if required.
     if (options["deflake"] as bool) {
@@ -563,8 +667,10 @@ Future<void> runTests(List<String> args) async {
       var builders = inexactBuilds.keys.toList()..sort();
       for (var builder in builders) {
         var inexactCommit = inexactBuilds[builder];
-        print("Warning: Results may be inexact because commit $inexactCommit "
-            "was used as the baseline for $builder instead of $commit");
+        print(
+          "Warning: Results may be inexact because commit $inexactCommit "
+          "was used as the baseline for $builder instead of $commit",
+        );
       }
     }
   } finally {
@@ -572,8 +678,11 @@ Future<void> runTests(List<String> args) async {
   }
 }
 
-Future<void> deflake(Directory outDirectory, List<String> configurations,
-    List<String> testPyArgs) async {
+Future<void> deflake(
+  Directory outDirectory,
+  List<String> configurations,
+  List<String> testPyArgs,
+) async {
   // Find the list of tests to deflake.
   var deflakeListOutput = await runProcess(Platform.resolvedExecutable, [
     "tools/bots/compare_results.dart",
@@ -607,9 +716,10 @@ Future<void> deflake(Directory outDirectory, List<String> configurations,
       ...testPyArgs,
     ];
 
-    await runProcessInheritStdio(
-        "python3", ["tools/test.py", ...deflakeArguments],
-        runInShell: Platform.isWindows);
+    await runProcessInheritStdio("python3", [
+      "tools/test.py",
+      ...deflakeArguments,
+    ], runInShell: Platform.isWindows);
     deflakingResultsPaths.add("${deflakeDirectory.path}/results.json");
   }
 

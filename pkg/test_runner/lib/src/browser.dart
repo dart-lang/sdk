@@ -52,11 +52,13 @@ String pathToJSIdentifier(String path) {
   if (path.startsWith('/') || path.startsWith('\\')) {
     path = path.substring(1, path.length);
   }
-  return _toJSIdentifier(path
-      .replaceAll('\\', '__')
-      .replaceAll('/', '__')
-      .replaceAll('..', '__')
-      .replaceAll('-', '_'));
+  return _toJSIdentifier(
+    path
+        .replaceAll('\\', '__')
+        .replaceAll('/', '__')
+        .replaceAll('..', '__')
+        .replaceAll('-', '_'),
+  );
 }
 
 final _digitPattern = RegExp(r'\d');
@@ -67,7 +69,9 @@ String _toJSIdentifier(String name) {
 
   // Escape any invalid characters
   var result = name.replaceAllMapped(
-      _invalidCharInIdentifier, (match) => '\$${match[0]!.codeUnits.join("")}');
+    _invalidCharInIdentifier,
+    (match) => '\$${match[0]!.codeUnits.join("")}',
+  );
 
   // Ensure the identifier first character is not numeric and that the whole
   // identifier is not a keyword.
@@ -149,15 +153,16 @@ bool _invalidVariableName(String keyword, {bool strictMode = true}) {
 /// mode. If this flag and [ddcModuleFormat] is enabled, a template that works
 /// with the DDC hot reload format will be emitted.
 String ddcHtml(
-    String testName,
-    String testNameAlias,
-    String testJSDir,
-    Compiler compiler,
-    String genDir,
-    bool nativeNonNullAsserts,
-    bool jsInteropNonNullAsserts,
-    {bool ddcModuleFormat = false,
-    bool canaryMode = false}) {
+  String testName,
+  String testNameAlias,
+  String testJSDir,
+  Compiler compiler,
+  String genDir,
+  bool nativeNonNullAsserts,
+  bool jsInteropNonNullAsserts, {
+  bool ddcModuleFormat = false,
+  bool canaryMode = false,
+}) {
   var testId = pathToJSIdentifier(testName);
   var testIdAlias = pathToJSIdentifier(testNameAlias);
   var ddcGenDir = '/root_build/$genDir';
@@ -188,7 +193,8 @@ testErrorToStackTrace = function(error) {
 };
 """;
 
-  var sdkFlagSetup = """
+  var sdkFlagSetup =
+      """
 runtime.nativeNonNullAsserts($nativeNonNullAsserts);
 runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
 """;
@@ -202,7 +208,7 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
     var loadPackagesScript = [
       for (var p in testPackages)
         """<script defer type="text/javascript"
-                src="$ddcGenDir/pkg/ddc/$p.js"></script>"""
+                src="$ddcGenDir/pkg/ddc/$p.js"></script>""",
     ].join('\n');
     String libraryImports;
     String startCode;
@@ -213,7 +219,8 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
           return _debugger.stackTrace(error);
         }
       """;
-      sdkFlagSetup = """
+      sdkFlagSetup =
+          """
         let sdkOptions = {
           nativeNonNullAsserts: $nativeNonNullAsserts,
           jsInteropNonNullAsserts: $jsInteropNonNullAsserts,
@@ -223,7 +230,8 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
           """dartDevEmbedder.runMain("org-dartlang-app:/$testNameAlias.dart",
           sdkOptions);""";
     } else {
-      libraryImports = """
+      libraryImports =
+          """
         let sdk = dart_library.import("dart_sdk", "$appName");
         let runtime = sdk.dart;
         let getStackTraceString = function(error) {
@@ -234,19 +242,20 @@ runtime.jsInteropNonNullAsserts($jsInteropNonNullAsserts);
       startCode = """dart_library.start("$appName", "$uuid", "$testName",
           "$testIdAlias", false)""";
     }
-    script = """
+    script =
+        """
 <script defer type="text/javascript"
 src="/root_dart/pkg/dev_compiler/lib/js/ddc/ddc_module_loader.js"></script>
 <script defer type="text/javascript" src="$ddcGenDir/sdk/ddc/dart_sdk.js"></script>
 $loadPackagesScript
 <script defer type="text/javascript" src="$appName/$testName.js"></script>
 <script type="text/javascript">"""
-// DDC module format doesn't defer the execution until the document is finished
-// parsing. We can defer scripts, but only if they are in separate files and not
-// inline JS like below. In order to make sure everything is loaded and be
-// consistent with the AMD module format, we should wait until a
-// `DOMContentLoaded` event is fired. Other options are using `type = "module"`
-// or putting this in a separate JS file, but this is the simplest solution.
+        // DDC module format doesn't defer the execution until the document is finished
+        // parsing. We can defer scripts, but only if they are in separate files and not
+        // inline JS like below. In order to make sure everything is loaded and be
+        // consistent with the AMD module format, we should wait until a
+        // `DOMContentLoaded` event is fired. Other options are using `type = "module"`
+        // or putting this in a separate JS file, but this is the simplest solution.
         """
 document.addEventListener("DOMContentLoaded", (e) => {
   $libraryImports
@@ -261,9 +270,10 @@ document.addEventListener("DOMContentLoaded", (e) => {
     """;
   } else {
     var packagePaths = [
-      for (var p in testPackages) '    "$p": "$ddcGenDir/pkg/amd/$p",'
+      for (var p in testPackages) '    "$p": "$ddcGenDir/pkg/amd/$p",',
     ].join("\n");
-    script = """
+    script =
+        """
 <script>
 var require = {
   baseUrl: "/root_dart/$testJSDir",
@@ -390,11 +400,18 @@ and `base64 -w 0`:
   )
 )
  */
-const _wasmStandaloneArrayHelper = 'AGFzbQEAAAABIgVedwFeeAFgA2MAf38BZG9gA2QBf38BZG9gA2QAf38BZG8CJAEOd2FzbTpqcy1zdHJpbmcRZnJvbUNoYXJDb2RlQXJyYXkAAgMDAgMEBzICFHN0cmluZ0Zyb21Bc2NpaUJ5dGVzAAEXc3RyaW5nRnJvbUNoYXJDb2RlQXJyYXkAAgpTAkMCAX8BZAAgAiEDQQAgAvsGACEEAkADQCADQX9qIQMgAyABSA0BIAQgAyAAIAP7DQH7DgAMAAsACyAEQQAgBPsPEAALDQAgACABIAEgAmoQAAs=';
+const _wasmStandaloneArrayHelper =
+    'AGFzbQEAAAABIgVedwFeeAFgA2MAf38BZG9gA2QBf38BZG9gA2QAf38BZG8CJAEOd2FzbTpqcy1zdHJpbmcRZnJvbUNoYXJDb2RlQXJyYXkAAgMDAgMEBzICFHN0cmluZ0Zyb21Bc2NpaUJ5dGVzAAEXc3RyaW5nRnJvbUNoYXJDb2RlQXJyYXkAAgpTAkMCAX8BZAAgAiEDQQAgAvsGACEEAkADQCADQX9qIQMgAyABSA0BIAQgAyAAIAP7DQH7DgAMAAsACyAEQQAgBPsPEAALDQAgACABIAEgAmoQAAs=';
 
-String dart2wasmHtml(String title, String wasmPath, String mjsPath,
-    String supportJsPath, bool standalone) {
-  const standaloneEmbedder = """
+String dart2wasmHtml(
+  String title,
+  String wasmPath,
+  String mjsPath,
+  String supportJsPath,
+  bool standalone,
+) {
+  const standaloneEmbedder =
+      """
     const { instance: helperInstance } = await WebAssembly.instantiate(Uint8Array.fromBase64('$_wasmStandaloneArrayHelper'), {}, {
       builtins: ['js-string']
     });

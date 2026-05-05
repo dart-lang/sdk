@@ -87,16 +87,19 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   // is used.
   if (progress != Progress.silent) {
     Terminal.print(
-        'Test configuration${configurations.length > 1 ? 's' : ''}:');
+      'Test configuration${configurations.length > 1 ? 's' : ''}:',
+    );
     for (var configuration in configurations) {
       Terminal.print("    ${configuration.configuration}");
       Terminal.print(
-          "Suites tested: ${configuration.selectors.keys.join(", ")}");
+        "Suites tested: ${configuration.selectors.keys.join(", ")}",
+      );
     }
   }
 
-  var runningBrowserTests =
-      configurations.any((config) => config.runtime.isBrowser);
+  var runningBrowserTests = configurations.any(
+    (config) => config.runtime.isBrowser,
+  );
 
   var eventListeners = <EventListener>[];
   var testSuites = <TestSuite>[];
@@ -106,8 +109,9 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       (configurations[0].testServerPort != 0 ||
           configurations[0].testServerCrossOriginPort != 0)) {
     Terminal.print(
-        "If the http server ports are specified, only one configuration"
-        " may be run at a time");
+      "If the http server ports are specified, only one configuration"
+      " may be run at a time",
+    );
     exit(1);
   }
 
@@ -117,7 +121,8 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       serverFutures.add(configuration.startServers());
       if (WebDriverService.supportedRuntimes.contains(configuration.runtime)) {
         services.add(
-            WebDriverService.startServiceForRuntime(configuration.runtime));
+          WebDriverService.startServiceForRuntime(configuration.runtime),
+        );
       }
     }
 
@@ -133,8 +138,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       // This change does not fix the problem.
       maxBrowserProcesses = math.max(1, maxBrowserProcesses ~/ 2);
     } else if (configuration.runtime == Runtime.chromeOnAndroid) {
-      maxBrowserProcesses =
-          math.min(maxBrowserProcesses, (await AdbHelper.listDevices()).length);
+      maxBrowserProcesses = math.min(
+        maxBrowserProcesses,
+        (await AdbHelper.listDevices()).length,
+      );
     }
 
     // If we specifically pass in a suite only run that.
@@ -181,9 +188,10 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
 
     if (configuration.system == System.fuchsia) {
       await FuchsiaEmulator.instance().publishPackage(
-          configuration.buildDirectory,
-          configuration.mode.name,
-          configuration.architecture.name);
+        configuration.buildDirectory,
+        configuration.mode.name,
+        configuration.architecture.name,
+      );
     }
   }
 
@@ -237,8 +245,11 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
       eventListeners.add(PassingStdoutPrinter(formatter));
     }
 
-    var indicator =
-        ProgressIndicator.fromProgress(progress, startTime, formatter);
+    var indicator = ProgressIndicator.fromProgress(
+      progress,
+      startTime,
+      formatter,
+    );
     if (indicator != null) eventListeners.add(indicator);
 
     if (printTiming) {
@@ -293,6 +304,14 @@ Future testConfigurations(List<TestConfiguration> configurations) async {
   }
 
   // [firstConf] is needed here, because the ProcessQueue uses some settings.
-  ProcessQueue(firstConf, maxProcesses, maxBrowserProcesses, testSuites,
-      eventListeners, allTestsFinished, verbose, adbDevicePool);
+  ProcessQueue(
+    firstConf,
+    maxProcesses,
+    maxBrowserProcesses,
+    testSuites,
+    eventListeners,
+    allTestsFinished,
+    verbose,
+    adbDevicePool,
+  );
 }

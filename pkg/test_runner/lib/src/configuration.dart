@@ -26,57 +26,58 @@ export 'package:smith/smith.dart';
 /// Includes the compiler used to compile the code, the runtime the result is
 /// executed on, etc.
 class TestConfiguration {
-  TestConfiguration(
-      {required this.configuration,
-      this.progress = Progress.compact,
-      this.selectors = const {},
-      this.build = false,
-      this.testList = const [],
-      this.deflakeInfoMap = const {},
-      this._repeat = 1,
-      this.batch = false,
-      this.copyCoreDumps = false,
-      this.rr = false,
-      this.isVerbose = false,
-      this.listTests = false,
-      this.listStatusFiles = false,
-      this.cleanExit = false,
-      this.silentFailures = false,
-      this.printTiming = false,
-      this.printReport = false,
-      this.reportFailures = false,
-      this.reportInJson = false,
-      this.resetBrowser = false,
-      this.writeDebugLog = false,
-      this.writeResults = false,
-      this.writeLogs = false,
-      this.drtPath,
-      this.chromePath,
-      this.safariPath,
-      this.firefoxPath,
-      this.dartPath,
-      this.dartPrecompiledPath,
-      this.genSnapshotPath,
-      this.taskCount = 1,
-      this.shardCount = 1,
-      this.shard = 1,
-      this.testServerPort = 0,
-      this.testServerCrossOriginPort = 0,
-      this.testDriverErrorPort = 0,
-      this.localIP = '0.0.0.0',
-      this.keepGeneratedFiles = false,
-      this.sharedOptions = const [],
-      String? packages,
-      this.serviceResponseSizesDirectory,
-      this.suiteDirectory,
-      required this.outputDirectory,
-      required this.reproducingArguments,
-      this.fastTestsOnly = false,
-      this.printPassingStdout = false})
-      : packages = packages ??
-            Repository.uri
-                .resolve('.dart_tool/package_config.json')
-                .toFilePath();
+  TestConfiguration({
+    required this.configuration,
+    this.progress = Progress.compact,
+    this.selectors = const {},
+    this.build = false,
+    this.testList = const [],
+    this.deflakeInfoMap = const {},
+    this._repeat = 1,
+    this.batch = false,
+    this.copyCoreDumps = false,
+    this.rr = false,
+    this.isVerbose = false,
+    this.listTests = false,
+    this.listStatusFiles = false,
+    this.cleanExit = false,
+    this.silentFailures = false,
+    this.printTiming = false,
+    this.printReport = false,
+    this.reportFailures = false,
+    this.reportInJson = false,
+    this.resetBrowser = false,
+    this.writeDebugLog = false,
+    this.writeResults = false,
+    this.writeLogs = false,
+    this.drtPath,
+    this.chromePath,
+    this.safariPath,
+    this.firefoxPath,
+    this.dartPath,
+    this.dartPrecompiledPath,
+    this.genSnapshotPath,
+    this.taskCount = 1,
+    this.shardCount = 1,
+    this.shard = 1,
+    this.testServerPort = 0,
+    this.testServerCrossOriginPort = 0,
+    this.testDriverErrorPort = 0,
+    this.localIP = '0.0.0.0',
+    this.keepGeneratedFiles = false,
+    this.sharedOptions = const [],
+    String? packages,
+    this.serviceResponseSizesDirectory,
+    this.suiteDirectory,
+    required this.outputDirectory,
+    required this.reproducingArguments,
+    this.fastTestsOnly = false,
+    this.printPassingStdout = false,
+  }) : packages =
+           packages ??
+           Repository.uri
+               .resolve('.dart_tool/package_config.json')
+               .toFilePath();
 
   final Map<String, RegExp?> selectors;
   final Progress progress;
@@ -127,8 +128,8 @@ class TestConfiguration {
   bool get useSdk => configuration.useSdk;
   bool get enableAsserts => configuration.enableAsserts;
   bool get useQemu => configuration.useQemu;
-  bool get isDart2wasmStandalone => dart2wasmOptions
-            .any((e) => e.contains('--standalone'));
+  bool get isDart2wasmStandalone =>
+      dart2wasmOptions.any((e) => e.contains('--standalone'));
 
   // Various file paths.
 
@@ -240,11 +241,12 @@ class TestConfiguration {
 
         var compilerMultiplier = compilerConfiguration.timeoutMultiplier;
         var runtimeMultiplier = runtimeConfiguration.timeoutMultiplier(
-            mode: mode,
-            isChecked: isChecked,
-            isReload: isReload,
-            arch: architecture,
-            system: system);
+          mode: mode,
+          isChecked: isChecked,
+          isReload: isReload,
+          arch: architecture,
+          system: system,
+        );
 
         _defaultTimeout = 30 * compilerMultiplier * runtimeMultiplier;
       }
@@ -278,7 +280,8 @@ class TestConfiguration {
   late final String? windowsSdkPath = () {
     if (!Platform.isWindows) {
       throw StateError(
-          "Should not use windowsSdkPath when not running on Windows.");
+        "Should not use windowsSdkPath when not running on Windows.",
+      );
     }
 
     // When running tests on Windows, use cdb from depot_tools to dump
@@ -326,8 +329,9 @@ class TestConfiguration {
         Abi.windowsIA32: '/x86',
         Abi.windowsArm64: '/arm64',
       };
-      final binDir =
-          msvcPath.resolve('bin/Hostx64/${targetFolderName[Abi.current()]!}/');
+      final binDir = msvcPath.resolve(
+        'bin/Hostx64/${targetFolderName[Abi.current()]!}/',
+      );
       final toolchainEnvScript = windowsSdk.resolve('bin/SetEnv.cmd');
       return {
         arKey: binDir.resolve('lib.exe').toFilePath(),
@@ -357,8 +361,9 @@ class TestConfiguration {
     if (hostFolderName == null) {
       return <String, String>{};
     }
-    final clangBin =
-        Directory.current.uri.resolve('buildtools/$hostFolderName/clang/bin/');
+    final clangBin = Directory.current.uri.resolve(
+      'buildtools/$hostFolderName/clang/bin/',
+    );
     return {
       arKey: clangBin.resolve('llvm-ar').toFilePath(),
       ccKey: clangBin.resolve('clang').toFilePath(),
@@ -391,14 +396,14 @@ class TestConfiguration {
       Runtime.firefox: {
         System.win: 'C:\\Program Files (x86)\\Mozilla Firefox\\firefox.exe',
         System.linux: '/usr/bin/firefox',
-        System.mac: '/Applications/Firefox.app/Contents/MacOS/firefox'
+        System.mac: '/Applications/Firefox.app/Contents/MacOS/firefox',
       },
       Runtime.chrome: {
         System.win:
             'C:\\Program Files (x86)\\Google\\Chrome\\Application\\chrome.exe',
         System.mac:
             '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-        System.linux: '/usr/bin/google-chrome'
+        System.linux: '/usr/bin/google-chrome',
       },
     };
 
@@ -459,8 +464,10 @@ class TestConfiguration {
     var validRuntimes = compiler.supportedRuntimes;
 
     if (!validRuntimes.contains(runtime)) {
-      print("Warning: combination of compiler '${compiler.name}' and "
-          "runtime '${runtime.name}' is invalid. Skipping this combination.");
+      print(
+        "Warning: combination of compiler '${compiler.name}' and "
+        "runtime '${runtime.name}' is invalid. Skipping this combination.",
+      );
       isValid = false;
     }
 
@@ -477,8 +484,10 @@ class TestConfiguration {
             architecture == Architecture.arm64 ||
             architecture == Architecture.arm64c ||
             architecture == Architecture.riscv64)) {
-      print("Warning: Android only supports the following architectures: "
-          "ia32/x64/x64c/arm/arm64/arm64c/arm_x64/riscv64.");
+      print(
+        "Warning: Android only supports the following architectures: "
+        "ia32/x64/x64c/arm/arm64/arm64c/arm_x64/riscv64.",
+      );
       isValid = false;
     }
 
@@ -502,8 +511,11 @@ class TestConfiguration {
   /// `getCrossOriginPortNumber()`.
   Future startServers() {
     _servers = TestingServers(buildDirectory, isCsp, runtime, null, packages);
-    var future = servers.startServers(localIP,
-        port: testServerPort, crossOriginPort: testServerCrossOriginPort);
+    var future = servers.startServers(
+      localIP,
+      port: testServerPort,
+      crossOriginPort: testServerCrossOriginPort,
+    );
 
     if (isVerbose) {
       future = future.then((_) {
@@ -564,9 +576,14 @@ class Progress {
 
   static final List<String> names = _all.keys.toList();
 
-  static final _all = Map<String, Progress>.fromIterable(
-      [compact, color, line, verbose, silent, status],
-      key: (progress) => (progress as Progress).name);
+  static final _all = Map<String, Progress>.fromIterable([
+    compact,
+    color,
+    line,
+    verbose,
+    silent,
+    status,
+  ], key: (progress) => (progress as Progress).name);
 
   static Progress find(String name) {
     var progress = _all[name];

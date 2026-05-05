@@ -41,14 +41,15 @@ class ProcessQueue {
   final List<EventListener> _eventListener;
 
   ProcessQueue(
-      this._globalConfiguration,
-      int maxProcesses,
-      int maxBrowserProcesses,
-      List<TestSuite> testSuites,
-      this._eventListener,
-      this._allDone,
-      [bool verbose = false,
-      AdbDevicePool? adbDevicePool]) {
+    this._globalConfiguration,
+    int maxProcesses,
+    int maxBrowserProcesses,
+    List<TestSuite> testSuites,
+    this._eventListener,
+    this._allDone, [
+    bool verbose = false,
+    AdbDevicePool? adbDevicePool,
+  ]) {
     void setupForListing(TestCaseEnqueuer testCaseEnqueuer) {
       _graph.sealed.listen((_) {
         var testCases = testCaseEnqueuer.remainingTestCases.toList();
@@ -60,9 +61,11 @@ class ProcessQueue {
           eventFinishedTestCase(testCase);
           var outcomes = testCase.expectedOutcomes.map((o) => '$o').toList()
             ..sort();
-          print("${testCase.displayName}   "
-              "Expectations: ${outcomes.join(', ')}   "
-              "Configuration: '${testCase.configurationString}'");
+          print(
+            "${testCase.displayName}   "
+            "Expectations: ${outcomes.join(', ')}   "
+            "Configuration: '${testCase.configurationString}'",
+          );
         }
         eventAllTestsKnown();
       });
@@ -84,8 +87,10 @@ class ProcessQueue {
       void resetDebugTimer() {
         cancelDebugTimer();
         debugTimer = Timer(debugTimerDuration, () {
-          print("The debug timer of test.dart expired. Please report this issue"
-              " to dart-engprod@ and provide the following information:");
+          print(
+            "The debug timer of test.dart expired. Please report this issue"
+            " to dart-engprod@ and provide the following information:",
+          );
           print("");
           print("Graph is sealed: ${_graph.isSealed}");
           print("");
@@ -95,7 +100,7 @@ class ProcessQueue {
             NodeState.initialized,
             NodeState.waiting,
             NodeState.enqueuing,
-            NodeState.processing
+            NodeState.processing,
           ];
 
           for (var nodeState in unfinishedNodeStates) {
@@ -109,8 +114,10 @@ class ProcessQueue {
                   var testCases = testCaseEnqueuer.command2testCases[command]!;
                   print("  Command: $command");
                   for (var testCase in testCases) {
-                    print("    Enqueued by: ${testCase.configurationString} "
-                        "-- ${testCase.displayName}");
+                    print(
+                      "    Enqueued by: ${testCase.configurationString} "
+                      "-- ${testCase.displayName}",
+                    );
                   }
                   print("");
                 }
@@ -133,29 +140,44 @@ class ProcessQueue {
 
       // CommandExecutor will execute commands
       var executor = CommandExecutorImpl(
-          _globalConfiguration, maxProcesses, maxBrowserProcesses,
-          adbDevicePool: adbDevicePool);
+        _globalConfiguration,
+        maxProcesses,
+        maxBrowserProcesses,
+        adbDevicePool: adbDevicePool,
+      );
 
       // Run "runnable commands" using [executor] subject to
       // maxProcesses/maxBrowserProcesses constraint
-      commandQueue = CommandQueue(_graph, testCaseEnqueuer, executor,
-          maxProcesses, maxBrowserProcesses, verbose);
+      commandQueue = CommandQueue(
+        _graph,
+        testCaseEnqueuer,
+        executor,
+        maxProcesses,
+        maxBrowserProcesses,
+        verbose,
+      );
 
       // Finish test cases when all commands were run (or some failed)
-      var testCaseCompleter =
-          TestCaseCompleter(_graph, testCaseEnqueuer, commandQueue);
-      testCaseCompleter.finishedTestCases.listen((TestCase finishedTestCase) {
-        resetDebugTimer();
+      var testCaseCompleter = TestCaseCompleter(
+        _graph,
+        testCaseEnqueuer,
+        commandQueue,
+      );
+      testCaseCompleter.finishedTestCases.listen(
+        (TestCase finishedTestCase) {
+          resetDebugTimer();
 
-        eventFinishedTestCase(finishedTestCase);
-      }, onDone: () {
-        // Wait until the commandQueue/executor is done (it may need to stop
-        // batch runners, browser controllers, ....)
-        commandQueue.done.then((_) {
-          cancelDebugTimer();
-          eventAllTestsDone();
-        });
-      });
+          eventFinishedTestCase(finishedTestCase);
+        },
+        onDone: () {
+          // Wait until the commandQueue/executor is done (it may need to stop
+          // batch runners, browser controllers, ....)
+          commandQueue.done.then((_) {
+            cancelDebugTimer();
+            eventAllTestsDone();
+          });
+        },
+      );
 
       resetDebugTimer();
     }
@@ -265,10 +287,14 @@ class TestCaseEnqueuer {
         // with "c1 == c2".
         var node = command2node[command];
         if (node == null) {
-          var requiredNodes =
-              (lastNode != null) ? [lastNode] : <Node<Command>>[];
-          node = graph.add(command, requiredNodes,
-              timingDependency: isFirstCommand);
+          var requiredNodes = (lastNode != null)
+              ? [lastNode]
+              : <Node<Command>>[];
+          node = graph.add(
+            command,
+            requiredNodes,
+            timingDependency: isFirstCommand,
+          );
           command2node[command] = node;
           command2testCases[command] = <TestCase>[];
         }
@@ -295,7 +321,7 @@ class CommandEnqueuer {
   static const _finishedStates = [
     NodeState.successful,
     NodeState.failed,
-    NodeState.unableToRun
+    NodeState.unableToRun,
   ];
 
   final Graph<Command> _graph;
@@ -319,12 +345,15 @@ class CommandEnqueuer {
   /// changed it's state.
   void _changeNodeStateIfNecessary(Node<Command> node) {
     if (_initStates.contains(node.state)) {
-      var allDependenciesFinished =
-          node.dependencies.every((dep) => _finishedStates.contains(dep.state));
-      var anyDependenciesUnsuccessful = node.dependencies.any((dep) =>
-          [NodeState.failed, NodeState.unableToRun].contains(dep.state));
-      var allDependenciesSuccessful =
-          node.dependencies.every((dep) => dep.state == NodeState.successful);
+      var allDependenciesFinished = node.dependencies.every(
+        (dep) => _finishedStates.contains(dep.state),
+      );
+      var anyDependenciesUnsuccessful = node.dependencies.any(
+        (dep) => [NodeState.failed, NodeState.unableToRun].contains(dep.state),
+      );
+      var allDependenciesSuccessful = node.dependencies.every(
+        (dep) => dep.state == NodeState.successful,
+      );
 
       var newState = NodeState.waiting;
       if (allDependenciesSuccessful ||
@@ -367,12 +396,20 @@ class CommandQueue {
   bool _finishing = false;
   final bool _verbose;
 
-  CommandQueue(this.graph, this.enqueuer, this.executor, this._maxProcesses,
-      this._maxBrowserProcesses, this._verbose) {
+  CommandQueue(
+    this.graph,
+    this.enqueuer,
+    this.executor,
+    this._maxProcesses,
+    this._maxBrowserProcesses,
+    this._verbose,
+  ) {
     graph.changed.listen((event) {
       if (event.to == NodeState.enqueuing) {
-        assert(event.from == NodeState.initialized ||
-            event.from == NodeState.waiting);
+        assert(
+          event.from == NodeState.initialized ||
+              event.from == NodeState.waiting,
+        );
         graph.changeState(event.node, NodeState.processing);
         var command = event.node.data;
         if (event.node.dependencies.isNotEmpty) {
@@ -422,8 +459,9 @@ class CommandQueue {
       // If a command is part of many TestCases we set the timeout to be
       // the maximum over all [TestCase.timeout]s. At some point, we might
       // eliminate [TestCase.timeout] completely and move it to [Command].
-      var timeout =
-          testCases.map((TestCase test) => test.timeout).fold(0, math.max);
+      var timeout = testCases
+          .map((TestCase test) => test.timeout)
+          .fold(0, math.max);
 
       if (_verbose) {
         print('Running "${command.displayName}" command: $command');
@@ -469,8 +507,10 @@ class CommandQueue {
     print("");
     print("CommandQueue state:");
     print("  Processes: used: $_numProcesses max: $_maxProcesses");
-    print("  BrowserProcesses: used: $_numBrowserProcesses "
-        "max: $_maxBrowserProcesses");
+    print(
+      "  BrowserProcesses: used: $_numBrowserProcesses "
+      "max: $_maxBrowserProcesses",
+    );
     print("  Finishing: $_finishing");
     print("  Queue (length = ${_runQueue.length}):");
     for (var command in _runQueue) {
@@ -506,8 +546,11 @@ class CommandExecutorImpl implements CommandExecutor {
   bool _finishing = false;
 
   CommandExecutorImpl(
-      this.globalConfiguration, this.maxProcesses, this.maxBrowserProcesses,
-      {this.adbDevicePool});
+    this.globalConfiguration,
+    this.maxProcesses,
+    this.maxBrowserProcesses, {
+    this.adbDevicePool,
+  });
 
   @override
   Future cleanup() {
@@ -515,8 +558,9 @@ class CommandExecutorImpl implements CommandExecutor {
     _finishing = true;
 
     Future terminateBrowserRunners() async {
-      var futures = _browserTestRunners.values
-          .map((runner) async => (await runner).terminate());
+      var futures = _browserTestRunners.values.map(
+        (runner) async => (await runner).terminate(),
+      );
       return Future.wait(futures);
     }
 
@@ -533,8 +577,10 @@ class CommandExecutorImpl implements CommandExecutor {
     Future<CommandOutput> runCommand(int retriesLeft) {
       return _runCommand(command, timeout).then((CommandOutput output) {
         if (retriesLeft > 0 && shouldRetryCommand(output)) {
-          DebugLogger.warning("Rerunning Command: ($retriesLeft "
-              "attempt(s) remains) [cmd: $command]");
+          DebugLogger.warning(
+            "Rerunning Command: ($retriesLeft "
+            "attempt(s) remains) [cmd: $command]",
+          );
           return runCommand(retriesLeft - 1);
         } else {
           return Future.value(output);
@@ -571,16 +617,21 @@ class CommandExecutorImpl implements CommandExecutor {
             return await _runAdbPrecompilationCommand(device, command, timeout);
           } else {
             return await _runAdbDartkCommand(
-                device, command as AdbDartkCommand, timeout);
+              device,
+              command as AdbDartkCommand,
+              timeout,
+            );
           }
         } finally {
           adbDevicePool!.releaseDevice(device);
         }
       });
     } else if (command is ProcessCommand) {
-      return RunningProcess(command, timeout,
-              configuration: globalConfiguration)
-          .run();
+      return RunningProcess(
+        command,
+        timeout,
+        configuration: globalConfiguration,
+      ).run();
     } else if (command is RRCommand) {
       return command.run(timeout, globalConfiguration);
     } else {
@@ -588,22 +639,31 @@ class CommandExecutorImpl implements CommandExecutor {
     }
   }
 
-  List<_StepFunction> _pushLibraries(AdbCommand command, AdbDevice device,
-      String deviceDir, String deviceTestDir) {
+  List<_StepFunction> _pushLibraries(
+    AdbCommand command,
+    AdbDevice device,
+    String deviceDir,
+    String deviceTestDir,
+  ) {
     var steps = <_StepFunction>[];
     for (var lib in command.extraLibraries) {
       var libName = "lib$lib.so";
-      steps.add(() => device.runAdbCommand([
-            'push',
-            '${command.buildPath}/$libName',
-            '$deviceTestDir/$libName'
-          ]));
+      steps.add(
+        () => device.runAdbCommand([
+          'push',
+          '${command.buildPath}/$libName',
+          '$deviceTestDir/$libName',
+        ]),
+      );
     }
     return steps;
   }
 
   Future<CommandOutput> _runAdbPrecompilationCommand(
-      AdbDevice device, AdbPrecompilationCommand command, int timeout) async {
+    AdbDevice device,
+    AdbPrecompilationCommand command,
+    int timeout,
+  ) async {
     var buildPath = command.buildPath;
     var processTest = command.processTestFilename;
     var abstractSocketTest = command.abstractSocketTestFilename;
@@ -626,34 +686,56 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    steps.add(() => device.pushCachedData(
-        '$buildPath/exe.stripped/dartaotruntime', '$devicedir/dartaotruntime'));
-    steps.add(() => device.pushCachedData(
-        '$buildPath/dartaotruntime.sym', '$devicedir/dartaotruntime.sym'));
     steps.add(
-        () => device.pushCachedData(processTest, '$devicedir/process_test'));
-    steps.add(() => device.pushCachedData(
-        abstractSocketTest, '$devicedir/abstract_socket_test'));
-    steps.add(() => device.runAdbShellCommand([
-          'chmod',
-          '777',
-          '$devicedir/dartaotruntime $devicedir/process_test $devicedir/abstract_socket_test'
-        ]));
+      () => device.pushCachedData(
+        '$buildPath/exe.stripped/dartaotruntime',
+        '$devicedir/dartaotruntime',
+      ),
+    );
+    steps.add(
+      () => device.pushCachedData(
+        '$buildPath/dartaotruntime.sym',
+        '$devicedir/dartaotruntime.sym',
+      ),
+    );
+    steps.add(
+      () => device.pushCachedData(processTest, '$devicedir/process_test'),
+    );
+    steps.add(
+      () => device.pushCachedData(
+        abstractSocketTest,
+        '$devicedir/abstract_socket_test',
+      ),
+    );
+    steps.add(
+      () => device.runAdbShellCommand([
+        'chmod',
+        '777',
+        '$devicedir/dartaotruntime $devicedir/process_test $devicedir/abstract_socket_test',
+      ]),
+    );
 
     steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
 
     for (var file in files) {
-      steps.add(() => device
-          .runAdbCommand(['push', '$testdir/$file', '$deviceTestDir/$file']));
+      steps.add(
+        () => device.runAdbCommand([
+          'push',
+          '$testdir/$file',
+          '$deviceTestDir/$file',
+        ]),
+      );
     }
 
-    steps.add(() => device.runAdbShellCommand([
-          'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
-              'export TEST_COMPILATION_DIR=$deviceTestDir;'
-              '$devicedir/dartaotruntime',
-          '--android-log-to-stderr',
-          ...arguments,
-        ], timeout: timeoutDuration));
+    steps.add(
+      () => device.runAdbShellCommand([
+        'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
+            'export TEST_COMPILATION_DIR=$deviceTestDir;'
+            '$devicedir/dartaotruntime',
+        '--android-log-to-stderr',
+        ...arguments,
+      ], timeout: timeoutDuration),
+    );
 
     var stopwatch = Stopwatch()..start();
     var writer = StringBuffer();
@@ -694,12 +776,21 @@ class CommandExecutorImpl implements CommandExecutor {
         break;
       }
     }
-    return command.createOutput(exitCode, result.timedOut,
-        utf8.encode('$writer'), [], stopwatch.elapsed, false);
+    return command.createOutput(
+      exitCode,
+      result.timedOut,
+      utf8.encode('$writer'),
+      [],
+      stopwatch.elapsed,
+      false,
+    );
   }
 
   Future<CommandOutput> _runAdbDartkCommand(
-      AdbDevice device, AdbDartkCommand command, int timeout) async {
+    AdbDevice device,
+    AdbDartkCommand command,
+    int timeout,
+  ) async {
     var buildPath = command.buildPath;
     var hostKernelFile = command.kernelFile;
     var arguments = command.arguments;
@@ -712,21 +803,30 @@ class CommandExecutorImpl implements CommandExecutor {
 
     steps.add(() => device.runAdbShellCommand(['rm', '-Rf', deviceTestDir]));
     steps.add(() => device.runAdbShellCommand(['mkdir', '-p', deviceTestDir]));
-    steps
-        .add(() => device.pushCachedData("$buildPath/dart", '$devicedir/dart'));
-    steps.add(() => device
-        .pushCachedData("$buildPath/dartvm", '$devicedir/dartvm'));
-    steps.add(() => device
-        .runAdbCommand(['push', hostKernelFile, '$deviceTestDir/out.dill']));
+    steps.add(
+      () => device.pushCachedData("$buildPath/dart", '$devicedir/dart'),
+    );
+    steps.add(
+      () => device.pushCachedData("$buildPath/dartvm", '$devicedir/dartvm'),
+    );
+    steps.add(
+      () => device.runAdbCommand([
+        'push',
+        hostKernelFile,
+        '$deviceTestDir/out.dill',
+      ]),
+    );
 
     steps.addAll(_pushLibraries(command, device, devicedir, deviceTestDir));
 
-    steps.add(() => device.runAdbShellCommand([
-          'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
-              '$devicedir/dart',
-          '--android-log-to-stderr',
-          ...arguments,
-        ], timeout: timeoutDuration));
+    steps.add(
+      () => device.runAdbShellCommand([
+        'export LD_LIBRARY_PATH=\$LD_LIBRARY_PATH:$deviceTestDir;'
+            '$devicedir/dart',
+        '--android-log-to-stderr',
+        ...arguments,
+      ], timeout: timeoutDuration),
+    );
 
     var stopwatch = Stopwatch()..start();
     var writer = StringBuffer();
@@ -755,15 +855,23 @@ class CommandExecutorImpl implements CommandExecutor {
       // immediately.
       if (result.exitCode != 0) break;
     }
-    return command.createOutput(result.exitCode, result.timedOut,
-        utf8.encode('$writer'), [], stopwatch.elapsed, false);
+    return command.createOutput(
+      result.exitCode,
+      result.timedOut,
+      utf8.encode('$writer'),
+      [],
+      stopwatch.elapsed,
+      false,
+    );
   }
 
   BatchRunnerProcess _getBatchRunner(String identifier) =>
       BatchRunnerProcess.byIdentifier(identifier, maxProcesses);
 
   Future<CommandOutput> _startBrowserControllerTest(
-      BrowserTestCommand browserCommand, int timeout) async {
+    BrowserTestCommand browserCommand,
+    int timeout,
+  ) async {
     var completer = Completer<CommandOutput>();
 
     callback(BrowserTestOutput output) {
@@ -771,21 +879,26 @@ class CommandExecutorImpl implements CommandExecutor {
     }
 
     var browserTest = BrowserTest(browserCommand.url, callback, timeout);
-    (await _getBrowserTestRunner(browserCommand.configuration))!
-        .enqueueTest(browserTest);
+    (await _getBrowserTestRunner(
+      browserCommand.configuration,
+    ))!.enqueueTest(browserTest);
     return completer.future;
   }
 
   Future<BrowserTestRunner?> _getBrowserTestRunner(
-      TestConfiguration configuration) async {
+    TestConfiguration configuration,
+  ) async {
     for (var failures = 0; failures < 10; failures++) {
       BrowserTestRunner? runner;
       try {
         runner = await _browserTestRunners.putIfAbsent(
+          configuration,
+          () => BrowserTestRunner(
             configuration,
-            () => BrowserTestRunner(configuration, globalConfiguration.localIP,
-                    maxBrowserProcesses)
-                .start());
+            globalConfiguration.localIP,
+            maxBrowserProcesses,
+          ).start(),
+        );
       } catch (error) {
         DebugLogger.error('Failed to start browser test runner.', error);
         _browserTestRunners.remove(configuration);
@@ -865,14 +978,17 @@ class TestCaseCompleter {
 
     // Store all the command outputs -- they will be delivered synchronously
     // (i.e. before state changes in the graph)
-    _commandQueue.completedCommands.listen((CommandOutput output) {
-      _outputs[output.command] = output;
-    }, onDone: () {
-      _completeTestCasesIfPossible(List.from(_enqueuer.remainingTestCases));
-      finishedRemainingTestCases = true;
-      assert(_enqueuer.remainingTestCases.isEmpty);
-      _checkDone();
-    });
+    _commandQueue.completedCommands.listen(
+      (CommandOutput output) {
+        _outputs[output.command] = output;
+      },
+      onDone: () {
+        _completeTestCasesIfPossible(List.from(_enqueuer.remainingTestCases));
+        finishedRemainingTestCases = true;
+        assert(_enqueuer.remainingTestCases.isEmpty);
+        _checkDone();
+      },
+    );
 
     // Listen for NodeState.Processing -> NodeState.{Successful,Failed}
     // changes.
@@ -968,18 +1084,21 @@ class BatchRunnerProcess {
   static const int _extraStartupTimeout = 60;
 
   static Future terminateAll() => Future.wait([
-        for (var runners in _batchProcesses.values)
-          for (var runner in runners) runner.terminate()
-      ]);
+    for (var runners in _batchProcesses.values)
+      for (var runner in runners) runner.terminate(),
+  ]);
 
   BatchRunnerProcess._(this._useJson);
 
   factory BatchRunnerProcess.byIdentifier(String identifier, int maxProcesses) {
     // Start batch processes if needed.
     var runners = _batchProcesses.putIfAbsent(
-        identifier,
-        () => List<BatchRunnerProcess>.generate(
-            maxProcesses, (_) => BatchRunnerProcess._(identifier == "fasta")));
+      identifier,
+      () => List<BatchRunnerProcess>.generate(
+        maxProcesses,
+        (_) => BatchRunnerProcess._(identifier == "fasta"),
+      ),
+    );
 
     for (var runner in runners) {
       if (!runner._currentlyRunning) return runner;
@@ -989,8 +1108,10 @@ class BatchRunnerProcess {
 
   bool get _currentlyRunning => _command != null;
 
-  bool isCompatibleRunner(ProcessCommand command) => const MapEquality()
-      .equals(_processEnvironmentOverrides, command.environmentOverrides);
+  bool isCompatibleRunner(ProcessCommand command) => const MapEquality().equals(
+    _processEnvironmentOverrides,
+    command.environmentOverrides,
+  );
 
   bool get hasRunningProcess => _process != null;
 
@@ -1077,12 +1198,13 @@ class BatchRunnerProcess {
     }
 
     var output = _command!.createOutput(
-        exitCode,
-        outcome == "TIMEOUT",
-        _testStdout.bytes,
-        _testStderr.bytes,
-        DateTime.now().difference(_startTime),
-        false);
+      exitCode,
+      outcome == "TIMEOUT",
+      _testStdout.bytes,
+      _testStderr.bytes,
+      DateTime.now().difference(_startTime),
+      false,
+    );
     _command = null;
     return output;
   }
@@ -1113,8 +1235,11 @@ class BatchRunnerProcess {
       ...?_processEnvironmentOverrides,
     };
     try {
-      _process = await io.Process.start(executable, arguments,
-          environment: environment);
+      _process = await io.Process.start(
+        executable,
+        arguments,
+        environment: environment,
+      );
       _processJustStarted = true;
     } catch (e) {
       // TODO(floitsch): should we try to report the stacktrace?

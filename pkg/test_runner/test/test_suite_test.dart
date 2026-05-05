@@ -19,26 +19,29 @@ void testVmOptions() {
   var testFiles = [
     createTestFile(source: "", path: "vm_no_options_test.dart"),
     createTestFile(
-        source: "/\/ VMOptions=--a", path: "vm_one_option_test.dart"),
+      source: "/\/ VMOptions=--a",
+      path: "vm_one_option_test.dart",
+    ),
     createTestFile(
-        source: "/\/ VMOptions=--a --b\n/\/ VMOptions=--c",
-        path: "vm_options_test.dart"),
+      source: "/\/ VMOptions=--a --b\n/\/ VMOptions=--c",
+      path: "vm_options_test.dart",
+    ),
   ];
 
-  expectTestCases(
-      [],
-      testFiles,
-      [
-        "language/vm_no_options_test",
-        "language/vm_one_option_test",
-        "language/vm_options_test/0",
-        "language/vm_options_test/1",
-      ]);
+  expectTestCases([], testFiles, [
+    "language/vm_no_options_test",
+    "language/vm_one_option_test",
+    "language/vm_options_test/0",
+    "language/vm_options_test/1",
+  ]);
 }
 
-void expectTestCases(List<String> options, List<TestFile> testFiles,
-    List<String> expectedCaseNames,
-    {String suite = "language"}) {
+void expectTestCases(
+  List<String> options,
+  List<TestFile> testFiles,
+  List<String> expectedCaseNames, {
+  String suite = "language",
+}) {
   var configuration = makeConfiguration(options, suite);
   var testSuite = makeTestSuite(configuration, testFiles, suite);
 

@@ -82,13 +82,21 @@ class TestingServers {
   final Runtime runtime;
   DispatchingServer? _server;
 
-  TestingServers._(this.useContentSecurityPolicy, this._buildDirectory,
-      this._dartDirectory, this._packages, this.runtime);
+  TestingServers._(
+    this.useContentSecurityPolicy,
+    this._buildDirectory,
+    this._dartDirectory,
+    this._packages,
+    this.runtime,
+  );
 
-  factory TestingServers(String buildDirectory, bool useContentSecurityPolicy,
-      [Runtime runtime = Runtime.none,
-      String? dartDirectory,
-      String? packages]) {
+  factory TestingServers(
+    String buildDirectory,
+    bool useContentSecurityPolicy, [
+    Runtime runtime = Runtime.none,
+    String? dartDirectory,
+    String? packages,
+  ]) {
     var buildDirectoryUri = Uri.base.resolveUri(Uri.directory(buildDirectory));
     var dartDirectoryUri = dartDirectory == null
         ? Repository.uri
@@ -96,8 +104,13 @@ class TestingServers {
     var packagesUri = packages == null
         ? dartDirectoryUri.resolve('.dart_tool/package_config.json')
         : Uri.file(packages);
-    return TestingServers._(useContentSecurityPolicy, buildDirectoryUri,
-        dartDirectoryUri, packagesUri, runtime);
+    return TestingServers._(
+      useContentSecurityPolicy,
+      buildDirectoryUri,
+      dartDirectoryUri,
+      packagesUri,
+      runtime,
+    );
   }
 
   String get network => _serverList[0].address.address;
@@ -115,13 +128,19 @@ class TestingServers {
   /// The second server listens on [crossOriginPort] and sets
   ///   "Access-Control-Allow-Origin: client:port1
   ///   "Access-Control-Allow-Credentials: true"
-  Future startServers(String host,
-      {int port = 0, int crossOriginPort = 0}) async {
+  Future startServers(
+    String host, {
+    int port = 0,
+    int crossOriginPort = 0,
+  }) async {
     _packageConfig = await loadPackageConfigUri(_packages);
 
     _server = await _startHttpServer(host, port: port);
-    await _startHttpServer(host,
-        port: crossOriginPort, allowedPort: _serverList[0].port);
+    await _startHttpServer(
+      host,
+      port: crossOriginPort,
+      allowedPort: _serverList[0].port,
+    );
   }
 
   /// Gets the command line string to spawn the server.
@@ -142,7 +161,7 @@ class TestingServers {
       '--build-directory=$buildDirectory',
       '--runtime=${runtime.name}',
       if (useContentSecurityPolicy) '--csp',
-      '--packages=${_packages.toFilePath()}'
+      '--packages=${_packages.toFilePath()}',
     ].join(' ');
   }
 
@@ -156,8 +175,11 @@ class TestingServers {
     DebugLogger.error('HttpServer: an error occurred', e);
   }
 
-  Future<DispatchingServer> _startHttpServer(String host,
-      {int port = 0, int allowedPort = -1}) {
+  Future<DispatchingServer> _startHttpServer(
+    String host, {
+    int port = 0,
+    int allowedPort = -1,
+  }) {
     return HttpServer.bind(host, port).then((HttpServer httpServer) {
       var server = DispatchingServer(httpServer, _onError, _sendNotFound);
       server.addHandler('/echo', _handleEchoRequest);
@@ -176,7 +198,9 @@ class TestingServers {
   }
 
   Future _handleFileOrDirectoryRequest(
-      HttpRequest request, int allowedPort) async {
+    HttpRequest request,
+    int allowedPort,
+  ) async {
     // Enable browsers to cache file/directory responses.
     var response = request.response;
     response.headers.set("Cache-Control", "max-age=$_cacheExpirationSeconds");
@@ -189,7 +213,10 @@ class TestingServers {
           _sendFileContent(request, response, allowedPort, file);
         } else if (await directory.exists()) {
           _sendDirectoryListing(
-              await _listDirectory(directory), request, response);
+            await _listDirectory(directory),
+            request,
+            response,
+          );
         } else {
           _sendNotFound(request);
         }
@@ -198,7 +225,7 @@ class TestingServers {
           var entries = [
             _Entry('root_dart', 'root_dart/'),
             _Entry('root_build', 'root_build/'),
-            _Entry('echo', 'echo')
+            _Entry('echo', 'echo'),
           ];
           _sendDirectoryListing(entries, request, response);
         } else {
@@ -214,31 +241,43 @@ class TestingServers {
     request.response.headers.set("Access-Control-Allow-Origin", "*");
     request.cast<List<int>>().pipe(request.response).catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while closing the response stream', e);
+        'HttpServer: error while closing the response stream',
+        e,
+      );
     });
   }
 
   void _handleWebSocketRequest(HttpRequest request) {
-    WebSocketTransformer.upgrade(request).then((websocket) {
-      // We ignore failures to write to the socket, this happens if the browser
-      // closes the connection.
-      websocket.done.catchError((_) {});
-      websocket.listen((data) {
-        websocket.add(data);
-        if (data == 'close-with-error') {
-          // Note: according to the web-sockets spec, a reason longer than 123
-          // bytes will produce a SyntaxError on the client.
-          websocket.close(WebSocketStatus.unsupportedData, 'X' * 124);
-        } else {
-          websocket.close();
-        }
-      }, onError: (e) {
-        DebugLogger.warning('HttpServer: error while echoing to WebSocket', e);
-      });
-    }).catchError((e) {
-      DebugLogger.warning(
-          'HttpServer: error while transforming to WebSocket', e);
-    });
+    WebSocketTransformer.upgrade(request)
+        .then((websocket) {
+          // We ignore failures to write to the socket, this happens if the browser
+          // closes the connection.
+          websocket.done.catchError((_) {});
+          websocket.listen(
+            (data) {
+              websocket.add(data);
+              if (data == 'close-with-error') {
+                // Note: according to the web-sockets spec, a reason longer than 123
+                // bytes will produce a SyntaxError on the client.
+                websocket.close(WebSocketStatus.unsupportedData, 'X' * 124);
+              } else {
+                websocket.close();
+              }
+            },
+            onError: (e) {
+              DebugLogger.warning(
+                'HttpServer: error while echoing to WebSocket',
+                e,
+              );
+            },
+          );
+        })
+        .catchError((e) {
+          DebugLogger.warning(
+            'HttpServer: error while transforming to WebSocket',
+            e,
+          );
+        });
   }
 
   void _handleUploadRequest(HttpRequest request) async {
@@ -249,12 +288,15 @@ class TestingServers {
       });
       var data = builder.takeBytes();
       DebugLogger.info(
-          'Uploaded data: ${String.fromCharCodes(data as Iterable<int>)}');
+        'Uploaded data: ${String.fromCharCodes(data as Iterable<int>)}',
+      );
       request.response.headers.set("Access-Control-Allow-Origin", "*");
       request.response.close();
     } catch (e) {
       DebugLogger.warning(
-          'HttpServer: error while processing upload request', e);
+        'HttpServer: error while processing upload request',
+        e,
+      );
     }
   }
 
@@ -265,8 +307,9 @@ class TestingServers {
     var packagesIndex = pathSegments.indexOf('packages');
     if (packagesIndex != -1) {
       var packageUri = Uri(
-          scheme: 'package',
-          pathSegments: pathSegments.skip(packagesIndex + 1));
+        scheme: 'package',
+        pathSegments: pathSegments.skip(packagesIndex + 1),
+      );
       return _packageConfig.resolve(packageUri);
     }
     if (pathSegments[0] == prefixBuildDir) {
@@ -282,25 +325,32 @@ class TestingServers {
     var completer = Completer<List<_Entry>>();
     var entries = <_Entry>[];
 
-    directory.list().listen((FileSystemEntity fse) {
-      var segments = fse.uri.pathSegments;
-      if (fse is File) {
-        var filename = segments.last;
-        entries.add(_Entry(filename, filename));
-      } else if (fse is Directory) {
-        var dirname = segments[segments.length - 2];
-        entries.add(_Entry(dirname, '$dirname/'));
-      }
-    }, onDone: () {
-      completer.complete(entries);
-    });
+    directory.list().listen(
+      (FileSystemEntity fse) {
+        var segments = fse.uri.pathSegments;
+        if (fse is File) {
+          var filename = segments.last;
+          entries.add(_Entry(filename, filename));
+        } else if (fse is Directory) {
+          var dirname = segments[segments.length - 2];
+          entries.add(_Entry(dirname, '$dirname/'));
+        }
+      },
+      onDone: () {
+        completer.complete(entries);
+      },
+    );
     return completer.future;
   }
 
   void _sendDirectoryListing(
-      List<_Entry> entries, HttpRequest request, HttpResponse response) {
+    List<_Entry> entries,
+    HttpRequest request,
+    HttpResponse response,
+  ) {
     response.headers.set('Content-Type', 'text/html');
-    var header = '''<!DOCTYPE html>
+    var header =
+        '''<!DOCTYPE html>
     <html>
     <head>
       <title>${request.uri.path}</title>
@@ -320,19 +370,27 @@ class TestingServers {
     entries.sort();
     response.write(header);
     for (var entry in entries) {
-      response.write('<li><a href="${request.uri}/${entry.name}">'
-          '${entry.displayName}</a></li>');
+      response.write(
+        '<li><a href="${request.uri}/${entry.name}">'
+        '${entry.displayName}</a></li>',
+      );
     }
     response.write(footer);
     response.close();
     response.done.catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while closing the response stream', e);
+        'HttpServer: error while closing the response stream',
+        e,
+      );
     });
   }
 
   void _sendFileContent(
-      HttpRequest request, HttpResponse response, int allowedPort, File file) {
+    HttpRequest request,
+    HttpResponse response,
+    int allowedPort,
+    File file,
+  ) {
     if (allowedPort != -1) {
       var headerOrigin = request.headers.value('Origin');
       String allowedOrigin;
@@ -372,7 +430,7 @@ class TestingServers {
       ].join('; ');
       for (var header in [
         "Content-Security-Policy",
-        "X-Content-Security-Policy"
+        "X-Content-Security-Policy",
       ]) {
         response.headers.set(header, contentHeaderValue);
       }
@@ -396,7 +454,9 @@ class TestingServers {
     response.headers.removeAll("X-Frame-Options");
     file.openRead().cast<List<int>>().pipe(response).catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while closing the response stream', e);
+        'HttpServer: error while closing the response stream',
+        e,
+      );
     });
   }
 
@@ -408,8 +468,10 @@ class TestingServers {
     }
 
     if (!isHarmlessPath(request.uri.path)) {
-      DebugLogger.warning('HttpServer: could not find file for request path: '
-          '"${request.uri.path}"');
+      DebugLogger.warning(
+        'HttpServer: could not find file for request path: '
+        '"${request.uri.path}"',
+      );
     }
     var response = request.response;
     response.statusCode = HttpStatus.notFound;
@@ -436,7 +498,9 @@ class TestingServers {
     response.close();
     response.done.catchError((e) {
       DebugLogger.warning(
-          'HttpServer: error while closing the response stream', e);
+        'HttpServer: error while closing the response stream',
+        e,
+      );
     });
   }
 }

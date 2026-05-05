@@ -32,11 +32,13 @@ class SummaryReport {
   void add(TestCase testCase) {
     var expectations = testCase.expectedOutcomes;
 
-    var containsFail = expectations
-        .any((expectation) => expectation.canBeOutcomeOf(Expectation.fail));
+    var containsFail = expectations.any(
+      (expectation) => expectation.canBeOutcomeOf(Expectation.fail),
+    );
     var containsPass = expectations.contains(Expectation.pass);
-    var containsSkip = expectations
-        .any((expectation) => expectation.canBeOutcomeOf(Expectation.skip));
+    var containsSkip = expectations.any(
+      (expectation) => expectation.canBeOutcomeOf(Expectation.skip),
+    );
     var containsSkipByDesign = expectations.contains(Expectation.skipByDesign);
     var containsCrash = expectations.contains(Expectation.crash);
     var containsOK = expectations.contains(Expectation.ok);
@@ -97,20 +99,21 @@ class SummaryReport {
   }
 
   Map<String, int> get values => {
-        'total': _total,
-        'skippedOther': skippedOther,
-        'skippedByDesign': _skippedByDesign,
-        'pass': _pass,
-        'noCrash': _noCrash,
-        'flakyCrash': _flakyCrash,
-        'failOk': _failOk,
-        'fail': _fail,
-        'crash': _crash,
-        'timeout': _timeout,
-        'bogus': bogus
-      };
+    'total': _total,
+    'skippedOther': skippedOther,
+    'skippedByDesign': _skippedByDesign,
+    'pass': _pass,
+    'noCrash': _noCrash,
+    'flakyCrash': _flakyCrash,
+    'failOk': _failOk,
+    'fail': _fail,
+    'crash': _crash,
+    'timeout': _timeout,
+    'bogus': bogus,
+  };
 
-  String get report => """Total: $_total tests
+  String get report =>
+      """Total: $_total tests
  * $_skipped tests will be skipped ($_skippedByDesign skipped by design)
  * $_noCrash tests are expected to be flaky but not crash
  * $_flakyCrash tests are expected to flaky crash

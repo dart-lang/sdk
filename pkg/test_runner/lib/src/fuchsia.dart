@@ -27,16 +27,20 @@ class FuchsiaEmulator {
       "--out-dir=${_outDir(buildDir, mode)}",
       "--device-spec=$arch-emu-large",
       "--packages=dart_test_$mode.far",
-      "--logs-dir=${daemonIsolateDir!.path}"
+      "--logs-dir=${daemonIsolateDir!.path}",
     ];
     if (arch == "arm64") {
       args.add("--product=terminal.qemu-arm64");
     }
-    publisher = await Process.start(withEnv, args,
-        environment: envs, mode: ProcessStartMode.inheritStdio);
+    publisher = await Process.start(
+      withEnv,
+      args,
+      environment: envs,
+      mode: ProcessStartMode.inheritStdio,
+    );
     while (!await File(
-                "${daemonIsolateDir!.path}/test_env_setup.${publisher!.pid}.pid")
-            .exists() &&
+          "${daemonIsolateDir!.path}/test_env_setup.${publisher!.pid}.pid",
+        ).exists() &&
         await _isProcessRunning(publisher!, 1000)) {}
     // TODO(38752): Should return a value to indicate the failure of the
     // enviornment setup.
@@ -50,36 +54,36 @@ class FuchsiaEmulator {
   // Returns a command to execute a set of tests against the running Fuchsia
   // environment.
   VMCommand getTestCommand(
-      String buildDir,
-      String mode,
-      String arch,
-      String component,
-      List<String> arguments,
-      Map<String, String> environmentOverrides) {
+    String buildDir,
+    String mode,
+    String arch,
+    String component,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+  ) {
     environmentOverrides.addAll(envs);
-    return VMCommand(
-        withEnv,
-        [
-          "./third_party/fuchsia/test_scripts/test/run_executable_test.py",
-          "--test-name=fuchsia-pkg://fuchsia.com/dart_test_$mode#meta/$component",
-          // VmexResource not available in default hermetic realm
-          // TODO(38752): Setup a Dart test realm.
-          "--test-realm=/core/testing/system-tests",
-          "--out-dir=${_outDir(buildDir, mode)}",
-          "--package-deps=dart_test_$mode.far",
-          ...arguments
-        ],
-        environmentOverrides);
+    return VMCommand(withEnv, [
+      "./third_party/fuchsia/test_scripts/test/run_executable_test.py",
+      "--test-name=fuchsia-pkg://fuchsia.com/dart_test_$mode#meta/$component",
+      // VmexResource not available in default hermetic realm
+      // TODO(38752): Setup a Dart test realm.
+      "--test-realm=/core/testing/system-tests",
+      "--out-dir=${_outDir(buildDir, mode)}",
+      "--package-deps=dart_test_$mode.far",
+      ...arguments,
+    ], environmentOverrides);
   }
 
   // Tears down the Fuchsia environment.
   Future<void> stop(bool verbose) async {
     if (verbose) {
       // Get the logs before they're deleted.
-      var logDump = await Process.start(withEnv,
-          ["third_party/fuchsia/sdk/linux/tools/x64/ffx", "log", "dump"],
-          environment: {"FFX_ISOLATE_DIR": daemonIsolateDir!.path},
-          mode: ProcessStartMode.inheritStdio);
+      var logDump = await Process.start(
+        withEnv,
+        ["third_party/fuchsia/sdk/linux/tools/x64/ffx", "log", "dump"],
+        environment: {"FFX_ISOLATE_DIR": daemonIsolateDir!.path},
+        mode: ProcessStartMode.inheritStdio,
+      );
       await logDump.exitCode;
     }
 

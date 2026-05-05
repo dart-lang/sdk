@@ -49,19 +49,20 @@ class Result {
   Result.fromMap(
     Map<String, dynamic> map, [
     Map<String, dynamic>? flakinessData,
-  ])  : configuration = map["configuration"] as String,
-        name = map["name"] as String,
-        outcome = map["result"] as String,
-        expectation = map["expected"] as String,
-        matches = map["matches"] as bool,
-        changed = map["changed"] as bool?,
-        commitHash = map["commit_hash"] as String?,
-        isFlaky = map["flaky"] as bool?,
-        previousOutcome = map["previous_result"] as String?,
-        timeMs = map["timeMs"] as int?,
-        flaked = flakinessData != null &&
-            (flakinessData["active"] ?? true) == true &&
-            (flakinessData["outcomes"] as List).contains(map["result"]);
+  ]) : configuration = map["configuration"] as String,
+       name = map["name"] as String,
+       outcome = map["result"] as String,
+       expectation = map["expected"] as String,
+       matches = map["matches"] as bool,
+       changed = map["changed"] as bool?,
+       commitHash = map["commit_hash"] as String?,
+       isFlaky = map["flaky"] as bool?,
+       previousOutcome = map["previous_result"] as String?,
+       timeMs = map["timeMs"] as int?,
+       flaked =
+           flakinessData != null &&
+           (flakinessData["active"] ?? true) == true &&
+           (flakinessData["outcomes"] as List).contains(map["result"]);
 
   String get key => "$configuration:$name";
 }
@@ -77,23 +78,25 @@ final gsutilPool = Pool(math.max(1, Platform.numberOfProcessors ~/ 2));
 /// Returns null if the requested URL didn't exist.
 Future<String> runGsutil(List<String> arguments) async {
   return gsutilPool.withResource(() async {
-    var processResult = await Process.run("gcloud", ["storage", ...arguments],
-        runInShell: Platform.isWindows);
+    var processResult = await Process.run("gcloud", [
+      "storage",
+      ...arguments,
+    ], runInShell: Platform.isWindows);
     if (processResult.exitCode != 0) {
       var stderr = processResult.stderr as String;
       if (processResult.exitCode == 1 && stderr.contains("No URLs matched") ||
           stderr.contains("One or more URLs matched no objects")) {
         return "";
       }
-      var error = "Failed to run: gcloud storage $arguments\n"
+      var error =
+          "Failed to run: gcloud storage $arguments\n"
           "exitCode: ${processResult.exitCode}\n"
           "stdout:\n${processResult.stdout}\n"
           "stderr:\n${processResult.stderr}";
       if (processResult.exitCode == 1 &&
           stderr.contains("401 Anonymous caller")) {
         // The gsutil config command has no direct equivalent. `gcloud auth login` is a suggested replacement for authentication.
-        error =
-            "\n\nYou need to authenticate by running:\ngcloud auth login\n";
+        error = "\n\nYou need to authenticate by running:\ngcloud auth login\n";
       }
       throw Exception(error);
     }
@@ -158,10 +161,9 @@ Future<String> readBuildFile(String bot, String build, String file) =>
     catGsutil(buildFileCloudPath(bot, build, file));
 
 List<Map<String, dynamic>> parseResults(String contents) {
-  return LineSplitter.split(contents)
-      .map(jsonDecode)
-      .toList()
-      .cast<Map<String, dynamic>>();
+  return LineSplitter.split(
+    contents,
+  ).map(jsonDecode).toList().cast<Map<String, dynamic>>();
 }
 
 Future<List<Map<String, dynamic>>> loadResults(String path) async {
@@ -192,7 +194,8 @@ Future<List<Map<String, dynamic>>> loadResults(String path) async {
 }
 
 Map<String, Map<String, dynamic>> createResultsMap(
-    List<Map<String, dynamic>> results) {
+  List<Map<String, dynamic>> results,
+) {
   var result = <String, Map<String, dynamic>>{};
   for (var map in results) {
     var key = "${map["configuration"]}:${map["name"]}";

@@ -30,28 +30,36 @@ const _defaultTestSelectors = [
 ];
 
 extension _IntOption on ArgParser {
-  void addIntegerOption(String name,
-      {String? abbr,
-      String? help,
-      String? valueHelp,
-      Iterable<String>? allowed,
-      Map<String, String>? allowedHelp,
-      String? defaultsTo,
-      bool mandatory = false,
-      bool hide = false,
-      List<String> aliases = const []}) {
-    addOption(name,
-        abbr: abbr,
-        help: help,
-        valueHelp: valueHelp,
-        allowed: allowed,
-        allowedHelp: allowedHelp,
-        defaultsTo: defaultsTo, callback: (value) {
-      if (value != null) {
-        int.tryParse(value) ??
-            _fail('Integer value expected for option "--$name".');
-      }
-    }, mandatory: mandatory, hide: hide, aliases: aliases);
+  void addIntegerOption(
+    String name, {
+    String? abbr,
+    String? help,
+    String? valueHelp,
+    Iterable<String>? allowed,
+    Map<String, String>? allowedHelp,
+    String? defaultsTo,
+    bool mandatory = false,
+    bool hide = false,
+    List<String> aliases = const [],
+  }) {
+    addOption(
+      name,
+      abbr: abbr,
+      help: help,
+      valueHelp: valueHelp,
+      allowed: allowed,
+      allowedHelp: allowedHelp,
+      defaultsTo: defaultsTo,
+      callback: (value) {
+        if (value != null) {
+          int.tryParse(value) ??
+              _fail('Integer value expected for option "--$name".');
+        }
+      },
+      mandatory: mandatory,
+      hide: hide,
+      aliases: aliases,
+    );
   }
 }
 
@@ -125,7 +133,7 @@ class OptionsParser {
     'dart2js-options',
     'enable-experiment',
     'builder-tag',
-    'use-qemu'
+    'use-qemu',
   };
 
   /// Parses a list of strings as test options.
@@ -168,10 +176,12 @@ class OptionsParser {
         // this line.
         if (optionName == 'arch') continue;
         if (results.wasParsed(optionName)) {
-          var namedConfigs =
-              (options['named-configuration'] as List<String>).join(', ');
-          _fail("Can't pass '--$optionName' since it is determined by the "
-              "named configuration: $namedConfigs.");
+          var namedConfigs = (options['named-configuration'] as List<String>)
+              .join(', ');
+          _fail(
+            "Can't pass '--$optionName' since it is determined by the "
+            "named configuration: $namedConfigs.",
+          );
         }
       }
     }
@@ -233,7 +243,9 @@ class OptionsParser {
   /// Given a set of parsed option values, returns the list of command line
   /// arguments that would reproduce that configuration.
   List<String> _reproducingCommand(
-      Map<String, dynamic> data, bool usingNamedConfiguration) {
+    Map<String, dynamic> data,
+    bool usingNamedConfiguration,
+  ) {
     var arguments = <String>[];
 
     for (var option in _parser.options.values) {
@@ -279,10 +291,12 @@ class OptionsParser {
     listOption(String name) {
       var value = data[name] as List<String>;
       return value
-          .expand((element) => element
-              .split(" ")
-              .map((s) => s.trim())
-              .where((s) => s.isNotEmpty))
+          .expand(
+            (element) => element
+                .split(" ")
+                .map((s) => s.trim())
+                .where((s) => s.isNotEmpty),
+          )
           .toList();
     }
 
@@ -310,8 +324,9 @@ class OptionsParser {
     var runtimes = [...(data["runtime"] as List<String>).map(Runtime.find)];
     var compilers = [...(data["compiler"] as List<String>).map(Compiler.find)];
     var formats = [
-      ...(data["gen-snapshot-format"] as List<String>)
-          .map(GenSnapshotFormat.find)
+      ...(data["gen-snapshot-format"] as List<String>).map(
+        GenSnapshotFormat.find,
+      ),
     ];
 
     // Pick default compilers or runtimes if only one or the other is provided.
@@ -330,65 +345,73 @@ class OptionsParser {
 
     var progress = Progress.find(data["progress"] as String);
 
-    void addConfiguration(Configuration innerConfiguration,
-        [String? namedConfiguration]) {
-      final (testList, deflakeInfoMap) =
-          parseTestList(data["test-list-contents"] as List<String>?);
+    void addConfiguration(
+      Configuration innerConfiguration, [
+      String? namedConfiguration,
+    ]) {
+      final (testList, deflakeInfoMap) = parseTestList(
+        data["test-list-contents"] as List<String>?,
+      );
 
       var configuration = TestConfiguration(
-          configuration: innerConfiguration,
-          progress: progress,
-          selectors: _expandSelectors(data, testList),
-          build: data["build"] as bool,
-          testList: testList,
-          deflakeInfoMap: deflakeInfoMap ?? const {},
-          repeat: int.parse(data["repeat"] as String),
-          batch: !(data["no-batch"] as bool),
-          copyCoreDumps: data["copy-coredumps"] as bool,
-          rr: data["rr"] as bool,
-          isVerbose: data["verbose"] as bool,
-          listTests: data["list"] as bool,
-          listStatusFiles: data["list-status-files"] as bool,
-          cleanExit: data["clean-exit"] as bool,
-          silentFailures: data["silent-failures"] as bool,
-          printTiming: data["time"] as bool,
-          printReport: data["report"] as bool,
-          reportFailures: data["report-failures"] as bool,
-          reportInJson: data["report-in-json"] as bool,
-          resetBrowser: data["reset-browser-configuration"] as bool,
-          writeDebugLog: data["write-debug-log"] as bool,
-          writeResults: data["write-results"] as bool,
-          writeLogs: data["write-logs"] as bool,
-          drtPath: data["drt"] as String?,
-          chromePath: data["chrome"] as String?,
-          safariPath: data["safari"] as String?,
-          firefoxPath: data["firefox"] as String?,
-          dartPath: data["dart"] as String?,
-          dartPrecompiledPath: data["dart-precompiled"] as String?,
-          genSnapshotPath: data["gen-snapshot"] as String?,
-          keepGeneratedFiles: data["keep-generated-files"] as bool,
-          taskCount: int.parse(data["tasks"] as String),
-          shardCount: int.parse(data["shards"] as String),
-          shard: int.parse(data["shard"] as String),
-          testServerPort: int.parse(data['test-server-port'] as String),
-          testServerCrossOriginPort:
-              int.parse(data['test-server-cross-origin-port'] as String),
-          testDriverErrorPort:
-              int.parse(data['test-driver-error-port'] as String),
-          localIP: data["local-ip"] as String,
-          sharedOptions: <String>[
-            ...sharedOptions,
-            "-Dtest_runner.configuration=${innerConfiguration.name}"
-          ],
-          packages: data["packages"] as String?,
-          serviceResponseSizesDirectory:
-              data['service-response-sizes-directory'] as String?,
-          suiteDirectory: data["suite-dir"] as String?,
-          outputDirectory: data["output-directory"] as String,
-          reproducingArguments:
-              _reproducingCommand(data, namedConfiguration != null),
-          fastTestsOnly: data["fast-tests"] as bool,
-          printPassingStdout: data["print-passing-stdout"] as bool);
+        configuration: innerConfiguration,
+        progress: progress,
+        selectors: _expandSelectors(data, testList),
+        build: data["build"] as bool,
+        testList: testList,
+        deflakeInfoMap: deflakeInfoMap ?? const {},
+        repeat: int.parse(data["repeat"] as String),
+        batch: !(data["no-batch"] as bool),
+        copyCoreDumps: data["copy-coredumps"] as bool,
+        rr: data["rr"] as bool,
+        isVerbose: data["verbose"] as bool,
+        listTests: data["list"] as bool,
+        listStatusFiles: data["list-status-files"] as bool,
+        cleanExit: data["clean-exit"] as bool,
+        silentFailures: data["silent-failures"] as bool,
+        printTiming: data["time"] as bool,
+        printReport: data["report"] as bool,
+        reportFailures: data["report-failures"] as bool,
+        reportInJson: data["report-in-json"] as bool,
+        resetBrowser: data["reset-browser-configuration"] as bool,
+        writeDebugLog: data["write-debug-log"] as bool,
+        writeResults: data["write-results"] as bool,
+        writeLogs: data["write-logs"] as bool,
+        drtPath: data["drt"] as String?,
+        chromePath: data["chrome"] as String?,
+        safariPath: data["safari"] as String?,
+        firefoxPath: data["firefox"] as String?,
+        dartPath: data["dart"] as String?,
+        dartPrecompiledPath: data["dart-precompiled"] as String?,
+        genSnapshotPath: data["gen-snapshot"] as String?,
+        keepGeneratedFiles: data["keep-generated-files"] as bool,
+        taskCount: int.parse(data["tasks"] as String),
+        shardCount: int.parse(data["shards"] as String),
+        shard: int.parse(data["shard"] as String),
+        testServerPort: int.parse(data['test-server-port'] as String),
+        testServerCrossOriginPort: int.parse(
+          data['test-server-cross-origin-port'] as String,
+        ),
+        testDriverErrorPort: int.parse(
+          data['test-driver-error-port'] as String,
+        ),
+        localIP: data["local-ip"] as String,
+        sharedOptions: <String>[
+          ...sharedOptions,
+          "-Dtest_runner.configuration=${innerConfiguration.name}",
+        ],
+        packages: data["packages"] as String?,
+        serviceResponseSizesDirectory:
+            data['service-response-sizes-directory'] as String?,
+        suiteDirectory: data["suite-dir"] as String?,
+        outputDirectory: data["output-directory"] as String,
+        reproducingArguments: _reproducingCommand(
+          data,
+          namedConfiguration != null,
+        ),
+        fastTestsOnly: data["fast-tests"] as bool,
+        printPassingStdout: data["print-passing-stdout"] as bool,
+      );
 
       if (configuration.validate()) {
         result.add(configuration);
@@ -400,39 +423,51 @@ class OptionsParser {
     var namedConfigurations = data["named-configuration"] as List<String>;
     var detectHost = data['detect-host'] as bool;
     if (detectHost && namedConfigurations.isEmpty) {
-      _fail('The `--detect-host` flag is only supported for named '
-          'configurations.');
+      _fail(
+        'The `--detect-host` flag is only supported for named '
+        'configurations.',
+      );
     }
     if (namedConfigurations.isNotEmpty) {
       var testMatrix = TestMatrix.fromPath(_testMatrixFile);
       for (var namedConfiguration in namedConfigurations) {
         try {
-          var configuration = testMatrix.configurations
-              .singleWhere((c) => c.name == namedConfiguration);
+          var configuration = testMatrix.configurations.singleWhere(
+            (c) => c.name == namedConfiguration,
+          );
           if (configuration.system != System.host ||
               configuration.architecture != Architecture.host) {
-            print("-- WARNING -- \n"
-                "The provided named configuration does not match the host "
-                "system or architecture:\n"
-                "    ${configuration.name}");
+            print(
+              "-- WARNING -- \n"
+              "The provided named configuration does not match the host "
+              "system or architecture:\n"
+              "    ${configuration.name}",
+            );
             if (detectHost) {
               configuration = Configuration.detectHost(configuration);
-              print("Detecting host configuration:\n"
-                  "    $configuration");
+              print(
+                "Detecting host configuration:\n"
+                "    $configuration",
+              );
             } else {
-              print("Passing the `--detect-host` flag will modify the named "
-                  "configuration to match the local system and architecture.");
+              print(
+                "Passing the `--detect-host` flag will modify the named "
+                "configuration to match the local system and architecture.",
+              );
             }
           }
           addConfiguration(configuration, namedConfiguration);
         } on StateError {
-          var names = testMatrix.configurations
-              .map((configuration) => configuration.name)
-              .toList()
-            ..sort();
-          _fail('The named configuration "$namedConfiguration" does not exist.'
-              ' The following configurations are available:\n'
-              '  * ${names.join('\n  * ')}');
+          var names =
+              testMatrix.configurations
+                  .map((configuration) => configuration.name)
+                  .toList()
+                ..sort();
+          _fail(
+            'The named configuration "$namedConfiguration" does not exist.'
+            ' The following configurations are available:\n'
+            '  * ${names.join('\n  * ')}',
+          );
         }
       }
       return result;
@@ -456,7 +491,7 @@ class OptionsParser {
           "simarm64",
           "simarm64c",
           "simriscv32",
-          "simriscv64"
+          "simriscv64",
         ];
       }
 
@@ -482,31 +517,32 @@ class OptionsParser {
                     ? int.parse(data["timeout"] as String)
                     : null;
                 var configuration = Configuration(
-                    "custom-configuration-${configurationNumber++}",
-                    architecture,
-                    compiler,
-                    mode,
-                    runtime,
-                    system,
-                    sanitizer: sanitizer,
-                    timeout: timeout,
-                    enableAsserts: data['enable-asserts'] as bool,
-                    useAnalyzerCfe: data["use-cfe"] as bool,
-                    useAnalyzerFastaParser:
-                        data["analyzer-use-fasta-parser"] as bool,
-                    useSdk: data["use-sdk"] as bool,
-                    useHotReload: data["hot-reload"] as bool,
-                    useHotReloadRollback: data["hot-reload-rollback"] as bool,
-                    enableHostAsserts: data["host-asserts"] as bool,
-                    isCsp: data["csp"] as bool,
-                    isMinified: data["minified"] as bool,
-                    genSnapshotFormat: format,
-                    vmOptions: vmOptions,
-                    dart2jsOptions: dart2jsOptions,
-                    ddcOptions: ddcOptions,
-                    experiments: experiments,
-                    builderTag: data["builder-tag"] as String?,
-                    useQemu: data["use-qemu"] as bool);
+                  "custom-configuration-${configurationNumber++}",
+                  architecture,
+                  compiler,
+                  mode,
+                  runtime,
+                  system,
+                  sanitizer: sanitizer,
+                  timeout: timeout,
+                  enableAsserts: data['enable-asserts'] as bool,
+                  useAnalyzerCfe: data["use-cfe"] as bool,
+                  useAnalyzerFastaParser:
+                      data["analyzer-use-fasta-parser"] as bool,
+                  useSdk: data["use-sdk"] as bool,
+                  useHotReload: data["hot-reload"] as bool,
+                  useHotReloadRollback: data["hot-reload-rollback"] as bool,
+                  enableHostAsserts: data["host-asserts"] as bool,
+                  isCsp: data["csp"] as bool,
+                  isMinified: data["minified"] as bool,
+                  genSnapshotFormat: format,
+                  vmOptions: vmOptions,
+                  dart2jsOptions: dart2jsOptions,
+                  ddcOptions: ddcOptions,
+                  experiments: experiments,
+                  builderTag: data["builder-tag"] as String?,
+                  useQemu: data["use-qemu"] as bool,
+                );
                 addConfiguration(configuration);
               }
             }
@@ -522,7 +558,9 @@ class OptionsParser {
   ///
   /// If no selectors are explicitly given, uses the default suite patterns.
   Map<String, RegExp> _expandSelectors(
-      Map<String, dynamic> configuration, List<String>? testList) {
+    Map<String, dynamic> configuration,
+    List<String>? testList,
+  ) {
     var selectors = configuration['selectors'] as List<String>? ?? [];
 
     if (selectors.isEmpty || configuration['default-suites'] as bool) {
@@ -560,8 +598,10 @@ class OptionsParser {
         pattern = ".?";
       }
       if (selectorMap.containsKey(suite)) {
-        _fail("Error: '$suite/$pattern'.  Only one test selection"
-            " pattern is allowed to start with '$suite/'");
+        _fail(
+          "Error: '$suite/$pattern'.  Only one test selection"
+          " pattern is allowed to start with '$suite/'",
+        );
       }
       selectorMap[suite] = RegExp(pattern);
     }
@@ -591,303 +631,455 @@ Options:''');
 }
 
 ArgParser _createParser({required bool verbose}) => ArgParser()
-  ..addMultiOption('mode',
-      abbr: 'm',
-      allowed: ['all', ...Mode.names],
-      help: 'Mode in which to run the tests.')
-  ..addMultiOption('compiler',
-      abbr: 'c',
-      allowed: Compiler.names,
-      allowedHelp: {
-        'dart2js': 'Compile to JavaScript using dart2js.',
-        'dart2analyzer':
-            'Perform static analysis on Dart code using the analyzer.',
-        'compare_analyzer_cfe':
-            'Compare analyzer and common front end representations.',
-        'ddc': 'Compile to JavaScript using dartdevc.',
-        'app_jitk': 'Compile the Dart code into Kernel and then into '
-            'an app snapshot.',
-        'dartk': 'Compile the Dart code into Kernel before running test.',
-        'dartkp': 'Compile the Dart code into Kernel and then Kernel into '
-            'AOT snapshot before running the test.',
-        'spec_parser': 'Parse Dart code using the specification parser.',
-        'fasta': 'Compile using CFE for errors, but do not run.',
-      },
-      help: 'How the Dart code should be compiled or statically processed.')
-  ..addMultiOption('runtime',
-      abbr: 'r',
-      allowed: Runtime.names,
-      allowedHelp: {
-        'vm': 'Run Dart code on the standalone Dart VM.',
-        'dart_precompiled':
-            'Run a precompiled snapshot on the VM without a JIT.',
-        'd8': "Run JavaScript from the command line using Chrome's v8.",
-        'jsc':
-            "Run JavaScript from the command line using Safari/WebKit's jsc.",
-        'jsshell':
-            "Run JavaScript from the command line using Firefox's js-shell.",
-        'firefox': 'Run JavaScript in Firefox.',
-        'chrome': 'Run JavaScript in Chrome.',
-        'safari': 'Run JavaScript in Safari.',
-        'chromeOnAndroid': 'Run JavaScript in Chrome on Android.',
-        'none': 'No runtime, compile only.',
-      },
-      help: 'Where the tests should be run.')
-  ..addMultiOption('arch',
-      abbr: 'a',
-      allowed: ['all', ...Architecture.names],
-      defaultsTo: [Architecture.host.name],
-      hide: !verbose,
-      help: 'The architecture to run tests for.')
-  ..addOption('system',
-      abbr: 's',
-      allowed: ['all', ...System.names],
-      defaultsTo: Platform.operatingSystem,
-      hide: !verbose,
-      help: 'The operating system to run tests on.')
-  ..addMultiOption('gen-snapshot-format',
-      allowed: ['all', ...GenSnapshotFormat.names],
-      defaultsTo: [GenSnapshotFormat.assembly.name],
-      hide: !verbose,
-      help: 'The output format used by gen_snapshot.')
-  ..addMultiOption('sanitizer',
-      allowed: ['all', ...Sanitizer.names],
-      defaultsTo: [Sanitizer.none.name],
-      help: 'Sanitizer in which to run the tests.')
-  ..addMultiOption('named-configuration',
-      abbr: 'n',
-      aliases: ['named_configuration'],
-      hide: !verbose,
-      help: '''The named test configuration that supplies the values for all
-test options, specifying how tests should be run.''')
-  ..addFlag('detect-host',
-      aliases: ['detect_host'],
-      help: 'Replace the system and architecture options in named '
-          'configurations to match the local host. Provided only as a '
-          'convenience when running tests locally. It is an error use this '
-          'flag with without specifying a named configuration.')
-  ..addFlag('build',
-      help: 'Build the necessary targets to test this configuration')
-  ..addFlag('host-asserts',
-      aliases: ['host_asserts'],
-      hide: !verbose,
-      help: 'Run the compiler with assertions enabled.')
-  ..addFlag('minified',
-      hide: !verbose, help: 'Enable minification in the compiler.')
-  ..addFlag('csp',
-      hide: !verbose,
-      help: 'Run tests under Content Security Policy restrictions.')
-  ..addFlag('fast-tests',
-      aliases: ['fast_tests'],
-      hide: !verbose,
-      help: 'Only run tests that are not marked `Slow` or `Timeout`.')
-  ..addFlag('enable-asserts',
-      aliases: ['enable_asserts'],
-      help: 'Pass the --enable-asserts flag to the compilers or to the vm.')
-  ..addFlag('use-cfe',
-      aliases: ['use_cfe'],
-      hide: !verbose,
-      help: 'Pass the --use-cfe flag to analyzer')
-  ..addFlag('analyzer-use-fasta-parser',
-      aliases: ['analyzer_use_fasta_parser'],
-      hide: !verbose,
-      help: 'Pass the --use-fasta-parser flag to analyzer')
+  ..addMultiOption(
+    'mode',
+    abbr: 'm',
+    allowed: ['all', ...Mode.names],
+    help: 'Mode in which to run the tests.',
+  )
+  ..addMultiOption(
+    'compiler',
+    abbr: 'c',
+    allowed: Compiler.names,
+    allowedHelp: {
+      'dart2js': 'Compile to JavaScript using dart2js.',
+      'dart2analyzer':
+          'Perform static analysis on Dart code using the analyzer.',
+      'compare_analyzer_cfe':
+          'Compare analyzer and common front end representations.',
+      'ddc': 'Compile to JavaScript using dartdevc.',
+      'app_jitk':
+          'Compile the Dart code into Kernel and then into '
+          'an app snapshot.',
+      'dartk': 'Compile the Dart code into Kernel before running test.',
+      'dartkp':
+          'Compile the Dart code into Kernel and then Kernel into '
+          'AOT snapshot before running the test.',
+      'spec_parser': 'Parse Dart code using the specification parser.',
+      'fasta': 'Compile using CFE for errors, but do not run.',
+    },
+    help: 'How the Dart code should be compiled or statically processed.',
+  )
+  ..addMultiOption(
+    'runtime',
+    abbr: 'r',
+    allowed: Runtime.names,
+    allowedHelp: {
+      'vm': 'Run Dart code on the standalone Dart VM.',
+      'dart_precompiled': 'Run a precompiled snapshot on the VM without a JIT.',
+      'd8': "Run JavaScript from the command line using Chrome's v8.",
+      'jsc': "Run JavaScript from the command line using Safari/WebKit's jsc.",
+      'jsshell':
+          "Run JavaScript from the command line using Firefox's js-shell.",
+      'firefox': 'Run JavaScript in Firefox.',
+      'chrome': 'Run JavaScript in Chrome.',
+      'safari': 'Run JavaScript in Safari.',
+      'chromeOnAndroid': 'Run JavaScript in Chrome on Android.',
+      'none': 'No runtime, compile only.',
+    },
+    help: 'Where the tests should be run.',
+  )
+  ..addMultiOption(
+    'arch',
+    abbr: 'a',
+    allowed: ['all', ...Architecture.names],
+    defaultsTo: [Architecture.host.name],
+    hide: !verbose,
+    help: 'The architecture to run tests for.',
+  )
+  ..addOption(
+    'system',
+    abbr: 's',
+    allowed: ['all', ...System.names],
+    defaultsTo: Platform.operatingSystem,
+    hide: !verbose,
+    help: 'The operating system to run tests on.',
+  )
+  ..addMultiOption(
+    'gen-snapshot-format',
+    allowed: ['all', ...GenSnapshotFormat.names],
+    defaultsTo: [GenSnapshotFormat.assembly.name],
+    hide: !verbose,
+    help: 'The output format used by gen_snapshot.',
+  )
+  ..addMultiOption(
+    'sanitizer',
+    allowed: ['all', ...Sanitizer.names],
+    defaultsTo: [Sanitizer.none.name],
+    help: 'Sanitizer in which to run the tests.',
+  )
+  ..addMultiOption(
+    'named-configuration',
+    abbr: 'n',
+    aliases: ['named_configuration'],
+    hide: !verbose,
+    help: '''The named test configuration that supplies the values for all
+test options, specifying how tests should be run.''',
+  )
+  ..addFlag(
+    'detect-host',
+    aliases: ['detect_host'],
+    help:
+        'Replace the system and architecture options in named '
+        'configurations to match the local host. Provided only as a '
+        'convenience when running tests locally. It is an error use this '
+        'flag with without specifying a named configuration.',
+  )
+  ..addFlag(
+    'build',
+    help: 'Build the necessary targets to test this configuration',
+  )
+  ..addFlag(
+    'host-asserts',
+    aliases: ['host_asserts'],
+    hide: !verbose,
+    help: 'Run the compiler with assertions enabled.',
+  )
+  ..addFlag(
+    'minified',
+    hide: !verbose,
+    help: 'Enable minification in the compiler.',
+  )
+  ..addFlag(
+    'csp',
+    hide: !verbose,
+    help: 'Run tests under Content Security Policy restrictions.',
+  )
+  ..addFlag(
+    'fast-tests',
+    aliases: ['fast_tests'],
+    hide: !verbose,
+    help: 'Only run tests that are not marked `Slow` or `Timeout`.',
+  )
+  ..addFlag(
+    'enable-asserts',
+    aliases: ['enable_asserts'],
+    help: 'Pass the --enable-asserts flag to the compilers or to the vm.',
+  )
+  ..addFlag(
+    'use-cfe',
+    aliases: ['use_cfe'],
+    hide: !verbose,
+    help: 'Pass the --use-cfe flag to analyzer',
+  )
+  ..addFlag(
+    'analyzer-use-fasta-parser',
+    aliases: ['analyzer_use_fasta_parser'],
+    hide: !verbose,
+    help: 'Pass the --use-fasta-parser flag to analyzer',
+  )
   ..addFlag('hot-reload', hide: !verbose, help: 'Run hot reload stress tests.')
-  ..addFlag('hot-reload-rollback',
-      hide: !verbose, help: 'Run hot reload rollback stress tests.')
-  ..addFlag('use-blobs',
-      aliases: ['use_blobs'],
-      hide: !verbose,
-      help: 'Use mmap instead of shared libraries for precompilation.')
-  ..addFlag('use-qemu',
-      aliases: ['use_qemu'],
-      hide: !verbose,
-      help: 'Use qemu to test arm32 on x64 host machines.')
-  ..addFlag('keep-generated-files',
-      abbr: 'k', hide: !verbose, help: 'Keep any generated files.')
+  ..addFlag(
+    'hot-reload-rollback',
+    hide: !verbose,
+    help: 'Run hot reload rollback stress tests.',
+  )
+  ..addFlag(
+    'use-blobs',
+    aliases: ['use_blobs'],
+    hide: !verbose,
+    help: 'Use mmap instead of shared libraries for precompilation.',
+  )
+  ..addFlag(
+    'use-qemu',
+    aliases: ['use_qemu'],
+    hide: !verbose,
+    help: 'Use qemu to test arm32 on x64 host machines.',
+  )
+  ..addFlag(
+    'keep-generated-files',
+    abbr: 'k',
+    hide: !verbose,
+    help: 'Keep any generated files.',
+  )
   ..addIntegerOption('timeout', abbr: 't', help: 'Timeout in seconds.')
-  ..addOption('progress',
-      abbr: 'p',
-      allowed: Progress.names,
-      defaultsTo: stdioType(stdout) == StdioType.terminal
-          ? Progress.compact.name
-          : Progress.line.name,
-      help: 'Progress indication mode.')
-  ..addFlag('report',
-      hide: !verbose,
-      help: 'Print a summary report of the number of tests, by expectation.')
-  ..addFlag('report-failures',
-      aliases: ['report_failures'],
-      hide: !verbose,
-      help: 'Print a summary of the tests that failed.')
-  ..addOption('tasks',
-      abbr: 'j',
-      defaultsTo: Platform.numberOfProcessors.toString(),
-      help: 'The number of parallel tasks to run.')
-  ..addIntegerOption('shards',
-      defaultsTo: '1',
-      hide: !verbose,
-      help: 'The number of instances that the tests will be sharded over.')
-  ..addIntegerOption('shard',
-      defaultsTo: '1',
-      hide: !verbose,
-      help: 'The index of this instance when running in sharded mode.')
+  ..addOption(
+    'progress',
+    abbr: 'p',
+    allowed: Progress.names,
+    defaultsTo: stdioType(stdout) == StdioType.terminal
+        ? Progress.compact.name
+        : Progress.line.name,
+    help: 'Progress indication mode.',
+  )
+  ..addFlag(
+    'report',
+    hide: !verbose,
+    help: 'Print a summary report of the number of tests, by expectation.',
+  )
+  ..addFlag(
+    'report-failures',
+    aliases: ['report_failures'],
+    hide: !verbose,
+    help: 'Print a summary of the tests that failed.',
+  )
+  ..addOption(
+    'tasks',
+    abbr: 'j',
+    defaultsTo: Platform.numberOfProcessors.toString(),
+    help: 'The number of parallel tasks to run.',
+  )
+  ..addIntegerOption(
+    'shards',
+    defaultsTo: '1',
+    hide: !verbose,
+    help: 'The number of instances that the tests will be sharded over.',
+  )
+  ..addIntegerOption(
+    'shard',
+    defaultsTo: '1',
+    hide: !verbose,
+    help: 'The index of this instance when running in sharded mode.',
+  )
   ..addFlag('help', abbr: 'h', help: 'Print list of options.')
-  ..addIntegerOption('repeat',
-      defaultsTo: '1', help: 'How many times each test is run')
+  ..addIntegerOption(
+    'repeat',
+    defaultsTo: '1',
+    help: 'How many times each test is run',
+  )
   ..addFlag('verbose', abbr: 'v', help: 'Verbose output.')
-  ..addFlag('verify-ir',
-      aliases: ['verify_ir'], hide: !verbose, help: 'Verify kernel IR.')
-  ..addFlag('no-tree-shake',
-      aliases: ['no_tree_shake'],
-      hide: !verbose,
-      help: 'Disable kernel IR tree shaking.')
+  ..addFlag(
+    'verify-ir',
+    aliases: ['verify_ir'],
+    hide: !verbose,
+    help: 'Verify kernel IR.',
+  )
+  ..addFlag(
+    'no-tree-shake',
+    aliases: ['no_tree_shake'],
+    hide: !verbose,
+    help: 'Disable kernel IR tree shaking.',
+  )
   ..addFlag('list', help: 'List tests only, do not run them.')
-  ..addFlag('find-configurations',
-      aliases: ['find_configurations'], help: 'Find matching configurations.')
-  ..addFlag('list-configurations',
-      aliases: ['list_configurations'], help: 'Output list of configurations.')
-  ..addFlag('list-status-files',
-      aliases: ['list_status_files'],
-      hide: !verbose,
-      help: 'List status files for test suites. Do not run any test suites.')
-  ..addFlag('clean-exit',
-      aliases: ['clean_exit'],
-      hide: !verbose,
-      help: 'Exit 0 if tests ran and results were output.')
-  ..addFlag('silent-failures',
-      aliases: ['silent_failures'],
-      hide: !verbose,
-      help: "Don't complain about failing tests. This is useful when in "
-          "combination with --write-results.")
-  ..addFlag('report-in-json',
-      aliases: ['report_in_json'],
-      hide: !verbose,
-      help: 'When listing with --list, output result summary in JSON.')
+  ..addFlag(
+    'find-configurations',
+    aliases: ['find_configurations'],
+    help: 'Find matching configurations.',
+  )
+  ..addFlag(
+    'list-configurations',
+    aliases: ['list_configurations'],
+    help: 'Output list of configurations.',
+  )
+  ..addFlag(
+    'list-status-files',
+    aliases: ['list_status_files'],
+    hide: !verbose,
+    help: 'List status files for test suites. Do not run any test suites.',
+  )
+  ..addFlag(
+    'clean-exit',
+    aliases: ['clean_exit'],
+    hide: !verbose,
+    help: 'Exit 0 if tests ran and results were output.',
+  )
+  ..addFlag(
+    'silent-failures',
+    aliases: ['silent_failures'],
+    hide: !verbose,
+    help:
+        "Don't complain about failing tests. This is useful when in "
+        "combination with --write-results.",
+  )
+  ..addFlag(
+    'report-in-json',
+    aliases: ['report_in_json'],
+    hide: !verbose,
+    help: 'When listing with --list, output result summary in JSON.',
+  )
   ..addFlag('time', help: 'Print timing information after running tests.')
   ..addOption('dart', hide: !verbose, help: 'Path to dart executable.')
-  ..addOption('gen-snapshot',
-      aliases: ['gen_snapshot'],
-      hide: !verbose,
-      help: 'Path to gen_snapshot executable.')
-  ..addOption('firefox',
-      hide: !verbose, help: 'Path to firefox browser executable.')
-  ..addOption('chrome',
-      hide: !verbose, help: 'Path to chrome browser executable.')
-  ..addOption('safari',
-      hide: !verbose, help: 'Path to safari browser executable.')
-  ..addFlag('use-sdk',
-      aliases: ['use_sdk'], help: 'Use compiler or runtime from the SDK.')
-  ..addOption('output-directory',
-      aliases: ['output_directory'],
-      defaultsTo: "logs",
-      hide: !verbose,
-      help: 'The name of the output directory for storing log files.')
-  ..addFlag('no-batch',
-      aliases: ['no_batch'],
-      hide: !verbose,
-      help: "Don't run tests in batch mode.")
-  ..addFlag('write-debug-log',
-      aliases: ['write_debug_log'],
-      hide: !verbose,
-      help: "Don't write debug messages to stdout but rather to a logfile.")
-  ..addFlag('write-results',
-      aliases: ['write_results'],
-      hide: !verbose,
-      help: 'Write results to a "${TestUtils.resultsFileName}" json file '
-          'located at the debug-output-directory.')
-  ..addFlag('write-logs',
-      aliases: ['write_logs'],
-      hide: !verbose,
-      help: 'Write failing test stdout and stderr to the '
-          '"${TestUtils.logsFileName}" file')
-  ..addFlag('reset-browser-configuration',
-      aliases: ['reset_browser_configuration'],
-      hide: !verbose,
-      help: '''Browser specific reset of configuration.
+  ..addOption(
+    'gen-snapshot',
+    aliases: ['gen_snapshot'],
+    hide: !verbose,
+    help: 'Path to gen_snapshot executable.',
+  )
+  ..addOption(
+    'firefox',
+    hide: !verbose,
+    help: 'Path to firefox browser executable.',
+  )
+  ..addOption(
+    'chrome',
+    hide: !verbose,
+    help: 'Path to chrome browser executable.',
+  )
+  ..addOption(
+    'safari',
+    hide: !verbose,
+    help: 'Path to safari browser executable.',
+  )
+  ..addFlag(
+    'use-sdk',
+    aliases: ['use_sdk'],
+    help: 'Use compiler or runtime from the SDK.',
+  )
+  ..addOption(
+    'output-directory',
+    aliases: ['output_directory'],
+    defaultsTo: "logs",
+    hide: !verbose,
+    help: 'The name of the output directory for storing log files.',
+  )
+  ..addFlag(
+    'no-batch',
+    aliases: ['no_batch'],
+    hide: !verbose,
+    help: "Don't run tests in batch mode.",
+  )
+  ..addFlag(
+    'write-debug-log',
+    aliases: ['write_debug_log'],
+    hide: !verbose,
+    help: "Don't write debug messages to stdout but rather to a logfile.",
+  )
+  ..addFlag(
+    'write-results',
+    aliases: ['write_results'],
+    hide: !verbose,
+    help:
+        'Write results to a "${TestUtils.resultsFileName}" json file '
+        'located at the debug-output-directory.',
+  )
+  ..addFlag(
+    'write-logs',
+    aliases: ['write_logs'],
+    hide: !verbose,
+    help:
+        'Write failing test stdout and stderr to the '
+        '"${TestUtils.logsFileName}" file',
+  )
+  ..addFlag(
+    'reset-browser-configuration',
+    aliases: ['reset_browser_configuration'],
+    hide: !verbose,
+    help: '''Browser specific reset of configuration.
 
 Warning: Using this option may remove your bookmarks and other
-settings.''')
-  ..addFlag('copy-coredumps',
-      aliases: ['copy_coredumps'],
-      hide: !verbose,
-      help: 'Copy core dumps to "/tmp" when an unexpected crash occurs.')
-  ..addFlag('rr',
-      hide: !verbose,
-      help: '''Run VM tests under rr and save traces from crashes''')
-  ..addOption('local-ip',
-      aliases: ['local_ip'],
-      hide: !verbose,
-      help: '''IP address the HTTP servers should listen on. This address is
+settings.''',
+  )
+  ..addFlag(
+    'copy-coredumps',
+    aliases: ['copy_coredumps'],
+    hide: !verbose,
+    help: 'Copy core dumps to "/tmp" when an unexpected crash occurs.',
+  )
+  ..addFlag(
+    'rr',
+    hide: !verbose,
+    help: '''Run VM tests under rr and save traces from crashes''',
+  )
+  ..addOption(
+    'local-ip',
+    aliases: ['local_ip'],
+    hide: !verbose,
+    help: '''IP address the HTTP servers should listen on. This address is
 also used for browsers to connect to.''',
-      defaultsTo: '127.0.0.1')
-  ..addIntegerOption('test-server-port',
-      aliases: ['test_server_port'],
-      hide: !verbose,
-      defaultsTo: '0',
-      help: 'Port for test http server.')
-  ..addIntegerOption('test-server-cross-origin-port',
-      aliases: ['test_server_cross_origin_port'],
-      hide: !verbose,
-      help: 'Port for test http server cross origin.',
-      defaultsTo: '0')
-  ..addIntegerOption('test-driver-error-port',
-      aliases: ['test_driver_error_port'],
-      hide: !verbose,
-      help: 'Port for http test driver server errors.',
-      defaultsTo: '0')
-  ..addOption('test-list',
-      aliases: ['test_list'],
-      hide: !verbose,
-      help: 'File containing a list of tests to be executed.')
-  ..addOption('tests',
-      help: 'A newline separated list of tests to be executed.')
-  ..addOption('builder-tag',
-      aliases: ['builder_tag'],
-      help: '''Machine specific options that is not captured by the regular test
+    defaultsTo: '127.0.0.1',
+  )
+  ..addIntegerOption(
+    'test-server-port',
+    aliases: ['test_server_port'],
+    hide: !verbose,
+    defaultsTo: '0',
+    help: 'Port for test http server.',
+  )
+  ..addIntegerOption(
+    'test-server-cross-origin-port',
+    aliases: ['test_server_cross_origin_port'],
+    hide: !verbose,
+    help: 'Port for test http server cross origin.',
+    defaultsTo: '0',
+  )
+  ..addIntegerOption(
+    'test-driver-error-port',
+    aliases: ['test_driver_error_port'],
+    hide: !verbose,
+    help: 'Port for http test driver server errors.',
+    defaultsTo: '0',
+  )
+  ..addOption(
+    'test-list',
+    aliases: ['test_list'],
+    hide: !verbose,
+    help: 'File containing a list of tests to be executed.',
+  )
+  ..addOption(
+    'tests',
+    help: 'A newline separated list of tests to be executed.',
+  )
+  ..addOption(
+    'builder-tag',
+    aliases: ['builder_tag'],
+    help: '''Machine specific options that is not captured by the regular test
 options. Used to be able to make sane updates to the status files.''',
-      hide: !verbose)
-  ..addMultiOption('vm-options',
-      aliases: ['vm_options'],
-      hide: !verbose,
-      help: 'Extra options to send to the VM when running.')
-  ..addMultiOption('dart2js-options',
-      aliases: ['dart2js_options'],
-      hide: !verbose,
-      help: 'Extra options for dart2js compilation step.')
-  ..addMultiOption('ddc-options',
-      aliases: ['ddc_options'],
-      hide: !verbose,
-      help: 'Extra command line options passed to the DDC compiler.')
-  ..addMultiOption('shared-options',
-      aliases: ['shared_options'],
-      hide: !verbose,
-      help: 'Extra shared options.')
-  ..addMultiOption('enable-experiment',
-      aliases: ['experiments', 'enable_experiment'],
-      help: 'Experiment flags to enable.')
-  ..addFlag('default-suites',
-      hide: !verbose,
-      help: 'Include the default suites in addition to the requested suites.')
-  ..addOption('suite-dir',
-      aliases: ['suite_dir'],
-      hide: !verbose,
-      help: 'Additional directory to add to the testing matrix.')
-  ..addOption('packages',
-      hide: !verbose, help: 'The package spec file to use for testing.')
-  ..addOption('exclude-suite',
-      aliases: ['exclude_suite'],
-      hide: !verbose,
-      help: '''Exclude suites from default selector, only works when no selector
-has been specified on the command line.''')
-  ..addFlag('print-passing-stdout',
-      aliases: ['print_passing_stdout'],
-      hide: !verbose,
-      help: 'Print the stdout of passing, as well as failing, tests.')
-  ..addOption('service-response-sizes-directory',
-      aliases: ['service_response_sizes_directory'],
-      hide: !verbose,
-      help: 'Log VM service response size CSV files in the provided directory');
+    hide: !verbose,
+  )
+  ..addMultiOption(
+    'vm-options',
+    aliases: ['vm_options'],
+    hide: !verbose,
+    help: 'Extra options to send to the VM when running.',
+  )
+  ..addMultiOption(
+    'dart2js-options',
+    aliases: ['dart2js_options'],
+    hide: !verbose,
+    help: 'Extra options for dart2js compilation step.',
+  )
+  ..addMultiOption(
+    'ddc-options',
+    aliases: ['ddc_options'],
+    hide: !verbose,
+    help: 'Extra command line options passed to the DDC compiler.',
+  )
+  ..addMultiOption(
+    'shared-options',
+    aliases: ['shared_options'],
+    hide: !verbose,
+    help: 'Extra shared options.',
+  )
+  ..addMultiOption(
+    'enable-experiment',
+    aliases: ['experiments', 'enable_experiment'],
+    help: 'Experiment flags to enable.',
+  )
+  ..addFlag(
+    'default-suites',
+    hide: !verbose,
+    help: 'Include the default suites in addition to the requested suites.',
+  )
+  ..addOption(
+    'suite-dir',
+    aliases: ['suite_dir'],
+    hide: !verbose,
+    help: 'Additional directory to add to the testing matrix.',
+  )
+  ..addOption(
+    'packages',
+    hide: !verbose,
+    help: 'The package spec file to use for testing.',
+  )
+  ..addOption(
+    'exclude-suite',
+    aliases: ['exclude_suite'],
+    hide: !verbose,
+    help: '''Exclude suites from default selector, only works when no selector
+has been specified on the command line.''',
+  )
+  ..addFlag(
+    'print-passing-stdout',
+    aliases: ['print_passing_stdout'],
+    hide: !verbose,
+    help: 'Print the stdout of passing, as well as failing, tests.',
+  )
+  ..addOption(
+    'service-response-sizes-directory',
+    aliases: ['service_response_sizes_directory'],
+    hide: !verbose,
+    help: 'Log VM service response size CSV files in the provided directory',
+  );
 
 /// Exception thrown when the arguments could not be parsed.
 class OptionParseException implements Exception {
@@ -922,14 +1114,14 @@ void findConfigurations(Map<String, dynamic> options) {
     if (architectureOption.isEmpty)
       Architecture.host
     else if (!architectureOption.contains('all'))
-      ...architectureOption.map(Architecture.find)
+      ...architectureOption.map(Architecture.find),
   ];
 
   var modes = [
     if (options.containsKey('mode'))
       ...(options['mode'] as List<String>).map(Mode.find)
     else
-      Mode.release
+      Mode.release,
   ];
   var compilers = [...(options['compiler'] as List<String>).map(Compiler.find)];
   var runtimes = [...(options['runtime'] as List<String>).map(Runtime.find)];

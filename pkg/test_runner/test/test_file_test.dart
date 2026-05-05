@@ -77,17 +77,20 @@ void testParseVMOptions() {
 
   // Splits words.
   expectVMOptions("/\/ VMOptions=--verbose --async", [
-    ["--verbose", "--async"]
+    ["--verbose", "--async"],
   ]);
 
   // Allows multiple.
-  expectVMOptions("""
+  expectVMOptions(
+    """
   /\/ VMOptions=--first one
   /\/ VMOptions=--second two
-  """, [
-    ["--first", "one"],
-    ["--second", "two"]
-  ]);
+  """,
+    [
+      ["--first", "one"],
+      ["--second", "two"],
+    ],
+  );
 }
 
 void testParseOtherOptions() {
@@ -103,7 +106,8 @@ void testParseOtherOptions() {
   Expect.listEquals(<String>[], file.requirements);
 
   // Single options split into words.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ DartOptions=dart options
   /\/ SharedOptions=shared options
   /\/ dart2jsOptions=dart2js options
@@ -111,7 +115,8 @@ void testParseOtherOptions() {
   /\/ ddcOptions=ddc options
   /\/ OtherResources=other resources
   /\/ SharedObjects=shared objects
-  """);
+  """,
+  );
   Expect.listEquals(["dart", "options"], file.dartOptions);
   Expect.listEquals(["shared", "options"], file.sharedOptions);
   Expect.listEquals(["dart2js", "options"], file.dart2jsOptions);
@@ -142,14 +147,20 @@ void testParseOtherOptions() {
   """);
 
   // Merges multiple lines for others.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ OtherResources=other resources
   /\/ OtherResources=even more
   /\/ SharedObjects=shared objects
   /\/ SharedObjects=many more
-  """);
-  Expect.listEquals(
-      ["other", "resources", "even", "more"], file.otherResources);
+  """,
+  );
+  Expect.listEquals([
+    "other",
+    "resources",
+    "even",
+    "more",
+  ], file.otherResources);
   Expect.listEquals(["shared", "objects", "many", "more"], file.sharedObjects);
 
   // Disallows unrecognized features in requirements.
@@ -164,20 +175,25 @@ void testParseEnvironment() {
   Expect.isTrue(file.environment.isEmpty);
 
   // Without values.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ Environment=some value
   /\/ Environment=another one
-  """);
+  """,
+  );
   Expect.mapEquals({"some value": "", "another one": ""}, file.environment);
 
   // With values.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ Environment=some value=its value
   /\/ Environment=another one   =   also value
-  """);
-  Expect.mapEquals(
-      {"some value": "its value", "another one   ": "   also value"},
-      file.environment);
+  """,
+  );
+  Expect.mapEquals({
+    "some value": "its value",
+    "another one   ": "   also value",
+  }, file.environment);
 }
 
 void testParsePackages() {
@@ -186,16 +202,21 @@ void testParsePackages() {
   Expect.isNull(file.packages);
 
   // Single option is converted to a path.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ Packages=packages thing
-  """);
+  """,
+  );
   Expect.isTrue(
-      file.packages!.endsWith("${Platform.pathSeparator}packages thing"));
+    file.packages!.endsWith("${Platform.pathSeparator}packages thing"),
+  );
 
   // "none" is left alone.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ Packages=none
-  """);
+  """,
+  );
   Expect.equals("none", file.packages);
 
   // Cannot appear more than once.
@@ -211,23 +232,29 @@ void testParseExperiments() {
   Expect.isTrue(file.experiments.isEmpty);
 
   // Single non-experiment option.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ SharedOptions=not-experiment
-  """);
+  """,
+  );
   Expect.isTrue(file.experiments.isEmpty);
   Expect.listEquals(["not-experiment"], file.sharedOptions);
 
   // Experiments.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ SharedOptions=--enable-experiment=flubber,gloop
-  """);
+  """,
+  );
   Expect.listEquals(["flubber", "gloop"], file.experiments);
   Expect.isTrue(file.sharedOptions.isEmpty);
 
   // Experiment option mixed with other options.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   /\/ SharedOptions=-a --enable-experiment=flubber --other
-  """);
+  """,
+  );
   Expect.listEquals(["flubber"], file.experiments);
   Expect.listEquals(["-a", "--other"], file.sharedOptions);
 
@@ -243,9 +270,11 @@ void testParseMultitest() {
   Expect.isFalse(file.isMultitest);
 
   // Present.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   main() {} /\/# 01: compile-time error
-  """);
+  """,
+  );
   Expect.isTrue(file.isMultitest);
 }
 
@@ -259,7 +288,8 @@ main() {}
   expectParseErrorExpectations("", []);
 
   // Multiple errors.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 int i = "s";
 /\/      ^^^
 /\/ [analyzer] CompileTimeErrorCode.WRONG_TYPE
@@ -272,34 +302,41 @@ num j = "str";
 /\/ [analyzer] CompileTimeErrorCode.ALSO_WRONG_TYPE
     /\/ [cfe] Error: Can't assign a string to a num.
 /\/ [web] Another web error.
-""", [
-    makeError(
+""",
+    [
+      makeError(
         line: 1,
         column: 9,
         length: 3,
-        analyzerError: "CompileTimeErrorCode.WRONG_TYPE"),
-    makeError(
+        analyzerError: "CompileTimeErrorCode.WRONG_TYPE",
+      ),
+      makeError(
         line: 1,
         column: 9,
         length: 3,
-        cfeError: "Error: Can't assign a string to an int."),
-    makeError(line: 1, column: 9, length: 3, cfeError: "Another CFE error."),
-    makeError(line: 1, column: 9, length: 3, webError: "Web-specific error."),
-    makeError(
+        cfeError: "Error: Can't assign a string to an int.",
+      ),
+      makeError(line: 1, column: 9, length: 3, cfeError: "Another CFE error."),
+      makeError(line: 1, column: 9, length: 3, webError: "Web-specific error."),
+      makeError(
         line: 8,
         column: 9,
         length: 5,
-        analyzerError: "CompileTimeErrorCode.ALSO_WRONG_TYPE"),
-    makeError(
+        analyzerError: "CompileTimeErrorCode.ALSO_WRONG_TYPE",
+      ),
+      makeError(
         line: 8,
         column: 9,
         length: 5,
-        cfeError: "Error: Can't assign a string to a num."),
-    makeError(line: 8, column: 9, length: 5, webError: "Another web error.")
-  ]);
+        cfeError: "Error: Can't assign a string to a num.",
+      ),
+      makeError(line: 8, column: 9, length: 5, webError: "Another web error."),
+    ],
+  );
 
   // Explicit error location.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 /\/ [error line 123, column 45, length 678]
 /\/ [analyzer] CompileTimeErrorCode.FIRST
 /\/ [cfe] First error.
@@ -311,42 +348,51 @@ num j = "str";
 /\/ [cfe] Third.
 /\/[error line 10,column 9]
 /\/ [cfe] No length.
-""", [
-    makeError(
+""",
+    [
+      makeError(
         line: 123,
         column: 45,
         length: 678,
-        analyzerError: "CompileTimeErrorCode.FIRST"),
-    makeError(line: 123, column: 45, length: 678, cfeError: "First error."),
-    makeError(
+        analyzerError: "CompileTimeErrorCode.FIRST",
+      ),
+      makeError(line: 123, column: 45, length: 678, cfeError: "First error."),
+      makeError(
         line: 23,
         column: 5,
         length: 78,
-        analyzerError: "CompileTimeErrorCode.SECOND"),
-    makeError(line: 23, column: 5, length: 78, cfeError: "Second error."),
-    makeError(line: 23, column: 5, length: 78, webError: "Second web error."),
-    makeError(line: 9, column: 8, length: 7, cfeError: "Third."),
-    makeError(line: 10, column: 9, cfeError: "No length.")
-  ]);
+        analyzerError: "CompileTimeErrorCode.SECOND",
+      ),
+      makeError(line: 23, column: 5, length: 78, cfeError: "Second error."),
+      makeError(line: 23, column: 5, length: 78, webError: "Second web error."),
+      makeError(line: 9, column: 8, length: 7, cfeError: "Third."),
+      makeError(line: 10, column: 9, cfeError: "No length."),
+    ],
+  );
 
   // Comment after error message.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 int i = "s";
 /\/      ^^^
 /\/ [analyzer] CompileTimeErrorCode.WRONG_TYPE
 /\/ [cfe] Error message.
 /\/ Unrelated comment.
-""", [
-    makeError(
+""",
+    [
+      makeError(
         line: 1,
         column: 9,
         length: 3,
-        analyzerError: "CompileTimeErrorCode.WRONG_TYPE"),
-    makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
-  ]);
+        analyzerError: "CompileTimeErrorCode.WRONG_TYPE",
+      ),
+      makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
+    ],
+  );
 
   // Multiple errors attached to same line.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 main() {}
 int i = "s";
 /\/      ^^^
@@ -355,14 +401,22 @@ int i = "s";
 /\/ [analyzer] ErrorCode.second
 /\/  ^^^^^^^
 /\/ [cfe] Third error.
-""", [
-    makeError(line: 2, column: 9, length: 3, cfeError: "First error."),
-    makeError(line: 2, column: 7, length: 1, analyzerError: "ErrorCode.second"),
-    makeError(line: 2, column: 5, length: 7, cfeError: "Third error."),
-  ]);
+""",
+    [
+      makeError(line: 2, column: 9, length: 3, cfeError: "First error."),
+      makeError(
+        line: 2,
+        column: 7,
+        length: 1,
+        analyzerError: "ErrorCode.second",
+      ),
+      makeError(line: 2, column: 5, length: 7, cfeError: "Third error."),
+    ],
+  );
 
   // Unspecified errors.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 int i = "s";
 /\/     ^^^
 // [analyzer] unspecified
@@ -385,64 +439,90 @@ int m = "s";
 int n = "s";
 /\/     ^^^
 // [web] unspecified
-""", [
-    makeError(line: 1, column: 8, length: 3, analyzerError: "unspecified"),
-    makeError(line: 1, column: 8, length: 3, cfeError: "unspecified"),
-    makeError(line: 1, column: 8, length: 3, webError: "unspecified"),
-    makeError(line: 6, column: 8, length: 3, analyzerError: "unspecified"),
-    makeError(line: 6, column: 8, length: 3, cfeError: "Message."),
-    makeError(line: 10, column: 8, length: 3, analyzerError: "Error.CODE"),
-    makeError(line: 10, column: 8, length: 3, cfeError: "unspecified"),
-    makeError(line: 14, column: 8, length: 3, analyzerError: "unspecified"),
-    makeError(line: 17, column: 8, length: 3, cfeError: "unspecified"),
-    makeError(line: 20, column: 8, length: 3, webError: "unspecified"),
-  ]);
+""",
+    [
+      makeError(line: 1, column: 8, length: 3, analyzerError: "unspecified"),
+      makeError(line: 1, column: 8, length: 3, cfeError: "unspecified"),
+      makeError(line: 1, column: 8, length: 3, webError: "unspecified"),
+      makeError(line: 6, column: 8, length: 3, analyzerError: "unspecified"),
+      makeError(line: 6, column: 8, length: 3, cfeError: "Message."),
+      makeError(line: 10, column: 8, length: 3, analyzerError: "Error.CODE"),
+      makeError(line: 10, column: 8, length: 3, cfeError: "unspecified"),
+      makeError(line: 14, column: 8, length: 3, analyzerError: "unspecified"),
+      makeError(line: 17, column: 8, length: 3, cfeError: "unspecified"),
+      makeError(line: 20, column: 8, length: 3, webError: "unspecified"),
+    ],
+  );
 
   // Ignore multitest markers.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 int i = "s";
 /\/      ^^^ /\/# 0: ok
 /\/ [analyzer] ErrorCode.BAD_THING /\/# 123: continued
 /\/ [cfe] Message 1.  /\/# named: compile-time error
 /\/ [error line 12, column 34, length 56]  /\/# 3: continued
 /\/ [cfe] Message 2.
-""", [
-    makeError(
-        line: 1, column: 9, length: 3, analyzerError: "ErrorCode.BAD_THING"),
-    makeError(line: 1, column: 9, length: 3, cfeError: "Message 1."),
-    makeError(line: 12, column: 34, length: 56, cfeError: "Message 2."),
-  ]);
+""",
+    [
+      makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        analyzerError: "ErrorCode.BAD_THING",
+      ),
+      makeError(line: 1, column: 9, length: 3, cfeError: "Message 1."),
+      makeError(line: 12, column: 34, length: 56, cfeError: "Message 2."),
+    ],
+  );
 
   // Allow front ends in any order.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 int i = "s";
 /\/      ^^^
 /\/ [cfe] Error message.
 /\/ [analyzer] ErrorCode.BAD_THING
-""", [
-    makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
-    makeError(
-        line: 1, column: 9, length: 3, analyzerError: "ErrorCode.BAD_THING"),
-  ]);
-  expectParseErrorExpectations("""
+""",
+    [
+      makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
+      makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        analyzerError: "ErrorCode.BAD_THING",
+      ),
+    ],
+  );
+  expectParseErrorExpectations(
+    """
 int i = "s";
 /\/      ^^^
 /\/ [web] Web message.
 /\/ [analyzer] ErrorCode.BAD_THING
-""", [
-    makeError(line: 1, column: 9, length: 3, webError: "Web message."),
-    makeError(
-        line: 1, column: 9, length: 3, analyzerError: "ErrorCode.BAD_THING"),
-  ]);
-  expectParseErrorExpectations("""
+""",
+    [
+      makeError(line: 1, column: 9, length: 3, webError: "Web message."),
+      makeError(
+        line: 1,
+        column: 9,
+        length: 3,
+        analyzerError: "ErrorCode.BAD_THING",
+      ),
+    ],
+  );
+  expectParseErrorExpectations(
+    """
 int i = "s";
 /\/      ^^^
 /\/ [web] Web message.
 /\/ [cfe] Error message.
-""", [
-    makeError(line: 1, column: 9, length: 3, webError: "Web message."),
-    makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
-  ]);
+""",
+    [
+      makeError(line: 1, column: 9, length: 3, webError: "Web message."),
+      makeError(line: 1, column: 9, length: 3, cfeError: "Error message."),
+    ],
+  );
 
   // Must have at least one error message.
   expectFormatError("""
@@ -481,7 +561,8 @@ int i = "s";
 """);
 
   // A CFE error with length one is treated as having no length.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 int i = "s";
 /\/      ^
 /\/ [cfe] Message.
@@ -495,18 +576,21 @@ int j = "s";
 /\/      ^
 /\/ [cfe] Message.
 /\/ [web] Web message.
-""", [
-    makeError(line: 1, column: 9, length: 0, cfeError: "Message."),
-    makeError(line: 5, column: 9, length: 1, analyzerError: "Error.BAD"),
-    makeError(line: 5, column: 9, length: 0, cfeError: "Message."),
-    makeError(line: 10, column: 9, length: 0, cfeError: "Message."),
-    makeError(line: 10, column: 9, length: 1, webError: "Web message."),
-  ]);
+""",
+    [
+      makeError(line: 1, column: 9, length: 0, cfeError: "Message."),
+      makeError(line: 5, column: 9, length: 1, analyzerError: "Error.BAD"),
+      makeError(line: 5, column: 9, length: 0, cfeError: "Message."),
+      makeError(line: 10, column: 9, length: 0, cfeError: "Message."),
+      makeError(line: 10, column: 9, length: 1, webError: "Web message."),
+    ],
+  );
 }
 
 void testParseContextMessages() {
   // Multiple messages.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 var string = "str";
 /\/  ^^^^^^
 /\/ [context 1] Analyzer context before.
@@ -524,45 +608,54 @@ var string = "str";
 var string = "str";
 /\/            ^^^
 /\/ [context 1] Analyzer context after.
-""", [
-    makeError(
+""",
+    [
+      makeError(
         line: 6,
         column: 9,
         length: 6,
         analyzerError: "Error.BAD",
         context: [
           makeError(
-              line: 1,
-              column: 5,
-              length: 6,
-              analyzerError: "Analyzer context before."),
+            line: 1,
+            column: 5,
+            length: 6,
+            analyzerError: "Analyzer context before.",
+          ),
           makeError(
-              line: 15,
-              column: 15,
-              length: 3,
-              analyzerError: "Analyzer context after.")
-        ]),
-    makeError(
+            line: 15,
+            column: 15,
+            length: 3,
+            analyzerError: "Analyzer context after.",
+          ),
+        ],
+      ),
+      makeError(
         line: 6,
         column: 9,
         length: 6,
         cfeError: "Error message.",
         context: [
           makeError(
-              line: 1,
-              column: 5,
-              length: 6,
-              analyzerError: "CFE context before."),
+            line: 1,
+            column: 5,
+            length: 6,
+            analyzerError: "CFE context before.",
+          ),
           makeError(
-              line: 11,
-              column: 15,
-              length: 3,
-              analyzerError: "CFE context after.")
-        ]),
-  ]);
+            line: 11,
+            column: 15,
+            length: 3,
+            analyzerError: "CFE context after.",
+          ),
+        ],
+      ),
+    ],
+  );
 
   // Context before error.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 var string = "str";
 /\/  ^^^^^^
 /\/ [context 1] Context.
@@ -570,19 +663,23 @@ var string = "str";
 int j = string;
 /\/      ^^^^^^
 /\/ [analyzer 1] Error.BAD
-""", [
-    makeError(
+""",
+    [
+      makeError(
         line: 5,
         column: 9,
         length: 6,
         analyzerError: "Error.BAD",
         context: [
-          makeError(line: 1, column: 5, length: 6, analyzerError: "Context.")
-        ]),
-  ]);
+          makeError(line: 1, column: 5, length: 6, analyzerError: "Context."),
+        ],
+      ),
+    ],
+  );
 
   // Context after error.
-  expectParseErrorExpectations("""
+  expectParseErrorExpectations(
+    """
 int j = string;
 /\/      ^^^^^^
 /\/ [analyzer 1] Error.BAD
@@ -590,16 +687,19 @@ int j = string;
 var string = "str";
 /\/  ^^^^^^
 /\/ [context 1] Context.
-""", [
-    makeError(
+""",
+    [
+      makeError(
         line: 1,
         column: 9,
         length: 6,
         analyzerError: "Error.BAD",
         context: [
-          makeError(line: 5, column: 5, length: 6, analyzerError: "Context.")
-        ]),
-  ]);
+          makeError(line: 5, column: 5, length: 6, analyzerError: "Context."),
+        ],
+      ),
+    ],
+  );
 
   // Context must have a number.
   expectFormatError("""
@@ -649,44 +749,54 @@ void testIsRuntimeTest() {
   Expect.isTrue(file.isRuntimeTest);
 
   // Only warnings.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   int i = "s";
   /\/ ^^^
   /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
   /\/ ^^^
   /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
-  """);
+  """,
+  );
   Expect.isTrue(file.isRuntimeTest);
 
   // Errors.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   int i = "s";
   /\/ ^^^
   /\/ [analyzer] COMPILE_TIME_ERROR.NOT_ENOUGH_POSITIONAL_ARGUMENTS
-  """);
+  """,
+  );
   Expect.isFalse(file.isRuntimeTest);
 
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   int i = "s";
   /\/ ^^^
   /\/ [cfe] Error message.
-  """);
+  """,
+  );
   Expect.isFalse(file.isRuntimeTest);
 
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   int i = "s";
   /\/ ^^^
   /\/ [web] Error message.
-  """);
+  """,
+  );
   Expect.isFalse(file.isRuntimeTest);
 
   // Mixed errors and warnings.
-  file = createTestFile(source: """
+  file = createTestFile(
+    source: """
   int i = "s";
   /\/ ^^^
   /\/ [analyzer] STATIC_WARNING.INVALID_OPTION
   /\/ [cfe] Error message.
-  """);
+  """,
+  );
   Expect.isFalse(file.isRuntimeTest);
 }
 
@@ -719,12 +829,7 @@ void testMultitest() {
   Expect.isFalse(a.hasRuntimeError);
   Expect.isFalse(a.hasStaticWarning);
 
-  var b = file.split(
-    Path("b.dart").absolute,
-    "b",
-    "",
-    hasCompileError: true,
-  );
+  var b = file.split(Path("b.dart").absolute, "b", "", hasCompileError: true);
   Expect.isTrue(b.originPath.toNativePath().endsWith("origin.dart"));
   Expect.isTrue(b.path.toNativePath().endsWith("b.dart"));
   Expect.isFalse(b.hasSyntaxError);
@@ -757,15 +862,21 @@ void testShardHash() {
   Expect.type<int>(testFile.shardHash);
 
   // VM test files are based on a fake path.
-  testFile = TestFile.vmUnitTest("ExampleTestName",
-      hasCompileError: false, hasCrash: false, hasRuntimeError: false);
+  testFile = TestFile.vmUnitTest(
+    "ExampleTestName",
+    hasCompileError: false,
+    hasCrash: false,
+    hasRuntimeError: false,
+  );
   Expect.type<int>(testFile.shardHash);
 }
 
 void expectParseErrorExpectations(String source, List<StaticError> errors) {
   var file = createTestFile(source: source);
-  Expect.listEquals(errors.map((error) => error.toString()).toList(),
-      file.expectedErrors.map((error) => error.toString()).toList());
+  Expect.listEquals(
+    errors.map((error) => error.toString()).toList(),
+    file.expectedErrors.map((error) => error.toString()).toList(),
+  );
 }
 
 void expectFormatError(String source) {

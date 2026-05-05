@@ -26,7 +26,9 @@ import 'update_static_error_tests.dart' show dartPath;
 final _analyzerPath = p.join('pkg', 'analyzer_cli', 'bin', 'analyzer.dart');
 
 Future<List<StaticError>> getErrors(
-    List<String> options, String filePath) async {
+  List<String> options,
+  String filePath,
+) async {
   var analyzerErrors = await _runAnalyzer(File(filePath), options);
   var cfeErrors = await _runCfe(File(filePath), options);
   return [...analyzerErrors, ...cfeErrors];
@@ -112,22 +114,29 @@ CleanedMultiTest removeMultiTestMarker(String test) {
 }
 
 Future createRuntimeTest(
-    String testFilePath, String multiTestPath, bool writeToFile) async {
+  String testFilePath,
+  String multiTestPath,
+  bool writeToFile,
+) async {
   var testName = basename(testFilePath);
   String runtimeTestBase;
   if (testName.endsWith("_test.dart")) {
-    runtimeTestBase =
-        testName.substring(0, testName.length - "_test.dart".length);
+    runtimeTestBase = testName.substring(
+      0,
+      testName.length - "_test.dart".length,
+    );
   } else if (testName.endsWith(".dart")) {
     runtimeTestBase = testName.substring(0, testName.length - ".dart".length);
   } else {
     runtimeTestBase = testName;
   }
-  var runtimeTestPath = "${dirname(testFilePath)}/$runtimeTestBase"
+  var runtimeTestPath =
+      "${dirname(testFilePath)}/$runtimeTestBase"
       "_runtime_test.dart";
   var n = 1;
   while (await File(runtimeTestPath).exists()) {
-    runtimeTestPath = "${dirname(testFilePath)}/$runtimeTestBase"
+    runtimeTestPath =
+        "${dirname(testFilePath)}/$runtimeTestBase"
         "_runtime_${n++}_test.dart";
   }
   var testContent = await File(multiTestPath).readAsString();
@@ -147,8 +156,12 @@ ${cleanedMultiTest.text}""";
   }
 }
 
-Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
-    List<String> experiments) async {
+Future<void> convertFile(
+  String testFilePath,
+  bool writeToFile,
+  bool verbose,
+  List<String> experiments,
+) async {
   var testFile = File(testFilePath);
   if (!await testFile.exists()) {
     print("File '${testFile.uri.toFilePath()}' not found");
@@ -172,7 +185,7 @@ Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
     // Generate the sub-tests of the multi-test in [outputDirectory].
     var tests = [
       test,
-      ...splitMultitest(test, outputDirectory.uri.toFilePath(), suiteDirectory)
+      ...splitMultitest(test, outputDirectory.uri.toFilePath(), suiteDirectory),
     ];
     if (!tests[1].name.endsWith("/none")) {
       throw "internal error: expected second test to be the '/none' test";
@@ -206,17 +219,23 @@ Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
     var mergedErrors = mergeErrors(errors.skip(2));
     if (!areSameErrors(sortedOriginalErrors, mergedErrors)) {
       if (verbose) {
-        print("Sub-tests have different errors!\n\n"
-            "Errors in sub-tests:\n$mergedErrors\n\n"
-            "Errors in original test:\n$sortedOriginalErrors\n");
+        print(
+          "Sub-tests have different errors!\n\n"
+          "Errors in sub-tests:\n$mergedErrors\n\n"
+          "Errors in original test:\n$sortedOriginalErrors\n",
+        );
       }
       throw UnableToConvertException(
-          "Test produces different errors than its sub-tests.");
+        "Test produces different errors than its sub-tests.",
+      );
     }
     // Insert the error message annotations for the static testing framework
     // and output the result.
-    var annotatedContent =
-        updateErrorExpectations(testFilePath, contentWithoutMarkers, errors[0]);
+    var annotatedContent = updateErrorExpectations(
+      testFilePath,
+      contentWithoutMarkers,
+      errors[0],
+    );
     if (writeToFile) {
       await testFile.writeAsString(annotatedContent);
       print("Converted test '${test.path.toNativePath()}'.");
@@ -232,12 +251,16 @@ Future<void> convertFile(String testFilePath, bool writeToFile, bool verbose,
       var key = base.split("_").last;
       if (key == "none" || cleanedTest.subTests[key] == "ok") {
         await createRuntimeTest(
-            testFilePath, tests[i].path.toNativePath(), writeToFile);
+          testFilePath,
+          tests[i].path.toNativePath(),
+          writeToFile,
+        );
       }
     }
   } on UnableToConvertException catch (exception) {
     print(
-        "Could not convert ${test.path.toNativePath()}: ${exception.message}");
+      "Could not convert ${test.path.toNativePath()}: ${exception.message}",
+    );
     exitCode = 1;
     return;
   } finally {
@@ -249,8 +272,11 @@ Future<void> main(List<String> arguments) async {
   var parser = ArgParser();
   parser.addFlag("verbose", abbr: "v", help: "print additional information");
   parser.addFlag("write", abbr: "w", help: "write output to input file");
-  parser.addMultiOption("enable-experiment",
-      defaultsTo: <String>[], help: "Enable one or more experimental features");
+  parser.addMultiOption(
+    "enable-experiment",
+    defaultsTo: <String>[],
+    help: "Enable one or more experimental features",
+  );
 
   var results = parser.parse(arguments);
   if (results.rest.isEmpty) {
@@ -260,12 +286,17 @@ Future<void> main(List<String> arguments) async {
     return;
   }
   var verbose = results["verbose"] as bool;
-  var filePaths =
-      results.rest.map((path) => Uri.base.resolve(path).toFilePath());
+  var filePaths = results.rest.map(
+    (path) => Uri.base.resolve(path).toFilePath(),
+  );
   var writeToFile = results["write"] as bool;
   for (var testFilePath in filePaths) {
-    await convertFile(testFilePath, writeToFile, verbose,
-        (results["enable-experiment"] as List).cast<String>());
+    await convertFile(
+      testFilePath,
+      writeToFile,
+      verbose,
+      (results["enable-experiment"] as List).cast<String>(),
+    );
   }
 }
 

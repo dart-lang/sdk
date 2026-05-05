@@ -32,7 +32,9 @@ class ExpectationSet {
   /// Reads the expectations defined by the status files at [statusFilePaths]
   /// when in [configuration].
   ExpectationSet.read(
-      List<String> statusFilePaths, TestConfiguration configuration) {
+    List<String> statusFilePaths,
+    TestConfiguration configuration,
+  ) {
     try {
       var environment = ConfigurationEnvironment(configuration);
       for (var path in statusFilePaths) {
@@ -58,7 +60,10 @@ class ExpectationSet {
     for (var part in entry.path.split('/')) {
       if (part.contains("*")) {
         var regExp = _globCache.putIfAbsent(part, () {
-          return RegExp("^${part.replaceAll("*", ".*")}" r"$");
+          return RegExp(
+            "^${part.replaceAll("*", ".*")}"
+            r"$",
+          );
         });
         tree = tree.regExpChildren.putIfAbsent(regExp, _PathNode.new);
       } else {
