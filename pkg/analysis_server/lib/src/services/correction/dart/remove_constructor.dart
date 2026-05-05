@@ -26,6 +26,15 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var container = _findContainer();
     if (container == null) {
+      // If there's no container, then it must be a primary constructor.
+      var primary = _findPrimaryConstructor();
+      if (primary != null) {
+        await builder.addDartFileEdit(file, (builder) {
+          builder.addDeletion(
+            range.startEnd(primary.leftParen, primary.rightParen),
+          );
+        });
+      }
       return;
     }
 
@@ -83,6 +92,40 @@ class RemoveConstructor extends ResolvedCorrectionProducer {
     }
     return null;
   }
+
+  _PrimaryConstructor? _findPrimaryConstructor() {
+    switch (node) {
+      case ExtensionDeclaration extension:
+        var leftParen =
+            extension.typeParameters?.endToken.next ?? extension.name?.next;
+        var rightParen = extension.onClause?.onKeyword.previous;
+        if (leftParen != null &&
+            leftParen.type == TokenType.OPEN_PAREN &&
+            rightParen != null &&
+            rightParen.type == TokenType.CLOSE_PAREN) {
+          return _PrimaryConstructor(
+            leftParen: leftParen,
+            rightParen: rightParen,
+          );
+        }
+      case MixinDeclaration mixin:
+        var leftParen = mixin.typeParameters?.endToken.next ?? mixin.name.next;
+        var rightParen =
+            mixin.onClause?.onKeyword.previous ??
+            mixin.implementsClause?.implementsKeyword.previous ??
+            mixin.body.beginToken.previous;
+        if (leftParen != null &&
+            leftParen.type == TokenType.OPEN_PAREN &&
+            rightParen != null &&
+            rightParen.type == TokenType.CLOSE_PAREN) {
+          return _PrimaryConstructor(
+            leftParen: leftParen,
+            rightParen: rightParen,
+          );
+        }
+    }
+    return null;
+  }
 }
 
 class _Container {
@@ -90,4 +133,11 @@ class _Container {
   final List<ClassMember> members;
 
   _Container({required this.leftBracket, required this.members});
+}
+
+class _PrimaryConstructor {
+  final Token leftParen;
+  final Token rightParen;
+
+  _PrimaryConstructor({required this.leftParen, required this.rightParen});
 }

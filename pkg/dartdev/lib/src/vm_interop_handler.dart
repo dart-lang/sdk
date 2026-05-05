@@ -1,4 +1,4 @@
-// Copyright (c) 2020, the Dart project authors. Please see the AUTHORS file
+// Copyright (c) 2020, the Dart project authors.  Please see the AUTHORS file
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
@@ -72,6 +72,16 @@ abstract class VmInteropHandler {
     port.send(message);
   }
 
+  /// Sets the environment variable [name] to [value] for the current process.
+  ///
+  /// If [value] is null, the environment variable is removed.
+  static void setEnvironmentVariable(String name, String? value) {
+    final port = _port;
+    if (port == null) return;
+    final message = <dynamic>[_kResultSetEnvironmentVariable, name, value];
+    port.send(message);
+  }
+
   /// This code is identical to the one in process_patch.dart, please ensure
   /// changes made here are also done in process_patch.dart.
   /// TODO : figure out if this functionality can be abstracted out to a
@@ -127,10 +137,11 @@ abstract class VmInteropHandler {
     return result;
   }
 
-  // Note: keep in sync with runtime/bin/dartdev_isolate.h
+  // Note: keep in sync with runtime/bin/dartdev.cc
   static const int _kResultRun = 1;
   static const int _kResultRunExec = 2;
   static const int _kResultExit = 3;
+  static const int _kResultSetEnvironmentVariable = 4;
 
   static SendPort? _port;
 }

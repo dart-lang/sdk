@@ -846,6 +846,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return thread_locals_count_.fetch_add(1u, std::memory_order_relaxed);
   }
 
+  FfiCallbackMetadata::Trampoline CreateIsolateGroupBoundFfiCallback(
+      Zone* zone,
+      const Function& trampoline,
+      const Closure& target);
+  void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -1008,6 +1014,8 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   std::atomic<intptr_t> thread_locals_count_ = 0;
 
   std::unique_ptr<Roots> roots_;
+
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1338,10 +1346,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const Function& trampoline,
       const Closure& target,
       bool keep_isolate_alive);
-  FfiCallbackMetadata::Trampoline CreateIsolateGroupBoundFfiCallback(
-      Zone* zone,
-      const Function& trampoline,
-      const Closure& target);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
   void UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta);
   bool HasOpenNativeCallables();

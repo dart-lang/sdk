@@ -360,11 +360,10 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
   for (struct ifaddrs* ifa = ifaddr; ifa != nullptr; ifa = ifa->ifa_next) {
     if (ShouldIncludeIfaAddrs(ifa, lookup_family)) {
       char* ifa_name = DartUtils::ScopedCopyCString(ifa->ifa_name);
-      addresses->SetAt(
-          i,
-          new InterfaceSocketAddress(RawAddr::FromInet4or6(ifa->ifa_addr),
-                                     ifa_name, if_nametoindex(ifa->ifa_name)),
-          PrefixLengthFromNetmask(ifa->ifa_netmask));
+      addresses->SetAt(i, new InterfaceSocketAddress(
+                              RawAddr::FromInet4or6(ifa->ifa_addr), ifa_name,
+                              if_nametoindex(ifa->ifa_name),
+                              PrefixLengthFromNetmask(ifa->ifa_netmask)));
       i++;
     }
   }

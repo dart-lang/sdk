@@ -249,31 +249,18 @@ void testNativeCallableAccessNonSharedVar() {
   callback.close();
 }
 
-Future<void> testKeepIsolateAliveTrue() async {
-  mutexCondvar = Mutex();
-  conditionVariable = ConditionVariable();
-  ReceivePort rpOnExit = ReceivePort("onExit");
-  unawaited(
-    Isolate.spawn(
-      (_) async {
-        final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
-          simpleFunction,
-        );
-        callback.keepIsolateAlive = true;
-      },
-      /*message=*/ null,
-      onExit: rpOnExit.sendPort,
-    ),
+Future<void> testKeepIsolateAliveTrueThrows() async {
+  final callback = NativeCallable<CallbackNativeType>.isolateGroupBound(
+    simpleFunction,
   );
-  try {
-    await rpOnExit.first.timeout(Duration(seconds: 5));
-    // should not fall through, should throw TimeoutException
-    Expect.isTrue(false);
-  } catch (e) {
-    print('testKeepIsolateAliveTrue caught $e');
-    Expect.isTrue(e is TimeoutException);
-  }
-  rpOnExit.close();
+  Expect.throwsArgumentError(() {
+    callback.keepIsolateAlive = true;
+  });
+  print(callback.nativeFunction);
+  callback.close();
+  Expect.throwsStateError(() {
+    print(callback.nativeFunction);
+  });
 }
 
 Future<void> testKeepIsolateAliveFalse() async {
@@ -312,7 +299,7 @@ main(args, message) async {
   testNativeCallableSync();
   testNativeCallableSyncThrows();
   testNativeCallableAccessNonSharedVar();
-  await testKeepIsolateAliveTrue();
+  await testKeepIsolateAliveTrueThrows();
   await testKeepIsolateAliveFalse();
   asyncEnd();
   print("All tests completed :)");

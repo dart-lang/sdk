@@ -302,6 +302,7 @@ namespace dart {
   V(Ffi_createNativeCallableIsolateLocal, 3)                                   \
   V(Ffi_createNativeCallableIsolateGroupBound, 2)                              \
   V(Ffi_deleteNativeCallable, 1)                                               \
+  V(Ffi_deleteIsolateGroupNativeCallable, 1)                                   \
   V(Ffi_updateNativeCallableKeepIsolateAliveCounter, 1)                        \
   V(Ffi_dl_open, 1)                                                            \
   V(Ffi_dl_close, 1)                                                           \

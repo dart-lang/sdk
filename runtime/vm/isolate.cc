@@ -2705,6 +2705,13 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       FinalizeWeakPersistentHandlesVisitor visitor(isolate_group);
       isolate_group->api_state()->VisitWeakHandlesUnlocked(&visitor);
 
+      // Clean up any synchronous FFI callbacks registered with this
+      // isolate group. Skip if this isolate group never registered any.
+      if (isolate_group->ffi_callback_list_head_ != nullptr) {
+        FfiCallbackMetadata::Instance()->DeleteAllCallbacks(
+            &isolate_group->ffi_callback_list_head_);
+      }
+
       Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
     }
 
@@ -3817,14 +3824,18 @@ FfiCallbackMetadata::Trampoline Isolate::CreateIsolateLocalFfiCallback(
       &ffi_callback_list_head_);
 }
 
-// TODO(aam): Should this be in IsolateGroup?
-FfiCallbackMetadata::Trampoline Isolate::CreateIsolateGroupBoundFfiCallback(
-    Zone* zone,
-    const Function& trampoline,
-    const Closure& target) {
+FfiCallbackMetadata::Trampoline
+IsolateGroup::CreateIsolateGroupBoundFfiCallback(Zone* zone,
+                                                 const Function& trampoline,
+                                                 const Closure& target) {
   return FfiCallbackMetadata::Instance()->CreateLocalFfiCallback(
-      /*isolate=*/nullptr, group(), zone, trampoline, target,
+      /*isolate=*/nullptr, this, zone, trampoline, target,
       &ffi_callback_list_head_);
+}
+
+void IsolateGroup::DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback) {
+  FfiCallbackMetadata::Instance()->DeleteCallback(callback,
+                                                  &ffi_callback_list_head_);
 }
 
 bool Isolate::HasLivePorts() {

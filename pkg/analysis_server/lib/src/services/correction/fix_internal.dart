@@ -572,6 +572,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.extensionTypeDeclaresInstanceField: [ConvertIntoGetter.new],
   diag.extensionOverrideAccessToStaticMember: [ReplaceWithExtensionName.new],
   diag.extensionOverrideWithCascade: [ReplaceCascadeWithDot.new],
+  diag.extensionPrimaryConstructor: [RemoveConstructor.new],
   diag.extensionTypeWithAbstractMember: [ConvertIntoBlockBody.missingBody],
   diag.extraPositionalArguments: [CreateConstructor.new],
   diag.extraPositionalArgumentsCouldBeNamed: [
@@ -659,6 +660,7 @@ final _builtInNonLintGenerators = <DiagnosticCode, List<ProducerGenerator>>{
   diag.missingRequiredArgument: [AddMissingRequiredArgument.new],
   diag.mixinApplicationNotImplementedInterface: [ExtendClassForMixin.new],
   diag.mixinClassDeclarationExtendsNotObject: [RemoveExtendsClause.new],
+  diag.mixinPrimaryConstructor: [RemoveConstructor.new],
   diag.mixinSubtypeOfBaseIsNotBase: [AddClassModifier.baseModifier],
   diag.mixinSubtypeOfFinalIsNotBase: [AddClassModifier.baseModifier],
   diag.mixinOfDisallowedClass: [RemoveNameFromDeclarationClause.new],

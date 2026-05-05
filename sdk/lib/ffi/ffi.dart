@@ -414,8 +414,7 @@ abstract final class NativeCallable<T extends Function> {
   /// _trivially shareable_.
   ///
   /// This callback must be [close]d when it is no longer
-  /// needed. An [Isolate] that created the callback will
-  /// be kept alive until [close] is called.
+  /// needed.
   ///
   /// After [NativeCallable.close] is called, invoking
   /// the [nativeFunction] from native code will cause
@@ -522,6 +521,10 @@ abstract final class NativeCallable<T extends Function> {
   /// By default, [NativeCallable]s keep the [Isolate] that created them alive
   /// until [close] is called. If [keepIsolateAlive] is set to `false`, the
   /// isolate may exit even if the [NativeCallable] isn't closed.
+  ///
+  /// Note: IsolateGroupBound-callbacks are not associated with an [Isolate],
+  /// so won't keep an isolate alive. Attempts to set [keepIsolateAlive] to
+  /// true, will throw.
   external bool get keepIsolateAlive;
   external set keepIsolateAlive(bool value);
 }
