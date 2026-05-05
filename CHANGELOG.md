@@ -1,5 +1,7 @@
 ## 3.11.6
 
+**Released on:** 2026-05-05
+
 This is a patch release that:
 
 - Fixes a bug causing network profiling to stop working in certain situations.
