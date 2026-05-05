@@ -81,6 +81,15 @@ To learn more about the feature, check out the
   cookie-dates _should_ have, but the RFC specifies a very
   permissive algorithm for what should be accepted.
 
+- **Breaking change**: Added `InterfaceAddress`, a subtype of `InternetAddress`
+  that exposes `prefixLength` field and `broadcast` getter for network interface
+  addresses. `NetworkInterface.addresses` now returns `List<InterfaceAddress>`
+  instead of `List<InternetAddress>`. Code that implements `NetworkInterface`
+  and overrides `addresses` will need to update the return type. See [#63216][]
+  for more details.
+
+[#63216]: https://github.com/dart-lang/sdk/issues/63216
+
 #### `dart:js_interop`
 
 - `JSFunction` and `JSExportedDartFunction` are now generic.

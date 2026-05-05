@@ -367,11 +367,11 @@ AddressList<InterfaceSocketAddress>* SocketBase::ListInterfaces(
       ASSERT(a->IfIndex == a->Ipv6IfIndex ||
              !(a->Flags & IP_ADAPTER_IPV4_ENABLED) ||
              !(a->Flags & IP_ADAPTER_IPV6_ENABLED));
-      addresses->SetAt(i,
-                       new InterfaceSocketAddress(
-                           RawAddr::FromInet4or6(u->Address.lpSockaddr),
-                           StringUtilsWin::WideToUtf8(a->FriendlyName),
-                           a->Ipv6IfIndex != 0 ? a->Ipv6IfIndex : a->IfIndex));
+      addresses->SetAt(i, new InterfaceSocketAddress(
+                              RawAddr::FromInet4or6(u->Address.lpSockaddr),
+                              StringUtilsWin::WideToUtf8(a->FriendlyName),
+                              a->Ipv6IfIndex != 0 ? a->Ipv6IfIndex : a->IfIndex,
+                              u->OnLinkPrefixLength));
       i++;
     }
   }

@@ -1871,17 +1871,6 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
       if (scriptUri != null && offset != TreeNode.noOffset) {
         Uri? scriptUriAsUri = Uri.tryParse(scriptUri);
         if (scriptUriAsUri != null) {
-          if (scriptUriAsUri.isScheme("package")) {
-            // TODO(jensj): Add tests for this.
-            // Methods etc saves file uris, so try to convert the script uri to
-            // a file uri.
-            scriptUriAsUri =
-                lastGoodKernelTarget.uriTranslator.translate(
-                  scriptUriAsUri,
-                  false,
-                ) ??
-                scriptUriAsUri;
-          }
           Library library = libraryBuilder.library;
           Class? cls;
           if (className != null) {
@@ -1892,6 +1881,13 @@ class IncrementalCompiler implements IncrementalKernelGenerator {
               }
             }
           }
+
+          scriptUriAsUri = _processScriptUri(
+            scriptUriAsUri,
+            lastGoodKernelTarget.uriTranslator,
+            library,
+          );
+
           DartScope foundScope = DartScopeBuilder2.findScopeFromOffsetAndClass(
             library,
             scriptUriAsUri,
@@ -3219,6 +3215,108 @@ extension on UriTranslator {
     }
     return fileUri;
   }
+}
+
+// Coverage-ignore(suite): Not run.
+/// Translate a script uri provided as a package uri to a file uri.
+/// Otherwise return as is.
+///
+/// ```
+/// // Returns as-is for non-package uri.
+/// DartDocTest(
+///   _processScriptUri(
+///     Uri.parse("file://a/b/c.dart"),
+///     UriTranslator.forTesting(),
+///     Library(
+///       Uri.parse("package:foo/c.dart"),
+///       fileUri: Uri.parse("file://a/b/c.dart"),
+///     ),
+///   ),
+///   Uri.parse("file://a/b/c.dart"),
+/// )
+///
+/// // Returns libraries file-uri if import uri matches.
+/// DartDocTest(
+///   _processScriptUri(
+///     Uri.parse("package:foo/c.dart"),
+///     UriTranslator.forTesting(),
+///     Library(
+///       Uri.parse("package:foo/c.dart"),
+///       fileUri: Uri.parse("file://a/b/c.dart"),
+///     ),
+///   ),
+///   Uri.parse("file://a/b/c.dart"),
+/// )
+///
+/// // Can find uri from part.
+/// DartDocTest(
+///   _processScriptUri(
+///     Uri.parse("package:foo/e.dart"),
+///     UriTranslator.forTesting(),
+///     Library(
+///       Uri.parse("package:foo/c.dart"),
+///       fileUri: Uri.parse("file://a/b/c.dart"),
+///       parts: [
+///         LibraryPart([], "d.dart"),
+///         LibraryPart([], "e.dart"),
+///         LibraryPart([], "f.dart"),
+///       ],
+///     ),
+///   ),
+///   Uri.parse("file://a/b/e.dart"),
+/// )
+///
+/// // Part uri can be package uri too though :(
+/// DartDocTest(
+///   _processScriptUri(
+///     Uri.parse("package:foo/e.dart"),
+///     UriTranslator.forTesting(),
+///     Library(
+///       Uri.parse("package:foo/c.dart"),
+///       fileUri: Uri.parse("file://a/b/c.dart"),
+///       parts: [
+///         LibraryPart([], "d.dart"),
+///         LibraryPart([], "package:foo/e.dart"),
+///         LibraryPart([], "f.dart"),
+///       ],
+///     ),
+///   ),
+///   Uri.parse("package:foo/e.dart"),
+/// )
+/// ```
+Uri _processScriptUri(
+  Uri scriptUriAsUri,
+  UriTranslator uriTranslator,
+  Library library,
+) {
+  if (!scriptUriAsUri.isScheme("package")) return scriptUriAsUri;
+
+  // Methods etc saves file uris, so try to convert the script uri to
+  // a file uri.
+  Uri? fileUri = uriTranslator.translate(scriptUriAsUri, false);
+  if (fileUri != null) return fileUri;
+
+  // If the result above is null, the packages file likely doesn't
+  // exist (anymore).
+  // For non-parts the library should have the answer directly.
+  if (library.importUri == scriptUriAsUri) {
+    return library.fileUri;
+  }
+
+  // If we still don't have an answer it's probably a part file.
+  for (LibraryPart part in library.parts) {
+    Uri partImportUri = getPartUri(library.importUri, part);
+    if (partImportUri == scriptUriAsUri) {
+      return getPartUri(library.fileUri, part);
+    }
+  }
+
+  // We failed. Likely there's no packages file, it's a part and the part is
+  // specified with a package uri.
+  // TODO(jensj): What more can we do? We might be able to find the data we want
+  // from the components `uriToSource`. If that has been removed it might be ok
+  // for expression compilation not to work?
+  return scriptUriAsUri;
 }
 
 /// Result of advanced invalidation used for testing.
