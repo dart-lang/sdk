@@ -49,6 +49,14 @@ _VM_PATHS = _CFE_PATHS + [
     "pkg/vm_service/.+",
 ]
 
+_FUCHSIA_PATHS = [
+    ".*fuchsia.*",
+]
+
+_ANDROID_PATHS = [
+    ".*android.*",
+]
+
 _DART2BYTECODE_PATHS = [
     "pkg/(dart2bytecode|dynamic_modules)/.+",
 ]
@@ -122,6 +130,7 @@ def _to_location_filters(paths):
 paths = struct(
     analyzer = _ANALYZER_PATHS,
     analyzer_end_user = _ANALYZER_END_USER_PATHS,
+    android = _ANDROID_PATHS,
     cfe = _CFE_PATHS,
     cfe_only = _CFE_PATHS_ONLY,
     dart2bytecode = _DART2BYTECODE_PATHS,
@@ -129,6 +138,7 @@ paths = struct(
     dart2js = _DART2JS_PATHS,
     dart2wasm = _DART2WASM_PATHS,
     ddc = _DDC_PATHS,
+    fuchsia = _FUCHSIA_PATHS,
     pkg = _PKG_PATHS,
     release = _RELEASE_PATHS,
     standard = _STANDARD_PATHS,

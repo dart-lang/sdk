@@ -272,6 +272,7 @@ _vm_builder(
     "vm-aot-android-release-arm_x64",
     category = "vm|aot|android|r3",
     properties = [android_deps, slow_shards],
+    location_filters = paths.to_location_filters(paths.android),
 )
 _nightly_builder(
     "vm-aot-android-debug-arm64c",
@@ -282,6 +283,7 @@ _vm_builder(
     "vm-aot-android-release-arm64c",
     category = "vm|aot|android|r6",
     properties = [android_deps, slow_shards],
+    location_filters = paths.to_location_filters(paths.android),
 )
 
 # vm|aot|product
@@ -421,6 +423,7 @@ _vm_builder(
     category = "vm|misc|f",
     channels = ["try"],
     properties = [fuchsia_deps],
+    location_filters = paths.to_location_filters(paths.fuchsia),
 )
 _vm_builder(
     "vm-fuchsia-release-x64",
@@ -428,6 +431,7 @@ _vm_builder(
     channels = ["try"],
     dimensions = [jammy, {"host_class": "virtualization"}],
     properties = [fuchsia_deps],
+    location_filters = paths.to_location_filters(paths.fuchsia),
 )
 
 # Our RBE setup doesn't work with GCC.
