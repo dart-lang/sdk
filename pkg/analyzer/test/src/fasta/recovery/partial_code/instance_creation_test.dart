@@ -54,8 +54,8 @@ CompilationUnit
 f() => const A.b(;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 17, 1),
+      error(diag.expectedToken, 17, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -92,8 +92,8 @@ CompilationUnit
 f() => const A(;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 17, 1),
       error(diag.missingIdentifier, 15, 1),
+      error(diag.expectedToken, 15, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -255,8 +255,8 @@ CompilationUnit
 f() => new A.b(;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 17, 1),
       error(diag.missingIdentifier, 15, 1),
+      error(diag.expectedToken, 15, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -293,8 +293,8 @@ CompilationUnit
 f() => new A(;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 15, 1),
       error(diag.missingIdentifier, 13, 1),
+      error(diag.expectedToken, 13, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

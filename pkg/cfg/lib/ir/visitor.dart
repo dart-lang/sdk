@@ -40,6 +40,7 @@ abstract interface class InstructionVisitor<R> {
   R visitTypeLiteral(TypeLiteral instr);
   R visitAllocateObject(AllocateObject instr);
   R visitAllocateClosure(AllocateClosure instr);
+  R visitAllocateContext(AllocateContext instr);
   R visitAllocateListLiteral(AllocateListLiteral instr);
   R visitAllocateMapLiteral(AllocateMapLiteral instr);
   R visitStringInterpolation(StringInterpolation instr);
@@ -111,6 +112,7 @@ abstract mixin class DefaultInstructionVisitor<R>
   R visitTypeLiteral(TypeLiteral instr) => defaultInstruction(instr);
   R visitAllocateObject(AllocateObject instr) => defaultInstruction(instr);
   R visitAllocateClosure(AllocateClosure instr) => defaultInstruction(instr);
+  R visitAllocateContext(AllocateContext instr) => defaultInstruction(instr);
   R visitAllocateListLiteral(AllocateListLiteral instr) =>
       defaultInstruction(instr);
   R visitAllocateMapLiteral(AllocateMapLiteral instr) =>

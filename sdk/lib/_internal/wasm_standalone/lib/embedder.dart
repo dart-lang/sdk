@@ -186,6 +186,10 @@ external WasmExternRef? doubleTryParse(WasmExternRef? string);
 @pragma("wasm:import", "dart.tryParseResultGetDouble")
 external WasmF64 tryParseResultGetDouble(WasmExternRef? parseResult);
 
+/// Parses a double from a string known to contain a a valid double.
+@pragma("wasm:import", "dart.doubleParseInfallible")
+external WasmF64 doubleParseInfallible(WasmExternRef? string);
+
 /// The implementation of [int.toRadixString].
 ///
 /// The SDK will only call this with radix values between 2 and 36 (inclusive).
@@ -332,4 +336,54 @@ external WasmExternRef timeZoneNameForClampedSeconds(WasmI64 secondsSinceEpoch);
 @pragma("wasm:import", "dart.timeZoneOffsetInSecondsForClampedSeconds")
 external WasmI32 timeZoneOffsetInSecondsForClampedSeconds(
   WasmI64 secondsSinceEpoch,
+);
+
+@pragma("wasm:import", "dart.mathPow")
+external WasmF64 mathPow(WasmF64 base, WasmF64 exponent);
+@pragma("wasm:import", "dart.mathAtan2")
+external WasmF64 mathAtan2(WasmF64 a, WasmF64 b);
+@pragma("wasm:import", "dart.mathSin")
+external WasmF64 mathSin(WasmF64 x);
+@pragma("wasm:import", "dart.mathCos")
+external WasmF64 mathCos(WasmF64 x);
+@pragma("wasm:import", "dart.mathTan")
+external WasmF64 mathTan(WasmF64 x);
+@pragma("wasm:import", "dart.mathAcos")
+external WasmF64 mathAcos(WasmF64 x);
+@pragma("wasm:import", "dart.mathAsin")
+external WasmF64 mathAsin(WasmF64 x);
+@pragma("wasm:import", "dart.mathAtan")
+external WasmF64 mathAtan(WasmF64 x);
+@pragma("wasm:import", "dart.mathExp")
+external WasmF64 mathExp(WasmF64 a);
+@pragma("wasm:import", "dart.mathLog")
+external WasmF64 mathLog(WasmF64 a);
+
+@pragma("wasm:import", "dart.randomInt")
+external WasmI64 randomInt();
+@pragma("wasm:import", "dart.randomIntSecure")
+external WasmI64 randomIntSecure();
+
+@pragma("wasm:import", "dart.print")
+external WasmVoid print(WasmExternRef? line);
+@pragma("wasm:import", "dart.jsonEncodeString")
+external WasmExternRef jsonEncodeString(WasmExternRef? line);
+
+@pragma("wasm:import", "dart.debugger")
+external WasmVoid debugger(WasmExternRef? message);
+
+/// Send a reference to [object] to any attached debuggers.
+@pragma("wasm:import", "dart.inspect")
+external WasmVoid inspect(WasmAnyRef? object);
+
+@pragma("wasm:import", "dart.timelineStreamEnabled")
+external WasmI32 dartTimelineStreamEnabled();
+
+@pragma("wasm:import", "dart.reportTaskEvent")
+external WasmI32 reportTaskEvent(
+  WasmI32 taskId,
+  WasmI32 flowId,
+  WasmI32 type,
+  WasmExternRef? name,
+  WasmExternRef? argumentsAsJson,
 );

@@ -21,7 +21,7 @@ class ForEachStatementTest extends ParserDiagnosticsTest {
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in assert (true); }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 45, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 43, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -115,8 +115,8 @@ CompilationUnit
 f() async { await for (A a in break; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
       error(diag.missingIdentifier, 30, 5),
+      error(diag.expectedToken, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -158,8 +158,8 @@ CompilationUnit
 f() async { await for (A a in continue; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
       error(diag.missingIdentifier, 30, 8),
+      error(diag.expectedToken, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -201,8 +201,8 @@ CompilationUnit
 f() async { await for (A a in do {} while (true); }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 50, 1),
       error(diag.missingIdentifier, 30, 2),
+      error(diag.expectedToken, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -297,8 +297,8 @@ CompilationUnit
 f() async { await for (A a in for (var x in y) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 50, 1),
       error(diag.missingIdentifier, 30, 3),
+      error(diag.expectedToken, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -351,8 +351,8 @@ CompilationUnit
 f() async { await for (A a in if (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 43, 1),
       error(diag.missingIdentifier, 30, 2),
+      error(diag.expectedToken, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -400,10 +400,10 @@ CompilationUnit
 f() async { await for (A a in l: {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.missingIdentifier, 31, 1),
       error(diag.expectedToken, 30, 1),
+      error(diag.missingIdentifier, 31, 1),
       error(diag.unexpectedToken, 31, 1),
+      error(diag.expectedToken, 31, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -557,8 +557,8 @@ CompilationUnit
 f() async { await for (A a in var x; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
       error(diag.missingIdentifier, 30, 3),
+      error(diag.expectedToken, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -604,9 +604,9 @@ CompilationUnit
 f() async { await for (A a in return; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
       error(diag.unexpectedToken, 30, 6),
       error(diag.missingIdentifier, 36, 1),
+      error(diag.expectedToken, 36, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -698,8 +698,8 @@ CompilationUnit
 f() async { await for (A a in try {} finally {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 48, 1),
       error(diag.missingIdentifier, 30, 3),
+      error(diag.expectedToken, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -747,8 +747,8 @@ CompilationUnit
 f() async { await for (A a in while (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 46, 1),
       error(diag.missingIdentifier, 30, 5),
+      error(diag.expectedToken, 30, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1642,9 +1642,9 @@ CompilationUnit
 f() async { await for ( break; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 31, 1),
       error(diag.missingIdentifier, 24, 5),
       error(diag.expectedToken, 24, 5),
+      error(diag.expectedToken, 24, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1684,9 +1684,9 @@ CompilationUnit
 f() async { await for ( continue; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
       error(diag.missingIdentifier, 24, 8),
       error(diag.expectedToken, 24, 8),
+      error(diag.expectedToken, 24, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1726,9 +1726,9 @@ CompilationUnit
 f() async { await for ( do {} while (true); }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 44, 1),
       error(diag.missingIdentifier, 24, 2),
       error(diag.expectedToken, 24, 2),
+      error(diag.expectedToken, 24, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1820,9 +1820,9 @@ CompilationUnit
 f() async { await for ( for (var x in y) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 44, 1),
       error(diag.missingIdentifier, 24, 3),
       error(diag.expectedToken, 24, 3),
+      error(diag.expectedToken, 24, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1873,9 +1873,9 @@ CompilationUnit
 f() async { await for ( if (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
       error(diag.missingIdentifier, 24, 2),
       error(diag.expectedToken, 24, 2),
+      error(diag.expectedToken, 24, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2209,9 +2209,9 @@ CompilationUnit
 f() async { await for ( try {} finally {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 42, 1),
       error(diag.missingIdentifier, 24, 3),
       error(diag.expectedToken, 24, 3),
+      error(diag.expectedToken, 24, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2257,9 +2257,9 @@ CompilationUnit
 f() async { await for ( while (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
       error(diag.missingIdentifier, 24, 5),
       error(diag.expectedToken, 24, 5),
+      error(diag.expectedToken, 24, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2304,7 +2304,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b assert (true); }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 47, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2348,7 +2348,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 35, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2388,7 +2388,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b break; }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 39, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2428,7 +2428,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b continue; }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 42, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2468,7 +2468,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b do {} while (true); }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 52, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2561,7 +2561,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b for (var x in y) {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 52, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2612,7 +2612,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b if (true) {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 45, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2658,7 +2658,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b l: {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 38, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2703,7 +2703,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b int f() {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 43, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2753,7 +2753,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b void f() {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 44, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2803,7 +2803,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b var x; }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 39, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2847,7 +2847,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b return; }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 40, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2887,7 +2887,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b switch (x) {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 46, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2932,7 +2932,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b try {} finally {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 50, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2978,7 +2978,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() async { await for (A a in b while (true) {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 48, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3025,8 +3025,8 @@ CompilationUnit
 f() async { await for (A a assert (true); }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 42, 1),
       error(diag.expectedToken, 27, 6),
+      error(diag.expectedToken, 40, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3122,9 +3122,9 @@ CompilationUnit
 f() async { await for (A a break; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
       error(diag.expectedToken, 27, 5),
       error(diag.missingIdentifier, 27, 5),
+      error(diag.expectedToken, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3166,9 +3166,9 @@ CompilationUnit
 f() async { await for (A a continue; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
       error(diag.expectedToken, 27, 8),
       error(diag.missingIdentifier, 27, 8),
+      error(diag.expectedToken, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3210,9 +3210,9 @@ CompilationUnit
 f() async { await for (A a do {} while (true); }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 47, 1),
       error(diag.expectedToken, 27, 2),
       error(diag.missingIdentifier, 27, 2),
+      error(diag.expectedToken, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3308,9 +3308,9 @@ CompilationUnit
 f() async { await for (A a for (var x in y) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 47, 1),
       error(diag.expectedToken, 27, 3),
       error(diag.missingIdentifier, 27, 3),
+      error(diag.expectedToken, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3363,9 +3363,9 @@ CompilationUnit
 f() async { await for (A a if (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
       error(diag.expectedToken, 27, 2),
       error(diag.missingIdentifier, 27, 2),
+      error(diag.expectedToken, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3413,11 +3413,11 @@ CompilationUnit
 f() async { await for (A a l: {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
+      error(diag.expectedToken, 27, 1),
       error(diag.expectedToken, 27, 1),
       error(diag.missingIdentifier, 28, 1),
-      error(diag.expectedToken, 27, 1),
       error(diag.unexpectedToken, 28, 1),
+      error(diag.expectedToken, 28, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3573,9 +3573,9 @@ CompilationUnit
 f() async { await for (A a var x; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
       error(diag.expectedToken, 27, 3),
       error(diag.missingIdentifier, 27, 3),
+      error(diag.expectedToken, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3621,10 +3621,10 @@ CompilationUnit
 f() async { await for (A a return; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
       error(diag.expectedToken, 27, 6),
       error(diag.unexpectedToken, 27, 6),
       error(diag.missingIdentifier, 33, 1),
+      error(diag.expectedToken, 33, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3717,9 +3717,9 @@ CompilationUnit
 f() async { await for (A a try {} finally {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 45, 1),
       error(diag.expectedToken, 27, 3),
       error(diag.missingIdentifier, 27, 3),
+      error(diag.expectedToken, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3767,9 +3767,9 @@ CompilationUnit
 f() async { await for (A a while (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 43, 1),
       error(diag.expectedToken, 27, 5),
       error(diag.missingIdentifier, 27, 5),
+      error(diag.expectedToken, 27, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3817,8 +3817,8 @@ CompilationUnit
 f() async { await for (a assert (true); }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
       error(diag.expectedToken, 25, 6),
+      error(diag.expectedToken, 38, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3910,9 +3910,9 @@ CompilationUnit
 f() async { await for (a break; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
       error(diag.expectedToken, 25, 5),
       error(diag.missingIdentifier, 25, 5),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3952,9 +3952,9 @@ CompilationUnit
 f() async { await for (a continue; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
       error(diag.expectedToken, 25, 8),
       error(diag.missingIdentifier, 25, 8),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3994,9 +3994,9 @@ CompilationUnit
 f() async { await for (a do {} while (true); }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 45, 1),
       error(diag.expectedToken, 25, 2),
       error(diag.missingIdentifier, 25, 2),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4088,9 +4088,9 @@ CompilationUnit
 f() async { await for (a for (var x in y) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 45, 1),
       error(diag.expectedToken, 25, 3),
       error(diag.missingIdentifier, 25, 3),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4141,9 +4141,9 @@ CompilationUnit
 f() async { await for (a if (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
       error(diag.expectedToken, 25, 2),
       error(diag.missingIdentifier, 25, 2),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4341,9 +4341,9 @@ CompilationUnit
 f() async { await for (a var x; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
       error(diag.expectedToken, 25, 3),
       error(diag.missingIdentifier, 25, 3),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4387,10 +4387,10 @@ CompilationUnit
 f() async { await for (a return; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
       error(diag.expectedToken, 25, 6),
       error(diag.unexpectedToken, 25, 6),
       error(diag.missingIdentifier, 31, 1),
+      error(diag.expectedToken, 31, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4479,9 +4479,9 @@ CompilationUnit
 f() async { await for (a try {} finally {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 43, 1),
       error(diag.expectedToken, 25, 3),
       error(diag.missingIdentifier, 25, 3),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4527,9 +4527,9 @@ CompilationUnit
 f() async { await for (a while (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 41, 1),
       error(diag.expectedToken, 25, 5),
       error(diag.missingIdentifier, 25, 5),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4574,7 +4574,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in assert (true); }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 35, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 33, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -4662,8 +4662,8 @@ CompilationUnit
 f() { for (var a in break; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
       error(diag.missingIdentifier, 20, 5),
+      error(diag.expectedToken, 20, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4702,8 +4702,8 @@ CompilationUnit
 f() { for (var a in continue; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 30, 1),
       error(diag.missingIdentifier, 20, 8),
+      error(diag.expectedToken, 20, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4742,8 +4742,8 @@ CompilationUnit
 f() { for (var a in do {} while (true); }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
       error(diag.missingIdentifier, 20, 2),
+      error(diag.expectedToken, 20, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4832,8 +4832,8 @@ CompilationUnit
 f() { for (var a in for (var x in y) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
       error(diag.missingIdentifier, 20, 3),
+      error(diag.expectedToken, 20, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4883,8 +4883,8 @@ CompilationUnit
 f() { for (var a in if (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
       error(diag.missingIdentifier, 20, 2),
+      error(diag.expectedToken, 20, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4929,10 +4929,10 @@ CompilationUnit
 f() { for (var a in l: {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 26, 1),
-      error(diag.missingIdentifier, 21, 1),
       error(diag.expectedToken, 20, 1),
+      error(diag.missingIdentifier, 21, 1),
       error(diag.unexpectedToken, 21, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -5077,8 +5077,8 @@ CompilationUnit
 f() { for (var a in var x; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
       error(diag.missingIdentifier, 20, 3),
+      error(diag.expectedToken, 20, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -5121,9 +5121,9 @@ CompilationUnit
 f() { for (var a in return; }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
       error(diag.unexpectedToken, 20, 6),
       error(diag.missingIdentifier, 26, 1),
+      error(diag.expectedToken, 26, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -5209,8 +5209,8 @@ CompilationUnit
 f() { for (var a in try {} finally {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
       error(diag.missingIdentifier, 20, 3),
+      error(diag.expectedToken, 20, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -5255,8 +5255,8 @@ CompilationUnit
 f() { for (var a in while (true) {} }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
       error(diag.missingIdentifier, 20, 5),
+      error(diag.expectedToken, 20, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -5300,7 +5300,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b assert (true); }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 37, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5341,7 +5341,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 25, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5378,7 +5378,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b break; }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 29, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5415,7 +5415,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b continue; }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 32, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5452,7 +5452,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b do {} while (true); }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 42, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5539,7 +5539,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b for (var x in y) {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 42, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5587,7 +5587,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b if (true) {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 35, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5630,7 +5630,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b l: {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 28, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5672,7 +5672,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b int f() {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 33, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5719,7 +5719,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b void f() {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 34, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5766,7 +5766,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b var x; }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 29, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5807,7 +5807,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b return; }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 30, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5844,7 +5844,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b switch (x) {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 36, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5886,7 +5886,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b try {} finally {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 40, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -5929,7 +5929,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 f() { for (var a in b while (true) {} }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 38, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

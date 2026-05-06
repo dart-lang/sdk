@@ -168,7 +168,8 @@
       "convert": {
         "uri": "convert/convert.dart",
         "patches": [
-          "_internal/wasm/lib/convert_patch.dart"
+          "_internal/wasm/lib/convert_patch.dart",
+          "_internal/wasm/lib/convert_js_patch.dart"
         ]
       },
       "typed_data": {
@@ -305,13 +306,14 @@
       "convert": {
         "uri": "convert/convert.dart",
         "patches": [
-          "_internal/wasm/lib/convert_patch.dart"
+          "_internal/wasm/lib/convert_patch.dart",
+          "_internal/wasm_standalone/lib/convert_standalone_patch.dart"
         ]
       },
       "developer": {
         "uri": "developer/developer.dart",
         "patches": [
-          "_internal/js_runtime/lib/developer_patch.dart"
+          "_internal/wasm_standalone/lib/developer_patch.dart"
         ]
       },
       "typed_data": {
@@ -337,7 +339,7 @@
       "_typed_data": {
         "uri": "_internal/wasm/lib/typed_data.dart",
         "patches": [
-          "_internal/wasm/lib/typed_data_copy_from_js.dart"
+          "_internal/wasm_standalone/lib/typed_data_copy_from_js.dart"
         ]
       },
       "_js_helper": {
@@ -350,10 +352,10 @@
         "uri": "internal/internal.dart",
         "patches": [
           "_internal/wasm/lib/internal_patch.dart",
-          "_internal/wasm/lib/deferred_patch.dart",
-          "_internal/wasm/lib/internal_json_encode_patch.dart",
-          "_internal/wasm/lib/invoke_main_patch.dart",
-          "_internal/wasm/lib/print_patch.dart",
+          "_internal/wasm_standalone/lib/deferred_patch.dart",
+          "_internal/wasm_standalone/lib/internal_json_encode_patch.dart",
+          "_internal/wasm_standalone/lib/invoke_main_patch.dart",
+          "_internal/wasm_standalone/lib/print_patch.dart",
           "_internal/vm_shared/lib/check_valid_weak_target_patch.dart"
         ]
       },
@@ -365,7 +367,7 @@
         "uri": "math/math.dart",
         "patches": [
           "_internal/wasm/lib/math_patch.dart",
-          "_internal/wasm/lib/math_externs_patch.dart"
+          "_internal/wasm_standalone/lib/math_externs_patch.dart"
         ]
       }
     }

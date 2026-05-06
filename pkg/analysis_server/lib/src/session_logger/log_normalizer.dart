@@ -9,9 +9,12 @@ import 'package:analysis_server/lsp_protocol/protocol.dart'
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
+import 'package:path/path.dart' as path;
 
 /// A utility for normalizing paths in log entries.
 class LogNormalizer {
+  final path.Context pathContext;
+
   /// A map from the path-to-be-replaced to the replacement string.
   ///
   /// Paths are canonicalized to lowercase and the replacement regex is
@@ -22,6 +25,8 @@ class LogNormalizer {
   /// A cached regex for all current replacements to allow them to occur in a
   /// single pass.
   RegExp? _replacementPattern;
+
+  LogNormalizer(this.pathContext);
 
   /// Extracts paths and URIs from an LSP initialize request and adds
   /// replacements for each.
@@ -54,8 +59,11 @@ class LogNormalizer {
     }
   }
 
-  /// Adds a replacement for the given [inputPath] in both path and URI form, but raw
-  /// and JSON encoded.
+  /// Adds a replacement for the given [inputPath] in both path and URI form.
+  ///
+  /// Replacements assume the path (or URI) appear as quoted strings in the
+  /// JSON (and therefore must be preceeded by a quote and followed by a
+  /// path/uri separator or another quote).
   void addPathReplacement(String inputPath, String replacement) {
     if (inputPath.isEmpty) return;
 
@@ -68,15 +76,35 @@ class LogNormalizer {
         .replace(path: uri.path.replaceAll(':', '%3A'))
         .toString();
 
+    void addWithQuotesAndTrailingSlash(String input, String separator) {
+      _replacements['"$input"'] = '"$replacement"';
+      _replacements['"$input$separator'] = '"$replacement$separator';
+    }
+
     // All replacements must be in the map because we need to look up the values
     // during replacement so if the regex matches variations, we need to be able
     // to find them here.
-    _replacements[inputPath] = replacement;
-    _replacements[_jsonEncode(inputPath)] = replacement;
-    _replacements[uriString] = replacement;
-    _replacements[_jsonEncode(uriString)] = replacement;
-    _replacements[uriStringWithEncodedColons] = replacement;
-    _replacements[_jsonEncode(uriStringWithEncodedColons)] = replacement;
+
+    // TODO(dantup): If a client json encodes slightly differently to Dart, the
+    //  encoded version here might not be a match. Perhaps we should instead
+    //  build RegExp's here that handle encoded/unencoded versions of each
+    //  character that might be different (and fold the special case for colon
+    //  from above into it).
+
+    // Paths
+    var separator = pathContext.separator;
+    addWithQuotesAndTrailingSlash(inputPath, separator);
+    addWithQuotesAndTrailingSlash(_jsonEncode(inputPath), separator);
+
+    // URIs
+    separator = '/';
+    addWithQuotesAndTrailingSlash(uriString, separator);
+    addWithQuotesAndTrailingSlash(_jsonEncode(uriString), separator);
+    addWithQuotesAndTrailingSlash(uriStringWithEncodedColons, separator);
+    addWithQuotesAndTrailingSlash(
+      _jsonEncode(uriStringWithEncodedColons),
+      separator,
+    );
 
     // Reset the cached pattern so it's built on the next call to normalize.
     _replacementPattern = null;
@@ -97,7 +125,12 @@ class LogNormalizer {
 
     // Build a single regex that matches any of the replacements.
     var replacementPattern = _replacementPattern ??= RegExp(
-      _replacements.keys.map(RegExp.escape).join('|'),
+      (_replacements.keys.toList()
+            // Sort keys longest-to-shortest so that we always replace the
+            // largest part of the path if there are nested workspace folders.
+            ..sort((a, b) => b.length.compareTo(a.length)))
+          .map(RegExp.escape)
+          .join('|'),
       caseSensitive: false,
     );
 

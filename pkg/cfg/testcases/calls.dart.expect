@@ -307,6 +307,32 @@ B0 = EntryBlock()
 }) at closureCalls(v23)
   Return(v25)
 
+--- closure FunctionDeclarationImpl(void func3(int x) => print(x);) at closureCalls
+B0 = EntryBlock()
+  Parameter(#closure)
+  v2 = Parameter(x)
+  v4 = DirectCall print(v2)
+  Return(v4)
+
+--- closure FunctionDeclarationImpl(void func4<T extends Object?>(T% x) => print(x);) at closureCalls
+B0 = EntryBlock()
+  v1 = Parameter(#functionTypeParameters)
+  Parameter(#closure)
+  v3 = Parameter(x)
+  TypeParameters(v1)
+  v7 = DirectCall print(v3)
+  Return(v7)
+
+--- closure FunctionExpression(Null () {
+  print("hey");
+}) at closureCalls
+B0 = EntryBlock()
+  v2 = Constant("hey")
+  v4 = Constant(null)
+  Parameter(#closure)
+  DirectCall print(v2)
+  Return(v4)
+
 --- objectAllocation
 B0 = EntryBlock()
   v13 = Constant(null)

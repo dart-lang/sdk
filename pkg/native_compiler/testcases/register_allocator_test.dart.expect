@@ -530,6 +530,15 @@ B11 = TargetBlock() idom:B0
   ParallelMove input(vloc:R1 -> R0)
   Return(v23)   # RA: (R0)
 
+--- closure FunctionExpression(void (dynamic k, dynamic v) {}) at SplayTreeMap.from
+B0 = EntryBlock()
+  v4 = Constant(null)
+  Parameter(#closure)   # RA: param[0] <- ()
+  Parameter(k)   # RA: param[1] <- ()
+  Parameter(v)   # RA: param[2] <- ()
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v4)   # RA: (R0)
+
 --- SplayTreeMap.of
 B0 = EntryBlock()
   v7 = Constant(null)
@@ -1765,6 +1774,61 @@ B0 = EntryBlock()
   Parameter(replacementStringsAreOneByte)   # RA: param[3] <- ()
   ParallelMove input(NullConstant(null) -> R0)
   Return(v5)   # RA: (R0)
+
+--- closures
+B0 = EntryBlock()
+  v9 = Constant(null)
+  Parameter(a1)   # RA: R0 <- ()
+  v2 = Parameter(a2)   # RA: R1 <- ()
+  ParallelMove output(R1 -> vloc:R1)
+  v3 = AllocateContext()   # RA: R0 <- () temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  StoreInstanceField(#context-field:a2, v3, v2)   # RA: (R0, R1) temps: [R2, R3]
+  ParallelMove output(R0 -> R1)
+  v6 = AllocateClosure(v3)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R5)
+  v7 = AllocateClosure(v3)   # RA: R0 <- (R1) temps: [R2, R3, R4]
+  ParallelMove output(R0 -> vloc:R0)
+  DirectCall foo2(v6, v7)   # RA: R0 <- (R5, R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v9)   # RA: (R0)
+
+--- closure FunctionExpression(Null (dynamic _#wc0#formal) {
+  print(a2);
+}) at closures
+B0 = EntryBlock()
+  v7 = Constant(null)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  Parameter(_#wc0#formal)   # RA: param[1] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v4 = LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
+  v5 = LoadInstanceField(#context-field:a2, v4)   # RA: R0 <- (R0)
+  DirectCall print(v5)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v7)   # RA: (R0)
+
+--- closure FunctionExpression(Null (dynamic _#wc1#formal, dynamic _#wc2#formal) {
+  print(a2);
+}) at closures
+B0 = EntryBlock()
+  v8 = Constant(null)
+  v1 = Parameter(#closure)   # RA: param[0] <- ()
+  Parameter(_#wc1#formal)   # RA: param[1] <- ()
+  Parameter(_#wc2#formal)   # RA: param[2] <- ()
+  ParallelMove output(param[0] -> vloc:R0)
+  v5 = LoadInstanceField(#closure-field[0], v1)   # RA: R0 <- (R0)
+  v6 = LoadInstanceField(#context-field:a2, v5)   # RA: R0 <- (R0)
+  DirectCall print(v6)   # RA: R0 <- (R0) temps: [R1, R2, R3, R4, R5, R6, R7, R8, R9, R10, R11, R12, R13, R14, R19, R20, R23, R25, V0, V1, V2, V3, V4, V5, V6, V7, V8, V9, V10, V11, V12, V13, V14, V15, V16, V17, V18, V19, V20, V21, V22, V23, V24, V25, V26, V27, V28, V29, V30]
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v8)   # RA: (R0)
+
+--- foo2
+B0 = EntryBlock()
+  v3 = Constant(null)
+  Parameter(x)   # RA: param[0] <- ()
+  Parameter(y)   # RA: param[1] <- ()
+  ParallelMove input(NullConstant(null) -> R0)
+  Return(v3)   # RA: (R0)
 
 --- main
 B0 = EntryBlock()

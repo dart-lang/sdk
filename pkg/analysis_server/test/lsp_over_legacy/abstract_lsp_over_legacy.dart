@@ -324,7 +324,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
     );
     var request = ServerSetClientCapabilitiesParams(
       [
-        // Use the LSP capabilitie to determine if we show this for the legacy
+        // Use the LSP capabilities to determine if we show this for the legacy
         // protocol so that shared tests only need to set one.
         if (experimentalCapabilities['supportsWindowShowMessageRequest'] ==
             true)

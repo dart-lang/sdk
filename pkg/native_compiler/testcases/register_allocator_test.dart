@@ -462,4 +462,17 @@ abstract class ChunkedJsonParser {
   double parseDouble(int start, int end);
 }
 
+void closures(Object a1, [String a2 = ""]) {
+  foo2(
+    (_) {
+      print(a2);
+    },
+    (_, _) {
+      print(a2);
+    },
+  );
+}
+
+external void foo2(Object x, Object y);
+
 void main() {}

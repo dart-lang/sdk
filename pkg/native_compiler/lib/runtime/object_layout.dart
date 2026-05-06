@@ -49,6 +49,12 @@ class ObjectLayout {
 
   int getFieldOffset(CField field) {
     assert(!field.isStatic);
+    if (field.isSynthetic) {
+      return switch (field.asSynthetic) {
+        ContextField(:var index) => vmOffsets.Context_elementOffset(index),
+        ClosureField(:var index) => vmOffsets.Closure_elementOffset(index),
+      };
+    }
     _ensureComputed(field.enclosingClass);
     return _fieldOffset[field]!;
   }

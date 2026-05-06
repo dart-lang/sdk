@@ -4241,7 +4241,7 @@ void f(x) {
   }
 }
 ''',
-      diagnostics: [error(diag.expectedToken, 59, 1)],
+      diagnostics: [error(diag.expectedToken, 42, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''
@@ -6826,7 +6826,7 @@ void f(x) {
   }
 }
 ''',
-      diagnostics: [error(diag.expectedToken, 71, 1)],
+      diagnostics: [error(diag.expectedToken, 54, 1)],
     );
     var node = findNode.switchStatement('switch').members.single;
     assertParsedNodeText(node, r'''

@@ -106,7 +106,7 @@ class LineInfoTest with ResourceProviderMixin {
             featureSetForOverriding: featureSet,
             featureSet: featureSet,
           );
-    Token token = scanner.tokenize(reportScannerErrors: false);
+    Token token = scanner.tokenize();
     expect(token, TypeMatcher<UnmatchedToken>());
     token = token.next!;
     expect(token, TypeMatcher<UnmatchedToken>());

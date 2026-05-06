@@ -627,7 +627,7 @@ class FileState {
               featureSet: featureSet.restrictToVersion(packageLanguageVersion),
             );
       scanner.preserveComments = scanComments;
-      Token token = scanner.tokenize(reportScannerErrors: false);
+      Token token = scanner.tokenize();
       LineInfo lineInfo = LineInfo(scanner.lineStarts);
       var languageVersion = LibraryLanguageVersion(
         package: packageLanguageVersion,

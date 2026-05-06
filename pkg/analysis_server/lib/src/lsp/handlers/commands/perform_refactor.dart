@@ -93,10 +93,21 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
               // server stall because this request is blocked on user-input.
               message.completer?.complete();
 
+              // Show the most severe message, but also a count of others.
+              var promptMessage = status.message!;
+              var numberOfOtherErrors = status.problems.length - 1;
+              if (numberOfOtherErrors > 0) {
+                var suffix = numberOfOtherErrors == 1
+                    ? ' (+ 1 other error)'
+                    : ' (+ $numberOfOtherErrors other errors)';
+
+                promptMessage += suffix;
+              }
+
               // Ask the user whether to proceed with the refactor.
               var userChoice = await prompt(
                 MessageType.warning,
-                status.message!,
+                promptMessage,
                 [UserPromptActions.refactorAnyway, UserPromptActions.cancel],
                 cancellationToken,
               );

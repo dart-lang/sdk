@@ -414,6 +414,11 @@ final class ConstantPropagation extends Pass
   }
 
   @override
+  void visitAllocateContext(AllocateContext instr) {
+    _setNonConstant(instr);
+  }
+
+  @override
   void visitAllocateListLiteral(AllocateListLiteral instr) {
     _setNonConstant(instr);
   }

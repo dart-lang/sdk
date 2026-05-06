@@ -7,14 +7,10 @@ import "dart:_compact_hash" show createMapFromStringKeyValueListUnsafe;
 import "dart:_error_utils";
 import "dart:_internal"
     show patch, POWERS_OF_TEN, unsafeCast, pushWasmArray, popWasmArray;
-import "dart:_js_string_convert";
-import "dart:_js_types";
-import "dart:_js_helper" show JS, jsStringFromDartString, JSExternWrapperExt;
 import "dart:_list"
     show GrowableList, WasmListBaseUnsafeExtensions, WasmListBase;
 import "dart:_string";
 import "dart:_string_helper";
-import "dart:_object_helper";
 import "dart:_typed_data";
 import "dart:_object_helper";
 import "dart:_wasm";
@@ -26,7 +22,7 @@ dynamic _parseJson(
   Object? Function(Object? key, Object? value)? reviver,
 ) {
   final listener = _JsonListener(reviver);
-  final parser = _JSStringImplParser(listener);
+  final parser = _StringParser(listener);
   parser.setNewChunk(unsafeCast<JSStringImpl>(source), source.length);
   parser.parse(0);
   parser.close();
@@ -291,13 +287,15 @@ class _NumberBuffer {
     this.array = newArray;
   }
 
-  String getString() => JSStringImpl.fromAsciiBytes(array, 0, length);
+  String getString() {
+    return _stringFromAsciiBytes(array, 0, length);
+  }
 
   // TODO(lrn): See if parsing of numbers can be abstracted to something
   // not only working on strings, but also on char-code lists, without losing
   // performance.
   num parseNum() => num.parse(getString());
-  double parseDouble() => _jsParseValidFloat(getString());
+  double parseDouble() => _parseValidFloat(getString());
 }
 
 /**
@@ -696,9 +694,7 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
    * built exactly during parsing.
    */
   double parseDouble(int start, int end) {
-    return _jsParseValidFloat(
-      getString(start, end, 0x7f, _emptyCodeUnitsCache),
-    );
+    return _parseValidFloat(getString(start, end, 0x7f, _emptyCodeUnitsCache));
   }
 
   /**
@@ -1659,34 +1655,32 @@ mixin _ChunkedJsonParser<T> on _ChunkedJsonParserState {
 }
 
 /**
- * Chunked JSON parser that parses [JSStringImpl] chunks.
+ * Chunked JSON parser that parses [String] chunks.
  */
-class _JSStringImplParser extends _ChunkedJsonParserState
-    with _ChunkedJsonParser<JSStringImpl> {
+class _StringParser extends _ChunkedJsonParserState
+    with _ChunkedJsonParser<String> {
   @pragma('wasm:initialize-at-startup')
   static WasmArray<WasmI16> _emptyChunk = WasmArray<WasmI16>(0);
 
-  JSStringImpl _chunkAsString = unsafeCast<JSStringImpl>('');
+  external static WasmArray<WasmI16> stringToCharCodeArray(
+    String string,
+    int end,
+  );
+
+  String _chunkAsString = '';
   WasmArray<WasmI16> _chunkAsArray = _emptyChunk;
   int chunkEnd = 0;
 
-  _JSStringImplParser(_JsonListener listener) : super(listener);
+  _StringParser(_JsonListener listener) : super(listener);
 
-  void setNewChunk(JSStringImpl string, int end) {
-    final externRef = string.wrappedExternRef;
-    final array = WasmArray<WasmI16>(end);
-    if (string.length == end) {
-      jsStringIntoCharCodeArray(externRef, array, 0.toWasmI32());
-    } else {
-      for (int i = 0; i < end; ++i) array.write(i, jsCharCodeAt(externRef, i));
-    }
+  void setNewChunk(String string, int end) {
     _chunkAsString = string;
-    _chunkAsArray = array;
+    _chunkAsArray = stringToCharCodeArray(string, end);
     chunkEnd = end;
   }
 
   @override
-  JSStringImpl get chunk => _chunkAsString;
+  String get chunk => _chunkAsString;
 
   @pragma('wasm:prefer-inline')
   bool get isUtf16Input => true;
@@ -1708,13 +1702,7 @@ class _JSStringImplParser extends _ChunkedJsonParserState
   }
 
   String getJsonObjectKeyString(int start, int end, int bits, int stringHash) {
-    return _internJSString(
-      _chunkAsString,
-      _chunkAsArray,
-      stringHash,
-      start,
-      end,
-    );
+    return _internString(_chunkAsString, _chunkAsArray, stringHash, start, end);
   }
 
   void beginString() {
@@ -1757,14 +1745,12 @@ class _JSStringImplParser extends _ChunkedJsonParserState
   }
 
   double parseDouble(int start, int end) {
-    return _jsParseValidFloat(
-      getString(start, end, 0x7f, _emptyCodeUnitsCache),
-    );
+    return _parseValidFloat(getString(start, end, 0x7f, _emptyCodeUnitsCache));
   }
 
   void close() {
     super.close();
-    _jsStringInternCache.fill(0, null, _jsStringInternCacheSize);
+    _stringInternCache.fill(0, null, _stringInternCacheSize);
   }
 }
 
@@ -1776,21 +1762,21 @@ const int _codeUnitsCacheSize = 512;
 @pragma("wasm:initialize-at-startup")
 final _codeUnitsCache = WasmArray<WasmI16>(_codeUnitsCacheSize);
 
-const int _jsStringInternCacheSize = 512;
+const int _stringInternCacheSize = 512;
 @pragma("wasm:initialize-at-startup")
-final WasmArray<JSStringImpl?> _jsStringInternCache = WasmArray<JSStringImpl?>(
-  _jsStringInternCacheSize,
+final WasmArray<String?> _stringInternCache = WasmArray<String?>(
+  _stringInternCacheSize,
 );
-JSStringImpl _internJSString(
-  JSStringImpl source,
+String _internString(
+  String source,
   WasmArray<WasmI16> sourceAsArray,
   int stringHash,
   int start,
   int end,
 ) {
   final length = end - start;
-  final int index = stringHash & (_jsStringInternCacheSize - 1);
-  final existing = _jsStringInternCache[index];
+  final int index = stringHash & (_stringInternCacheSize - 1);
+  final existing = _stringInternCache[index];
 
   insert:
   {
@@ -1810,23 +1796,21 @@ JSStringImpl _internJSString(
     }
   }
 
-  final result = unsafeCast<JSStringImpl>(
-    source.substringUnchecked(start, end),
-  );
+  final result = source.substringUnchecked(start, end);
   setIdentityHashField(result, stringHash);
-  _jsStringInternCache[index] = result;
+  _stringInternCache[index] = result;
   return result;
 }
 
-JSStringImpl _internJSStringFromAsciiSlice(
+String _internJSStringFromAsciiSlice(
   U8List source,
   int stringHash,
   int start,
   int end,
 ) {
   final length = end - start;
-  final int index = stringHash & (_jsStringInternCacheSize - 1);
-  final existing = _jsStringInternCache[index];
+  final int index = stringHash & (_stringInternCacheSize - 1);
+  final existing = _stringInternCache[index];
 
   insert:
   {
@@ -1845,14 +1829,30 @@ JSStringImpl _internJSStringFromAsciiSlice(
     }
   }
 
-  final result = JSStringImpl.fromAsciiBytes(
+  final result = _stringFromAsciiList(source, start, end);
+  setIdentityHashField(result, stringHash);
+  _stringInternCache[index] = result;
+  return result;
+}
+
+external String _stringFromCharCodeArray(
+  WasmArray<WasmI16> array,
+  int start,
+  int end,
+);
+
+external String _stringFromAsciiBytes(
+  WasmArray<WasmI8> source,
+  int start,
+  int end,
+);
+
+String _stringFromAsciiList(U8List source, int start, int end) {
+  return _stringFromAsciiBytes(
     source.data,
     source.offsetInElements + start,
     source.offsetInElements + end,
   );
-  setIdentityHashField(result, stringHash);
-  _jsStringInternCache[index] = result;
-  return result;
 }
 
 @patch
@@ -1871,7 +1871,7 @@ class JsonDecoder {
 class _JsonStringDecoderSink extends StringConversionSinkBase {
   final _JsonListener _listener;
 
-  late final _JSStringImplParser _stringParser;
+  late final _StringParser _stringParser;
 
   final Object? Function(Object? key, Object? value)? _reviver;
 
@@ -1879,12 +1879,12 @@ class _JsonStringDecoderSink extends StringConversionSinkBase {
 
   _JsonStringDecoderSink(this._reviver, this._sink)
     : _listener = _JsonListener(_reviver) {
-    _stringParser = _JSStringImplParser(_listener);
+    _stringParser = _StringParser(_listener);
   }
 
   void addSlice(String chunk, int start, int end, bool isLast) {
     final parser = _stringParser;
-    parser.setNewChunk(unsafeCast<JSStringImpl>(chunk), end);
+    parser.setNewChunk(chunk, end);
     parser.parse(start);
     if (isLast) parser.close();
   }
@@ -1989,7 +1989,7 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
     addStringSliceToString(decoder.convertChunked(chunk, start, end));
   }
 
-  JSStringImpl _stringFromBytesOrCache(
+  String _stringFromBytesOrCache(
     int start,
     int end,
     WasmArray<WasmI16> codeUnitsCache,
@@ -2004,13 +2004,9 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
           chunk.offsetInElements + end,
         ),
       );
-      return JSStringImpl.fromCharCodeArray(codeUnitsCache, 0, length);
+      return _stringFromCharCodeArray(codeUnitsCache, 0, length);
     }
-    return JSStringImpl.fromAsciiBytes(
-      chunk.data,
-      chunk.offsetInElements + start,
-      chunk.offsetInElements + end,
-    );
+    return _stringFromAsciiList(chunk, start, end);
   }
 
   void addStringSliceToString(String string) {
@@ -2040,12 +2036,8 @@ class _JsonUtf8Parser extends _ChunkedJsonParserState
   }
 
   double parseDouble(int start, int end) {
-    final result = JSStringImpl.fromAsciiBytes(
-      chunk.data,
-      chunk.offsetInElements + start,
-      chunk.offsetInElements + end,
-    );
-    return _jsParseValidFloat(result);
+    final string = _stringFromAsciiList(chunk, start, end);
+    return _parseValidFloat(string);
   }
 }
 
@@ -2179,6 +2171,12 @@ class _Utf8Decoder {
     82, 82, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98, 98,
   ]);
 
+  external String? _convertSingleFastPath(
+    List<int> codeUnits,
+    int start,
+    int end,
+  );
+
   /// Reset the decoder to a state where it is ready to decode a new string but
   /// will not skip a leading BOM. Used by the fused UTF-8 / JSON decoder.
   void reset() {
@@ -2214,14 +2212,9 @@ class _Utf8Decoder {
     );
     if (start == end) return "";
 
-    if (codeUnits is JSUint8ArrayImpl) {
-      JSStringImpl? decoded = decodeUtf8JS(
-        codeUnits,
-        start,
-        end,
-        allowMalformed,
-      );
-      if (decoded != null) return decoded;
+    if (_convertSingleFastPath(codeUnits, start, end) case final converted?) {
+      // Platform-specific fast path
+      return converted;
     }
 
     final WasmArray<WasmI8> bytes;
@@ -2581,7 +2574,7 @@ class _Utf8Decoder {
         return true;
       })(),
     );
-    return JSStringImpl.fromCharCodeArray(_characterArray, 0, size);
+    return _stringFromCharCodeArray(_characterArray, 0, size);
   }
 
   String decode8(WasmArray<WasmI8> bytes, int start, int end, int size) {
@@ -2628,7 +2621,7 @@ class _Utf8Decoder {
       _characterArray.write(j++, byte & 0xFF);
     }
     assert(j == size);
-    return JSStringImpl.fromCharCodeArray(_characterArray, 0, size);
+    return _stringFromCharCodeArray(_characterArray, 0, size);
   }
 
   // This table is the Wasm array version of `_Utf8Decoder.transitionTable`,
@@ -2727,7 +2720,7 @@ class _Utf8Decoder {
     _charOrIndex = char;
 
     assert(j == size);
-    return JSStringImpl.fromCharCodeArray(_characterArray, 0, size);
+    return _stringFromCharCodeArray(_characterArray, 0, size);
   }
 
   String _decodeGeneral(
@@ -2891,10 +2884,7 @@ WasmArray<WasmI8> _makeI8ArrayFromWasmI8ArrayBase(
   return bytes;
 }
 
-// Assumes the given [string] is a valid float, so it can rely on the implicit
-// string to number conversion in JS using `+<string-of-number>`.
-double _jsParseValidFloat(String string) =>
-    JS<double>('(s) => +s', jsStringFromDartString(string).wrappedExternRef);
+external double _parseValidFloat(String string);
 
 const ImmutableWasmArray<BoxedInt> _intBoxes256 = ImmutableWasmArray.literal([
   0, 1, 2, 3, 4, 5, 6, 7, //

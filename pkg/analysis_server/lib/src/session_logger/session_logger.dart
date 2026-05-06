@@ -9,6 +9,7 @@ import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
 import 'package:analysis_server/src/session_logger/session_logger_sink.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/file_system/physical_file_system.dart';
 
 /// Used to write information about a session to a log.
 class SessionLogger {
@@ -25,7 +26,9 @@ class SessionLogger {
   /// If [filePath] is non-`null`, it also writes log entries to a file at
   /// [filePath].
   factory SessionLogger({File? sessionLogFile}) {
-    var normalizer = LogNormalizer();
+    var normalizer = LogNormalizer(
+      PhysicalResourceProvider.INSTANCE.pathContext,
+    );
     var sink = SessionLoggerInMemorySink(
       maxBufferLength: 1024,
       normalizer: normalizer,

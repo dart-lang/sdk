@@ -1339,6 +1339,19 @@ final class AllocateClosure extends Definition with CanThrow, Pure {
   R accept<R>(InstructionVisitor<R> v) => v.visitAllocateClosure(this);
 }
 
+/// Allocate a context instance to hold values of captured variables.
+final class AllocateContext extends Definition with CanThrow, Pure {
+  final int length;
+
+  AllocateContext(super.graph, super.sourcePosition, this.length)
+    : super(inputCount: 0);
+
+  CType get type => const ContextType();
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitAllocateContext(this);
+}
+
 /// Allocate a new List literal with given type arguments and elements.
 final class AllocateListLiteral extends Definition with CanThrow, Pure {
   @override

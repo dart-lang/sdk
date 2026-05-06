@@ -22,9 +22,9 @@ class EnumDeclarationTest extends ParserDiagnosticsTest {
 enum E {, class A {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingIdentifier, 10, 5),
+      error(diag.expectedToken, 10, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -57,9 +57,9 @@ CompilationUnit
 enum E {, const a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingIdentifier, 10, 5),
+      error(diag.expectedToken, 10, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -95,9 +95,9 @@ CompilationUnit
 enum E {, enum E { v }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingIdentifier, 10, 4),
+      error(diag.expectedToken, 10, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -158,9 +158,9 @@ CompilationUnit
 enum E {, final a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingIdentifier, 10, 5),
+      error(diag.expectedToken, 10, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -196,8 +196,8 @@ CompilationUnit
 enum E {, int f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 14, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -233,9 +233,9 @@ CompilationUnit
 enum E {, void f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingIdentifier, 10, 4),
+      error(diag.expectedToken, 10, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -273,8 +273,8 @@ CompilationUnit
 enum E {, int get a => 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 26, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 14, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -309,9 +309,9 @@ CompilationUnit
 enum E {, mixin M {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingFunctionParameters, 16, 1),
+      error(diag.expectedToken, 16, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -347,8 +347,8 @@ CompilationUnit
 enum E {, set a(b) {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 14, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -386,9 +386,9 @@ CompilationUnit
 enum E {, typedef A = B Function(C, D);
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingConstFinalVarOrType, 18, 1),
+      error(diag.expectedToken, 18, 1),
       error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
@@ -436,9 +436,9 @@ CompilationUnit
 enum E {, var a;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 17, 1),
       error(diag.missingIdentifier, 8, 1),
       error(diag.missingIdentifier, 10, 3),
+      error(diag.expectedToken, 10, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -851,8 +851,8 @@ CompilationUnit
 enum E {,a class A {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -885,8 +885,8 @@ CompilationUnit
 enum E {,a const a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -922,8 +922,8 @@ CompilationUnit
 enum E {,a enum E { v }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -986,8 +986,8 @@ CompilationUnit
 enum E {,a final a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 24, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1023,8 +1023,8 @@ CompilationUnit
 enum E {,a int f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1062,8 +1062,8 @@ CompilationUnit
 enum E {,a void f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1101,8 +1101,8 @@ CompilationUnit
 enum E {,a int get a => 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 27, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1139,8 +1139,8 @@ CompilationUnit
 enum E {,a mixin M {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1172,8 +1172,8 @@ CompilationUnit
 enum E {,a set a(b) {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 23, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1212,8 +1212,8 @@ CompilationUnit
 enum E {,a typedef A = B Function(C, D);
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 41, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -1257,8 +1257,8 @@ CompilationUnit
 enum E {,a var a;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 18, 1),
       error(diag.missingIdentifier, 8, 1),
+      error(diag.expectedToken, 11, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2048,8 +2048,8 @@ CompilationUnit
 enum E { class A {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
       error(diag.missingIdentifier, 9, 5),
+      error(diag.expectedToken, 9, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2080,8 +2080,8 @@ CompilationUnit
 enum E { const a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
       error(diag.missingIdentifier, 9, 5),
+      error(diag.expectedToken, 9, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2115,8 +2115,8 @@ CompilationUnit
 enum E { enum E { v }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
       error(diag.missingIdentifier, 9, 4),
+      error(diag.expectedToken, 9, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2169,8 +2169,8 @@ CompilationUnit
 enum E { final a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 22, 1),
       error(diag.missingIdentifier, 9, 5),
+      error(diag.expectedToken, 9, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2203,7 +2203,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E { int f() {}
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2236,8 +2236,8 @@ CompilationUnit
 enum E { void f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 21, 1),
       error(diag.missingIdentifier, 9, 4),
+      error(diag.expectedToken, 9, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2272,7 +2272,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E { int get a => 0;
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 25, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2304,8 +2304,8 @@ CompilationUnit
 enum E { mixin M {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 20, 1),
       error(diag.missingFunctionParameters, 15, 1),
+      error(diag.expectedToken, 15, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2338,7 +2338,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E { set a(b) {}
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 21, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 13, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -2373,8 +2373,8 @@ CompilationUnit
 enum E { typedef A = B Function(C, D);
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 39, 1),
       error(diag.missingConstFinalVarOrType, 17, 1),
+      error(diag.expectedToken, 17, 1),
       error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
@@ -2420,8 +2420,8 @@ CompilationUnit
 enum E { var a;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 16, 1),
       error(diag.missingIdentifier, 9, 3),
+      error(diag.expectedToken, 9, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3139,7 +3139,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a class A {}
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 21, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3168,7 +3168,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a const a = 0;
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 23, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3200,7 +3200,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a enum E { v }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 23, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3254,7 +3254,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a final a = 0;
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 23, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3286,7 +3286,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a int f() {}
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 21, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3320,7 +3320,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a void f() {}
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3354,7 +3354,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a int get a => 0;
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 26, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3387,7 +3387,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a mixin M {}
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 21, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3415,7 +3415,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a set a(b) {}
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3450,7 +3450,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a typedef A = B Function(C, D);
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 40, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -3490,7 +3490,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 enum E {a var a;
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 17, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 10, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit

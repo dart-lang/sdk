@@ -7,12 +7,9 @@ import 'dart:typed_data';
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
-import 'package:_fe_analyzer_shared/src/scanner/token.dart'
-    show Token, TokenType;
+import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
-    show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -87,11 +84,7 @@ class Scanner {
     _featureSet = featureSet;
   }
 
-  /// The fasta parser handles error tokens produced by the scanner
-  /// but the old parser used by angular does not
-  /// and expects that scanner errors to be reported by this method.
-  /// Set [reportScannerErrors] `true` when using the old parser.
-  Token tokenize({bool reportScannerErrors = true}) {
+  Token tokenize() {
     fasta.ScannerResult result = fasta.scanString(
       _inputText,
       configuration: ExperimentalFeaturesStatus(
@@ -110,21 +103,7 @@ class Scanner {
       list.setRange(0, result.lineStarts.length - 1, result.lineStarts);
     }
 
-    fasta.Token token = result.tokens;
-
-    // The fasta parser handles error tokens produced by the scanner
-    // but the old parser used by angular does not
-    // and expects that scanner errors to be reported here
-    if (reportScannerErrors) {
-      // The default recovery strategy used by scanString
-      // places all error tokens at the head of the stream.
-      while (token.type == TokenType.BAD_INPUT) {
-        translateErrorToken(token as fasta.ErrorToken, reportError);
-        token = token.next!;
-      }
-    }
-
-    return token;
+    return result.tokens;
   }
 
   void _languageVersionChanged(

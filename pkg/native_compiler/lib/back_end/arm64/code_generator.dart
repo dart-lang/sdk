@@ -1327,6 +1327,50 @@ final class Arm64CodeGenerator extends CodeGenerator {
   }
 
   @override
+  void visitAllocateContext(AllocateContext instr) {
+    final instanceSize = roundUp(
+      vmOffsets.Context_elementsStartOffset +
+          instr.length * objectLayout.compressedWordSize,
+      objectAlignment(wordSize),
+    );
+    final resultReg = AllocationStub.resultReg;
+    assert(outputReg(instr) == resultReg);
+
+    final done = Label();
+    Label slowPath = addSlowPath(() {
+      _asm.unimplemented(
+        'Unimplemented: code generation for AllocateContext slow path',
+      );
+      _asm.b(done);
+    });
+
+    _asm.loadImmediate(
+      AllocationStub.tagsReg,
+      vmOffsets.computeNewObjectTags(
+        ClassId.ContextCid,
+        instanceSize,
+        log2wordSize,
+      ),
+    );
+    _asm.inlineAllocation(
+      resultReg,
+      AllocationStub.tagsReg,
+      AllocationStub.scratch1Reg,
+      AllocationStub.scratch2Reg,
+      instanceSize,
+      slowPath,
+      initializeFields: true,
+    );
+    final fieldReg = AllocationStub.scratch1Reg;
+    _asm.loadImmediate(fieldReg, instr.length);
+    _asm.str(
+      fieldReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Context_num_variables_offset),
+    );
+    _asm.bind(done);
+  }
+
+  @override
   void visitAllocateList(AllocateList instr) {
     final tagsReg = temporaryReg(instr, 0);
     final scratch1Reg = temporaryReg(instr, 1);
@@ -1650,9 +1694,14 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitUnaryBoolOp(UnaryBoolOp instr) {
-    _asm.unimplemented(
-      'Unimplemented: code generation for UnaryBoolOp ${instr.op.token}',
-    );
+    final operandReg = inputReg(instr, 0);
+    final resultReg = outputReg(instr);
+    switch (instr.op) {
+      case .not:
+        final boolValueBit = boolValueBitPosition(log2wordSize);
+        _asm.eor(resultReg, operandReg, Immediate(1 << boolValueBit));
+        break;
+    }
   }
 
   @override

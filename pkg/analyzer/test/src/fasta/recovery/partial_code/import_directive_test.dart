@@ -2522,9 +2522,9 @@ CompilationUnit
 import 'a.dart' if (b == class A {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedStringLiteral, 25, 5),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 5),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2565,9 +2565,9 @@ CompilationUnit
 import 'a.dart' if (b == const a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.expectedStringLiteral, 25, 5),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 5),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2611,9 +2611,9 @@ CompilationUnit
 import 'a.dart' if (b == enum E { v }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.expectedStringLiteral, 25, 4),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 4),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2692,9 +2692,9 @@ CompilationUnit
 import 'a.dart' if (b == export 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 42, 1),
-      error(diag.expectedStringLiteral, 25, 6),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 6),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2732,9 +2732,9 @@ CompilationUnit
 import 'a.dart' if (b == final a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.expectedStringLiteral, 25, 5),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 5),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2778,9 +2778,9 @@ CompilationUnit
 import 'a.dart' if (b == int f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedStringLiteral, 25, 3),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 3),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2826,9 +2826,9 @@ CompilationUnit
 import 'a.dart' if (b == void f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.expectedStringLiteral, 25, 4),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 4),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2874,9 +2874,9 @@ CompilationUnit
 import 'a.dart' if (b == int get a => 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 41, 1),
-      error(diag.expectedStringLiteral, 25, 3),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 3),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2921,9 +2921,9 @@ CompilationUnit
 import 'a.dart' if (b == import 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 42, 1),
-      error(diag.expectedStringLiteral, 25, 6),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 6),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2961,9 +2961,9 @@ CompilationUnit
 import 'a.dart' if (b == mixin M {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
-      error(diag.expectedStringLiteral, 25, 5),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 5),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3003,9 +3003,9 @@ CompilationUnit
 import 'a.dart' if (b == part 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 40, 1),
-      error(diag.expectedStringLiteral, 25, 4),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 4),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3043,9 +3043,9 @@ CompilationUnit
 import 'a.dart' if (b == set a(b) {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.expectedStringLiteral, 25, 3),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 3),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3092,9 +3092,9 @@ CompilationUnit
 import 'a.dart' if (b == typedef A = B Function(C, D);
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 55, 1),
-      error(diag.expectedStringLiteral, 25, 7),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 7),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3146,9 +3146,9 @@ CompilationUnit
 import 'a.dart' if (b == var a;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.expectedStringLiteral, 25, 3),
       error(diag.expectedToken, 22, 2),
+      error(diag.expectedStringLiteral, 25, 3),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3189,9 +3189,9 @@ CompilationUnit
 import 'a.dart' if (b class A {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedStringLiteral, 22, 5),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 5),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3229,9 +3229,9 @@ CompilationUnit
 import 'a.dart' if (b const a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.expectedStringLiteral, 22, 5),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 5),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3272,9 +3272,9 @@ CompilationUnit
 import 'a.dart' if (b enum E { v }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.expectedStringLiteral, 22, 4),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 4),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3347,9 +3347,9 @@ CompilationUnit
 import 'a.dart' if (b export 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 39, 1),
-      error(diag.expectedStringLiteral, 22, 6),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 6),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3384,9 +3384,9 @@ CompilationUnit
 import 'a.dart' if (b final a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 35, 1),
-      error(diag.expectedStringLiteral, 22, 5),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 5),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3427,9 +3427,9 @@ CompilationUnit
 import 'a.dart' if (b int f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedStringLiteral, 22, 3),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 3),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3472,9 +3472,9 @@ CompilationUnit
 import 'a.dart' if (b void f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.expectedStringLiteral, 22, 4),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 4),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3517,9 +3517,9 @@ CompilationUnit
 import 'a.dart' if (b int get a => 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
-      error(diag.expectedStringLiteral, 22, 3),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 3),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3561,9 +3561,9 @@ CompilationUnit
 import 'a.dart' if (b import 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 39, 1),
-      error(diag.expectedStringLiteral, 22, 6),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 6),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3598,9 +3598,9 @@ CompilationUnit
 import 'a.dart' if (b mixin M {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedStringLiteral, 22, 5),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 5),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3637,9 +3637,9 @@ CompilationUnit
 import 'a.dart' if (b part 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.expectedStringLiteral, 22, 4),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 4),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3674,9 +3674,9 @@ CompilationUnit
 import 'a.dart' if (b set a(b) {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
-      error(diag.expectedStringLiteral, 22, 3),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 3),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3720,9 +3720,9 @@ CompilationUnit
 import 'a.dart' if (b typedef A = B Function(C, D);
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 52, 1),
-      error(diag.expectedStringLiteral, 22, 7),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 7),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3771,9 +3771,9 @@ CompilationUnit
 import 'a.dart' if (b var a;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 29, 1),
-      error(diag.expectedStringLiteral, 22, 3),
       error(diag.expectedToken, 20, 1),
+      error(diag.expectedStringLiteral, 22, 3),
+      error(diag.expectedToken, 22, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3811,10 +3811,10 @@ CompilationUnit
 import 'a.dart' if ( class A {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 5),
       error(diag.expectedStringLiteral, 21, 5),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3852,10 +3852,10 @@ CompilationUnit
 import 'a.dart' if ( const a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 5),
       error(diag.expectedStringLiteral, 21, 5),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3896,10 +3896,10 @@ CompilationUnit
 import 'a.dart' if ( enum E { v }
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 4),
       error(diag.expectedStringLiteral, 21, 4),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -3973,10 +3973,10 @@ CompilationUnit
 import 'a.dart' if ( export 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 6),
       error(diag.expectedStringLiteral, 21, 6),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4011,10 +4011,10 @@ CompilationUnit
 import 'a.dart' if ( final a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 34, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 5),
       error(diag.expectedStringLiteral, 21, 5),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4055,9 +4055,9 @@ CompilationUnit
 import 'a.dart' if ( int f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
-      error(diag.expectedStringLiteral, 25, 1),
       error(diag.expectedToken, 21, 3),
+      error(diag.expectedStringLiteral, 25, 1),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4098,10 +4098,10 @@ CompilationUnit
 import 'a.dart' if ( void f() {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 4),
       error(diag.expectedStringLiteral, 21, 4),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4144,9 +4144,9 @@ CompilationUnit
 import 'a.dart' if ( int get a => 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 37, 1),
-      error(diag.expectedStringLiteral, 25, 3),
       error(diag.expectedToken, 21, 3),
+      error(diag.expectedStringLiteral, 25, 3),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4186,10 +4186,10 @@ CompilationUnit
 import 'a.dart' if ( import 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 38, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 6),
       error(diag.expectedStringLiteral, 21, 6),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4224,10 +4224,10 @@ CompilationUnit
 import 'a.dart' if ( mixin M {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 32, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 5),
       error(diag.expectedStringLiteral, 21, 5),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4264,10 +4264,10 @@ CompilationUnit
 import 'a.dart' if ( part 'a.dart';
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 36, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 4),
       error(diag.expectedStringLiteral, 21, 4),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4302,9 +4302,9 @@ CompilationUnit
 import 'a.dart' if ( set a(b) {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 33, 1),
-      error(diag.expectedStringLiteral, 25, 1),
       error(diag.expectedToken, 21, 3),
+      error(diag.expectedStringLiteral, 25, 1),
+      error(diag.expectedToken, 25, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4347,10 +4347,10 @@ CompilationUnit
 import 'a.dart' if ( typedef A = B Function(C, D);
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 51, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 7),
       error(diag.expectedStringLiteral, 21, 7),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -4399,10 +4399,10 @@ CompilationUnit
 import 'a.dart' if ( var a;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 28, 1),
+      error(diag.expectedToken, 19, 1),
       error(diag.missingIdentifier, 21, 3),
       error(diag.expectedStringLiteral, 21, 3),
-      error(diag.expectedToken, 19, 1),
+      error(diag.expectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

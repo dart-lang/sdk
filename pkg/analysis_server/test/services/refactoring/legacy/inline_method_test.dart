@@ -2479,6 +2479,27 @@ void f() {
     );
   }
 
+  Future<void> test_noArgument_requiredNamed() async {
+    verifyNoTestUnitErrors = false;
+    await indexTestUnit(r'''
+test({ required a }) {
+  print(a);
+}
+void f() {
+  ^[!test()!];
+}
+''');
+    _createRefactoring();
+    // error
+    var status = await refactoring.checkAllConditions();
+    assertRefactoringStatus(
+      status,
+      RefactoringProblemSeverity.ERROR,
+      expectedMessage: 'No argument for the parameter "a".',
+      rangeIndex: 0,
+    );
+  }
+
   Future<void> test_reference_expressionBody() async {
     await indexTestUnit(r'''
 String ^message() => 'Hello, World!';

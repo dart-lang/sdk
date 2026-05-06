@@ -117,7 +117,7 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
       argumentSource = utils.getNodeText(argument);
     } else {
       // report about a missing required parameter
-      if (parameter.isRequiredPositional) {
+      if (parameter.isRequired) {
         status.addError(
           'No argument for the parameter "${parameter.name}".',
           newLocation_fromNode(contextNode),

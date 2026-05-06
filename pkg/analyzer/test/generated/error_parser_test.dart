@@ -2326,7 +2326,7 @@ void f() {
     var parseResult = parseStringWithErrors(r'''
 void f(int a, int b ;
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 20, 1)]);
   }
 
   void test_missingConstFinalVarOrType_static() {

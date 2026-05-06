@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:cfg/front_end/computed_scopes.dart';
 import 'package:cfg/ir/global_context.dart';
 import 'package:front_end/src/api_unstable/vm.dart'
     show
@@ -11,7 +12,6 @@ import 'package:front_end/src/api_unstable/vm.dart'
         computePlatformBinariesLocation,
         CfeDiagnosticMessage,
         kernelForProgram;
-import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/core_types.dart' show CoreTypes;
 import 'package:kernel/kernel.dart';
@@ -33,10 +33,13 @@ import 'package:vm/modular/target/vm.dart';
 /// Environment define to update expectation files on failures.
 const kUpdateExpectations = 'updateExpectations';
 
+/// Environment define to print kernel after the front-end.
+const dumpKernel = 'dumpKernel';
+
 final String dartSdkPkgDir = Platform.script.resolve('../..').toFilePath();
 
 Future<void> runTestCase(Uri source) async {
-  final target = VmTarget(TargetFlags());
+  final target = VmTarget(TargetFlags(isClosureContextLoweringEnabled: false));
   Component component = await compileTestCaseToKernelProgram(
     source,
     target: target,
@@ -89,6 +92,11 @@ Future<Component> compileTestCaseToKernelProgram(
   // Make sure the library name is the same and does not depend on the order
   // of test cases.
   component.mainMethod!.enclosingLibrary.name = '#lib';
+
+  if (bool.fromEnvironment(dumpKernel)) {
+    writeComponentToText(component);
+  }
+
   return component;
 }
 
@@ -139,12 +147,16 @@ class CompileAndDumpIr extends RecursiveVisitor {
   }
 
   void compileAndDumpFunction(CFunction function) {
+    print('Compiling $function');
+    final closures = <CFunction>[];
     final graph = AstToIr(
       function,
       functionRegistry,
       recognizedMethods,
+      onLocalFunction: closures.add,
       enableAsserts: true,
       typeParametersStyle: .separateFunctionAndClassTypeParameters,
+      scopes: ComputedScopes(function.member, enableAsserts: true),
     ).buildFlowGraph();
     final pipeline = Pipeline([
       SSAComputation(),
@@ -157,6 +169,9 @@ class CompileAndDumpIr extends RecursiveVisitor {
     buffer.writeln(
       IrToText(graph, printDominators: true, printLoops: true).toString(),
     );
+    for (final closure in closures) {
+      compileAndDumpFunction(closure);
+    }
   }
 }
 

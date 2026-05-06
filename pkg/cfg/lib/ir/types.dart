@@ -48,6 +48,7 @@ enum TypeKind {
   lateValue,
   typeParameters,
   typeArguments,
+  context,
 }
 
 /// Base class for types used in the CFG IR.
@@ -395,4 +396,15 @@ final class TypeArgumentsType extends ExtendedType {
 
   @override
   String toString() => '<type-arguments>';
+}
+
+/// Type of [AllocateContext] instruction.
+final class ContextType extends ExtendedType {
+  const ContextType();
+
+  @override
+  TypeKind get kind => TypeKind.context;
+
+  @override
+  String toString() => '<context>';
 }

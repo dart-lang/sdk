@@ -123,6 +123,11 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
       'track-widget-creation',
     ],
   )
+  ..addFlag(
+    'use-ast-scopes',
+    help: 'Use scopes and captured contexts from AST.',
+    defaultsTo: false,
+  )
   ..addOption(
     'invocation-modes',
     help: 'Provides information to the front end about how it is invoked.',
@@ -175,6 +180,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String? depfileTarget = options['depfile-target'];
   final List<String>? fileSystemRoots = options['filesystem-root'];
   final bool enableAsserts = options['enable-asserts'];
+  final bool useAstScopes = options['use-ast-scopes'];
   final List<String>? experimentalFlags = options['enable-experiment'];
   final Map<String, String> environmentDefines = {};
 
@@ -232,7 +238,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
       targetName,
       trackCreationLocations: trackCreationLocations,
       supportMirrors: false,
-      isClosureContextLoweringEnabled: false,
+      isClosureContextLoweringEnabled: useAstScopes,
     );
 
   if (compilerOptions.target == null) {
@@ -269,6 +275,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     targetCPU,
     imageFormat,
     enableAsserts: enableAsserts,
+    useAstScopes: useAstScopes,
     outputLibraryName: path.basename(outputFileName),
   );
   final context = GlobalContext(typeEnvironment: typeEnvironment);

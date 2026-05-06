@@ -66,7 +66,7 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
           featureSetForOverriding: FeatureSet.latestLanguageVersion(),
           featureSet: featureSet,
         );
-  var token = scanner.tokenize(reportScannerErrors: false);
+  var token = scanner.tokenize();
   var lineInfo = LineInfo(scanner.lineStarts);
   var languageVersion = LibraryLanguageVersion(
     package: ExperimentStatus.currentVersion,

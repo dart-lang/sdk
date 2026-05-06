@@ -319,15 +319,9 @@ class FlowGraphBuilder {
   }
 
   /// Append [StoreLocal] to the graph.
-  ///
-  /// If [leaveValueOnStack] is `true`, then the stored value is left
-  /// on top of the expression stack.
-  void addStoreLocal(LocalVariable variable, {bool leaveValueOnStack = false}) {
+  void addStoreLocal(LocalVariable variable) {
     final value = pop();
     final instr = StoreLocal(graph, currentSourcePosition, variable, value);
-    if (leaveValueOnStack) {
-      push(value);
-    }
     appendInstruction(instr);
   }
 
@@ -564,6 +558,14 @@ class FlowGraphBuilder {
     );
     popInputs(instr, 0, inputCount);
     push(instr);
+    appendInstruction(instr);
+    return instr;
+  }
+
+  /// Append [AllocateContext] to the graph.
+  /// Does not push result onto the stack.
+  AllocateContext addAllocateContext(int length) {
+    final instr = AllocateContext(graph, currentSourcePosition, length);
     appendInstruction(instr);
     return instr;
   }

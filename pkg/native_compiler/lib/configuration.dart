@@ -49,12 +49,14 @@ abstract base class Configuration {
   final TargetCPU targetCPU;
   final ImageFormat imageFormat;
   final bool enableAsserts;
+  final bool useAstScopes;
   final String outputLibraryName;
 
   Configuration(
     this.targetCPU,
     this.imageFormat, {
     required this.enableAsserts,
+    required this.useAstScopes,
     required this.outputLibraryName,
   });
 
@@ -103,6 +105,7 @@ final class DevelopmentCompilerConfiguration extends Configuration {
     super.targetCPU,
     super.imageFormat, {
     required super.enableAsserts,
+    required super.useAstScopes,
     required super.outputLibraryName,
   });
 

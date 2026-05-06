@@ -395,6 +395,9 @@ final class FlowGraphChecker extends Pass implements InstructionVisitor<void> {
   void visitAllocateClosure(AllocateClosure instr) {}
 
   @override
+  void visitAllocateContext(AllocateContext instr) {}
+
+  @override
   void visitAllocateListLiteral(AllocateListLiteral instr) {
     verifyTypeArgumentsInput(instr.typeArguments, instr);
   }

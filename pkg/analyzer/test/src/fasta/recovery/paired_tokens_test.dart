@@ -841,7 +841,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 var x = [[0], [1];
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 19, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 17, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -877,7 +877,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 var x = [[0], [1, [2]];
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 24, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 22, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1026,7 +1026,7 @@ f(x) {
   while(x != null) {}
 }
 ''');
-    parseResult.assertErrors([error(diag.expectedToken, 37, 1)]);
+    parseResult.assertErrors([error(diag.expectedToken, 17, 1)]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
 CompilationUnit
@@ -1072,8 +1072,8 @@ f(x
 class C {}
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 15, 1),
       error(diag.missingFunctionBody, 4, 5),
+      error(diag.expectedToken, 4, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''

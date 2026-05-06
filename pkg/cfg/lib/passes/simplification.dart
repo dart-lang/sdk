@@ -241,6 +241,9 @@ final class Simplification extends Pass
   Instruction visitAllocateClosure(AllocateClosure instr) => instr;
 
   @override
+  Instruction visitAllocateContext(AllocateContext instr) => instr;
+
+  @override
   Instruction visitAllocateListLiteral(AllocateListLiteral instr) => instr;
 
   @override

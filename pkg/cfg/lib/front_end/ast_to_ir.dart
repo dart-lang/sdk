@@ -4,6 +4,7 @@
 
 import 'package:cfg/front_end/ast_to_ir_types.dart';
 import 'package:cfg/front_end/recognized_methods.dart';
+import 'package:cfg/front_end/scopes.dart';
 import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/field.dart';
 import 'package:cfg/ir/flow_graph.dart';
@@ -32,8 +33,7 @@ enum TypeParametersStyle {
 /// Not implemented yet:
 ///  - non-regular functions;
 ///  - parameter type checks;
-///  - closures (including tear-offs and calls);
-///  - captured variables;
+///  - tear-offs;
 ///  - stack overflow/interrupt checks;
 ///  - assert statements;
 ///  - record access and literals;
@@ -45,9 +45,11 @@ class AstToIr extends ast.RecursiveVisitor {
   final ClassHierarchy hierarchy;
   final FunctionRegistry functionRegistry;
   final RecognizedMethods recognizedMethods;
+  final void Function(CFunction) onLocalFunction;
   final FlowGraphBuilder builder;
   final bool enableAsserts;
   final TypeParametersStyle typeParametersStyle;
+  final Scopes scopes;
   late final AstToIrTypes _typeTranslator;
   late final LocalVariableIndexer localVarIndexer;
   late final StaticTypeContext _staticTypeContext = StaticTypeContext(
@@ -67,8 +69,10 @@ class AstToIr extends ast.RecursiveVisitor {
     this.function,
     this.functionRegistry,
     this.recognizedMethods, {
+    required this.onLocalFunction,
     required this.enableAsserts,
     required this.typeParametersStyle,
+    required this.scopes,
   }) : coreTypes = GlobalContext.instance.coreTypes,
        hierarchy = GlobalContext.instance.classHierarchy,
        builder = FlowGraphBuilder(function) {
@@ -78,6 +82,7 @@ class AstToIr extends ast.RecursiveVisitor {
       builder,
       coreTypes,
       _typeTranslator,
+      scopes,
       function,
     );
   }
@@ -86,6 +91,7 @@ class AstToIr extends ast.RecursiveVisitor {
   FlowGraph buildFlowGraph() {
     _buildPrologue();
     final member = function.member;
+    final functionNode = function.functionNode;
     if (member.isInstanceMember && member.enclosingClass!.isMixinDeclaration) {
       // After mixin transformation, original members of mixins should not be called.
       // Only their clones in the mixin application classes can be called.
@@ -102,16 +108,23 @@ class AstToIr extends ast.RecursiveVisitor {
       case ImplicitFieldSetter():
         _buildImplicitSetter(member as ast.Field);
       case FieldInitializerFunction():
-        _translateNode((member as ast.Field).initializer!);
+        final field = member as ast.Field;
+        _enterScope(field);
+        _translateNode(field.initializer!);
         if (builder.hasOpenBlock) {
           builder.addReturn();
         }
       case RegularFunction() || GetterFunction() || SetterFunction():
-        _translateNode(member.function?.body);
+        _enterScope(functionNode);
+        _translateNode(functionNode?.body);
       case GenerativeConstructor():
+        _enterScope(functionNode);
         _translateConstructorInitializers(member as ast.Constructor);
-        _translateNode(member.function.body);
-      case LocalFunction() || TearOffFunction():
+        _translateNode(functionNode!.body);
+      case LocalFunction():
+        _enterScope(functionNode);
+        _translateNode(functionNode!.body);
+      case TearOffFunction():
         throw 'Unimplemented buildFlowGraph for ${function.runtimeType}';
     }
     if (builder.hasOpenBlock) {
@@ -136,7 +149,12 @@ class AstToIr extends ast.RecursiveVisitor {
             );
           }
           if (function.hasClassTypeParameters) {
-            builder.addLoadLocal(localVarIndexer.receiver);
+            if (function.hasReceiverParameter) {
+              builder.addLoadLocal(localVarIndexer.receiver);
+            } else {
+              assert(_isCaptured(localVarIndexer.receiverDeclaration!));
+              throw 'Unimplemented _buildPrologue for class type parameters with captured receiver';
+            }
             classTypeParameters = builder.addTypeParameters(
               .classTypeParameters,
             );
@@ -505,12 +523,14 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitBlock(ast.Block node) {
+    _enterScope(node);
     _translateNodes(node.statements);
   }
 
   @override
   void visitAssertBlock(ast.AssertBlock node) {
     if (enableAsserts) {
+      _enterScope(node);
       _translateNodes(node.statements);
     }
   }
@@ -530,6 +550,7 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitBlockExpression(ast.BlockExpression node) {
+    _enterScope(node);
     _translateNodes(node.body.statements);
     _translateNode(node.value);
   }
@@ -758,16 +779,95 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitThisExpression(ast.ThisExpression node) {
-    builder.addLoadLocal(localVarIndexer.receiver);
+    // TODO: always use ThisVariable.
+    final receiverDeclaration = localVarIndexer.receiverDeclaration;
+    if (receiverDeclaration != null) {
+      _readVariable(receiverDeclaration);
+    } else {
+      builder.addLoadLocal(localVarIndexer.receiver);
+    }
+  }
+
+  bool _isCapturedContext(Context context) =>
+      context.isCaptured(enableAsserts: enableAsserts);
+
+  bool _isCaptured(ast.VariableDeclaration v) =>
+      _isCapturedContext(scopes.getVariableContext(v));
+
+  void _readVariable(ast.VariableDeclaration v) {
+    if (_isCaptured(v)) {
+      builder.push(localVarIndexer.contextDef(scopes.getVariableContext(v)));
+      builder.addLoadInstanceField(localVarIndexer.contextField(v));
+    } else {
+      builder.addLoadLocal(localVarIndexer.variableForDeclaration(v));
+    }
+  }
+
+  void _writeVariable(ast.VariableDeclaration v) {
+    if (_isCaptured(v)) {
+      final value = builder.pop();
+      builder.push(localVarIndexer.contextDef(scopes.getVariableContext(v)));
+      builder.push(value);
+      builder.addStoreInstanceField(localVarIndexer.contextField(v));
+    } else {
+      builder.addStoreLocal(localVarIndexer.variableForDeclaration(v));
+    }
+  }
+
+  void _enterScope(ast.TreeNode? node) {
+    if (node == null) {
+      return;
+    }
+    if (node is ast.FunctionNode) {
+      var index = 0;
+      for (final context in scopes.getCapturedContexts(
+        node,
+        enableAsserts: enableAsserts,
+      )) {
+        assert(_isCapturedContext(context));
+        builder.addLoadLocal(localVarIndexer.closure);
+        builder.addLoadInstanceField(CField(ClosureField(index)));
+        localVarIndexer.defineContext(context, builder.pop());
+        ++index;
+      }
+    }
+    final scope = scopes.getScope(node);
+    if (scope == null) {
+      return;
+    }
+    for (final context in scope.contexts) {
+      if (_isCapturedContext(context)) {
+        final def = builder.addAllocateContext(context.variables.length);
+        localVarIndexer.defineContext(context, def);
+      }
+    }
+    if (node is ast.Field && node.isInstanceMember) {
+      final thisVariable = scopes.getThisVariable(node);
+      if (thisVariable != null && _isCaptured(thisVariable)) {
+        builder.addLoadLocal(localVarIndexer.receiver);
+        _writeVariable(thisVariable);
+      }
+    } else if (node is ast.FunctionNode) {
+      for (final v in [
+        if (function.hasReceiverParameter) localVarIndexer.receiverDeclaration!,
+        ...node.positionalParameters,
+        ...node.namedParameters,
+      ]) {
+        if (_isCaptured(v)) {
+          builder.addLoadLocal(localVarIndexer.variableForDeclaration(v));
+          _writeVariable(v);
+        }
+      }
+    }
   }
 
   @override
   void visitVariableDeclaration(ast.VariableDeclaration node) {
+    final variable = node.variable;
     if (node.isConst) return;
-    final local = localVarIndexer.variableForDeclaration(node);
     if (node.isLate) {
       builder.addSentinelConstant();
-      builder.addStoreLocal(local);
+      _writeVariable(variable);
     } else {
       final initializer = node.initializer;
       if (initializer != null) {
@@ -776,12 +876,18 @@ class AstToIr extends ast.RecursiveVisitor {
           builder.pop();
           return;
         }
-        builder.addStoreLocal(local);
-      } else if (node.type.nullability == ast.Nullability.nullable) {
+        _writeVariable(variable);
+      } else if (node.type.nullability == ast.Nullability.nullable &&
+          !_isCaptured(variable)) {
         builder.addNullConstant();
-        builder.addStoreLocal(local);
+        _writeVariable(variable);
       }
     }
+  }
+
+  @override
+  void visitVariableInitialization(ast.VariableInitialization node) {
+    visitVariableDeclaration(node);
   }
 
   @override
@@ -795,14 +901,13 @@ class AstToIr extends ast.RecursiveVisitor {
       );
       return;
     }
-    final local = localVarIndexer.variableForDeclaration(variable);
     if (variable.isLate) {
       // Check if the late variable is initialized.
       final notInitBlock = builder.newTargetBlock();
       final initBlock = builder.newTargetBlock();
       final doneBlock = builder.newJoinBlock();
 
-      builder.addLoadLocal(local);
+      _readVariable(variable);
       builder.addSentinelConstant();
       builder.addComparison(.equal);
       builder.addBranch(notInitBlock, initBlock);
@@ -816,7 +921,7 @@ class AstToIr extends ast.RecursiveVisitor {
           final notInit2Block = builder.newTargetBlock();
           final init2Block = builder.newTargetBlock();
 
-          builder.addLoadLocal(local);
+          _readVariable(variable);
           builder.addSentinelConstant();
           builder.addComparison(.equal);
           builder.addBranch(notInit2Block, init2Block);
@@ -827,7 +932,7 @@ class AstToIr extends ast.RecursiveVisitor {
 
           builder.startBlock(notInit2Block);
         }
-        builder.addStoreLocal(local);
+        _writeVariable(variable);
         builder.addGoto(doneBlock);
       } else {
         builder.addConstant(ConstantValue.fromString(variable.cosmeticName!));
@@ -840,7 +945,7 @@ class AstToIr extends ast.RecursiveVisitor {
       builder.startBlock(doneBlock);
     }
 
-    builder.addLoadLocal(local);
+    _readVariable(variable);
 
     ast.DartType? promotedType = node.promotedType;
     if (promotedType == null && variable.isLate) {
@@ -850,7 +955,7 @@ class AstToIr extends ast.RecursiveVisitor {
     if (promotedType != null) {
       final promotedCType = _typeTranslator.translate(promotedType);
       if (variable.isLate ||
-          (promotedCType is! TopType && promotedCType != local.type)) {
+          (promotedCType is! TopType && promotedType != variable.type)) {
         builder.addTypeCast(
           promotedCType,
           typeParameters: _typeParametersForType(promotedType),
@@ -865,13 +970,12 @@ class AstToIr extends ast.RecursiveVisitor {
     final variable = node.variable;
     _translateNode(node.value);
     if (_handleUnreachableExpression(1)) return;
-    final local = localVarIndexer.variableForDeclaration(variable);
     if (variable.isLate && variable.isFinal) {
       // Check if the late final variable is already initialized.
       final notInitBlock = builder.newTargetBlock();
       final initBlock = builder.newTargetBlock();
 
-      builder.addLoadLocal(local);
+      _readVariable(variable);
       builder.addSentinelConstant();
       builder.addComparison(.equal);
       builder.addBranch(notInitBlock, initBlock);
@@ -882,7 +986,9 @@ class AstToIr extends ast.RecursiveVisitor {
 
       builder.startBlock(notInitBlock);
     }
-    builder.addStoreLocal(local, leaveValueOnStack: true);
+    final value = builder.stackTop;
+    _writeVariable(variable);
+    builder.push(value);
   }
 
   @override
@@ -936,6 +1042,7 @@ class AstToIr extends ast.RecursiveVisitor {
 
     if (trueBlocks.isNotEmpty) {
       builder.startBlock(_joinBlocks(trueBlocks));
+      _enterScope(node);
       _translateNode(node.body);
       if (builder.hasOpenBlock) {
         builder.addGoto(join);
@@ -972,7 +1079,10 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitForStatement(ast.ForStatement node) {
-    _translateNodes(node.variables);
+    // TODO: implement separate contexts for each iteration and
+    // copying of the 'for' variables from a previous iteration.
+    _enterScope(node);
+    _translateNodes(node.variableInitializations);
     if (!builder.hasOpenBlock) return;
 
     final join = builder.newJoinBlock();
@@ -1193,18 +1303,18 @@ class AstToIr extends ast.RecursiveVisitor {
         builder.startBlock(catchBody);
       }
 
-      if (catchClause.exception != null) {
+      _enterScope(catchClause);
+
+      final exceptionVariable = catchClause.exception;
+      if (exceptionVariable != null) {
         builder.addLoadLocal(exceptionLocal);
-        builder.addStoreLocal(
-          localVarIndexer.variableForDeclaration(catchClause.exception!),
-        );
+        _writeVariable(exceptionVariable);
       }
 
-      if (catchClause.stackTrace != null) {
+      final stackTraceVariable = catchClause.stackTrace;
+      if (stackTraceVariable != null) {
         builder.addLoadLocal(stackTraceLocal);
-        builder.addStoreLocal(
-          localVarIndexer.variableForDeclaration(catchClause.stackTrace!),
-        );
+        _writeVariable(stackTraceVariable);
       }
 
       _translateNode(catchClause.body);
@@ -1474,6 +1584,7 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitLet(ast.Let node) {
+    _enterScope(node);
     _translateNode(node.variable);
     _translateNode(node.body);
   }
@@ -1548,6 +1659,7 @@ class AstToIr extends ast.RecursiveVisitor {
       node.name,
     );
     final target = functionRegistry.getFunction(targetMember!);
+    // TODO: use node.receiver
     final inputCount = _translateArguments(ast.ThisExpression(), args);
     if (_handleUnreachableExpression(inputCount)) return;
     builder.addDirectCall(
@@ -1560,12 +1672,14 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitSuperPropertyGet(ast.SuperPropertyGet node) {
+    // TODO: use node.receiver
+    _translateNode(ast.ThisExpression());
+    if (_handleUnreachableExpression(1)) return;
     final targetMember = hierarchy.getDispatchTarget(
       function.member.enclosingClass!.superclass!,
       node.name,
     );
     final target = functionRegistry.getFunction(targetMember!, isGetter: true);
-    builder.addLoadLocal(localVarIndexer.receiver);
     builder.addDirectCall(
       target,
       1,
@@ -1576,15 +1690,16 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitSuperPropertySet(ast.SuperPropertySet node) {
+    // TODO: use node.receiver
+    _translateNode(ast.ThisExpression());
+    _translateNode(node.value);
+    if (_handleUnreachableExpression(2)) return;
     final targetMember = hierarchy.getDispatchTarget(
       function.member.enclosingClass!.superclass!,
       node.name,
       setter: true,
     );
     final target = functionRegistry.getFunction(targetMember!, isSetter: true);
-    builder.addLoadLocal(localVarIndexer.receiver);
-    _translateNode(node.value);
-    if (_handleUnreachableExpression(2)) return;
     final value = builder.stackTop;
     builder.addDirectCall(
       target,
@@ -1614,14 +1729,20 @@ class AstToIr extends ast.RecursiveVisitor {
       _typeTranslator.translate(node.constructedType),
       typeArguments: typeArguments,
     );
-    final argsWithoutTypes = ast.Arguments(args.positional, named: args.named)
-      ..parent = node;
-    final inputCount = _translateArguments(null, argsWithoutTypes);
-    if (_handleUnreachableExpression(inputCount + 1)) return;
+    _translateNodes(args.positional);
+    for (final namedArg in args.named) {
+      _translateNode(namedArg.value);
+    }
+    final inputCount = 1 + args.positional.length + args.named.length;
+    if (_handleUnreachableExpression(inputCount)) return;
     builder.addDirectCall(
       target,
-      inputCount + 1,
-      _translateArgumentsShape(1, argsWithoutTypes),
+      inputCount,
+      functionRegistry.getArgumentsShape(
+        1 + args.positional.length,
+        types: 0,
+        named: args.named.map((ne) => ne.name).toList(),
+      ),
       const TopType(const ast.VoidType()),
     );
     builder.pop();
@@ -1640,8 +1761,20 @@ class AstToIr extends ast.RecursiveVisitor {
     final closureFunction =
         functionRegistry.getFunction(function.member, localFunction: node)
             as ClosureFunction;
-    // TODO: pass captured contexts and type parameters.
-    builder.addAllocateClosure(closureFunction, type, 0);
+    onLocalFunction(closureFunction);
+
+    // TODO: capture (parent) function type arguments and instantiator
+    // type arguments if needed.
+
+    final contexts = scopes.getCapturedContexts(
+      node.function,
+      enableAsserts: enableAsserts,
+    );
+    for (final context in contexts) {
+      assert(_isCapturedContext(context));
+      builder.push(localVarIndexer.contextDef(context));
+    }
+    builder.addAllocateClosure(closureFunction, type, contexts.length);
   }
 
   @override
@@ -1651,9 +1784,8 @@ class AstToIr extends ast.RecursiveVisitor {
 
   @override
   void visitFunctionDeclaration(ast.FunctionDeclaration node) {
-    final local = localVarIndexer.variableForDeclaration(node.variable);
-    _translateClosure(node, local.type);
-    builder.addStoreLocal(local);
+    _translateClosure(node, _typeTranslator.translate(node.variable.type));
+    _writeVariable(node.variable);
   }
 
   @override
@@ -1858,20 +1990,29 @@ class LocalVariableIndexer {
   final FlowGraphBuilder builder;
   final CoreTypes coreTypes;
   final AstToIrTypes typeTranslator;
+  final Scopes scopes;
   final Map<ast.VariableDeclaration, LocalVariable> _declaredVariables = {};
   final Map<ast.TreeNode, LocalVariable> _exceptionVariables = {};
   final Map<ast.TreeNode, LocalVariable> _stackTraceVariables = {};
+  final Map<Context, Definition> _contexts = {};
+  final Map<ast.VariableDeclaration, CField> _contextFields = {};
 
   final List<LocalVariable> parameters = [];
   late final LocalVariable functionTypeParameters;
   late final LocalVariable receiver;
+  late final LocalVariable closure;
+  late final ast.VariableDeclaration? receiverDeclaration;
 
   LocalVariableIndexer(
     this.builder,
     this.coreTypes,
     this.typeTranslator,
+    this.scopes,
     CFunction function,
   ) {
+    final functionNode = function.functionNode;
+    final receiverDeclaration = this.receiverDeclaration = scopes
+        .getThisVariable(function.member);
     if (function.hasFunctionTypeParameters) {
       functionTypeParameters = builder.declareLocalVariable(
         '#functionTypeParameters',
@@ -1884,28 +2025,29 @@ class LocalVariableIndexer {
       final cls = function.member.enclosingClass!;
       receiver = builder.declareLocalVariable(
         'this',
-        null,
+        receiverDeclaration,
         typeTranslator.translate(
           cls.getThisType(coreTypes, ast.Nullability.nonNullable),
         ),
       );
+      if (receiverDeclaration != null) {
+        _declaredVariables[receiverDeclaration] = receiver;
+      }
       parameters.add(receiver);
     }
     if (function.hasClosureParameter) {
-      parameters.add(
-        builder.declareLocalVariable(
-          '#closure',
-          null,
-          typeTranslator.translate(coreTypes.functionNonNullableRawType),
-        ),
+      closure = builder.declareLocalVariable(
+        '#closure',
+        null,
+        typeTranslator.translate(coreTypes.functionNonNullableRawType),
       );
+      parameters.add(closure);
     }
     if (function is ImplicitFieldSetter) {
       parameters.add(
         builder.declareLocalVariable('#value', null, function.valueType),
       );
     }
-    final functionNode = function.functionNode;
     if (functionNode != null) {
       for (final v in functionNode.positionalParameters) {
         parameters.add(variableForDeclaration(v));
@@ -1943,6 +2085,21 @@ class LocalVariableIndexer {
       StaticType(coreTypes.stackTraceNonNullableRawType),
     );
   }
+
+  void defineContext(Context ctx, Definition def) {
+    _contexts[ctx] = def;
+  }
+
+  Definition contextDef(Context ctx) => _contexts[ctx]!;
+
+  // TODO: share context fields between functions.
+  CField contextField(ast.VariableDeclaration variable) =>
+      _contextFields[variable] ??= CField(
+        ContextField(
+          variable,
+          scopes.getVariableContext(variable).variables.indexOf(variable),
+        ),
+      );
 }
 
 /// A pending request to generate IR for a finally block.

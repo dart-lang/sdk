@@ -339,6 +339,7 @@ and `base64 -w 0`:
 (module
   (type $i8array (array (mut i8)))
   (type $i16array (array (mut i16)))
+  (type $externarray (array (mut externref)))
   (import "wasm:js-string" "fromCharCodeArray"
     (func $fromCharCodeArray (param (ref null $i16array) i32 i32) (result (ref extern)))
   )
@@ -398,10 +399,15 @@ and `base64 -w 0`:
       )
     )
   )
+
+  (func (export "emptyExternRefArray")
+    (result (ref $externarray))
+    (array.new_default $externarray (i32.const 0))
+  )
 )
  */
 const _wasmStandaloneArrayHelper =
-    'AGFzbQEAAAABIgVedwFeeAFgA2MAf38BZG9gA2QBf38BZG9gA2QAf38BZG8CJAEOd2FzbTpqcy1zdHJpbmcRZnJvbUNoYXJDb2RlQXJyYXkAAgMDAgMEBzICFHN0cmluZ0Zyb21Bc2NpaUJ5dGVzAAEXc3RyaW5nRnJvbUNoYXJDb2RlQXJyYXkAAgpTAkMCAX8BZAAgAiEDQQAgAvsGACEEAkADQCADQX9qIQMgAyABSA0BIAQgAyAAIAP7DQH7DgAMAAsACyAEQQAgBPsPEAALDQAgACABIAEgAmoQAAs=';
+    'AGFzbQEAAAABKgdedwFeeAFebwFgA2MAf38BZG9gA2QBf38BZG9gA2QAf38BZG9gAAFkAgIkAQ53YXNtOmpzLXN0cmluZxFmcm9tQ2hhckNvZGVBcnJheQADAwQDBAUGB0gDFHN0cmluZ0Zyb21Bc2NpaUJ5dGVzAAEXc3RyaW5nRnJvbUNoYXJDb2RlQXJyYXkAAhNlbXB0eUV4dGVyblJlZkFycmF5AAMKWwNDAgF/AWQAIAIhA0EAIAL7BgAhBAJAA0AgA0F/aiEDIAMgAUgNASAEIAMgACAD+w0B+w4ADAALAAsgBEEAIAT7DxAACw0AIAAgASABIAJqEAALBwBBAPsHAgs=';
 
 String dart2wasmHtml(
   String title,
@@ -487,6 +493,7 @@ String dart2wasmHtml(
         }
       },
       tryParseResultGetDouble: ({result}) => result,
+      doubleParseInfallible: (str) => +str,
       i64ToString: (source, radix) => source.toString(radix),
       f64ToExponential: (source) => source.toExponential(),
       f64ToExponentialWithFractionDigits: (source, digits) => {
@@ -583,9 +590,47 @@ String dart2wasmHtml(
         // local time and UTC.
         return -date.getTimezoneOffset() * 60;
       },
+      mathPow: Math.pow,
+      mathAtan2: Math.atan2,
+      mathSin: Math.sin,
+      mathCos: Math.cos,
+      mathTan: Math.tan,
+      mathAcos: Math.acos,
+      mathAsin: Math.asin,
+      mathAtan: Math.atan,
+      mathExp: Math.exp,
+      mathLog: Math.log,
+      randomInt: () => {
+        const low = (Math.random() * 4294967295.0) | 0;
+        const high = (Math.random() * 4294967295.0) | 0;
+
+        return (BigInt(high) << 32n) | BigInt(low);
+      },
+      randomIntSecure: () => {
+        const typedArray = new BigUint64Array(1);
+        crypto.getRandomValues(typedArray);
+        return typedArray[0];
+      },
+      print: (line) => {
+        if (typeof dartPrint == "function") {
+          dartPrint(line);
+        } else {
+          console.log(line);
+        }
+      },
+      jsonEncodeString: JSON.stringify,
+      debugger: () => {
+        debugger;
+      },
+      inspect: (ref) => {},
+      timelineStreamEnabled: () => false,
+      reportTaskEvent: (taskId, flowId, type, name, jsonArgs) => {},
     };
 """;
   final additionalImports = standalone ? '{ dart: dartEmbedder }' : '{}';
+  final mainInvocation = standalone
+      ? r'appInstance.instantiatedModule.exports.$invokeMain(helperInstance.exports.emptyExternRefArray())'
+      : 'appInstance.invokeMain();';
 
   return """
 <!DOCTYPE html>
@@ -635,7 +680,7 @@ ${standalone ? standaloneEmbedder : ''}
         Promise.all(modules.map((m) => fetch(m).then((b) => handleWasmBytes(m, b)))),
     });
     dartMainRunner(() => {
-      appInstance.invokeMain();
+      $mainInvocation
     });
   }
 
