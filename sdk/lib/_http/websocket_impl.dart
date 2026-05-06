@@ -10,12 +10,14 @@ const String _serverNoContextTakeover = "server_no_context_takeover";
 const String _clientMaxWindowBits = "client_max_window_bits";
 const String _serverMaxWindowBits = "server_max_window_bits";
 
-// 2^53 - 1: max integer that is exactly representable on every Dart backend
-// (the VM uses int64; dart2js and DDC compile `int` to a JS number with
-// 53 bits of integer precision and reject larger literals at compile time).
+// 0x7fffffffffffffff defined in a JS-friendly way to work around a warning
+// issued when compiling this code. Note that this code is never actually
+// used on the Web, so it is safe to simply work around the warning.
+const int _kMaxInt = (0x1fffffffffffff << 10) + 23;
+
 const int _kDefaultWebSocketMaxPayloadLength = int.fromEnvironment(
   "dart.io.default.ws.max.payload.length",
-  defaultValue: 0x1fffffffffffff,
+  defaultValue: _kMaxInt,
 );
 
 // Matches _WebSocketOpcode.
