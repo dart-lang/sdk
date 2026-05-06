@@ -397,12 +397,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitArgumentList(ArgumentList node) {
     var context = _argumentListContext(node);
     for (var argument in node.arguments) {
-      var realArgument = argument;
-      var argumentKind = 'unnamed';
-      if (argument is NamedExpression) {
-        realArgument = argument.expression;
-        argumentKind = 'named';
-      }
+      var realArgument = argument.argumentExpression;
+      var argumentKind = argument is NamedArgument ? 'named' : 'unnamed';
       _recordDataForNode(
         'ArgumentList_${context}_$argumentKind',
         realArgument,
@@ -529,7 +525,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitBreakStatement(BreakStatement node) {
     // The token following the `break` (if there is one) is always a label.
-    if (node.label case var label?) _unrecorded(label.token);
+    if (node.label case var label?) _unrecorded(label.name);
     super.visitBreakStatement(node);
   }
 
@@ -756,7 +752,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitContinueStatement(ContinueStatement node) {
     // The token following the `continue` (if there is one) is always a label.
-    if (node.label case var label?) _unrecorded(label.token);
+    if (node.label case var label?) _unrecorded(label.name);
     super.visitContinueStatement(node);
   }
 
@@ -772,16 +768,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // There are no completions.
     _recordDeclaration(node.name);
     super.visitDeclaredVariablePattern(node);
-  }
-
-  @override
-  void visitDefaultFormalParameter(DefaultFormalParameter node) {
-    _recordDataForNode(
-      'DefaultFormalParameter_defaultValue',
-      node.defaultValue,
-      allowedKeywords: expressionKeywords,
-    );
-    super.visitDefaultFormalParameter(node);
   }
 
   @override
@@ -1076,6 +1062,16 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    _recordDataForNode(
+      'DefaultFormalParameter_defaultValue',
+      node.value,
+      allowedKeywords: expressionKeywords,
+    );
+    super.visitFormalParameterDefaultClause(node);
+  }
+
+  @override
   void visitFormalParameterList(FormalParameterList node) {
     for (var parameter in node.parameters) {
       _recordDataForNode(
@@ -1188,10 +1184,11 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  void visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) {
     // There are no completions.
-    _recordDeclaration(node.name);
-    super.visitFunctionTypedFormalParameter(node);
+    super.visitFunctionTypedFormalParameterSuffix(node);
   }
 
   @override
@@ -1383,7 +1380,7 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   @override
   void visitLabel(Label node) {
     // There are no completions.
-    _recordDeclaration(node.label.token);
+    _recordDeclaration(node.name);
     super.visitLabel(node);
   }
 
@@ -1544,9 +1541,9 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(NamedExpression node) {
+  void visitNamedArgument(NamedArgument node) {
     // Named expressions only occur in argument lists and are handled there.
-    super.visitNamedExpression(node);
+    super.visitNamedArgument(node);
   }
 
   @override
@@ -1742,8 +1739,8 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
   void visitRecordLiteral(RecordLiteral node) {
     for (var field in node.fields) {
       _recordDataForNode('RecordLiteral_fieldName', field);
-      if (field is NamedExpression) {
-        _recordDataForNode('RecordListeral_fieldValue', field.expression);
+      if (field is RecordLiteralNamedField) {
+        _recordDataForNode('RecordListeral_fieldValue', field.fieldExpression);
       }
     }
     super.visitRecordLiteral(node);
@@ -1796,6 +1793,15 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
     // list of constructors.
     if (node.constructorName?.token case var name?) _recordMember(name);
     super.visitRedirectingConstructorInvocation(node);
+  }
+
+  @override
+  void visitRegularFormalParameter(RegularFormalParameter node) {
+    _recordDataForNode('SimpleFormalParameter_type', node.type);
+    if (node.name case var name?) {
+      _recordDeclaration(name);
+    }
+    super.visitRegularFormalParameter(node);
   }
 
   @override
@@ -1858,15 +1864,6 @@ class RelevanceDataCollector extends RecursiveAstVisitor<void> {
       _recordDataForNode('ShowCombinator_shownName', name);
     }
     super.visitShowCombinator(node);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
-    _recordDataForNode('SimpleFormalParameter_type', node.type);
-    if (node.name case var name?) {
-      _recordDeclaration(name);
-    }
-    super.visitSimpleFormalParameter(node);
   }
 
   @override

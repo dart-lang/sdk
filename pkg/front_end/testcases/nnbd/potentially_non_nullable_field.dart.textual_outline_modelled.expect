@@ -1,7 +1,5 @@
 class A<T extends Object?> {
-  A(this.lv, this.lp, T t)
-      : this.lu = 42,
-        this.lq = t;
+  A(this.lv, this.lp, T t) : this.lu = 42, this.lq = t;
   T? ls;
   T lp;
   T lq;

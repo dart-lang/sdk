@@ -8,6 +8,7 @@ import 'dart:collection';
 import 'package:meta/meta.dart';
 import 'package:shelf/shelf.dart';
 
+import 'clients.dart';
 import 'dart_runtime_service.dart';
 import 'dart_runtime_service_rpcs.dart';
 import 'event_streams.dart';
@@ -29,6 +30,18 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
 
   /// Adds support for expression evaluation if non-null.
   ExpressionEvaluator? get expressionEvaluator => null;
+
+  /// Used by [DartRuntimeService] to create a [ClientManager].
+  ///
+  /// Backend implementations should override this method and return their own
+  /// [ClientManager] implementation if they require tracking additional state
+  /// for each [Client].
+  ClientManager<DartRuntimeServiceBackend<IM>> clientManagerBuilder() {
+    return ClientManager(
+      backend: this,
+      eventStreamMethods: frontend.eventStreams,
+    );
+  }
 
   /// Invoked by the [DartRuntimeService] when the service is initializing,
   /// before the service's HTTP server is started.
@@ -59,6 +72,10 @@ abstract class DartRuntimeServiceBackend<IM extends IsolateManager> {
   /// Invoked by the [DartRuntimeService] when the service's HTTP server has
   /// started.
   Future<void> onServerStarted({required Uri httpUri, required Uri wsUri});
+
+  /// Invoked by the [DartRuntimeService] when the service's HTTP server has
+  /// shutdown.
+  Future<void> onServerShutdown();
 
   /// Invoked when [EventStreamManager.streamListen] is called and the first
   /// client has subscribed to [streamId].

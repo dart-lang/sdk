@@ -34,6 +34,7 @@ class _Const {
 }
 
 // Frequently used character codes.
+// TODO(lrn): Make lower case, move into separate library, import with prefix.
 class _CharCode {
   static const int NONE = -1;
   static const int HT = 0x09;
@@ -56,6 +57,26 @@ class _CharCode {
   static const int LETTER_a = 0x61;
   static const int LETTER_z = 0x7A;
   static const int DEL = 0x7F;
+  // For month name abbreviations.
+  static const int a = 0x61; // apr
+  static const int b = 0x62; // feb
+  static const int c = 0x63; // oct
+  static const int d = 0x64; // dec
+  static const int e = 0x65; // dec
+  static const int f = 0x66; // feb
+  static const int g = 0x67; // aug
+  static const int j = 0x6A; // jan
+  static const int l = 0x6C; // jul
+  static const int m = 0x6D; // mar
+  static const int n = 0x6E; // jan
+  static const int o = 0x6F; // nov
+  static const int p = 0x70; // sep
+  static const int r = 0x72; // apr
+  static const int s = 0x73; // sep
+  static const int t = 0x74; // oct
+  static const int u = 0x75; // aug
+  static const int v = 0x76; // nov
+  static const int y = 0x79; // apr
 }
 
 // States of the HTTP parser state machine.
@@ -381,6 +402,18 @@ class _HttpParser extends Stream<_HttpIncoming> {
       headers.removeAll(HttpHeaders.transferEncodingHeader);
     }
     headers._mutable = false;
+
+    // RFC 7230 section 3.3.3 rule 3: if a request has a Transfer-Encoding
+    // header and chunked is not the final coding, the message body length
+    // cannot be determined; close the connection to avoid request smuggling.
+    if (_messageType == _MessageType.REQUEST &&
+        _transferEncoding &&
+        !_chunked) {
+      throw HttpException(
+        "Invalid Transfer-Encoding header: chunked must be the final "
+        "transfer coding in requests (RFC 7230 section 3.3.3 rule 3).",
+      );
+    }
 
     _transferLength = headers.contentLength;
     // Ignore the Content-Length header if Transfer-Encoding
@@ -749,14 +782,13 @@ class _HttpParser extends Stream<_HttpIncoming> {
             } else if (headerField == HttpHeaders.transferEncodingHeader) {
               _transferEncoding = true;
               // RFC 7230 section 3.3.1: Transfer-Encoding can be a
-              // comma-separated list (e.g. "gzip, chunked"). Check each
-              // token individually to avoid CL/TE request smuggling.
+              // comma-separated list (e.g. "gzip, chunked") and can be split
+              // across multiple header lines. "chunked" must appear as the
+              // last value in the last header line, otherwise the request
+              // is malformed. This will be validated in _headersEnd.
               List<String> tokens = _tokenizeFieldValue(headerValue);
-              for (var token in tokens) {
-                if (token.trim().toLowerCase() == "chunked") {
-                  _chunked = true;
-                  break;
-                }
+              if (tokens.isNotEmpty) {
+                _chunked = tokens.last.trim().toLowerCase() == "chunked";
               }
               _contentLength = false;
             }
@@ -1080,20 +1112,31 @@ class _HttpParser extends Stream<_HttpIncoming> {
     value.length = length;
   }
 
+  static bool _isOWS(int c) {
+    return c == _CharCode.SP || c == _CharCode.HT;
+  }
+
   static List<String> _tokenizeFieldValue(String headerValue) {
+    int length = headerValue.length;
     List<String> tokens = <String>[];
+    // First non-OWS character of the token. Note that headerValue is already
+    // trimmed from start and end so we don't need to skip characters at start.
     int start = 0;
-    int index = 0;
-    while (index < headerValue.length) {
-      if (headerValue[index] == ",") {
-        tokens.add(headerValue.substring(start, index));
-        start = index + 1;
-      } else if (headerValue[index] == " " || headerValue[index] == "\t") {
+    while (start < length) {
+      int end = start + 1;
+      while (end < length && headerValue.codeUnitAt(end) != _CharCode.COMMA) {
+        end++;
+      }
+      int comma = end;
+      while (start < end && _isOWS(headerValue.codeUnitAt(end - 1))) {
+        end--;
+      }
+      tokens.add(headerValue.substring(start, end));
+      start = comma + 1;
+      while (start < length && _isOWS(headerValue.codeUnitAt(start))) {
         start++;
       }
-      index++;
     }
-    tokens.add(headerValue.substring(start, index));
     return tokens;
   }
 

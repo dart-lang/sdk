@@ -72,7 +72,9 @@ class MemberDuplicateDefinitionVerifier {
         if (formalFragment is FieldFormalParameterFragmentImpl &&
             formalFragment.isDeclaring) {
           var fieldName = formalNode.name;
-          var fieldElement = formalFragment.element.field;
+          var fieldElement = formalFragment.element
+              .tryCast<FieldFormalParameterElementImpl>()
+              ?.field;
           if (fieldName != null && fieldElement != null) {
             _checkDuplicateIdentifier(
               instanceScope,

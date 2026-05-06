@@ -681,7 +681,7 @@ final class LabelSuggestion extends CandidateSuggestion {
   LabelSuggestion({required this.label, required super.matcherScore});
 
   @override
-  String get completion => label.label.name;
+  String get completion => label.name.lexeme;
 }
 
 /// The suggestion for `loadLibrary()`.

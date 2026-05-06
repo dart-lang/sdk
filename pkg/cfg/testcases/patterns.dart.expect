@@ -1,0 +1,123 @@
+--- A.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
+  Return(v4)
+
+--- B.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
+  Return(v4)
+
+--- C.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
+  Return(v4)
+
+--- D.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
+  Return(v4)
+
+--- test1
+B0 = EntryBlock() dominates:(B7, B16, B6)
+  Constant(true)
+  Constant(null)
+  Constant(#undefined)
+  v1 = Parameter(x)
+  v5 = TypeTest(v1, String)
+  Branch(v5, true: B6, false: B7)
+B6 = TargetBlock() idom:B0
+  v12 = TypeCast(v1, String, unchecked)
+  Goto(B16)
+B7 = TargetBlock() idom:B0 dominates:(B21, B20)
+  v19 = TypeTest(v1, int)
+  Branch(v19, true: B20, false: B21)
+B20 = TargetBlock() idom:B7
+  v26 = TypeCast(v1, int, unchecked)
+  v29 = StringInterpolation(v26)
+  Goto(B16)
+B16 = JoinBlock(B20, B6) idom:B0
+  v45 = Phi(v29, v12)
+  Return(v45)
+B21 = TargetBlock() idom:B7
+  v38 = AllocateObject ArgumentError()
+  DirectCall ArgumentError.(v38)
+  Throw(v38)
+
+--- test2
+B0 = EntryBlock() dominates:(B13, B46, B12)
+  v6 = Constant(null)
+  Constant(false)
+  v18 = Constant(1)
+  Constant(true)
+  v36 = Constant(0)
+  v1 = Parameter(obj)
+  v3 = InterfaceCall getter B.a(v1)
+  v4 = InterfaceCall getter A.x(v3)
+  v11 = TypeTest(v4, List<Object?>)
+  Branch(v11, true: B12, false: B13)
+B12 = TargetBlock() idom:B0 dominates:(B21, B20)
+  v16 = TypeCast(v4, List<Object?>, unchecked)
+  v17 = InterfaceCall getter List.length(v16)
+  v19 = Comparison int ==(v17, v18)
+  Branch(v19, true: B20, false: B21)
+B20 = TargetBlock() idom:B12 dominates:(B44, B43)
+  v37 = InterfaceCall List.[](v16, v36)
+  v42 = TypeTest(v37, String)
+  Branch(v42, true: B43, false: B44)
+B43 = TargetBlock() idom:B20
+  v67 = TypeCast(v37, String, unchecked)
+  DirectCall print(v67)
+  Goto(B46)
+B44 = TargetBlock() idom:B20
+  Goto(B46)
+B21 = TargetBlock() idom:B12
+  Goto(B46)
+B13 = TargetBlock() idom:B0
+  Goto(B46)
+B46 = JoinBlock(B13, B21, B44, B43) idom:B0
+  Return(v6)
+
+--- test3
+B0 = EntryBlock() dominates:(B12, B45, B11)
+  v4 = Constant("foo")
+  Constant(false)
+  v17 = Constant(1)
+  Constant(true)
+  v35 = Constant(0)
+  v70 = Constant(null)
+  Constant(#undefined)
+  v1 = Parameter(obj)
+  v3 = InterfaceCall getter C.d(v1)
+  v5 = InterfaceCall D.[](v3, v4)
+  v10 = TypeTest(v5, List<String>)
+  Branch(v10, true: B11, false: B12)
+B11 = TargetBlock() idom:B0 dominates:(B20, B19)
+  v15 = TypeCast(v5, List<String>, unchecked)
+  v16 = InterfaceCall getter List.length(v15)
+  v18 = Comparison int ==(v16, v17)
+  Branch(v18, true: B19, false: B20)
+B19 = TargetBlock() idom:B11
+  v36 = InterfaceCall List.[](v15, v35)
+  DirectCall print(v36)
+  Goto(B45)
+B20 = TargetBlock() idom:B11
+  Goto(B45)
+B12 = TargetBlock() idom:B0
+  Goto(B45)
+B45 = JoinBlock(B12, B20, B19) idom:B0
+  Return(v70)
+
+--- main
+B0 = EntryBlock()
+  v1 = Constant(null)
+  Return(v1)
+

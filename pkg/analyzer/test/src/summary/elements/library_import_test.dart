@@ -39,14 +39,14 @@ library
       libraryImports
         package:test/foo.dart
       classes
-        #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
+        #F1 hasExtendsClause class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -87,14 +87,14 @@ library
       libraryImports
         package:test/foo_io.dart
       classes
-        #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
+        #F1 hasExtendsClause class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -135,14 +135,14 @@ library
       libraryImports
         package:test/foo_io.dart
       classes
-        #F1 class B (nameOffset:124) (firstTokenOffset:118) (offset:124)
+        #F1 hasExtendsClause class B (nameOffset:124) (firstTokenOffset:118) (offset:124)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:124)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -183,14 +183,14 @@ library
       libraryImports
         package:test/foo_html.dart
       classes
-        #F1 class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
+        #F1 hasExtendsClause class B (nameOffset:104) (firstTokenOffset:98) (offset:104)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:104)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -231,14 +231,14 @@ library
       libraryImports
         package:test/foo_html.dart
       classes
-        #F1 class B (nameOffset:124) (firstTokenOffset:118) (offset:124)
+        #F1 hasExtendsClause class B (nameOffset:124) (firstTokenOffset:118) (offset:124)
           element: <testLibrary>::@class::B
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:124)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
   classes
-    class B
+    isSimplyBounded class B
       reference: <testLibrary>::@class::B
       firstFragment: #F1
       supertype: A
@@ -301,7 +301,7 @@ library
       libraryImports
         package:test/a.dart deferred as p (nameOffset:28) (firstTokenOffset:<null>) (offset:28)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @28
 ''');
   }
@@ -326,11 +326,11 @@ library
         dart:async as i2 (nameOffset:70) (firstTokenOffset:<null>) (offset:70)
         dart:async as i3 (nameOffset:117) (firstTokenOffset:<null>) (offset:117)
       prefixes
-        <testLibraryFragment>::@prefix2::i1
+        <testLibraryFragment>::@prefix::i1
           fragments: @23
-        <testLibraryFragment>::@prefix2::i2
+        <testLibraryFragment>::@prefix::i2
           fragments: @70
-        <testLibraryFragment>::@prefix2::i3
+        <testLibraryFragment>::@prefix::i3
           fragments: @117
       libraryExports
         dart:math
@@ -354,32 +354,32 @@ library
           combinators
             hide: Stream, Completer
       topLevelVariables
-        #F1 isOriginDeclaration f (nameOffset:51) (firstTokenOffset:51) (offset:51)
+        #F1 isOriginDeclaration isStatic f (nameOffset:51) (firstTokenOffset:51) (offset:51)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+        #F2 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
           element: <testLibrary>::@getter::f
       setters
-        #F3 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
+        #F3 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
           element: <testLibrary>::@setter::f
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:51)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: Future<dynamic>
       getter: <testLibrary>::@getter::f
       setter: <testLibrary>::@setter::f
   getters
-    static isOriginVariable f
+    isOriginVariable isStatic f
       reference: <testLibrary>::@getter::f
       firstFragment: #F2
       returnType: Future<dynamic>
       variable: <testLibrary>::@topLevelVariable::f
   setters
-    static isOriginVariable f
+    isOriginVariable isStatic f
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
@@ -450,32 +450,32 @@ library
             hide: Stream
             show: Future
       topLevelVariables
-        #F1 isOriginDeclaration f (nameOffset:52) (firstTokenOffset:52) (offset:52)
+        #F1 isOriginDeclaration isStatic f (nameOffset:52) (firstTokenOffset:52) (offset:52)
           element: <testLibrary>::@topLevelVariable::f
       getters
-        #F2 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+        #F2 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
           element: <testLibrary>::@getter::f
       setters
-        #F3 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
+        #F3 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
           element: <testLibrary>::@setter::f
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
               element: <testLibrary>::@setter::f::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: Future<dynamic>
       getter: <testLibrary>::@getter::f
       setter: <testLibrary>::@setter::f
   getters
-    static isOriginVariable f
+    isOriginVariable isStatic f
       reference: <testLibrary>::@getter::f
       firstFragment: #F2
       returnType: Future<dynamic>
       variable: <testLibrary>::@topLevelVariable::f
   setters
-    static isOriginVariable f
+    isOriginVariable isStatic f
       reference: <testLibrary>::@setter::f
       firstFragment: #F3
       formalParameters
@@ -503,35 +503,35 @@ library
       libraryImports
         package:test/a.dart as a (nameOffset:19) (firstTokenOffset:<null>) (offset:19)
       prefixes
-        <testLibraryFragment>::@prefix2::a
+        <testLibraryFragment>::@prefix::a
           fragments: @19
       topLevelVariables
-        #F1 isOriginDeclaration c (nameOffset:26) (firstTokenOffset:26) (offset:26)
+        #F1 isOriginDeclaration isStatic c (nameOffset:26) (firstTokenOffset:26) (offset:26)
           element: <testLibrary>::@topLevelVariable::c
       getters
-        #F2 isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F2 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@getter::c
       setters
-        #F3 isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
+        #F3 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
           element: <testLibrary>::@setter::c
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:26)
               element: <testLibrary>::@setter::c::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
   getters
-    static isOriginVariable c
+    isOriginVariable isStatic c
       reference: <testLibrary>::@getter::c
       firstFragment: #F2
       returnType: C
       variable: <testLibrary>::@topLevelVariable::c
   setters
-    static isOriginVariable c
+    isOriginVariable isStatic c
       reference: <testLibrary>::@setter::c
       firstFragment: #F3
       formalParameters
@@ -557,7 +557,7 @@ library
       libraryImports
         dart:math as <null-name> (nameOffset:<null>) (firstTokenOffset:<null>) (offset:0)
       prefixes
-        <testLibraryFragment>::@prefix2::0
+        <testLibraryFragment>::@prefix::#0
           fragments: @null
 ''');
   }
@@ -580,7 +580,7 @@ library
       libraryImports
         package:test/test.dart as p (nameOffset:22) (firstTokenOffset:<null>) (offset:22)
       prefixes
-        <testLibraryFragment>::@prefix2::p
+        <testLibraryFragment>::@prefix::p
           fragments: @22
       classes
         #F1 class C (nameOffset:31) (firstTokenOffset:25) (offset:31)
@@ -589,21 +589,21 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
               element: <testLibrary>::@class::C::@constructor::new
               typeName: C
-        #F3 class D (nameOffset:42) (firstTokenOffset:36) (offset:42)
+        #F3 hasExtendsClause class D (nameOffset:42) (firstTokenOffset:36) (offset:42)
           element: <testLibrary>::@class::D
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
               element: <testLibrary>::@class::D::@constructor::new
               typeName: D
   classes
-    class C
+    isSimplyBounded class C
       reference: <testLibrary>::@class::C
       firstFragment: #F1
       constructors
         isOriginImplicitDefault new
           reference: <testLibrary>::@class::C::@constructor::new
           firstFragment: #F2
-    class D
+    isSimplyBounded class D
       reference: <testLibrary>::@class::D
       firstFragment: #F3
       supertype: C
@@ -632,52 +632,52 @@ library
           combinators
             show: Future, Stream
       topLevelVariables
-        #F1 isOriginDeclaration f (nameOffset:48) (firstTokenOffset:48) (offset:48)
+        #F1 isOriginDeclaration isStatic f (nameOffset:48) (firstTokenOffset:48) (offset:48)
           element: <testLibrary>::@topLevelVariable::f
-        #F2 isOriginDeclaration s (nameOffset:58) (firstTokenOffset:58) (offset:58)
+        #F2 isOriginDeclaration isStatic s (nameOffset:58) (firstTokenOffset:58) (offset:58)
           element: <testLibrary>::@topLevelVariable::s
       getters
-        #F3 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+        #F3 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@getter::f
-        #F4 isOriginVariable s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+        #F4 isCompleteDeclaration isOriginVariable isStatic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
           element: <testLibrary>::@getter::s
       setters
-        #F5 isOriginVariable f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
+        #F5 isCompleteDeclaration isOriginVariable isStatic f (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
           element: <testLibrary>::@setter::f
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:48)
               element: <testLibrary>::@setter::f::@formalParameter::value
-        #F7 isOriginVariable s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
+        #F7 isCompleteDeclaration isOriginVariable isStatic s (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
           element: <testLibrary>::@setter::s
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:58)
               element: <testLibrary>::@setter::s::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration f
+    isOriginDeclaration isStatic f
       reference: <testLibrary>::@topLevelVariable::f
       firstFragment: #F1
       type: Future<dynamic>
       getter: <testLibrary>::@getter::f
       setter: <testLibrary>::@setter::f
-    isOriginDeclaration s
+    isOriginDeclaration isStatic s
       reference: <testLibrary>::@topLevelVariable::s
       firstFragment: #F2
       type: Stream<dynamic>
       getter: <testLibrary>::@getter::s
       setter: <testLibrary>::@setter::s
   getters
-    static isOriginVariable f
+    isOriginVariable isStatic f
       reference: <testLibrary>::@getter::f
       firstFragment: #F3
       returnType: Future<dynamic>
       variable: <testLibrary>::@topLevelVariable::f
-    static isOriginVariable s
+    isOriginVariable isStatic s
       reference: <testLibrary>::@getter::s
       firstFragment: #F4
       returnType: Stream<dynamic>
       variable: <testLibrary>::@topLevelVariable::s
   setters
-    static isOriginVariable f
+    isOriginVariable isStatic f
       reference: <testLibrary>::@setter::f
       firstFragment: #F5
       formalParameters
@@ -686,7 +686,7 @@ library
           type: Future<dynamic>
       returnType: void
       variable: <testLibrary>::@topLevelVariable::f
-    static isOriginVariable s
+    isOriginVariable isStatic s
       reference: <testLibrary>::@setter::s
       firstFragment: #F7
       formalParameters
@@ -695,6 +695,44 @@ library
           type: Stream<dynamic>
       returnType: void
       variable: <testLibrary>::@topLevelVariable::s
+''');
+  }
+
+  test_import_show_loadLibrary_declared() async {
+    newFile('$testPackageLibPath/a.dart', 'void loadLibrary() {}');
+
+    var library = await buildLibrary('''
+import "a.dart" show loadLibrary;
+final x = loadLibrary;
+''');
+    checkElementText(library, r'''
+library
+  reference: <testLibrary>
+  fragments
+    #F0 <testLibraryFragment>
+      element: <testLibrary>
+      libraryImports
+        package:test/a.dart
+          combinators
+            show: loadLibrary
+      topLevelVariables
+        #F1 hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic x (nameOffset:40) (firstTokenOffset:40) (offset:40)
+          element: <testLibrary>::@topLevelVariable::x
+      getters
+        #F2 isCompleteDeclaration isOriginVariable isStatic x (nameOffset:<null>) (firstTokenOffset:<null>) (offset:40)
+          element: <testLibrary>::@getter::x
+  topLevelVariables
+    hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
+      reference: <testLibrary>::@topLevelVariable::x
+      firstFragment: #F1
+      type: void Function()
+      getter: <testLibrary>::@getter::x
+  getters
+    isOriginVariable isStatic x
+      reference: <testLibrary>::@getter::x
+      firstFragment: #F2
+      returnType: void Function()
+      variable: <testLibrary>::@topLevelVariable::x
 ''');
   }
 
@@ -734,52 +772,52 @@ library
         package:test/a.dart
         package:test/b.dart
       topLevelVariables
-        #F1 isOriginDeclaration c (nameOffset:36) (firstTokenOffset:36) (offset:36)
+        #F1 isOriginDeclaration isStatic c (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::c
-        #F2 isOriginDeclaration d (nameOffset:41) (firstTokenOffset:41) (offset:41)
+        #F2 isOriginDeclaration isStatic d (nameOffset:41) (firstTokenOffset:41) (offset:41)
           element: <testLibrary>::@topLevelVariable::d
       getters
-        #F3 isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F3 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::c
-        #F4 isOriginVariable d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+        #F4 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
           element: <testLibrary>::@getter::d
       setters
-        #F5 isOriginVariable c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F5 isCompleteDeclaration isOriginVariable isStatic c (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@setter::c
           formalParameters
             #F6 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@setter::c::@formalParameter::value
-        #F7 isOriginVariable d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
+        #F7 isCompleteDeclaration isOriginVariable isStatic d (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
           element: <testLibrary>::@setter::d
           formalParameters
             #F8 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:41)
               element: <testLibrary>::@setter::d::@formalParameter::value
   topLevelVariables
-    isOriginDeclaration c
+    isOriginDeclaration isStatic c
       reference: <testLibrary>::@topLevelVariable::c
       firstFragment: #F1
       type: C
       getter: <testLibrary>::@getter::c
       setter: <testLibrary>::@setter::c
-    isOriginDeclaration d
+    isOriginDeclaration isStatic d
       reference: <testLibrary>::@topLevelVariable::d
       firstFragment: #F2
       type: D
       getter: <testLibrary>::@getter::d
       setter: <testLibrary>::@setter::d
   getters
-    static isOriginVariable c
+    isOriginVariable isStatic c
       reference: <testLibrary>::@getter::c
       firstFragment: #F3
       returnType: C
       variable: <testLibrary>::@topLevelVariable::c
-    static isOriginVariable d
+    isOriginVariable isStatic d
       reference: <testLibrary>::@getter::d
       firstFragment: #F4
       returnType: D
       variable: <testLibrary>::@topLevelVariable::d
   setters
-    static isOriginVariable c
+    isOriginVariable isStatic c
       reference: <testLibrary>::@setter::c
       firstFragment: #F5
       formalParameters
@@ -788,7 +826,7 @@ library
           type: C
       returnType: void
       variable: <testLibrary>::@topLevelVariable::c
-    static isOriginVariable d
+    isOriginVariable isStatic d
       reference: <testLibrary>::@setter::d
       firstFragment: #F7
       formalParameters
@@ -940,9 +978,9 @@ library
         dart:collection as p2 (nameOffset:55) (firstTokenOffset:<null>) (offset:55)
         dart:math as p1 (nameOffset:81) (firstTokenOffset:<null>) (offset:81)
       prefixes
-        <testLibraryFragment>::@prefix2::p1
+        <testLibraryFragment>::@prefix::p1
           fragments: @23 @81
-        <testLibraryFragment>::@prefix2::p2
+        <testLibraryFragment>::@prefix::p2
           fragments: @55
 ''');
   }
@@ -978,17 +1016,17 @@ library
                 staticType: null
               element: <testLibrary>::@getter::a
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration a (nameOffset:29) (firstTokenOffset:29) (offset:29)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:29) (firstTokenOffset:29) (offset:29)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
               literal: 0 @33
               staticType: int
       getters
-        #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
+        #F2 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:29)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasImplicitType hasInitializer isOriginDeclaration a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
@@ -997,7 +1035,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F2
       returnType: int
@@ -1039,17 +1077,17 @@ library
           combinators
             show: Random
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration a (nameOffset:42) (firstTokenOffset:42) (offset:42)
+        #F1 hasImplicitType hasInitializer isConst isOriginDeclaration isStatic a (nameOffset:42) (firstTokenOffset:42) (offset:42)
           element: <testLibrary>::@topLevelVariable::a
           initializer: expression_0
             IntegerLiteral
               literal: 0 @46
               staticType: int
       getters
-        #F2 isOriginVariable a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
+        #F2 isCompleteDeclaration isOriginVariable isStatic a (nameOffset:<null>) (firstTokenOffset:<null>) (offset:42)
           element: <testLibrary>::@getter::a
   topLevelVariables
-    const hasImplicitType hasInitializer isOriginDeclaration a
+    hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer a
       reference: <testLibrary>::@topLevelVariable::a
       firstFragment: #F1
       type: int
@@ -1058,7 +1096,7 @@ library
         expression: expression_0
       getter: <testLibrary>::@getter::a
   getters
-    static isOriginVariable a
+    isOriginVariable isStatic a
       reference: <testLibrary>::@getter::a
       firstFragment: #F2
       returnType: int
@@ -1088,32 +1126,32 @@ library
         package:test/a.dart
         package:test/b.dart
       topLevelVariables
-        #F1 hasInitializer isOriginDeclaration v (nameOffset:36) (firstTokenOffset:36) (offset:36)
+        #F1 hasInitializer isOriginDeclaration isStatic v (nameOffset:36) (firstTokenOffset:36) (offset:36)
           element: <testLibrary>::@topLevelVariable::v
       getters
-        #F2 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F2 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@getter::v
       setters
-        #F3 isOriginVariable v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
+        #F3 isCompleteDeclaration isOriginVariable isStatic v (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
           element: <testLibrary>::@setter::v
           formalParameters
             #F4 requiredPositional value (nameOffset:<null>) (firstTokenOffset:<null>) (offset:36)
               element: <testLibrary>::@setter::v::@formalParameter::value
   topLevelVariables
-    hasInitializer isOriginDeclaration v
+    hasInitializer isOriginDeclaration isStatic v
       reference: <testLibrary>::@topLevelVariable::v
       firstFragment: #F1
       type: A
       getter: <testLibrary>::@getter::v
       setter: <testLibrary>::@setter::v
   getters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@getter::v
       firstFragment: #F2
       returnType: A
       variable: <testLibrary>::@topLevelVariable::v
   setters
-    static isOriginVariable v
+    isOriginVariable isStatic v
       reference: <testLibrary>::@setter::v
       firstFragment: #F3
       formalParameters

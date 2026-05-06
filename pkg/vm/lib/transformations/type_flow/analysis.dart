@@ -626,7 +626,10 @@ final class _DispatchableInvocation extends _Invocation {
 
           if (selector.callKind != CallKind.PropertyGet) {
             if (selector is DynamicSelector) {
-              typeFlowAnalysis._methodsAndSettersCalledDynamically.add(target);
+              typeFlowAnalysis.recordMemberCalledDynamically(
+                target,
+                isGetter: false,
+              );
             } else if (selector is VirtualSelector) {
               typeFlowAnalysis._calledViaThis.add(target);
             } else {
@@ -634,7 +637,10 @@ final class _DispatchableInvocation extends _Invocation {
             }
           } else {
             if (selector is DynamicSelector) {
-              typeFlowAnalysis._gettersCalledDynamically.add(target);
+              typeFlowAnalysis.recordMemberCalledDynamically(
+                target,
+                isGetter: true,
+              );
             }
           }
 
@@ -701,6 +707,7 @@ final class _DispatchableInvocation extends _Invocation {
 
     assert(targets.isEmpty);
 
+    bool unknownTargets = false;
     if (receiver is ConcreteType) {
       _collectTargetsForConcreteType(receiver, targets, typeFlowAnalysis);
     } else if (receiver is SetType) {
@@ -709,6 +716,12 @@ final class _DispatchableInvocation extends _Invocation {
       }
     } else if (receiver is AnyInstanceType) {
       _collectTargetsForSelector(targets, typeFlowAnalysis);
+      // Any class from a dynamic module may have unknown target for the
+      // dynamic call with AnyInstanceType receiver.
+      unknownTargets = typeFlowAnalysis
+          .hierarchyCache
+          ._objectTFClass
+          .hasDynamicallyExtendableSubtypes;
     } else {
       assert(receiver is EmptyType);
     }
@@ -725,7 +738,7 @@ final class _DispatchableInvocation extends _Invocation {
       );
     }
 
-    return true;
+    return !unknownTargets;
   }
 
   void _collectTargetsForNull(
@@ -900,11 +913,10 @@ final class _DispatchableInvocation extends _Invocation {
     // the mismatch in the number or names of arguments,
     // it still participates in the dynamic lookup.
     // So mark it as called dynamically so its signature is preserved.
-    if (selector.callKind != CallKind.PropertyGet) {
-      typeFlowAnalysis._methodsAndSettersCalledDynamically.add(target);
-    } else {
-      typeFlowAnalysis._gettersCalledDynamically.add(target);
-    }
+    typeFlowAnalysis.recordMemberCalledDynamically(
+      target,
+      isGetter: selector.callKind == CallKind.PropertyGet,
+    );
   }
 
   _ReceiverTypeBuilder _getReceiverTypeBuilder(
@@ -2324,6 +2336,15 @@ class TypeFlowAnalysis
   @override
   void recordTearOff(Member target) {
     _tearOffTaken.add(target);
+  }
+
+  @override
+  void recordMemberCalledDynamically(Member target, {required bool isGetter}) {
+    if (isGetter) {
+      _gettersCalledDynamically.add(target);
+    } else {
+      _methodsAndSettersCalledDynamically.add(target);
+    }
   }
 
   @override

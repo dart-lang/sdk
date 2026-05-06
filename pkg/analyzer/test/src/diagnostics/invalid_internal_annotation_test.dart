@@ -103,34 +103,6 @@ import 'package:meta/meta.dart';
     ]);
   }
 
-  void test_privateClassConstructor_named() async {
-    await resolveFileCode(testPackageLibSrcFilePath, r'''
-import 'package:meta/meta.dart';
-class _C {
-  @internal _C.named();
-}
-''');
-
-    assertErrorsInResult([
-      error(diag.unusedElement, 39, 2),
-      error(diag.invalidInternalAnnotation, 47, 8),
-    ]);
-  }
-
-  void test_privateClassConstructor_unnamed() async {
-    await resolveFileCode(testPackageLibSrcFilePath, r'''
-import 'package:meta/meta.dart';
-class _C {
-  @internal _C();
-}
-''');
-
-    assertErrorsInResult([
-      error(diag.unusedElement, 39, 2),
-      error(diag.invalidInternalAnnotation, 47, 8),
-    ]);
-  }
-
   void test_privateConstructor() async {
     await resolveFileCode(testPackageLibSrcFilePath, r'''
 import 'package:meta/meta.dart';
@@ -312,6 +284,49 @@ import 'package:meta/meta.dart';
     assertErrorsInResult([
       error(diag.invalidInternalAnnotation, 34, 8),
       error(diag.unusedElement, 51, 2),
+    ]);
+  }
+
+  void test_publicConstructor_named_privateClass() async {
+    await resolveFileCode(testPackageLibSrcFilePath, r'''
+import 'package:meta/meta.dart';
+class _C {
+  @internal _C.named();
+}
+''');
+
+    assertErrorsInResult([
+      error(diag.unusedElement, 39, 2),
+      error(diag.invalidInternalAnnotation, 47, 8),
+    ]);
+  }
+
+  void test_publicConstructor_primary_privateClass() async {
+    await resolveFileCode(testPackageLibSrcFilePath, r'''
+import 'package:meta/meta.dart';
+class _C() {
+  @internal
+  this;
+}
+''');
+
+    assertErrorsInResult([
+      error(diag.unusedElement, 39, 2),
+      error(diag.invalidInternalAnnotation, 49, 8),
+    ]);
+  }
+
+  void test_publicConstructor_unnamed_privateClass() async {
+    await resolveFileCode(testPackageLibSrcFilePath, r'''
+import 'package:meta/meta.dart';
+class _C {
+  @internal _C();
+}
+''');
+
+    assertErrorsInResult([
+      error(diag.unusedElement, 39, 2),
+      error(diag.invalidInternalAnnotation, 47, 8),
     ]);
   }
 

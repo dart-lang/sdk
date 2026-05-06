@@ -543,11 +543,6 @@ void Heap::CollectOldSpaceGarbage(Thread* thread,
       }
     }
 
-    thread->isolate_group()->ForEachMutatorAtASafepoint([&](Thread* mutator) {
-      // Discard regexp backtracking stacks to further reduce memory usage.
-      mutator->CacheRegexpBacktrackStack(nullptr);
-    });
-
     RecordBeforeGC(type, reason);
     NOT_IN_PRODUCT(VMTagScope tagScope(thread, VMTag::kGCOldSpaceTagId));
     TIMELINE_FUNCTION_GC_DURATION(thread, "CollectOldGeneration");

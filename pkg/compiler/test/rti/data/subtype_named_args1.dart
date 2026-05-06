@@ -23,7 +23,7 @@ class D implements C {}
 typedef t1({B? a});
 typedef t2({C? c});
 typedef t3({int? i});
-typedef t4({var v});
+typedef t4({v});
 typedef t5({Map? m});
 typedef t6({Map<int, num>? m});
 typedef t7({t1? f});
@@ -40,26 +40,26 @@ main() {
   makeLive(/*needsSignature*/ ({C? a}) {} is t1);
   makeLive(/*needsSignature*/ ({D? a}) {} is t1);
   makeLive(/*needsSignature*/ ({Object? a}) {} is t1);
-  makeLive(/*needsSignature*/ ({var a}) {} is t1);
+  makeLive(/*needsSignature*/ ({a}) {} is t1);
 
   makeLive(/*needsSignature*/ ({A? c}) {} is t2);
   makeLive(/*needsSignature*/ ({B? c}) {} is t2);
   makeLive(/*needsSignature*/ ({C? c}) {} is t2);
   makeLive(/*needsSignature*/ ({D? c}) {} is t2);
   makeLive(/*needsSignature*/ ({Object? c}) {} is t2);
-  makeLive(/*needsSignature*/ ({var c}) {} is t2);
+  makeLive(/*needsSignature*/ ({c}) {} is t2);
 
   makeLive(/*needsSignature*/ ({num? i}) {} is t3);
   makeLive(/*needsSignature*/ ({int? i}) {} is t3);
   makeLive(/*needsSignature*/ ({Object? i}) {} is t3);
-  makeLive(/*needsSignature*/ ({var i}) {} is t3);
+  makeLive(/*needsSignature*/ ({i}) {} is t3);
 
   makeLive(/*needsSignature*/ ({A? v}) {} is t4);
   makeLive(/*needsSignature*/ ({B? v}) {} is t4);
   makeLive(/*needsSignature*/ ({C? v}) {} is t4);
   makeLive(/*needsSignature*/ ({D? v}) {} is t4);
   makeLive(/*needsSignature*/ ({Object? v}) {} is t4);
-  makeLive(/*needsSignature*/ ({var v}) {} is t4);
+  makeLive(/*needsSignature*/ ({v}) {} is t4);
   makeLive(/*needsSignature*/ ({num? v}) {} is t4);
   makeLive(/*needsSignature*/ ({int? v}) {} is t4);
   makeLive(/*needsSignature*/ ({Map? v}) {} is t4);
@@ -73,7 +73,7 @@ main() {
   makeLive(/*needsSignature*/ ({Map? m}) {} is t5);
   makeLive(/*needsSignature*/ ({Map<List, t8>? m}) {} is t5);
   makeLive(/*needsSignature*/ ({Object? m}) {} is t5);
-  makeLive(/*needsSignature*/ ({var m}) {} is t5);
+  makeLive(/*needsSignature*/ ({m}) {} is t5);
   makeLive(/*needsSignature*/ ({Map<List, List>? m}) {} is t5);
   makeLive(/*needsSignature*/ ({Map<int, t8>? m}) {} is t5);
 
@@ -81,7 +81,7 @@ main() {
   makeLive(/*needsSignature*/ ({Map<int, int>? m}) {} is t6);
   makeLive(/*needsSignature*/ ({Map? m}) {} is t6);
   makeLive(/*needsSignature*/ ({Object? m}) {} is t6);
-  makeLive(/*needsSignature*/ ({var m}) {} is t6);
+  makeLive(/*needsSignature*/ ({m}) {} is t6);
 
   makeLive(/*needsSignature*/ ({okWithT1_1? f}) {} is t7);
   makeLive(/*needsSignature*/ ({okWithT1_2? f}) {} is t7);
@@ -93,7 +93,7 @@ main() {
   makeLive(/*needsSignature*/ ({C? a}) {} is t8);
   makeLive(/*needsSignature*/ ({D? a}) {} is t8);
   makeLive(/*needsSignature*/ ({Object? a}) {} is t8);
-  makeLive(/*needsSignature*/ ({var a}) {} is t8);
+  makeLive(/*needsSignature*/ ({a}) {} is t8);
   makeLive(/*needsSignature*/ ({num? a}) {} is t8);
   makeLive(/*needsSignature*/ ({int? a}) {} is t8);
   makeLive(/*needsSignature*/ ({Map? a}) {} is t8);

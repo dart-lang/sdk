@@ -138,9 +138,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitRecordLiteral(RecordLiteral node) {
-    for (var fieldExpression in node.fields) {
-      if (fieldExpression is NamedExpression) {
-        checkIdentifier(fieldExpression.name.label.token);
+    for (var field in node.fields) {
+      if (field is RecordLiteralNamedField) {
+        checkIdentifier(field.name);
       }
     }
   }

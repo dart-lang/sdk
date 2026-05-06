@@ -296,7 +296,6 @@ class _Constructor {
 
   void updateWithParameters(NodeList<FormalParameter> formalParameters) {
     for (var formalParameter in formalParameters) {
-      formalParameter = formalParameter.notDefault;
       var parameterFragment = formalParameter.declaredFragment!;
       var parameterElement = parameterFragment.element;
       if (parameterElement is FieldFormalParameterElement) {

@@ -10,7 +10,7 @@ mixin class M0 extends Object with M0 {}
 // [cfe] 'M0' is a supertype of itself.
 // [cfe] 'Object with M0' is a supertype of itself.
 //                            ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_WITH_CLAUSE
 
 mixin class M1 = Object with M1;
 //          ^^
@@ -45,7 +45,7 @@ mixin class M7 extends Object with M8 {}
 // [cfe] 'M7' is a supertype of itself.
 // [cfe] 'Object with M8' is a supertype of itself.
 //                            ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_WITH_CLAUSE
 
 mixin class M8 extends Object with M7 {}
 //          ^^
@@ -53,7 +53,7 @@ mixin class M8 extends Object with M7 {}
 // [cfe] 'M8' is a supertype of itself.
 // [cfe] 'Object with M7' is a supertype of itself.
 //                            ^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_EXTENDS_NOT_OBJECT
+// [analyzer] COMPILE_TIME_ERROR.MIXIN_CLASS_DECLARATION_WITH_CLAUSE
 
 class M9 = Object with M91;
 //    ^

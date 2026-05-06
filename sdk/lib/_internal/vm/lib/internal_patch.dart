@@ -171,9 +171,8 @@ external void reachabilityFence(Object? object);
 // This function can be used to encode native side effects.
 //
 // The function call and it's argument are removed in flow graph construction.
-@pragma("vm:recognized", "other")
-@pragma("vm:external-name", "Internal_nativeEffect")
-external void _nativeEffect(Object object);
+@pragma("external-effect")
+external void _nativeEffect(Object? object);
 
 // Collection of functions which should only be used for testing purposes.
 abstract class VMInternalsForTesting {
@@ -223,23 +222,6 @@ class LateError {
   @pragma("vm:entry-point")
   static Never _throwLocalAssignedDuringInitialization(String localName) {
     throw LateError.localADI(localName);
-  }
-}
-
-void checkValidWeakTarget(object, name) {
-  if ((object == null) ||
-      (object is bool) ||
-      (object is num) ||
-      (object is String) ||
-      (object is Record) ||
-      (object is Pointer) ||
-      (object is Struct) ||
-      (object is Union)) {
-    throw ArgumentError.value(
-      object,
-      name,
-      "Cannot be a string, number, boolean, record, null, Pointer, Struct or Union",
-    );
   }
 }
 

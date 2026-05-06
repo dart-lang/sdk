@@ -176,8 +176,8 @@ class Visitor extends RecursiveParserAstVisitorWithDefaultNodeAsync {
       if (await _canRemove(
         node.what,
         node.runtimeType,
-        node.token,
-        node.token,
+        node.operatorToken,
+        node.operatorToken,
       )) {
         return;
       }

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/physical_file_system.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/package_root.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -37,7 +37,7 @@ class AnalyzerElementModelTrackingTest extends LintRuleTest {
     newPackageConfigJsonFileFromBuilder(
       testPackageRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'analyzer', rootPath: analyzerFolder.path),
+        ..add(name: 'analyzer', rootFolder: analyzerFolder),
     );
   }
 

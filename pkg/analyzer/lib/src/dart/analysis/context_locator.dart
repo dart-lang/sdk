@@ -140,7 +140,7 @@ class _ContextLocator {
   final List<Folder> _excludedFolders;
 
   /// A cache of options file contents for each [SourceFactory].
-  final Map<SourceFactory, OptionsCache> _optionsCaches = {};
+  final Map<SourceFactory, AnalysisOptionsCache> _analysisOptionsCaches = {};
 
   /// The list of context roots ultimately returned by [_locateRoots].
   final _roots = <ContextRootImpl>[];
@@ -514,7 +514,7 @@ class _ContextLocator {
   Map<({Uri? containingUri, Uri uri}), YamlMap> _getCache(
     SourceFactory sourceFactory,
   ) {
-    return _optionsCaches.putIfAbsent(
+    return _analysisOptionsCaches.putIfAbsent(
       sourceFactory,
       () => CanonicalizedMap(
         (key) {
@@ -552,11 +552,11 @@ class _ContextLocator {
     }
     try {
       var provider = AnalysisOptionsProvider(workspace.partialSourceFactory);
-      var optionsCache = _getCache(workspace.partialSourceFactory);
+      var analysisOptionsCache = _getCache(workspace.partialSourceFactory);
       var options = AnalysisOptionsImpl.fromYaml(
         optionsMap: provider.getOptionsFromFile(
           optionsFile,
-          optionsCache: optionsCache,
+          analysisOptionsCache: analysisOptionsCache,
         ),
         file: optionsFile,
         resourceProvider: _resourceProvider,
@@ -581,19 +581,22 @@ class _ContextLocator {
 
     YamlMap options;
     try {
-      var optionsCache = _getCache(sourceFactory);
-      options = AnalysisOptionsProvider(
-        sourceFactory,
-      ).getOptionsFromFile(optionsFile, optionsCache: optionsCache);
+      var analysisOptionsCache = _getCache(sourceFactory);
+      options = AnalysisOptionsProvider(sourceFactory).getOptionsFromFile(
+        optionsFile,
+        analysisOptionsCache: analysisOptionsCache,
+      );
     } catch (exception) {
       // If we can't read and parse the analysis options file, then there
       // aren't any excluded files that need to be read.
       return const [];
     }
 
-    var analyzerOptions = options.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzerOptions = options.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzerOptions is! YamlMap) return const [];
-    var excludeOptions = analyzerOptions.valueAt(AnalysisOptionsFile.exclude);
+    var excludeOptions = analyzerOptions.valueAt(
+      AnalysisOptionsFileKeys.exclude,
+    );
     if (excludeOptions is! YamlList) return const [];
     var pathContext = _resourceProvider.pathContext;
     List<LocatedGlob> patterns = [];
@@ -801,6 +804,18 @@ class _ContextLocator {
     return _roots;
   }
 
+  /// Picks a workspace with the most specific root.
+  ///
+  /// If any of [first] and [second] is null, returns the other one. If the root
+  /// of [first] is non-null and is within the root of [second], returns
+  /// [second]. If the roots aren't within each other, return [first].
+  Workspace? _mostSpecificWorkspace(Workspace? first, Workspace? second) {
+    if (first == null) return second;
+    if (second == null) return first;
+    var pathContext = _resourceProvider.pathContext;
+    return pathContext.isWithin(first.root, second.root) ? second : first;
+  }
+
   /// Sorts [includedFolders] into either pub workspace resolution or not.
   ///
   /// For each [Folder] in [includedFolders], sorts into either
@@ -906,20 +921,6 @@ class _ContextLocator {
     }
 
     return true;
-  }
-
-  /// Picks a workspace with the most specific root.
-  ///
-  /// If any of [first] and [second] is null, returns the other one. If the root
-  /// of [first] is non-null and is within the root of [second], returns
-  /// [second]. If the roots aren't within each other, return [first].
-  static Workspace? _mostSpecificWorkspace(
-    Workspace? first,
-    Workspace? second,
-  ) {
-    if (first == null) return second;
-    if (second == null) return first;
-    return isWithin(first.root, second.root) ? second : first;
   }
 }
 

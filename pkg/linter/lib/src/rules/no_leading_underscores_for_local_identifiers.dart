@@ -84,9 +84,6 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     for (var parameter in node.parameters) {
-      if (parameter is DefaultFormalParameter) {
-        parameter = parameter.parameter;
-      }
       if (parameter is FieldFormalParameter ||
           parameter is SuperFormalParameter) {
         // These are not local identifiers.

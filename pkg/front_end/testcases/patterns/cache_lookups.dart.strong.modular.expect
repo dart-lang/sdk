@@ -78,7 +78,7 @@ import "org-dartlang-testcase:///cache_lookups.dart";
 
 class CustomList<E extends core::Object? = dynamic> extends cac::_CustomList&Object&ListMixin<cac::CustomList::E%> {
   final field core::List<cac::CustomList::E%> list;
-  constructor •(core::List<cac::CustomList::E%> list) → cac::CustomList<cac::CustomList::E%>
+  constructor •(initializing-formal core::List<cac::CustomList::E%> list) → cac::CustomList<cac::CustomList::E%>
     : cac::CustomList::list = list, super cac::_CustomList&Object&ListMixin::•()
     ;
   get length() → core::int {

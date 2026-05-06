@@ -1208,7 +1208,6 @@ static Dart_Isolate CreateIsolate(IsolateGroup* group,
   bool success = false;
   {
     StackZone zone(T);
-    HandleScope handle_scope(T);
 
 #if defined(SUPPORT_TIMELINE)
     TimelineBeginEndScope tbes(T, Timeline::GetIsolateStream(),
@@ -1269,6 +1268,7 @@ Isolate* CreateWithinExistingIsolateGroup(IsolateGroup* group,
 
   auto spawning_group = group;
 
+  Roots::SetCurrent(group->roots());
   Isolate* isolate = reinterpret_cast<Isolate*>(
       CreateIsolate(spawning_group, /*is_new_group=*/false, name,
                     /*isolate_data=*/nullptr, error));
@@ -1407,7 +1407,6 @@ DART_EXPORT void Dart_ShutdownIsolate() {
 
   {
     StackZone zone(T);
-    HandleScope handle_scope(T);
     Dart::RunShutdownCallback();
   }
   Dart::ShutdownIsolate(T);
@@ -1913,7 +1912,9 @@ DART_EXPORT char* Dart_IsolateMakeRunnable(Dart_Isolate isolate) {
     FATAL("%s expects argument 'isolate' to be non-null.", CURRENT_FUNC);
   }
   // TODO(16615): Validate isolate parameter.
+  Roots::SetCurrent(reinterpret_cast<Isolate*>(isolate)->group()->roots());
   const char* error = reinterpret_cast<Isolate*>(isolate)->MakeRunnable();
+  Roots::ClearCurrent();
   if (error != nullptr) {
     return Utils::StrDup(error);
   }
@@ -1985,9 +1986,8 @@ DART_EXPORT Dart_Handle Dart_RunLoop() {
     RunLoopData data;
     data.monitor = &monitor;
     data.done = false;
-    result =
-        I->message_handler()->Run(I->group()->thread_pool(), nullptr,
-                                  RunLoopDone, reinterpret_cast<uword>(&data));
+    result = I->message_handler()->Run(I->group()->thread_pool(), RunLoopDone,
+                                       reinterpret_cast<uword>(&data));
     if (result) {
       while (!data.done) {
         ml.Wait();
@@ -6904,6 +6904,28 @@ Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                             &image_writer, nullptr);
 
   writer.WriteFullSnapshot();
+
+  return Api::Success();
+#endif
+}
+
+DART_EXPORT Dart_Handle
+Dart_WriteCallbackStub(Dart_StreamingWriteCallback callback,
+                       void* callback_data) {
+#if defined(TARGET_ARCH_IA32)
+  return Api::NewError("AOT compilation is not supported on IA32.");
+#elif !defined(DART_PRECOMPILER)
+  return Api::NewError(
+      "This VM was built without support for AOT compilation.");
+#else
+  DARTSCOPE(Thread::Current());
+  API_TIMELINE_DURATION(T);
+  CHECK_NULL(callback);
+
+  callback(callback_data,
+           reinterpret_cast<uint8_t*>(
+               StubCode::FfiCallbackTrampoline().EntryPoint()),
+           StubCode::FfiCallbackTrampoline().Size());
 
   return Api::Success();
 #endif

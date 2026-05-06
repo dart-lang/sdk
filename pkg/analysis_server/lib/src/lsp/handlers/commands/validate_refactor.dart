@@ -27,6 +27,7 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
 
   @override
   FutureOr<ErrorOr<ValidateRefactorResult>> execute(
+    MessageInfo message,
     String path,
     String kind,
     int offset,
@@ -69,7 +70,9 @@ class ValidateRefactorCommandHandler extends AbstractRefactorCommandHandler {
           reporter.begin('Preparing Refactor…');
           var status = await refactoring.checkInitialConditions();
 
-          if (status.hasError) {
+          // Only reject fatal errors, since we now support "Refactor Anyway"
+          // for non-fatal errors.
+          if (status.hasFatalError) {
             return success(
               ValidateRefactorResult(valid: false, message: status.message!),
             );

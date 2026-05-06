@@ -787,9 +787,21 @@ class BytecodeAssembler {
   }
 
   @pragma('vm:prefer-inline')
-  void emitAllocateClosure() {
+  void emitAllocateClosure(int rd) {
     emitSourcePosition();
-    _emitInstruction0(Opcode.kAllocateClosure);
+    _emitInstructionD(Opcode.kAllocateClosure, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitLoadClosureElement(int rd) {
+    emitSourcePosition();
+    _emitInstructionD(Opcode.kLoadClosureElement, rd);
+  }
+
+  @pragma('vm:prefer-inline')
+  void emitStoreClosureElement(int rd) {
+    emitSourcePosition();
+    _emitInstructionD(Opcode.kStoreClosureElement, rd);
   }
 
   @pragma('vm:prefer-inline')

@@ -40,7 +40,7 @@ class SampleBlock;
   V(bail_out_unknown_task)                                                     \
   V(bail_out_jump_to_exception_handler)                                        \
   V(bail_out_check_isolate)                                                    \
-  V(single_frame_sample_deoptimizing)                                          \
+  V(bail_out_deoptimizing)                                                     \
   V(single_frame_sample_get_and_validate_stack_bounds)                         \
   V(stack_walker_native)                                                       \
   V(stack_walker_dart_exit)                                                    \

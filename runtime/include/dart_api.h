@@ -21,7 +21,6 @@
 #define __STDC_FORMAT_MACROS
 #endif
 
-#include <assert.h>
 #include <inttypes.h>
 #include <stdbool.h>
 
@@ -4239,6 +4238,9 @@ Dart_CreateAppAOTSnapshotAndRelocatableObject(
 DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
 Dart_CreateVMAOTSnapshotAsAssembly(Dart_StreamingWriteCallback callback,
                                    void* callback_data);
+DART_EXPORT DART_API_WARN_UNUSED_RESULT Dart_Handle
+Dart_WriteCallbackStub(Dart_StreamingWriteCallback callback,
+                       void* callback_data);
 
 /**
  * Sorts the class-ids in depth first traversal order of the inheritance

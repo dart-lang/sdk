@@ -1,0 +1,154 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:14:3: Error: Only redirecting factory constructors can be declared to be 'const'.
+// Try removing the 'const' keyword, or replacing the body with '=' followed by a valid target.
+//   const factory E7.fact(int? c) => E7(c); // Error
+//   ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:34:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   const E9(this.c) {} // Error
+//   ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:12:3: Error: Generative enum constructors must be marked as 'const'.
+//   E7(this.c); // Error
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:24:3: Error: Generative enum constructors must be marked as 'const'.
+//   E8.named(int? c) : this(c); // Error
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:35:3: Error: Generative enum constructors must be marked as 'const'.
+//   E9.named(this.c) {} // Error
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:15:39: Error: Enum factory constructors can't redirect to generative constructors.
+//   const factory E7.redirect(int? c) = E7; // Error
+//                                       ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:26:33: Error: Enum factory constructors can't redirect to generative constructors.
+//   factory E8.redirect(int? c) = E8; // Error
+//                                 ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:8:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   a(0), // Error
+//   ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:20:5: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   b.named(1); // Error
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:31:5: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+// Try using a constructor or factory that is 'const'.
+//   b.named(1);
+//     ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:14:36: Error: Enums can't be instantiated.
+//   const factory E7.fact(int? c) => E7(c); // Error
+//                                    ^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:25:30: Error: Enums can't be instantiated.
+//   factory E8.fact(int? c) => E8(c); // Error
+//                              ^^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:13:28: Error: A constant constructor can't call a non-constant constructor.
+//   const E7.named(int? c) : this(c); // Error
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:30:3: Error: A const constructor can't have a body.
+// Try removing either the 'const' keyword or the body.
+//   a(0),
+//   ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E7 extends core::_Enum /*isEnum*/  {
+  enum-element static const field invalid-type a = invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:8:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  a(0), // Error
+  ^";
+  enum-element static const field self::E7 b = invalid-expression "A constant constructor can't call a non-constant constructor.";
+  final field core::int? c;
+  static const field core::List<self::E7> values = invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:8:3: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  a(0), // Error
+  ^";
+  constructor •(core::int #index, core::String #name, initializing-formal core::int? c) → self::E7
+    : self::E7::c = c, super core::_Enum::•(#index, #name)
+    ;
+  const constructor named(core::int #index, core::String #name, core::int? c) → self::E7
+    : this self::E7::•(#index, #name, c)
+    ;
+  method core::_enumToString() → core::String
+    return "E7.${this.{core::_Enum::_name}{core::String}}";
+  static const factory fact(core::int? c) → self::E7
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:14:36: Error: Enums can't be instantiated.
+  const factory E7.fact(int? c) => E7(c); // Error
+                                   ^^";
+  static const factory redirect(core::int? c) → self::E7
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:15:39: Error: Enum factory constructors can't redirect to generative constructors.
+  const factory E7.redirect(int? c) = E7; // Error
+                                      ^";
+}
+class E8 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E8 a = #C3;
+  enum-element static const field invalid-type b = invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:20:5: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  b.named(1); // Error
+    ^";
+  final field core::int? c;
+  static const field core::List<self::E8> values = invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:20:5: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  b.named(1); // Error
+    ^";
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int? c) → self::E8
+    : self::E8::c = c, super core::_Enum::•(#index, #name)
+    ;
+  constructor named(core::int #index, core::String #name, core::int? c) → self::E8
+    : this self::E8::•(#index, #name, c)
+    ;
+  method core::_enumToString() → core::String
+    return "E8.${this.{core::_Enum::_name}{core::String}}";
+  static factory fact(core::int? c) → self::E8
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:25:30: Error: Enums can't be instantiated.
+  factory E8.fact(int? c) => E8(c); // Error
+                             ^^";
+  static factory redirect(core::int? c) → self::E8
+    return invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:26:33: Error: Enum factory constructors can't redirect to generative constructors.
+  factory E8.redirect(int? c) = E8; // Error
+                                ^";
+}
+class E9 extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E9 a = invalid-expression "A const constructor can't have a body.";
+  enum-element static const field invalid-type b = invalid-expression "pkg/front_end/testcases/primary_constructors/enum_const_pre_feature.dart:31:5: Error: Cannot invoke a non-'const' constructor where a const expression is expected.
+Try using a constructor or factory that is 'const'.
+  b.named(1);
+    ^";
+  final field core::int? c;
+  static const field core::List<self::E9> values = invalid-expression "A const constructor can't have a body.";
+  const constructor •(core::int #index, core::String #name, initializing-formal core::int? c) → self::E9
+    : self::E9::c = c, super core::_Enum::•(#index, #name) {}
+  constructor named(core::int #index, core::String #name, initializing-formal core::int? c) → self::E9
+    : self::E9::c = c, super core::_Enum::•(#index, #name) {}
+  method core::_enumToString() → core::String
+    return "E9.${this.{core::_Enum::_name}{core::String}}";
+}
+
+constants  {
+  #C1 = 0
+  #C2 = "a"
+  #C3 = self::E8 {c:#C1, index:#C1, _name:#C2}
+}
+
+
+Constructor coverage from constants:
+org-dartlang-testcase:///enum_const_pre_feature.dart:
+- E7.named (from org-dartlang-testcase:///enum_const_pre_feature.dart:13:9)
+- E8. (from org-dartlang-testcase:///enum_const_pre_feature.dart:23:9)
+- _Enum. (from org-dartlang-sdk:///sdk/lib/core/enum.dart)
+- Object. (from org-dartlang-sdk:///sdk/lib/core/object.dart)

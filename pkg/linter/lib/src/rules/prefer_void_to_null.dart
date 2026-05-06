@@ -81,7 +81,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     if (parent is AsExpression) return;
 
     // Function(Null)
-    if (parent is SimpleFormalParameter &&
+    if (parent is RegularFormalParameter &&
         parent.parent is FormalParameterList &&
         parent.parent?.parent is GenericFunctionType) {
       return;
@@ -110,7 +110,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     }
 
     // extension type N(Null _) ...
-    if (parent is SimpleFormalParameter) {
+    if (parent is RegularFormalParameter) {
       if (parent.parent case FormalParameterList parent2) {
         if (parent2.parent case PrimaryConstructorDeclaration parent3) {
           if (parent3.parent is ExtensionTypeDeclaration) {

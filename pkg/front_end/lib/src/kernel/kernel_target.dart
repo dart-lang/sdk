@@ -20,8 +20,7 @@ import 'package:kernel/type_environment.dart' show TypeEnvironment;
 import 'package:kernel/verifier.dart' show VerificationStage;
 import 'package:package_config/package_config.dart' hide LanguageVersion;
 
-import '../api_prototype/experimental_flags.dart'
-    show ExperimentalFlag, GlobalFeatures;
+import '../api_prototype/experimental_flags.dart' show GlobalFeatures;
 import '../api_prototype/file_system.dart' show FileSystem;
 import '../base/compiler_context.dart' show CompilerContext;
 import '../base/crash.dart' show withCrashReporting;
@@ -184,18 +183,6 @@ class KernelTarget {
   }
 
   GlobalFeatures get globalFeatures => _options.globalFeatures;
-
-  bool isExperimentEnabledInLibraryByVersion(
-    ExperimentalFlag flag,
-    Uri importUri,
-    Version version,
-  ) {
-    return _options.isExperimentEnabledInLibraryByVersion(
-      flag,
-      importUri,
-      version,
-    );
-  }
 
   Uri? translateUri(Uri uri) => uriTranslator.translate(uri);
 
@@ -1091,15 +1078,47 @@ class KernelTarget {
     bool hasTypeDependency = false;
     Substitution substitution = Substitution.fromMap(substitutionMap);
 
-    VariableDeclaration copyFormal(VariableDeclaration formal) {
-      VariableDeclaration copy = new VariableDeclaration(
-        formal.name,
-        isFinal: formal.isFinal,
-        isConst: formal.isConst,
-        isRequired: formal.isRequired,
-        hasDeclaredInitializer: formal.hasDeclaredInitializer,
-        type: const UnknownType(),
-      );
+    bool isClosureContextLoweringEnabled = libraryBuilder
+        .loader
+        .target
+        .backendTarget
+        .flags
+        .isClosureContextLoweringEnabled;
+
+    VariableDeclaration copyFormal(
+      VariableDeclaration formal, {
+      required bool isPositional,
+    }) {
+      VariableDeclaration copy;
+      if (isClosureContextLoweringEnabled) {
+        // Coverage-ignore-block(suite): Not run.
+        if (isPositional) {
+          copy = new PositionalParameter(
+            cosmeticName: formal.name,
+            type: const UnknownType(),
+            isFinal: formal.isFinal,
+            isRequired: formal.isRequired,
+            hasDeclaredDefaultType: formal.hasDeclaredInitializer,
+          );
+        } else {
+          copy = new NamedParameter(
+            parameterName: formal.name!,
+            type: const UnknownType(),
+            isFinal: formal.isFinal,
+            isRequired: formal.isRequired,
+            hasDeclaredDefaultType: formal.hasDeclaredInitializer,
+          );
+        }
+      } else {
+        copy = new VariableDeclaration(
+          formal.name,
+          isFinal: formal.isFinal,
+          isConst: formal.isConst,
+          isRequired: formal.isRequired,
+          hasDeclaredInitializer: formal.hasDeclaredInitializer,
+          type: const UnknownType(),
+        );
+      }
       if (!hasTypeDependency && formal.type is! UnknownType) {
         copy.type = substitution.substituteType(formal.type);
       } else {
@@ -1125,12 +1144,12 @@ class KernelTarget {
 
     for (VariableDeclaration formal
         in superConstructor.function.positionalParameters) {
-      positionalParameters.add(copyFormal(formal));
+      positionalParameters.add(copyFormal(formal, isPositional: true));
       positional.add(new VariableGet(positionalParameters.last));
     }
     for (VariableDeclaration formal
         in superConstructor.function.namedParameters) {
-      VariableDeclaration clone = copyFormal(formal);
+      VariableDeclaration clone = copyFormal(formal, isPositional: false);
       namedParameters.add(clone);
       named.add(
         new NamedExpression(
@@ -1827,6 +1846,9 @@ class KernelTarget {
           loader.hierarchy,
           loader.libraries,
           loader,
+          allowDynamicCallsInDynamicModules:
+              _options.allowDynamicCallsInDynamicModules,
+          dynamicCallsSelectorAllowList: _options.dynamicCallsSelectorAllowList,
         );
       }
     }

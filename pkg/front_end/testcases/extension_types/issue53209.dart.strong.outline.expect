@@ -72,7 +72,7 @@ extension type GE<X extends core::Object? = dynamic>(X% foo) {
   static redirecting-factory redirNotEnough2 = self::GE|constructor#redirNotEnough2;
   static redirecting-factory tearoff redirNotEnough2 = self::GE|constructor#_#redirNotEnough2#tearOff;
 }
-static extension-type-member method E|constructor#(core::int foo) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member method E|constructor#(initializing-formal core::int foo) → self::E% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method E|constructor#_#new#tearOff(core::int foo) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#(foo);
@@ -142,7 +142,7 @@ static extension-type-member synthetic method E|constructor#_#redirCyclicSelf#te
   return invalid-expression "pkg/front_end/testcases/extension_types/issue53209.dart:16:11: Error: Cyclic definition of factory 'E.redirCyclicSelf'.
   factory E.redirCyclicSelf(int foo) = E.redirCyclicSelf; // Error.
           ^";
-static extension-type-member method GE|constructor#<X extends core::Object? = dynamic>(self::GE|constructor#::X% foo) → self::GE<self::GE|constructor#::X%>% /* erasure=self::GE|constructor#::X%, declared=! */
+static extension-type-member method GE|constructor#<X extends core::Object? = dynamic>(initializing-formal self::GE|constructor#::X% foo) → self::GE<self::GE|constructor#::X%>% /* erasure=self::GE|constructor#::X%, declared=! */
   ;
 static extension-type-member synthetic method GE|constructor#_#new#tearOff<X extends core::Object? = dynamic>(self::GE|constructor#_#new#tearOff::X% foo) → self::GE<self::GE|constructor#_#new#tearOff::X%>% /* erasure=self::GE|constructor#_#new#tearOff::X%, declared=! */
   return self::GE|constructor#<self::GE|constructor#_#new#tearOff::X%>(foo);

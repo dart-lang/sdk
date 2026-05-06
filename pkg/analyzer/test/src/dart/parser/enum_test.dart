@@ -582,7 +582,7 @@ EnumDeclaration
 enum E;
 ''');
     parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 22, 1),
+      error(diag.experimentNotEnabled, 22, 1),
     ]);
 
     var node = parseResult.findNode.singleEnumDeclaration;
@@ -1071,6 +1071,28 @@ enum const E {v}
     parseResult.assertErrors([
       error(diag.constWithoutPrimaryConstructor, 5, 5),
     ]);
+
+    var node = parseResult.findNode.singleEnumDeclaration;
+    assertParsedNodeText(node, r'''
+EnumDeclaration
+  enumKeyword: enum
+  namePart: NameWithTypeParameters
+    typeName: E
+  body: BlockEnumBody
+    leftBracket: {
+    constants
+      EnumConstantDeclaration
+        name: v
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+enum const E {v}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 19, 5)]);
 
     var node = parseResult.findNode.singleEnumDeclaration;
     assertParsedNodeText(node, r'''

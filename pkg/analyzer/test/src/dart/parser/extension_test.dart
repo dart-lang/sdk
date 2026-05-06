@@ -213,7 +213,7 @@ ExtensionDeclaration
 extension E on int;
 ''');
     parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 34, 1),
+      error(diag.experimentNotEnabled, 34, 1),
     ]);
 
     var node = parseResult.findNode.singleExtensionDeclaration;
@@ -452,6 +452,221 @@ ExtensionDeclaration
           expression: IntegerLiteral
             literal: 0
           semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_formalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+extension const A() on int {}
+''');
+    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 10, 5)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_formalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+extension const A() on int {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 24, 5)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_noFormalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+extension const A on int {}
+''');
+    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 10, 5)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+extension const A on int {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 24, 5)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_periodName_formalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+extension const A.name() on int {}
+''');
+    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 10, 5)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_periodName_formalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+extension const A.name() on int {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 24, 5)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_typeName_formalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+extension A() on int {}
+''');
+    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 11, 1)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_typeName_formalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+extension A() on int {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 25, 1)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_typeName_periodName_formalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+extension A.name() on int {}
+''');
+    parseResult.assertErrors([error(diag.extensionPrimaryConstructor, 11, 1)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_typeName_periodName_formalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+extension A.name() on int {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 25, 1)]);
+
+    var node = parseResult.findNode.singleExtensionDeclaration;
+    assertParsedNodeText(node, r'''
+ExtensionDeclaration
+  extensionKeyword: extension
+  name: A
+  onClause: ExtensionOnClause
+    onKeyword: on
+    extendedType: NamedType
+      name: int
+  body: BlockClassBody
+    leftBracket: {
     rightBracket: }
 ''');
   }

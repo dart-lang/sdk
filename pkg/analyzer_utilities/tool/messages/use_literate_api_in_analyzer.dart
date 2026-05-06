@@ -269,10 +269,10 @@ class _Visitor extends RecursiveAstVisitor<void> {
       var positionalArgs = <Expression>[];
       var namedArgs = <String, Expression>{};
       for (var arg in node.argumentList.arguments) {
-        if (arg case NamedExpression(:var name, :var expression)) {
-          namedArgs[name.label.name] = expression;
+        if (arg is NamedArgument) {
+          namedArgs[arg.name.lexeme] = arg.argumentExpression;
         } else {
-          positionalArgs.add(arg);
+          positionalArgs.add(arg.argumentExpression);
         }
       }
       var locationText = translateLocationArgs(positionalArgs, namedArgs);

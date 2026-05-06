@@ -936,12 +936,14 @@ class LspAnalysisServer extends AnalysisServer {
     MessageType type,
     String message,
     List<String> actions,
+    CancellationToken cancellationToken,
   ) async {
     assert(supportsShowMessageRequest);
     var response = await showUserPromptItems(
       type,
       message,
       actions.map((title) => MessageActionItem(title: title)).toList(),
+      cancellationToken,
     );
     return response?.title;
   }
@@ -959,9 +961,10 @@ class LspAnalysisServer extends AnalysisServer {
     MessageType type,
     String message,
     List<MessageActionItem> actions,
+    CancellationToken cancellationToken,
   ) async {
     assert(supportsShowMessageRequest);
-    var response = await sendLspRequest(
+    var responseFuture = sendLspRequest(
       Method.window_showMessageRequest,
       ShowMessageRequestParams(
         type: type.forLsp,
@@ -970,10 +973,19 @@ class LspAnalysisServer extends AnalysisServer {
       ),
     );
 
-    var result = response.result;
-    return result != null
-        ? MessageActionItem.fromJson(response.result as Map<String, Object?>)
-        : null;
+    // Wait for either the result, or cancellation.
+    await Future.any([responseFuture, cancellationToken.whenCancelled]);
+
+    if (cancellationToken.isCancellationRequested) {
+      return null;
+    } else {
+      // If we didn't enter the branch above, we know this future completed.
+      var response = await responseFuture;
+      var result = response.result;
+      return result != null
+          ? MessageActionItem.fromJson(response.result as Map<String, Object?>)
+          : null;
+    }
   }
 
   @override
@@ -1055,7 +1067,6 @@ class LspAnalysisServer extends AnalysisServer {
       precomputedNewContentForChange: precomputedNewContentForChange,
     );
 
-    notifyDeclarationsTracker(path);
     notifyFlutterWidgetDescriptions(path);
   }
 

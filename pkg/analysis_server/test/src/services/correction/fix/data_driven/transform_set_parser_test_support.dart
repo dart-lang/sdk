@@ -6,12 +6,13 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/transfor
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_parser.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 
-import '../../../../../mocks.dart';
 import '../../../../../utils/test_support.dart';
 
 /// Utilities shared between tests of the [TransformSetParser].
-abstract class AbstractTransformSetParserTest {
+abstract class AbstractTransformSetParserTest with ResourceProviderMixin {
   /// The listener to which diagnostics are reported.
   GatheringDiagnosticListener diagnosticListener =
       GatheringDiagnosticListener();
@@ -47,9 +48,10 @@ abstract class AbstractTransformSetParserTest {
   );
 
   void parse(String content) {
+    var file = newFile('/data.yaml', '');
     var diagnosticReporter = DiagnosticReporter(
       diagnosticListener,
-      MockSource(fullName: 'data.yaml'),
+      FileSource(file),
     );
     var parser = TransformSetParser(diagnosticReporter, 'myPackage');
     result = parser.parse(content);

@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ class MixinOnSealedClassTest extends PubPackageResolutionTest {
   test_mixinOnSealedClass() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+        ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
       meta: true,
     );
 

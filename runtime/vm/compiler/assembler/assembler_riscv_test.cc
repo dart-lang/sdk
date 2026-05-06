@@ -9206,6 +9206,46 @@ ASSEMBLER_TEST_RUN(ShadowStackLongJump, test) {
 #endif
 }
 
+ASSEMBLER_TEST_GENERATE(LandingPads, assembler) {
+  __ SetExtensions(RV_G);
+  /* 00 */ __ lui(T2, 123 << 12);
+  /* 04 */ __ addi(T2, T2, 456);  // Ignored.
+  /* 08 */ __ jr(A1, 16);
+  /* 12 */ __ trap();
+  /* 16 */ __ auipc(ZR, 123 << 12);
+  /* 20 */ __ jr(A1, 28);
+  /* 24 */ __ trap();
+  /* 28 */ __ auipc(ZR, 0);
+  /* 32 */ __ mv(T2, A1);
+  /* 36 */ __ jr(T2, 44);
+  /* 40 */ __ trap();
+  /* 44 */ __ ret();
+}
+ASSEMBLER_TEST_RUN(LandingPads, test) {
+  EXPECT_DISASSEMBLY(
+      "0007b3b7 lui t2, 503808\n"
+      "1c838393 addi t2, t2, 456\n"
+      "01058067 jr 16(a1)\n"
+      "00000000 trap\n"
+      "0007b017 lpad 503808\n"
+      "01c58067 jr 28(a1)\n"
+      "00000000 trap\n"
+      "00000017 lpad 0\n"
+      "00058393 mv t2, a1\n"
+      "02c38067 jr 44(t2)\n"
+      "00000000 trap\n"
+      "00008067 ret\n");
+
+#if defined(DART_INCLUDE_SIMULATOR)
+  Simulator::Current()->set_lp_enabled(true);
+  EXPECT_EQ(0, Call(test->entry(), 0, test->entry()));
+  Simulator::Current()->set_lp_enabled(false);
+  EXPECT_EQ(0, Call(test->entry(), 0, test->entry()));
+#else
+  EXPECT_EQ(0, Call(test->entry(), 0, test->entry()));
+#endif
+}
+
 ASSEMBLER_TEST_GENERATE(LoadImmediate_MaxInt32, assembler) {
   __ SetExtensions(RV_GC);
   __ LoadImmediate(A0, kMaxInt32);

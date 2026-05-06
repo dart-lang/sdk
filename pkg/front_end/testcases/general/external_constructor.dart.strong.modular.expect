@@ -34,7 +34,7 @@ class C extends core::Object {
   final field self::A a1;
   final field self::A a2;
   external constructor •() → self::C;
-  constructor named(self::A a1, self::A a2) → self::C
+  constructor named(initializing-formal self::A a1, initializing-formal self::A a2) → self::C
     : self::C::a1 = a1, self::C::a2 = a2, super core::Object::•()
     ;
 }
@@ -42,14 +42,14 @@ class D extends core::Object {
   final field self::A a1;
   final field self::A a2;
   external constructor •() → self::D;
-  erroneous constructor named(self::A a1) → self::D
+  erroneous constructor named(initializing-formal self::A a1) → self::D
     : self::D::a2 = null, self::D::a1 = a1, super core::Object::•()
     ;
 }
 class E extends core::Object {
   final field self::A a1;
   final field self::A a2;
-  erroneous constructor •(self::A a2) → self::E
+  erroneous constructor •(initializing-formal self::A a2) → self::E
     : self::E::a1 = null, self::E::a2 = a2, super core::Object::•()
     ;
   external constructor named() → self::E;
@@ -57,7 +57,7 @@ class E extends core::Object {
 class F extends core::Object {
   final field self::A a1;
   final field self::A a2;
-  constructor •(self::A a1, self::A a2) → self::F
+  constructor •(initializing-formal self::A a1, initializing-formal self::A a2) → self::F
     : self::F::a1 = a1, self::F::a2 = a2, super core::Object::•()
     ;
   external constructor named() → self::F;

@@ -17,7 +17,7 @@ import "dart:core" as core;
 abstract class A extends core::Object /*hasConstConstructor*/  {
   final field core::double d;
   final field core::String s;
-  const constructor •({core::double d = 3.14, core::String s = "default"}) → con::A
+  const constructor •({initializing-formal core::double d = 3.14, initializing-formal core::String s = "default"}) → con::A
     : con::A::d = d, con::A::s = s, super core::Object::•()
     ;
 }

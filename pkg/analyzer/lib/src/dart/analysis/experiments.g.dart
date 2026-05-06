@@ -12,7 +12,7 @@ part of 'experiments.dart';
 
 /// The current version of the Dart language (or, for non-stable releases, the
 /// version of the language currently in the process of being developed).
-const _currentVersion = '3.12.0';
+const _currentVersion = '3.13.0';
 
 /// A map containing information about all known experimental flags.
 final _knownFeatures = <String, ExperimentalFeature>{
@@ -604,7 +604,7 @@ class ExperimentalFeatures {
     isExpired: IsExpired.primary_constructors,
     documentation: 'Less verbose constructors.',
     experimentalReleaseVersion: Version.parse('3.12.0'),
-    releaseVersion: null,
+    releaseVersion: Version.parse('3.13.0'),
     channels: ["stable", "beta", "dev", "main"],
   );
 
@@ -866,7 +866,7 @@ class IsEnabledByDefault {
   static const bool patterns = true;
 
   /// Default state of the experiment "primary-constructors"
-  static const bool primary_constructors = false;
+  static const bool primary_constructors = true;
 
   /// Default state of the experiment "private-named-parameters"
   static const bool private_named_parameters = true;

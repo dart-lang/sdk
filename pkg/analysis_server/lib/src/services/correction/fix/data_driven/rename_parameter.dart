@@ -5,6 +5,7 @@
 import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/change.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_dart.dart';
 import 'package:analyzer_plugin/utilities/range_factory.dart';
@@ -27,7 +28,7 @@ class RenameParameter extends Change<_Data> {
   // ignore: library_private_types_in_public_api
   void apply(DartFileEditBuilder builder, DataDrivenFix fix, _Data data) {
     if (data is _InvocationData) {
-      builder.addSimpleReplacement(range.node(data.nameNode), newName);
+      builder.addSimpleReplacement(range.token(data.nameToken), newName);
     } else if (data is _OverrideData) {
       var declaration = data.methodDeclaration;
       var parameter = declaration.parameterNamed(oldName);
@@ -74,21 +75,20 @@ class RenameParameter extends Change<_Data> {
     var node = fix.node;
     if (node is MethodDeclaration) {
       return _OverrideData(node);
+    } else if (node is NamedArgument) {
+      if (node.name.lexeme == oldName) {
+        var invocation = node.parent?.parent;
+        if (invocation != null) {
+          return _InvocationData(node.name);
+        }
+      }
     } else if (node is SimpleIdentifier) {
       var parent = node.parent;
-      var grandParent = parent?.parent;
-      if (node.name == oldName &&
-          parent is Label &&
-          grandParent is NamedExpression) {
-        var invocation = grandParent.parent?.parent;
-        if (invocation != null) {
-          return _InvocationData(node);
-        }
-      } else if (parent is MethodInvocation) {
+      if (parent is MethodInvocation) {
         for (var argument in parent.argumentList.arguments) {
-          if (argument is NamedExpression) {
-            var label = argument.name.label;
-            if (label.name == oldName) {
+          if (argument is NamedArgument) {
+            var label = argument.name;
+            if (label.lexeme == oldName) {
               return _InvocationData(label);
             }
           }
@@ -112,10 +112,10 @@ class _IgnoredData extends _Data {
 /// The data returned when updating an invocation site.
 class _InvocationData extends _Data {
   /// The node representing the name to be replaced.
-  final SimpleIdentifier nameNode;
+  final Token nameToken;
 
   /// Initialize newly created data about an invocation site.
-  _InvocationData(this.nameNode);
+  _InvocationData(this.nameToken);
 }
 
 /// The data returned when updating an override site.

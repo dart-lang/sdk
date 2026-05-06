@@ -85,13 +85,13 @@ static field self::ExtensionType2% /* erasure=core::int, declared=! */ explicitC
 static const field invalid-type newConstAliased2 = invalid-expression "pkg/front_end/testcases/extension_types/const_constructor_access.dart:27:26: Error: New expression is not a constant expression.
 const newConstAliased2 = new Typedef2(0); /* Error */
                          ^^^";
-static extension-type-member method ExtensionType1|constructor#(core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */ {
+static extension-type-member method ExtensionType1|constructor#(initializing-formal core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType1% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }
 static extension-type-member synthetic method ExtensionType1|constructor#_#new#tearOff(core::int i) → self::ExtensionType1% /* erasure=core::int, declared=! */
   return self::ExtensionType1|constructor#(i);
-static extension-type-member const method ExtensionType2|constructor#(core::int i) → self::ExtensionType2% /* erasure=core::int, declared=! */ {
+static extension-type-member const method ExtensionType2|constructor#(initializing-formal core::int i) → self::ExtensionType2% /* erasure=core::int, declared=! */ {
   lowered final self::ExtensionType2% /* erasure=core::int, declared=! */ #this = i;
   return #this;
 }

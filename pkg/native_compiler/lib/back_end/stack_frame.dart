@@ -35,12 +35,15 @@ abstract base class StackFrame {
   /// Alignment of the spill slot with given [registerClass].
   int spillSlotAlignmentInWords(RegisterClass registerClass);
 
-  /// Number of stack slots required for call [instr].
-  int argumentsStackSlots(CallInstruction instr);
+  /// Number of arguments stack slots required for [instr].
+  int argumentsStackSlots(Instruction instr);
 
   /// Offset of [location] relative to the frame pointer, in bytes.
   /// Should be used only after the frame is finalized.
   int offsetFromFP(StackLocation location);
+
+  /// Offset of the suspend state relative to the frame pointer, in bytes.
+  int get suspendStateOffsetFromFP;
 
   /// Offset of the shadow parameter relative to the frame pointer, in bytes.
   /// Should be used only after the frame is finalized.
@@ -62,7 +65,7 @@ abstract base class StackFrame {
   }
 
   /// Allocate outgoing argument slots for [instr].
-  void allocateArgumentsSlots(CallInstruction instr) {
+  void allocateArgumentsSlots(Instruction instr) {
     final stackSlots = argumentsStackSlots(instr);
     if (stackSlots > _maxArgumentsStackSlots) {
       _maxArgumentsStackSlots = stackSlots;

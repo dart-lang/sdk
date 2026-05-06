@@ -14,29 +14,39 @@ final Uri repoDir = computeRepoDirUri();
 
 Future<void> main(List<String> args) async {
   List<Uri> entryPoints = [];
-  for (FileSystemEntity entry
-      in new Directory.fromUri(repoDir.resolve("pkg/frontend_server/lib/"))
-          .listSync(recursive: true)) {
+  for (FileSystemEntity entry in new Directory.fromUri(
+    repoDir.resolve("pkg/frontend_server/lib/"),
+  ).listSync(recursive: true)) {
     if (entry is! File) continue;
     entryPoints.add(entry.uri);
   }
 
-  await run(entryPoints,
-      'pkg/frontend_server/test/frontend_server_dynamic_allowed.json',
-      analyzedUrisFilter: (Uri uri) =>
-          '$uri'.startsWith('package:frontend_server/'),
-      verbose: args.contains('-v'),
-      generate: args.contains('-g'));
+  await run(
+    entryPoints,
+    'pkg/frontend_server/test/frontend_server_dynamic_allowed.json',
+    analyzedUrisFilter: (Uri uri) =>
+        '$uri'.startsWith('package:frontend_server/'),
+    verbose: args.contains('-v'),
+    generate: args.contains('-g'),
+  );
 }
 
-Future<void> run(List<Uri> entryPoints, String allowedListPath,
-    {bool verbose = false,
-    bool generate = false,
-    bool Function(Uri uri)? analyzedUrisFilter}) async {
-  await runAnalysis(entryPoints,
-      (DiagnosticMessageHandler onDiagnostic, Component component) {
+Future<void> run(
+  List<Uri> entryPoints,
+  String allowedListPath, {
+  bool verbose = false,
+  bool generate = false,
+  bool Function(Uri uri)? analyzedUrisFilter,
+}) async {
+  await runAnalysis(entryPoints, (
+    DiagnosticMessageHandler onDiagnostic,
+    Component component,
+  ) {
     new DynamicVisitor(
-            onDiagnostic, component, allowedListPath, analyzedUrisFilter)
-        .run(verbose: verbose, generate: generate);
+      onDiagnostic,
+      component,
+      allowedListPath,
+      analyzedUrisFilter,
+    ).run(verbose: verbose, generate: generate);
   });
 }

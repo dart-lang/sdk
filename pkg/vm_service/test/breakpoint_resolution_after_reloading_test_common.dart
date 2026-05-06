@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
 import 'dart:developer' show debugger;
 import 'dart:io' show Directory, File;
 import 'dart:isolate' as i;
@@ -23,13 +24,17 @@ const LINE_A = 77;
 
 const _v0Contents = '''
 import 'dart:developer';
+import 'dart:isolate';
 
-void f() {}
+void f() {
+  print('V0.a');
+}
 
 void main() {
+  print('READY');
+  // Keep the isolate alive.
+  RawReceivePort();
   debugger();
-  f();
-  f();
 }
 ''';
 
@@ -44,10 +49,7 @@ void f() {
   })();
 }
 
-void main() {
-  f();
-  f();
-}
+void main() {}
 ''';
 
 const _v2Contents = '''
@@ -56,24 +58,22 @@ import 'dart:developer';
 void f() {
   (() {
     print('v2.a');
-    print('v2.b');
+    (() {
+      print('v2.b');
+    })();
   })();
 }
 
-void main() {
-  f();
-  f();
-}
+void main() {}
 ''';
 
 Future<void> testeeMain() async {
-  // Spawn the child isolate.
   final tempDir = Directory.systemTemp.createTempSync();
   try {
     final rootLib = File(join(tempDir.path, 'main.dart'));
     rootLib.writeAsStringSync(_v0Contents);
 
-    await i.Isolate.spawnUri(rootLib.uri, [], null);
+    await i.Isolate.spawnUri(rootLib.uri, [], null, debugName: 'Test Main');
     debugger(); // LINE_A
     tempDir.deleteSync(recursive: true);
   } catch (_) {
@@ -83,8 +83,6 @@ Future<void> testeeMain() async {
 }
 
 final breakpointResolutionAfterReloadingTests = <IsolateTest>[
-  // Ensure that the main isolate has stopped at the [debugger] statement at the
-  // end of [testeeMain].
   hasStoppedAtBreakpoint,
   stoppedAtLine(LINE_A),
   (VmService service, IsolateRef isolateRef) async {
@@ -100,13 +98,16 @@ final breakpointResolutionAfterReloadingTests = <IsolateTest>[
       // Find the spawned isolate.
       final vm = await service.getVM();
       final isolates = vm.isolates!;
-      expect(isolates.length, 2);
-      final spawnedIsolateRef = isolates.firstWhere(
-        (i) => i != isolateRef,
-      );
+      final spawnedIsolateRef =
+          isolates.firstWhere((i) => i.name == 'Test Main');
       final spawnedIsolateId = spawnedIsolateRef.id!;
 
-      // Load [v1Contents] into the spawned isolate.
+      // Wait for spawned isolate to hit its debugger()
+      await hasStoppedAtBreakpoint(service, spawnedIsolateRef);
+      // Resume it so it finishes main() and sits idle.
+      await resumeIsolate(service, spawnedIsolateRef);
+
+      // --- STEP 1: RELOAD V1 ---
       spawnedIsolateRootLib.writeAsStringSync(_v1Contents);
       await service.reloadSources(
         spawnedIsolateId,
@@ -121,16 +122,23 @@ final breakpointResolutionAfterReloadingTests = <IsolateTest>[
       ) as Library;
       String scriptId = rootLib.scripts![0].id!;
 
-      // Add a breakpoint at `print('v1');`.
-      await service.addBreakpoint(spawnedIsolateId, scriptId, 6);
+      // Add a breakpoint at `print('v1');` (line 6 of v1).
+      final Breakpoint bpt1 =
+          await service.addBreakpoint(spawnedIsolateId, scriptId, 6);
 
-      // Resuming the spawned isolate should let it run until it gets paused at
-      // the breakpoint at `print('v1');`.
-      await resumeIsolate(service, spawnedIsolateRef);
+      // Trigger f() in the reloaded code.
+      // This ensures a fresh entry into the reloaded f().
+      print('Invoking f() V1');
+      unawaited(service.invoke(spawnedIsolateId, rootLib.id!, 'f', []));
+
       await hasStoppedAtBreakpoint(service, spawnedIsolateRef);
       await stoppedAtLine(6)(service, spawnedIsolateRef);
 
-      // Load [v2Contents] into the spawned isolate.
+      // Remove the breakpoint before moving to V2.
+      await service.removeBreakpoint(spawnedIsolateId, bpt1.id!);
+      await resumeIsolate(service, spawnedIsolateRef);
+
+      // --- STEP 2: RELOAD V2 ---
       spawnedIsolateRootLib.writeAsStringSync(_v2Contents);
       await service.reloadSources(
         spawnedIsolateId,
@@ -145,27 +153,25 @@ final breakpointResolutionAfterReloadingTests = <IsolateTest>[
       ) as Library;
       scriptId = rootLib.scripts![0].id!;
 
-      // Add a breakpoint at `print('v2.a');`.
-      await service.addBreakpoint(spawnedIsolateId, scriptId, 5);
+      // Add a breakpoint at `print('v2.a');` (line 5 of v2).
+      final Breakpoint bpt2 =
+          await service.addBreakpoint(spawnedIsolateId, scriptId, 5);
 
-      // Resuming the spawned isolate should let it run until it gets paused at
-      // the breakpoint at `print('v2.a');`.
-      await resumeIsolate(service, spawnedIsolateRef);
+      print('Invoking f() V2');
+      unawaited(service.invoke(spawnedIsolateId, rootLib.id!, 'f', []));
+
       await hasStoppedAtBreakpoint(service, spawnedIsolateRef);
       await stoppedAtLine(5)(service, spawnedIsolateRef);
 
-      // Add a breakpoint at `print('v2.b');`.
-      final breakpoint3 =
-          await service.addBreakpoint(spawnedIsolateId, scriptId, 6);
-      expect(breakpoint3.breakpointNumber, 3);
-
-      // We previously had a bug that would have made the breakpoint resolution
-      // code get confused by the old closure that was defined in [v1Contents].
-      // We prevent a reintroduction of that bug by ensuring that the newly set
-      // breakpoint has been resolved immediately.
-      expect(breakpoint3.resolved, true);
-
+      // Remove the breakpoint.
+      await service.removeBreakpoint(spawnedIsolateId, bpt2.id!);
       await resumeIsolate(service, spawnedIsolateRef);
+
+      // Add a breakpoint at `print('v2.b');` (line 6 of v2).
+      final bpt = await service.addBreakpoint(spawnedIsolateId, scriptId, 6);
+      expect(bpt.resolved, true);
+
+      // No need for final resume as the isolate is already running and idle.
       tempDir.deleteSync(recursive: true);
     } catch (_) {
       tempDir.deleteSync(recursive: true);

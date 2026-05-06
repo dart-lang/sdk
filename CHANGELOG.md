@@ -1,3 +1,199 @@
+## 3.13.0
+
+**Released on:** Unreleased
+
+### Language
+
+Dart 3.13 adds [primary constructors][primary-constructor-spec] to the language.
+To use this feature, set your package's [SDK constraint][language version] lower
+bound to 3.13 or greater (`sdk: '^3.13.0'`).
+
+#### Primary constructors
+
+The primary constructors feature is a brevity feature. There are no new
+semantics, but it allows us to express declarations in a less verbose way.
+
+This feature allows one constructor and a set of instance variables to be
+specified in the header of a declaration.
+
+Currently a declaration with a constructor and some fields is written as:
+
+```dart
+// Current syntax.
+class Point {
+  int x;
+  int y;
+  Point(this.x, this.y);
+}
+```
+
+Now you can write:
+
+```dart
+class Point(var int x, var int y);
+```
+
+If a primary constructor needs an initializer list or a body, they can be
+specified inside the class using the `this` body syntax:
+
+```dart
+class Point(var int x, var int y) {
+  this : assert(x >= 0) {
+    print('Point created at $x, $y');
+  }
+}
+```
+
+As part of this feature, you can also use the `new` and `factory` keywords to
+declare constructors in the class body without repeating the class name:
+```dart
+class Point {
+  int x, y;
+
+  // Equivalent to Point(this.x, this.y)
+  new(this.x, this.y);
+
+  // Equivalent to Point.origin()
+  new origin() : x = 0, y = 0;
+
+  // Equivalent to factory Point.clone(Point other)
+  factory clone(Point other) => Point(other.x, other.y);
+}
+```
+
+To learn more about the feature, check out the
+[feature specification][primary-constructor-spec].
+
+[primary-constructor-spec]: https://github.com/dart-lang/language/blob/main/accepted/future-releases/primary-constructors/feature-specification.md
+
+### Libraries
+
+#### `dart:async`
+
+- Added `Future.pause` as alternative to `Future.delayed` with no callback.
+- Added `List.unmodifiableOf` with better typing than `List.unmodifiable`.
+- Added `Map.unmodifiableOf` with better typing than `Map.unmodifiable`.
+
+#### `dart:io`
+
+- The cookie-date parser now uses the correct algorithm again.
+  A change to the parsing made it only accept the formats that
+  cookie-dates _should_ have, but the RFC specifies a very
+  permissive algorithm for what should be accepted.
+
+- **Breaking change**: Added `InterfaceAddress`, a subtype of `InternetAddress`
+  that exposes `prefixLength` field and `broadcast` getter for network interface
+  addresses. `NetworkInterface.addresses` now returns `List<InterfaceAddress>`
+  instead of `List<InternetAddress>`. Code that implements `NetworkInterface`
+  and overrides `addresses` will need to update the return type. See [#63216][]
+  for more details.
+
+[#63216]: https://github.com/dart-lang/sdk/issues/63216
+
+#### `dart:js_interop`
+
+- `JSFunction` and `JSExportedDartFunction` are now generic.
+  `JSExportedDartFunction<T>.toDart` now casts the original wrapped function to
+  the type argument `T`. Calls to `isA<JSExportedDartFunction<T>>` now also
+  check that the wrapped function is a `T`. Otherwise, this type argument is
+  purely descriptive and intended for increased static type safety. Importantly,
+  the runtime types of `JSFunction` and `JSExportedDartFunction` do not change.
+  See [#56905][] for more details.
+
+[#54557]: https://github.com/dart-lang/sdk/issues/54557
+
+### Tools
+
+#### Dart format
+
+These changes are not language versioned and affect formatting all code:
+
+* Fix bug where some collections or arguments might split unnecessarily.
+
+* Don't add a blank line before a comment at the end of a compilation unit or
+  braced body.
+
+* Format extension type representation clauses the same way primary constructor
+  formal parameter lists are formatted:
+
+  ```dart
+  // Before:
+  extension type JSExportedDartFunction._(
+    JSExportedDartFunctionRepType _jsExportedDartFunction
+  )
+      implements JSFunction {}
+
+  // After:
+  extension type JSExportedDartFunction._(
+    JSExportedDartFunctionRepType _jsExportedDartFunction
+  ) implements JSFunction {}
+  ```
+
+* When trailing commas are preserved, don't insert a newline before the `;` in
+  an enum with members unless there actually is a trailing comma.
+  (Fix by @Barbirosha.)
+
+These changes are language versioned and only affect code at 3.13 or higher:
+
+* Support block-formatting parameter lists:
+
+  ```dart
+  // Before:
+  typedef DataViewBuilder<T> =
+      Widget Function(
+        BuildContext context,
+        PagingState<int, T> state,
+        NextPageCallback fetchNextPage,
+      );
+
+  // After:
+  typedef DataViewBuilder<T> = Widget Function(
+    BuildContext context,
+    PagingState<int, T> state,
+    NextPageCallback fetchNextPage,
+  );
+  ```
+
+* Allow `as`, `is`, and `is!` expressions to be block formatted:
+
+  ```dart
+  // Before:
+  variable =
+      function(
+            argument,
+            argument,
+            argument,
+          )
+          as Type;
+
+  // After:
+  variable = function(
+    argument,
+    argument,
+    argument,
+  ) as Type;
+  ```
+
+* Force blank lines around a mixin or extension type declaration if it doesn't
+  have a `;` body:
+
+  ```dart
+  // Before:
+  int above;
+  extension type Inches(int x) {}
+  mixin M {}
+  int below;
+
+  // After:
+  int above;
+
+  extension type Inches(int x) {}
+
+  mixin M {}
+
+  int below;
+  ```
+
 ## 3.12.0
 
 **Released on:** Unreleased
@@ -26,8 +222,8 @@ parameter, you had to write an explicit initializer list:
 class Point {
   final int _x, _y;
   Point({required int x, required int y})
-    : x = _x,
-      y = _y;
+    : _x = x,
+      _y = y;
 }
 ```
 
@@ -90,11 +286,34 @@ main() {
 - The new `simple_directive_paths` lint and its associated fix
   flag and simplify unnecessarily complex `import` and `export` paths,
   such as those containing redundant `./` or backtracking `../` segments.
+
+  Use `dart fix --code=simple_directive_paths` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `prefer_initializing_formals` lint rule will report named parameters
+  which could be private named parameters, if the package's Dart SDK constraint
+  is set to enable the language feature (for example, `sdk: ^3.12.0`).
+
+  Use `dart fix --code=prefer_initializing_formals` (with either `--dry-run` or
+  `--apply`) to bulk fix existing lint violations.
+- The `avoid_final_parameters` lint violations can now be fixed with `dart fix
+  --code=avoid_final_parameters` (with either `--dry-run` or `--apply`).
 - The analyzer now warns when a function which contains a parameter which is
   annotated with `@mustBeConst` is torn off.
 - The `invalid_runtime_check_with_js_interop_types` rule now checks for JS
   interop types in the type in a catch clause and instructs users to use `isA`
   for type checks instead.
+- Analyzer plugins: Initial support for 'print debugging' via new sections in
+  the "Plugins" Insights (Diagnostics) page. When a plugin is computing lint
+  and warning diagnostics, `print` calls are now redirected to the analysis
+  server, which presents the messages in the appropriate plugin's section on
+  the Plugins page.
+- Improved support for extension types in many existing lint rules.
+- Improved support for null-aware elements in existing lint rules.
+- The analysis server starts up faster with the help of improved analysis
+  options file caching. The improvement depends on the number of analysis
+  options files in the workspace, and the number of `include`d analysis options
+  files. The improvement is greater for systems with slower disk access.
+- Various other improvements to analysis performance.
 
 #### Pub
 

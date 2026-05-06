@@ -8,6 +8,7 @@ import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
 import 'package:_fe_analyzer_shared/src/scanner/reader.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
+import 'package:front_end/src/api_prototype/experimental_flags.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -476,6 +477,16 @@ abstract class ScannerTestBase {
     _assertKeywordToken("async");
   }
 
+  void test_keyword_augment() {
+    _assertKeywordToken(
+      "augment",
+      configuration: ScannerConfiguration(
+        enableTripleShift: ExperimentalFlag.tripleShift.isEnabledByDefault,
+        enableAugmentations: true,
+      ),
+    );
+  }
+
   void test_keyword_await() {
     _assertKeywordToken("await");
   }
@@ -537,7 +548,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_extension() {
-    _assertKeywordToken("extension", configuration: ScannerConfiguration());
+    _assertKeywordToken("extension");
   }
 
   void test_keyword_factory() {
@@ -597,7 +608,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_late() {
-    _assertKeywordToken("late", configuration: ScannerConfiguration());
+    _assertKeywordToken("late");
   }
 
   void test_keyword_library() {
@@ -645,7 +656,7 @@ abstract class ScannerTestBase {
   }
 
   void test_keyword_required() {
-    _assertKeywordToken("required", configuration: ScannerConfiguration());
+    _assertKeywordToken("required");
   }
 
   void test_keyword_rethrow() {

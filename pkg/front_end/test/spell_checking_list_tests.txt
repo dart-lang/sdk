@@ -238,6 +238,7 @@ ddart
 dds
 debugger
 declarative
+decls
 decrease
 decrements
 dectcem
@@ -515,7 +516,6 @@ llc
 ln
 locale
 locating
-logd
 logs
 loo
 lookahead
@@ -877,6 +877,7 @@ tpt
 transitively
 translators
 transparent
+treenode
 triangle
 triggers
 trimming

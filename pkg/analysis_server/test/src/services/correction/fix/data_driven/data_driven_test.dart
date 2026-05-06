@@ -7,7 +7,7 @@ import 'package:analysis_server/src/services/correction/dart/data_driven.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/transform_set_manager.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analysis_server_plugin/src/correction/fix_generators.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -2340,7 +2340,7 @@ class _DataDrivenTest extends BulkFixProcessorTest {
     newFile('$workspaceRootPath/p/lib/lib.dart', content);
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
   }
 

@@ -8,8 +8,6 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Add test with setter-like with multiple statements; add
-    // test with non-trivial right side (`this.x = x + 1`).
     defineReflectiveTests(UseSettersToChangePropertiesTest);
   });
 }
@@ -80,6 +78,29 @@ class B implements A {
 
   void setX(int x) {
     this.x = x;
+  }
+}
+''');
+  }
+
+  test_multipleStatements() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x = 0;
+  void setX(int x) {
+    this.x = x;
+    print(x);
+  }
+}
+''');
+  }
+
+  test_nonTrivialRightSide() async {
+    await assertNoDiagnostics(r'''
+class A {
+  int x = 0;
+  void setX(int x) {
+    this.x = x + 1;
   }
 }
 ''');

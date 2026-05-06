@@ -73,7 +73,7 @@ final class VmIsolateManager extends IsolateManager {
   /// Reports that an isolate is shutting down based on a message over the
   /// service's control port.
   void onIsolateShutdownMessage({required int id}) {
-    _logger.info('Isolate startup message received for isolate ID $id');
+    _logger.info('Received isolate shutdown message for isolate $id');
     isolateExited(id: id);
   }
 

@@ -324,8 +324,8 @@ class BatchCompiler {
       "Platform must be omitted for the batch compiler.",
     );
     assert(
-      !options.hasAdditionalDills,
-      "Additional dills are not supported for the batch compiler.",
+      !options.hasAdditionalDillModules,
+      "Additional dill modules are not supported for the batch compiler.",
     );
     IncrementalCompilerResult compilerResult = await _incrementalCompiler!
         .computeDelta(fullComponent: true);

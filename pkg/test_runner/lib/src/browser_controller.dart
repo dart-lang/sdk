@@ -15,8 +15,8 @@ import 'service/web_driver_service.dart';
 import 'utils.dart';
 
 typedef BrowserDoneCallback = void Function(BrowserTestOutput output);
-typedef TestChangedCallback = void Function(
-    String browserId, String output, int testId);
+typedef TestChangedCallback =
+    void Function(String browserId, String output, int testId);
 typedef NextTestCallback = BrowserTest? Function(String browserId);
 
 class BrowserOutput {
@@ -141,94 +141,115 @@ abstract class Browser {
 
   /// Start the browser using the supplied argument.
   /// This sets up the error handling and usage logging.
-  Future<bool> startBrowserProcess(String command, List<String> arguments,
-      {Map<String, String>? environment}) {
+  Future<bool> startBrowserProcess(
+    String command,
+    List<String> arguments, {
+    Map<String, String>? environment,
+  }) {
     return Process.start(command, arguments, environment: environment)
         .then((startedProcess) {
-      _logEvent("Started browser using $command ${arguments.join(' ')}");
-      process = startedProcess;
-      // Used to notify when exiting, and as a return value on calls to
-      // close().
-      var doneCompleter = Completer<bool>();
-      done = doneCompleter.future;
+          _logEvent("Started browser using $command ${arguments.join(' ')}");
+          process = startedProcess;
+          // Used to notify when exiting, and as a return value on calls to
+          // close().
+          var doneCompleter = Completer<bool>();
+          done = doneCompleter.future;
 
-      var stdoutDone = Completer<void>();
-      var stderrDone = Completer<void>();
+          var stdoutDone = Completer<void>();
+          var stderrDone = Completer<void>();
 
-      var stdoutIsDone = false;
-      var stderrIsDone = false;
-      StreamSubscription stdoutSubscription;
-      StreamSubscription stderrSubscription;
+          var stdoutIsDone = false;
+          var stderrIsDone = false;
+          StreamSubscription stdoutSubscription;
+          StreamSubscription stderrSubscription;
 
-      // This timer is used to close stdio to the subprocess once we got
-      // the exitCode. Sometimes descendants of the subprocess keep stdio
-      // handles alive even though the direct subprocess is dead.
-      Timer? watchdogTimer;
+          // This timer is used to close stdio to the subprocess once we got
+          // the exitCode. Sometimes descendants of the subprocess keep stdio
+          // handles alive even though the direct subprocess is dead.
+          Timer? watchdogTimer;
 
-      void closeStdout([_]) {
-        if (!stdoutIsDone) {
-          stdoutDone.complete();
-          stdoutIsDone = true;
+          void closeStdout([_]) {
+            if (!stdoutIsDone) {
+              stdoutDone.complete();
+              stdoutIsDone = true;
 
-          if (stderrIsDone) {
-            watchdogTimer?.cancel();
+              if (stderrIsDone) {
+                watchdogTimer?.cancel();
+              }
+            }
           }
-        }
-      }
 
-      void closeStderr([_]) {
-        if (!stderrIsDone) {
-          stderrDone.complete();
-          stderrIsDone = true;
+          void closeStderr([_]) {
+            if (!stderrIsDone) {
+              stderrDone.complete();
+              stderrIsDone = true;
 
-          if (stdoutIsDone) {
-            watchdogTimer?.cancel();
+              if (stdoutIsDone) {
+                watchdogTimer?.cancel();
+              }
+            }
           }
-        }
-      }
 
-      stdoutSubscription = process!.stdout
-          .transform(utf8.decoder)
-          .listen(_addStdout, onError: (error) {
-        // This should _never_ happen, but we really want this in the log
-        // if it actually does due to dart:io or vm bug.
-        _logEvent("An error occurred in the process stdout handling: $error");
-      }, onDone: closeStdout);
+          stdoutSubscription = process!.stdout
+              .transform(utf8.decoder)
+              .listen(
+                _addStdout,
+                onError: (error) {
+                  // This should _never_ happen, but we really want this in the log
+                  // if it actually does due to dart:io or vm bug.
+                  _logEvent(
+                    "An error occurred in the process stdout handling: $error",
+                  );
+                },
+                onDone: closeStdout,
+              );
 
-      stderrSubscription = process!.stderr
-          .transform(utf8.decoder)
-          .listen(_addStderr, onError: (error) {
-        // This should _never_ happen, but we really want this in the log
-        // if it actually does due to dart:io or vm bug.
-        _logEvent("An error occurred in the process stderr handling: $error");
-      }, onDone: closeStderr);
+          stderrSubscription = process!.stderr
+              .transform(utf8.decoder)
+              .listen(
+                _addStderr,
+                onError: (error) {
+                  // This should _never_ happen, but we really want this in the log
+                  // if it actually does due to dart:io or vm bug.
+                  _logEvent(
+                    "An error occurred in the process stderr handling: $error",
+                  );
+                },
+                onDone: closeStderr,
+              );
 
-      process!.exitCode.then((exitCode) {
-        _logEvent("Browser closed with exitcode $exitCode");
+          process!.exitCode.then((exitCode) {
+            _logEvent("Browser closed with exitcode $exitCode");
 
-        if (!stdoutIsDone || !stderrIsDone) {
-          watchdogTimer = Timer(maxStdioDelay, () {
-            DebugLogger.warning("$maxStdioDelayPassedMessage (browser: $this)");
-            watchdogTimer = null;
-            stdoutSubscription.cancel();
-            stderrSubscription.cancel();
-            closeStdout();
-            closeStderr();
+            if (!stdoutIsDone || !stderrIsDone) {
+              watchdogTimer = Timer(maxStdioDelay, () {
+                DebugLogger.warning(
+                  "$maxStdioDelayPassedMessage (browser: $this)",
+                );
+                watchdogTimer = null;
+                stdoutSubscription.cancel();
+                stderrSubscription.cancel();
+                closeStdout();
+                closeStderr();
+              });
+            }
+
+            Future.wait([stdoutDone.future, stderrDone.future])
+                .then((_) {
+                  process = null;
+                  _cleanup?.call();
+                })
+                .catchError((error) {
+                  _logEvent("Error closing browsers: $error");
+                })
+                .whenComplete(() => doneCompleter.complete(true));
           });
-        }
-
-        Future.wait([stdoutDone.future, stderrDone.future]).then((_) {
-          process = null;
-          _cleanup?.call();
-        }).catchError((error) {
-          _logEvent("Error closing browsers: $error");
-        }).whenComplete(() => doneCompleter.complete(true));
-      });
-      return true;
-    }).catchError((error) {
-      _logEvent("Running $command $arguments failed with $error");
-      return false;
-    });
+          return true;
+        })
+        .catchError((error) {
+          _logEvent("Running $command $arguments failed with $error");
+          return false;
+        });
   }
 
   void resetTestBrowserOutput() {
@@ -277,13 +298,15 @@ abstract class WebDriverBrowser extends Browser {
       if (_terminated) return;
       try {
         _driver = await createDriver(
-            uri: Uri.parse('http://localhost:$_port/'),
-            desired: _desiredCapabilities);
+          uri: Uri.parse('http://localhost:$_port/'),
+          desired: _desiredCapabilities,
+        );
       } catch (error) {
         if (_terminated) return;
         if (i > 0) {
           _logEvent(
-              'Failed to create driver ($i retries left).\nError: $error');
+            'Failed to create driver ($i retries left).\nError: $error',
+          );
         } else {
           _logEvent('Failed to create driver.\nError: $error');
           await close();
@@ -307,10 +330,7 @@ class Safari extends WebDriverBrowser {
   /// We get the safari version by parsing a version file
   static const versionFile = '/Applications/Safari.app/Contents/version.plist';
 
-  Safari(int port)
-      : super(port, {
-          'browserName': 'safari',
-        });
+  Safari(int port) : super(port, {'browserName': 'safari'});
 
   @override
   Future<String> get version async {
@@ -358,7 +378,8 @@ class Chrome extends Browser {
       _logEvent("Failed to get chrome version");
       _logEvent("Make sure $_binary is a valid program for running chrome");
       throw StateError(
-          "Failed to get chrome version.\nExit code: ${result.exitCode}");
+        "Failed to get chrome version.\nExit code: ${result.exitCode}",
+      );
     }
     return result.stdout as String;
   }
@@ -379,14 +400,17 @@ class Chrome extends Browser {
           userDir.deleteSync(recursive: true);
         } catch (e) {
           _logEvent(
-              "Error: failed to delete Chrome user-data-dir ${userDir.path}, "
-              "will try again in 40 seconds: $e");
+            "Error: failed to delete Chrome user-data-dir ${userDir.path}, "
+            "will try again in 40 seconds: $e",
+          );
           Timer(const Duration(seconds: 40), () {
             try {
               userDir.deleteSync(recursive: true);
             } catch (e) {
-              _logEvent("Error: failed on second attempt to delete Chrome "
-                  "user-data-dir ${userDir.path}: $e");
+              _logEvent(
+                "Error: failed on second attempt to delete Chrome "
+                "user-data-dir ${userDir.path}: $e",
+              );
             }
           });
         }
@@ -436,8 +460,11 @@ class AndroidChrome extends Browser {
   @override
   Future<bool> start(String url) {
     var chromeIntent = Intent(viewAction, chromePackage, chromeActivity, url);
-    var turnScreenOnIntent =
-        Intent(mainAction, turnScreenOnPackage, turnScreenOnActivity);
+    var turnScreenOnIntent = Intent(
+      mainAction,
+      turnScreenOnPackage,
+      turnScreenOnActivity,
+    );
 
     var testingResourcesDir = Path('third_party/android_testing_resources');
     if (!Directory(testingResourcesDir.toNativePath()).existsSync()) {
@@ -450,25 +477,35 @@ class AndroidChrome extends Browser {
     var chromeConfDir = testingResourcesDir.append('chrome_configuration');
     var chromeConfDirRemote = Path('/data/user/0/com.android.chrome/');
 
-    return _adbDevice.waitForBootCompleted().then((_) {
-      return _adbDevice.forceStop(chromeIntent.package);
-    }).then((_) {
-      return _adbDevice.killAll();
-    }).then((_) {
-      return _adbDevice.adbRoot();
-    }).then((_) {
-      return _adbDevice.installApk(turnScreenOnAPK);
-    }).then((_) {
-      return _adbDevice.installApk(chromeAPK);
-    }).then((_) {
-      return _adbDevice.pushData(chromeConfDir, chromeConfDirRemote);
-    }).then((_) {
-      return _adbDevice.chmod('777', chromeConfDirRemote);
-    }).then((_) {
-      return _adbDevice.startActivity(turnScreenOnIntent).then((_) => true);
-    }).then((_) {
-      return _adbDevice.startActivity(chromeIntent).then((_) => true);
-    });
+    return _adbDevice
+        .waitForBootCompleted()
+        .then((_) {
+          return _adbDevice.forceStop(chromeIntent.package);
+        })
+        .then((_) {
+          return _adbDevice.killAll();
+        })
+        .then((_) {
+          return _adbDevice.adbRoot();
+        })
+        .then((_) {
+          return _adbDevice.installApk(turnScreenOnAPK);
+        })
+        .then((_) {
+          return _adbDevice.installApk(chromeAPK);
+        })
+        .then((_) {
+          return _adbDevice.pushData(chromeConfDir, chromeConfDirRemote);
+        })
+        .then((_) {
+          return _adbDevice.chmod('777', chromeConfDirRemote);
+        })
+        .then((_) {
+          return _adbDevice.startActivity(turnScreenOnIntent).then((_) => true);
+        })
+        .then((_) {
+          return _adbDevice.startActivity(chromeIntent).then((_) => true);
+        });
   }
 
   @override
@@ -480,8 +517,9 @@ class AndroidChrome extends Browser {
 
   @override
   void logBrowserInfoToTestBrowserOutput() {
-    _testBrowserOutput.stdout
-        .write('Android device id: ${_adbDevice.deviceId}\n');
+    _testBrowserOutput.stdout.write(
+      'Android device id: ${_adbDevice.deviceId}\n',
+    );
   }
 
   @override
@@ -522,7 +560,8 @@ class Firefox extends Browser {
       _logEvent("Failed to get firefox version");
       _logEvent("Make sure $_binary is a valid program for running firefox");
       throw StateError(
-          "Failed to get firefox version.\nExit code: ${result.exitCode}");
+        "Failed to get firefox version.\nExit code: ${result.exitCode}",
+      );
     }
     return result.stdout as String;
   }
@@ -537,13 +576,7 @@ class Firefox extends Browser {
       _cleanup = () {
         userDir.deleteSync(recursive: true);
       };
-      var args = [
-        "-profile",
-        userDir.path,
-        "-no-remote",
-        "-new-instance",
-        url,
-      ];
+      var args = ["-profile", userDir.path, "-no-remote", "-new-instance", url];
       var environment = Map<String, String>.from(Platform.environment);
       environment["MOZ_CRASHREPORTER_DISABLE"] = "1";
       return startBrowserProcess(_binary, args, environment: environment);
@@ -605,9 +638,13 @@ class BrowserTestOutput {
   final BrowserOutput browserOutput;
   final bool didTimeout;
 
-  BrowserTestOutput(this.delayUntilTestStarted, this.duration,
-      this.lastKnownMessage, this.browserOutput,
-      {this.didTimeout = false});
+  BrowserTestOutput(
+    this.delayUntilTestStarted,
+    this.duration,
+    this.lastKnownMessage,
+    this.browserOutput, {
+    this.didTimeout = false,
+  });
 }
 
 /// Encapsulates all the functionality for running tests in browsers.
@@ -677,10 +714,16 @@ class BrowserTestRunner {
     if (_currentStartingBrowserId == id) _currentStartingBrowserId = null;
   }
 
-  BrowserTestRunner(this.configuration, this.localIp, this.maxNumBrowsers,
-      [this.browserFactory = Browser.fromConfiguration])
-      : testingServer = BrowserTestingServer(configuration, localIp,
-            Browser.requiresFocus(configuration.runtime.name)) {
+  BrowserTestRunner(
+    this.configuration,
+    this.localIp,
+    this.maxNumBrowsers, [
+    this.browserFactory = Browser.fromConfiguration,
+  ]) : testingServer = BrowserTestingServer(
+         configuration,
+         localIp,
+         Browser.requiresFocus(configuration.runtime.name),
+       ) {
     testingServer.testRunner = this;
   }
 
@@ -756,8 +799,12 @@ class BrowserTestRunner {
       testCache[testId] = test.url;
 
       // Report that the test is finished now
-      var browserTestOutput = BrowserTestOutput(test.delayUntilTestStarted,
-          test.stopwatch.elapsed, output, status.browser.testBrowserOutput);
+      var browserTestOutput = BrowserTestOutput(
+        test.delayUntilTestStarted,
+        test.stopwatch.elapsed,
+        output,
+        status.browser.testBrowserOutput,
+      );
       test.doneCallback(browserTestOutput);
 
       status.lastTest = test;
@@ -823,11 +870,12 @@ class BrowserTestRunner {
     // This will enable us to capture stdout/stderr from the browser
     // (which might provide us with information about what went wrong).
     var browserTestOutput = BrowserTestOutput(
-        currentTest.delayUntilTestStarted,
-        currentTest.stopwatch.elapsed,
-        lastKnownMessage,
-        status.browser.testBrowserOutput,
-        didTimeout: true);
+      currentTest.delayUntilTestStarted,
+      currentTest.stopwatch.elapsed,
+      lastKnownMessage,
+      status.browser.testBrowserOutput,
+      didTimeout: true,
+    );
     currentTest.doneCallback(browserTestOutput);
     status.lastTest = status.currentTest;
     status.currentTest = null;
@@ -908,12 +956,14 @@ class BrowserTestRunner {
 
   void handleNextTestTimeout(BrowserStatus status) {
     DebugLogger.warning(
-        "Browser timed out before getting next test. Restarting");
+      "Browser timed out before getting next test. Restarting",
+    );
     if (status.timeout) return;
     numBrowserGetTestTimeouts++;
     if (numBrowserGetTestTimeouts >= _maxNextTestTimeouts) {
       DebugLogger.error(
-          "Too many browser timeouts before getting next test. Terminating");
+        "Too many browser timeouts before getting next test. Terminating",
+      );
       terminate().then((_) => exit(1));
     } else {
       status.timeout = true;
@@ -1005,8 +1055,10 @@ class BrowserTestingServer {
   BrowserTestingServer(this.configuration, this.localIp, this.requiresFocus);
 
   Future start() async {
-    var server =
-        await HttpServer.bind(localIp, configuration.testDriverErrorPort);
+    var server = await HttpServer.bind(
+      localIp,
+      configuration.testDriverErrorPort,
+    );
     setupErrorServer(server);
     setupDispatchingServer(server);
   }
@@ -1015,19 +1067,30 @@ class BrowserTestingServer {
     errorReportingServer = server;
     void errorReportingHandler(HttpRequest request) {
       var buffer = StringBuffer();
-      request.cast<List<int>>().transform(utf8.decoder).listen((data) {
-        buffer.write(data);
-      }, onDone: () {
-        var back = buffer.toString();
-        request.response.headers.set("Access-Control-Allow-Origin", "*");
-        request.response.done.catchError((error) {
-          DebugLogger.error("Error getting error from browser"
-              "on uri ${request.uri.path}: $error");
-        });
-        request.response.close();
-        DebugLogger.error("Error from browser on : "
-            "${request.uri.path}, data:  $back");
-      }, onError: print);
+      request
+          .cast<List<int>>()
+          .transform(utf8.decoder)
+          .listen(
+            (data) {
+              buffer.write(data);
+            },
+            onDone: () {
+              var back = buffer.toString();
+              request.response.headers.set("Access-Control-Allow-Origin", "*");
+              request.response.done.catchError((error) {
+                DebugLogger.error(
+                  "Error getting error from browser"
+                  "on uri ${request.uri.path}: $error",
+                );
+              });
+              request.response.close();
+              DebugLogger.error(
+                "Error from browser on : "
+                "${request.uri.path}, data:  $back",
+              );
+            },
+            onError: print,
+          );
     }
 
     void errorHandler(e) {
@@ -1040,8 +1103,10 @@ class BrowserTestingServer {
   void setupDispatchingServer(HttpServer _) {
     var server = configuration.servers.server!;
     void noCache(HttpRequest request) {
-      request.response.headers
-          .set("Cache-Control", "no-cache, no-store, must-revalidate");
+      request.response.headers.set(
+        "Cache-Control",
+        "no-cache, no-store, must-revalidate",
+      );
     }
 
     int testId(HttpRequest request) =>
@@ -1051,14 +1116,21 @@ class BrowserTestingServer {
 
     server.addHandler(reportPath, (HttpRequest request) {
       noCache(request);
-      handleReport(request, browserId(request, reportPath), testId(request),
-          isStatusUpdate: false);
+      handleReport(
+        request,
+        browserId(request, reportPath),
+        testId(request),
+        isStatusUpdate: false,
+      );
     });
     server.addHandler(statusUpdatePath, (HttpRequest request) {
       noCache(request);
       handleReport(
-          request, browserId(request, statusUpdatePath), testId(request),
-          isStatusUpdate: true);
+        request,
+        browserId(request, statusUpdatePath),
+        testId(request),
+        isStatusUpdate: true,
+      );
     });
     server.addHandler(startedPath, (HttpRequest request) {
       noCache(request);
@@ -1074,8 +1146,9 @@ class BrowserTestingServer {
         textResponse = getDriverPage(browserId(request, driverPath));
         request.response.headers.set('Content-Type', 'text/html');
       } else if (request.uri.path.startsWith(nextTestPath)) {
-        textResponse =
-            Future.value(getNextTest(browserId(request, nextTestPath)));
+        textResponse = Future.value(
+          getNextTest(browserId(request, nextTestPath)),
+        );
         request.response.headers.set('Content-Type', 'text/plain');
       } else {
         textResponse = Future.value("");
@@ -1101,23 +1174,34 @@ class BrowserTestingServer {
     server.addHandler(nextTestPath, sendPageHandler);
   }
 
-  void handleReport(HttpRequest request, String browserId, int testId,
-      {required bool isStatusUpdate}) {
+  void handleReport(
+    HttpRequest request,
+    String browserId,
+    int testId, {
+    required bool isStatusUpdate,
+  }) {
     var buffer = StringBuffer();
-    request.cast<List<int>>().transform(utf8.decoder).listen((data) {
-      buffer.write(data);
-    }, onDone: () {
-      var back = buffer.toString();
-      request.response.close();
-      if (isStatusUpdate) {
-        testStatusUpdateCallBack(browserId, back, testId);
-      } else {
-        testDoneCallBack(browserId, back, testId);
-      }
-      // TODO(ricow): We should do something smart if we get an error here.
-    }, onError: (error) {
-      DebugLogger.error("$error");
-    });
+    request
+        .cast<List<int>>()
+        .transform(utf8.decoder)
+        .listen(
+          (data) {
+            buffer.write(data);
+          },
+          onDone: () {
+            var back = buffer.toString();
+            request.response.close();
+            if (isStatusUpdate) {
+              testStatusUpdateCallBack(browserId, back, testId);
+            } else {
+              testDoneCallBack(browserId, back, testId);
+            }
+            // TODO(ricow): We should do something smart if we get an error here.
+          },
+          onError: (error) {
+            DebugLogger.error("$error");
+          },
+        );
   }
 
   void handleStarted(HttpRequest request, String browserId, int testId) {
@@ -1125,15 +1209,22 @@ class BrowserTestingServer {
     // If an error occurs while receiving the data from the request stream,
     // we don't handle it specially. We can safely ignore it, since the started
     // events are not crucial.
-    request.cast<List<int>>().transform(utf8.decoder).listen((data) {
-      buffer.write(data);
-    }, onDone: () {
-      var back = buffer.toString();
-      request.response.close();
-      testStartedCallBack(browserId, back, testId);
-    }, onError: (error) {
-      DebugLogger.error("$error");
-    });
+    request
+        .cast<List<int>>()
+        .transform(utf8.decoder)
+        .listen(
+          (data) {
+            buffer.write(data);
+          },
+          onDone: () {
+            var back = buffer.toString();
+            request.response.close();
+            testStartedCallBack(browserId, back, testId);
+          },
+          onError: (error) {
+            DebugLogger.error("$error");
+          },
+        );
   }
 
   String getNextTest(String browserId) {
@@ -1153,7 +1244,8 @@ class BrowserTestingServer {
   Future<String> getDriverPage(String browserId) async {
     var errorReportingUrl =
         "http://$localIp:${errorReportingServer.port}/$browserId";
-    var driverContent = """
+    var driverContent =
+        """
 <!DOCTYPE html><html>
 <head>
   <title>Driving page</title>

@@ -60,6 +60,10 @@ namespace dart {
 
 DECLARE_FLAG(bool, print_class_table);
 DEFINE_FLAG(bool, trace_shutdown, false, "Trace VM shutdown on stderr");
+DEFINE_FLAG(bool,
+            check_core_snapshot_match,
+            false,
+            "Also check core snapshot matches on OS and arch");
 
 Isolate* Dart::vm_isolate_ = nullptr;
 int64_t Dart::start_time_micros_ = 0;
@@ -402,7 +406,6 @@ char* Dart::DartInit(const Dart_InitializeParams* params) {
     Thread* T = Thread::Current();
     ASSERT(T != nullptr);
     StackZone zone(T);
-    HandleScope handle_scope(T);
     Object::InitNullAndBool(vm_isolate_->group());
     vm_isolate_->isolate_group_->set_object_store(new ObjectStore());
     vm_isolate_->isolate_object_store()->Init();
@@ -1095,7 +1098,9 @@ char* Dart::FeaturesString(IsolateGroup* isolate_group,
                              FLAG_branch_coverage);
       ADD_ISOLATE_GROUP_FLAG(coverage, coverage, FLAG_coverage);
     }
+  }
 
+  if (Snapshot::IncludesCode(kind) || FLAG_check_core_snapshot_match) {
     // Generated code must match the host architecture and ABI. We check the
     // strong condition of matching on operating system so that
     // Platform.isAndroid etc can be compile-time constants.

@@ -61,6 +61,7 @@ class AstWriter extends UnifyingAstVisitor<void> with TreeWriter {
         'static keyword': ?node.staticKeyword
       else if (node is FormalParameter) ...{
         'declared fragment': ?node.declaredFragment,
+        'constFinalOrVarKeyword': ?node.constFinalOrVarKeyword,
         if (node.isRequiredPositional)
           'kind': 'required-positional'
         else if (node.isRequiredNamed)

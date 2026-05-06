@@ -279,13 +279,16 @@ void f(Future<void> future, void Function(dynamic a) callback) {
   }
 
   void test_firstParameterIsNamed() async {
+    // `void` must be specified explicitly on `then()`; the inferred type from
+    // `() {}` would otherwise be `Null`, and `void` (or `Future<void>`, or
+    // `Future<int>`) would be an illegal return type for the `onError` handler.
     await assertErrorsInCode(
       '''
-void f(Future<void> future, Future<int> Function({Object a}) callback) {
-  future.then((_) {}, onError: callback);
+void f(Future<void> future, Future<void> Function({Object a}) callback) {
+  future.then<void>((_) {}, onError: callback);
 }
 ''',
-      [error(diag.argumentTypeNotAssignableToErrorHandler, 95, 17)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 111, 8)],
     );
   }
 
@@ -296,7 +299,7 @@ void f(Future<void> future) {
   future.then((_) {}, onError: ({Object a = 1}) {});
 }
 ''',
-      [error(diag.argumentTypeNotAssignableToErrorHandler, 52, 28)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 61, 19)],
     );
   }
 
@@ -315,7 +318,7 @@ void f(Future<void> future) {
   future.then((_) {}, onError: () {});
 }
 ''',
-      [error(diag.argumentTypeNotAssignableToErrorHandler, 52, 14)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 61, 5)],
     );
   }
 
@@ -326,7 +329,7 @@ void f(Future<void> future) {
   future.then((_) {}, onError: (Object a, {StackTrace? b}) {});
 }
 ''',
-      [error(diag.argumentTypeNotAssignableToErrorHandler, 52, 39)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 61, 30)],
     );
   }
 
@@ -345,7 +348,7 @@ void f(Future<void> future) {
   future.then((_) {}, onError: (String a) {});
 }
 ''',
-      [error(diag.argumentTypeNotAssignableToErrorHandler, 52, 22)],
+      [error(diag.argumentTypeNotAssignableToErrorHandler, 61, 13)],
     );
   }
 

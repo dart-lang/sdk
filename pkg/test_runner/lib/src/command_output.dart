@@ -44,8 +44,16 @@ class CommandOutput {
 
   final List<String> diagnostics = [];
 
-  CommandOutput(this.command, this.exitCode, this.hasTimedOut, this.stdout,
-      this.stderr, this.time, this.compilationSkipped, this.pid);
+  CommandOutput(
+    this.command,
+    this.exitCode,
+    this.hasTimedOut,
+    this.stdout,
+    this.stderr,
+    this.time,
+    this.compilationSkipped,
+    this.pid,
+  );
 
   Expectation result(TestCase testCase) {
     if (hasCrashed) return Expectation.crash;
@@ -140,7 +148,7 @@ class BrowserTestJsonResult {
     'print',
     'message_received',
     'dom',
-    'debug'
+    'debug',
   ];
 
   final Expectation outcome;
@@ -165,7 +173,7 @@ class BrowserTestJsonResult {
         var eventList = events as List<dynamic>;
 
         var messagesByType = {
-          for (var type in _allowedTypes) type: <String?>[]
+          for (var type in _allowedTypes) type: <String?>[],
         };
 
         for (var entry in eventList) {
@@ -173,8 +181,10 @@ class BrowserTestJsonResult {
 
           var type = entry['type'];
           validate("'type' must be a String", type is String);
-          validate("'type' has to be in $_allowedTypes.",
-              _allowedTypes.contains(type));
+          validate(
+            "'type' has to be in $_allowedTypes.",
+            _allowedTypes.contains(type),
+          );
 
           var value = entry['value'];
           validate("'value' must be a String", value is String);
@@ -189,8 +199,10 @@ class BrowserTestJsonResult {
 
           messagesByType[type]!.add(value as String?);
         }
-        validate("The message must have exactly one 'dom' entry.",
-            messagesByType['dom']!.length == 1);
+        validate(
+          "The message must have exactly one 'dom' entry.",
+          messagesByType['dom']!.length == 1,
+        );
 
         var dom = messagesByType['dom']![0]!;
         if (dom.endsWith('\n')) {
@@ -198,7 +210,10 @@ class BrowserTestJsonResult {
         }
 
         return BrowserTestJsonResult(
-            _getOutcome(messagesByType), dom, eventList);
+          _getOutcome(messagesByType),
+          dom,
+          eventList,
+        );
       }
     } catch (error) {
       // If something goes wrong, we know the content was not in the correct
@@ -238,11 +253,13 @@ class BrowserTestJsonResult {
     // the unittest implementation posts these messages using
     // "window.postMessage()" instead of the normal "print()" them.
 
-    var isAsyncTest = searchForMsg(
-        ['print', 'message_received'], 'unittest-suite-wait-for-done');
+    var isAsyncTest = searchForMsg([
+      'print',
+      'message_received',
+    ], 'unittest-suite-wait-for-done');
     var isAsyncSuccess =
         searchForMsg(['print', 'message_received'], 'unittest-suite-success') ||
-            searchForMsg(['print', 'message_received'], 'unittest-suite-done');
+        searchForMsg(['print', 'message_received'], 'unittest-suite-done');
 
     if (isAsyncTest) {
       if (isAsyncSuccess) {
@@ -251,10 +268,14 @@ class BrowserTestJsonResult {
       return Expectation.runtimeError;
     }
 
-    var mainStarted =
-        searchForMsg(['print', 'message_received'], 'dart-calling-main');
-    var mainDone =
-        searchForMsg(['print', 'message_received'], 'dart-main-done');
+    var mainStarted = searchForMsg([
+      'print',
+      'message_received',
+    ], 'dart-calling-main');
+    var mainDone = searchForMsg([
+      'print',
+      'message_received',
+    ], 'dart-main-done');
 
     if (mainStarted && mainDone) {
       return Expectation.pass;
@@ -274,11 +295,14 @@ class BrowserCommandOutput extends CommandOutput
   final String _buildDirectory;
 
   factory BrowserCommandOutput(
-      BrowserTestCommand command, BrowserTestOutput result) {
+    BrowserTestCommand command,
+    BrowserTestOutput result,
+  ) {
     Expectation outcome;
 
-    var parsedResult =
-        BrowserTestJsonResult.parseFromString(result.lastKnownMessage);
+    var parsedResult = BrowserTestJsonResult.parseFromString(
+      result.lastKnownMessage,
+    );
     if (parsedResult != null) {
       outcome = parsedResult.outcome;
     } else {
@@ -295,7 +319,8 @@ class BrowserCommandOutput extends CommandOutput
     var stderr = "";
     if (result.didTimeout) {
       if (result.delayUntilTestStarted != null) {
-        stderr = "This test timed out. The delay until the test actually "
+        stderr =
+            "This test timed out. The delay until the test actually "
             "started was: ${result.delayUntilTestStarted}.";
       } else {
         stderr = "This test did not notify test.py that it started running.";
@@ -303,26 +328,35 @@ class BrowserCommandOutput extends CommandOutput
     }
 
     return BrowserCommandOutput._internal(
-        command,
-        result,
-        outcome,
-        parsedResult,
-        command.configuration.buildDirectory,
-        utf8.encode(""),
-        utf8.encode(stderr));
+      command,
+      result,
+      outcome,
+      parsedResult,
+      command.configuration.buildDirectory,
+      utf8.encode(""),
+      utf8.encode(stderr),
+    );
   }
 
   BrowserCommandOutput._internal(
-      Command command,
-      BrowserTestOutput result,
-      this._outcome,
-      this._jsonResult,
-      this._buildDirectory,
-      List<int> stdout,
-      List<int> stderr)
-      : _result = result,
-        super(command, 0, result.didTimeout, stdout, stderr, result.duration,
-            false, 0);
+    Command command,
+    BrowserTestOutput result,
+    this._outcome,
+    this._jsonResult,
+    this._buildDirectory,
+    List<int> stdout,
+    List<int> stderr,
+  ) : _result = result,
+      super(
+        command,
+        0,
+        result.didTimeout,
+        stdout,
+        stderr,
+        result.duration,
+        false,
+        0,
+      );
 
   @override
   Expectation result(TestCase testCase) {
@@ -359,8 +393,11 @@ class BrowserCommandOutput extends CommandOutput
     }
   }
 
-  void _describeEvents(Progress progress, OutputWriter output,
-      BrowserTestJsonResult jsonResult) {
+  void _describeEvents(
+    Progress progress,
+    OutputWriter output,
+    BrowserTestJsonResult jsonResult,
+  ) {
     // Always show the error events since those are most useful.
     var errorShown = false;
 
@@ -425,7 +462,8 @@ class BrowserCommandOutput extends CommandOutput
 
         default:
           output.write(
-              "- ${const JsonEncoder.withIndent('      ').convert(event)}");
+            "- ${const JsonEncoder.withIndent('      ').convert(event)}",
+          );
       }
     }
   }
@@ -497,35 +535,43 @@ class AnalyzerError implements Comparable<AnalyzerError> {
       var errorCode = '$type.${code.toUpperCase()}';
 
       var error = _parse(
-          diagnosticMap, diagnosticMap['problemMessage'] as String, errorCode);
+        diagnosticMap,
+        diagnosticMap['problemMessage'] as String,
+        errorCode,
+      );
       result.add(error);
 
       var contextMessages = diagnosticMap['contextMessages'] as List<dynamic>?;
       for (var contextMessage in contextMessages ?? const []) {
         var contextMessageMap = contextMessage as Map<String, dynamic>;
         error.contextMessages.add(
-            _parse(contextMessageMap, contextMessageMap['message'] as String));
+          _parse(contextMessageMap, contextMessageMap['message'] as String),
+        );
       }
     }
 
     return result;
   }
 
-  static AnalyzerError _parse(Map<String, dynamic> diagnostic, String message,
-      [String? errorCode]) {
+  static AnalyzerError _parse(
+    Map<String, dynamic> diagnostic,
+    String message, [
+    String? errorCode,
+  ]) {
     var location = diagnostic['location'] as Map<String, dynamic>;
 
     var range = location['range'] as Map<String, dynamic>;
     var start = range['start'] as Map<String, dynamic>;
     var end = range['end'] as Map<String, dynamic>;
     return AnalyzerError._(
-        severity: diagnostic['severity'] as String? ?? '',
-        errorCode: errorCode ?? '',
-        file: location['file'] as String,
-        message: message,
-        line: start['line'] as int,
-        column: start['column'] as int,
-        length: (end['offset'] as int) - (start['offset'] as int));
+      severity: diagnostic['severity'] as String? ?? '',
+      errorCode: errorCode ?? '',
+      file: location['file'] as String,
+      message: message,
+      line: start['line'] as int,
+      column: start['column'] as int,
+      length: (end['offset'] as int) - (start['offset'] as int),
+    );
   }
 
   final String severity;
@@ -538,14 +584,15 @@ class AnalyzerError implements Comparable<AnalyzerError> {
 
   final List<AnalyzerError> contextMessages = [];
 
-  AnalyzerError._(
-      {this.severity = '',
-      this.errorCode = '',
-      required this.file,
-      required this.message,
-      required this.line,
-      required this.column,
-      required this.length});
+  AnalyzerError._({
+    this.severity = '',
+    this.errorCode = '',
+    required this.file,
+    required this.message,
+    required this.line,
+    required this.column,
+    required this.length,
+  });
 
   @override
   int compareTo(AnalyzerError other) {
@@ -568,27 +615,35 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
     List<StaticError>? warnings,
   ]) {
     StaticError convert(AnalyzerError error) {
-      var staticError = StaticError(ErrorSource.analyzer, error.errorCode,
-          path: error.file,
-          line: error.line,
-          column: error.column,
-          length: error.length);
+      var staticError = StaticError(
+        ErrorSource.analyzer,
+        error.errorCode,
+        path: error.file,
+        line: error.line,
+        column: error.column,
+        length: error.length,
+      );
 
       for (var context in error.contextMessages) {
         // TODO(rnystrom): Include these when static error tests get support
         // for errors/context in other files.
         if (context.file != error.file) {
           DebugLogger.warning(
-              "Context messages in other files not currently supported.");
+            "Context messages in other files not currently supported.",
+          );
           continue;
         }
 
-        staticError.contextMessages.add(StaticError(
-            ErrorSource.context, context.message,
+        staticError.contextMessages.add(
+          StaticError(
+            ErrorSource.context,
+            context.message,
             path: context.file,
             line: context.line,
             column: context.column,
-            length: context.length));
+            length: context.length,
+          ),
+        );
       }
 
       return staticError;
@@ -620,15 +675,23 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
   String? _invalidJsonStdout;
 
   AnalysisCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0);
+    Command command,
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped,
+  ) : super(
+        command,
+        exitCode,
+        timedOut,
+        stdout,
+        stderr,
+        time,
+        compilationSkipped,
+        0,
+      );
 
   @override
   Expectation result(TestCase testCase) {
@@ -683,9 +746,9 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       files.sort();
 
       for (var file in files) {
-        var path = Path(file!)
-            .relativeTo(testCase.testFile.path.directoryPath)
-            .toString();
+        var path = Path(
+          file!,
+        ).relativeTo(testCase.testFile.path.directoryPath).toString();
         output.subsection("unexpected analysis errors in $path");
 
         var errors = errorsByFile[file]!;
@@ -723,15 +786,23 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
 
 class CompareAnalyzerCfeCommandOutput extends CommandOutput {
   CompareAnalyzerCfeCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0);
+    Command command,
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped,
+  ) : super(
+        command,
+        exitCode,
+        timedOut,
+        stdout,
+        stderr,
+        time,
+        compilationSkipped,
+        0,
+      );
 
   @override
   Expectation result(TestCase testCase) {
@@ -752,15 +823,23 @@ class CompareAnalyzerCfeCommandOutput extends CommandOutput {
 
 class SpecParseCommandOutput extends CommandOutput {
   SpecParseCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0);
+    Command command,
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped,
+  ) : super(
+        command,
+        exitCode,
+        timedOut,
+        stdout,
+        stderr,
+        time,
+        compilationSkipped,
+        0,
+      );
 
   bool get hasSyntaxError => exitCode == parseFailExitCode;
 
@@ -784,9 +863,15 @@ class VMCommandOutput extends CommandOutput with _UnittestSuiteMessagesMixin {
   static const _adbFailureExitCode = 3;
   static const _frontEndTestExitCode = 1;
 
-  VMCommandOutput(Command command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr, Duration time, int pid)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false, pid);
+  VMCommandOutput(
+    Command command,
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    int pid,
+  ) : super(command, exitCode, timedOut, stdout, stderr, time, false, pid);
 
   @override
   Expectation result(TestCase testCase) {
@@ -837,15 +922,23 @@ class CompilationCommandOutput extends CommandOutput {
   static const _crashExitCode = 253;
 
   CompilationCommandOutput(
-      Command command,
-      int exitCode,
-      bool timedOut,
-      List<int> stdout,
-      List<int> stderr,
-      Duration time,
-      bool compilationSkipped)
-      : super(command, exitCode, timedOut, stdout, stderr, time,
-            compilationSkipped, 0);
+    Command command,
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+    bool compilationSkipped,
+  ) : super(
+        command,
+        exitCode,
+        timedOut,
+        stdout,
+        stderr,
+        time,
+        compilationSkipped,
+        0,
+      );
 
   @override
   Expectation result(TestCase testCase) {
@@ -853,8 +946,9 @@ class CompilationCommandOutput extends CommandOutput {
     if (hasCrashed) return Expectation.crash;
     if (hasTimedOut) {
       var isWindows = io.Platform.operatingSystem == 'windows';
-      var isBrowserTestCase =
-          testCase.commands.any((command) => command is BrowserTestCommand);
+      var isBrowserTestCase = testCase.commands.any(
+        (command) => command is BrowserTestCommand,
+      );
       // TODO(26060) Dart2js batch mode hangs on Windows under heavy load.
       return (isWindows && isBrowserTestCase)
           ? Expectation.ignore
@@ -876,10 +970,18 @@ class CompilationCommandOutput extends CommandOutput {
 
 class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
-  static void parseErrors(String stdout, List<StaticError> errors,
-      [List<StaticError>? warnings]) {
+  static void parseErrors(
+    String stdout,
+    List<StaticError> errors, [
+    List<StaticError>? warnings,
+  ]) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.web, _errorRegexp, stdout, errors, warnings);
+      ErrorSource.web,
+      _errorRegexp,
+      stdout,
+      errors,
+      warnings,
+    );
   }
 
   /// Matches the location and message of a dart2js error message, which looks
@@ -893,12 +995,20 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
   /// The test runner only validates the main error message, and not the
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
-  static final _errorRegexp =
-      RegExp(r"^([^:\n\r]+):(\d+):(\d+):\n(Error|Warning): (.*)$",
-          multiLine: true);
+  static final _errorRegexp = RegExp(
+    r"^([^:\n\r]+):(\d+):(\d+):\n(Error|Warning): (.*)$",
+    multiLine: true,
+  );
 
-  Dart2jsCompilerCommandOutput(super.command, super.exitCode, super.timedOut,
-      super.stdout, super.stderr, super.time, super.compilationSkipped);
+  Dart2jsCompilerCommandOutput(
+    super.command,
+    super.exitCode,
+    super.timedOut,
+    super.stdout,
+    super.stderr,
+    super.time,
+    super.compilationSkipped,
+  );
 
   @override
   void _parseErrors() {
@@ -912,10 +1022,18 @@ class Dart2jsCompilerCommandOutput extends CompilationCommandOutput
 
 class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
-  static void parseErrors(String stdout, List<StaticError> errors,
-      [List<StaticError>? warnings]) {
+  static void parseErrors(
+    String stdout,
+    List<StaticError> errors, [
+    List<StaticError>? warnings,
+  ]) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.web, _errorRegexp, stdout, errors, warnings);
+      ErrorSource.web,
+      _errorRegexp,
+      stdout,
+      errors,
+      warnings,
+    );
   }
 
   /// Matches the location and message of a dart2wasm error message, which looks
@@ -928,12 +1046,20 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
   /// The test runner only validates the main error message, and not the
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
-  static final _errorRegexp =
-      RegExp(r"^([^:\n\r]+):(\d+):(\d+): (Error|Warning): (.*)$",
-          multiLine: true);
+  static final _errorRegexp = RegExp(
+    r"^([^:\n\r]+):(\d+):(\d+): (Error|Warning): (.*)$",
+    multiLine: true,
+  );
 
-  Dart2WasmCompilerCommandOutput(super.command, super.exitCode, super.timedOut,
-      super.stdout, super.stderr, super.time, super.compilationSkipped);
+  Dart2WasmCompilerCommandOutput(
+    super.command,
+    super.exitCode,
+    super.timedOut,
+    super.stdout,
+    super.stderr,
+    super.time,
+    super.compilationSkipped,
+  );
 
   @override
   Expectation result(TestCase testCase) {
@@ -969,10 +1095,18 @@ class Dart2WasmCompilerCommandOutput extends CompilationCommandOutput
 }
 
 class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
-  static void parseErrors(String stdout, List<StaticError> errors,
-      [List<StaticError>? warnings]) {
+  static void parseErrors(
+    String stdout,
+    List<StaticError> errors, [
+    List<StaticError>? warnings,
+  ]) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.web, _errorRegexp, stdout, errors, warnings);
+      ErrorSource.web,
+      _errorRegexp,
+      stdout,
+      errors,
+      warnings,
+    );
   }
 
   /// Matches the first line of a DDC error message. DDC prints errors to
@@ -987,18 +1121,20 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
   /// suggested fixes, so we only parse the first line.
   // TODO(rnystrom): Support validating context messages.
   static final _errorRegexp = RegExp(
-      r"^org-dartlang-app:/([^\n\r]+):(\d+):(\d+): (Error|Warning): (.*)$",
-      multiLine: true);
+    r"^org-dartlang-app:/([^\n\r]+):(\d+):(\d+): (Error|Warning): (.*)$",
+    multiLine: true,
+  );
 
   DevCompilerCommandOutput(
-      super.command,
-      super.exitCode,
-      super.timedOut,
-      super.stdout,
-      super.stderr,
-      super.time,
-      super.compilationSkipped,
-      super.pid);
+    super.command,
+    super.exitCode,
+    super.timedOut,
+    super.stdout,
+    super.stderr,
+    super.time,
+    super.compilationSkipped,
+    super.pid,
+  );
 
   @override
   Expectation result(TestCase testCase) {
@@ -1029,13 +1165,14 @@ class DevCompilerCommandOutput extends CommandOutput with _StaticErrorOutput {
 
 class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
   VMKernelCompilationCommandOutput(
-      super.command,
-      super.exitCode,
-      super.timedOut,
-      super.stdout,
-      super.stderr,
-      super.time,
-      super.compilationSkipped);
+    super.command,
+    super.exitCode,
+    super.timedOut,
+    super.stdout,
+    super.stderr,
+    super.time,
+    super.compilationSkipped,
+  );
 
   @override
   bool get canRunDependentCommands {
@@ -1091,9 +1228,14 @@ class VMKernelCompilationCommandOutput extends CompilationCommandOutput {
 
 class JSCommandLineOutput extends CommandOutput
     with _UnittestSuiteMessagesMixin {
-  JSCommandLineOutput(Command command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr, Duration time)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
+  JSCommandLineOutput(
+    Command command,
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+  ) : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
   @override
   Expectation result(TestCase testCase) {
@@ -1114,10 +1256,9 @@ class JSCommandLineOutput extends CommandOutput
   @override
   void describe(TestCase testCase, Progress progress, OutputWriter output) {
     super.describe(testCase, progress, output);
-    var decodedOut = decodeUtf8(stdout)
-        .replaceAll('\r\n', '\n')
-        .replaceAll('\r', '\n')
-        .trim();
+    var decodedOut = decodeUtf8(
+      stdout,
+    ).replaceAll('\r\n', '\n').replaceAll('\r', '\n').trim();
 
     _deobfuscateAndWriteStack(decodedOut, output);
   }
@@ -1125,9 +1266,14 @@ class JSCommandLineOutput extends CommandOutput
 
 class Dart2WasmCommandLineOutput extends CommandOutput
     with _UnittestSuiteMessagesMixin {
-  Dart2WasmCommandLineOutput(Command command, int exitCode, bool timedOut,
-      List<int> stdout, List<int> stderr, Duration time)
-      : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
+  Dart2WasmCommandLineOutput(
+    Command command,
+    int exitCode,
+    bool timedOut,
+    List<int> stdout,
+    List<int> stderr,
+    Duration time,
+  ) : super(command, exitCode, timedOut, stdout, stderr, time, false, 0);
 
   @override
   Expectation result(TestCase testCase) {
@@ -1149,9 +1295,12 @@ class Dart2WasmCommandLineOutput extends CommandOutput
 class ScriptCommandOutput extends CommandOutput {
   final Expectation _result;
 
-  ScriptCommandOutput(ScriptCommand command, this._result,
-      String scriptExecutionInformation, Duration time)
-      : super(command, 0, false, [], [], time, false, 0) {
+  ScriptCommandOutput(
+    ScriptCommand command,
+    this._result,
+    String scriptExecutionInformation,
+    Duration time,
+  ) : super(command, 0, false, [], [], time, false, 0) {
     var lines = scriptExecutionInformation.split("\n");
     diagnostics.addAll(lines);
   }
@@ -1169,9 +1318,17 @@ class ScriptCommandOutput extends CommandOutput {
 class FastaCommandOutput extends CompilationCommandOutput
     with _StaticErrorOutput {
   static void parseErrors(
-      String stdout, List<StaticError> errors, List<StaticError> warnings) {
+    String stdout,
+    List<StaticError> errors,
+    List<StaticError> warnings,
+  ) {
     _StaticErrorOutput._parseCfeErrors(
-        ErrorSource.cfe, _errorRegexp, stdout, errors, warnings);
+      ErrorSource.cfe,
+      _errorRegexp,
+      stdout,
+      errors,
+      warnings,
+    );
   }
 
   /// Matches the first line of a Fasta error, warning, or context message.
@@ -1185,11 +1342,19 @@ class FastaCommandOutput extends CompilationCommandOutput
   /// The test runner only validates the first line of the message, and not the
   /// suggested fixes.
   static final _errorRegexp = RegExp(
-      r"^(?:([^:\n\r]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
-      multiLine: true);
+    r"^(?:([^:\n\r]+):(\d+):(\d+): )?(Context|Error|Warning): (.*)$",
+    multiLine: true,
+  );
 
-  FastaCommandOutput(super.command, super.exitCode, super.hasTimedOut,
-      super.stdout, super.stderr, super.time, super.compilationSkipped);
+  FastaCommandOutput(
+    super.command,
+    super.exitCode,
+    super.hasTimedOut,
+    super.stdout,
+    super.stderr,
+    super.time,
+    super.compilationSkipped,
+  );
 
   @override
   void _parseErrors() {
@@ -1206,9 +1371,13 @@ class FastaCommandOutput extends CompilationCommandOutput
 mixin _StaticErrorOutput on CommandOutput {
   /// Parses compile errors reported by CFE using the given [regExp] and adds
   /// them to [errors] as coming from [errorSource].
-  static void _parseCfeErrors(ErrorSource errorSource, RegExp regExp,
-      String stdout, List<StaticError> errors,
-      [List<StaticError>? warnings]) {
+  static void _parseCfeErrors(
+    ErrorSource errorSource,
+    RegExp regExp,
+    String stdout,
+    List<StaticError> errors, [
+    List<StaticError>? warnings,
+  ]) {
     StaticError? previousError;
     for (var match in regExp.allMatches(stdout)) {
       // These three are either all present or all null.
@@ -1238,14 +1407,20 @@ mixin _StaticErrorOutput on CommandOutput {
       assert(column != null);
 
       var error = StaticError(
-          severity == "Context" ? ErrorSource.context : errorSource, message!,
-          path: path, line: line!, column: column!);
+        severity == "Context" ? ErrorSource.context : errorSource,
+        message!,
+        path: path,
+        line: line!,
+        column: column!,
+      );
 
       if (severity == "Context") {
         // Attach context messages to the preceding error/warning.
         if (previousError == null) {
-          DebugLogger.error("Got context message in CFE output before "
-              "error to attach it to.");
+          DebugLogger.error(
+            "Got context message in CFE output before "
+            "error to attach it to.",
+          );
         } else {
           previousError.contextMessages.add(error);
         }
@@ -1360,24 +1535,27 @@ mixin _StaticErrorOutput on CommandOutput {
   /// reported.
   ///
   /// If [writer] is given, outputs a description of any error mismatches.
-  Expectation _validateExpectedErrors(TestCase testCase,
-      [OutputWriter? writer]) {
+  Expectation _validateExpectedErrors(
+    TestCase testCase, [
+    OutputWriter? writer,
+  ]) {
     // Filter out errors that aren't for this configuration.
     var errorSource = const {
       Compiler.dart2analyzer: ErrorSource.analyzer,
       Compiler.dart2js: ErrorSource.web,
       Compiler.dart2wasm: ErrorSource.web,
       Compiler.ddc: ErrorSource.web,
-      Compiler.fasta: ErrorSource.cfe
+      Compiler.fasta: ErrorSource.cfe,
     }[testCase.configuration.compiler]!;
 
-    var expected = testCase.testFile.expectedErrors
-        .where((error) => error.source == errorSource);
-
-    var validation = StaticError.validateExpectations(
-      expected,
-      [...errors, ...warnings],
+    var expected = testCase.testFile.expectedErrors.where(
+      (error) => error.source == errorSource,
     );
+
+    var validation = StaticError.validateExpectations(expected, [
+      ...errors,
+      ...warnings,
+    ]);
     if (validation == null) return Expectation.pass;
 
     writer?.subsection("static error failures");

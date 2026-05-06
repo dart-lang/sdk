@@ -105,7 +105,7 @@ extension type Ext2(self::C c) implements self::C {
   constructor • = self::Ext2|constructor#;
   constructor tearoff • = self::Ext2|constructor#_#new#tearOff;
 }
-static extension-type-member method Ext|constructor#(core::Function it) → self::Ext% /* erasure=core::Function, declared=! */ {
+static extension-type-member method Ext|constructor#(initializing-formal core::Function it) → self::Ext% /* erasure=core::Function, declared=! */ {
   lowered final self::Ext% /* erasure=core::Function, declared=! */ #this = it;
   return #this;
 }
@@ -115,7 +115,7 @@ static extension-type-member method Ext|call(lowered final self::Ext% /* erasure
   return "call from Ext: ${(#this as{Unchecked} core::Function)()}";
 static extension-type-member method Ext|get#call(lowered final self::Ext% /* erasure=core::Function, declared=! */ #this) → () → core::String
   return () → core::String => self::Ext|call(#this);
-static extension-type-member method Ext2|constructor#(self::C c) → self::Ext2 /* erasure=self::C */ {
+static extension-type-member method Ext2|constructor#(initializing-formal self::C c) → self::Ext2 /* erasure=self::C */ {
   lowered final self::Ext2 /* erasure=self::C */ #this = c;
   return #this;
 }

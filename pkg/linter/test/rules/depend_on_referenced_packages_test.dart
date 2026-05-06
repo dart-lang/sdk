@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -89,7 +89,7 @@ version: 1.1.1
     var packageConfigBuilder = PackageConfigFileBuilder();
     packageConfigBuilder.add(
       name: 'flutter_gen',
-      rootPath: '$workspaceRootPath/flutter_gen',
+      rootFolder: getFolder('$workspaceRootPath/flutter_gen'),
     );
     writeTestPackageConfig(packageConfigBuilder);
     newFile(testPackagePubspecPath, r'''

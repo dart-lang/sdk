@@ -21,9 +21,9 @@ import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
@@ -305,7 +305,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
     writePackageConfig(
       rootFolder.path,
-      PackageConfigFileBuilder()..add(name: 'foo', rootPath: rootFolder.path),
+      PackageConfigFileBuilder()..add(name: 'foo', rootFolder: rootFolder),
     );
 
     for (var entry in files.entries) {
@@ -343,7 +343,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
     String directoryPath,
     PackageConfigFileBuilder config,
   ) {
-    var content = config.toContent(pathContext: pathContext);
+    var content = config.toContent();
     newPackageConfigJsonFile(directoryPath, content);
   }
 
@@ -373,7 +373,7 @@ class PubPackageResolutionTest extends ContextResolutionTest
 
     config.add(
       name: 'test',
-      rootPath: testPackageRootPath,
+      rootFolder: getFolder(testPackageRootPath),
       languageVersion: languageVersion ?? testPackageLanguageVersion,
     );
 
@@ -395,25 +395,28 @@ class _VisibleOutsideTemplate {
   const _VisibleOutsideTemplate();
 }
 ''');
-      config.add(name: 'angular_meta', rootPath: angularMetaRootPath);
+      config.add(
+        name: 'angular_meta',
+        rootFolder: getFolder(angularMetaRootPath),
+      );
     }
 
     if (ffi) {
       var ffiPath = addFfi().parent.path;
-      config.add(name: 'ffi', rootPath: ffiPath);
+      config.add(name: 'ffi', rootFolder: getFolder(ffiPath));
     }
 
     if (flutter) {
       var skyEnginePath = addSkyEngine(sdkPath: sdkRoot.path).parent.path;
-      config.add(name: 'sky_engine', rootPath: skyEnginePath);
+      config.add(name: 'sky_engine', rootFolder: getFolder(skyEnginePath));
 
       var flutterPath = addFlutter().parent.path;
-      config.add(name: 'flutter', rootPath: flutterPath);
+      config.add(name: 'flutter', rootFolder: getFolder(flutterPath));
     }
 
     if (meta || flutter) {
       var metaPath = addMeta().parent.path;
-      config.add(name: 'meta', rootPath: metaPath);
+      config.add(name: 'meta', rootFolder: getFolder(metaPath));
     }
 
     writePackageConfig(testPackageRootPath, config);

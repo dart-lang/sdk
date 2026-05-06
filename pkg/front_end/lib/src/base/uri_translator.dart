@@ -18,6 +18,12 @@ class UriTranslator {
 
   UriTranslator(this.options, this.dartLibraries, this.packages);
 
+  // Coverage-ignore(suite): Not run.
+  UriTranslator.forTesting()
+    : options = new ProcessedOptions(),
+      dartLibraries = new TargetLibrariesSpecification("testing"),
+      packages = PackageConfig.empty;
+
   List<Uri>? getDartPatches(String libraryName) =>
       dartLibraries.libraryInfoFor(libraryName)?.patches;
 

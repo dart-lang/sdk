@@ -8,8 +8,10 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/diagnostic/diagnostic_message.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -33,7 +35,10 @@ class PreferFinalLocals extends AnalysisRule {
     RuleVisitorRegistry registry,
     RuleContext context,
   ) {
-    var visitor = _Visitor(this);
+    var visitor = _Visitor(
+      this,
+      currentFilePath: context.definingUnit.file.path,
+    );
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addPatternVariableDeclaration(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -54,12 +59,20 @@ class _DeclaredVariableVisitor extends RecursiveAstVisitor<void> {
 
 class _Visitor extends SimpleAstVisitor<void> {
   final AnalysisRule rule;
+  final String currentFilePath;
 
-  _Visitor(this.rule);
+  _Visitor(this.rule, {required this.currentFilePath});
 
   bool isPotentiallyMutated(AstNode pattern, FunctionBody function) {
     if (pattern is DeclaredVariablePattern) {
-      var element = pattern.declaredFragment?.element;
+      VariableElement? element = pattern.declaredFragment?.element;
+      if (element case BindPatternVariableElement(:var join?)) {
+        if (element != join.variables.first) {
+          // We will only report on the first variable in a join.
+          return true;
+        }
+        element = join;
+      }
       if (element == null || function.isPotentiallyMutatedInScope(element)) {
         return true;
       }
@@ -81,7 +94,24 @@ class _Visitor extends SimpleAstVisitor<void> {
     var inCaseClause = node.thisOrAncestorOfType<CaseClause>() != null;
     if (inCaseClause) {
       if (!isPotentiallyMutated(node, function)) {
-        rule.reportAtNode(node);
+        var join = _joinPatternVariable(node.declaredFragment?.element);
+        List<DiagnosticMessage>? contextMessages;
+        if (join case JoinPatternVariableElement(:var variables)) {
+          contextMessages = [];
+          for (var fragment
+              in variables.skip(1).map((variable) => variable.firstFragment)) {
+            contextMessages.add(
+              DiagnosticMessageImpl(
+                filePath: currentFilePath,
+                offset: fragment.offset,
+                length: fragment.name?.length ?? 0,
+                message: 'This variable is also declared here.',
+                url: null,
+              ),
+            );
+          }
+        }
+        rule.reportAtNode(node, contextMessages: contextMessages);
       }
     } else {
       var forEachPattern = node.thisOrAncestorOfType<ForEachPartsWithPattern>();
@@ -147,6 +177,13 @@ class _Visitor extends SimpleAstVisitor<void> {
     } else if (node.type != null) {
       rule.reportAtNode(node.type);
     }
+  }
+
+  JoinPatternVariableElement? _joinPatternVariable(Element? element) {
+    if (element case BindPatternVariableElement(:var join?)) {
+      return join;
+    }
+    return null;
   }
 }
 

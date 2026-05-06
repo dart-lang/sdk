@@ -19,14 +19,13 @@ class Class<T> {
   Class.private(this._privateField);
 
   Class.explicitType(num this.numField);
-  Class.withVar(var this.numField);
+  Class.withNoType(this.numField);
   Class.withSubtype(int this.numField);
 }
 
 class Constant {
   final num value;
   const Constant(this.value);
-  const Constant.marked(final this.value);
 }
 
 void main() {
@@ -107,7 +106,7 @@ void main() {
   Expect.isFalse(pm.isStatic);
   Expect.isFalse(pm.isTopLevel);
 
-  mm = reflectClass(Class).declarations[#Class.withVar] as MethodMirror;
+  mm = reflectClass(Class).declarations[#Class.withNoType] as MethodMirror;
   pm = mm.parameters.single;
   Expect.equals(#numField, pm.simpleName);
   Expect.equals(reflectClass(num), pm.type);
@@ -137,18 +136,6 @@ void main() {
   Expect.equals(reflectClass(num), pm.type);
   Expect.isFalse(pm.isNamed);
   Expect.isFalse(pm.isFinal); // N.B.
-  Expect.isFalse(pm.isOptional);
-  Expect.isFalse(pm.hasDefaultValue);
-  Expect.isFalse(pm.isPrivate);
-  Expect.isFalse(pm.isStatic);
-  Expect.isFalse(pm.isTopLevel);
-
-  mm = reflectClass(Constant).declarations[#Constant.marked] as MethodMirror;
-  pm = mm.parameters.single;
-  Expect.equals(#value, pm.simpleName);
-  Expect.equals(reflectClass(num), pm.type);
-  Expect.isFalse(pm.isNamed);
-  Expect.isTrue(pm.isFinal); // N.B.
   Expect.isFalse(pm.isOptional);
   Expect.isFalse(pm.hasDefaultValue);
   Expect.isFalse(pm.isPrivate);

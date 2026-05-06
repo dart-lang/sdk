@@ -605,8 +605,23 @@ final class Return extends Instruction
     setInputAt(0, value);
   }
 
+  Definition get value => inputDefAt(0);
+
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitReturn(this);
+}
+
+/// A point in the control flow which should not be reachable at runtime.
+final class Unreachable extends Instruction
+    with NoThrow, Pure
+    implements ControlFlowInstruction {
+  /// Message which could be displayed if this instruction is reached.
+  final String message;
+  Unreachable(super.graph, super.sourcePosition, this.message)
+    : super(inputCount: 0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitUnreachable(this);
 }
 
 enum ComparisonOpcode {
@@ -1061,21 +1076,45 @@ final class StoreStaticField extends StoreField {
   R accept<R>(InstructionVisitor<R> v) => v.visitStoreStaticField(this);
 }
 
-/// Throw given exception object. Also takes optional stack trace
+/// Kinds of exceptions thrown via [Throw].
+enum ThrowKind {
+  // Throw given exception object.
+  exception,
+  // Rethrow given exception object with a given stack trace.
+  rethrowException,
+
+  /// Throw LateError when local variable has not been initialized.
+  lateLocalNotInitialized,
+  // Throw LateError when local variable has already been initialized.
+  lateLocalAlreadyInitialized,
+  // Throw LateError when local variable has been assigned during initialization.
+  lateLocalAssignedDuringInitialization,
+}
+
+/// Throw exception, either using provided exception object or
+/// one of the standard errors. Also takes optional stack trace
 /// input to rethrow exception object without collecting a new stack trace.
 final class Throw extends Instruction
     with CanThrow, HasSideEffects
     implements ControlFlowInstruction {
+  final ThrowKind kind;
+
   Throw(
     super.graph,
     super.sourcePosition,
-    Definition exception,
-    Definition? stackTrace,
-  ) : super(inputCount: stackTrace != null ? 2 : 1) {
-    setInputAt(0, exception);
-    if (stackTrace != null) {
-      setInputAt(1, stackTrace);
-    }
+    this.kind, {
+    required super.inputCount,
+  }) {
+    assert(
+      inputCount ==
+          switch (kind) {
+            .exception => 1, // Exception object.
+            .rethrowException => 2, // Exception object and stack trace.
+            .lateLocalNotInitialized ||
+            .lateLocalAlreadyInitialized ||
+            .lateLocalAssignedDuringInitialization => 1, // Variable name.
+          },
+    );
   }
 
   @override
@@ -1204,7 +1243,7 @@ final class TypeTest extends Definition with NoThrow, Pure, Idempotent {
 /// passed to a call or an instance allocation.
 ///
 /// Only used as the first input of call instructions, [AllocateObject],
-/// [AllocateListLiteral] and [AllocateMapLiteral].
+/// [AllocateListLiteral], [AllocateMapLiteral] and [EnterSuspendableFunction].
 final class TypeArguments extends Definition with NoThrow, Pure, Idempotent {
   final List<ast.DartType> types;
   TypeArguments(
@@ -1355,6 +1394,63 @@ final class StringInterpolation extends Definition
 
   @override
   R accept<R>(InstructionVisitor<R> v) => v.visitStringInterpolation(this);
+}
+
+/// Enter a suspendable function.
+/// Type arguments of the function return value are provided as input.
+final class EnterSuspendableFunction extends Instruction
+    with CanThrow, HasSideEffects {
+  EnterSuspendableFunction(
+    super.graph,
+    super.sourcePosition,
+    Definition typeArguments,
+  ) : super(inputCount: 1) {
+    setInputAt(0, typeArguments);
+  }
+
+  Definition get typeArguments => inputDefAt(0);
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitEnterSuspendableFunction(this);
+}
+
+enum SuspendOpcode {
+  await,
+  awaitWithTypeCheck,
+  asyncYield,
+  asyncYieldStar,
+  syncYield,
+  syncYieldStar,
+}
+
+/// A point where execution of a suspendable function can be suspended
+/// and resumed (await, yield or yield*).
+final class Suspend extends Definition with CanThrow, HasSideEffects {
+  final SuspendOpcode op;
+
+  @override
+  final CType type;
+
+  Suspend(
+    super.graph,
+    super.sourcePosition,
+    this.op,
+    this.type,
+    Definition operand, {
+    Definition? typeArguments,
+  }) : super(inputCount: (typeArguments != null ? 2 : 1)) {
+    setInputAt(0, operand);
+    if (typeArguments != null) {
+      assert(op == SuspendOpcode.awaitWithTypeCheck);
+      setInputAt(1, typeArguments);
+    }
+  }
+
+  Definition get operand => inputDefAt(0);
+  Definition? get typeArguments => inputCount > 1 ? inputDefAt(1) : null;
+
+  @override
+  R accept<R>(InstructionVisitor<R> v) => v.visitSuspend(this);
 }
 
 enum BinaryIntOpcode {
@@ -1723,17 +1819,18 @@ abstract base class MoveOp {}
 /// e.g. for every two successive [ParallelMove] instructions it is guaranteed
 /// that `instr.stage.index < instr.next.stage.index`.
 enum ParallelMoveStage {
-  // Move fixed output of the instruction to its desired location.
-  output,
-  // Spill output of the instruction.
-  spill,
-  // Split live ranges between instructions.
-  split,
-  // Split live ranges at the next instruction.
-  splitLate,
-  // Moves at control flow edges (including phi moves).
+  // Control flow moves at the beginning of basic block.
   control,
+  // Move fixed output of the instruction to its desired location.
+  // Moves which split live ranges between instructions.
+  // Spill a non-fixed output of the instruction.
+  output,
+  // Spill output of the instruction in case of a fixed location
+  // (output is defined only after [ParallelMoveStage.output]).
+  spill,
   // Move instruction inputs to their fixed locations.
+  // Moves which split live ranges at the next instructions.
+  // Also control flow moves at the end of basic block.
   input,
 }
 

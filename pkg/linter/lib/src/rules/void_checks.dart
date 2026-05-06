@@ -180,14 +180,14 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _checkArgs(
-    NodeList<Expression> args,
+    NodeList<Argument> args,
     List<FormalParameterElement> parameters,
   ) {
     for (var arg in args) {
       var parameterElement = arg.correspondingParameter;
       if (parameterElement != null) {
         var type = parameterElement.type;
-        var expression = arg is NamedExpression ? arg.expression : arg;
+        var expression = arg.argumentExpression;
         _check(type, expression.staticType, expression);
       }
     }

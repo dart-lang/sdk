@@ -5,62 +5,62 @@ class B extends M {}
 class C extends M {}
 
 exhaustiveDynamicAsM(dynamic m) => switch (m) {
-      (A() || B() || C()) as M => 0,
-    };
+  (A() || B() || C()) as M => 0,
+};
 
 exhaustiveDynamicAsMSeeminglyRestricted(dynamic m) => switch (m) {
-      (A() || B() || C(hashCode: 5)) as A => 0,
-    };
+  (A() || B() || C(hashCode: 5)) as A => 0,
+};
 
 exhaustiveDynamicAsMUnrestricted(dynamic m) => switch (m) {
-      (A() || B() || C(hashCode: int())) as M => 0,
-    };
+  (A() || B() || C(hashCode: int())) as M => 0,
+};
 
 exhaustiveDynamicAsStringOrInt(o) => switch (o) {
-      final String value => value,
-      final value as int => '$value',
-    };
+  final String value => value,
+  final value as int => '$value',
+};
 
 exhaustiveDynamicAsStringOrIntAnd(o) => switch (o) {
-      final String value => value,
-      (final value && final value2) as int => '$value$value2',
-    };
+  final String value => value,
+  (final value && final value2) as int => '$value$value2',
+};
 
 exhaustiveDynamicAsStringOrIntUnrestricted(o) => switch (o) {
-      final String value => value,
-      int(:bool isEven) as int => '$isEven',
-    };
+  final String value => value,
+  int(:bool isEven) as int => '$isEven',
+};
 
 exhaustiveDynamicAsStringOrNum(o) => switch (o) {
-      final String value => value,
-      final num value as int => '$value',
-    };
+  final String value => value,
+  final num value as int => '$value',
+};
 
 exhaustiveList(o) => switch (o) {
-      [_] => 1,
-      [...] as List => 0,
-    };
+  [_] => 1,
+  [...] as List => 0,
+};
 
 exhaustiveMAsM(M m) => switch (m) {
-      (A() || B() || C()) as M => 0,
-    };
+  (A() || B() || C()) as M => 0,
+};
 
 nonExhaustiveDynamicAsMRestricted(dynamic m) => switch (m) {
-      (A() || B() || C(hashCode: 5)) as M => 0,
-    };
+  (A() || B() || C(hashCode: 5)) as M => 0,
+};
 
 nonExhaustiveDynamicAsStringOrDouble(o) => switch (o) {
-      final String value => value,
-      final double value as num => '$value',
-    };
+  final String value => value,
+  final double value as num => '$value',
+};
 
 nonExhaustiveDynamicAsStringOrIntRestricted(o) => switch (o) {
-      final String value => value,
-      int(isEven: true) as int => '',
-    };
+  final String value => value,
+  int(isEven: true) as int => '',
+};
 
 nonExhaustiveList(o) => switch (o) {
-      [] as List => 0,
-    };
+  [] as List => 0,
+};
 
 sealed class M {}

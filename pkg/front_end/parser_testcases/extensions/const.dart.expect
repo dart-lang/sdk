@@ -1,71 +1,22 @@
 Problems reported:
 
-parser/extensions/const:1:1: Expected 'on' after this.
-extension const Extension on int {}
-^^^^^^^^^
-
-parser/extensions/const:1:11: Expected a type, but got 'const'.
+parser/extensions/const:1:11: Extensions can't have primary constructors.
 extension const Extension on int {}
           ^^^^^
-
-parser/extensions/const:1:11: An extension declaration must have a body, even if it is empty.
-extension const Extension on int {}
-          ^^^^^
-
-parser/extensions/const:1:27: The const variable 'on' must be initialized.
-extension const Extension on int {}
-                          ^^
-
-parser/extensions/const:1:27: Expected ';' after this.
-extension const Extension on int {}
-                          ^^
-
-parser/extensions/const:1:30: A function declaration needs an explicit list of parameters.
-extension const Extension on int {}
-                             ^^^
 
 beginCompilationUnit(extension)
   beginMetadataStar(extension)
   endMetadataStar(0)
   beginExtensionDeclarationPrelude(extension)
-    handleNoTypeVariables(const)
-    beginExtensionDeclaration(null, extension, null)
-      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected 'on' after this., null, {expected: on}], extension, extension)
-      handleRecoverableError(Message[Template(ExpectedType), Expected a type, but got 'const'., null, {lexeme: const}], const, const)
-      handleIdentifier(, typeReference)
-      handleNoTypeArguments(const)
-      handleType(, null)
-      handleRecoverableError(ExpectedExtensionBody, const, const)
+    handleNoTypeVariables(on)
+    beginExtensionDeclaration(null, extension, Extension)
+      handleRecoverableError(ExtensionPrimaryConstructor, const, const)
+      handleNoPrimaryConstructor(DeclarationKind.Extension, Extension, const)
+      handleIdentifier(int, typeReference)
+      handleNoTypeArguments({)
+      handleType(int, null)
       beginClassOrMixinOrExtensionBody(DeclarationKind.Extension, {)
       endClassOrMixinOrExtensionBody(DeclarationKind.Extension, 0, {, })
     endExtensionDeclaration(extension, extension, on, })
   endTopLevelDeclaration(})
-  beginMetadataStar(const)
-  endMetadataStar(0)
-  beginTopLevelMember(const)
-    beginFields(DeclarationKind.TopLevel, null, null, null, null, null, null, const, })
-      handleIdentifier(Extension, typeReference)
-      handleNoTypeArguments(on)
-      handleType(Extension, null)
-      handleIdentifier(on, topLevelVariableDeclaration)
-      handleRecoverableError(Message[Template(ConstFieldWithoutInitializer), The const variable 'on' must be initialized., Try adding an initializer ('= expression') to the declaration., {name: on}], on, on)
-      handleNoFieldInitializer(int)
-      handleRecoverableError(Message[Template(ExpectedAfterButGot), Expected ';' after this., null, {expected: ;}], on, on)
-    endTopLevelFields(null, null, null, null, null, const, 1, const, ;)
-  endTopLevelDeclaration(;)
-  beginMetadataStar(int)
-  endMetadataStar(0)
-  beginTopLevelMember(int)
-    beginTopLevelMethod(;, null, null)
-      handleNoType(;)
-      handleIdentifier(int, topLevelFunctionDeclaration)
-      handleNoTypeVariables({)
-      handleRecoverableError(MissingFunctionParameters, int, int)
-      beginFormalParameters((, MemberKind.TopLevelMethod)
-      endFormalParameters(0, (, ), MemberKind.TopLevelMethod)
-      handleAsyncModifier(null, null)
-      beginBlockFunctionBody({)
-      endBlockFunctionBody(0, {, })
-    endTopLevelMethod(int, null, })
-  endTopLevelDeclaration(})
-endCompilationUnit(3, )
+endCompilationUnit(1, )

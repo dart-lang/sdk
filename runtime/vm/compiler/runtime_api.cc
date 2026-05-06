@@ -422,8 +422,6 @@ static uword GetInstanceSizeImpl(const dart::Class& handle) {
       return Instance::InstanceSize();
     case kGrowableObjectArrayCid:
       return GrowableObjectArray::InstanceSize();
-    case kClosureCid:
-      return Closure::InstanceSize();
     case kTypedDataBaseCid:
       return TypedDataBase::InstanceSize();
     case kMapCid:
@@ -517,6 +515,8 @@ word Instance::DataOffsetFor(intptr_t cid) {
     case kArrayCid:
     case kImmutableArrayCid:
       return Array::data_offset();
+    case kClosureCid:
+      return Closure::element_offset(0);
     case kTypeArgumentsCid:
       return TypeArguments::types_offset();
     case kOneByteStringCid:
@@ -1020,6 +1020,15 @@ intptr_t Array::index_at_offset(intptr_t offset_in_bytes) {
       TranslateOffsetInWordsToHost(offset_in_bytes));
 }
 
+intptr_t Closure::element_index_at_offset(intptr_t offset_in_bytes) {
+  // Note: cannot delegate to dart::Closure::element_index_at_offset as
+  // Closure layout is different between AOT and precompiler.
+  const intptr_t index =
+      (offset_in_bytes - Closure::element_offset(0)) / kCompressedWordSize;
+  ASSERT(index >= 0);
+  return index;
+}
+
 intptr_t Record::field_index_at_offset(intptr_t offset_in_bytes) {
   return dart::Record::field_index_at_offset(
       TranslateOffsetInWordsToHost(offset_in_bytes));
@@ -1027,10 +1036,6 @@ intptr_t Record::field_index_at_offset(intptr_t offset_in_bytes) {
 
 word String::InstanceSize(word payload_size) {
   return RoundedAllocationSize(String::InstanceSize() + payload_size);
-}
-
-word LocalVarDescriptors::InstanceSize() {
-  return 0;
 }
 
 word Integer::NextFieldOffset() {

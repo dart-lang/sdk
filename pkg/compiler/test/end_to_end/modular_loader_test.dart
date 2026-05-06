@@ -104,16 +104,18 @@ Future<Uint8List> compileUnit(
       entity.writeAsBytesSync(data);
     }
   });
-  List<Uri> additionalDills = [
-    computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
-  ]..addAll(deps.map(toTestUri));
+
+  List<Uri> additionalDillModules = deps.map(toTestUri).toList();
   fs
       .entityForUri(toTestUri('.dart_tool/package_config.json'))
       .writeAsStringSync('{"configVersion": 2, "packages": []}');
   var options = CompilerOptions()
     ..target = Dart2jsTarget("dart2js", TargetFlags())
     ..fileSystem = TestFileSystem(fs)
-    ..additionalDills = additionalDills
+    ..sdkSummary = computePlatformBinariesLocation().resolve(
+      "dart2js_platform.dill",
+    )
+    ..additionalDillModules = additionalDillModules
     ..packagesFileUri = toTestUri('.dart_tool/package_config.json')
     ..explicitExperimentalFlags = {ExperimentalFlag.nonNullable: true};
   var inputUris = inputs.map(toTestUri).toList();

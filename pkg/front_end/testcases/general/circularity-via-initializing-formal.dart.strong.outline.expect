@@ -17,7 +17,7 @@ import "dart:core" as core;
 
 class C extends core::Object {
   field self::C f;
-  erroneous constructor _circular(self::C f) → self::C
+  erroneous constructor _circular(initializing-formal self::C f) → self::C
     ;
 }
 static field self::C x;

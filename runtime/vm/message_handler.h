@@ -33,12 +33,9 @@ class MessageHandler : public PortHandler {
   virtual ~MessageHandler();
 
   typedef uword CallbackData;
-  typedef MessageStatus (*StartCallback)(CallbackData data);
   typedef void (*EndCallback)(CallbackData data);
 
   // Runs this message handler on the thread pool.
-  //
-  // Before processing messages, the optional StartFunction is run.
   //
   // A message handler will run until it terminates either normally or
   // abnormally.  Normal termination occurs when the message handler
@@ -48,10 +45,7 @@ class MessageHandler : public PortHandler {
 
   // Returns false if the handler terminated abnormally, otherwise it
   // returns true.
-  bool Run(ThreadPool* pool,
-           StartCallback start_callback,
-           EndCallback end_callback,
-           CallbackData data);
+  bool Run(ThreadPool* pool, EndCallback end_callback, CallbackData data);
 
   // Handles the next message for this message handler.  Should only
   // be used when not running the handler on the thread pool (via Run
@@ -77,6 +71,13 @@ class MessageHandler : public PortHandler {
   // Returns true if there are pending normal messages for this message
   // handler.
   bool HasMessages();
+
+  struct MessageCount {
+    intptr_t num_messages;
+    intptr_t num_oob_messages;
+  };
+
+  MessageCount GetMessageCounts();
 
   // Whether to keep this message handler alive or whether it should shutdown.
   virtual bool KeepAliveLocked() { return true; }
@@ -114,36 +115,6 @@ class MessageHandler : public PortHandler {
   void PausedOnStart(bool paused);
   void PausedOnExit(bool paused);
 #endif
-
-  // Gives temporary ownership of |queue| and |oob_queue|. Using this object
-  // has the side effect that no OOB messages will be handled if a stack
-  // overflow interrupt is delivered.
-  class AcquiredQueues : public ValueObject {
-   public:
-    explicit AcquiredQueues(MessageHandler* handler);
-
-    ~AcquiredQueues();
-
-    MessageQueue* queue() {
-      if (handler_ == nullptr) {
-        return nullptr;
-      }
-      return handler_->queue_;
-    }
-
-    MessageQueue* oob_queue() {
-      if (handler_ == nullptr) {
-        return nullptr;
-      }
-      return handler_->oob_queue_;
-    }
-
-   private:
-    MessageHandler* handler_;
-    SafepointMonitorLocker ml_;
-
-    friend class MessageHandler;
-  };
 
  protected:
   // Custom message notification.  Optionally provided by subclass.
@@ -229,10 +200,6 @@ class MessageHandler : public PortHandler {
   Monitor monitor_;  // Protects all fields in MessageHandler.
   MessageQueue* queue_;
   MessageQueue* oob_queue_;
-  // This flag is not thread safe and can only reliably be accessed on a single
-  // thread.
-  bool oob_message_handling_allowed_;
-  bool paused_for_messages_;
 
   // Only accessed by [PortMap], protected by [PortMap]s lock. See ports()
   // getter.
@@ -251,7 +218,6 @@ class MessageHandler : public PortHandler {
 #endif
   bool task_running_;
   ThreadPool* pool_;
-  StartCallback start_callback_;
   EndCallback end_callback_;
   CallbackData callback_data_;
 

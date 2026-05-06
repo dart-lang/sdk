@@ -128,8 +128,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   @override
   R? visitClassTypeAlias(ClassTypeAlias node) => visitTypeAlias(node);
 
-  R? visitCollectionElement(CollectionElement node) => visitNode(node);
-
   R? visitCombinator(Combinator node) => visitNode(node);
 
   @override
@@ -192,10 +190,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node) =>
       visitVariablePattern(node);
 
-  @override
-  R? visitDefaultFormalParameter(DefaultFormalParameter node) =>
-      visitFormalParameter(node);
-
   R? visitDirective(Directive node) => visitAnnotatedNode(node);
 
   @override
@@ -249,7 +243,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitExportDirective(ExportDirective node) =>
       visitNamespaceDirective(node);
 
-  R? visitExpression(Expression node) => visitCollectionElement(node);
+  R? visitExpression(Expression node) => visitNode(node);
 
   @override
   R? visitExpressionFunctionBody(ExpressionFunctionBody node) =>
@@ -280,7 +274,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitFieldFormalParameter(FieldFormalParameter node) =>
-      visitNormalFormalParameter(node);
+      visitFormalParameter(node);
 
   R? visitForEachParts(ForEachParts node) => visitForLoopParts(node);
 
@@ -297,11 +291,15 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitForEachParts(node);
 
   @override
-  R? visitForElement(ForElement node) => visitCollectionElement(node);
+  R? visitForElement(ForElement node) => visitNode(node);
 
   R? visitForLoopParts(ForLoopParts node) => visitNode(node);
 
   R? visitFormalParameter(FormalParameter node) => visitNode(node);
+
+  @override
+  R? visitFormalParameterDefaultClause(FormalParameterDefaultClause node) =>
+      visitNode(node);
 
   @override
   R? visitFormalParameterList(FormalParameterList node) => visitNode(node);
@@ -351,8 +349,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitFunctionTypeAlias(FunctionTypeAlias node) => visitTypeAlias(node);
 
   @override
-  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      visitNormalFormalParameter(node);
+  R? visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) => visitNode(node);
 
   @override
   R? visitGenericFunctionType(GenericFunctionType node) =>
@@ -370,7 +369,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitIdentifier(Identifier node) => visitCommentReferableExpression(node);
 
   @override
-  R? visitIfElement(IfElement node) => visitCollectionElement(node);
+  R? visitIfElement(IfElement node) => visitNode(node);
 
   @override
   R? visitIfStatement(IfStatement node) => visitStatement(node);
@@ -422,6 +421,9 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitLabeledStatement(LabeledStatement node) => visitStatement(node);
 
   @override
+  R? visitLabelReference(LabelReference node) => visitNode(node);
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) => visitDirective(node);
 
   @override
@@ -439,7 +441,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitLogicalOrPattern(LogicalOrPattern node) => visitDartPattern(node);
 
   @override
-  R? visitMapLiteralEntry(MapLiteralEntry node) => visitCollectionElement(node);
+  R? visitMapLiteralEntry(MapLiteralEntry node) => visitNode(node);
 
   @override
   R? visitMapPattern(MapPattern node) => visitDartPattern(node);
@@ -462,7 +464,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitMixinOnClause(MixinOnClause node) => visitNode(node);
 
   @override
-  R? visitNamedExpression(NamedExpression node) => visitExpression(node);
+  R? visitNamedArgument(NamedArgument node) => visitNode(node);
 
   @override
   R? visitNamedType(NamedType node) => visitTypeAnnotation(node);
@@ -486,15 +488,11 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
     return null;
   }
 
-  R? visitNormalFormalParameter(NormalFormalParameter node) =>
-      visitFormalParameter(node);
-
   @override
   R? visitNullAssertPattern(NullAssertPattern node) => visitDartPattern(node);
 
   @override
-  R? visitNullAwareElement(NullAwareElement node) =>
-      visitCollectionElement(node);
+  R? visitNullAwareElement(NullAwareElement node) => visitNode(node);
 
   @override
   R? visitNullCheckPattern(NullCheckPattern node) => visitDartPattern(node);
@@ -566,6 +564,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitRecordLiteral(RecordLiteral node) => visitLiteral(node);
 
   @override
+  R? visitRecordLiteralNamedField(RecordLiteralNamedField node) =>
+      visitNode(node);
+
+  @override
   R? visitRecordPattern(RecordPattern node) => visitDartPattern(node);
 
   @override
@@ -595,6 +597,10 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   ) => visitConstructorInitializer(node);
 
   @override
+  R? visitRegularFormalParameter(RegularFormalParameter node) =>
+      visitFormalParameter(node);
+
+  @override
   R? visitRelationalPattern(RelationalPattern node) => visitDartPattern(node);
 
   @override
@@ -616,10 +622,6 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
   R? visitShowCombinator(ShowCombinator node) => visitCombinator(node);
 
   @override
-  R? visitSimpleFormalParameter(SimpleFormalParameter node) =>
-      visitNormalFormalParameter(node);
-
-  @override
   R? visitSimpleIdentifier(SimpleIdentifier node) => visitIdentifier(node);
 
   @override
@@ -630,7 +632,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
       visitStringLiteral(node);
 
   @override
-  R? visitSpreadElement(SpreadElement node) => visitCollectionElement(node);
+  R? visitSpreadElement(SpreadElement node) => visitNode(node);
 
   R? visitStatement(Statement node) => visitNode(node);
 
@@ -649,7 +651,7 @@ class GeneralizingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitSuperFormalParameter(SuperFormalParameter node) =>
-      visitNormalFormalParameter(node);
+      visitFormalParameter(node);
 
   @override
   R? visitSwitchCase(SwitchCase node) => visitSwitchMember(node);
@@ -996,12 +998,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitDefaultFormalParameter(DefaultFormalParameter node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
   R? visitDoStatement(DoStatement node) {
     node.visitChildren(this);
     return null;
@@ -1166,6 +1162,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitFormalParameterList(FormalParameterList node) {
     node.visitChildren(this);
     return null;
@@ -1232,7 +1234,9 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  R? visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) {
     node.visitChildren(this);
     return null;
   }
@@ -1346,6 +1350,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitLabelReference(LabelReference node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) {
     node.visitChildren(this);
     return null;
@@ -1418,7 +1428,7 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
-  R? visitNamedExpression(NamedExpression node) {
+  R? visitNamedArgument(NamedArgument node) {
     node.visitChildren(this);
     return null;
   }
@@ -1582,6 +1592,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitRecordLiteralNamedField(RecordLiteralNamedField node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitRecordPattern(RecordPattern node) {
     node.visitChildren(this);
     return null;
@@ -1624,6 +1640,12 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
   }
 
   @override
+  R? visitRegularFormalParameter(RegularFormalParameter node) {
+    node.visitChildren(this);
+    return null;
+  }
+
+  @override
   R? visitRelationalPattern(RelationalPattern node) {
     node.visitChildren(this);
     return null;
@@ -1661,12 +1683,6 @@ class RecursiveAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) {
-    node.visitChildren(this);
-    return null;
-  }
-
-  @override
-  R? visitSimpleFormalParameter(SimpleFormalParameter node) {
     node.visitChildren(this);
     return null;
   }
@@ -1985,9 +2001,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node) => null;
 
   @override
-  R? visitDefaultFormalParameter(DefaultFormalParameter node) => null;
-
-  @override
   R? visitDoStatement(DoStatement node) => null;
 
   @override
@@ -2071,6 +2084,10 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitForElement(ForElement node) => null;
 
   @override
+  R? visitFormalParameterDefaultClause(FormalParameterDefaultClause node) =>
+      null;
+
+  @override
   R? visitFormalParameterList(FormalParameterList node) => null;
 
   @override
@@ -2106,8 +2123,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitFunctionTypeAlias(FunctionTypeAlias node) => null;
 
   @override
-  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      null;
+  R? visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) => null;
 
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => null;
@@ -2164,6 +2182,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitLabeledStatement(LabeledStatement node) => null;
 
   @override
+  R? visitLabelReference(LabelReference node) => null;
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) => null;
 
   @override
@@ -2200,7 +2221,7 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitMixinOnClause(MixinOnClause node) => null;
 
   @override
-  R? visitNamedExpression(NamedExpression node) => null;
+  R? visitNamedArgument(NamedArgument node) => null;
 
   @override
   R? visitNamedType(NamedType node) => null;
@@ -2284,6 +2305,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   R? visitRecordLiteral(RecordLiteral node) => null;
 
   @override
+  R? visitRecordLiteralNamedField(RecordLiteralNamedField node) => null;
+
+  @override
   R? visitRecordPattern(RecordPattern node) => null;
 
   @override
@@ -2309,6 +2333,9 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
   ) => null;
 
   @override
+  R? visitRegularFormalParameter(RegularFormalParameter node) => null;
+
+  @override
   R? visitRelationalPattern(RelationalPattern node) => null;
 
   @override
@@ -2328,9 +2355,6 @@ class SimpleAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) => null;
-
-  @override
-  R? visitSimpleFormalParameter(SimpleFormalParameter node) => null;
 
   @override
   R? visitSimpleIdentifier(SimpleIdentifier node) => null;
@@ -2561,9 +2585,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitDeclaredVariablePattern(DeclaredVariablePattern node) => _throw(node);
 
   @override
-  R? visitDefaultFormalParameter(DefaultFormalParameter node) => _throw(node);
-
-  @override
   R? visitDoStatement(DoStatement node) => _throw(node);
 
   @override
@@ -2651,6 +2672,10 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitForElement(ForElement node) => _throw(node);
 
   @override
+  R? visitFormalParameterDefaultClause(FormalParameterDefaultClause node) =>
+      _throw(node);
+
+  @override
   R? visitFormalParameterList(FormalParameterList node) => _throw(node);
 
   @override
@@ -2687,8 +2712,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitFunctionTypeAlias(FunctionTypeAlias node) => _throw(node);
 
   @override
-  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      _throw(node);
+  R? visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) => _throw(node);
 
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => _throw(node);
@@ -2746,6 +2772,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitLabeledStatement(LabeledStatement node) => _throw(node);
 
   @override
+  R? visitLabelReference(LabelReference node) => _throw(node);
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) => _throw(node);
 
   @override
@@ -2782,7 +2811,7 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitMixinOnClause(MixinOnClause node) => _throw(node);
 
   @override
-  R? visitNamedExpression(NamedExpression node) => _throw(node);
+  R? visitNamedArgument(NamedArgument node) => _throw(node);
 
   @override
   R? visitNamedType(NamedType node) => _throw(node);
@@ -2867,6 +2896,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   R? visitRecordLiteral(RecordLiteral node) => _throw(node);
 
   @override
+  R? visitRecordLiteralNamedField(RecordLiteralNamedField node) => _throw(node);
+
+  @override
   R? visitRecordPattern(RecordPattern node) => _throw(node);
 
   @override
@@ -2892,6 +2924,9 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
   ) => _throw(node);
 
   @override
+  R? visitRegularFormalParameter(RegularFormalParameter node) => _throw(node);
+
+  @override
   R? visitRelationalPattern(RelationalPattern node) => _throw(node);
 
   @override
@@ -2911,9 +2946,6 @@ class ThrowingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) => _throw(node);
-
-  @override
-  R? visitSimpleFormalParameter(SimpleFormalParameter node) => _throw(node);
 
   @override
   R? visitSimpleIdentifier(SimpleIdentifier node) => _throw(node);
@@ -3356,14 +3388,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitDefaultFormalParameter(DefaultFormalParameter node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitDefaultFormalParameter(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
   T? visitDoStatement(DoStatement node) {
     stopwatch.start();
     T? result = _baseVisitor.visitDoStatement(node);
@@ -3582,6 +3606,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitFormalParameterDefaultClause(FormalParameterDefaultClause node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitFormalParameterDefaultClause(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitFormalParameterList(FormalParameterList node) {
     stopwatch.start();
     T? result = _baseVisitor.visitFormalParameterList(node);
@@ -3670,9 +3702,11 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) {
+  T? visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) {
     stopwatch.start();
-    T? result = _baseVisitor.visitFunctionTypedFormalParameter(node);
+    T? result = _baseVisitor.visitFunctionTypedFormalParameterSuffix(node);
     stopwatch.stop();
     return result;
   }
@@ -3822,6 +3856,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitLabelReference(LabelReference node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitLabelReference(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitLibraryDirective(LibraryDirective node) {
     stopwatch.start();
     T? result = _baseVisitor.visitLibraryDirective(node);
@@ -3918,9 +3960,9 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
-  T? visitNamedExpression(NamedExpression node) {
+  T? visitNamedArgument(NamedArgument node) {
     stopwatch.start();
-    T? result = _baseVisitor.visitNamedExpression(node);
+    T? result = _baseVisitor.visitNamedArgument(node);
     stopwatch.stop();
     return result;
   }
@@ -4136,6 +4178,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   }
 
   @override
+  T? visitRecordLiteralNamedField(RecordLiteralNamedField node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRecordLiteralNamedField(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
   T? visitRecordPattern(RecordPattern node) {
     stopwatch.start();
     T? result = _baseVisitor.visitRecordPattern(node);
@@ -4185,6 +4235,14 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   ) {
     stopwatch.start();
     T? result = _baseVisitor.visitRedirectingConstructorInvocation(node);
+    stopwatch.stop();
+    return result;
+  }
+
+  @override
+  T? visitRegularFormalParameter(RegularFormalParameter node) {
+    stopwatch.start();
+    T? result = _baseVisitor.visitRegularFormalParameter(node);
     stopwatch.stop();
     return result;
   }
@@ -4241,14 +4299,6 @@ class TimedAstVisitor<T> implements AstVisitor<T> {
   T? visitShowCombinator(ShowCombinator node) {
     stopwatch.start();
     T? result = _baseVisitor.visitShowCombinator(node);
-    stopwatch.stop();
-    return result;
-  }
-
-  @override
-  T? visitSimpleFormalParameter(SimpleFormalParameter node) {
-    stopwatch.start();
-    T? result = _baseVisitor.visitSimpleFormalParameter(node);
     stopwatch.stop();
     return result;
   }
@@ -4639,10 +4689,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
       visitNode(node);
 
   @override
-  R? visitDefaultFormalParameter(DefaultFormalParameter node) =>
-      visitNode(node);
-
-  @override
   R? visitDoStatement(DoStatement node) => visitNode(node);
 
   @override
@@ -4734,6 +4780,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitForElement(ForElement node) => visitNode(node);
 
   @override
+  R? visitFormalParameterDefaultClause(FormalParameterDefaultClause node) =>
+      visitNode(node);
+
+  @override
   R? visitFormalParameterList(FormalParameterList node) => visitNode(node);
 
   @override
@@ -4771,8 +4821,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitFunctionTypeAlias(FunctionTypeAlias node) => visitNode(node);
 
   @override
-  R? visitFunctionTypedFormalParameter(FunctionTypedFormalParameter node) =>
-      visitNode(node);
+  R? visitFunctionTypedFormalParameterSuffix(
+    FunctionTypedFormalParameterSuffix node,
+  ) => visitNode(node);
 
   @override
   R? visitGenericFunctionType(GenericFunctionType node) => visitNode(node);
@@ -4831,6 +4882,9 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitLabeledStatement(LabeledStatement node) => visitNode(node);
 
   @override
+  R? visitLabelReference(LabelReference node) => visitNode(node);
+
+  @override
   R? visitLibraryDirective(LibraryDirective node) => visitNode(node);
 
   @override
@@ -4867,7 +4921,7 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitMixinOnClause(MixinOnClause node) => visitNode(node);
 
   @override
-  R? visitNamedExpression(NamedExpression node) => visitNode(node);
+  R? visitNamedArgument(NamedArgument node) => visitNode(node);
 
   @override
   R? visitNamedType(NamedType node) => visitNode(node);
@@ -4961,6 +5015,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   R? visitRecordLiteral(RecordLiteral node) => visitNode(node);
 
   @override
+  R? visitRecordLiteralNamedField(RecordLiteralNamedField node) =>
+      visitNode(node);
+
+  @override
   R? visitRecordPattern(RecordPattern node) => visitNode(node);
 
   @override
@@ -4986,6 +5044,10 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
   ) => visitNode(node);
 
   @override
+  R? visitRegularFormalParameter(RegularFormalParameter node) =>
+      visitNode(node);
+
+  @override
   R? visitRelationalPattern(RelationalPattern node) => visitNode(node);
 
   @override
@@ -5005,9 +5067,6 @@ class UnifyingAstVisitor<R> implements AstVisitor<R> {
 
   @override
   R? visitShowCombinator(ShowCombinator node) => visitNode(node);
-
-  @override
-  R? visitSimpleFormalParameter(SimpleFormalParameter node) => visitNode(node);
 
   @override
   R? visitSimpleIdentifier(SimpleIdentifier node) => visitNode(node);

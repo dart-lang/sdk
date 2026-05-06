@@ -485,6 +485,35 @@ class C extends B {
     );
   }
 
+  test_requiredPositional_fieldFormal_withNamed() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  B(this.z, {int? y}) : super(z, y: y);
+  int z;
+}
+''',
+      [lint(56, 1)],
+    );
+  }
+
+  test_requiredPositional_forwardedOutOfOrder_withNamed() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(int x, int y, {int? z});
+}
+class B extends A {
+  B(int x, int y, {int? z}) : super(y, x, z: z);
+}
+''',
+      [lint(63, 1)],
+    );
+  }
+
   test_requiredPositional_mixedSuperParameters() async {
     await assertDiagnostics(
       r'''
@@ -493,6 +522,20 @@ class A {
 }
 class B extends A {
   B(int x, int y) : super(x, y: y);
+}
+''',
+      [lint(56, 1)],
+    );
+  }
+
+  test_requiredPositional_nonConvertible_withNamed() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  B(int x, {int? y}) : super(1, y: y);
 }
 ''',
       [lint(56, 1)],
@@ -524,6 +567,22 @@ class C extends B {
 }
 ''',
       [lint(93, 1)],
+    );
+  }
+
+  test_requiredPositional_usedInBody_withNamed() async {
+    await assertDiagnostics(
+      r'''
+class A {
+  A(int x, {int? y});
+}
+class B extends A {
+  B(int z, {int? y}) : super(z, y: y) {
+    print(z);
+  }
+}
+''',
+      [lint(56, 1)],
     );
   }
 

@@ -9,7 +9,7 @@ import "package:expect/expect.dart";
 const printString = "print";
 const var1 = Simple(printString);
 //           ^
-// [cfe] Cannot invoke a non-'const' constructor where a const expression is expected.
+// [cfe] A const constructor can't have a body.
 class Simple {
   final String name;
 

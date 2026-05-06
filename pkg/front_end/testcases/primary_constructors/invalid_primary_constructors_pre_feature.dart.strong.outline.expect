@@ -1,0 +1,273 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:7:7: Error: Unexpected token 'const'.
+// class const C {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:8:6: Error: Unexpected token 'const'.
+// enum const E { a }
+//      ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:9:22: Error: An extension type declaration must have a primary constructor declaration.
+// Try adding a primary constructor to the extension type declaration.
+// extension type const ET {}
+//                      ^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:10:9: Error: Unexpected token '('.
+// mixin M1() {}
+//         ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:11:9: Error: Unexpected token '('.
+// mixin M2(int i) {}
+//         ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:12:9: Error: Unexpected token '.'.
+// mixin M3.named() {}
+//         ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:13:9: Error: Unexpected token '.'.
+// mixin M4.named(int i) {}
+//         ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:14:12: Error: Unexpected token '('.
+// mixin M5<T>() {}
+//            ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:15:12: Error: Unexpected token '('.
+// mixin M6<T>(int i) {}
+//            ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:16:12: Error: Unexpected token '.'.
+// mixin M7<T>.named() {}
+//            ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:17:12: Error: Unexpected token '.'.
+// mixin M8<T>.named(int i) {}
+//            ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:18:7: Error: Unexpected token 'const'.
+// mixin const M9() {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:19:7: Error: Unexpected token 'const'.
+// mixin const M10(int i) {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:20:7: Error: Unexpected token 'const'.
+// mixin const M11.named() {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:21:7: Error: Unexpected token 'const'.
+// mixin const M12.named(int i) {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:22:7: Error: Unexpected token 'const'.
+// mixin const M13<T>() {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:23:7: Error: Unexpected token 'const'.
+// mixin const M14<T>(int i) {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:24:7: Error: Unexpected token 'const'.
+// mixin const M15<T>.named() {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:25:7: Error: Unexpected token 'const'.
+// mixin const M16<T>.named(int i) {}
+//       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:26:13: Error: Unexpected token '('.
+// extension E1() on int {}
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:27:13: Error: Unexpected token '('.
+// extension E2(int i) on int {}
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:28:13: Error: Unexpected token '.'.
+// extension E3.named() on int {}
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:29:13: Error: Unexpected token '.'.
+// extension E4.named(int i) on int {}
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:30:16: Error: Unexpected token '('.
+// extension E5<T>() on int {}
+//                ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:31:16: Error: Unexpected token '('.
+// extension E6<T>(int i) on int {}
+//                ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:32:16: Error: Unexpected token '.'.
+// extension E7<T>.named() on int {}
+//                ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:33:16: Error: Unexpected token '.'.
+// extension E8<T>.named(int i) on int {}
+//                ^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:34:11: Error: Unexpected token 'const'.
+// extension const E9() on int {}
+//           ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:35:11: Error: Unexpected token 'const'.
+// extension const E10(int i) on int {}
+//           ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:36:11: Error: Unexpected token 'const'.
+// extension const E11.named() on int {}
+//           ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:37:11: Error: Unexpected token 'const'.
+// extension const E12.named(int i) on int {}
+//           ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:38:11: Error: Unexpected token 'const'.
+// extension const E13<T>() on int {}
+//           ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:39:11: Error: Unexpected token 'const'.
+// extension const E14<T>(int i) on int {}
+//           ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:40:11: Error: Unexpected token 'const'.
+// extension const E15<T>.named() on int {}
+//           ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/invalid_primary_constructors_pre_feature.dart:41:11: Error: Unexpected token 'const'.
+// extension const E16<T>.named(int i) on int {}
+//           ^^^^^
+//
+import self as self;
+import "dart:core" as core;
+
+class C extends core::Object {
+  synthetic constructor •() → self::C
+    ;
+}
+class E extends core::_Enum /*isEnum*/  {
+  enum-element static const field self::E a = const self::E::•(0, "a");
+  static const field core::List<self::E> values = const <self::E>[self::E::a];
+  const synthetic constructor •(core::int #index, core::String #name) → self::E
+    : super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E.${this.{core::_Enum::_name}{core::String}}";
+}
+abstract class M1 extends core::Object /*isMixinDeclaration*/  {
+  constructor •() → self::M1
+    ;
+}
+abstract class M2 extends core::Object /*isMixinDeclaration*/  {
+  constructor •(final core::int i) → self::M2
+    ;
+}
+abstract class M3 extends core::Object /*isMixinDeclaration*/  {
+  constructor named() → self::M3
+    ;
+}
+abstract class M4 extends core::Object /*isMixinDeclaration*/  {
+  constructor named(final core::int i) → self::M4
+    ;
+}
+abstract class M5<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  constructor •() → self::M5<self::M5::T%>
+    ;
+}
+abstract class M6<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  constructor •(final core::int i) → self::M6<self::M6::T%>
+    ;
+}
+abstract class M7<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  constructor named() → self::M7<self::M7::T%>
+    ;
+}
+abstract class M8<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration*/  {
+  constructor named(final core::int i) → self::M8<self::M8::T%>
+    ;
+}
+abstract class M9 extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor •() → self::M9
+    : super core::Object::•()
+    ;
+}
+abstract class M10 extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor •(final core::int i) → self::M10
+    : super core::Object::•()
+    ;
+}
+abstract class M11 extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor named() → self::M11
+    : super core::Object::•()
+    ;
+}
+abstract class M12 extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor named(final core::int i) → self::M12
+    : super core::Object::•()
+    ;
+}
+abstract class M13<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor •() → self::M13<self::M13::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class M14<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor •(final core::int i) → self::M14<self::M14::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class M15<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor named() → self::M15<self::M15::T%>
+    : super core::Object::•()
+    ;
+}
+abstract class M16<T extends core::Object? = dynamic> extends core::Object /*isMixinDeclaration,hasConstConstructor*/  {
+  const constructor named(final core::int i) → self::M16<self::M16::T%>
+    : super core::Object::•()
+    ;
+}
+extension E1 on core::int {
+}
+extension E2 on core::int {
+}
+extension E3 on core::int {
+}
+extension E4 on core::int {
+}
+extension E5<T extends core::Object? = dynamic> on core::int {
+}
+extension E6<T extends core::Object? = dynamic> on core::int {
+}
+extension E7<T extends core::Object? = dynamic> on core::int {
+}
+extension E8<T extends core::Object? = dynamic> on core::int {
+}
+extension E9 on core::int {
+}
+extension E10 on core::int {
+}
+extension E11 on core::int {
+}
+extension E12 on core::int {
+}
+extension E13<T extends core::Object? = dynamic> on core::int {
+}
+extension E14<T extends core::Object? = dynamic> on core::int {
+}
+extension E15<T extends core::Object? = dynamic> on core::int {
+}
+extension E16<T extends core::Object? = dynamic> on core::int {
+}
+extension type ET(invalid-type #) {
+}
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///invalid_primary_constructors_pre_feature.dart:8:16 -> InstanceConstant(const E{_Enum.index: 0, _Enum._name: "a"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///invalid_primary_constructors_pre_feature.dart:8:12 -> ListConstant(const <E>[const E{_Enum.index: 0, _Enum._name: "a"}])
+Extra constant evaluation: evaluated: 7, effectively constant: 2

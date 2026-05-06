@@ -7,7 +7,7 @@ import 'dart:io';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/utilities.dart';
-import 'package:analyzer/file_system/memory_file_system.dart';
+import 'package:analyzer/file_system/file_system.dart' show ResourceProvider;
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:path/path.dart' as p;
 import 'package:test/test.dart';
@@ -252,12 +252,10 @@ void main() => print('Hello, world!');
 
   T _withMemoryFile<T>(
     String content,
-    T Function(MemoryResourceProvider resourceProvider, String path) callback,
+    T Function(ResourceProvider resourceProvider, String path) callback,
   ) {
-    var resourceProvider = MemoryResourceProvider();
-    var path = fromUri(Uri.parse('file:///test.dart'));
-    resourceProvider.newFile(path, content);
-    return callback(resourceProvider, path);
+    var file = newFile('/test.dart', content);
+    return callback(resourceProvider, file.path);
   }
 
   T _withTemporaryFile<T>(String content, T Function(String path) callback) {

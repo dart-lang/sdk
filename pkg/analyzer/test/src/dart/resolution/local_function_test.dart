@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -16,6 +17,21 @@ main() {
 
 @reflectiveTest
 class LocalFunctionResolutionTest extends PubPackageResolutionTest {
+  test_defaultValue_functionReference() async {
+    await assertErrorsInCode(
+      '''
+void f() {
+  void g({void Function(int _) a = foo}) {}
+}
+void foo<T>(T _) {}
+''',
+      [error(diag.unusedElement, 18, 1)],
+    );
+
+    var formalParameter = findElement2.parameter('a');
+    expect(formalParameter.constantInitializer, isA<FunctionReference>());
+  }
+
   test_element_block() async {
     await assertNoErrorsInCode(r'''
 f() {

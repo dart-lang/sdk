@@ -254,7 +254,7 @@ MixinDeclaration
 mixin M;
 ''');
     parseResult.assertErrors([
-      error(diag.experimentNotEnabledOffByDefault, 23, 1),
+      error(diag.experimentNotEnabled, 23, 1),
     ]);
 
     var node = parseResult.findNode.singleMixinDeclaration;
@@ -542,6 +542,181 @@ MixinDeclaration
           expression: IntegerLiteral
             literal: 0
           semicolon: ;
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_formalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+mixin const A() {}
+''');
+    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 6, 5)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_formalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+mixin const A() {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 20, 5)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_noFormalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+mixin const A {}
+''');
+    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 6, 5)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_noFormalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+mixin const A {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 20, 5)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_periodName_formalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+mixin const A.name() {}
+''');
+    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 6, 5)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_const_typeName_periodName_formalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+mixin const A.name() {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 20, 5)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_typeName_formalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+mixin A() {}
+''');
+    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 7, 1)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_typeName_formalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+mixin A() {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 21, 1)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_typeName_periodName_formalParameters() {
+    var parseResult = parseStringWithErrors(r'''
+mixin A.name() {}
+''');
+    parseResult.assertErrors([error(diag.mixinPrimaryConstructor, 7, 1)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
+    rightBracket: }
+''');
+  }
+
+  test_primaryConstructor_typeName_periodName_formalParameters_language310() {
+    var parseResult = parseStringWithErrors(r'''
+// @dart=3.10
+mixin A.name() {}
+''');
+    parseResult.assertErrors([error(diag.unexpectedToken, 21, 1)]);
+
+    var node = parseResult.findNode.singleMixinDeclaration;
+    assertParsedNodeText(node, r'''
+MixinDeclaration
+  mixinKeyword: mixin
+  name: A
+  body: BlockClassBody
+    leftBracket: {
     rightBracket: }
 ''');
   }

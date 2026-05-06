@@ -10,9 +10,9 @@ import 'package:analysis_server/src/services/correction/fix_internal.dart';
 import 'package:analysis_server/src/session_logger/session_logger.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/instrumentation/service.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -196,7 +196,7 @@ print(1)
     writePackageConfig(
       convertPath('$workspaceRootPath/aaa'),
       config: (PackageConfigFileBuilder()
-        ..add(name: 'bbb', rootPath: '$workspaceRootPath/bbb')),
+        ..add(name: 'bbb', rootFolder: getFolder('$workspaceRootPath/bbb'))),
     );
     newPubspecYamlFile('$workspaceRootPath/aaa', r'''
 dependencies:

@@ -625,6 +625,9 @@ class _EntryPointsListenerImpl implements EntryPointsListener {
   void addDynamicallyExtendableClass(Class c) {}
 
   @override
+  void recordMemberCalledDynamically(Member target, {required bool isGetter}) {}
+
+  @override
   Field getRecordPositionalField(RecordShape shape, int pos) =>
       throw 'Unsupported operation';
 

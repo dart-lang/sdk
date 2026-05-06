@@ -284,10 +284,12 @@ class _ServiceTesteeLauncher {
   }
 }
 
-void setupAddresses(Uri /*!*/ serverAddress) {
-  serviceWebsocketAddress =
-      'ws://${serverAddress.authority}${serverAddress.path}ws';
-  serviceHttpAddress = 'http://${serverAddress.authority}${serverAddress.path}';
+void setupAddresses(Uri serverAddress) {
+  serviceWebsocketAddress = serverAddress.replace(
+    scheme: 'ws',
+    pathSegments: [...serverAddress.pathSegments, 'ws'],
+  ).toString();
+  serviceHttpAddress = serverAddress.replace(scheme: 'http').toString();
 }
 
 class _ServiceTesterRunner {

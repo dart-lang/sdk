@@ -10,8 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -85,9 +83,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     var parent = node.parent;
     if (parent is ClassDeclaration || parent is EnumDeclaration) {
       for (var parameter in node.formalParameters.parameters) {
-        if (parameter.notDefault case SimpleFormalParameter(
+        if (parameter case RegularFormalParameter(
           :var name,
-          keyword: var keywordToken,
+          constFinalOrVarKeyword: var keywordToken,
         )) {
           if (keywordToken case Token(keyword: var keyword?)) {
             if (keyword == Keyword.FINAL || keyword == Keyword.VAR) {

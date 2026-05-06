@@ -16,9 +16,9 @@ import 'package:analyzer/src/dart/analysis/experiments.dart'; // ignore: impleme
 import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
     as diag;
 import 'package:analyzer/src/test_utilities/mock_sdk.dart'; // ignore: implementation_imports
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
 import 'package:analyzer_testing/mock_packages/mock_packages.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_testing/src/spelunker.dart';
 import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
@@ -287,6 +287,8 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   @override
   String get packagesRootPath => '/packages';
 
+  Folder get sdkRoot => newFolder('/sdk');
+
   /// The name of the test file.
   String get testFileName => 'test.dart';
 
@@ -310,8 +312,6 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   List<Diagnostic> get _diagnostics => result.diagnostics
       .where((e) => !ignoredDiagnosticCodes.any((c) => e.diagnosticCode == c))
       .toList();
-
-  Folder get _sdkRoot => newFolder('/sdk');
 
   String get _testFilePath => '$testPackageLibPath/$testFileName';
 
@@ -443,6 +443,13 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   Future<void> assertNoDiagnosticsInFile(String path) async =>
       assertDiagnosticsInFile(path, const []);
 
+  DriverBasedAnalysisContext contextFor(String path) {
+    _createAnalysisContexts();
+
+    var convertedPath = convertPath(path);
+    return _analysisContextCollection!.contextFor(convertedPath);
+  }
+
   /// Text to display upon failure, which indicates possible corrections.
   @visibleForOverriding
   String correctionMessage(List<Diagnostic> diagnostics) {
@@ -560,14 +567,14 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   ///
   /// [path] must be converted for this file system.
   Future<ResolvedUnitResult> resolveFile(String path) async {
-    var analysisContext = _contextFor(path);
+    var analysisContext = contextFor(path);
     var session = analysisContext.currentSession;
     return await session.getResolvedUnit(path) as ResolvedUnitResult;
   }
 
   @mustCallSuper
   void setUp() {
-    createMockSdk(resourceProvider: resourceProvider, root: _sdkRoot);
+    createMockSdk(resourceProvider: resourceProvider, root: sdkRoot);
 
     // Check for any needlessly enabled experiments.
     for (var experiment in experiments) {
@@ -642,7 +649,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
   }
 
   void writePackageConfig(String path, PackageConfigFileBuilder config) {
-    newFile(path, config.toContent(pathContext: pathContext));
+    newFile(path, config.toContent());
   }
 
   /// Writes a `package_config.json` file from [config], and for packages that
@@ -652,39 +659,39 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
     configCopy.add(
       name: 'test',
-      rootPath: testPackageRootPath,
+      rootFolder: getFolder(testPackageRootPath),
       languageVersion: testPackageLanguageVersion,
     );
 
     if (addFixnumPackageDep) {
       var fixnumPath = addFixnum().parent.path;
-      configCopy.add(name: 'fixnum', rootPath: fixnumPath);
+      configCopy.add(name: 'fixnum', rootFolder: getFolder(fixnumPath));
     }
 
     if (addFlutterPackageDep) {
-      var skyEnginePath = addSkyEngine(sdkPath: _sdkRoot.path).parent.path;
-      configCopy.add(name: 'sky_engine', rootPath: skyEnginePath);
+      var skyEnginePath = addSkyEngine(sdkPath: sdkRoot.path).parent.path;
+      configCopy.add(name: 'sky_engine', rootFolder: getFolder(skyEnginePath));
 
       var flutterPath = addFlutter().parent.path;
-      configCopy.add(name: 'flutter', rootPath: flutterPath);
+      configCopy.add(name: 'flutter', rootFolder: getFolder(flutterPath));
     }
 
     if (addMetaPackageDep) {
       var metaPath = addMeta().parent.path;
-      configCopy.add(name: 'meta', rootPath: metaPath);
+      configCopy.add(name: 'meta', rootFolder: getFolder(metaPath));
     }
 
     if (addTestReflectiveLoaderPackageDep) {
       var testReflectiveLoaderPath = addTestReflectiveLoader().parent.path;
       configCopy.add(
         name: 'test_reflective_loader',
-        rootPath: testReflectiveLoaderPath,
+        rootFolder: getFolder(testReflectiveLoaderPath),
       );
     }
 
     for (var packageName in _packagesToAdd) {
       var packagePath = convertPath('/package/$packageName');
-      configCopy.add(name: packageName, rootPath: packagePath);
+      configCopy.add(name: packageName, rootFolder: getFolder(packagePath));
     }
 
     var path = '$testPackageRootPath/.dart_tool/package_config.json';
@@ -693,13 +700,6 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
 
   void _addTestFile(String content) {
     testFile.writeAsStringSync(content);
-  }
-
-  DriverBasedAnalysisContext _contextFor(String path) {
-    _createAnalysisContexts();
-
-    var convertedPath = convertPath(path);
-    return _analysisContextCollection!.contextFor(convertedPath);
   }
 
   /// Creates all analysis contexts in [_collectionIncludedPaths].
@@ -714,7 +714,7 @@ class PubPackageResolutionTest with MockPackagesMixin, ResourceProviderMixin {
       enableIndex: true,
       includedPaths: _collectionIncludedPaths.map(convertPath).toList(),
       resourceProvider: resourceProvider,
-      sdkPath: _sdkRoot.path,
+      sdkPath: sdkRoot.path,
       withFineDependencies: true,
     );
   }

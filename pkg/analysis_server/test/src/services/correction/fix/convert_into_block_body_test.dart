@@ -12,6 +12,7 @@ import 'fix_processor.dart';
 void main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(ConvertIntoBlockBodyMissingBodyTest);
+    defineReflectiveTests(ConvertIntoBlockBodyPrimaryConstructorTest);
     defineReflectiveTests(ConvertIntoBlockBodySetLiteralBulkTest);
     defineReflectiveTests(ConvertIntoBlockBodySetLiteralTest);
     defineReflectiveTests(ConvertIntoBlockBodySetLiteralMultiTest);
@@ -197,6 +198,27 @@ class C {
   static set(int i) {
     // TODO: implement set
     throw UnimplementedError();
+  }
+}
+''');
+  }
+}
+
+@reflectiveTest
+class ConvertIntoBlockBodyPrimaryConstructorTest extends FixProcessorTest {
+  @override
+  FixKind get kind => DartFixKind.convertIntoBlockBody;
+
+  Future<void> test_primaryConstructorBody() async {
+    await resolveTestCode('''
+class C() {
+  this => print('c');
+}
+''');
+    await assertHasFix('''
+class C() {
+  this {
+    print('c');
   }
 }
 ''');

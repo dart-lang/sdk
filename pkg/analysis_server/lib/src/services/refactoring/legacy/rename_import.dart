@@ -72,16 +72,19 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
       // We shouldn't get `prefix == null` because we check in `checkNewName`
       // that the new name is different.
       if (prefixNode != null) {
-        var uriEnd = node.uri.end;
+        var previousTokenEnd = node.deferredKeyword?.end ?? node.uri.end;
         var prefixEnd = prefixNode.end;
         await builder.addDartFileEdit(libraryPath, (builder) {
-          builder.addDeletion(range.startOffsetEndOffset(uriEnd, prefixEnd));
+          builder.addDeletion(
+            range.startOffsetEndOffset(previousTokenEnd, prefixEnd),
+          );
         });
       }
     } else {
       await builder.addDartFileEdit(libraryPath, (builder) {
         if (prefixNode == null) {
-          builder.addSimpleInsertion(node.uri.end, ' as $newName');
+          var previousTokenEnd = node.deferredKeyword?.end ?? node.uri.end;
+          builder.addSimpleInsertion(previousTokenEnd, ' as $newName');
         } else {
           builder.addSimpleReplacement(range.node(prefixNode), newName);
         }
@@ -117,8 +120,18 @@ class RenameImportRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<RefactoringStatus> checkFinalConditions() {
+  Future<RefactoringStatus> checkFinalConditions() async {
     var result = RefactoringStatus();
+
+    if (newName.isEmpty) {
+      var node = await _findNode();
+      if (node?.deferredKeyword != null) {
+        result.addStatus(
+          RefactoringStatus.error('Deferred imports require a prefix'),
+        );
+      }
+    }
+
     return Future.value(result);
   }
 

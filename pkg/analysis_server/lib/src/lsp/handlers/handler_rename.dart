@@ -205,9 +205,9 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
           return error(ServerErrorCodes.renameNotValid, finalStatus.message!);
         }
 
-        // Set the completer to complete to show that request is paused, and
-        // that processing of incoming messages can continue while we wait
-        // for the user's response.
+        // Complete the message before we make the outbound request because when
+        // the server is in non-overlapping request mode, we cannot have the
+        // server stall because this request is blocked on user-input.
         message.completer?.complete();
 
         // Otherwise, ask the user whether to proceed with the rename.
@@ -215,6 +215,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
           MessageType.warning,
           finalStatus.message!,
           [UserPromptActions.renameAnyway, UserPromptActions.cancel],
+          token,
         );
 
         if (token.isCancellationRequested) {
@@ -278,8 +279,12 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
             var shouldRename =
                 renameConfig == 'always' ||
                 (renameConfig == 'prompt' &&
-                    await _promptToRenameFile(actualFilename, newFilename));
-            if (shouldRename) {
+                    await _promptToRenameFile(
+                      actualFilename,
+                      newFilename,
+                      token,
+                    ));
+            if (shouldRename && !token.isCancellationRequested) {
               var newPath = pathContext.join(folder, newFilename);
               var renameEdit = createRenameEdit(
                 uriConverter,
@@ -290,6 +295,10 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
             }
           }
         }
+      }
+
+      if (token.isCancellationRequested) {
+        return cancelled(token);
       }
 
       return success(workspaceEdit);
@@ -311,6 +320,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
   Future<bool> _promptToRenameFile(
     String oldFilename,
     String newFilename,
+    CancellationToken cancellationToken,
   ) async {
     var prompt = server.userPromptSender;
     // If we can't prompt, do the same as if they said no.
@@ -322,6 +332,7 @@ class RenameHandler extends LspMessageHandler<RenameParams, WorkspaceEdit?> {
       MessageType.info,
       "Rename '$oldFilename' to '$newFilename'?",
       [UserPromptActions.yes, UserPromptActions.no],
+      cancellationToken,
     );
 
     return userChoice == UserPromptActions.yes;

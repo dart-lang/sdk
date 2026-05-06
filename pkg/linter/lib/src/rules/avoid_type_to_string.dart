@@ -62,7 +62,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
   @override
   void visitArgumentList(ArgumentList node) {
-    node.arguments.forEach(_validateArgument);
+    for (var argument in node.arguments) {
+      _validateArgument(argument.argumentExpression);
+    }
   }
 
   @override

@@ -87,6 +87,9 @@ class FactoryBodyBuilderContext extends BodyBuilderContext {
           ?.scope,
       asyncMarker: asyncMarker,
       emittedValueType: emittedValueType,
+      thisVariable: scopeProviderInfo
+          // Coverage-ignore(suite): Not run.
+          ?.thisVariable,
     );
   }
 

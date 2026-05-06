@@ -33,6 +33,7 @@ abstract class AbstractRefactorCommandHandler
   LspRefactorManager get manager => _manager;
 
   FutureOr<ErrorOr<void>> execute(
+    MessageInfo message,
     String path,
     String kind,
     int offset,
@@ -133,7 +134,7 @@ abstract class AbstractRefactorCommandHandler
         if (element is GetterElement) {
           var refactor = ConvertGetterToMethodRefactoring(
             server.refactoringWorkspace,
-            result.session,
+            result,
             element,
           );
           return success(refactor);
@@ -149,7 +150,7 @@ abstract class AbstractRefactorCommandHandler
         if (element is ExecutableElement) {
           var refactor = ConvertMethodToGetterRefactoring(
             server.refactoringWorkspace,
-            result.session,
+            result,
             element,
           );
           return success(refactor);
@@ -209,6 +210,7 @@ abstract class AbstractRefactorCommandHandler
     var options = parameters['options'] as Map<String, Object?>?;
 
     return execute(
+      message,
       path,
       kind,
       offset,

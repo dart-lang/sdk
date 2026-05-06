@@ -122,6 +122,7 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
         LspEditHelpersMixin,
         ClientCapabilitiesHelperMixin,
         LspVerifyEditHelpersMixin,
+        LspNotificationsMixin,
         AnalyticsTestMixin {
   /// The last ID that was used for a legacy request.
   late String lastSentLegacyRequestId;
@@ -155,11 +156,14 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
   @override
   AnalyticsManager get analyticsManager => server.analyticsManager;
 
+  bool get clientSupportsShowMessageNotification => false;
+
   @override
   LspClientCapabilities get editorClientCapabilities =>
       server.editorClientCapabilities;
 
   /// A stream of [NotificationMessage]s from the server.
+  @override
   Stream<NotificationMessage> get notificationsFromServer =>
       _notificationsFromServer.stream;
 
@@ -319,7 +323,13 @@ abstract class LspOverLegacyTest extends PubPackageAnalysisServerTest
       experimental: experimentalCapabilities,
     );
     var request = ServerSetClientCapabilitiesParams(
-      [],
+      [
+        // Use the LSP capabilitie to determine if we show this for the legacy
+        // protocol so that shared tests only need to set one.
+        if (experimentalCapabilities['supportsWindowShowMessageRequest'] ==
+            true)
+          'showMessageRequest',
+      ],
       lspCapabilities: clientCapabilities,
     ).toRequest('${nextRequestId++}', clientUriConverter: server.uriConverter);
 

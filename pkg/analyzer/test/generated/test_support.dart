@@ -10,7 +10,6 @@ import 'package:analyzer/error/listener.dart';
 import 'package:analyzer/instrumentation/instrumentation.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source.dart';
-import 'package:analyzer/src/generated/engine.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
 import 'package:analyzer_testing/utilities/extensions/diagnostic_code.dart';
 import 'package:test/test.dart';
@@ -408,85 +407,5 @@ class TestInstrumentor extends NoopInstrumentationService {
   @override
   void logInfo(String message, [dynamic exception]) {
     log.add("info: $message");
-  }
-}
-
-class TestSource extends Source {
-  final String _name;
-  String _contents;
-  bool exists2 = true;
-
-  /// A flag indicating whether an exception should be generated when an attempt
-  /// is made to access the contents of this source.
-  bool generateExceptionOnRead = false;
-
-  /// The number of times that the contents of this source have been requested.
-  int readCount = 0;
-
-  TestSource([this._name = '/test.dart', this._contents = '']);
-
-  @override
-  TimestampedData<String> get contents {
-    readCount++;
-    if (generateExceptionOnRead) {
-      String msg = "I/O Exception while getting the contents of $_name";
-      throw Exception(msg);
-    }
-    return TimestampedData<String>(0, _contents);
-  }
-
-  @override
-  String get fullName {
-    return _name;
-  }
-
-  @override
-  int get hashCode => 0;
-
-  @override
-  String get shortName {
-    return _name;
-  }
-
-  @override
-  Uri get uri => Uri.file(_name);
-
-  @override
-  bool operator ==(Object other) {
-    if (other is TestSource) {
-      return other._name == _name;
-    }
-    return false;
-  }
-
-  @override
-  bool exists() => exists2;
-
-  Source resolve(String uri) {
-    throw UnsupportedError('resolve');
-  }
-
-  void setContents(String value) {
-    generateExceptionOnRead = false;
-    _contents = value;
-  }
-
-  @override
-  String toString() => _name;
-}
-
-class TestSourceWithUri extends TestSource {
-  @override
-  final Uri uri;
-
-  TestSourceWithUri(String path, this.uri, [String content = ''])
-    : super(path, content);
-
-  @override
-  bool operator ==(Object other) {
-    if (other is TestSource) {
-      return other.uri == uri;
-    }
-    return false;
   }
 }

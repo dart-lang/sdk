@@ -934,7 +934,8 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ContextAllocation) {
   const Library& root_library = Library::Handle(LoadTestScript(kScript));
   Isolate* isolate = thread->isolate();
 
-  const Class& context_class = Class::Handle(Object::context_class());
+  const Class& context_class =
+      Class::Handle(IsolateGroup::Current()->class_table()->At(kContextCid));
   EXPECT(!context_class.IsNull());
 
   Invoke(root_library, "foo");
@@ -1020,7 +1021,7 @@ ISOLATE_UNIT_TEST_CASE(Profiler_ClosureAllocation) {
     ProfileStackWalker walker(&profile);
 
     EXPECT_SUBSTRING("DRT_AllocateClosure", walker.VMTagName());
-    EXPECT_STREQ("[Stub] AllocateClosure", walker.CurrentName());
+    EXPECT_STREQ("[Stub] AllocateClosure1", walker.CurrentName());
     EXPECT(walker.Down());
     EXPECT_SUBSTRING("foo", walker.CurrentName());
     EXPECT(!walker.Down());

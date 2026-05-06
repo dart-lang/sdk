@@ -509,7 +509,7 @@ class A {
   void foo<T>(int T) {}
 }
 ''');
-    var node = findNode.simpleFormalParameter('T)');
+    var node = findNode.regularFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -650,7 +650,7 @@ class A<T> {
   A(int T) {}
 }
 ''');
-    var node = findNode.simpleFormalParameter('T)');
+    var node = findNode.regularFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -670,7 +670,7 @@ class A<T> {
   void foo(int T) {}
 }
 ''');
-    var node = findNode.simpleFormalParameter('T)');
+    var node = findNode.regularFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -680,7 +680,7 @@ class A<T> {
   set foo(int T) {}
 }
 ''');
-    var node = findNode.simpleFormalParameter('T)');
+    var node = findNode.regularFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -752,7 +752,7 @@ extension E<T> on int {
   void foo(int T) {}
 }
 ''');
-    var node = findNode.simpleFormalParameter('T)');
+    var node = findNode.regularFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -760,7 +760,7 @@ extension E<T> on int {
     await assertNoDiagnostics('''
 void foo<T>(int T) {}
 ''');
-    var node = findNode.simpleFormalParameter('T)');
+    var node = findNode.regularFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 
@@ -768,7 +768,7 @@ void foo<T>(int T) {}
     await assertNoDiagnostics('''
 void foo(void Function<T>(String T) b) {}
 ''');
-    var node = findNode.simpleFormalParameter('T)');
+    var node = findNode.regularFormalParameter('T)');
     var T = findNode.typeParameter('T>').declaredFragment?.element;
     _resultRequested(node, 'T', false, T!);
   }
@@ -823,7 +823,7 @@ mixin A<T> {
   void foo(int T) {}
 }
 ''');
-    var node = findNode.simpleFormalParameter('T)');
+    var node = findNode.regularFormalParameter('T)');
     _resultRequested(node, 'T', false, findElement.typeParameter('T'));
   }
 

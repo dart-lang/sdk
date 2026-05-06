@@ -14,7 +14,6 @@ import '../../kernel/body_builder_context.dart';
 import '../../source/source_constructor_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../type_inference/context_allocation_strategy.dart';
-import '../../type_inference/inference_results.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../util/helpers.dart';
 import 'declaration.dart';
@@ -99,15 +98,23 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
   }
 
   @override
-  InitializerInferenceResult inferInitializer({
+  InferredConstructorInitializer inferInitializer({
     required TypeInferrer typeInferrer,
     required Uri fileUri,
     required Initializer initializer,
+    required List<VariableDeclaration> parameters,
+    required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
+    required ContextAllocationStrategy contextAllocationStrategy,
   }) {
     return typeInferrer.inferInitializer(
       fileUri: fileUri,
       constructorBuilder: _builder,
       initializer: initializer,
+      parameters: parameters,
+      internalThisVariable: internalThisVariable,
+      scopeProviderInfo: scopeProviderInfo,
+      contextAllocationStrategy: contextAllocationStrategy,
     );
   }
 
@@ -149,9 +156,8 @@ class ConstructorBodyBuilderContext extends BodyBuilderContext {
     // Constructors can only be sync.
     _declaration.registerFunctionBody(
       body,
-      scopeProviderInfo
-          // Coverage-ignore(suite): Not run.
-          ?.scope,
+      scopeProviderInfo?.scope,
+      scopeProviderInfo?.thisVariable,
     );
   }
 

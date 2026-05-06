@@ -223,11 +223,11 @@ void contextFunction() {
   }
 
   Future<void> test_mapUri_file() async {
-    var path = newFile('/a/b.dart', '').path;
+    var file = newFile('/a/b.dart', '');
     // map the file
-    var result = await _mapUri(file: path);
+    var result = await _mapUri(file: file.path);
     expect(result.file, isNull);
-    expect(result.uri, Uri.file(path).toString());
+    expect(result.uri, file.toUri().toString());
   }
 
   Future<void> test_mapUri_file_dartUriKind() async {
@@ -239,10 +239,10 @@ void contextFunction() {
   }
 
   Future<void> test_mapUri_uri() async {
-    var path = newFile('/a/b.dart', '').path;
+    var file = newFile('/a/b.dart', '');
     // map the uri
-    var result = await _mapUri(uri: Uri.file(path).toString());
-    expect(result.file, convertPath('/a/b.dart'));
+    var result = await _mapUri(uri: file.toUri().toString());
+    expect(result.file, file.path);
     expect(result.uri, isNull);
   }
 

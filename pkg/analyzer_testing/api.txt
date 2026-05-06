@@ -33,6 +33,12 @@ package:analyzer_testing/mock_packages/mock_packages.dart:
     addSkyEngine (method: Folder Function({required String sdkPath}))
     addTestReflectiveLoader (method: Folder Function())
     addVectorMath (method: Folder Function())
+package:analyzer_testing/package_config_file_builder.dart:
+  PackageConfigFileBuilder (class extends Object):
+    new (constructor: PackageConfigFileBuilder Function())
+    add (method: void Function({String? languageVersion, required String name, String packageUriStr, required Folder rootFolder}))
+    copy (method: PackageConfigFileBuilder Function())
+    toContent (method: String Function())
 package:analyzer_testing/package_root.dart:
   packageRoot (static getter: String)
 package:analyzer_testing/resource_provider_mixin.dart:
@@ -100,7 +106,5 @@ package:analyzer/file_system/file_system.dart:
   ResourceProvider (referenced)
 package:analyzer/src/analysis_rule/analysis_rule.dart:
   AbstractAnalysisRule (referenced)
-package:analyzer/utilities/package_config_file_builder.dart:
-  PackageConfigFileBuilder (referenced)
 package:path/src/context.dart:
   Context (referenced)

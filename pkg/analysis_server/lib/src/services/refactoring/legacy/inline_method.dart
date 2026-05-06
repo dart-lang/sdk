@@ -58,7 +58,7 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
   CorrectionUtils utils,
   AstNode contextNode,
   Expression? targetExpression,
-  List<Expression> arguments,
+  List<Argument> arguments,
   Set<String> previouslyIntroducedVariableNames,
   Map<FormalParameterElement, String> parameterToVariableName,
 ) async {
@@ -105,12 +105,9 @@ Future<_InlineMethodResult> _getMethodSourceForInvocation(
       // Compare using names because parameter elements may not be the same
       // instance for methods with generic type arguments.
       if (arg.correspondingParameter?.name == parameter.name) {
-        argument = arg;
+        argument = arg.argumentExpression;
         break;
       }
-    }
-    if (argument is NamedExpression) {
-      argument = argument.expression;
     }
     // prepare argument properties
     Precedence argumentPrecedence;
@@ -765,7 +762,7 @@ class _ReferenceProcessor {
     Expression usage,
     bool cascaded,
     Expression? target,
-    List<Expression> arguments,
+    List<Argument> arguments,
   ) async {
     // we don't support cascade
     if (cascaded) {
@@ -995,7 +992,7 @@ class _ReferenceProcessor {
     if (nodeParent is MethodInvocation) {
       var invocation = nodeParent;
       var target = invocation.target;
-      List<Expression> arguments = invocation.argumentList.arguments;
+      List<Argument> arguments = invocation.argumentList.arguments;
       await _inlineMethodInvocation(
         status,
         invocation,

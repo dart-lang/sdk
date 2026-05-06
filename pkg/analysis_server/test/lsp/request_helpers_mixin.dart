@@ -94,7 +94,18 @@ mixin LspEditHelpersMixin {
 /// The kind of IDs that can be used for messages.
 enum LspMessageIdMode { integer, string }
 
-mixin LspProgressNotificationsMixin {
+mixin LspNotificationsMixin {
+  /// Whether to fail tests if any error notifications are received from the
+  /// server.
+  ///
+  /// This is set automatically when using [expectErrorNotification].
+  var failTestOnAnyErrorNotification = true;
+
+  /// A stream of [NotificationMessage]s from the server that may be errors.
+  Stream<NotificationMessage> get errorNotificationsFromServer {
+    return notificationsFromServer.where(_isErrorNotification);
+  }
+
   Stream<NotificationMessage> get notificationsFromServer;
 
   /// A stream of strings (CREATE, BEGIN, END) corresponding to progress
@@ -136,6 +147,58 @@ mixin LspProgressNotificationsMixin {
   }
 
   Stream<RequestMessage> get requestsFromServer;
+
+  /// Calls [f] and expects an error notification (`window/showMessage`) within
+  /// 5s.
+  Future<ShowMessageParams> expectErrorNotification(
+    FutureOr<void> Function() f, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    var firstError = errorNotificationsFromServer.first;
+
+    failTestOnAnyErrorNotification = false;
+
+    await f();
+    var notificationFromServer = await firstError.timeout(timeout);
+
+    failTestOnAnyErrorNotification = true;
+
+    expect(notificationFromServer, isNotNull);
+    return ShowMessageParams.fromJson(
+      notificationFromServer.params as Map<String, Object?>,
+    );
+  }
+
+  /// Calls [f] and expects a notification matching [test] within 5s.
+  Future<T> expectNotification<T>(
+    bool Function(NotificationMessage) test,
+    FutureOr<void> Function() f, {
+    Duration timeout = const Duration(seconds: 5),
+  }) async {
+    var firstError = notificationsFromServer.firstWhere(test);
+    await f();
+
+    var notificationFromServer = await firstError.timeout(timeout);
+
+    expect(notificationFromServer, isNotNull);
+    return notificationFromServer.params as T;
+  }
+
+  /// Checks whether a notification is likely an error from the server (for
+  /// example a window/showMessage). This is useful for tests that want to
+  /// ensure no errors come from the server in response to notifications (which
+  /// don't have their own responses).
+  bool _isErrorNotification(NotificationMessage notification) {
+    var method = notification.method;
+    var params = notification.params as Map<String, Object?>?;
+    if (method == Method.window_logMessage && params != null) {
+      return LogMessageParams.fromJson(params).type == MessageType.Error;
+    } else if (method == Method.window_showMessage && params != null) {
+      return ShowMessageParams.fromJson(params).type == MessageType.Error;
+    } else {
+      return false;
+    }
+  }
 }
 
 /// Helpers to simplify building LSP requests for use in tests.
@@ -1228,15 +1291,16 @@ mixin LspReverseRequestHelpersMixin {
     Method method,
     R Function(Map<String, dynamic>) fromJson,
     Future<T> Function() f, {
-    required FutureOr<RR> Function(R) handler,
+    required Future<RR> Function(R) handler,
     Duration timeout = const Duration(seconds: 5),
-  }) async {
+  }) {
     late Future<T> outboundRequest;
     Object? outboundRequestError;
 
-    // Run [f] and wait for the incoming request from the server.
-    var incomingRequest =
-        await expectRequest(method, () {
+    // Execute [f] to start the outbound request that will trigger the inbound
+    // request.
+    var incomingRequestFuture =
+        expectRequest(method, () {
           // Don't return/await the response yet, as this may not complete until
           // after we have handled the request that comes from the server.
           outboundRequest = f();
@@ -1262,11 +1326,19 @@ mixin LspReverseRequestHelpersMixin {
           throw outboundRequestError ?? timeoutException;
         }, test: (e) => e is TimeoutException);
 
-    // Handle the request from the server and send the response back.
-    var clientsResponse = await handler(
-      fromJson(incomingRequest.params as Map<String, Object?>),
+    // When the inbound request arrives, send the response back. Don't wait for
+    // it here because some tests handle requests that complete early (eg.
+    // cancellation) and need to just await the outbound request.
+    unawaited(
+      incomingRequestFuture.then((incomingRequest) async {
+        // Call the handler to compute the repsonse.
+        var clientsResponse = await handler(
+          fromJson(incomingRequest.params as Map<String, Object?>),
+        );
+        // Send the repsonse back to the server.
+        respondTo(incomingRequest, clientsResponse);
+      }),
     );
-    respondTo(incomingRequest, clientsResponse);
 
     // Return a future that completes when the response to the original request
     // (from [f]) returns.
@@ -1349,7 +1421,7 @@ mixin LspVerifyEditHelpersMixin
           Method.workspace_applyEdit,
           ApplyWorkspaceEditParams.fromJson,
           function,
-          handler: (edit) {
+          handler: (edit) async {
             // When the server sends the edit back, just keep a copy and say we
             // applied successfully (it'll be verified by the caller).
             editParams = edit;
@@ -1377,7 +1449,7 @@ mixin LspVerifyEditHelpersMixin
     Method method,
     R Function(Map<String, dynamic>) fromJson,
     Future<T> Function() f, {
-    required FutureOr<RR> Function(R) handler,
+    required Future<RR> Function(R) handler,
     Duration timeout = const Duration(seconds: 5),
   });
 

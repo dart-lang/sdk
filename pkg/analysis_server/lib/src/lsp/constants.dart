@@ -163,6 +163,7 @@ abstract final class CustomMethods {
   );
   static const summary = Method('dart/textDocument/summary');
   static const super_ = Method('dart/textDocument/super');
+  static const migrate = Method('dart/workspace/migrate');
   static const imports = Method('dart/textDocument/imports');
 
   /// Method for requesting the set of editable arguments at a location in a
@@ -331,9 +332,11 @@ abstract final class DartCodeActionKind {
   //   LSP protocol code and swap this code CodeActionKind.SourceFixAll
   //   https://github.com/microsoft/language-server-protocol/pull/1308
   static const fixAll = CodeActionKind('source.fixAll');
-  // TODO(dantup): Remove this in favour of CodeActionKind.RefactorMove once it
-  //   has been added to a published LSP version.
+  // TODO(dantup): Remove these in favour of CodeActionKind.RefactorXXX once
+  //  they have been added to a published LSP version.
   static const refactorMove = CodeActionKind('refactor.move');
+  static const refactorAdd = CodeActionKind('refactor.add');
+  static const refactorRemove = CodeActionKind('refactor.remove');
 }
 
 abstract final class ServerErrorCodes {
@@ -396,6 +399,8 @@ abstract final class ServerErrorCodes {
 abstract final class UserPromptActions {
   static const String yes = 'Yes';
   static const String no = 'No';
+  static const String ok = 'Ok';
   static const String cancel = 'Cancel';
   static const String renameAnyway = 'Rename Anyway';
+  static const String refactorAnyway = 'Refactor Anyway';
 }

@@ -229,7 +229,7 @@ class VarianceBuilder {
       return;
     }
 
-    var node = _linker.getLinkingNode2(element.firstFragment);
+    var node = _linker.getLinkingNode(element.firstFragment);
     if (node == null) {
       // Not linking.
     } else if (node is GenericTypeAliasImpl) {

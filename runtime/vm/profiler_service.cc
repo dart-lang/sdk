@@ -1602,8 +1602,8 @@ void Profile::PrintHeaderJSON(JSONObject* obj) {
                          counters.bail_out_jump_to_exception_handler);
     counts.AddProperty64("bail_out_check_isolate",
                          counters.bail_out_check_isolate);
-    counts.AddProperty64("single_frame_sample_deoptimizing",
-                         counters.single_frame_sample_deoptimizing);
+    counts.AddProperty64("bail_out_deoptimizing",
+                         counters.bail_out_deoptimizing);
     counts.AddProperty64(
         "single_frame_sample_get_and_validate_stack_bounds",
         counters.single_frame_sample_get_and_validate_stack_bounds);

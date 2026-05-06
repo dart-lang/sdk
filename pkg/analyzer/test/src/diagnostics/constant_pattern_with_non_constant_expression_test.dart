@@ -121,7 +121,7 @@ GuardedPattern
       target: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
-          element: <testLibraryFragment>::@prefix2::prefix
+          element: <testLibraryFragment>::@prefix::prefix
           staticType: null
         period: .
         identifier: SimpleIdentifier
@@ -163,7 +163,7 @@ GuardedPattern
       target: PrefixedIdentifier
         prefix: SimpleIdentifier
           token: prefix
-          element: <testLibraryFragment>::@prefix2::prefix
+          element: <testLibraryFragment>::@prefix::prefix
           staticType: null
         period: .
         identifier: SimpleIdentifier

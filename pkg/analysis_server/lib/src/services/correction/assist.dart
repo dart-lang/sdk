@@ -31,6 +31,11 @@ abstract final class DartAssistKind {
     DartAssistKindPriority.default_,
     'Add type annotation',
   );
+  static const addTypeName = AssistKind(
+    'dart.assist.add.typeName',
+    DartAssistKindPriority.default_,
+    'Add implicit type name',
+  );
   static const assignToLocalVariable = AssistKind(
     'dart.assist.assignToVariable',
     DartAssistKindPriority.default_,

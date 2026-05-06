@@ -11,6 +11,8 @@ import 'package:_js_interop_checks/src/js_interop.dart'
     show getDartJSInteropJSName, hasDartJSInteropAnnotation;
 import 'package:_js_interop_checks/src/transformations/js_util_optimizer.dart'
     show ExtensionIndex;
+import 'package:front_end/src/api_prototype/external_effect.dart'
+    show ExternalEffect;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:js_shared/synced/embedded_names.dart' show JsGetName, JsBuiltin;
 import 'package:kernel/class_hierarchy.dart';
@@ -4249,8 +4251,7 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
     _currentUri = savedUri;
     _staticTypeContext.leaveMember(p);
 
-    if (_options.dynamicModule &&
-        p.annotations.any((a) => _isEntrypointPragma(a, _coreTypes))) {
+    if (_options.dynamicModule && _isDynamicModuleEntryPoint(p, _coreTypes)) {
       if (_dynamicEntrypoint == null) {
         if (p.function.requiredParameterCount > 0) {
           // TODO(sigmund): this error should be caught by a kernel checker that
@@ -7377,6 +7378,9 @@ class LibraryCompiler extends ComputeOnceConstantVisitor<js_ast.Expression>
   @override
   js_ast.Expression visitStaticInvocation(StaticInvocation node) {
     var target = node.target;
+    if (ExternalEffect.isExternalEffect(node)) {
+      return js_ast.LiteralNull();
+    }
     if (isInlineJS(target)) return _emitInlineJSCode(node) as js_ast.Expression;
     if (target.isFactory) return _emitFactoryInvocation(node);
 
@@ -10098,12 +10102,6 @@ class _SwitchLabelState {
 /// `const pragma('dyn-module:entry-point')`.
 ///
 /// Used to denote the entrypoint method of a dynamic module.
-bool _isEntrypointPragma(Expression expression, CoreTypes coreTypes) {
-  if (expression is! ConstantExpression) return false;
-  final value = expression.constant;
-  if (value is! InstanceConstant) return false;
-  if (value.classReference != coreTypes.pragmaClass.reference) return false;
-  final name = value.fieldValues[coreTypes.pragmaName.fieldReference];
-  if (name is! StringConstant) return false;
-  return name.value == 'dyn-module:entry-point';
+bool _isDynamicModuleEntryPoint(Procedure p, CoreTypes coreTypes) {
+  return hasPragma(p, 'dyn-module:entry-point', coreTypes);
 }

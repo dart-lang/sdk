@@ -112,6 +112,9 @@ class FlowAnalysisHelper {
     required this.typeAnalyzerOptions,
   });
 
+  /// Whether flow analysis is currently available.
+  bool get isActive => flow != null;
+
   LocalVariableTypeProvider get localVariableTypeProvider {
     return _LocalVariableTypeProvider(this);
   }
@@ -355,6 +358,28 @@ class FlowAnalysisHelper {
     }
   }
 
+  /// Runs [operation] with flow analysis available for [node].
+  ///
+  /// If flow analysis is already active, reuses it. Otherwise this method
+  /// creates a body-or-initializer flow context and closes it after
+  /// [operation].
+  T withFlowAnalysis<T>({
+    required AstNodeImpl node,
+    required List<FormalParameterElementImpl>? formalParameters,
+    required T Function() operation,
+  }) {
+    if (isActive) {
+      return operation();
+    }
+
+    bodyOrInitializer_enter(node, formalParameters);
+    try {
+      return operation();
+    } finally {
+      bodyOrInitializer_exit();
+    }
+  }
+
   /// Computes the [AssignedVariables] map for the given [node].
   static AssignedVariables<AstNodeImpl, PromotableElementImpl>
   computeAssignedVariables(
@@ -408,13 +433,14 @@ class FlowAnalysisHelper {
             // switch statements, while the LabeledStatement is returned
             // for the other known targets. This could be possibly changed
             // so that the inner statement is always returned.
-            if (statement is Block ||
-                statement is BreakStatement ||
-                statement is IfStatement ||
-                statement is TryStatement) {
+            if (statement is ForStatement ||
+                statement is SwitchStatement ||
+                statement is WhileStatement ||
+                statement is DoStatement) {
+              return statement;
+            } else {
               return node;
             }
-            return statement;
           }
         }
         if (node is SwitchStatementImpl) {
@@ -431,7 +457,7 @@ class FlowAnalysisHelper {
 
   static bool _hasLabel(List<Label> labels, Element element) {
     for (var nodeLabel in labels) {
-      if (identical(nodeLabel.label.element, element)) {
+      if (identical(nodeLabel.declaredFragment!.element, element)) {
         return true;
       }
     }

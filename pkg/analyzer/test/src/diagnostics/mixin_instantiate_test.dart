@@ -51,6 +51,8 @@ InstanceCreationExpression
     leftParenthesis: (
     rightParenthesis: )
   staticType: M
+invalidNodes
+  ConstructorDeclarationImpl [12, 24)
 ''');
   }
 

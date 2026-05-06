@@ -172,6 +172,7 @@ class WasmTarget extends Target {
     'dart:js_interop_unsafe',
     'dart:nativewrappers',
     'dart:typed_data',
+    if (mode == .standalone) 'dart:_embedder',
   ];
 
   @override
@@ -190,6 +191,7 @@ class WasmTarget extends Target {
     'dart:js_interop',
     'dart:js_interop_unsafe',
     'dart:typed_data',
+    if (mode == .standalone) 'dart:_embedder',
   ];
 
   @override
@@ -207,8 +209,11 @@ class WasmTarget extends Target {
 
     final importerString = importer.toString();
 
-    // We have some tests that import dart:js*
+    // We have some tests that import dart:*js*
     if (importerString.contains('tests/web/wasm')) return true;
+
+    // We have some IR$ tests that import dart:*js*
+    if (importerString.contains('pkg/dart2wasm/test/ir_tests')) return true;
 
     // Flutter's dart:ui is also package:ui (in test mode)
     if (importerString.startsWith('package:ui/')) return true;

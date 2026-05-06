@@ -1,7 +1,37 @@
-## 12.1.0-dev
+## 13.1.0-dev
+
+* Deprecate `PackageConfigFileBuilder` in `package:analyzer/utilities/package_config_file_builder.dart`. Use `package:analyzer_testing/package_config_file_builder.dart` instead.
+* Deprecate `isInitializingFormal` in `FormalParameterElement`. Use type checks (`element is FieldFormalParameterElement`) instead.
+* Deprecate `isSuperFormal` in `FormalParameterElement`. Use type checks (`element is SuperFormalParameterElement`) instead.
+
+## 13.0.0
+
+* **Breaking Change:** `MixinFragment.superclassConstraints` has been removed. Use `fragment.element.superclassConstraints` instead.
+* **Breaking Change:** `DefaultFormalParameter` has been removed. Default values for parameters are now represented compositionally via a `defaultClause` property on all `FormalParameter` nodes.
+* **Breaking Change:** `SimpleFormalParameter` and `FunctionTypedFormalParameter` have been removed and replaced by `RegularFormalParameter`.
+* **Breaking Change:** Function-typed parameters are now represented compositionally via a `functionTypedSuffix` property on `FormalParameter`.
+* **Breaking Change:** `NormalFormalParameter` has been removed from the AST hierarchy.
+* **Breaking Change:** `AstVisitor` methods `visitDefaultFormalParameter`, `visitSimpleFormalParameter`, and `visitFunctionTypedFormalParameter` have been removed. Use `visitRegularFormalParameter` instead for standard parameters.
+* Added `FormalParameterDefaultClause` and `FunctionTypedFormalParameterSuffix` AST nodes to represent parameter defaults and function-typed parameter structures.
+* **Breaking Change:** `NamedExpression` has been removed and replaced with `NamedArgument` in `ArgumentList` and `RecordLiteralNamedField` in `RecordLiteral`.
+* **Breaking Change:** Added `Argument` and `RecordLiteralField` AST node interfaces, which `Expression` now implements.
+* **Breaking Change:** `ArgumentList.arguments` now returns `NodeList<Argument>` instead of `NodeList<Expression>`.
+* **Breaking Change:** `RecordLiteral.fields` now returns `NodeList<RecordLiteralField>` instead of `NodeList<Expression>`.
+* **Breaking Change:** `AstVisitor.visitNamedExpression` has been removed. Use `visitNamedArgument` and `visitRecordLiteralNamedField` instead.
+* **Breaking Change:** `FormalParameterElement.firstFragment` and `.fragments` now return `FormalParameterFragment` (instead of specific parameter fragment subtypes like `FieldFormalParameterFragment`), making formal parameter fragments heterogeneous to support augmentations.
+* Added `LabelReference` AST node to represent references to labels without them being in the expression hierarchy.
+* **Breaking Change:** `Label` now uses a `Token name` instead of `SimpleIdentifier label`.
+* **Breaking Change:** `BreakStatement.label` and `ContinueStatement.label` now return `LabelReference?` instead of `SimpleIdentifier?`.
+
+## 12.2.0-dev
+
+* Added `InterfaceType.inheritedConcreteMembers` and `InterfaceType.interfaceMembers`.
+
+## 12.1.0
 
 * Support type aliases for `dynamic`, `Never`, and `void`. As a result, it is no longer safe to assume that
-  there is a single instance of `DynamicType`, `NeverType`, or `VoidType`. Use type checks (`is DynamicType`) instead of `identical()`.
+  there is a single instance of `DynamicType`, `NeverType`, or `VoidType`. Use type checks (`is DynamicType`)
+  instead of `identical()`.
 
 ## 12.0.0
 
@@ -85,6 +115,9 @@
 * Stabilize `FieldFormalParameterElement.isDeclaring` and `privateName`.
 * Stabilize `FieldFormalParameterFragment.privateName`.
 * Deprecate `LibraryFragment.isSynthetic`, use `isOriginNotExistingFile` instead.
+* **Breaking Change:** Identifiers and prefixed identifiers that resolve to a type (such as a class, type
+  alias, `dynamic`, or `Never`) in a value expression slot are now represented as `TypeLiteral` nodes instead of
+  `SimpleIdentifier` or `PrefixedIdentifier` nodes (Issues 62763, 63113).
 
 ## 10.0.2
 

@@ -1,8 +1,4 @@
-enum E with M1 {
-  e1,
-  e2,
-  e3;
-}
+enum E with M1 { e1, e2, e3 }
 
 expectEquals(x, y) {}
 

@@ -268,12 +268,10 @@ CompilationUnit
                   argumentList: ArgumentList
                     leftParenthesis: (
                     arguments
-                      NamedExpression
-                        name: Label
-                          label: SimpleIdentifier
-                            token: with
-                          colon: :
-                        expression: IntegerLiteral
+                      NamedArgument
+                        name: with
+                        colon: :
+                        argumentExpression: IntegerLiteral
                           literal: 3
                     rightParenthesis: )
                 semicolon: ;

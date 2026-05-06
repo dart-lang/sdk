@@ -23,7 +23,6 @@ class GrowableObjectArray;
 class Instance;
 class JSONArray;
 class JSONObject;
-class MessageQueue;
 class Metric;
 class Object;
 class Script;
@@ -189,8 +188,6 @@ class JSONStream : ValueObject {
   ObjectPtr GetObjectParameterKey(intptr_t i) const;
   ObjectPtr GetObjectParameterValue(intptr_t i) const;
 
-  void PostNullReply(Dart_Port port);
-
   void OpenObject(const char* property_name = nullptr) {
     if (ignore_object_depth_ > 0 ||
         (property_name != nullptr && !IsAllowableKey(property_name))) {
@@ -263,7 +260,6 @@ class JSONStream : ValueObject {
   void PrintValue(TokenPosition tp);
   void PrintValue(const ServiceEvent* event);
   void PrintValue(Metric* metric);
-  void PrintValue(MessageQueue* queue);
   void PrintValue(Isolate* isolate, bool ref = true);
   void PrintValue(IsolateGroup* isolate, bool ref = true);
   void PrintValue(const TimelineEvent* timeline_event);
@@ -339,7 +335,6 @@ class JSONStream : ValueObject {
   void PrintProperty(const char* name, Breakpoint* bpt);
   void PrintProperty(const char* name, TokenPosition tp);
   void PrintProperty(const char* name, Metric* metric);
-  void PrintProperty(const char* name, MessageQueue* queue);
   void PrintProperty(const char* name, Isolate* isolate);
   void PrintProperty(const char* name, IsolateGroup* isolate_group);
   void PrintProperty(const char* name, Zone* zone);
@@ -453,9 +448,6 @@ class JSONObject : public ValueObject {
   void AddProperty(const char* name, Metric* metric) const {
     stream_->PrintProperty(name, metric);
   }
-  void AddProperty(const char* name, MessageQueue* queue) const {
-    stream_->PrintProperty(name, queue);
-  }
   void AddProperty(const char* name, Isolate* isolate) const {
     stream_->PrintProperty(name, isolate);
   }
@@ -526,7 +518,6 @@ class JSONArray : public ValueObject {
   void AddValue(TokenPosition tp) const { stream_->PrintValue(tp); }
   void AddValue(const ServiceEvent* event) const { stream_->PrintValue(event); }
   void AddValue(Metric* metric) const { stream_->PrintValue(metric); }
-  void AddValue(MessageQueue* queue) const { stream_->PrintValue(queue); }
   void AddValue(const TimelineEvent* timeline_event) const {
     stream_->PrintValue(timeline_event);
   }

@@ -80,6 +80,7 @@ enum SnapshotKind {
   kAppAOTElf,
   kAppAOTMachODylib,
   kVMAOTAssembly,
+  kFfiCallbackStub,
 };
 static SnapshotKind snapshot_kind = kCore;
 
@@ -93,6 +94,7 @@ static const char* const kSnapshotKindNames[] = {
     "app-aot-elf",
     "app-aot-macho-dylib",
     "vm-aot-assembly",
+    "ffi-callback-stub",
     nullptr,
     // clang-format on
 };
@@ -114,7 +116,8 @@ static const char* const kSnapshotKindNames[] = {
   V(macho_object, macho_object_filename)                                       \
   V(loading_unit_manifest, loading_unit_manifest_filename)                     \
   V(save_debugging_info, debugging_info_filename)                              \
-  V(save_obfuscation_map, obfuscation_map_filename)
+  V(save_obfuscation_map, obfuscation_map_filename)                            \
+  V(ffi_callback_stub, ffi_callback_stub_filename)
 
 #define BOOL_OPTIONS_LIST(V)                                                   \
   V(compile_all, compile_all)                                                  \
@@ -142,7 +145,8 @@ DEFINE_CB_OPTION(ProcessEnvironmentOption);
 static bool IsSnapshottingForPrecompilation() {
   return (snapshot_kind == kAppAOTAssembly) || (snapshot_kind == kAppAOTElf) ||
          (snapshot_kind == kAppAOTMachODylib) ||
-         (snapshot_kind == kVMAOTAssembly);
+         (snapshot_kind == kVMAOTAssembly) ||
+         (snapshot_kind == kFfiCallbackStub);
 }
 
 // clang-format off
@@ -308,6 +312,14 @@ static int ParseArguments(int argc,
 #endif
       break;
     }
+    case kFfiCallbackStub:
+      if (ffi_callback_stub_filename == nullptr) {
+        Syslog::PrintErr(
+            "Building the FFI callback stub blob requires specifying "
+            "an output file for --ffi_callback_stub.\n\n");
+        return -1;
+      }
+      break;
   }
 
   if (!obfuscate && obfuscation_map_filename != nullptr) {
@@ -637,6 +649,13 @@ static void CreateAndWritePrecompiledSnapshot() {
     CHECK_RESULT(result);
     return;
   }
+  if (snapshot_kind == kFfiCallbackStub) {
+    File* file = OpenFile(ffi_callback_stub_filename);
+    RefCntReleaseScope<File> rs(file);
+    Dart_Handle result = Dart_WriteCallbackStub(StreamingWriteCallback, file);
+    CHECK_RESULT(result);
+    return;
+  }
 
   Dart_AotBinaryFormat format;
   const char* kind_str = nullptr;
@@ -834,6 +853,7 @@ static int CreateIsolateAndSnapshot(const CommandLineOptions& inputs) {
     case kAppAOTElf:
     case kAppAOTMachODylib:
     case kVMAOTAssembly:
+    case kFfiCallbackStub:
       CreateAndWritePrecompiledSnapshot();
       break;
     default:

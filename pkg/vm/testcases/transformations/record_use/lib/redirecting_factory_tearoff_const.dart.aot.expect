@@ -27,7 +27,7 @@ final class HasInstances extends core::Object implements self::Redirector /*hasC
   @#C3
   @#C5
   @#C7
-  const constructor •([@vm.inferred-arg-type.metadata=int] core::int i) → self::HasInstances
+  const constructor •([@vm.inferred-arg-type.metadata=int] initializing-formal core::int i) → self::HasInstances
     : self::HasInstances::i = i, super core::Object::•()
     ;
 }

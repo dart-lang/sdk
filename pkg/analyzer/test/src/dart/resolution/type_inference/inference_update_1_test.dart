@@ -133,7 +133,7 @@ test() {
                 'List<InvalidType> Function(int Function()))',
     );
     assertType(
-      findNode.simpleParameter('h)').declaredFragment!.element.type,
+      findNode.regularFormalParameter('h)').declaredFragment!.element.type,
       _isEnabled ? 'int Function()' : 'Object?',
     );
     assertType(
@@ -195,7 +195,7 @@ test() {
           : 'List<Object?> Function(List<Object?> Function(int), int Function())',
     );
     assertType(
-      findNode.simpleParameter('x)').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x)').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
     assertType(
@@ -226,7 +226,7 @@ test() {
           : 'List<Object?> Function(int Function(), List<Object?> Function(int))',
     );
     assertType(
-      findNode.simpleParameter('x)').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x)').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
     assertType(
@@ -257,7 +257,7 @@ test() {
           : 'List<Object?> Function(int, List<Object?> Function(int))',
     );
     assertType(
-      findNode.simpleParameter('x)').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x)').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
     assertType(
@@ -280,7 +280,7 @@ test() => f(0, (x) {});
       'void Function(int, void Function(int))',
     );
     assertType(
-      findNode.simpleParameter('x').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
   }
@@ -299,7 +299,7 @@ test() => f(t: 0, g: (x) {});
       'void Function({required void Function(int) g, required int t})',
     );
     assertType(
-      findNode.simpleParameter('x').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
   }
@@ -318,7 +318,7 @@ test() => f(0, ((x) {}));
       'void Function(int, void Function(int))',
     );
     assertType(
-      findNode.simpleParameter('x').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
   }
@@ -337,7 +337,7 @@ test() => f(t: 0, g: ((x) {}));
       'void Function({required void Function(int) g, required int t})',
     );
     assertType(
-      findNode.simpleParameter('x').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
   }
@@ -356,7 +356,7 @@ test() => f(0, (((x) {})));
       'void Function(int, void Function(int))',
     );
     assertType(
-      findNode.simpleParameter('x').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
   }
@@ -375,7 +375,7 @@ test() => f(t: 0, g: (((x) {})));
       'void Function({required void Function(int) g, required int t})',
     );
     assertType(
-      findNode.simpleParameter('x').declaredFragment!.element.type,
+      findNode.regularFormalParameter('x').declaredFragment!.element.type,
       _isEnabled ? 'int' : 'Object?',
     );
   }

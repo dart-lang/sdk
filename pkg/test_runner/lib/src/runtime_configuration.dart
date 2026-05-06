@@ -71,21 +71,23 @@ abstract class RuntimeConfiguration {
 
   RuntimeConfiguration._subclass();
 
-  int timeoutMultiplier(
-      {required Mode mode,
-      bool isChecked = false,
-      bool isReload = false,
-      required Architecture arch,
-      required System system}) {
+  int timeoutMultiplier({
+    required Mode mode,
+    bool isChecked = false,
+    bool isReload = false,
+    required Architecture arch,
+    required System system,
+  }) {
     return 1;
   }
 
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     // TODO(ahe): Make this method abstract.
     throw "Unimplemented runtime '$runtimeType'";
   }
@@ -141,15 +143,17 @@ abstract class RuntimeConfiguration {
   String get d8FileName {
     var d8Dir = Repository.dir.append('third_party/d8');
     var d8Path = d8Dir.append(
-        '${Platform.operatingSystem}/${Architecture.host}/d8$executableExtension');
+      '${Platform.operatingSystem}/${Architecture.host}/d8$executableExtension',
+    );
     var d8 = d8Path.toNativePath();
     TestUtils.ensureExists(d8, _configuration);
     return d8;
   }
 
   String get jscFileName {
-    final jscPath =
-        Repository.dir.append('third_party/jsc/jsc$executableExtension');
+    final jscPath = Repository.dir.append(
+      'third_party/jsc/jsc$executableExtension',
+    );
     final jsc = jscPath.toNativePath();
     TestUtils.ensureExists(jsc, _configuration);
     return jsc;
@@ -170,11 +174,12 @@ class NoneRuntimeConfiguration extends RuntimeConfiguration {
 
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     return <Command>[];
   }
 }
@@ -200,27 +205,33 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     // TODO(ahe): Avoid duplication of this method between d8 and jsshell.
     checkArtifact(artifact!);
     if (compiler == Compiler.dart2wasm) {
       return [
         Dart2WasmCommandLineCommand(
-            moniker,
-            'pkg/dart2wasm/tool/run_benchmark',
-            // Default stack trace limit in V8 is 10, which hides some of the
-            // stack frames we check in stack trace tests.
-            ['--d8', '--shell-option=--stack-trace-limit=20', ...arguments],
-            environmentOverrides)
+          moniker,
+          'pkg/dart2wasm/tool/run_benchmark',
+          // Default stack trace limit in V8 is 10, which hides some of the
+          // stack frames we check in stack trace tests.
+          ['--d8', '--shell-option=--stack-trace-limit=20', ...arguments],
+          environmentOverrides,
+        ),
       ];
     } else {
       return [
         JSCommandLineCommand(
-            moniker, d8FileName, arguments, environmentOverrides)
+          moniker,
+          d8FileName,
+          arguments,
+          environmentOverrides,
+        ),
       ];
     }
   }
@@ -229,7 +240,7 @@ class D8RuntimeConfiguration extends CommandLineJavaScriptRuntime {
   List<String> dart2jsPreambles(Uri preambleDir) {
     return [
       preambleDir.resolve('seal_native_object.js').toFilePath(),
-      preambleDir.resolve('d8.js').toFilePath()
+      preambleDir.resolve('d8.js').toFilePath(),
     ];
   }
 }
@@ -242,18 +253,21 @@ class JSCRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     checkArtifact(artifact!);
     if (compiler != Compiler.dart2wasm) {
       throw 'No test runner setup for jsc + dart2js yet';
     }
     return [
-      Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
-          ['--jsc', ...arguments], environmentOverrides)
+      Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark', [
+        '--jsc',
+        ...arguments,
+      ], environmentOverrides),
     ];
   }
 }
@@ -266,21 +280,30 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
 
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     checkArtifact(artifact!);
     if (compiler == Compiler.dart2wasm) {
       return [
-        Dart2WasmCommandLineCommand(moniker, 'pkg/dart2wasm/tool/run_benchmark',
-            ['--jsshell', ...arguments], environmentOverrides)
+        Dart2WasmCommandLineCommand(
+          moniker,
+          'pkg/dart2wasm/tool/run_benchmark',
+          ['--jsshell', ...arguments],
+          environmentOverrides,
+        ),
       ];
     } else {
       return [
         JSCommandLineCommand(
-            moniker, jsShellFileName, arguments, environmentOverrides)
+          moniker,
+          jsShellFileName,
+          arguments,
+          environmentOverrides,
+        ),
       ];
     }
   }
@@ -292,7 +315,7 @@ class JsshellRuntimeConfiguration extends CommandLineJavaScriptRuntime {
       preambleDir.resolve('seal_native_object.js').toFilePath(),
       '-f',
       preambleDir.resolve('jsshell.js').toFilePath(),
-      '-f'
+      '-f',
     ];
   }
 }
@@ -331,12 +354,13 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
   DartVmRuntimeConfiguration() : super._subclass();
 
   @override
-  int timeoutMultiplier(
-      {required Mode mode,
-      bool isChecked = false,
-      bool isReload = false,
-      required Architecture arch,
-      required System system}) {
+  int timeoutMultiplier({
+    required Mode mode,
+    bool isChecked = false,
+    bool isReload = false,
+    required Architecture arch,
+    required System system,
+  }) {
     var multiplier = 1;
 
     switch (arch) {
@@ -403,11 +427,12 @@ class DartVmRuntimeConfiguration extends RuntimeConfiguration {
 class StandaloneDartRuntimeConfiguration extends DartVmRuntimeConfiguration {
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     var script = artifact?.filename;
     var type = artifact?.mimeType;
     if (script != null &&
@@ -447,11 +472,12 @@ class DartPrecompiledRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     var script = artifact?.filename;
     var type = artifact?.mimeType;
     if (script != null &&
@@ -485,11 +511,12 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
 
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     var script = artifact?.filename;
     var type = artifact?.mimeType;
     if (script != null && type != 'application/kernel-ir-fully-linked') {
@@ -500,8 +527,14 @@ class DartkAdbRuntimeConfiguration extends DartVmRuntimeConfiguration {
     var processTest = processTestBinaryFileName;
     var abstractSocketTest = abstractSocketTestBinaryFileName;
     return [
-      AdbDartkCommand(buildPath, processTest, abstractSocketTest, script!,
-          arguments, extraLibs)
+      AdbDartkCommand(
+        buildPath,
+        processTest,
+        abstractSocketTest,
+        script!,
+        arguments,
+        extraLibs,
+      ),
     ];
   }
 }
@@ -516,11 +549,12 @@ class DartPrecompiledAdbRuntimeConfiguration
 
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     var script = artifact?.filename;
     var type = artifact?.mimeType;
     if (script != null && type != 'application/dart-precompiled') {
@@ -530,8 +564,15 @@ class DartPrecompiledAdbRuntimeConfiguration
     var processTest = processTestBinaryFileName;
     var abstractSocketTest = abstractSocketTestBinaryFileName;
     return [
-      AdbPrecompilationCommand(buildDir, processTest, abstractSocketTest,
-          script!, arguments, useElf, extraLibs)
+      AdbPrecompilationCommand(
+        buildDir,
+        processTest,
+        abstractSocketTest,
+        script!,
+        arguments,
+        useElf,
+        extraLibs,
+      ),
     ];
   }
 }
@@ -543,11 +584,12 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
 
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     var script = artifact?.filename;
     var type = artifact?.mimeType;
     if (script != null &&
@@ -563,26 +605,28 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
 
     // Rewrite paths on the host to paths in the Fuchsia package.
     arguments = arguments
-        .map((argument) =>
-            argument.replaceAll(Directory.current.path, "pkg/data"))
+        .map(
+          (argument) => argument.replaceAll(Directory.current.path, "pkg/data"),
+        )
         .toList();
 
     var component = "dartvm_test_component.cm";
     if (aot) {
       component = "dartaotruntime_test_component.cm";
-      arguments[arguments.length - 1] =
-          arguments[arguments.length - 1].replaceAll(".dart", ".dart.elf");
+      arguments[arguments.length - 1] = arguments[arguments.length - 1]
+          .replaceAll(".dart", ".dart.elf");
     }
 
     arguments.insert(arguments.length - 1, '--disable-dart-dev');
     return [
       FuchsiaEmulator.instance().getTestCommand(
-          _configuration.buildDirectory,
-          _configuration.mode.name,
-          _configuration.architecture.name,
-          component,
-          arguments,
-          environmentOverrides)
+        _configuration.buildDirectory,
+        _configuration.mode.name,
+        _configuration.architecture.name,
+        component,
+        arguments,
+        environmentOverrides,
+      ),
     ];
   }
 }
@@ -593,11 +637,12 @@ class DartkFuchsiaEmulatorRuntimeConfiguration
 class DummyRuntimeConfiguration extends DartVmRuntimeConfiguration {
   @override
   List<Command> computeRuntimeCommands(
-      CommandArtifact? artifact,
-      List<String> arguments,
-      Map<String, String> environmentOverrides,
-      List<String> extraLibs,
-      bool isCrashExpected) {
+    CommandArtifact? artifact,
+    List<String> arguments,
+    Map<String, String> environmentOverrides,
+    List<String> extraLibs,
+    bool isCrashExpected,
+  ) {
     throw "Unimplemented runtime '$runtimeType'";
   }
 }

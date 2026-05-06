@@ -62,7 +62,6 @@ const expected = <String>[
 
   '$file:${LINE_A + 3}:13', // on 'barXYZ2'
   '$file:${LINE_A + 24}:35', // on 'j'
-  '$file:${LINE_A + 24}:53', // after last ''', i.e. on ';'
   '$file:${LINE_A + 24}:41', // on first '''
   '$file:${LINE_A + 3}:3', // on 'print'
 
@@ -73,7 +72,7 @@ const expected = <String>[
 
   '$file:${LINE_A + 5}:13', // on 'barXYZ4'
   '$file:${LINE_A + 29}:35', // on 'j'
-  '$file:${LINE_A + 30}:24', // after last ''', i.e. on ';'
+  '$file:${LINE_A + 30}:12', // on first '''
   '$file:${LINE_A + 30}:5', // on 'return'
   '$file:${LINE_A + 5}:3', // on 'print'
 
@@ -84,7 +83,6 @@ const expected = <String>[
 
   '$file:${LINE_A + 7}:9', // on 'fooXYZ2'
   '$file:${LINE_A + 13}:33', // on 'j'
-  '$file:${LINE_A + 13}:51', // after last ''', i.e. on ';'
   '$file:${LINE_A + 13}:39', // on first '''
   '$file:${LINE_A + 7}:3', // on 'print'
 
@@ -95,7 +93,7 @@ const expected = <String>[
 
   '$file:${LINE_A + 9}:9', // on 'fooXYZ4'
   '$file:${LINE_A + 18}:33', // on 'j'
-  '$file:${LINE_A + 19}:22', // after last ''', i.e. on ';'
+  '$file:${LINE_A + 19}:10', // on first '''
   '$file:${LINE_A + 19}:3', // on 'return'
   '$file:${LINE_A + 9}:3', // on 'print'
 

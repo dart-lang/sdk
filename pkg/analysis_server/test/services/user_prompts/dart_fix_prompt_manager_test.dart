@@ -395,7 +395,7 @@ class TestServer implements LspAnalysisServer {
 
   @override
   UserPromptSender? get userPromptSender => supportsShowMessageRequest
-      ? (_, promptText, promptActions) async {
+      ? (_, promptText, promptActions, cancellationToken) async {
           lastPromptText = promptText;
           lastPromptActions = promptActions;
           assert(promptActions.contains(respondToPromptWithAction));

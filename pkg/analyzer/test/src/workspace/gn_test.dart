@@ -3,13 +3,12 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
-
-import '../../generated/test_support.dart';
 
 main() {
   defineReflectiveSuite(() {
@@ -30,7 +29,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     // file above it, for simplicity and reduced I/O.
     expect(
       package.contains(
-        TestSource(convertPath('/ws/some/other/code/file.dart')),
+        FileSource(newFile('/ws/some/other/code/file.dart', '')),
       ),
       isFalse,
     );
@@ -43,7 +42,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
 
     var package = workspace.findPackageFor(targetFile.path)!;
     expect(
-      package.contains(TestSource(convertPath('/ws2/some/file.dart'))),
+      package.contains(FileSource(newFile('/ws2/some/file.dart', ''))),
       isFalse,
     );
   }
@@ -58,10 +57,10 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     var targetTestFile = newFile('/ws/some/code/test/code_test.dart', '');
 
     var package = workspace.findPackageFor(targetFile.path)!;
-    expect(package.contains(TestSource(targetFile2.path)), isTrue);
-    expect(package.contains(TestSource(targetFile3.path)), isTrue);
-    expect(package.contains(TestSource(targetBinFile.path)), isTrue);
-    expect(package.contains(TestSource(targetTestFile.path)), isTrue);
+    expect(package.contains(FileSource(targetFile2)), isTrue);
+    expect(package.contains(FileSource(targetFile3)), isTrue);
+    expect(package.contains(FileSource(targetBinFile)), isTrue);
+    expect(package.contains(FileSource(targetTestFile)), isTrue);
   }
 
   void test_contains_subPackage() {
@@ -76,7 +75,7 @@ class GnWorkspacePackageTest with ResourceProviderMixin {
     )!;
     expect(
       package.contains(
-        TestSource(convertPath('/ws/some/code/testing/lib/testing.dart')),
+        FileSource(getFile('/ws/some/code/testing/lib/testing.dart')),
       ),
       isFalse,
     );

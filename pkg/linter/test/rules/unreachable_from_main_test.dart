@@ -503,13 +503,7 @@ class C {
   C.named();
 }
 ''',
-      [
-        lint(22, 1),
-        // TODO(srawlins): See if we can skip reporting a declaration if its
-        // enclosing declaration is being reported.
-        lint(28, 1),
-        lint(37, 5),
-      ],
+      [lint(22, 1)],
     );
   }
 
@@ -954,7 +948,7 @@ void f([C? c]) {
   if (c case const C()) {}
 }
 ''',
-      [lint(6, 1), lint(18, 1)],
+      [lint(6, 1)],
     );
   }
 
@@ -973,7 +967,7 @@ void f([C? c]) {
   if (c case const C<int>()) {}
 }
 ''',
-      [lint(6, 1), lint(21, 1)],
+      [lint(6, 1)],
     );
   }
 
@@ -1250,6 +1244,82 @@ mixin M {}
 ''',
       [lint(22, 1)],
     );
+  }
+
+  test_operator_index() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  print(V()[0]);
+}
+
+class V {
+  int operator [](int index) => 7;
+}
+''');
+  }
+
+  test_operator_indexAssignment() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  V()[0] = 2;
+}
+
+class V {
+  void operator []=(int index, int value) {}
+}
+''');
+  }
+
+  test_operator_lessThan() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  if (V() < V()) {
+    print('ok');
+  }
+}
+
+class V {
+  bool operator <(V other) => false;
+}
+''');
+  }
+
+  test_operator_postfixIncrement() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  var v = V();
+  v++;
+}
+
+class V {
+  V operator +(int other) => this;
+}
+''');
+  }
+
+  test_operator_prefixIncrement() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  var v = V();
+  ++v;
+}
+
+class V {
+  V operator +(int other) => this;
+}
+''');
+  }
+
+  test_operator_unary() async {
+    await assertNoDiagnostics(r'''
+void main() {
+  print(~V());
+}
+
+class V {
+  V operator ~() => this;
+}
+''');
   }
 
   test_setUpClass_class_static_member_reachable() async {
@@ -1794,7 +1864,7 @@ class B {
   Widget foo() => Text('');
 }
 ''',
-      [lint(109, 1), lint(244, 3)],
+      [lint(109, 1)],
     );
   }
 
@@ -1846,7 +1916,7 @@ class B {
   const B();
 }
 ''',
-      [lint(70, 1), lint(170, 1)],
+      [lint(70, 1)],
     );
   }
 
@@ -1918,7 +1988,7 @@ class Preview {
 @Preview()
 void f6() {}
 ''',
-      [lint(22, 7), lint(40, 7), lint(151, 2)],
+      [lint(22, 7), lint(151, 2)],
     );
   }
 }

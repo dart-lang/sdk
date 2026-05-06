@@ -43,7 +43,7 @@ class C extends self::B {
 class Test extends core::Object {
   field self::B member;
   field self::B? member2;
-  constructor •(self::B member, self::B? member2) → self::Test
+  constructor •(initializing-formal self::B member, initializing-formal self::B? member2) → self::Test
     : self::Test::member = member, self::Test::member2 = member2, super core::Object::•()
     ;
   method test() → void {

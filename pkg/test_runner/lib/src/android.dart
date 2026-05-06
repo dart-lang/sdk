@@ -18,11 +18,17 @@ class AdbCommandResult {
   final bool timedOut;
 
   AdbCommandResult(
-      this.command, this.stdout, this.stderr, this.exitCode, this.timedOut);
+    this.command,
+    this.stdout,
+    this.stderr,
+    this.exitCode,
+    this.timedOut,
+  );
 
   void throwIfFailed() {
     if (exitCode != 0) {
-      var error = "Running: $command failed:"
+      var error =
+          "Running: $command failed:"
           "stdout:\n  ${stdout.trim()}\n"
           "stderr:\n  ${stderr.trim()}\n"
           "exitCode: $exitCode\n"
@@ -37,8 +43,12 @@ class AdbCommandResult {
 ///
 /// If the exit code of the process was nonzero it will complete with an error.
 /// If starting the process failed, it will complete with an error as well.
-Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
-    {String? stdin, Duration? timeout}) {
+Future<AdbCommandResult> _executeCommand(
+  String executable,
+  List<String> args, {
+  String? stdin,
+  Duration? timeout,
+}) {
   Future<String> getOutput(Stream<List<int>> stream) {
     return stream
         .transform(utf8.decoder)
@@ -66,13 +76,18 @@ Future<AdbCommandResult> _executeCommand(String executable, List<String> args,
     var results = await Future.wait([
       getOutput(process.stdout),
       getOutput(process.stderr),
-      process.exitCode
+      process.exitCode,
     ]);
     timer?.cancel();
 
     var command = "$executable ${args.join(' ')}";
-    return AdbCommandResult(command, results[0] as String, results[1] as String,
-        results[2] as int, timedOut);
+    return AdbCommandResult(
+      command,
+      results[0] as String,
+      results[1] as String,
+      results[2] as int,
+      timedOut,
+    );
   });
 }
 
@@ -163,7 +178,7 @@ class AndroidHelper {
       target,
       '--force',
       '--abi',
-      'armeabi-v7a'
+      'armeabi-v7a',
     ];
     // We're adding newlines to stdin to simulate <enter>.
     var result = await _executeCommand("android", args, stdin: "\n\n\n\n");
@@ -190,8 +205,11 @@ class AdbDevice {
   Future<void> waitForBootCompleted() async {
     while (true) {
       try {
-        var result =
-            await _adbCommand(['shell', 'getprop', 'sys.boot_completed']);
+        var result = await _adbCommand([
+          'shell',
+          'getprop',
+          'sys.boot_completed',
+        ]);
         if (result.stdout.trim() == '1') return;
       } catch (_) {}
       await Future<void>.delayed(const Duration(seconds: 2));
@@ -201,13 +219,15 @@ class AdbDevice {
   /// Put adb in root mode.
   Future<bool> adbRoot() {
     var adbRootCompleter = Completer<bool>();
-    _adbCommand(['root']).then((_) {
-      // TODO: Figure out a way to wait until the adb daemon was restarted in
-      // 'root mode' on the device.
-      Timer(_adbServerStartupTime, () => adbRootCompleter.complete(true));
-    }).catchError((Object error) {
-      adbRootCompleter.completeError(error);
-    });
+    _adbCommand(['root'])
+        .then((_) {
+          // TODO: Figure out a way to wait until the adb daemon was restarted in
+          // 'root mode' on the device.
+          Timer(_adbServerStartupTime, () => adbRootCompleter.complete(true));
+        })
+        .catchError((Object error) {
+          adbRootCompleter.completeError(error);
+        });
     return adbRootCompleter.future;
   }
 
@@ -226,7 +246,8 @@ class AdbDevice {
   Future<AdbCommandResult> pushCachedData(String local, String remote) {
     if (_cachedData[remote] == local) {
       return Future.value(
-          AdbCommandResult("Skipped cached push", "", "", 0, false));
+        AdbCommandResult("Skipped cached push", "", "", 0, false),
+      );
     }
     _cachedData[remote] = local;
     return _adbCommand(['push', local, remote]);
@@ -240,8 +261,13 @@ class AdbDevice {
 
   /// Install an application on the device.
   Future installApk(Path filename) {
-    return _adbCommand(
-        ['install', '-i', 'com.google.android.feedback', '-r', '$filename']);
+    return _adbCommand([
+      'install',
+      '-i',
+      'com.google.android.feedback',
+      '-r',
+      '$filename',
+    ]);
   }
 
   /// Start the given intent on the device.
@@ -255,7 +281,7 @@ class AdbDevice {
       intent.action,
       '-n',
       "${intent.package}/${intent.activity}",
-      if (intent.dataUri != null) ...['-d', intent.dataUri!]
+      if (intent.dataUri != null) ...['-d', intent.dataUri!],
     ]);
   }
 
@@ -274,14 +300,21 @@ class AdbDevice {
     return _adbCommand(['shell', 'am', 'kill-all']);
   }
 
-  Future<AdbCommandResult> runAdbCommand(List<String> adbArgs,
-      {Duration? timeout}) {
-    return _executeCommand("adb", _deviceSpecificArgs(adbArgs),
-        timeout: timeout);
+  Future<AdbCommandResult> runAdbCommand(
+    List<String> adbArgs, {
+    Duration? timeout,
+  }) {
+    return _executeCommand(
+      "adb",
+      _deviceSpecificArgs(adbArgs),
+      timeout: timeout,
+    );
   }
 
-  Future<AdbCommandResult> runAdbShellCommand(List<String> shellArgs,
-      {Duration? timeout}) async {
+  Future<AdbCommandResult> runAdbShellCommand(
+    List<String> shellArgs, {
+    Duration? timeout,
+  }) async {
     const marker = 'AdbShellExitCode: ';
 
     // The exitcode of 'adb shell ...' can be 0 even though the command failed
@@ -289,8 +322,11 @@ class AdbDevice {
     // search for it.
 
     var args = ['shell', "${shellArgs.join(' ')} ; echo $marker \$?"];
-    var result = await _executeCommand("adb", _deviceSpecificArgs(args),
-        timeout: timeout);
+    var result = await _executeCommand(
+      "adb",
+      _deviceSpecificArgs(args),
+      timeout: timeout,
+    );
     var exitCode = result.exitCode;
     var lines = result.stdout
         .split('\n')
@@ -299,8 +335,9 @@ class AdbDevice {
     if (lines.isNotEmpty) {
       var index = lines.last.indexOf(marker);
       if (index >= 0) {
-        exitCode =
-            int.parse(lines.last.substring(index + marker.length).trim());
+        exitCode = int.parse(
+          lines.last.substring(index + marker.length).trim(),
+        );
         if (exitCode > 128 && exitCode <= 128 + 31) {
           // Return negative exit codes for signals 1..31 (128+N for signal N).
           exitCode = 128 - exitCode;
@@ -323,8 +360,13 @@ class AdbDevice {
         assert(result.exitCode != 0);
       }
     }
-    return AdbCommandResult(result.command, result.stdout, result.stderr,
-        exitCode, result.timedOut);
+    return AdbCommandResult(
+      result.command,
+      result.stdout,
+      result.stderr,
+      exitCode,
+      result.timedOut,
+    );
   }
 
   Future<AdbCommandResult> _adbCommand(List<String> adbArgs) async {
@@ -340,14 +382,18 @@ class AdbDevice {
 
 /// Helper to list all adb devices available.
 class AdbHelper {
-  static final RegExp _deviceLineRegexp =
-      RegExp(r'^([a-zA-Z0-9:_.\-]+)[ \t]+device$', multiLine: true);
+  static final RegExp _deviceLineRegexp = RegExp(
+    r'^([a-zA-Z0-9:_.\-]+)[ \t]+device$',
+    multiLine: true,
+  );
 
   static Future<List<String>> listDevices() {
     return Process.run('adb', ['devices']).then((ProcessResult result) {
       if (result.exitCode != 0) {
-        throw Exception("Could not list devices [stdout: ${result.stdout},"
-            "stderr: ${result.stderr}]");
+        throw Exception(
+          "Could not list devices [stdout: ${result.stdout},"
+          "stderr: ${result.stderr}]",
+        );
       }
       return _deviceLineRegexp
           .allMatches(result.stdout as String)
@@ -380,8 +426,10 @@ class AdbDevicePool {
     var names = await AdbHelper.listDevices();
     var devices = names.map(AdbDevice.new).toList();
     if (devices.isEmpty) {
-      throw Exception('No android devices found. '
-          'Please make sure "adb devices" shows your device!');
+      throw Exception(
+        'No android devices found. '
+        'Please make sure "adb devices" shows your device!',
+      );
     }
     print("Found ${devices.length} Android devices.");
     return AdbDevicePool(devices);

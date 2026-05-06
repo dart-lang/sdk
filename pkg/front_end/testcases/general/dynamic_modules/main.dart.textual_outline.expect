@@ -4,6 +4,8 @@ import 'main_lib2.dart';
 
 import 'main_lib4.dart';
 
+import 'main_lib5.dart';
+
 dynamic x;
 
 class D3 extends C3 {}
@@ -46,4 +48,13 @@ void test() {}
 
 void testCanBeUsedAsType(Object? o) {}
 
+void testDynamicallyCallable() {}
+
 void main() {}
+
+class Lib5WithNSM extends Lib5C1 {
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class C26WithM3 extends C26 with M3 {}

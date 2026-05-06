@@ -1,12 +1,20 @@
-abstract macro class Class2 {}
+abstract macro ;
 
-abstract macro class Class4 = Super with Mixin;
+abstract macro ;
+
+class Class1 {}
+
+class Class2 {}
+
+class Class3 = Super with Mixin;
+
+class Class4 = Super with Mixin;
 
 class Super {}
 
-macro class Class1 {}
+macro ;
 
-macro class Class3 = Super with Mixin;
+macro ;
 
 main() {}
 

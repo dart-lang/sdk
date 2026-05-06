@@ -218,6 +218,14 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
+  void visitNamedArgument(NamedArgument node) {
+    if (node.correspondingParameter case var element?) {
+      _addOccurrence(element, node.name);
+    }
+    super.visitNamedArgument(node);
+  }
+
+  @override
   void visitNamedType(NamedType node) {
     var element = node.element;
     if (element != null) {
@@ -251,13 +259,13 @@ class DartUnitOccurrencesComputerVisitor extends GeneralizingAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     var nameToken = node.name;
     if (nameToken != null) {
       _addOccurrence(node.declaredFragment!.element, nameToken);
     }
 
-    super.visitSimpleFormalParameter(node);
+    super.visitRegularFormalParameter(node);
   }
 
   @override

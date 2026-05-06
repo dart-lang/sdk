@@ -128,7 +128,7 @@ class ConvertAddAllToSpread extends ResolvedCorrectionProducer {
       elementText = utils.getText(startOffset, endOffset - startOffset);
       _args = ['addAll'];
     } else {
-      elementText = _computeElementText(argument);
+      elementText = _computeElementText(argument.argumentExpression);
     }
 
     await builder.addDartFileEdit(file, (builder) {

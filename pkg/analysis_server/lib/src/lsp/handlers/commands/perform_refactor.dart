@@ -4,14 +4,16 @@
 
 import 'dart:async';
 
+import 'package:analysis_server/src/analysis_server.dart' show MessageType;
 import 'package:analysis_server/src/lsp/client_capabilities.dart';
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/lsp/error_or.dart';
 import 'package:analysis_server/src/lsp/handlers/commands/abstract_refactor.dart';
 import 'package:analysis_server/src/lsp/handlers/handlers.dart';
 import 'package:analysis_server/src/lsp/lsp_analysis_server.dart';
 import 'package:analysis_server/src/lsp/mapping.dart';
 import 'package:analysis_server/src/lsp/progress.dart';
-import 'package:analysis_server/src/protocol_server.dart';
+import 'package:analysis_server/src/protocol_server.dart' hide MessageType;
 import 'package:meta/meta.dart';
 
 class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
@@ -33,6 +35,7 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
 
   @override
   FutureOr<ErrorOr<void>> execute(
+    MessageInfo message,
     String path,
     String kind,
     int offset,
@@ -80,15 +83,40 @@ class PerformRefactorCommandHandler extends AbstractRefactorCommandHandler {
           reporter.begin('Refactoring…');
           var status = await refactoring.checkAllConditions();
 
-          if (status.hasError) {
-            // Show the error to the user but don't fail the request, as the
-            // LSP Client may show a failed request in a way that looks like a
-            // server error.
-            if (server case LspAnalysisServer server) {
-              // Error notifications are not supported for LSP-over-Legacy.
-              server.showErrorMessageToUser(status.message!);
+          if (status.hasError || status.hasWarning) {
+            // For non-fatal errors/warnings, try to prompt the user to see if
+            // they would like to continue anyway.
+            var prompt = server.userPromptSender;
+            if (!status.hasFatalError && prompt != null) {
+              // Complete the message before we make the outbound request because when
+              // the server is in non-overlapping request mode, we cannot have the
+              // server stall because this request is blocked on user-input.
+              message.completer?.complete();
+
+              // Ask the user whether to proceed with the refactor.
+              var userChoice = await prompt(
+                MessageType.warning,
+                status.message!,
+                [UserPromptActions.refactorAnyway, UserPromptActions.cancel],
+                cancellationToken,
+              );
+
+              // Unless they choose to refactor anyway, abort.
+              if (userChoice != UserPromptActions.refactorAnyway) {
+                return success(null);
+              }
+            } else {
+              // Otherwise, client doesn't support prompting or the error is
+              // fatal. Show the error to the user (if possible) but don't fail
+              // the request, return null. Some LSP Clients (like VS Code) may
+              // show a failed request in a way that looks like a server error
+              // after we already showed a user-friendly message.
+              if (server case LspAnalysisServer server) {
+                // Error notifications are not supported for LSP-over-Legacy.
+                server.showErrorMessageToUser(status.message!);
+              }
+              return success(null);
             }
-            return success(null);
           }
 
           if (cancelableToken.isCancellationRequested) {

@@ -279,7 +279,9 @@ bool isEqualBitForBit(List<int> a, List<int> b) {
 }
 
 CompilerOptions getOptions(Uri sdkRoot) {
-  Target target = new FlutterTarget(new TargetFlags(trackWidgetCreation: true));
+  Target target = new FlutterTarget(
+    new TargetFlags(trackCreationLocations: true),
+  );
   CompilerOptions options = new CompilerOptions()
     ..sdkRoot = sdkRoot
     ..target = target

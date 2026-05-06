@@ -36,6 +36,7 @@ import 'src/commands/tooling_daemon.dart';
 import 'src/commands/uninstall.dart';
 import 'src/core.dart';
 import 'src/experiments.dart';
+import 'src/sdk.dart';
 import 'src/unified_analytics.dart';
 import 'src/utils.dart';
 import 'src/vm_interop_handler.dart';
@@ -46,6 +47,8 @@ Future<void> runDartdev(List<String> args, SendPort? port) async {
   int? exitCode = 1;
   try {
     VmInteropHandler.initialize(port);
+    // Set the DART_ROOT environment variable to the SDK path.
+    VmInteropHandler.setEnvironmentVariable('DART_ROOT', sdk.sdkPath);
     // Call the runner to execute the command; see DartdevRunner.
     final runner = DartdevRunner(args, vmArgs: io.Platform.executableArguments);
     exitCode = await runner.run(args);

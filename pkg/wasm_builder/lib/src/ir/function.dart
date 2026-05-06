@@ -13,8 +13,11 @@ class Local {
 
   Local(this.index, this.type);
 
-  void printTo(IrPrinter p, Map<int, String> localNames,
-      {bool isParam = false}) {
+  void printTo(
+    IrPrinter p,
+    Map<int, String> localNames, {
+    bool isParam = false,
+  }) {
     p.write(isParam ? 'param' : 'local');
     p.write(' ');
     p.writeLocalIndexReference(index);
@@ -41,8 +44,12 @@ abstract class BaseFunction with Indexable, Exportable {
   /// `binaryen.removable.if.unused` custom section.
   bool isPure = false;
 
-  BaseFunction(this.enclosingModule, this.finalizableIndex, this.type,
-      [this.functionName]);
+  BaseFunction(
+    this.enclosingModule,
+    this.finalizableIndex,
+    this.type, [
+    this.functionName,
+  ]);
 
   @override
   String get name => functionName ?? super.name;
@@ -64,12 +71,19 @@ class DefinedFunction extends BaseFunction implements Serializable {
   Map<int, String> get localNames => body.localNames;
 
   DefinedFunction(
-      super.enclosingModule, this.body, super.finalizableIndex, super.type,
-      [super.functionName]);
+    super.enclosingModule,
+    this.body,
+    super.finalizableIndex,
+    super.type, [
+    super.functionName,
+  ]);
 
   DefinedFunction.withoutBody(
-      super.enclosingModule, super.finalizableIndex, super.type,
-      [super.functionName]);
+    super.enclosingModule,
+    super.finalizableIndex,
+    super.type, [
+    super.functionName,
+  ]);
 
   @override
   void serialize(Serializer s) {
@@ -154,9 +168,14 @@ class ImportedFunction extends BaseFunction implements Import {
   @override
   final String name;
 
-  ImportedFunction(super.enclosingModule, this.module, this.name,
-      super.finalizableIndex, super.type,
-      [super.functionName]);
+  ImportedFunction(
+    super.enclosingModule,
+    this.module,
+    this.name,
+    super.finalizableIndex,
+    super.type, [
+    super.functionName,
+  ]);
 
   @override
   void serialize(Serializer s) {

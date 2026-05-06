@@ -3,8 +3,8 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1373,7 +1373,7 @@ processObj(p) {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$packagesRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa')),
     );
 
     await indexTestUnit('''
@@ -1456,7 +1456,7 @@ void foo(A a) {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
 
     await indexTestUnit('''

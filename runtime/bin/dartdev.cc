@@ -429,6 +429,7 @@ class DartDev {
     DartDev_Result_Run = 1,
     DartDev_Result_RunExec = 2,
     DartDev_Result_Exit = 3,
+    DartDev_Result_SetEnvironmentVariable = 4,
   } DartDev_Result;
 
   static CStringUniquePtr ResolvedDartVmPath() {
@@ -734,6 +735,16 @@ class DartDev {
     }
   }
 
+  static void SetEnvironmentVariableCallback(Dart_CObject* message) {
+    ASSERT(GetArrayItem(message, 1)->type == Dart_CObject_kString);
+    const char* name = GetArrayItem(message, 1)->value.as_string;
+    const char* value = nullptr;
+    if (GetArrayItem(message, 2)->type == Dart_CObject_kString) {
+      value = GetArrayItem(message, 2)->value.as_string;
+    }
+    Platform::SetEnvironmentVariable(name, value);
+  }
+
   // Callback that processes the result from execution of dartdev
   //
   static void ResultCallback(Dart_Port dest_port_id, Dart_CObject* message) {
@@ -752,6 +763,10 @@ class DartDev {
       }
       case DartDev_Result_Exit: {
         ExitResultCallback(message);
+        break;
+      }
+      case DartDev_Result_SetEnvironmentVariable: {
+        SetEnvironmentVariableCallback(message);
         break;
       }
       default:

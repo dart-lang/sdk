@@ -16,13 +16,13 @@ extension type A(core::int value) {
   constructor name1 = self::A|constructor#name1;
   constructor tearoff name1 = self::A|constructor#_#name1#tearOff;
 }
-static extension-type-member method A|constructor#_(core::int value) → self::A% /* erasure=core::int, declared=! */ {
+static extension-type-member method A|constructor#_(initializing-formal core::int value) → self::A% /* erasure=core::int, declared=! */ {
   lowered final self::A% /* erasure=core::int, declared=! */ #this = value;
   return #this;
 }
 static extension-type-member synthetic method A|constructor#_#_#tearOff(core::int value) → self::A% /* erasure=core::int, declared=! */
   return self::A|constructor#_(value);
-static extension-type-member method A|constructor#name1(core::int value) → self::A% /* erasure=core::int, declared=! */ {
+static extension-type-member method A|constructor#name1(initializing-formal core::int value) → self::A% /* erasure=core::int, declared=! */ {
   lowered final self::A% /* erasure=core::int, declared=! */ #this = value;
   return #this;
 }

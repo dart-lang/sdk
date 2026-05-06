@@ -11,7 +11,7 @@ import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/gn.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -1354,10 +1354,10 @@ ${getFolder(outPath).path}
     var flutterPath = '/home/packages/flutter';
 
     var packageConfigFileBuilder = PackageConfigFileBuilder()
-      ..add(name: 'flutter', rootPath: flutterPath);
+      ..add(name: 'flutter', rootFolder: getFolder(flutterPath));
     var packagesFile = newPackageConfigJsonFile(
       rootFolder.path,
-      packageConfigFileBuilder.toContent(pathContext: pathContext),
+      packageConfigFileBuilder.toContent(),
     );
 
     var roots = locateContextRoots(

@@ -7,7 +7,6 @@ import 'package:analyzer/dart/element/scope.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
@@ -158,7 +157,7 @@ class AstRewriter {
           typeArguments: node.typeArguments,
           argumentList: node.argumentList,
         );
-        NodeReplacer.replace(node, extensionOverride);
+        node.replaceWith(extensionOverride);
         return extensionOverride;
       } else if (element is TypeAliasElement &&
           element.aliasedType is InterfaceType) {
@@ -200,7 +199,7 @@ class AstRewriter {
             typeArguments: node.typeArguments,
             argumentList: node.argumentList,
           );
-          NodeReplacer.replace(node, extensionOverride);
+          node.replaceWith(extensionOverride);
           return extensionOverride;
         } else if (prefixedElement is TypeAliasElement &&
             prefixedElement.aliasedType is InterfaceType) {
@@ -262,7 +261,7 @@ class AstRewriter {
   /// [ConstructorReference].
   AstNode prefixedIdentifier(Scope nameScope, PrefixedIdentifierImpl node) {
     var parent = node.parent;
-    if (parent is Annotation) {
+    if (parent is AnnotationImpl) {
       // An annotations which is a const constructor invocation can initially be
       // represented with a [PrefixedIdentifier]. Do not rewrite such nodes.
       return node;
@@ -284,7 +283,7 @@ class AstRewriter {
     }
     var prefix = node.prefix;
     var prefixElement = nameScope.lookup(prefix.name).getter;
-    if (parent is ConstantPattern && prefixElement is PrefixElement) {
+    if (parent is ConstantPatternImpl && prefixElement is PrefixElement) {
       var element = prefixElement.scope.lookup(node.identifier.name).getter;
       switch (element) {
         case DynamicElementImpl():
@@ -438,7 +437,7 @@ class AstRewriter {
 
   AstNode simpleIdentifier(Scope nameScope, SimpleIdentifierImpl node) {
     var parent = node.parent;
-    if (parent is ConstantPattern) {
+    if (parent is ConstantPatternImpl) {
       var element = nameScope.lookup(node.name).getter;
       switch (element) {
         case DynamicElementImpl():
@@ -510,7 +509,7 @@ class AstRewriter {
       argumentList: node.argumentList,
       typeArguments: null,
     );
-    NodeReplacer.replace(node, instanceCreationExpression);
+    node.replaceWith(instanceCreationExpression);
     return instanceCreationExpression;
   }
 
@@ -547,7 +546,7 @@ class AstRewriter {
     var constructorReference = ConstructorReferenceImpl(
       constructorName: constructorName,
     );
-    NodeReplacer.replace(node, constructorReference);
+    node.replaceWith(constructorReference);
     return constructorReference;
   }
 
@@ -583,7 +582,7 @@ class AstRewriter {
     var constructorReference = ConstructorReferenceImpl(
       constructorName: constructorName,
     );
-    NodeReplacer.replace(node, constructorReference);
+    node.replaceWith(constructorReference);
     return constructorReference;
   }
 
@@ -612,7 +611,7 @@ class AstRewriter {
       argumentList: node.argumentList,
       typeArguments: null,
     );
-    NodeReplacer.replace(node, instanceCreationExpression);
+    node.replaceWith(instanceCreationExpression);
     return instanceCreationExpression;
   }
 
@@ -637,7 +636,7 @@ class AstRewriter {
       argumentList: node.argumentList,
       typeArguments: null,
     );
-    NodeReplacer.replace(node, instanceCreationExpression);
+    node.replaceWith(instanceCreationExpression);
     return instanceCreationExpression;
   }
 
@@ -682,7 +681,7 @@ class AstRewriter {
       argumentList: node.argumentList,
       typeArguments: typeArguments,
     );
-    NodeReplacer.replace(node, instanceCreationExpression);
+    node.replaceWith(instanceCreationExpression);
     return instanceCreationExpression;
   }
 
@@ -706,7 +705,7 @@ class AstRewriter {
       typeArguments: null,
       argumentList: node.argumentList,
     );
-    NodeReplacer.replace(node, methodInvocation);
+    node.replaceWith(methodInvocation);
     return methodInvocation;
   }
 
@@ -731,7 +730,7 @@ class AstRewriter {
       typeArguments: null,
       argumentList: node.argumentList,
     );
-    NodeReplacer.replace(node, methodInvocation);
+    node.replaceWith(methodInvocation);
     return methodInvocation;
   }
 
@@ -742,7 +741,7 @@ class AstRewriter {
     var result = TypeLiteralImpl(
       type: node.toNamedType(typeArguments: null, question: null),
     );
-    NodeReplacer.replace(node, result, parent: parent);
+    node.replaceWith(result);
     return result;
   }
 
@@ -750,7 +749,7 @@ class AstRewriter {
     var result = TypeLiteralImpl(
       type: node.toNamedType(typeArguments: null, question: null),
     );
-    NodeReplacer.replace(node, result);
+    node.replaceWith(result);
     return result;
   }
 }

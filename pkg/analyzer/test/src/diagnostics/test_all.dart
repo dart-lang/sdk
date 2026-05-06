@@ -47,6 +47,8 @@ import 'augmentation_modifier_missing_test.dart'
     as augmentation_modifier_missing;
 import 'augmentation_of_different_declaration_kind_test.dart'
     as augmentation_of_different_declaration_kind;
+import 'augmentation_of_mixin_application_class_test.dart'
+    as augmentation_of_mixin_application_class;
 import 'augmentation_type_parameter_bound_test.dart'
     as augmentation_type_parameter_bound;
 import 'augmentation_type_parameter_count_test.dart'
@@ -558,8 +560,7 @@ import 'mixin_application_no_concrete_super_invoked_member_test.dart'
     as mixin_application_no_concrete_super_invoked_member;
 import 'mixin_application_not_implemented_interface_test.dart'
     as mixin_application_not_implemented_interface;
-import 'mixin_class_declaration_extends_not_object_test.dart'
-    as mixin_class_declaration_extends_not_object;
+import 'mixin_class_declaration_test.dart' as mixin_class_declaration;
 import 'mixin_class_declares_non_trivial_generative_constructor_test.dart'
     as mixin_class_declares_non_trivial_generative_constructor;
 import 'mixin_declares_constructor_test.dart' as mixin_declares_constructor;
@@ -792,9 +793,12 @@ import 'return_in_generator_test.dart' as return_in_generator;
 import 'return_of_do_not_store_test.dart' as return_of_do_not_store;
 import 'return_of_invalid_type_from_catch_error_test.dart'
     as return_of_invalid_type_from_catch_error;
+import 'return_of_invalid_type_from_then_test.dart'
+    as return_of_invalid_type_from_then;
 import 'return_of_invalid_type_test.dart' as return_of_invalid_type;
 import 'return_type_invalid_for_catch_error_test.dart'
     as return_type_invalid_for_catch_error;
+import 'return_type_invalid_for_then_test.dart' as return_type_invalid_for_then;
 import 'return_without_value_test.dart' as return_without_value;
 import 'sdk_version_gt_gt_gt_operator_test.dart'
     as sdk_version_gt_gt_gt_operator;
@@ -985,6 +989,7 @@ main() {
     augmentation_modifier_extra.main();
     augmentation_modifier_missing.main();
     augmentation_of_different_declaration_kind.main();
+    augmentation_of_mixin_application_class.main();
     augmentation_type_parameter_bound.main();
     augmentation_type_parameter_count.main();
     augmentation_type_parameter_name.main();
@@ -1308,7 +1313,7 @@ main() {
     mixin_application_concrete_super_invoked_member_type.main();
     mixin_application_no_concrete_super_invoked_member.main();
     mixin_application_not_implemented_interface.main();
-    mixin_class_declaration_extends_not_object.main();
+    mixin_class_declaration.main();
     mixin_class_declares_non_trivial_generative_constructor.main();
     mixin_declares_constructor.main();
     mixin_deferred_class.main();
@@ -1457,8 +1462,10 @@ main() {
     return_in_generator.main();
     return_of_do_not_store.main();
     return_of_invalid_type_from_catch_error.main();
+    return_of_invalid_type_from_then.main();
     return_of_invalid_type.main();
     return_type_invalid_for_catch_error.main();
+    return_type_invalid_for_then.main();
     return_without_value.main();
     set_element_from_deferred_library.main();
     sdk_version_gt_gt_gt_operator.main();

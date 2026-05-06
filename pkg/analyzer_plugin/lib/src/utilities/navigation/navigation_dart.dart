@@ -12,6 +12,7 @@ import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
+import 'package:analyzer/src/util/uri.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:analyzer_plugin/utilities/analyzer_converter.dart';
 import 'package:analyzer_plugin/utilities/navigation/document_links.dart';
@@ -286,11 +287,11 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
         in _documentLinkVisitor
             .findLinks(node)
             .where((link) => link.targetUri.isScheme('file'))) {
-      computer._addRegionForLibrary(
-        link.offset,
-        link.length,
-        link.targetUri.toFilePath(),
+      var targetPath = fileUriToNormalizedPath(
+        resourceProvider.pathContext,
+        link.targetUri,
       );
+      computer._addRegionForLibrary(link.offset, link.length, targetPath);
     }
   }
 
@@ -457,14 +458,14 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   @override
   void visitFieldFormalParameter(FieldFormalParameter node) {
     var element = node.declaredFragment?.element;
-    if (element != null) {
+    if (element is FieldFormalParameterElement) {
       computer._addRegionForElement(node.thisKeyword, element.field);
       computer._addRegionForElement(node.name, element.field);
     }
 
     node.type?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
+    node.functionTypedSuffix?.accept(this);
+    node.defaultClause?.accept(this);
   }
 
   @override
@@ -520,6 +521,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitLabelReference(LabelReference node) {
+    computer._addRegionForElement(node.name, node.element);
+    super.visitLabelReference(node);
+  }
+
+  @override
   void visitLibraryDirective(LibraryDirective node) {
     computer._addRegionForElement(node.name, node.element);
     super.visitLibraryDirective(node);
@@ -535,6 +542,12 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   void visitMixinDeclaration(MixinDeclaration node) {
     computer._addRegionForFragment(node.name, node.declaredFragment);
     super.visitMixinDeclaration(node);
+  }
+
+  @override
+  void visitNamedArgument(NamedArgument node) {
+    computer._addRegionForElement(node.name, node.correspondingParameter);
+    node.argumentExpression.accept(this);
   }
 
   @override
@@ -660,13 +673,13 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     var nameToken = node.name;
     if (nameToken != null) {
       computer._addRegionForFragment(nameToken, node.declaredFragment);
     }
 
-    super.visitSimpleFormalParameter(node);
+    super.visitRegularFormalParameter(node);
   }
 
   @override
@@ -709,8 +722,8 @@ class _DartNavigationComputerVisitor extends RecursiveAstVisitor<void> {
     }
 
     node.type?.accept(this);
-    node.typeParameters?.accept(this);
-    node.parameters?.accept(this);
+    node.functionTypedSuffix?.accept(this);
+    node.defaultClause?.accept(this);
   }
 
   @override

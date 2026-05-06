@@ -182,12 +182,6 @@ bool VmService::Setup(const char* server_ip,
     // port when the HTTP server is started.
     server_port = 0;
   }
-#if defined(EXPERIMENTAL_VM_SERVICE)
-  if (enable_experimental_vm_service) {
-    // TODO(bkonyi): remove once DDS support is added.
-    wait_for_dds_to_advertise_service = false;
-  }
-#endif
   if (wait_for_dds_to_advertise_service) {
     result = DartUtils::SetStringField(library, "_ddsIP", server_ip);
     SHUTDOWN_ON_ERROR(result);

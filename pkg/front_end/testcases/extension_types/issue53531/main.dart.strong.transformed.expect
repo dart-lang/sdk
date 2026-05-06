@@ -11,7 +11,7 @@ extension type E<X extends core::Object? = dynamic, Y extends core::Object? = dy
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → self::E<self::E|constructor#::X%, self::E|constructor#::Y%>% /* erasure=core::String, declared=! */ {
+static extension-type-member method E|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(initializing-formal core::String s) → self::E<self::E|constructor#::X%, self::E|constructor#::Y%>% /* erasure=core::String, declared=! */ {
   lowered final self::E<self::E|constructor#::X%, self::E|constructor#::Y%>% /* erasure=core::String, declared=! */ #this = s;
   return #this;
 }
@@ -42,7 +42,7 @@ extension type G<X extends core::Object? = dynamic, Y extends core::Object? = dy
   constructor • = mai::G|constructor#;
   constructor tearoff • = mai::G|constructor#_#new#tearOff;
 }
-static extension-type-member method G|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(core::String s) → mai::G<mai::G|constructor#::X%, mai::G|constructor#::Y%>% /* erasure=core::String, declared=! */ {
+static extension-type-member method G|constructor#<X extends core::Object? = dynamic, Y extends core::Object? = dynamic>(initializing-formal core::String s) → mai::G<mai::G|constructor#::X%, mai::G|constructor#::Y%>% /* erasure=core::String, declared=! */ {
   lowered final mai::G<mai::G|constructor#::X%, mai::G|constructor#::Y%>% /* erasure=core::String, declared=! */ #this = s;
   return #this;
 }

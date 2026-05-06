@@ -124,7 +124,7 @@ class A {
   A(this.^foo(a, b));
 }
 ''');
-    expect(node.endToken, node.parameters!.endToken);
+    expect(node.endToken, node.functionTypedSuffix!.formalParameters.endToken);
   }
 }
 
@@ -1093,7 +1093,7 @@ void f(int i) {}
 ''');
     var function = result.unit.declarations[0] as FunctionDeclaration;
     var parameters = function.functionExpression.parameters;
-    var parameter = parameters?.parameters[0] as NormalFormalParameter;
+    var parameter = parameters?.parameters[0] as FormalParameter;
     expect(parameter.sortedCommentAndAnnotations, isEmpty);
   }
 }
@@ -1294,19 +1294,6 @@ void f() {
 ''');
     var identifier = parseResult.findNode.simple('v in');
     expect(identifier.inGetterContext(), isFalse);
-  }
-
-  void test_inReferenceContext() {
-    var parseResult = parseStringWithErrors('''
-void f() {
-  foo(id: 0);
-}
-final v = f(0, 1, 2);
-class C {}
-''');
-    var identifier = parseResult.findNode.simple('id:');
-    expect(identifier.inGetterContext(), isFalse);
-    expect(identifier.inSetterContext(), isFalse);
   }
 
   void test_inSetterContext() {
@@ -1834,7 +1821,7 @@ class A {
   A(super.^foo(a, b));
 }
 ''');
-    expect(node.endToken, node.parameters!.endToken);
+    expect(node.endToken, node.functionTypedSuffix!.formalParameters.endToken);
   }
 }
 

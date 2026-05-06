@@ -70,34 +70,6 @@ abstract enum E {ONE}
     parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
   }
 
-  void test_abstractTopLevelFunction_function() {
-    var parseResult = parseStringWithErrors(r'''
-abstract f(v) {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
-  }
-
-  void test_abstractTopLevelFunction_getter() {
-    var parseResult = parseStringWithErrors(r'''
-abstract get m {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
-  }
-
-  void test_abstractTopLevelFunction_setter() {
-    var parseResult = parseStringWithErrors(r'''
-abstract set m(v) {}
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
-  }
-
-  void test_abstractTopLevelVariable() {
-    var parseResult = parseStringWithErrors(r'''
-abstract C f;
-''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 0, 8)]);
-  }
-
   void test_abstractTypeDef() {
     var parseResult = parseStringWithErrors(r'''
 abstract typedef F();

@@ -62,7 +62,6 @@ class CreateFunction extends ResolvedCorrectionProducer {
           returnTypeGroupName: 'RETURN_TYPE',
           parameterWriter: () =>
               builder.writeParametersMatchingArguments(invocation.argumentList),
-          bodyWriter: () => builder.write('{$eol}'),
         );
       });
     });

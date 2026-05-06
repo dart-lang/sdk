@@ -9,7 +9,7 @@ import "dart:collection" as col;
 [290]    [290] [290] [-1] [-1] #t1.{core::Set::add}{Invariant}[-1]([290] "hello"){(core::String) → core::bool};
 [317]    [317] [317] [-1] [-1] #t1.{core::Set::addAll}{Invariant}[-1]([317] [306] [306]<core::String, core::String>{[310] [307] [307] "x": [312] [312] "y"}.{core::Map::keys}{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
 [327]    for ([339] core::String s in [344] [344] args)
-[353]      [353] [353] [-1] [-1] #t1.{core::Set::addAll}{Invariant}[-1]([353]<core::String>{[365] "${[363] [363] s}", [381] "${[376] [376] s}_2"}){(core::Iterable<core::String>) → void};
+[353]      [353] [353] [-1] [-1] #t1.{core::Set::addAll}{Invariant}[-1]([353]<core::String>{[361] "${[363] [363] s}", [373] "${[376] [376] s}_2"}){(core::Iterable<core::String>) → void};
 [394]    if([410] [410] [403] [403] [398] [398] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [413] [413] 42)
 [420]      [420] [420] [-1] [-1] #t1.{core::Set::addAll}{Invariant}[-1]([420]<core::String>{[428] "length", [444] "is", [456] "42"}){(core::Iterable<core::String>) → void};
   } =>[271] [271] #t1;
@@ -19,7 +19,7 @@ import "dart:collection" as col;
 [536]    [536] [536] [-1] [-1] #t2.{core::List::add}{Invariant}[-1]([536] "hello"){(core::String) → void};
 [563]    [563] [563] [-1] [-1] #t2.{core::List::addAll}{Invariant}[-1]([563] [552] [552]<core::String, core::String>{[556] [553] [553] "x": [558] [558] "y"}.{core::Map::keys}{core::Iterable<core::String>}){(core::Iterable<core::String>) → void};
 [573]    for ([585] core::String s in [590] [590] args)
-[599]      [599] [599] [-1] [-1] #t2.{core::List::addAll}{Invariant}[-1]([599]<core::String>[[611] "${[609] [609] s}", [627] "${[622] [622] s}_2"]){(core::Iterable<core::String>) → void};
+[599]      [599] [599] [-1] [-1] #t2.{core::List::addAll}{Invariant}[-1]([599]<core::String>[[607] "${[609] [609] s}", [619] "${[622] [622] s}_2"]){(core::Iterable<core::String>) → void};
 [640]    if([656] [656] [649] [649] [644] [644] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [659] [659] 42)
 [666]      [666] [666] [-1] [-1] #t2.{core::List::addAll}{Invariant}[-1]([666]<core::String>[[674] "length", [690] "is", [702] "42"]){(core::Iterable<core::String>) → void};
   } =>[517] [517] #t2;
@@ -28,7 +28,7 @@ import "dart:collection" as col;
 [770]    [770] final core::Map<core::String, core::String> #t3 = [770] [770]<core::String, core::String>{};
 [783]    [783] [783] [-1] [-1] #t3.{core::Map::[]=}{Invariant}[-1]([776] "hello", [785] "world"){(core::String, core::String) → void};
 [798]    for ([810] core::String s in [815] [815] args)
-[824]      [824] [824] [-1] [-1] #t3.{core::Map::addAll}{Invariant}[-1]([824]<core::String, core::String>{[836] [836] [836] "${[834] [834] s}": [846] [846] "${[841] [841] s}_2"}){(core::Map<core::String, core::String>) → void};
+[824]      [824] [824] [-1] [-1] #t3.{core::Map::addAll}{Invariant}[-1]([824]<core::String, core::String>{[836] [832] [832] "${[834] [834] s}": [838] [838] "${[841] [841] s}_2"}){(core::Map<core::String, core::String>) → void};
 [859]    if([875] [875] [868] [868] [863] [863] args.{core::List::length}{core::int} =={core::num::==}{(core::Object) → core::bool} [878] [878] 42)
 [885]      [885] [885] [-1] [-1] #t3.{core::Map::addAll}{Invariant}[-1]([885]<core::String, core::String>{[901] [893] [893] "length": [903] [903] "42", [919] [915] [915] "is": [921] [921] "42", [937] [933] [933] "42": [939] [939] "!"}){(core::Map<core::String, core::String>) → void};
   } =>[770] [770] #t3;

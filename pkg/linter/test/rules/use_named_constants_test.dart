@@ -98,6 +98,20 @@ class A {
 ''');
   }
 
+  test_extensionType() async {
+    await assertDiagnostics(
+      '''
+void f() {
+  const a = A(0);
+}
+extension type const A(int i) {
+  static const zero = A(0);
+}
+''',
+      [lint(23, 4)],
+    );
+  }
+
   test_reconstructed_sameAsPrivateName() async {
     await assertDiagnostics(
       r'''

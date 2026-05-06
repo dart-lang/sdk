@@ -8,6 +8,7 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
+import 'package:analyzer/src/utilities/extensions/ast.dart'; // ignore: implementation_imports
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -40,11 +41,16 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitMethodInvocation(MethodInvocation node) {
     if ((node.methodName.element?.isDartCorePrint ?? false) &&
+        !node.inCommentReference &&
         !_isDebugOnly(node)) {
       rule.reportAtNode(node.methodName);
     }
 
-    node.argumentList.arguments.forEach(_validateArgument);
+    for (var argument in node.argumentList.arguments) {
+      if (argument is Expression) {
+        _validateArgument(argument);
+      }
+    }
   }
 
   bool _isDebugOnly(Expression expression) {
@@ -65,6 +71,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   void _validateArgument(Expression expression) {
+    if (expression.inCommentReference) return;
     if (expression is SimpleIdentifier) {
       var element = expression.element;
       if (element.isDartCorePrint) {

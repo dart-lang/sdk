@@ -41,8 +41,12 @@ class ModuleBuilder with Builder<ir.Module> {
   /// bytes to watch. When the module is serialized, the stack traces leading
   /// to the production of all watched bytes are printed. This can be used to
   /// debug runtime errors happening at specific offsets within the module.
-  ModuleBuilder(this.moduleName, this.sourceMapUrl,
-      {ModuleBuilder? parent, this.watchPoints = const []}) {
+  ModuleBuilder(
+    this.moduleName,
+    this.sourceMapUrl, {
+    ModuleBuilder? parent,
+    this.watchPoints = const [],
+  }) {
     types = TypesBuilder(this, parent: parent?.types);
   }
 
@@ -64,8 +68,10 @@ class ModuleBuilder with Builder<ir.Module> {
     return true;
   }
 
-  FunctionBuilder get startFunction => _startFunction ??=
-      functions.define(types.defineFunction(const [], const []), "#init");
+  FunctionBuilder get startFunction => _startFunction ??= functions.define(
+    types.defineFunction(const [], const []),
+    "#init",
+  );
 
   @override
   ir.Module forceBuild() {
@@ -85,21 +91,21 @@ class ModuleBuilder with Builder<ir.Module> {
       finalTables.imported,
       finalMemories.imported,
     );
-    return module
-      ..initialize(
-          moduleName,
-          finalFunctions,
-          _startFunction,
-          finalTables,
-          finalElements,
-          finalTags,
-          finalMemories,
-          exports.build(),
-          finalGlobals,
-          types.build(),
-          dataSegments.build(),
-          imports,
-          watchPoints,
-          sourceMapUrl);
+    return module..initialize(
+      moduleName,
+      finalFunctions,
+      _startFunction,
+      finalTables,
+      finalElements,
+      finalTags,
+      finalMemories,
+      exports.build(),
+      finalGlobals,
+      types.build(),
+      dataSegments.build(),
+      imports,
+      watchPoints,
+      sourceMapUrl,
+    );
   }
 }

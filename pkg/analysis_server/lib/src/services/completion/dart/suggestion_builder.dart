@@ -525,7 +525,7 @@ class SuggestionBuilder {
 
   /// Add a suggestion for a [label].
   void suggestLabel(Label label) {
-    var completion = label.label.name;
+    var completion = label.name.lexeme;
     // TODO(brianwilkerson): Figure out why we're excluding labels consisting of
     //  a single underscore.
     if (completion.isNotEmpty && completion != '_') {
@@ -538,10 +538,10 @@ class SuggestionBuilder {
         false,
         false,
       );
-      suggestion.element = createLocalElement(
+      suggestion.element = createLocalElementFromToken(
         request.source,
         protocol.ElementKind.LABEL,
-        label.label,
+        label.name,
       );
       _addSuggestion(suggestion);
     }

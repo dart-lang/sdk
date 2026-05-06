@@ -52,7 +52,7 @@ class ReplaceTopBottomVisitor {
       );
     }).toList();
 
-    return FunctionTypeImpl.v2(
+    return FunctionTypeImpl(
       typeParameters: type.typeParameters,
       formalParameters: newParameters,
       returnType: newReturnType,

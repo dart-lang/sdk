@@ -2663,6 +2663,39 @@ inheritedMap
 ''');
   }
 
+  test_noDeclaration_implementClass_setter_combinedSignature() async {
+    var library = await buildLibrary(r'''
+abstract class A {
+  void set foo((int, int) Function(Object?, dynamic) f);
+}
+
+abstract class B {
+  void set foo((int, int) Function(dynamic, Object?) f);
+}
+
+class C implements A, B {
+  void set foo((int, int) Function(dynamic, dynamic) f) {}
+}
+
+extension type E(C it) implements A, B {}
+''');
+
+    var element = library.getExtensionType('E')!;
+    assertInterfaceText(element, r'''
+map
+  foo=: <testLibrary>::@extensionType::E::@setter::foo
+  it: <testLibrary>::@extensionType::E::@getter::it
+declared
+  it: <testLibrary>::@extensionType::E::@getter::it
+redeclared
+  foo=
+    <testLibrary>::@class::A::@setter::foo
+    <testLibrary>::@class::B::@setter::foo
+inheritedMap
+  foo=: <testLibrary>::@extensionType::E::@setter::foo
+''');
+  }
+
   test_noDeclaration_implementExtensionType_generic_method() async {
     var library = await buildLibrary(r'''
 extension type A<T>(T it) {

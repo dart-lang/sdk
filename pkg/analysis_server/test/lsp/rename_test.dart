@@ -2,6 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'dart:async';
+
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
@@ -22,6 +24,24 @@ void main() {
 
 @reflectiveTest
 class RenameTest extends AbstractLspAnalysisServerTest {
+  /// A completer that completes when an outbound rename request is sent.
+  ///
+  /// This is used in cancellation tests that need to know when the request has
+  /// been sent and access the ID to cancel.
+  Completer<RequestMessage> outboundRenameRequestCompleter = Completer();
+
+  @override
+  RequestMessage makeRenameRequest(
+    int? version,
+    Uri uri,
+    Position pos,
+    String newName,
+  ) {
+    var request = super.makeRenameRequest(version, uri, pos, newName);
+    outboundRenameRequestCompleter.complete(request);
+    return request;
+  }
+
   Future<void> test_prepare_class() {
     const content = '''
 class MyClass {}
@@ -546,6 +566,55 @@ final a = new MyOtherClass();
     );
 
     verifyEdit(result, expectedContent);
+  }
+
+  Future<void> test_rename_duplicateName_cancelWhilePromptPending() async {
+    const content = '''
+class MyOtherClass {}
+class MyClass {}
+final a = n^ew MyClass();
+''';
+    // Pass a completer as beforeResponding so we can hold off responding to
+    // the prompt reverse-request.
+    var reverseRequestStartedCompleter = Completer<void>();
+    var reverseRequestCompleter = Completer<void>();
+    var responseFuture = _test_rename_prompt(
+      content,
+      'MyOtherClass',
+      expectedMessage:
+          'Library already declares class with name \'MyOtherClass\'.',
+      // When we complete, we will send renameAnyway, but since we
+      // cancelled the request in the meantime, we expect a cancellation
+      // result.
+      action: UserPromptActions.renameAnyway,
+      beforeResponding: () {
+        // Mark that we started, so the test can continue.
+        reverseRequestStartedCompleter.complete();
+        // But wait for us to trigger the end.
+        return reverseRequestCompleter.future;
+      },
+    );
+
+    // Wait for the server to send the reverse-request so we don't cancel too
+    // early.
+    await reverseRequestStartedCompleter.future;
+
+    // Now, cancel the request.
+    await sendNotificationToServer(
+      makeNotification(
+        Method.cancelRequest,
+        CancelParams(id: (await outboundRenameRequestCompleter.future).id),
+      ),
+    );
+
+    // Expect that the response completes and returns a cancelled state.
+    var response = await responseFuture;
+    expect(response.result, isNull);
+    expect(response.error, isNotNull);
+    expect(response.error, isResponseError(ErrorCodes.RequestCancelled));
+
+    // Unblock the reverse-request.
+    reverseRequestCompleter.complete();
   }
 
   Future<void> test_rename_duplicateName_hover_beforeResponding() async {
@@ -1400,14 +1469,11 @@ final a = new MyNewClass();
     int renameRequestFileVersion = 222,
     bool supportsWindowShowMessageRequest = true,
   }) async {
+    setSupportsWindowShowMessageRequest(supportsWindowShowMessageRequest);
     setDocumentChangesSupport();
 
     var code = TestCode.parse(content);
-    await initialize(
-      experimentalCapabilities: supportsWindowShowMessageRequest
-          ? const {'supportsWindowShowMessageRequest': true}
-          : null,
-    );
+    await initialize();
     await openFile(mainFileUri, code.code, version: openFileVersion);
 
     var result = await renameRaw(
@@ -1435,14 +1501,11 @@ final a = new MyNewClass();
     int renameRequestFileVersion = 222,
     bool supportsWindowShowMessageRequest = true,
   }) async {
+    setSupportsWindowShowMessageRequest(supportsWindowShowMessageRequest);
     setDocumentChangesSupport();
 
     var code = TestCode.parseNormalized(content);
-    await initialize(
-      experimentalCapabilities: supportsWindowShowMessageRequest
-          ? const {'supportsWindowShowMessageRequest': true}
-          : null,
-    );
+    await initialize();
     await openFile(mainFileUri, code.code, version: openFileVersion);
 
     // Expect the server to call us back with a ShowMessageRequest prompt about
@@ -1503,16 +1566,12 @@ final a = new MyNewClass();
     var documentVersion = 222;
     var expectedVersions = {fileUri: documentVersion};
 
+    setSupportsWindowShowMessageRequest(supportsWindowShowMessageRequest);
     setDocumentChangesSupport();
     setFileRenameSupport();
 
     var code = TestCode.parse(content);
-    await initialize(
-      experimentalCapabilities: supportsWindowShowMessageRequest
-          ? const {'supportsWindowShowMessageRequest': true}
-          : null,
-      workspaceFolders: workspaceFolders,
-    );
+    await initialize(workspaceFolders: workspaceFolders);
     await openFile(fileUri, code.code, version: documentVersion);
     await initialAnalysis;
 

@@ -357,6 +357,7 @@ bool WriteBarrierElimination::SlotEligibleForWBE(const Slot& slot) {
   // RestoreWriteBarrierInvariantVisitor::VisitPointers.
 
   switch (slot.kind()) {
+    case Slot::Kind::kClosureElement:    // Closure
     case Slot::Kind::kCapturedVariable:  // Context
     case Slot::Kind::kDartField:         // Instance
     case Slot::Kind::kRecordField:       // Instance

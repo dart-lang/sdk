@@ -258,7 +258,7 @@ class _PreviewVisitor extends RecursiveAstVisitor<void> {
            ? unit.libraryElement.uri.pathSegments.first
            : null,
        _lineInfo = unit.lineInfo,
-       _scriptUri = Uri.file(unit.path),
+       _scriptUri = unit.file.toUri(),
        _libraryUri = unit.libraryElement.uri;
 
   void findPreviewsInResolvedUnitResult(ResolvedUnitResult unit) {

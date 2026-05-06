@@ -12,7 +12,7 @@ import '../verifier.dart';
 import 'changed_structure_notifier.dart';
 
 class TargetFlags {
-  final bool trackWidgetCreation;
+  final bool trackCreationLocations;
   final bool supportMirrors;
 
   /// Whether the backend expects closure contexts to be present in the AST.
@@ -32,7 +32,7 @@ class TargetFlags {
   final bool includeUnsupportedPlatformLibraryStubs;
 
   const TargetFlags({
-    this.trackWidgetCreation = false,
+    this.trackCreationLocations = false,
     this.supportMirrors = true,
     this.isClosureContextLoweringEnabled = false,
     this.constKeepLocalsIndicator,
@@ -43,7 +43,7 @@ class TargetFlags {
   bool operator ==(other) {
     if (identical(this, other)) return true;
     return other is TargetFlags &&
-        trackWidgetCreation == other.trackWidgetCreation &&
+        trackCreationLocations == other.trackCreationLocations &&
         supportMirrors == other.supportMirrors &&
         includeUnsupportedPlatformLibraryStubs ==
             other.includeUnsupportedPlatformLibraryStubs &&
@@ -53,7 +53,7 @@ class TargetFlags {
   @override
   int get hashCode {
     int hash = 485786;
-    hash = 0x3fffffff & (hash * 31 + (hash ^ trackWidgetCreation.hashCode));
+    hash = 0x3fffffff & (hash * 31 + (hash ^ trackCreationLocations.hashCode));
     hash = 0x3fffffff & (hash * 31 + (hash ^ supportMirrors.hashCode));
     hash =
         0x3fffffff &
@@ -334,12 +334,27 @@ abstract class Target {
   /// Perform target-specific transformations on the outlines stored in
   /// [Component] when generating summaries.
   ///
-  /// This transformation is used to add metadata on outlines and to filter
-  /// unnecessary information before generating program summaries. This
-  /// transformation is not applied when compiling full kernel programs to
+  /// This is used to transform the libraries, but not for instance
+  /// filtering the output libraries or adding metadata. Do this in
+  /// [performOutlineComponentOperations] instead.
+  /// This transformation is not applied when compiling full kernel programs to
   /// prevent affecting the internal invariants of the compiler and accidentally
   /// slowing down compilation.
-  void performOutlineTransformations(Component component) {}
+  void performOutlineTransformations(
+    Component component, {
+    List<Library>? libraries,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {}
+
+  /// Perform target-specific operations on the [Component] storing the outlines
+  /// when generating summaries.
+  ///
+  /// This is not for transforming the libraries, but can be used to add
+  /// metadata and filter libraries.
+  /// This is not applied when compiling full kernel programs to prevent
+  /// affecting the internal invariants of the compiler and accidentally
+  /// slowing down compilation.
+  void performOutlineComponentOperations(Component component) {}
 
   /// Perform target-specific transformations on the given libraries that must
   /// run before constant evaluation.
@@ -605,6 +620,17 @@ abstract class Target {
   /// invalidation was only within the body of the mixin member.
   bool get incrementalCompilerIncludeMixinApplicationInvalidatedLibraries =>
       false;
+
+  /// If this target is - or can be made - to be compatible with [other].
+  ///
+  /// Used for the modular incremental compilation pipeline.
+  bool isModularlyCompatibleWith(Target other) => true;
+
+  /// Update this target to be compatible with [other]. Assumes
+  /// [isModularlyCompatibleWith] returns true.
+  ///
+  /// Used for the modular incremental compilation pipeline.
+  void updateModularCompatibilityAs(Target other) {}
 }
 
 class NoneConstantsBackend extends ConstantsBackend {
@@ -799,7 +825,7 @@ class TestTargetFlags extends TargetFlags {
   final Set<String> unsupportedDartLibraries;
 
   const TestTargetFlags({
-    bool trackWidgetCreation = false,
+    bool trackCreationLocations = false,
     this.forceLateLoweringsForTesting,
     this.forceLateLoweringSentinelForTesting,
     this.forceStaticFieldLoweringForTesting,
@@ -809,7 +835,7 @@ class TestTargetFlags extends TargetFlags {
     this.unsupportedDartLibraries = const {},
     bool isClosureContextLoweringEnabled = false,
   }) : super(
-         trackWidgetCreation: trackWidgetCreation,
+         trackCreationLocations: trackCreationLocations,
          isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
        );
 }
@@ -1018,8 +1044,21 @@ class TargetWrapper extends Target {
   }
 
   @override
-  void performOutlineTransformations(Component component) {
-    _target.performOutlineTransformations(component);
+  void performOutlineTransformations(
+    Component component, {
+    List<Library>? libraries,
+    ChangedStructureNotifier? changedStructureNotifier,
+  }) {
+    _target.performOutlineTransformations(
+      component,
+      libraries: libraries,
+      changedStructureNotifier: changedStructureNotifier,
+    );
+  }
+
+  @override
+  void performOutlineComponentOperations(Component component) {
+    _target.performOutlineComponentOperations(component);
   }
 
   @override
@@ -1100,14 +1139,14 @@ mixin SummaryMixin on Target {
   bool get excludeNonSources;
 
   @override
-  void performOutlineTransformations(Component component) {
-    super.performOutlineTransformations(component);
+  void performOutlineComponentOperations(Component component) {
+    super.performOutlineComponentOperations(component);
     if (!excludeNonSources) return;
 
-    List<Library> libraries = new List.of(component.libraries);
+    List<Library> componentLibraries = new List.of(component.libraries);
     component.libraries.clear();
     Set<Uri> include = sources.toSet();
-    for (Library library in libraries) {
+    for (Library library in componentLibraries) {
       if (include.contains(library.importUri)) {
         component.libraries.add(library);
       } else {

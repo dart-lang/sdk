@@ -87,7 +87,6 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateSyncFfiCallback) {
     ASSERT(isolate == isolate_scope.isolate());
     TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
-    HandleScope handle_scope(thread);
 
     auto* zone = thread->zone();
 
@@ -182,7 +181,6 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateAsyncFfiCallback) {
     ASSERT(thread->isolate() == isolate_scope.isolate());
     TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
-    HandleScope handle_scope(thread);
 
     auto* zone = thread->zone();
 
@@ -279,7 +277,6 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
     ASSERT(thread->isolate() == isolate_scope.isolate());
     TransitionNativeToVM transition(thread);
     StackZone stack_zone(thread);
-    HandleScope handle_scope(thread);
 
     auto* zone = thread->zone();
 
@@ -288,9 +285,9 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_CreateIsolateLocalFfiCallback) {
     const Code& code = Code::Handle(func.EnsureHasCode());
     EXPECT(!code.IsNull());
 
-    // Using a FfiCallbackKind::kSync function as a dummy closure.
+    // Using a tear-off of target of the callback function as a dummy closure.
     const Function& closure_func = Function::Handle(
-        CreateTestFunction(FfiCallbackKind::kIsolateLocalStaticCallback));
+        Function::Handle(func.FfiCallbackTarget()).ImplicitClosureFunction());
     const Context& context = Context::Handle(Context::null());
     const Closure& closure1 = Closure::Handle(
         Closure::New(Object::null_type_arguments(),
@@ -439,7 +436,6 @@ VM_UNIT_TEST_CASE(FfiCallbackMetadata_DeleteTrampolines) {
   ASSERT(isolate == isolate_scope.isolate());
   TransitionNativeToVM transition(thread);
   StackZone stack_zone(thread);
-  HandleScope handle_scope(thread);
 
   auto* fcm = FfiCallbackMetadata::Instance();
   std::unordered_set<FfiCallbackMetadata::Trampoline> tramps;
@@ -513,7 +509,6 @@ static void RunBigRandomMultithreadedTest(uint64_t seed) {
   ASSERT(isolate == isolate_scope.isolate());
   TransitionNativeToVM transition(thread);
   StackZone stack_zone(thread);
-  HandleScope handle_scope(thread);
 
   struct TrampolineWithPort {
     FfiCallbackMetadata::Trampoline tramp;

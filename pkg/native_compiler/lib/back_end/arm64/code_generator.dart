@@ -26,6 +26,39 @@ final class Arm64CodeGenerator extends CodeGenerator {
   final FunctionRegistry functionRegistry;
   late final Arm64Assembler _asm;
 
+  late final CFunction _asyncStarStreamControllerAdd = functionRegistry
+      .getFunction(
+        GlobalContext.instance.coreTypes.index.getProcedure(
+          'dart:async',
+          '_AsyncStarStreamController',
+          'add',
+        ),
+      );
+  late final CFunction _asyncStarStreamControllerAddStream = functionRegistry
+      .getFunction(
+        GlobalContext.instance.coreTypes.index.getProcedure(
+          'dart:async',
+          '_AsyncStarStreamController',
+          'addStream',
+        ),
+      );
+
+  late final CField _syncStarIteratorCurrent = CField(
+    GlobalContext.instance.coreTypes.index.getField(
+      'dart:async',
+      '_SyncStarIterator',
+      '_current',
+    ),
+  );
+
+  late final CField _syncStarIteratorYieldStarIterable = CField(
+    GlobalContext.instance.coreTypes.index.getField(
+      'dart:async',
+      '_SyncStarIterator',
+      '_yieldStarIterable',
+    ),
+  );
+
   Arm64CodeGenerator(super.backEndState, this.functionRegistry);
 
   @override
@@ -298,17 +331,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitBranch(Branch instr) {
     final cond = inputReg(instr, 0);
-    final boolValueBit = boolValueBitPosition(log2wordSize);
     _generateBranch(instr.trueSuccessor, instr.falseSuccessor, (
       bool value,
       Label label,
     ) {
-      // Test bool value bit: 0 = true, 1 = false.
-      if (value) {
-        _asm.tbz(cond, boolValueBit, label);
-      } else {
-        _asm.tbnz(cond, boolValueBit, label);
-      }
+      _asm.branchIfBoolIs(cond, value, label);
     });
   }
 
@@ -426,8 +453,31 @@ final class Arm64CodeGenerator extends CodeGenerator {
   @override
   void visitReturn(Return instr) {
     assert(inputReg(instr, 0) == returnReg);
+    switch (graph.function.asyncMarker) {
+      case .Async:
+        _asm.jumpVmStub(
+          instr.value.type.canBeFuture
+              ? StubCode.ReturnAsync
+              : StubCode.ReturnAsyncNotFuture,
+        );
+        return;
+      case .AsyncStar:
+        _asm.jumpVmStub(StubCode.ReturnAsyncStar);
+        return;
+      case .SyncStar:
+        // Overwrite the return value to indicate the end of iteration.
+        _asm.loadConstant(returnReg, ConstantValue.fromBool(false));
+        break;
+      case .Sync:
+        break;
+    }
     _asm.leaveDartFrame();
     _asm.ret();
+  }
+
+  @override
+  void visitUnreachable(Unreachable instr) {
+    _asm.unimplemented('Unreachable: ${instr.message}');
   }
 
   @override
@@ -460,13 +510,11 @@ final class Arm64CodeGenerator extends CodeGenerator {
         }
       } else {
         final loc = inputLoc(instr, i);
-        switch (loc) {
-          case Register():
-            reg = loc;
-            break;
-          // TODO: support other locations.
-          default:
-            throw 'Unimplemented passing arg from ${loc.runtimeType} $loc';
+        if (loc is Register) {
+          reg = loc;
+        } else {
+          reg = getTempReg();
+          generateMove(loc, reg);
         }
       }
       if (pendingReg == invalidReg) {
@@ -982,13 +1030,6 @@ final class Arm64CodeGenerator extends CodeGenerator {
     final doneTrue = Label();
     final done = Label();
 
-    late final Label slowPath = addSlowPath(() {
-      _asm.unimplemented(
-        'Unimplemented: code generation for TypeTest slow path',
-      );
-      _asm.b(done);
-    });
-
     // Handle a few built-in types, use STC for other types.
     final type = instr.testedType;
     switch (type) {
@@ -996,38 +1037,36 @@ final class Arm64CodeGenerator extends CodeGenerator {
         _asm.cmp(operandReg, nullReg);
         _asm.b(doneTrue, .notEqual);
       case NullType():
-        _asm.cmp(resultReg, nullReg);
+        _asm.cmp(operandReg, nullReg);
         _asm.b(doneTrue, .equal);
       case IntType():
-        _asm.tbz(resultReg, smiBit, doneTrue);
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.tbz(operandReg, smiBit, doneTrue);
+        _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.MintCid.index);
         _asm.b(doneTrue, .equal);
       case DoubleType():
-        _asm.tbz(resultReg, smiBit, doneFalse);
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.tbz(operandReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.DoubleCid.index);
         _asm.b(doneTrue, .equal);
       case BoolType():
-        _asm.tbz(resultReg, smiBit, doneFalse);
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.tbz(operandReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.BoolCid.index);
         _asm.b(doneTrue, .equal);
       case StringType():
-        _asm.tbz(resultReg, smiBit, doneFalse);
-        _asm.loadClassId(tempReg, resultReg);
+        _asm.tbz(operandReg, smiBit, doneFalse);
+        _asm.loadClassId(tempReg, operandReg);
         _asm.cmpImmediate(tempReg, ClassId.OneByteStringCid.index);
         _asm.b(doneTrue, .equal);
         _asm.cmpImmediate(tempReg, ClassId.TwoByteStringCid.index);
         _asm.b(doneTrue, .equal);
       default:
-        _asm.tbz(
-          resultReg,
-          smiBit,
-          const IntType().isSubtypeOf(type) ? doneTrue : doneFalse,
-        );
+        if (const IntType().isSubtypeOf(type)) {
+          _asm.tbz(operandReg, smiBit, doneTrue);
+        }
         if (type.isNullable) {
-          _asm.cmp(resultReg, nullReg);
+          _asm.cmp(operandReg, nullReg);
           _asm.b(doneTrue, .equal);
         }
         bool isNullConstant(Definition def) =>
@@ -1052,13 +1091,36 @@ final class Arm64CodeGenerator extends CodeGenerator {
           _ =>
             throw 'Unexpected number of SubtypeTestCache inputs ${stc.numInputs} (type $type)',
         };
+
+        final Label slowPath = addSlowPath(() {
+          assert(stackFrame.maxArgumentsStackSlots >= 6);
+          _asm.loadFromPool(tempReg, type.dartType);
+          _asm.stp(
+            TypeTestingStub.subtypeTestCacheReg,
+            hasFunctionTypeArgs
+                ? TypeTestingStub.functionTypeArgumentsReg
+                : nullReg,
+            RegOffsetAddress(stackPointerReg, 0),
+          );
+          _asm.stp(
+            hasInstantiatorTypeArgs
+                ? TypeTestingStub.instantiatorTypeArgumentsReg
+                : nullReg,
+            tempReg,
+            RegOffsetAddress(stackPointerReg, 2 * wordSize),
+          );
+          _asm.stp(
+            TypeTestingStub.instanceReg,
+            nullReg, // Space for result
+            RegOffsetAddress(stackPointerReg, 4 * wordSize),
+          );
+          _asm.callRuntime(RuntimeEntry.Instanceof, 5);
+          _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 5 * wordSize));
+          _asm.b(done);
+        });
+
         _asm.loadFromPool(TypeTestingStub.subtypeTestCacheReg, stc);
-        _asm.loadFromPool(codeReg, stub);
-        _asm.ldr(
-          tempReg,
-          _asm.fieldAddress(codeReg, vmOffsets.Code_entry_point_offset.first),
-        );
-        _asm.blr(tempReg);
+        _asm.callVmStub(stub);
         _asm.cmp(TypeTestingStub.subtypeTestCacheResultReg, nullReg);
         _asm.b(slowPath, .equal);
         _asm.mov(resultReg, TypeTestingStub.subtypeTestCacheResultReg);
@@ -1080,7 +1142,44 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitTypeLiteral(TypeLiteral instr) {
-    _asm.unimplemented('Unimplemented: code generation for TypeLiteral');
+    final instantiatorTypeArgsReg = inputReg(instr, 0);
+    final functionTypeArgsReg = inputReg(instr, 1);
+    final resultReg = outputReg(instr);
+    final type = instr.uninstantiatedType;
+    if (type is ast.TypeParameterType &&
+        type.nullability != ast.Nullability.nullable) {
+      final declaration = type.parameter.declaration;
+      final index = computeIndexOfTypeParameter(type.parameter);
+      final typeArgsReg = (declaration is ast.Class)
+          ? instantiatorTypeArgsReg
+          : functionTypeArgsReg;
+      final done = Label();
+      if (resultReg != typeArgsReg) {
+        _asm.mov(resultReg, nullReg);
+      }
+      _asm.cmp(typeArgsReg, nullReg);
+      _asm.b(done, .equal);
+      _asm.ldr(
+        resultReg,
+        _asm.address(
+          typeArgsReg,
+          vmOffsets.TypeArguments_types_offset +
+              index * objectLayout.compressedWordSize,
+        ),
+      );
+      _asm.bind(done);
+      return;
+    }
+    assert(stackFrame.maxArgumentsStackSlots >= 4);
+    _asm.loadFromPool(tempReg, type);
+    _asm.stp(
+      functionTypeArgsReg,
+      instantiatorTypeArgsReg,
+      RegOffsetAddress(stackPointerReg, 0),
+    );
+    _asm.stp(tempReg, nullReg, RegOffsetAddress(stackPointerReg, 2 * wordSize));
+    _asm.callRuntime(RuntimeEntry.InstantiateType, 3);
+    _asm.ldr(resultReg, RegOffsetAddress(stackPointerReg, 3 * wordSize));
   }
 
   @override
@@ -1147,18 +1246,50 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitAllocateClosure(AllocateClosure instr) {
-    final cls = GlobalContext.instance.coreTypes.index.getClass(
-      'dart:core',
-      '_Closure',
+    final function = instr.function;
+    final hasDelayedTypeArgs = function.hasFunctionTypeParameters;
+    final hasInstantiatorTypeArgs = switch (function) {
+      LocalFunction() => containsClassTypeParameters(
+        function.functionNode!.computeFunctionType(ast.Nullability.nonNullable),
+      ),
+      TearOffFunction() =>
+        function.member.isInstanceMember &&
+            containsClassTypeParameters(
+              function.member.function!.computeFunctionType(
+                ast.Nullability.nonNullable,
+              ),
+            ),
+    };
+    final hasFunctionTypeArgs = switch (function) {
+      LocalFunction() => hasGenericEnclosingFunction(function.localFunction),
+      TearOffFunction() => false,
+    };
+    final numElements =
+        (hasDelayedTypeArgs ? 1 : 0) +
+        (hasInstantiatorTypeArgs ? 1 : 0) +
+        (hasFunctionTypeArgs ? 1 : 0) +
+        1 /* context */;
+    final lengthAndFlags = vmOffsets.encodeClosureLengthAndFlags(
+      numElements,
+      hasDelayedTypeArgs: hasDelayedTypeArgs,
+      hasInstantiatorTypeArgs: hasInstantiatorTypeArgs,
+      hasFunctionTypeArgs: hasFunctionTypeArgs,
     );
-    final instanceSize = objectLayout.getInstanceSize(cls);
+    final instanceSize = roundUp(
+      vmOffsets.Closure_elementsStartOffset +
+          numElements * objectLayout.compressedWordSize,
+      objectAlignment(wordSize),
+    );
+
     final resultReg = AllocationStub.resultReg;
     assert(outputReg(instr) == resultReg);
 
-    final initializeObject = Label();
+    final done = Label();
     Label slowPath = addSlowPath(() {
-      _asm.callStub(backEndState.stubFactory.getAllocationStub(cls));
-      _asm.b(initializeObject);
+      _asm.unimplemented(
+        'Unimplemented: code generation for AllocateClosure slow path',
+      );
+      _asm.b(done);
     });
 
     _asm.loadImmediate(
@@ -1178,16 +1309,21 @@ final class Arm64CodeGenerator extends CodeGenerator {
       slowPath,
       initializeFields: true,
     );
-
-    _asm.bind(initializeObject);
     final fieldReg = AllocationStub.scratch1Reg;
-    _asm.loadFromPool(fieldReg, instr.function);
+    _asm.loadFromPool(fieldReg, function);
     _asm.str(
       fieldReg,
       _asm.fieldAddress(resultReg, vmOffsets.Closure_function_offset),
     );
+    _asm.loadImmediate(fieldReg, lengthAndFlags << smiShift);
+    _asm.str(
+      fieldReg,
+      _asm.fieldAddress(resultReg, vmOffsets.Closure_length_and_flags_offset),
+    );
+    _asm.str(ZR, _asm.fieldAddress(resultReg, vmOffsets.Closure_hash_offset));
     // TODO: initialize the rest of the fields.
     assert(instr.inputCount == 0);
+    _asm.bind(done);
   }
 
   @override
@@ -1439,9 +1575,54 @@ final class Arm64CodeGenerator extends CodeGenerator {
       case .shiftLeft:
       case .shiftRight:
       case .unsignedShiftRight:
-        _asm.unimplemented(
-          'Unimplemented: code generation for BinaryIntOp ${instr.op.token}',
-        );
+        final done = Label();
+        late final Label slowPath = addSlowPath(() {
+          _asm.unimplemented(
+            'Unimplemented: code generation for slow path of BinaryIntOp ${instr.op.token}',
+          );
+          _asm.b(done);
+        });
+        if (right is Constant) {
+          final shift = right.value.intValue;
+          if (shift < 0) {
+            _asm.b(slowPath);
+          } else if (shift > 0 && shift < 64) {
+            switch (instr.op) {
+              case .shiftLeft:
+                _asm.lsl(resultReg, leftReg, shift);
+                break;
+              case .shiftRight:
+                _asm.asr(resultReg, leftReg, shift);
+                break;
+              case .unsignedShiftRight:
+                _asm.lsr(resultReg, leftReg, shift);
+                break;
+              default:
+                throw "Unexpected shift op ${instr.op}";
+            }
+          } else {
+            // Guaranteed by simplification pass.
+            throw 'Unexpected shift amount $shift';
+          }
+        } else {
+          final rightReg = inputReg(instr, 1);
+          _asm.cmp(rightReg, Immediate(63));
+          _asm.b(slowPath, .unsignedGreater);
+          switch (instr.op) {
+            case .shiftLeft:
+              _asm.lslv(resultReg, leftReg, rightReg);
+              break;
+            case .shiftRight:
+              _asm.asrv(resultReg, leftReg, rightReg);
+              break;
+            case .unsignedShiftRight:
+              _asm.lsrv(resultReg, leftReg, rightReg);
+              break;
+            default:
+              throw "Unexpected shift op ${instr.op}";
+          }
+        }
+        _asm.bind(done);
         break;
     }
   }
@@ -1472,6 +1653,98 @@ final class Arm64CodeGenerator extends CodeGenerator {
     _asm.unimplemented(
       'Unimplemented: code generation for UnaryBoolOp ${instr.op.token}',
     );
+  }
+
+  @override
+  void visitEnterSuspendableFunction(EnterSuspendableFunction instr) {
+    final asyncMarker = graph.function.asyncMarker;
+    final stub = switch (asyncMarker) {
+      .Async => StubCode.InitAsync,
+      .AsyncStar => StubCode.InitAsyncStar,
+      .SyncStar => StubCode.InitSyncStar,
+      .Sync => throw 'Unexpected async marker',
+    };
+    _asm.callVmStub(stub);
+    // Suspend async* and sync* functions at the beginning.
+    if (asyncMarker == .AsyncStar) {
+      _asm.mov(SuspendStub.argumentReg, nullReg);
+      _asm.callVmStub(StubCode.YieldAsyncStar);
+    } else if (asyncMarker == .SyncStar) {
+      _asm.mov(SuspendStub.argumentReg, nullReg);
+      _asm.callVmStub(StubCode.SuspendSyncStarAtStart);
+    }
+  }
+
+  @override
+  void visitSuspend(Suspend instr) {
+    void loadFunctionData(Register dst) {
+      _asm.ldr(tempReg, _asm.address(FP, stackFrame.suspendStateOffsetFromFP));
+      _asm.ldr(
+        dst,
+        _asm.fieldAddress(tempReg, vmOffsets.SuspendState_function_data_offset),
+      );
+    }
+
+    switch (instr.op) {
+      case .await:
+        _asm.callVmStub(StubCode.Await);
+        break;
+      case .awaitWithTypeCheck:
+        _asm.callVmStub(StubCode.AwaitWithTypeCheck);
+        break;
+      case .asyncYield || .asyncYieldStar:
+        // Load controller from suspend state.
+        loadFunctionData(tempReg);
+        // Call controller.add or addStream.
+        assert(stackFrame.maxArgumentsStackSlots >= 2);
+        _asm.stp(
+          SuspendStub.argumentReg,
+          tempReg,
+          RegOffsetAddress(stackPointerReg, 0),
+        );
+        _callFunction(
+          instr.op == .asyncYield
+              ? _asyncStarStreamControllerAdd
+              : _asyncStarStreamControllerAddStream,
+        );
+        // It returns true if subscription was canceled.
+        final done = Label();
+        _asm.branchIfBoolIs(returnReg, true, done);
+        // Suspend.
+        _asm.mov(SuspendStub.argumentReg, nullReg);
+        _asm.callVmStub(StubCode.YieldAsyncStar);
+        _asm.bind(done);
+        break;
+      case .syncYield || .syncYieldStar:
+        // Load iterator from suspend state.
+        final iteratorReg = temporaryReg(instr, 0);
+        final scratch1Reg = temporaryReg(instr, 1);
+        final scratch2Reg = temporaryReg(instr, 2);
+        loadFunctionData(iteratorReg);
+        // Set _SyncStarIterator._current or _yieldStarIterable.
+        _asm.str(
+          SuspendStub.argumentReg,
+          _asm.fieldAddress(
+            iteratorReg,
+            objectLayout.getFieldOffset(
+              instr.op == .syncYield
+                  ? _syncStarIteratorCurrent
+                  : _syncStarIteratorYieldStarIterable,
+            ),
+          ),
+        );
+        _writeBarrier(
+          iteratorReg,
+          SuspendStub.argumentReg,
+          scratch1Reg,
+          scratch2Reg,
+          valueCanBeSmi: _canBeSmi(instr.operand),
+        );
+        // Suspend.
+        _asm.mov(SuspendStub.argumentReg, nullReg);
+        _asm.callVmStub(StubCode.SuspendSyncStarAtYield);
+        break;
+    }
   }
 
   @override

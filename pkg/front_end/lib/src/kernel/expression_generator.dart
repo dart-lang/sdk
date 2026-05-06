@@ -48,7 +48,6 @@ import '../builder/property_builder.dart';
 import '../builder/type_builder.dart';
 import '../codes/diagnostic.dart' as diag;
 import '../source/check_helper.dart';
-import '../source/source_member_builder.dart';
 import '../source/stack_listener_impl.dart' show offsetForToken;
 import 'constness.dart' show Constness;
 import 'expression_generator_helper.dart';
@@ -886,7 +885,7 @@ class PropertyAccessGenerator extends Generator {
         helper,
         token,
         name,
-        thisVariable: null,
+        thisVariable: helper.thisVariable,
         thisOffset: receiver.fileOffset,
         isNullAware: isNullAware,
       );
@@ -6425,7 +6424,6 @@ class ParserErrorGenerator extends Generator {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   Expression qualifiedLookup(Token name) {
     return buildProblem();
   }
@@ -6552,7 +6550,9 @@ class ThisAccessGenerator extends Generator {
         return buildFieldInitializerError(null);
       } else {
         _helper.readInternalThisVariable();
-        return intern.createThisExpression(fileOffset);
+        return _helper.thisVariable != null
+            ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+            : intern.createThisExpression(fileOffset);
       }
     } else {
       return _helper.buildProblem(
@@ -6622,7 +6622,9 @@ class ThisAccessGenerator extends Generator {
       } else {
         _helper.readInternalThisVariable();
         return _helper.buildMethodInvocation(
-          intern.createThisExpression(fileOffset),
+          _helper.thisVariable != null
+              ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+              : intern.createThisExpression(fileOffset),
           name,
           selector.typeArguments,
           selector.arguments,
@@ -6647,7 +6649,7 @@ class ThisAccessGenerator extends Generator {
           // TODO(ahe): This is not the 'this' token.
           selector.token,
           name,
-          thisVariable: null,
+          thisVariable: _helper.thisVariable,
           thisOffset: fileOffset,
           isNullAware: isNullAware,
         );
@@ -6678,7 +6680,9 @@ class ThisAccessGenerator extends Generator {
       _helper.readInternalThisVariable();
       return intern.createExpressionInvocation(
         offset,
-        intern.createThisExpression(fileOffset),
+        _helper.thisVariable != null
+            ? _helper.createVariableGet(_helper.thisVariable!, fileOffset)
+            : intern.createThisExpression(fileOffset),
         typeArguments,
         arguments,
       );
@@ -7271,173 +7275,5 @@ class PropertySelector extends Selector {
   void printOn(StringSink sink) {
     sink.write(", name: ");
     sink.write(name.text);
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-class AugmentSuperAccessGenerator extends Generator {
-  final AugmentSuperTarget augmentSuperTarget;
-
-  AugmentSuperAccessGenerator(
-    ExpressionGeneratorHelper helper,
-    Token token,
-    this.augmentSuperTarget,
-  ) : super(helper, token);
-
-  @override
-  String get _debugName => "AugmentSuperGenerator";
-
-  @override
-  String get _plainNameForRead {
-    return unsupported("augment super.plainNameForRead", fileOffset, _fileUri);
-  }
-
-  Expression _createRead() {
-    Member? readTarget = augmentSuperTarget.readTarget;
-    if (readTarget != null) {
-      return new AugmentSuperGet(readTarget, fileOffset: fileOffset);
-    } else {
-      return _helper.buildProblem(
-        message: diag.noAugmentSuperReadTarget,
-        fileUri: _helper.uri,
-        fileOffset: fileOffset,
-        length: noLength,
-      );
-    }
-  }
-
-  @override
-  Expression buildAssignment(
-    Expression value, {
-    bool voidContext = false,
-    bool forOutput = false,
-  }) {
-    return _createWrite(fileOffset, value, forEffect: voidContext);
-  }
-
-  Expression _createWrite(
-    int offset,
-    Expression value, {
-    required bool forEffect,
-  }) {
-    Member? writeTarget = augmentSuperTarget.writeTarget;
-    if (writeTarget != null) {
-      return new AugmentSuperSet(
-        writeTarget,
-        value,
-        forEffect: forEffect,
-        fileOffset: fileOffset,
-      );
-    } else {
-      return _helper.buildProblem(
-        message: diag.noAugmentSuperWriteTarget,
-        fileUri: _helper.uri,
-        fileOffset: offset,
-        length: noLength,
-      );
-    }
-  }
-
-  @override
-  Expression buildCompoundAssignment(
-    Name binaryOperator,
-    Expression value, {
-    required int operatorOffset,
-    bool voidContext = false,
-    bool isPreIncDec = false,
-    bool isPostIncDec = false,
-  }) {
-    // TODO(johnniwinther): Is this ever valid? Augment getters have no access
-    // to the augmented setter, augmenting setters have no access to the
-    // augmented getters, and augmenting fields only have read access to the
-    // augmented field initializer expression.
-
-    Expression binary = intern.createBinary(
-      operatorOffset,
-      _createRead(),
-      binaryOperator,
-      value,
-    );
-    return _createWrite(fileOffset, binary, forEffect: voidContext);
-  }
-
-  @override
-  Expression buildIfNullAssignment(
-    Expression value,
-    DartType type,
-    int offset, {
-    bool voidContext = false,
-  }) {
-    // TODO(johnniwinther): Is this ever valid? Augment getters have no access
-    // to the augmented setter, augmenting setters have no access to the
-    // augmented getters, and augmenting fields only have read access to the
-    // augmented field initializer expression.
-    return new IfNullSet(
-      _createRead(),
-      _createWrite(offset, value, forEffect: voidContext),
-      forEffect: voidContext,
-    )..fileOffset = offset;
-  }
-
-  @override
-  Generator buildIndexedAccess(
-    Expression index,
-    Token token, {
-    required bool isNullAware,
-  }) {
-    // TODO(johnniwinther): The semantics is unclear. Is this accessing the
-    // invoke target, which must be an `operator []` or the read target with a
-    // type that has an `operator []`.
-    throw new UnimplementedError();
-  }
-
-  @override
-  Expression buildPostfixIncrement(
-    Name binaryOperator, {
-    required int operatorOffset,
-    bool voidContext = false,
-  }) {
-    // TODO(johnniwinther): Is this ever valid? Augment getters have no access
-    // to the augmented setter, augmenting setters have no access to the
-    // augmented getters, and augmenting fields only have read access to the
-    // augmented field initializer expression.
-    throw new UnimplementedError();
-  }
-
-  @override
-  Expression buildSimpleRead() {
-    return _createRead();
-  }
-
-  @override
-  Expression_Generator_Initializer doInvocation({
-    required int offset,
-    required List<TypeBuilder>? typeArgumentBuilders,
-    required TypeArguments? typeArguments,
-    required ActualArguments arguments,
-    bool isTypeArgumentsInForest = false,
-  }) {
-    Member? invokeTarget = augmentSuperTarget.invokeTarget;
-    if (invokeTarget != null) {
-      return new AugmentSuperInvocation(
-        invokeTarget,
-        typeArguments,
-        arguments,
-        fileOffset: fileOffset,
-      );
-    } else {
-      return _helper.buildProblem(
-        message: diag.noAugmentSuperInvokeTarget,
-        fileUri: _helper.uri,
-        fileOffset: offset,
-        length: noLength,
-      );
-    }
-  }
-
-  @override
-  void printOn(StringSink sink) {
-    sink.write(", augmentSuperTarget: ");
-    sink.write(augmentSuperTarget);
   }
 }

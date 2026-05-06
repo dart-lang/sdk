@@ -1056,6 +1056,15 @@ const MessageCode extensionDeclaresInstanceField = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode extensionPrimaryConstructor = const MessageCode(
+  "ExtensionPrimaryConstructor",
+  sharedCode: SharedCode.extensionPrimaryConstructor,
+  problemMessage: """Extensions can't have primary constructors.""",
+  correctionMessage:
+      """Try removing the primary constructor or changing the extension to an extension type.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode extensionTypeDeclaresAbstractMember = const MessageCode(
   "ExtensionTypeDeclaresAbstractMember",
   pseudoSharedCode: PseudoSharedCode.extensionTypeWithAbstractMember,
@@ -2132,6 +2141,15 @@ const MessageCode mixinDeclaresConstructor = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode mixinPrimaryConstructor = const MessageCode(
+  "MixinPrimaryConstructor",
+  sharedCode: SharedCode.mixinPrimaryConstructor,
+  problemMessage: """Mixins can't have primary constructors.""",
+  correctionMessage:
+      """Try removing the primary constructor or changing the mixin to a class.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const MessageCode mixinWithClause = const MessageCode(
   "MixinWithClause",
   sharedCode: SharedCode.mixinWithClause,
@@ -3130,6 +3148,7 @@ enum SharedCode {
   extensionAugmentationHasOnClause,
   extensionDeclaresAbstractMember,
   extensionDeclaresConstructor,
+  extensionPrimaryConstructor,
   extensionTypeExtends,
   extensionTypeWith,
   externalClass,
@@ -3211,6 +3230,7 @@ enum SharedCode {
   missingStatement,
   mixinApplicationClassAugmentation,
   mixinDeclaresConstructor,
+  mixinPrimaryConstructor,
   mixinWithClause,
   modifierOutOfOrder,
   multipleClauses,

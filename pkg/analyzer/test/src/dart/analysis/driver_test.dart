@@ -23,7 +23,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/test_utilities/lint_registration_mixin.dart';
 import 'package:analyzer/src/utilities/extensions/async.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
@@ -1491,8 +1491,8 @@ final v = 2;
   test_discoverAvailableFiles_packages() {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$packagesRootPath/aaa')
-        ..add(name: 'bbb', rootPath: '$packagesRootPath/bbb'),
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
+        ..add(name: 'bbb', rootFolder: getFolder('$packagesRootPath/bbb')),
     );
 
     var t1 = newFile('$testPackageLibPath/t1.dart', '');
@@ -1783,7 +1783,7 @@ mixin D {
     await driver.assertFilesDefiningClassMemberName('m3', [d]);
   }
 
-  test_getFilesReferencingName() async {
+  test_getFilesReferencingNames() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -1819,25 +1819,25 @@ void main() {}
     // `c` references an external `A`.
     // `d` references the local `A`.
     // `e` does not reference `A` at all.
-    await driver.assertFilesReferencingName(
-      'A',
+    await driver.assertFilesReferencingNames(
+      {'A'},
       includesAll: [b, c],
       excludesAll: [d, e],
     );
 
     // We get the same results second time.
-    await driver.assertFilesReferencingName(
-      'A',
+    await driver.assertFilesReferencingNames(
+      {'A'},
       includesAll: [b, c],
       excludesAll: [d, e],
     );
   }
 
-  test_getFilesReferencingName_discover() async {
+  test_getFilesReferencingNames_discover() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$packagesRootPath/aaa')
-        ..add(name: 'bbb', rootPath: '$packagesRootPath/bbb'),
+        ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
+        ..add(name: 'bbb', rootFolder: getFolder('$packagesRootPath/bbb')),
     );
 
     var t = newFile('$testPackageLibPath/t.dart', '''
@@ -1859,10 +1859,62 @@ int c = 0;
     var driver = driverFor(testFile);
     driver.addFile2(t);
 
-    await driver.assertFilesReferencingName(
-      'int',
+    await driver.assertFilesReferencingNames(
+      {'int'},
       includesAll: [t, a, b],
       excludesAll: [c],
+    );
+  }
+
+  test_getFilesReferencingNames_multiple() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+import 'a.dart';
+void f(A a) {}
+''');
+
+    var d = newFile('$testPackageLibPath/d.dart', r'''
+import 'b.dart';
+void f(B b) {}
+''');
+
+    var e = newFile('$testPackageLibPath/e.dart', r'''
+import 'a.dart';
+import 'b.dart';
+void f(A a, B b) {}
+''');
+
+    var f = newFile('$testPackageLibPath/f.dart', r'''
+class A {}
+class B {}
+void f(A a, B b) {}
+''');
+
+    var g = newFile('$testPackageLibPath/g.dart', r'''
+import 'a.dart';
+void main() {}
+''');
+
+    var driver = driverFor(testFile);
+    driver.addFile2(a);
+    driver.addFile2(b);
+    driver.addFile2(c);
+    driver.addFile2(d);
+    driver.addFile2(e);
+    driver.addFile2(f);
+    driver.addFile2(g);
+
+    await driver.assertFilesReferencingNames(
+      {'A', 'B'},
+      includesAll: [c, d, e],
+      excludesAll: [f, g],
     );
   }
 
@@ -4840,14 +4892,16 @@ class B2 {}
     var test1Path = '$workspaceRootPath/test1';
     writePackageConfig(
       test1Path,
-      PackageConfigFileBuilder()..add(name: 'test1', rootPath: test1Path),
+      PackageConfigFileBuilder()
+        ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
     writePackageConfig(
       test2Path,
-      PackageConfigFileBuilder()..add(name: 'test2', rootPath: test2Path),
+      PackageConfigFileBuilder()
+        ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
     // `b` imports `a`, so `b` is reanalyzed when `a` API changes.
@@ -4910,14 +4964,16 @@ class B2 {}
     var test1Path = '$workspaceRootPath/test1';
     writePackageConfig(
       test1Path,
-      PackageConfigFileBuilder()..add(name: 'test1', rootPath: test1Path),
+      PackageConfigFileBuilder()
+        ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
     writePackageConfig(
       test2Path,
-      PackageConfigFileBuilder()..add(name: 'test2', rootPath: test2Path),
+      PackageConfigFileBuilder()
+        ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
     var a = newFile('$test1Path/lib/a.dart', '');
@@ -4975,14 +5031,16 @@ class B2 {}
     var test1Path = '$workspaceRootPath/test1';
     writePackageConfig(
       test1Path,
-      PackageConfigFileBuilder()..add(name: 'test1', rootPath: test1Path),
+      PackageConfigFileBuilder()
+        ..add(name: 'test1', rootFolder: getFolder(test1Path)),
     );
 
     // Make sure that `test2` is its own analysis context.
     var test2Path = '$workspaceRootPath/test2';
     writePackageConfig(
       test2Path,
-      PackageConfigFileBuilder()..add(name: 'test2', rootPath: test2Path),
+      PackageConfigFileBuilder()
+        ..add(name: 'test2', rootFolder: getFolder(test2Path)),
     );
 
     var a = newFile('$test1Path/lib/a.dart', '');
@@ -5775,7 +5833,7 @@ class A2 {}
 ''');
 
     // Any work transitions to analyzing, and back to idle.
-    await driver.getFilesReferencingName('X');
+    await driver.getFilesReferencingNames({'X'});
     await assertEventsText(collector, r'''
 [status] working
 [status] idle
@@ -7365,7 +7423,7 @@ class B extends A {}
 [future] getLibraryByUri T1
   library
     classes
-      class B
+      isSimplyBounded class B
         supertype: A
         constructors
           isOriginImplicitDefault new
@@ -7448,7 +7506,7 @@ class A {
 [future] getLibraryByUri T2
   library
     classes
-      class B
+      isSimplyBounded class B
         supertype: A
         constructors
           isOriginImplicitDefault new
@@ -9505,7 +9563,7 @@ class B extends A {}
 [future] getLibraryByUri T1
   library
     classes
-      class B
+      isSimplyBounded class B
         supertype: A
         constructors
           isOriginImplicitDefault new
@@ -9585,7 +9643,7 @@ class A {
 [future] getLibraryByUri T2
   library
     classes
-      class B
+      isSimplyBounded class B
         supertype: A
         constructors
           isOriginImplicitDefault new
@@ -22871,7 +22929,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
     exportNamespace
       A: package:test/a.dart::@class::A
@@ -22903,7 +22961,7 @@ class _B2 {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
     exportNamespace
       A: package:test/a.dart::@class::A
@@ -22969,13 +23027,13 @@ class C {}
 [future] getLibraryByUri T1
   library
     classes
-      class B
+      isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
-      class C
+      isSimplyBounded class C
         constructors
           isOriginImplicitDefault new
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
       declared <testLibrary>::@class::C
@@ -23016,13 +23074,13 @@ class C {}
 [future] getLibraryByUri T2
   library
     classes
-      class B
+      isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
-      class C
+      isSimplyBounded class C
         constructors
           isOriginImplicitDefault new
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
       declared <testLibrary>::@class::C
@@ -23088,10 +23146,10 @@ class B {}
 [future] getLibraryByUri T1
   library
     classes
-      class B
+      isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       declared <testLibrary>::@class::B
     exportNamespace
@@ -23159,10 +23217,10 @@ class C {}
 [future] getLibraryByUri T2
   library
     classes
-      class B
+      isSimplyBounded class B
         constructors
           isOriginImplicitDefault new
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       exported[(0, 0)] package:test/a.dart::@class::C
       declared <testLibrary>::@class::B
@@ -23265,7 +23323,7 @@ export 'b.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A1
       exported[(0, 0)] package:test/a.dart::@class::A2
       exported[(0, 0)] package:test/a.dart::@class::A3
@@ -23361,7 +23419,7 @@ class A3 {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A2
       exported[(0, 0)] package:test/a.dart::@class::A3
       exported[(0, 0)] package:test/b.dart::@class::B
@@ -23574,7 +23632,7 @@ export 'b.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       exported[(0, 0)] package:test/b.dart::@class::B
     exportNamespace
@@ -23610,7 +23668,7 @@ class A2 {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@class::A
       exported[(0, 0)] package:test/b.dart::@class::B
     exportNamespace
@@ -23665,10 +23723,10 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A::@def::1
+    exportEntries
+      exported[(0, 0)] package:test/a.dart::@class::A#1
     exportNamespace
-      A: package:test/a.dart::@class::A::@def::1
+      A: package:test/a.dart::@class::A#1
 ''',
       updateFiles: () {
         modifyFile2(a, r'''
@@ -23724,11 +23782,11 @@ class B {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
-      exported[(0, 0)] package:test/a.dart::@class::A::@def::1
+    exportEntries
+      exported[(0, 0)] package:test/a.dart::@class::A#1
       exported[(0, 0)] package:test/a.dart::@class::B
     exportNamespace
-      A: package:test/a.dart::@class::A::@def::1
+      A: package:test/a.dart::@class::A#1
       B: package:test/a.dart::@class::B
 ''',
     );
@@ -23899,7 +23957,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@enum::E
     exportNamespace
       E: package:test/a.dart::@enum::E
@@ -23961,7 +24019,7 @@ enum _E2 {v}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@enum::E
     exportNamespace
       E: package:test/a.dart::@enum::E
@@ -24016,7 +24074,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24047,7 +24105,7 @@ extension _E2 on int {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24082,7 +24140,7 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo: #M2
@@ -24112,7 +24170,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24136,10 +24194,10 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M5
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           bar: #M6
@@ -24158,7 +24216,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24194,10 +24252,10 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           bar: #M3
@@ -24230,7 +24288,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24254,10 +24312,10 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M7
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: double @ dart:core
           foo: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           bar: #M8
@@ -24276,7 +24334,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24312,10 +24370,10 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           bar: #M3
@@ -24348,7 +24406,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24371,7 +24429,7 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo: #M4
@@ -24387,7 +24445,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24442,7 +24500,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E1
     exportNamespace
       E1: package:test/a.dart::@extension::E1
@@ -24500,7 +24558,7 @@ extension E2 on int {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E1
       exported[(0, 0)] package:test/a.dart::@extension::E2
     exportNamespace
@@ -24564,7 +24622,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E1
       exported[(0, 0)] package:test/a.dart::@extension::E2
     exportNamespace
@@ -24616,7 +24674,7 @@ extension E1 on int {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E1
     exportNamespace
       E1: package:test/a.dart::@extension::E1
@@ -24678,7 +24736,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24719,7 +24777,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24786,7 +24844,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24829,7 +24887,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24896,7 +24954,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24932,7 +24990,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -24967,7 +25025,7 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo=: #M2
@@ -25000,7 +25058,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25024,10 +25082,10 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M5
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           bar=: #M6
@@ -25052,7 +25110,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25088,10 +25146,10 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           bar=: #M3
@@ -25130,7 +25188,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25154,10 +25212,10 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           bar: #M7
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: double @ dart:core
           foo: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           bar=: #M8
@@ -25182,7 +25240,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25218,10 +25276,10 @@ export 'a.dart';
         extendedType: int @ dart:core
         declaredFields
           bar: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           bar=: #M3
@@ -25260,7 +25318,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25283,7 +25341,7 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo=: #M4
@@ -25302,7 +25360,7 @@ extension E on int {
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extension::E
     exportNamespace
       E: package:test/a.dart::@extension::E
@@ -25373,7 +25431,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extensionType::E
     exportNamespace
       E: package:test/a.dart::@extensionType::E
@@ -25421,7 +25479,7 @@ extension type _E2(int it) {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@extensionType::E
     exportNamespace
       E: package:test/a.dart::@extensionType::E
@@ -25476,7 +25534,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@mixin::M
     exportNamespace
       M: package:test/a.dart::@mixin::M
@@ -25508,7 +25566,7 @@ mixin _M2 {}
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@mixin::M
     exportNamespace
       M: package:test/a.dart::@mixin::M
@@ -25561,7 +25619,7 @@ export ':';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25590,7 +25648,7 @@ final a = 1;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25642,7 +25700,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25699,7 +25757,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -25755,7 +25813,7 @@ export 'a.dart' hide b;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25788,7 +25846,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25842,7 +25900,7 @@ export 'a.dart' hide c;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25901,7 +25959,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -25957,7 +26015,7 @@ export 'a.dart' show a;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -25990,7 +26048,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26044,7 +26102,7 @@ export 'a.dart' show a, b;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26103,7 +26161,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -26160,7 +26218,7 @@ export 'a.dart' show a, b hide c;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26220,7 +26278,7 @@ final b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -26274,7 +26332,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26307,7 +26365,7 @@ final _b = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26366,7 +26424,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -26417,7 +26475,7 @@ final a = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26475,7 +26533,7 @@ export 'a.dart' show a;
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26504,7 +26562,7 @@ final a = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
     exportNamespace
       a: package:test/a.dart::@getter::a
@@ -26563,7 +26621,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::b
     exportNamespace
@@ -26622,7 +26680,7 @@ final c = 0;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@getter::a
       exported[(0, 0)] package:test/a.dart::@getter::c
     exportNamespace
@@ -26702,9 +26760,9 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
-    exportedReferences
+    exportEntries
       declared <testLibrary>::@getter::x
     exportNamespace
       x: <testLibrary>::@getter::x
@@ -26783,9 +26841,9 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: double
-    exportedReferences
+    exportEntries
       declared <testLibrary>::@getter::x
     exportNamespace
       x: <testLibrary>::@getter::x
@@ -26838,7 +26896,7 @@ export 'a.dart';
 [status] idle
 [future] getLibraryByUri T1
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@typeAlias::A
     exportNamespace
       A: package:test/a.dart::@typeAlias::A
@@ -26868,7 +26926,7 @@ typedef _A2 = int;
 [status] idle
 [future] getLibraryByUri T2
   library
-    exportedReferences
+    exportEntries
       exported[(0, 0)] package:test/a.dart::@typeAlias::A
     exportNamespace
       A: package:test/a.dart::@typeAlias::A
@@ -33178,7 +33236,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33324,7 +33382,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33450,7 +33508,7 @@ void f() {
           returnType: void
     declaredVariables
       foo: #M1
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M2
     exportMap
@@ -33476,7 +33534,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33611,7 +33669,7 @@ void f() {
           returnType: void
     declaredVariables
       foo: #M1
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M2
     exportMap
@@ -33638,7 +33696,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -33794,7 +33852,7 @@ void f() {
     hashForRequirements: #H2
     declaredFunctions
       f: #M4
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M5
@@ -42333,7 +42391,7 @@ final x = foo();
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
       updatedA: r'''
@@ -42380,7 +42438,7 @@ double foo() {}
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: double
 ''',
     );
@@ -42434,7 +42492,7 @@ final x = foo();
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
       updatedA: r'''
@@ -42460,7 +42518,7 @@ double bar() {}
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
     );
@@ -42513,7 +42571,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
       updatedA: r'''
@@ -42562,7 +42620,7 @@ double get a => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: double
 ''',
     );
@@ -42619,7 +42677,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
       updatedA: r'''
@@ -42648,7 +42706,7 @@ double get b => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
     );
@@ -42723,7 +42781,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
       // Change the initializer, now `double`.
@@ -42800,7 +42858,7 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: double
 ''',
     );
@@ -42853,7 +42911,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
       // Change the initializer, now `double`.
@@ -42904,7 +42962,7 @@ final a = 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: double
 ''',
     );
@@ -57488,146 +57546,6 @@ class A {
     );
   }
 
-  test_manifest_class_constructor_formalParameter_isInitializingFormal() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  final int x;
-  A.foo1(this.x);
-  A.foo2(int x): this.x = x;
-  A.foo3(this.x);
-  A.foo4(int x): this.x = x;
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H0
-    declaredClasses
-      A: #M0
-        declaredFields
-          x: #M1
-        declaredGetters
-          x: #M2
-        declaredConstructors
-          foo1: #M3
-          foo2: #M4
-          foo3: #M5
-          foo4: #M6
-        interface: #M7
-          map
-            x: #M2
-          implemented
-            x: #M2
-    exportMapId: #M8
-    exportMap
-      A: #M0
-''',
-      updatedCode: r'''
-class A {
-  final int x;
-  A.foo1(this.x);
-  A.foo2(int x): this.x = x;
-  A.foo3(int x): this.x = x;
-  A.foo4(this.x);
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H1
-    declaredClasses
-      A: #M0
-        declaredFields
-          x: #M1
-        declaredGetters
-          x: #M2
-        declaredConstructors
-          foo1: #M3
-          foo2: #M4
-          foo3: #M9
-          foo4: #M10
-        interface: #M7
-          map
-            x: #M2
-          implemented
-            x: #M2
-    exportMapId: #M8
-    exportMap
-      A: #M0
-''',
-    );
-  }
-
-  test_manifest_class_constructor_formalParameter_isSuperFormal() async {
-    await _runLibraryManifestScenario(
-      initialCode: r'''
-class A {
-  A(int x);
-}
-
-class B extends A {
-  B.foo1(super.x);
-  B.foo2(int x) : super(x);
-  B.foo3(super.x);
-  B.foo4(int x) : super(x);
-}
-''',
-      expectedInitialEvents: r'''
-[operation] linkLibraryCycle SDK
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H0
-    declaredClasses
-      A: #M0
-        interface: #M1
-      B: #M2
-        declaredConstructors
-          foo1: #M3
-          foo2: #M4
-          foo3: #M5
-          foo4: #M6
-        interface: #M7
-    exportMapId: #M8
-    exportMap
-      A: #M0
-      B: #M2
-''',
-      updatedCode: r'''
-class A {
-  A(int x);
-}
-
-class B extends A {
-  B.foo1(super.x);
-  B.foo2(int x) : super(x);
-  B.foo3(int x) : super(x);
-  B.foo4(super.x);
-}
-''',
-      expectedUpdatedEvents: r'''
-[operation] linkLibraryCycle
-  package:test/test.dart
-    hashForRequirements: #H1
-    declaredClasses
-      A: #M0
-        interface: #M1
-      B: #M2
-        declaredConstructors
-          foo1: #M3
-          foo2: #M4
-          foo3: #M9
-          foo4: #M10
-        interface: #M7
-    exportMapId: #M8
-    exportMap
-      A: #M0
-      B: #M2
-''',
-    );
-  }
-
   test_manifest_class_constructor_formalParameter_optionalNamed_defaultValue() async {
     await _runLibraryManifestScenario(
       initialCode: r'''
@@ -57804,6 +57722,146 @@ class A {
     );
   }
 
+  test_manifest_class_constructor_formalParameter_requiredNamed_fieldFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int x;
+  A.foo1({required this.x});
+  A.foo2({required int x}): this.x = x;
+  A.foo3({required this.x});
+  A.foo4({required int x}): this.x = x;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+    exportMapId: #M8
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class A {
+  final int x;
+  A.foo1({required this.x});
+  A.foo2({required int x}): this.x = x;
+  A.foo3({required int x}): this.x = x;
+  A.foo4({required this.x});
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M9
+          foo4: #M10
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+    exportMapId: #M8
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_requiredNamed_superFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A({required int x});
+}
+
+class B extends A {
+  B.foo1({required super.x});
+  B.foo2({required int x}) : super(x: x);
+  B.foo3({required super.x});
+  B.foo4({required int x}) : super(x: x);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M0
+      B: #M2
+''',
+      updatedCode: r'''
+class A {
+  A({required int x});
+}
+
+class B extends A {
+  B.foo1({required super.x});
+  B.foo2({required int x}) : super(x: x);
+  B.foo3({required int x}) : super(x: x);
+  B.foo4({required super.x});
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M9
+          foo4: #M10
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M0
+      B: #M2
+''',
+    );
+  }
+
   test_manifest_class_constructor_formalParameter_requiredPositional() async {
     configuration.includeDefaultConstructors();
     await _runLibraryManifestScenario(
@@ -57888,6 +57946,146 @@ class A {
     exportMapId: #M3
     exportMap
       A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_requiredPositional_fieldFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  final int x;
+  A.foo1(this.x);
+  A.foo2(int x): this.x = x;
+  A.foo3(this.x);
+  A.foo4(int x): this.x = x;
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+    exportMapId: #M8
+    exportMap
+      A: #M0
+''',
+      updatedCode: r'''
+class A {
+  final int x;
+  A.foo1(this.x);
+  A.foo2(int x): this.x = x;
+  A.foo3(int x): this.x = x;
+  A.foo4(this.x);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        declaredFields
+          x: #M1
+        declaredGetters
+          x: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M9
+          foo4: #M10
+        interface: #M7
+          map
+            x: #M2
+          implemented
+            x: #M2
+    exportMapId: #M8
+    exportMap
+      A: #M0
+''',
+    );
+  }
+
+  test_manifest_class_constructor_formalParameter_requiredPositional_superFormal() async {
+    await _runLibraryManifestScenario(
+      initialCode: r'''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B.foo1(super.x);
+  B.foo2(int x) : super(x);
+  B.foo3(super.x);
+  B.foo4(int x) : super(x);
+}
+''',
+      expectedInitialEvents: r'''
+[operation] linkLibraryCycle SDK
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H0
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M5
+          foo4: #M6
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M0
+      B: #M2
+''',
+      updatedCode: r'''
+class A {
+  A(int x);
+}
+
+class B extends A {
+  B.foo1(super.x);
+  B.foo2(int x) : super(x);
+  B.foo3(int x) : super(x);
+  B.foo4(super.x);
+}
+''',
+      expectedUpdatedEvents: r'''
+[operation] linkLibraryCycle
+  package:test/test.dart
+    hashForRequirements: #H1
+    declaredClasses
+      A: #M0
+        interface: #M1
+      B: #M2
+        declaredConstructors
+          foo1: #M3
+          foo2: #M4
+          foo3: #M9
+          foo4: #M10
+        interface: #M7
+    exportMapId: #M8
+    exportMap
+      A: #M0
+      B: #M2
 ''',
     );
   }
@@ -59044,22 +59242,22 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
+              flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
+              flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59086,22 +59284,22 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
+              flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isConst isOriginDeclaration isSimplyBounded
+              flags: isConst isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59135,22 +59333,22 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
+              flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
+              flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59177,22 +59375,22 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
+              flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded
+              flags: isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59226,21 +59424,21 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
+              flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo3: #M4
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo4: #M5
-              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
+              flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
         interface: #M6
@@ -59266,20 +59464,20 @@ class A {
         supertype: Object @ dart:core
         declaredConstructors
           foo1: #M1
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
           foo2: #M3
-              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
+              flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo3: #M8
-              flags: hasEnclosingTypeParameterReference isFactory isOriginDeclaration isSimplyBounded
+              flags: isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
           foo4: #M9
-              flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded
+              flags: isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 returnType: A @ package:test/test.dart
               superConstructor: (dart:core, interfaceConstructor, Object, new) #M2
@@ -59991,7 +60189,7 @@ class const A(int foo. int bar) {
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: foo
@@ -60026,7 +60224,7 @@ class const A(int foo, int bar) {
         supertype: Object @ dart:core
         declaredFields
           a: #M5
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: bar
@@ -60068,7 +60266,7 @@ class const A(int foo) {
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: foo
@@ -60104,7 +60302,7 @@ class const A(int foo) {
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: foo
@@ -60112,7 +60310,7 @@ class const A(int foo) {
               elementIndexList
                 2 = formalParameter 0
           b: #M5
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
@@ -60446,16 +60644,16 @@ class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration
             type: typeParameter#0?
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration
             type: typeParameter#0?
           foo4: #M4
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -60506,16 +60704,16 @@ class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration
             type: typeParameter#0?
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaration
             type: typeParameter#0?
         declaredGetters
           foo1: #M5
@@ -60571,16 +60769,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
           foo2: #M2
-            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
           foo3: #M3
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
           foo4: #M4
-            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -60628,16 +60826,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
           foo2: #M2
-            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
           foo3: #M11
-            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration
             type: int @ dart:core
           foo4: #M12
-            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration
+            flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isTypeInferredFromInitializer
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -60693,16 +60891,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M3
-            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration
             type: int? @ dart:core
           foo4: #M4
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -60750,16 +60948,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo4: #M12
-            flags: hasInitializer isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: hasInitializer isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -60815,16 +61013,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isAbstract isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isAbstract isOriginDeclaration
             type: int? @ dart:core
           foo2: #M2
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
           foo3: #M3
-            flags: isAbstract isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isAbstract isOriginDeclaration
             type: int? @ dart:core
           foo4: #M4
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -60901,16 +61099,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isAbstract isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isAbstract isOriginDeclaration
             type: int? @ dart:core
           foo2: #M2
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
           foo3: #M15
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
           foo4: #M16
-            flags: isAbstract isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isAbstract isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -61053,16 +61251,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isCovariant isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isCovariant isOriginDeclaration
             type: int? @ dart:core
           foo2: #M2
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
           foo3: #M3
-            flags: isCovariant isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isCovariant isOriginDeclaration
             type: int? @ dart:core
           foo4: #M4
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -61143,16 +61341,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isCovariant isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isCovariant isOriginDeclaration
             type: int? @ dart:core
           foo2: #M2
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
           foo3: #M15
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
           foo4: #M16
-            flags: isCovariant isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isCovariant isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -61241,16 +61439,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isExternal isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isExternal isFinal isOriginDeclaration
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M3
-            flags: isExternal isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isExternal isFinal isOriginDeclaration
             type: int? @ dart:core
           foo4: #M4
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -61298,16 +61496,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isExternal isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isExternal isFinal isOriginDeclaration
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo4: #M12
-            flags: isExternal isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isExternal isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -61524,16 +61722,16 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           _foo1: #M1
-            flags: isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isPromotable
             type: int? @ dart:core
           _foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           _foo3: #M3
-            flags: isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isPromotable
             type: int? @ dart:core
           _foo4: #M4
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           _foo1: #M5
@@ -61554,10 +61752,10 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           _foo2: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int? @ dart:core
           _foo4: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int? @ dart:core
         declaredGetters
           _foo2: #M13
@@ -61595,16 +61793,16 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           _foo1: #M1
-            flags: isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isPromotable
             type: int? @ dart:core
           _foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           _foo3: #M17
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           _foo4: #M18
-            flags: isFinal isOriginDeclaration isPromotable shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isPromotable
             type: int? @ dart:core
         declaredGetters
           _foo1: #M5
@@ -61625,10 +61823,10 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           _foo2: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int? @ dart:core
           _foo3: #M19
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int? @ dart:core
         declaredGetters
           _foo2: #M13
@@ -61669,16 +61867,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isStatic
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M3
-            flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isStatic
             type: int? @ dart:core
           foo4: #M4
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -61722,16 +61920,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isStatic
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo4: #M12
-            flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration isStatic
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -61783,16 +61981,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int? @ dart:core
           foo4: #M4
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -61840,16 +62038,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int? @ dart:core
           foo2: #M2
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo3: #M11
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
           foo4: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int? @ dart:core
         declaredGetters
           foo1: #M5
@@ -63083,16 +63281,16 @@ abstract class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63138,16 +63336,16 @@ abstract class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredGetters
           foo1: #M5
@@ -63196,13 +63394,13 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
         declaredGetters
           foo1: #M4
@@ -63244,13 +63442,13 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo2: #M9
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo3: #M10
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M4
@@ -63306,16 +63504,16 @@ class B extends A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63346,16 +63544,16 @@ class B extends A {
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M14
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M15
@@ -63421,16 +63619,16 @@ class B extends A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63461,16 +63659,16 @@ class B extends A {
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M14
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M15
@@ -63537,16 +63735,16 @@ abstract class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63592,16 +63790,16 @@ abstract class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63654,16 +63852,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63711,16 +63909,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63775,16 +63973,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63828,16 +64026,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M11
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo4: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -63991,7 +64189,7 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo: #M2
@@ -64021,7 +64219,7 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: double @ dart:core
         declaredGetters
           foo: #M6
@@ -64565,7 +64763,7 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           a: #M2
@@ -64581,7 +64779,7 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           a: #M5
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           a: #M6
@@ -64624,7 +64822,7 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           a: #M10
-            flags: isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           a: #M2
@@ -64649,7 +64847,7 @@ class B {
         supertype: Object @ dart:core
         declaredFields
           a: #M13
-            flags: isFinal isOriginDeclaration shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaration
             type: int? @ dart:core
         declaredGetters
           a: #M6
@@ -71517,16 +71715,16 @@ abstract class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -71584,16 +71782,16 @@ abstract class A<T> {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
@@ -71661,16 +71859,16 @@ class B extends A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -71713,16 +71911,16 @@ class B extends A {
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M14
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
@@ -71800,16 +71998,16 @@ class B extends A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -71852,16 +72050,16 @@ class B extends A {
         supertype: A @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M14
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
@@ -71940,16 +72138,16 @@ abstract class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -72007,16 +72205,16 @@ abstract class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -72081,16 +72279,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -72150,16 +72348,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -72226,16 +72424,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -72291,16 +72489,16 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M11
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo4: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -72975,7 +73173,7 @@ abstract class C implements A, B {}
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: List @ dart:core
               dynamic
         declaredSetters
@@ -72994,7 +73192,7 @@ abstract class C implements A, B {}
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: List @ dart:core
               void
         declaredSetters
@@ -73048,7 +73246,7 @@ abstract class C implements A, B {}
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: List @ dart:core
               dynamic
         declaredSetters
@@ -73067,7 +73265,7 @@ abstract class C implements A, B {}
         supertype: Object @ dart:core
         declaredFields
           foo: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: List @ dart:core
               int @ dart:core
         declaredSetters
@@ -73122,7 +73320,7 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo=: #M2
@@ -73155,7 +73353,7 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: double @ dart:core
         declaredSetters
           foo=: #M6
@@ -75006,7 +75204,7 @@ const b = 0 + a;
         returnType: double @ dart:core
     declaredVariables
       b: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: double @ dart:core
         constInitializer
           tokenBuffer: 0+a
@@ -75037,13 +75235,13 @@ const b = 0 + a;
         returnType: int @ dart:core
     declaredVariables
       a: #M6
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 1
           tokenLengthList: [1]
       b: #M7
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0+a
@@ -75085,13 +75283,13 @@ const b = 1 + a;
         returnType: int @ dart:core
     declaredVariables
       a: #M2
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M3
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 1+a
@@ -75122,7 +75320,7 @@ const b = 1 + a;
         returnType: double @ dart:core
     declaredVariables
       b: #M7
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: double @ dart:core
         constInitializer
           tokenBuffer: 1+a
@@ -75196,7 +75394,7 @@ const a = 0..abs();
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -75221,12 +75419,12 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -75555,7 +75753,7 @@ const a = -'' + 1;
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: -''+1
@@ -75584,7 +75782,7 @@ const a = -'' + 2;
         returnType: int @ dart:core
     declaredVariables
       a: #M7
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: -''+2
@@ -75624,7 +75822,7 @@ const b = 0.length + 1;
         returnType: int @ dart:core
     declaredVariables
       b: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0.length+1
@@ -75654,7 +75852,7 @@ const b = 0.length + 2;
         returnType: int @ dart:core
     declaredVariables
       b: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0.length+2
@@ -75693,7 +75891,7 @@ const a = -'' + 1;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: -''+1
@@ -75723,7 +75921,7 @@ const a = -'' + 2;
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: -''+2
@@ -75911,7 +76109,7 @@ const a = 0 as core.int;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0ascore.int
@@ -75943,7 +76141,7 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0ascore.int
@@ -75954,7 +76152,7 @@ const b = 0;
             3 = importPrefix
             7 = element 0
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -75984,7 +76182,7 @@ const a = [0][0];
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -76009,12 +76207,12 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76374,7 +76572,7 @@ const a = 0.abs();
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -76399,12 +76597,12 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76434,7 +76632,7 @@ const a = identical(0, 1);
         returnType: bool @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: bool @ dart:core
         constInitializer
           tokenBuffer: identical(0,1)
@@ -76464,7 +76662,7 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: bool @ dart:core
         constInitializer
           tokenBuffer: identical(0,1)
@@ -76474,7 +76672,7 @@ const b = 0;
           elementIndexList
             7 = element 0
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76514,7 +76712,7 @@ const x = foo;
         returnType: int @ dart:core
     declaredVariables
       foo: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76531,7 +76729,7 @@ const x = foo;
         returnType: int @ dart:core
     declaredVariables
       foo: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76548,7 +76746,7 @@ const x = foo;
         returnType: InvalidType
     declaredVariables
       x: #M7
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: InvalidType
         constInitializer
           tokenBuffer: foo
@@ -76580,7 +76778,7 @@ class A {}
         returnType: InvalidType
     declaredVariables
       x: #M7
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: InvalidType
         constInitializer
           tokenBuffer: foo
@@ -76718,13 +76916,13 @@ const b = a++;
         returnType: int @ dart:core
     declaredVariables
       a: #M2
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M3
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -76754,18 +76952,18 @@ const c = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M2
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
           tokenLengthList: [1]
       b: #M6
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
       c: #M7
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -76796,7 +76994,7 @@ const a = 0!;
         returnType: int @ dart:core
     declaredVariables
       a: #M1
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
@@ -76821,12 +77019,12 @@ const b = 0;
         returnType: int @ dart:core
     declaredVariables
       a: #M4
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           isValid: false
       b: #M5
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: 0
@@ -77014,13 +77212,13 @@ const d = prefix.A.b;
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
               tokenLengthList: [1]
           b: #M2
-            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
@@ -77048,7 +77246,7 @@ const d = prefix.A.b;
         returnType: int @ dart:core
     declaredVariables
       c: #M9
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.a
@@ -77063,7 +77261,7 @@ const d = prefix.A.b;
             23 = element 1
             39 = element 2
       d: #M10
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.b
@@ -77099,13 +77297,13 @@ class A {
         supertype: Object @ dart:core
         declaredFields
           a: #M1
-            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: 0
               tokenLengthList: [1]
           b: #M12
-            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+            flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
             type: int @ dart:core
             constInitializer
               tokenBuffer: 1
@@ -77141,7 +77339,7 @@ class A {
         returnType: int @ dart:core
     declaredVariables
       c: #M9
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.a
@@ -77156,7 +77354,7 @@ class A {
             23 = element 1
             39 = element 2
       d: #M13
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
         constInitializer
           tokenBuffer: prefix.A.b
@@ -77786,7 +77984,7 @@ const x = A;
         returnType: Type @ dart:core
     declaredVariables
       x: #M3
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: Type @ dart:core
         constInitializer
           tokenBuffer: A
@@ -77817,7 +78015,7 @@ const y = double;
         returnType: Type @ dart:core
     declaredVariables
       x: #M3
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: Type @ dart:core
         constInitializer
           tokenBuffer: A
@@ -77827,7 +78025,7 @@ const y = double;
           elementIndexList
             7 = element 0
       y: #M6
-        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isConst isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: Type @ dart:core
         constInitializer
           tokenBuffer: double
@@ -80016,16 +80214,16 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -80065,16 +80263,16 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M10
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M11
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredGetters
           foo1: #M5
@@ -80117,13 +80315,13 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
         declaredGetters
           foo1: #M4
@@ -80156,13 +80354,13 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo2: #M8
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo3: #M9
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M4
@@ -80203,16 +80401,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -80249,16 +80447,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -80302,16 +80500,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -80348,16 +80546,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M10
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo4: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -81021,16 +81219,16 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -81082,16 +81280,16 @@ extension E<T> on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M10
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M11
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
@@ -81147,16 +81345,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -81205,16 +81403,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -81270,16 +81468,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -81328,16 +81526,16 @@ extension E on int {
         extendedType: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M10
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo4: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -81602,7 +81800,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -81610,25 +81808,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81661,7 +81859,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -81669,25 +81867,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isConst isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81727,7 +81925,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -81735,25 +81933,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
@@ -81786,7 +81984,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -81794,25 +81992,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isExternal isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -81852,7 +82050,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -81860,25 +82058,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M5
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M6
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
@@ -81911,7 +82109,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -81919,25 +82117,25 @@ extension type E(int it) {
             returnType: int @ dart:core
         declaredConstructors
           foo1: #M3
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
                 returnType: E @ package:test/test.dart
           foo2: #M4
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo3: #M9
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isFactory isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required int @ dart:core
                 returnType: E @ package:test/test.dart
           foo4: #M10
-              flags: hasEnclosingTypeParameterReference isExtensionTypeMember isOriginDeclaration isSimplyBounded
+              flags: isExtensionTypeMember isOriginDeclaration isSimplyBounded
               functionType: FunctionType
                 positional
                   required this int @ dart:core
@@ -82132,19 +82330,19 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter
             type: typeParameter#0
         declaredGetters
           foo1: #M6
@@ -82201,19 +82399,19 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M14
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           it: #M5
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter
             type: typeParameter#0
         declaredGetters
           foo1: #M6
@@ -82273,16 +82471,16 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           it: #M4
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -82330,16 +82528,16 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo2: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo3: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M4
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -82395,19 +82593,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           foo1: #M6
@@ -82461,19 +82659,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           foo1: #M6
@@ -82534,19 +82732,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           it: #M5
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           foo1: #M6
@@ -82596,19 +82794,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo4: #M14
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           foo1: #M6
@@ -82943,7 +83141,7 @@ extension type A(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -82988,7 +83186,7 @@ extension type A(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -83125,7 +83323,7 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           it: #M1
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter
             type: typeParameter#0
         declaredGetters
           it: #M2
@@ -83187,7 +83385,7 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           it: #M1
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter
             type: typeParameter#0
         declaredGetters
           it: #M2
@@ -83252,7 +83450,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -83304,7 +83502,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -83364,7 +83562,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -83423,7 +83621,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -83489,7 +83687,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -83544,7 +83742,7 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           it: #M1
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M2
@@ -83953,19 +84151,19 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter
             type: typeParameter#0
         declaredGetters
           it: #M6
@@ -84035,19 +84233,19 @@ extension type E<T>(T it) {
         typeErasure: typeParameter#0
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M14
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           it: #M5
-            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isFinal isOriginDeclaringFormalParameter
             type: typeParameter#0
         declaredGetters
           it: #M6
@@ -84121,19 +84319,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M6
@@ -84200,19 +84398,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M6
@@ -84286,19 +84484,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           it: #M5
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M6
@@ -84361,19 +84559,19 @@ extension type E(int it) {
         typeErasure: int @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo4: #M14
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           it: #M5
-            flags: isFinal isOriginDeclaringFormalParameter shouldUseTypeForInitializerInference
+            flags: isFinal isOriginDeclaringFormalParameter
             type: int @ dart:core
         declaredGetters
           it: #M6
@@ -84658,17 +84856,17 @@ class B extends A {}
     writePackageConfig(
       '$workspaceRootPath/test_1',
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '/packages/foo_v1')
-        ..add(name: 'bar', rootPath: '/packages/bar')
-        ..add(name: 'test', rootPath: '$workspaceRootPath/test_1'),
+        ..add(name: 'foo', rootFolder: getFolder('/packages/foo_v1'))
+        ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
+        ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_1')),
     );
 
     writePackageConfig(
       '$workspaceRootPath/test_2',
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '/packages/foo_v2')
-        ..add(name: 'bar', rootPath: '/packages/bar')
-        ..add(name: 'test', rootPath: '$workspaceRootPath/test_2'),
+        ..add(name: 'foo', rootFolder: getFolder('/packages/foo_v2'))
+        ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
+        ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_2')),
     );
 
     var testFile1 = newFile('$workspaceRootPath/test_1/lib/test.dart', r'''
@@ -84805,16 +85003,16 @@ class B extends A {}
     writePackageConfig(
       '$workspaceRootPath/test_1',
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '/packages/foo')
-        ..add(name: 'test', rootPath: '$workspaceRootPath/test_1'),
+        ..add(name: 'foo', rootFolder: getFolder('/packages/foo'))
+        ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_1')),
     );
 
     writePackageConfig(
       '$workspaceRootPath/test_2',
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '/packages/foo')
-        ..add(name: 'bar', rootPath: '/packages/bar')
-        ..add(name: 'test', rootPath: '$workspaceRootPath/test_2'),
+        ..add(name: 'foo', rootFolder: getFolder('/packages/foo'))
+        ..add(name: 'bar', rootFolder: getFolder('/packages/bar'))
+        ..add(name: 'test', rootFolder: getFolder('$workspaceRootPath/test_2')),
     );
 
     var testFile1 = newFile('$workspaceRootPath/test_1/lib/test.dart', r'''
@@ -86375,16 +86573,16 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -86431,16 +86629,16 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredGetters
           foo1: #M5
@@ -86490,13 +86688,13 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
         declaredGetters
           foo1: #M4
@@ -86539,13 +86737,13 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo2: #M9
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: dynamic
           foo3: #M10
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M4
@@ -86601,16 +86799,16 @@ mixin M on S {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -86643,16 +86841,16 @@ mixin M on S {
           S @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M14
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M15
@@ -86718,16 +86916,16 @@ mixin M on S {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -86760,16 +86958,16 @@ mixin M on S {
           S @ package:test/test.dart
         declaredFields
           foo1: #M22
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M23
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M24
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M25
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M26
@@ -86837,16 +87035,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -86893,16 +87091,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -86956,16 +87154,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -87014,16 +87212,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -87079,16 +87277,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -87133,16 +87331,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M11
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo4: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo1: #M5
@@ -87297,7 +87495,7 @@ mixin A {
           Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredGetters
           foo: #M2
@@ -87328,7 +87526,7 @@ mixin A {
           Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: double @ dart:core
         declaredGetters
           foo: #M6
@@ -90242,16 +90440,16 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -90310,16 +90508,16 @@ mixin M<T> {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M12
-            flags: hasEnclosingTypeParameterReference isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: hasEnclosingTypeParameterReference isOriginGetterSetter
             type: typeParameter#0
         declaredSetters
           foo1=: #M5
@@ -90387,16 +90585,16 @@ mixin M on S {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -90441,16 +90639,16 @@ mixin M on S {
           S @ package:test/test.dart
         declaredFields
           foo1: #M11
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M13
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M14
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M15
@@ -90528,16 +90726,16 @@ mixin M on S {
         supertype: Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -90582,16 +90780,16 @@ mixin M on S {
           S @ package:test/test.dart
         declaredFields
           foo1: #M22
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M23
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M24
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M25
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M26
@@ -90671,16 +90869,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -90739,16 +90937,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -90814,16 +91012,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -90884,16 +91082,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -90961,16 +91159,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M3
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo4: #M4
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -91027,16 +91225,16 @@ mixin M {
           Object @ dart:core
         declaredFields
           foo1: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
           foo2: #M2
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo3: #M11
-            flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter isStatic
             type: int @ dart:core
           foo4: #M12
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo1=: #M5
@@ -91398,7 +91596,7 @@ mixin A {
           Object @ dart:core
         declaredFields
           foo: #M1
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: int @ dart:core
         declaredSetters
           foo=: #M2
@@ -91432,7 +91630,7 @@ mixin A {
           Object @ dart:core
         declaredFields
           foo: #M5
-            flags: isOriginGetterSetter shouldUseTypeForInitializerInference
+            flags: isOriginGetterSetter
             type: double @ dart:core
         declaredSetters
           foo=: #M6
@@ -94105,15 +94303,15 @@ foo3() {}
     hashForRequirements: #H0
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M2
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
     exportMapId: #M3
@@ -94133,15 +94331,15 @@ void foo3() {}
     hashForRequirements: #H1
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo2: #M4
-        flags: hasEnclosingTypeParameterReference hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
+        flags: hasImplicitReturnType isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: dynamic
       foo3: #M5
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M6
@@ -94169,19 +94367,19 @@ external void foo4();
     hashForRequirements: #H0
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M2
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo4: #M3
-        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M4
@@ -94203,19 +94401,19 @@ void foo4() {}
     hashForRequirements: #H1
     declaredFunctions
       foo1: #M0
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo2: #M1
-        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo3: #M5
-        flags: hasEnclosingTypeParameterReference isExternal isOriginDeclaration isSimplyBounded isStatic
+        flags: isExternal isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
       foo4: #M6
-        flags: hasEnclosingTypeParameterReference isOriginDeclaration isSimplyBounded isStatic
+        flags: isOriginDeclaration isSimplyBounded isStatic
         functionType: FunctionType
           returnType: void
     exportMapId: #M7
@@ -94603,13 +94801,13 @@ get foo3 => 0;
         returnType: dynamic
     declaredVariables
       foo1: #M3
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: dynamic
       foo2: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo3: #M5
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: dynamic
     exportMapId: #M6
     exportMap
@@ -94638,13 +94836,13 @@ int get foo3 => 0;
         returnType: int @ dart:core
     declaredVariables
       foo1: #M3
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: dynamic
       foo2: #M9
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: dynamic
       foo3: #M10
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M11
     exportMap
@@ -94684,16 +94882,16 @@ external int get foo4;
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo2: #M5
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo3: #M6
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo4: #M7
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M8
     exportMap
@@ -94727,16 +94925,16 @@ int get foo4 => 4;
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo2: #M5
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo3: #M6
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo4: #M7
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M11
     exportMap
@@ -95017,13 +95215,13 @@ set foo3(int value) {}
           returnType: void
     declaredVariables
       foo1: #M3
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo2: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo3: #M5
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M6
     exportMap
@@ -95061,13 +95259,13 @@ void set foo3(int value) {}
           returnType: void
     declaredVariables
       foo1: #M3
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo2: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo3: #M5
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M9
     exportMap
@@ -95119,16 +95317,16 @@ external set foo4(int value);
           returnType: void
     declaredVariables
       foo1: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo2: #M5
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo3: #M6
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo4: #M7
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M8
     exportMap
@@ -95174,16 +95372,16 @@ set foo4(int value) {}
           returnType: void
     declaredVariables
       foo1: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo2: #M5
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo3: #M6
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
       foo4: #M7
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M11
     exportMap
@@ -95215,7 +95413,7 @@ set a(int _) {}
           returnType: void
     declaredVariables
       a: #M1
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int @ dart:core
     exportMapId: #M2
     exportMap
@@ -95237,7 +95435,7 @@ set a(double _) {}
           returnType: void
     declaredVariables
       a: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: double @ dart:core
     exportMapId: #M5
     exportMap
@@ -95482,16 +95680,16 @@ final int foo4 = 0;
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
-        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
       foo2: #M5
-        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
       foo3: #M6
-        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
       foo4: #M7
-        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
     exportMapId: #M8
     exportMap
@@ -95525,16 +95723,16 @@ final foo4 = 0;
         returnType: int @ dart:core
     declaredVariables
       foo1: #M4
-        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
       foo2: #M5
-        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
       foo3: #M9
-        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int @ dart:core
       foo4: #M10
-        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic
+        flags: hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer
         type: int @ dart:core
     exportMapId: #M8
     exportMap
@@ -95576,16 +95774,16 @@ final int? foo4;
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo3: #M6
-        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo4: #M7
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -95619,16 +95817,16 @@ final int? foo4 = 0;
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo3: #M9
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo4: #M10
-        flags: hasInitializer isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: hasInitializer isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -95722,16 +95920,16 @@ final int? foo4;
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isExternal isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isExternal isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo3: #M6
-        flags: isExternal isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isExternal isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo4: #M7
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -95765,16 +95963,16 @@ external final int? foo4;
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isExternal isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isExternal isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo3: #M9
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo4: #M10
-        flags: isExternal isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isExternal isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -95926,16 +96124,16 @@ final int? foo4;
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo3: #M6
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int? @ dart:core
       foo4: #M7
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
     exportMapId: #M8
     exportMap
@@ -95969,16 +96167,16 @@ int? get foo4 => 0;
         returnType: int? @ dart:core
     declaredVariables
       foo1: #M4
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int? @ dart:core
       foo2: #M5
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo3: #M11
-        flags: isFinal isOriginDeclaration isStatic shouldUseTypeForInitializerInference
+        flags: isFinal isOriginDeclaration isStatic
         type: int? @ dart:core
       foo4: #M12
-        flags: isOriginGetterSetter isStatic shouldUseTypeForInitializerInference
+        flags: isOriginGetterSetter isStatic
         type: int? @ dart:core
     exportMapId: #M13
     exportMap
@@ -100037,7 +100235,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
       updatedA: r'''
@@ -100086,7 +100284,7 @@ double get a => 1.2;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: double
 ''',
     );
@@ -100195,7 +100393,7 @@ final x = a;
 [future] getLibraryByUri T1
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
       updatedA: r'''
@@ -100227,7 +100425,7 @@ int get b => 0;
 [future] getLibraryByUri T2
   library
     topLevelVariables
-      final hasImplicitType hasInitializer isOriginDeclaration x
+      hasImplicitType hasInitializer isFinal isOriginDeclaration isStatic isTypeInferredFromInitializer x
         type: int
 ''',
     );
@@ -102537,12 +102735,12 @@ extension on AnalysisDriver {
     expect(files, unorderedEquals(expected));
   }
 
-  Future<void> assertFilesReferencingName(
-    String name, {
+  Future<void> assertFilesReferencingNames(
+    Set<String> names, {
     required List<File?> includesAll,
     required List<File?> excludesAll,
   }) async {
-    var fileStateList = await getFilesReferencingName(name);
+    var fileStateList = await getFilesReferencingNames(names);
     var files = fileStateList.resources;
     for (var expected in includesAll) {
       expect(files, contains(expected));

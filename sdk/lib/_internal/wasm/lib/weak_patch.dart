@@ -2,28 +2,11 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'dart:_internal' show patch, unsafeCast;
+import 'dart:_internal' show patch, unsafeCast, checkValidWeakTarget;
 import 'dart:_js_helper' show isJSUndefined, JS;
 import 'dart:_wasm';
 import 'dart:js_interop' hide JS;
 import 'dart:js_interop' as js_interop;
-import 'dart:ffi' show Pointer, Struct, Union;
-
-void _checkValidWeakTarget(Object object) {
-  if ((object is bool) ||
-      (object is num) ||
-      (object is String) ||
-      (object is Record) ||
-      (object is Pointer) ||
-      (object is Struct) ||
-      (object is Union)) {
-    throw ArgumentError.value(
-      object,
-      "A string, number, boolean, record, Pointer, Struct or Union "
-      "can't be a weak target",
-    );
-  }
-}
 
 @patch
 class Expando<T extends Object> {
@@ -36,7 +19,7 @@ class Expando<T extends Object> {
 
   @patch
   T? operator [](Object object) {
-    _checkValidWeakTarget(object);
+    checkValidWeakTarget(object, 'object');
     final result = JS<WasmExternRef?>(
       "(map, o) => map.get(o)",
       _jsWeakMap,
@@ -49,7 +32,7 @@ class Expando<T extends Object> {
 
   @patch
   void operator []=(Object object, T? value) {
-    _checkValidWeakTarget(object);
+    checkValidWeakTarget(object, 'object');
     JS<void>(
       "(map, o, v) => map.set(o, v)",
       _jsWeakMap,
@@ -74,7 +57,7 @@ class WeakReference<T extends Object> {
   @patch
   factory WeakReference(T target) {
     if (_supportsWeakRef) {
-      _checkValidWeakTarget(target);
+      checkValidWeakTarget(target, 'target');
       return _WeakReferenceWrapper<T>(target);
     }
     // The polyfill does not validate [target]. This lets the tests distinguish
@@ -153,9 +136,9 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
       );
 
   void attach(Object value, T peer, {Object? detach}) {
-    _checkValidWeakTarget(value);
+    checkValidWeakTarget(value, 'value');
     if (detach != null) {
-      _checkValidWeakTarget(detach);
+      checkValidWeakTarget(detach, 'detach');
       _jsFinalizationRegistry.registerWithDetach(
         value.toExternalReference,
         peer.toExternalReference,
@@ -170,7 +153,7 @@ class _FinalizationRegistryWrapper<T> implements Finalizer<T> {
   }
 
   void detach(Object detach) {
-    _checkValidWeakTarget(detach);
+    checkValidWeakTarget(detach, 'detach');
     _jsFinalizationRegistry.unregister(detach.toExternalReference);
   }
 }

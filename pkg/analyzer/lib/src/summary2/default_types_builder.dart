@@ -20,7 +20,7 @@ import 'package:analyzer/src/util/graph.dart';
 ///
 /// If the [fragment] is not part of a library currently being linked or
 /// resolved, `null` is returned.
-typedef GetTypeParameterNodeFunction = AstNode? Function(Fragment fragment);
+typedef GetTypeParameterNodeFunction = AstNode? Function(FragmentImpl fragment);
 
 class DefaultTypesBuilder {
   final GetTypeParameterNodeFunction _getTypeParameterNode;
@@ -290,7 +290,7 @@ class DefaultTypesBuilder {
         if (startType.element == end) {
           paths.add([_CycleElement(startParameter, startType)]);
         } else if (visited.add(startType.element)) {
-          void recurseParameters(List<TypeParameterElement> parameters) {
+          void recurseParameters(List<TypeParameterElementImpl> parameters) {
             for (var parameter in parameters) {
               var parameterNode = _getTypeParameterNode(
                 parameter.firstFragment,
@@ -315,9 +315,9 @@ class DefaultTypesBuilder {
             }
           }
 
-          if (declaration is InterfaceElement) {
+          if (declaration is InterfaceElementImpl) {
             recurseParameters(declaration.typeParameters);
-          } else if (declaration is TypeAliasElement) {
+          } else if (declaration is TypeAliasElementImpl) {
             recurseParameters(declaration.typeParameters);
           }
           visited.remove(startType.element);

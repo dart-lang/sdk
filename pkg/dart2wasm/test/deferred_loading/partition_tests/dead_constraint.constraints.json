@@ -1,0 +1,90 @@
+[
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrAlive",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrAlive"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrAlive_1",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrAlive_1"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrAlive_2",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrAlive_2"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrDead",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrDead"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndAlive",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndAlive"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndAlive_1",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndAlive_1"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndAlive_2",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndAlive_2"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndDead",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndDead"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseAlive",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseAlive"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseAlive_1",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseAlive_1"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseAlive_2",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseAlive_2"
+  },
+  {
+    "type": "reference",
+    "name": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseDead",
+    "import": "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseDead"
+  },
+  {
+    "type": "or",
+    "name": "or_with_dead",
+    "nodes": [
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrAlive_1",
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrAlive_2",
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#OrDead"
+    ]
+  },
+  {
+    "type": "and",
+    "name": "and_with_dead",
+    "nodes": [
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndAlive_1",
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndAlive_2",
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#AndDead"
+    ]
+  },
+  {
+    "type": "fuse",
+    "nodes": [
+      "or_with_dead",
+      "and_with_dead",
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseAlive_1",
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseAlive_2",
+      "${SDK_ROOT}pkg/dart2wasm/test/deferred_loading/partition_tests/dead_constraint.dart#FuseDead"
+    ]
+  }
+]

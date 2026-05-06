@@ -104,7 +104,7 @@ class ColorComputer {
   }
 
   /// Extracts the color information from dart:ui Color constructor args.
-  ColorInformation? _getDartUiColor(String? name, List<Expression> args) {
+  ColorInformation? _getDartUiColor(String? name, List<Argument> args) {
     if (name == null && args.length == 1) {
       // Color(0xFF000000).
       var arg0 = args[0];
@@ -112,14 +112,14 @@ class ColorComputer {
     } else if (name == 'from') {
       // Color.from(alpha: 1, red: 1, green: 1, blue: 1).
       double? alpha, red, green, blue;
-      for (var arg in args.whereType<NamedExpression>()) {
-        var expression = arg.expression;
+      for (var arg in args.whereType<NamedArgument>()) {
+        var expression = arg.argumentExpression;
         var value = expression is DoubleLiteral
             ? expression.value
             : expression is IntegerLiteral
             ? expression.value?.toDouble()
             : null;
-        switch (arg.name.label.name) {
+        switch (arg.name.lexeme) {
           case 'alpha':
             alpha = value;
           case 'red':
@@ -179,17 +179,14 @@ class ColorComputer {
   /// Extracts the color from Flutter MaterialAccentColor constructor args.
   ColorInformation? _getFlutterMaterialAccentColor(
     String? name,
-    List<Expression> args,
+    List<Argument> args,
   ) =>
       // MaterialAccentColor is a subclass of SwatchColor and has the same
       // constructor.
       _getFlutterSwatchColor(name, args);
 
   /// Extracts the color information from Flutter ColorSwatch constructor args.
-  ColorInformation? _getFlutterSwatchColor(
-    String? name,
-    List<Expression> args,
-  ) {
+  ColorInformation? _getFlutterSwatchColor(String? name, List<Argument> args) {
     if (name == null && args.isNotEmpty) {
       var arg0 = args[0];
       return arg0 is IntegerLiteral ? getColorForInt(arg0.value) : null;

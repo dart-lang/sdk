@@ -1899,7 +1899,7 @@ void KernelLoader::LoadProcedure(const Library& library,
 
   function_node_helper.ReadUntilExcluding(
       FunctionNodeHelper::kRedirectingFactoryTarget);
-  function.set_is_redirecting_factory(helper_.ReadTag() == kSomething);
+  function.SetIsRedirectingFactory(helper_.ReadTag() == kSomething);
 
   // Everything else is skipped implicitly, and procedure_helper and
   // function_node_helper are no longer used.

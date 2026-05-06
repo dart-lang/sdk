@@ -60,9 +60,11 @@
                             PAYLOAD_SIZEOF, RANGE, CONSTANT, ENUM)             \
   ARRAY(Array, element_offset)                                                 \
   NOT_IN_PRODUCT(ARRAY(ClassTable, AllocationTracingStateSlotOffsetFor))       \
+  ARRAY(Closure, element_offset)                                               \
   ARRAY(Code, element_offset)                                                  \
   ARRAY(Context, variable_offset)                                              \
   ARRAY(ContextScope, element_offset)                                          \
+  ARRAY(LocalVarDescriptors, element_offset)                                   \
   ARRAY(ExceptionHandlers, element_offset)                                     \
   ARRAY(ObjectPool, element_offset)                                            \
   ARRAY(OneByteString, element_offset)                                         \
@@ -71,9 +73,11 @@
   ARRAY(TwoByteString, element_offset)                                         \
   ARRAY(WeakArray, element_offset)                                             \
   ARRAY_SIZEOF(Array, InstanceSize, element_offset)                            \
+  ARRAY_SIZEOF(Closure, InstanceSize, element_offset)                          \
   ARRAY_SIZEOF(Code, InstanceSize, element_offset)                             \
   ARRAY_SIZEOF(Context, InstanceSize, variable_offset)                         \
   ARRAY_SIZEOF(ContextScope, InstanceSize, element_offset)                     \
+  ARRAY_SIZEOF(LocalVarDescriptors, InstanceSize, element_offset)              \
   ARRAY_SIZEOF(ExceptionHandlers, InstanceSize, element_offset)                \
   ARRAY_SIZEOF(ObjectPool, InstanceSize, element_offset)                       \
   ARRAY_SIZEOF(OneByteString, InstanceSize, element_offset)                    \
@@ -114,6 +118,13 @@
   CONSTANT(SubtypeTestCache, kMaxInputs)                                       \
   CONSTANT(SubtypeTestCache, kTestResult)                                      \
   CONSTANT(TypeArguments, kMaxElements)                                        \
+  CONSTANT(UntaggedClosure, kHasDelayedTypeArgumentsBit)                       \
+  CONSTANT(UntaggedClosure, kHasInstantiatorTypeArgumentsBit)                  \
+  CONSTANT(UntaggedClosure, kHasFunctionTypeArgumentsBit)                      \
+  CONSTANT(UntaggedClosure, kFunctionTypeArgumentsIndexBitsPos)                \
+  CONSTANT(UntaggedClosure, kFunctionTypeArgumentsIndexBitsSize)               \
+  CONSTANT(UntaggedClosure, kLengthBitsPos)                                    \
+  CONSTANT(UntaggedClosure, kLengthBitsSize)                                   \
   CONSTANT(UntaggedObject, kCardRememberedBit)                                 \
   CONSTANT(UntaggedObject, kCanonicalBit)                                      \
   CONSTANT(UntaggedObject, kNotMarkedBit)                                      \
@@ -151,12 +162,9 @@
   FIELD(Class, super_type_offset)                                              \
   FIELD(Class, host_type_arguments_field_offset_in_words_offset)               \
   NOT_IN_PRODUCT(FIELD(ClassTable, allocation_tracing_state_table_offset))     \
-  FIELD(Closure, context_offset)                                               \
-  FIELD(Closure, delayed_type_arguments_offset)                                \
   FIELD(Closure, function_offset)                                              \
-  FIELD(Closure, function_type_arguments_offset)                               \
   FIELD(Closure, hash_offset)                                                  \
-  FIELD(Closure, instantiator_type_arguments_offset)                           \
+  FIELD(Closure, length_and_flags_offset)                                      \
   FIELD(ClosureData, packed_fields_offset)                                     \
   FIELD(Code, instructions_offset)                                             \
   FIELD(Code, object_pool_offset)                                              \
@@ -206,6 +214,7 @@
   FIELD(LinkedHashBase, index_offset)                                          \
   FIELD(LinkedHashBase, type_arguments_offset)                                 \
   FIELD(LinkedHashBase, used_data_offset)                                      \
+  FIELD(LinkedHashBase, NextFieldOffset)                                       \
   FIELD(LocalHandle, ptr_offset)                                               \
   FIELD(MarkingStackBlock, pointers_offset)                                    \
   FIELD(MarkingStackBlock, top_offset)                                         \
@@ -444,7 +453,6 @@
   SIZEOF(Bytecode, InstanceSize, UntaggedBytecode)                             \
   SIZEOF(Capability, InstanceSize, UntaggedCapability)                         \
   SIZEOF(Class, InstanceSize, UntaggedClass)                                   \
-  SIZEOF(Closure, InstanceSize, UntaggedClosure)                               \
   SIZEOF(ClosureData, InstanceSize, UntaggedClosureData)                       \
   SIZEOF(CodeSourceMap, HeaderSize, UntaggedCodeSourceMap)                     \
   SIZEOF(CompressedStackMaps, ObjectHeaderSize, UntaggedCompressedStackMaps)   \

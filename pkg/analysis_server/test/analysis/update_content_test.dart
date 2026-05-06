@@ -6,8 +6,8 @@ import 'package:analysis_server/protocol/protocol.dart';
 import 'package:analysis_server/protocol/protocol_constants.dart';
 import 'package:analysis_server/protocol/protocol_generated.dart';
 import 'package:analyzer/file_system/file_system.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -89,7 +89,7 @@ class UpdateContentTest extends PubPackageAnalysisServerTest {
     writePackageConfig(
       workspaceRootPath,
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
 
     var aaa = newFile('$workspaceRootPath/aaa/lib/aaa.dart', r'''

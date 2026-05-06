@@ -5,13 +5,10 @@
 import 'dart:io' show File;
 import 'dart:typed_data' show Uint8List;
 
-import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart'
-    show DefaultExperimentalFeatures;
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/parser/listener.dart' show Listener;
 import 'package:_fe_analyzer_shared/src/parser/parser.dart'
     show FormalParameterKind, MemberKind, Parser, DeclarationKind;
-import 'package:_fe_analyzer_shared/src/scanner/abstract_scanner.dart'
-    show ScannerConfiguration;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/scanner/utf8_bytes_scanner.dart'
     show Utf8BytesScanner;
@@ -24,8 +21,8 @@ import 'package:package_config/package_config.dart';
 import 'package:testing/testing.dart'
     show Chain, ChainContext, Result, Step, TestDescription;
 
-import 'utils/suite_utils.dart';
 import 'testing_utils.dart' show checkEnvironment, filterList;
+import 'utils/suite_utils.dart';
 
 void main([List<String> arguments = const []]) => internalMain(
   createContext,
@@ -145,12 +142,14 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
     LintTestDescription description,
     Context context,
   ) async {
+    ExperimentalFeatures experimentalFeatures =
+        const DefaultExperimentalFeatures();
     if (description.cache.rawBytes == null) {
       File f = new File.fromUri(description.uri);
       Uint8List bytes = description.cache.rawBytes = f.readAsBytesSync();
       Utf8BytesScanner scanner = new Utf8BytesScanner(
         bytes,
-        configuration: const ScannerConfiguration(enableTripleShift: true),
+        configuration: experimentalFeatures.buildScannerConfiguration(),
         includeComments: true,
         languageVersionChanged: (scanner, languageVersion) {
           // Nothing - but don't overwrite the previous settings.
@@ -188,7 +187,7 @@ class LintStep extends Step<LintTestDescription, LintTestDescription, Context> {
     Parser parser = new Parser(
       description.listener,
       useImplicitCreationExpression: useImplicitCreationExpressionInCfe,
-      experimentalFeatures: const DefaultExperimentalFeatures(),
+      experimentalFeatures: experimentalFeatures,
     );
     parser.parseUnit(description.cache.firstToken!);
 
@@ -245,6 +244,7 @@ class ExplicitTypeLintListener extends LintListener {
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -318,7 +318,7 @@ class ImportsTwiceLintListener extends LintListener {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     Token importUriToken = importKeyword.next!;
     String importUri = importUriToken.lexeme;
     if (importUri.startsWith("r")) {

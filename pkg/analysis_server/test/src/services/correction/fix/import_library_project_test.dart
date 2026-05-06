@@ -4,8 +4,8 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -754,7 +754,10 @@ class Test {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+        ..add(
+          name: 'my_pkg',
+          rootFolder: getFolder('$packagesRootPath/my_pkg'),
+        ),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -788,7 +791,10 @@ extension E on int {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+        ..add(
+          name: 'my_pkg',
+          rootFolder: getFolder('$packagesRootPath/my_pkg'),
+        ),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -818,7 +824,10 @@ class Test {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+        ..add(
+          name: 'my_pkg',
+          rootFolder: getFolder('$packagesRootPath/my_pkg'),
+        ),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -1356,8 +1365,7 @@ dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
     await resolveTestCode('''
@@ -1384,8 +1392,7 @@ dev_dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
     await resolveTestCode('''
@@ -1406,8 +1413,7 @@ name: test
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
 
     await resolveTestCode('''
@@ -1878,8 +1884,7 @@ dependencies:
 ''');
 
     writeTestPackageConfig(
-      config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRoot.path),
+      config: PackageConfigFileBuilder()..add(name: 'aaa', rootFolder: aaaRoot),
     );
   }
 }
@@ -2319,7 +2324,7 @@ extension IntExtension on int {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: pkgRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(pkgRootPath)),
     );
 
     updateTestPubspecFile('''
@@ -2352,7 +2357,10 @@ class Test {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+        ..add(
+          name: 'my_pkg',
+          rootFolder: getFolder('$packagesRootPath/my_pkg'),
+        ),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -2385,7 +2393,10 @@ class Test {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+        ..add(
+          name: 'my_pkg',
+          rootFolder: getFolder('$packagesRootPath/my_pkg'),
+        ),
     );
 
     newPubspecYamlFile('/home/test', r'''
@@ -2420,7 +2431,10 @@ extension E on int {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'my_pkg', rootPath: '$packagesRootPath/my_pkg'),
+        ..add(
+          name: 'my_pkg',
+          rootFolder: getFolder('$packagesRootPath/my_pkg'),
+        ),
     );
 
     newPubspecYamlFile('/home/test', r'''

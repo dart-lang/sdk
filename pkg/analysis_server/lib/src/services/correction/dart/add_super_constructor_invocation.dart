@@ -227,9 +227,9 @@ class _AddInvocation extends ResolvedCorrectionProducer {
           :var isPositional,
         ) when isPositional) {
           positionalParameters++;
-        } else if (parameter case DefaultFormalParameter(
-          :SuperFormalParameter parameter,
-        ) when parameter.isNamed) {
+        } else if (parameter case SuperFormalParameter(
+          :var isNamed,
+        ) when isNamed) {
           namedParameters.add(parameter.name.lexeme);
         }
       }

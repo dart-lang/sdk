@@ -53,7 +53,7 @@ const expected = <String>[
   '$file:${LINE_A + 3}:13', // on 'barXYZ2'
   '$file:${LINE_A + 18}:22', // on '{' in 'get barXYZ2 {'
   '$file:${LINE_A + 19}:13', // on '='
-  '$file:${LINE_A + 20}:24', // after ''', i.e. on ';'
+  '$file:${LINE_A + 20}:12', // on first '''
   '$file:${LINE_A + 20}:5', // on 'return'
   '$file:${LINE_A + 3}:3', // on 'print'
 
@@ -65,7 +65,7 @@ const expected = <String>[
   '$file:${LINE_A + 5}:9', // on 'fooXYZ2'
   '$file:${LINE_A + 10}:20', // on '{'
   '$file:${LINE_A + 11}:11', // on '='
-  '$file:${LINE_A + 12}:22', // after ''', i.e. on ';'
+  '$file:${LINE_A + 12}:10', // on the first '''
   '$file:${LINE_A + 12}:3', // on 'return'
   '$file:${LINE_A + 5}:3', // on 'print'
 

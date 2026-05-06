@@ -6,10 +6,12 @@ import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'context_collection_resolution.dart';
+import 'node_text_expectations.dart';
 
 main() {
   defineReflectiveSuite(() {
     defineReflectiveTests(WhileStatementResolutionTest);
+    defineReflectiveTests(UpdateNodeTextExpectations);
   });
 }
 
@@ -57,11 +59,9 @@ void f() {
 LabeledStatement
   labels
     Label
-      label: SimpleIdentifier
-        token: L
-        element: L@13
-        staticType: null
+      name: L
       colon: :
+      declaredFragment: <testLibraryFragment> L@13
   statement: WhileStatement
     whileKeyword: while
     leftParenthesis: (
@@ -74,10 +74,9 @@ LabeledStatement
       statements
         BreakStatement
           breakKeyword: break
-          label: SimpleIdentifier
-            token: L
+          label: LabelReference
+            name: L
             element: L@13
-            staticType: null
           semicolon: ;
       rightBracket: }
 ''');
@@ -109,10 +108,9 @@ WhileStatement
     statements
       BreakStatement
         breakKeyword: break
-        label: SimpleIdentifier
-          token: L
+        label: LabelReference
+          name: L
           element: <null>
-          staticType: null
         semicolon: ;
     rightBracket: }
 ''');
@@ -190,11 +188,9 @@ void f() {
 LabeledStatement
   labels
     Label
-      label: SimpleIdentifier
-        token: L
-        element: L@13
-        staticType: null
+      name: L
       colon: :
+      declaredFragment: <testLibraryFragment> L@13
   statement: WhileStatement
     whileKeyword: while
     leftParenthesis: (
@@ -207,10 +203,9 @@ LabeledStatement
       statements
         ContinueStatement
           continueKeyword: continue
-          label: SimpleIdentifier
-            token: L
+          label: LabelReference
+            name: L
             element: L@13
-            staticType: null
           semicolon: ;
       rightBracket: }
 ''');
@@ -242,10 +237,9 @@ WhileStatement
     statements
       ContinueStatement
         continueKeyword: continue
-        label: SimpleIdentifier
-          token: L
+        label: LabelReference
+          name: L
           element: <null>
-          staticType: null
         semicolon: ;
     rightBracket: }
 ''');

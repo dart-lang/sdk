@@ -1,0 +1,43 @@
+{
+  "constants": [
+    {
+      "type": "string",
+      "value": "foo"
+    }
+  ],
+  "definitions": [
+    {
+      "path": [
+        {
+          "disambiguators": [
+            "static"
+          ],
+          "kind": "method",
+          "name": "idExtractor"
+        }
+      ],
+      "uri": "package:record_use_test/function_invocation.dart"
+    }
+  ],
+  "loading_units": [
+    {
+      "name": "1"
+    }
+  ],
+  "uses": {
+    "static_calls": [
+      {
+        "definition_index": 0,
+        "uses": [
+          {
+            "loading_unit_index": 0,
+            "positional": [
+              0
+            ],
+            "type": "with_arguments"
+          }
+        ]
+      }
+    ]
+  }
+}

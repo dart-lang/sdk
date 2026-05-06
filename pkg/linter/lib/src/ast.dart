@@ -12,7 +12,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/workspace/workspace.dart';
-import 'package:path/path.dart' as path;
 
 /// Return the compilation unit of a node
 CompilationUnit? getCompilationUnit(AstNode node) =>
@@ -120,13 +119,14 @@ bool isInPublicDir(CompilationUnit node, WorkspacePackage? package) {
   if (package == null) return false;
   var cuPath = node.declaredFragment?.element.firstFragment.source.fullName;
   if (cuPath == null) return false;
-  var libDir = path.join(package.root.path, 'lib');
-  var binDir = path.join(package.root.path, 'bin');
+  var pathContext = package.root.provider.pathContext;
+  var libDir = pathContext.join(package.root.path, 'lib');
+  var binDir = pathContext.join(package.root.path, 'bin');
   // Hook directory: https://github.com/dart-lang/sdk/issues/54334,
-  var buildHookFile = path.join(package.root.path, 'hook', 'build.dart');
-  var linkHookFile = path.join(package.root.path, 'hook', 'link.dart');
-  return path.isWithin(libDir, cuPath) ||
-      path.isWithin(binDir, cuPath) ||
+  var buildHookFile = pathContext.join(package.root.path, 'hook', 'build.dart');
+  var linkHookFile = pathContext.join(package.root.path, 'hook', 'link.dart');
+  return pathContext.isWithin(libDir, cuPath) ||
+      pathContext.isWithin(binDir, cuPath) ||
       cuPath == buildHookFile ||
       cuPath == linkHookFile;
 }

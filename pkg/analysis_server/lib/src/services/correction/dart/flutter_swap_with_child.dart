@@ -25,9 +25,9 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
     bool parentHadSingleChild,
   ) async {
     // Find the expression that corresponds to the child.
-    NamedExpression? childArgumentInParent;
+    NamedArgument? childArgumentInParent;
     for (var arg in parent.argumentList.arguments) {
-      if (arg is NamedExpression && arg.expression == child) {
+      if (arg is NamedArgument && arg.argumentExpression == child) {
         childArgumentInParent = arg;
         break;
       }
@@ -105,7 +105,7 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
           builder.write('  ');
           if (parentHadSingleChild) {
             if (childArgumentInParent != null) {
-              builder.write(childArgumentInParent.name.label.name);
+              builder.write(childArgumentInParent.name.lexeme);
               builder.write(': ');
             } else {
               builder.write('child: ');
@@ -141,7 +141,7 @@ abstract class FlutterParentAndChild extends ResolvedCorrectionProducer {
     InstanceCreationExpression parent,
   ) {
     if (parent.childrenArgument case var childrenArgument?) {
-      if (childrenArgument.expression case ListLiteral list) {
+      if (childrenArgument.argumentExpression case ListLiteral list) {
         if (list.elements case NodeList(length: 1, first: var first)) {
           if (first is InstanceCreationExpression) {
             return first;
@@ -172,7 +172,7 @@ class FlutterSwapWithChild extends FlutterParentAndChild {
       child = first;
       parentHasSingleChild = false;
     }
-    child ??= parent.childArgument?.expression;
+    child ??= parent.childArgument?.argumentExpression;
     if (child is! InstanceCreationExpression || !child.isWidgetCreation) {
       return;
     }

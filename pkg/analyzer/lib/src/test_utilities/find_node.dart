@@ -112,9 +112,6 @@ class FindNode {
 
   FunctionTypeAlias get singleFunctionTypeAlias => _single();
 
-  FunctionTypedFormalParameter get singleFunctionTypedFormalParameter =>
-      _single();
-
   GenericFunctionType get singleGenericFunctionType => _single();
 
   GenericTypeAlias get singleGenericTypeAlias => _single();
@@ -371,10 +368,6 @@ class FindNode {
     return _node(search, (n) => n is DeclaredVariablePattern);
   }
 
-  DefaultFormalParameter defaultParameter(String search) {
-    return _node(search, (n) => n is DefaultFormalParameter);
-  }
-
   DoStatement doStatement(String search) {
     return _node(search, (n) => n is DoStatement);
   }
@@ -532,8 +525,10 @@ class FindNode {
     return _node(search, (n) => n is FunctionTypeAlias);
   }
 
-  FunctionTypedFormalParameter functionTypedFormalParameter(String search) {
-    return _node(search, (n) => n is FunctionTypedFormalParameter);
+  FunctionTypedFormalParameterSuffix functionTypedFormalParameterSuffix(
+    String search,
+  ) {
+    return _node(search, (n) => n is FunctionTypedFormalParameterSuffix);
   }
 
   GenericFunctionType genericFunctionType(String search) {
@@ -652,12 +647,16 @@ class FindNode {
     return _node(search, (n) => n is MixinDeclaration);
   }
 
-  NamedExpression namedExpression(String search) {
-    return _node(search, (n) => n is NamedExpression);
+  NamedArgument namedArgument(String search) {
+    return _node(search, (n) => n is NamedArgument);
   }
 
   NamedType namedType(String search) {
     return _node(search, (n) => n is NamedType);
+  }
+
+  NameWithTypeParameters nameWithTypeParameters(String search) {
+    return _node(search, (n) => n is NameWithTypeParameters);
   }
 
   NativeClause nativeClause(String search) {
@@ -747,6 +746,10 @@ class FindNode {
     return _node(search, (n) => n is PrefixedIdentifier);
   }
 
+  PrimaryConstructorDeclaration primaryConstructorDeclaration(String search) {
+    return _node(search, (n) => n is PrimaryConstructorDeclaration);
+  }
+
   PropertyAccess propertyAccess(String search) {
     return _node(search, (n) => n is PropertyAccess);
   }
@@ -767,6 +770,10 @@ class FindNode {
     String search,
   ) {
     return _node(search, (n) => n is RedirectingConstructorInvocation);
+  }
+
+  RegularFormalParameter regularFormalParameter(String search) {
+    return _node(search, (n) => n is RegularFormalParameter);
   }
 
   RelationalPattern relationalPattern(String search) {
@@ -795,14 +802,6 @@ class FindNode {
 
   SimpleIdentifier simple(String search) {
     return _node(search, (_) => true);
-  }
-
-  SimpleFormalParameter simpleFormalParameter(String search) {
-    return _node(search, (n) => n is SimpleFormalParameter);
-  }
-
-  SimpleFormalParameter simpleParameter(String search) {
-    return _node(search, (n) => n is SimpleFormalParameter);
   }
 
   SimpleStringLiteral simpleStringLiteral(String search) {

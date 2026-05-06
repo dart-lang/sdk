@@ -1478,6 +1478,13 @@ static bool IsLoopInvariantLoad(ZoneGrowableArray<BitVector*>* sets,
          (*sets)[loop_header_index]->Contains(GetPlaceId(instr));
 }
 
+static bool IsInitializingStore(Instruction* instr) {
+  if (auto store = instr->AsStoreField()) {
+    return store->is_initialization();
+  }
+  return false;
+}
+
 LICM::LICM(FlowGraph* flow_graph) : flow_graph_(flow_graph) {
   ASSERT(flow_graph->is_licm_allowed());
 }
@@ -1647,9 +1654,10 @@ void LICM::Optimize() {
         // instructions can be hoisted as long as its exception is still
         // the very first "visible" effect of the loop.
         bool is_loop_invariant = false;
-        if ((current->AllowsCSE() ||
-             IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
-            (!seen_visible_effect || !current->MayHaveVisibleEffect())) {
+        if (((current->AllowsCSE() ||
+              IsLoopInvariantLoad(loop_invariant_loads, i, current)) &&
+             (!seen_visible_effect || !current->MayHaveVisibleEffect())) ||
+            IsInitializingStore(current)) {
           is_loop_invariant = true;
           for (intptr_t i = 0; i < current->InputCount(); ++i) {
             Definition* input_def = current->InputAt(i)->definition();
@@ -3991,18 +3999,21 @@ void AllocationSinking::CreateMaterializationAt(
   intptr_t length_or_shape = -1;
   if (auto instr = alloc->AsAllocateObject()) {
     cls = &(instr->cls());
-  } else if (alloc->IsAllocateClosure()) {
+  } else if (auto instr = alloc->AsAllocateClosure()) {
     cls = &Class::ZoneHandle(
-        flow_graph_->isolate_group()->object_store()->closure_class());
+        flow_graph_->isolate_group()->class_table()->At(kClosureCid));
+    length_or_shape = instr->EncodedLengthAndFlags();
   } else if (auto instr = alloc->AsAllocateContext()) {
-    cls = &Class::ZoneHandle(Object::context_class());
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->class_table()->At(kContextCid));
     length_or_shape = instr->num_context_variables();
   } else if (auto instr = alloc->AsAllocateUninitializedContext()) {
-    cls = &Class::ZoneHandle(Object::context_class());
+    cls = &Class::ZoneHandle(
+        flow_graph_->isolate_group()->class_table()->At(kContextCid));
     length_or_shape = instr->num_context_variables();
   } else if (auto instr = alloc->AsCreateArray()) {
     cls = &Class::ZoneHandle(
-        flow_graph_->isolate_group()->object_store()->array_class());
+        flow_graph_->isolate_group()->class_table()->At(kArrayCid));
     length_or_shape = instr->GetConstantNumElements();
   } else if (auto instr = alloc->AsAllocateTypedData()) {
     cls = &Class::ZoneHandle(

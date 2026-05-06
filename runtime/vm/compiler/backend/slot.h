@@ -64,10 +64,6 @@ class ParsedFunction;
   V(FinalizerEntry, UntaggedFinalizerEntry, next, FinalizerEntry, VAR)         \
   V(Function, UntaggedFunction, signature, FunctionType, FINAL)                \
   V(Context, UntaggedContext, parent, Context, FINAL)                          \
-  V(Closure, UntaggedClosure, instantiator_type_arguments, TypeArguments,      \
-    FINAL)                                                                     \
-  V(Closure, UntaggedClosure, delayed_type_arguments, TypeArguments, FINAL)    \
-  V(Closure, UntaggedClosure, function_type_arguments, TypeArguments, FINAL)   \
   V(FunctionType, UntaggedFunctionType, type_parameters, TypeParameters,       \
     FINAL)                                                                     \
   V(ReceivePort, UntaggedReceivePort, send_port, SendPort, FINAL)              \
@@ -101,6 +97,7 @@ class ParsedFunction;
 //   that) or like a non-final field.
 #define NONNULLABLE_INT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                       \
   V(Array, UntaggedArray, length, Smi, FINAL)                                  \
+  V(Closure, UntaggedClosure, length_and_flags, Smi, FINAL)                    \
   V(Closure, UntaggedClosure, hash, Smi, VAR_NOSANITIZETHREAD)                 \
   V(GrowableObjectArray, UntaggedGrowableObjectArray, length, Smi, VAR)        \
   V(TypedDataBase, UntaggedTypedDataBase, length, Smi, FINAL)                  \
@@ -133,7 +130,6 @@ class ParsedFunction;
 //   that) or like a non-final field.
 #define NONNULLABLE_NONINT_TAGGED_NATIVE_DART_SLOTS_LIST(V)                    \
   V(Closure, UntaggedClosure, function, Function, FINAL)                       \
-  V(Closure, UntaggedClosure, context, Dynamic, FINAL)                         \
   V(Finalizer, UntaggedFinalizer, callback, Closure, FINAL)                    \
   V(NativeFinalizer, UntaggedFinalizer, callback, Pointer, FINAL)              \
   V(Function, UntaggedFunction, data, Dynamic, FINAL)                          \
@@ -455,6 +451,9 @@ class Slot : public ZoneObject {
     // A slot corresponding to a record field at the given offset.
     kRecordField,
 
+    // A slot corresponding to a Closure element at given offset.
+    kClosureElement,
+
     // A slot within a Context object that contains a value of a captured
     // local variable.
     kCapturedVariable,
@@ -486,6 +485,14 @@ class Slot : public ZoneObject {
   static const Slot& GetRecordFieldSlot(Thread* thread,
                                         intptr_t offset_in_bytes);
 
+  // Returns a slot corresponding to a Closure element at [offset_in_bytes].
+  static const Slot& GetClosureElementSlot(Thread* thread,
+                                           intptr_t offset_in_bytes);
+
+  // Returns 'Closure.context' slot for the given closure [function].
+  static const Slot& GetClosureContextSlot(Thread* thread,
+                                           const Function& function);
+
   // Returns a slot that represents the given captured local variable.
   static const Slot& GetContextVariableSlotFor(Thread* thread,
                                                const LocalVariable& var);
@@ -510,6 +517,7 @@ class Slot : public ZoneObject {
   bool IsArgumentOfType() const { return kind() == Kind::kTypeArgumentsIndex; }
   bool IsArrayElement() const { return kind() == Kind::kArrayElement; }
   bool IsRecordField() const { return kind() == Kind::kRecordField; }
+  bool IsClosureElement() const { return kind() == Kind::kClosureElement; }
   bool IsLengthSlot() const;
   bool IsImmutableLengthSlot() const;
 

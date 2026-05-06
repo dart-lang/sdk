@@ -196,7 +196,7 @@ class JsBuilder {
   /// [arguments] can be a single [Node] (e.g. an [Expression] or [Statement])
   /// or a list of [Node]s, which will be interpolated into the source at the
   /// '#' signs.
-  Expression call(String source, [var arguments]) {
+  Expression call(String source, [arguments]) {
     Template template = _findExpressionTemplate(source);
     arguments ??= [];
     // We allow a single argument to be given directly.
@@ -205,7 +205,7 @@ class JsBuilder {
   }
 
   /// Parses a JavaScript Statement, otherwise just like [call].
-  Statement statement(String source, [var arguments]) {
+  Statement statement(String source, [arguments]) {
     Template template = _findStatementTemplate(source);
     arguments ??= [];
     // We allow a single argument to be given directly.

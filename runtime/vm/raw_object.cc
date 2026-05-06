@@ -40,11 +40,6 @@ void ObjectPtr::Validate(IsolateGroup* isolate_group) const {
 }
 
 void UntaggedObject::Validate(IsolateGroup* isolate_group) const {
-  if (static_cast<uword>(Roots::void_class()) == kHeapObjectTag) {
-    // Validation relies on properly initialized class classes. Skip if the
-    // VM is still being initialized.
-    return;
-  }
   // Validate that the tags_ field is sensible.
   uword tags = tags_;
   if (IsNewObject()) {
@@ -101,6 +96,13 @@ intptr_t UntaggedObject::HeapSizeFromClass(uword tags) const {
           static_cast<const InstructionsSectionPtr>(this);
       intptr_t section_size = InstructionsSection::Size(raw_section);
       instance_size = InstructionsSection::InstanceSize(section_size);
+      break;
+    }
+    case kClosureCid: {
+      const ClosurePtr raw_closure = static_cast<const ClosurePtr>(this);
+      intptr_t num_elements = UntaggedClosure::LengthBits::decode(
+          Smi::Value(raw_closure->untag()->length_and_flags()));
+      instance_size = Closure::InstanceSize(num_elements);
       break;
     }
     case kContextCid: {
@@ -526,7 +528,12 @@ COMPRESSED_VISITOR(FunctionType)
 COMPRESSED_VISITOR(RecordType)
 COMPRESSED_VISITOR(TypeParameter)
 COMPRESSED_VISITOR(Function)
-COMPRESSED_VISITOR(Closure)
+// Use relaxed atomic to allow concurrent marker access
+// objects filled in CopyMutableObjectGraph.
+VARIABLE_COMPRESSED_VISITOR(
+    Closure,
+    UntaggedClosure::LengthBits::decode(Smi::Value(
+        raw_obj->untag()->length_and_flags<std::memory_order_relaxed>())))
 COMPRESSED_VISITOR(LibraryPrefix)
 COMPRESSED_VISITOR(Bytecode)
 REGULAR_VISITOR(SingleTargetCache)

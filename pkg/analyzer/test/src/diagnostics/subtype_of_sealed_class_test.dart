@@ -3,7 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -25,7 +25,7 @@ class SubtypeOfSealedClassTest extends PubPackageResolutionTest {
   test_extendingSealedClass() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+        ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
       meta: true,
     );
 
@@ -46,7 +46,7 @@ class Bar extends Foo {}
   test_implementingSealedClass() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+        ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
       meta: true,
     );
 
@@ -67,7 +67,7 @@ class Bar implements Foo {}
   test_mixinApplicationOfSealedClass() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+        ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
       meta: true,
     );
 
@@ -90,7 +90,7 @@ class Bar2 = Bar1 with Foo;
   test_mixinApplicationOfSealedMixin() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+        ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
       meta: true,
     );
 
@@ -112,7 +112,7 @@ class Bar2 = Bar1 with Foo;
   test_mixingInWithSealedMixin() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+        ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
       meta: true,
     );
 
@@ -133,7 +133,7 @@ class Bar extends Object with Foo {}
   test_mixinImplementsSealedClass() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$workspaceRootPath/foo'),
+        ..add(name: 'foo', rootFolder: getFolder('$workspaceRootPath/foo')),
       meta: true,
     );
 

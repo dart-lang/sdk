@@ -114,9 +114,14 @@ final ArgParser _argParser = ArgParser(allowTrailingOptions: true)
     help: 'Print this help message.',
   )
   ..addFlag(
-    'track-widget-creation',
+    'track-creation-locations',
     help: 'Run a kernel transformer to track creation locations for widgets.',
     defaultsTo: false,
+    aliases: [
+      // TODO(http://dartbug.com/63225): Remove this once flutter is migrated
+      // to the new flag.
+      'track-widget-creation',
+    ],
   )
   ..addOption(
     'invocation-modes',
@@ -180,7 +185,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final String? importDill = options['import-dill'];
   final String messageVerbosity = options['verbosity'];
   final String cfeInvocationModes = options['invocation-modes'];
-  final bool trackWidgetCreation = options['track-widget-creation'];
+  final bool trackCreationLocations = options['track-creation-locations'];
 
   final TargetCPU targetCPU = TargetCPU.fromName(options['target-arch']);
   final ImageFormat imageFormat = ImageFormat.fromName(options['image-format']);
@@ -194,9 +199,9 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
 
   final platformKernelUri = Uri.base.resolveUri(new Uri.file(platformKernel));
 
-  final additionalDills = <Uri>[];
+  final additionalDillModules = <Uri>[];
   if (importDill != null) {
-    additionalDills.add(Uri.base.resolveUri(new Uri.file(importDill)));
+    additionalDillModules.add(Uri.base.resolveUri(new Uri.file(importDill)));
   }
 
   final verbosity = Verbosity.parseArgument(messageVerbosity);
@@ -211,7 +216,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
   final compilerOptions = CompilerOptions()
     ..sdkSummary = platformKernelUri
     ..fileSystem = fileSystem
-    ..additionalDills = additionalDills
+    ..additionalDillModules = additionalDillModules
     ..packagesFileUri = packagesUri
     ..explicitExperimentalFlags = parseExperimentalFlags(
       parseExperimentalArguments(experimentalFlags),
@@ -225,7 +230,7 @@ Future<int> runCompilerWithCommandLineArguments(List<String> arguments) async {
     ..verbosity = verbosity
     ..target = createFrontEndTarget(
       targetName,
-      trackWidgetCreation: trackWidgetCreation,
+      trackCreationLocations: trackCreationLocations,
       supportMirrors: false,
       isClosureContextLoweringEnabled: false,
     );

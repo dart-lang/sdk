@@ -32,6 +32,7 @@
 #include "vm/os_thread.h"
 #include "vm/port.h"
 #include "vm/random.h"
+#include "vm/roots.h"
 #include "vm/service.h"
 #include "vm/tags.h"
 #include "vm/thread.h"
@@ -340,6 +341,7 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   void set_initial_spawn_successful() { initial_spawn_successful_ = true; }
 
   Heap* heap() const { return heap_.get(); }
+  Roots* roots() const { return roots_.get(); }
 
   BackgroundCompiler* background_compiler() const {
 #if defined(DART_PRECOMPILED_RUNTIME)
@@ -844,6 +846,12 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
     return thread_locals_count_.fetch_add(1u, std::memory_order_relaxed);
   }
 
+  FfiCallbackMetadata::Trampoline CreateIsolateGroupBoundFfiCallback(
+      Zone* zone,
+      const Function& trampoline,
+      const Closure& target);
+  void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
+
  private:
   friend class Dart;  // For `object_store_ = ` in Dart::Init
   friend class Heap;
@@ -1004,6 +1012,10 @@ class IsolateGroup : public IntrusiveDListEntry<IsolateGroup> {
   SafepointRwLock tag_table_lock_;
 
   std::atomic<intptr_t> thread_locals_count_ = 0;
+
+  std::unique_ptr<Roots> roots_;
+
+  FfiCallbackMetadata::MetadataEntry* ffi_callback_list_head_ = nullptr;
 };
 
 // When an isolate sends-and-exits this class represent things that it passed
@@ -1334,10 +1346,6 @@ class Isolate : public IntrusiveDListEntry<Isolate> {
       const Function& trampoline,
       const Closure& target,
       bool keep_isolate_alive);
-  FfiCallbackMetadata::Trampoline CreateIsolateGroupBoundFfiCallback(
-      Zone* zone,
-      const Function& trampoline,
-      const Closure& target);
   void DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback);
   void UpdateNativeCallableKeepIsolateAliveCounter(intptr_t delta);
   bool HasOpenNativeCallables();

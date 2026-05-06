@@ -81,7 +81,7 @@ class CorrectOverrideHelper {
     }
 
     if (newParameters != null) {
-      _thisTypeForSubtype = FunctionTypeImpl.v2(
+      _thisTypeForSubtype = FunctionTypeImpl(
         typeParameters: type.typeParameters,
         formalParameters: newParameters,
         returnType: type.returnType,

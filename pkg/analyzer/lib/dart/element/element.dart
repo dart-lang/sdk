@@ -1273,10 +1273,10 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
   FieldElement? get field;
 
   @override
-  FieldFormalParameterFragment get firstFragment;
+  FormalParameterFragment get firstFragment;
 
   @override
-  List<FieldFormalParameterFragment> get fragments;
+  List<FormalParameterFragment> get fragments;
 
   /// Whether this is a declaring formal parameter.
   bool get isDeclaring;
@@ -1305,13 +1305,13 @@ abstract class FieldFormalParameterElement implements FormalParameterElement {
 /// Clients may not extend, implement, or mix-in this class.
 abstract class FieldFormalParameterFragment implements FormalParameterFragment {
   @override
-  FieldFormalParameterElement get element;
+  FormalParameterElement get element;
 
   @override
-  FieldFormalParameterFragment? get nextFragment;
+  FormalParameterFragment? get nextFragment;
 
   @override
-  FieldFormalParameterFragment? get previousFragment;
+  FormalParameterFragment? get previousFragment;
 
   /// If this field formal parameter is a named parameter with a private name,
   /// the original private name.
@@ -1374,6 +1374,7 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   bool get isCovariant;
 
   /// Whether the parameter is an initializing formal parameter.
+  @Deprecated('Use element is FieldFormalParameterElement instead')
   bool get isInitializingFormal;
 
   /// Whether the parameter is a named parameter.
@@ -1426,6 +1427,7 @@ abstract class FormalParameterElement implements VariableElement, LocalElement {
   bool get isRequiredPositional;
 
   /// Whether the parameter is a super formal parameter.
+  @Deprecated('Use element is SuperFormalParameterElement instead')
   bool get isSuperFormal;
 
   /// The type parameters defined by this parameter.
@@ -2741,18 +2743,6 @@ abstract class MixinFragment implements InterfaceFragment {
 
   @override
   MixinFragment? get previousFragment;
-
-  /// The superclass constraints defined for this mixin.
-  ///
-  /// If the declaration does not have an `on` clause, then the list will
-  /// contain the type for the class `Object`.
-  ///
-  /// <b>Note:</b> Because the element model represents the state of the code,
-  /// it is possible for it to be semantically invalid. In particular, it is not
-  /// safe to assume that the inheritance structure of a class does not contain
-  /// a cycle. Clients that traverse the inheritance structure must explicitly
-  /// guard against infinite loops.
-  List<InterfaceType> get superclassConstraints;
 }
 
 /// A pseudo-element that represents multiple elements defined within a single
@@ -2969,7 +2959,7 @@ abstract class PropertyAccessorFragment implements ExecutableFragment {
 /// * Every explicit variable is represented by a non-synthetic
 ///   [PropertyInducingElement].
 /// * Every explicit variable induces a synthetic [GetterElement],
-///   possibly a synthetic [SetterElement.
+///   possibly a synthetic [SetterElement].
 /// * Every explicit getter by a non-synthetic [GetterElement].
 /// * Every explicit setter by a non-synthetic [SetterElement].
 /// * Every explicit getter or setter (or pair thereof if they have the same
@@ -3107,10 +3097,10 @@ abstract class ShowElementCombinator implements NamespaceCombinator {
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameterElement implements FormalParameterElement {
   @override
-  SuperFormalParameterFragment get firstFragment;
+  FormalParameterFragment get firstFragment;
 
   @override
-  List<SuperFormalParameterFragment> get fragments;
+  List<FormalParameterFragment> get fragments;
 
   /// The associated super-constructor parameter, from the super-constructor
   /// that is referenced by the implicit or explicit super-constructor
@@ -3127,13 +3117,13 @@ abstract class SuperFormalParameterElement implements FormalParameterElement {
 /// Clients may not extend, implement or mix-in this class.
 abstract class SuperFormalParameterFragment implements FormalParameterFragment {
   @override
-  SuperFormalParameterElement get element;
+  FormalParameterElement get element;
 
   @override
-  SuperFormalParameterFragment? get nextFragment;
+  FormalParameterFragment? get nextFragment;
 
   @override
-  SuperFormalParameterFragment? get previousFragment;
+  FormalParameterFragment? get previousFragment;
 }
 
 /// A top-level function.
@@ -3286,7 +3276,7 @@ abstract class TypeParameterElement implements Element {
   ///
   /// Returns `null` if this parameter does not have an explicit bound. Being
   /// able to distinguish between an implicit and explicit bound is needed by
-  /// the instantiate to bounds algorithm.`
+  /// the instantiate to bounds algorithm.
   DartType? get bound;
 
   @override

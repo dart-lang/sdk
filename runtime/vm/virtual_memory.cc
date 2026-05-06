@@ -40,4 +40,11 @@ VirtualMemory* VirtualMemory::ForImagePage(void* pointer, uword size) {
   return memory;
 }
 
+VirtualMemory* VirtualMemory::Adopt(void* pointer, uword size) {
+  MemoryRegion region(pointer, size);
+  VirtualMemory* memory = new VirtualMemory(region, region);
+  ASSERT(memory->vm_owns_region());
+  return memory;
+}
+
 }  // namespace dart

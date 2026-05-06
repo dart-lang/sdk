@@ -176,7 +176,7 @@ FunctionReference
         importPrefix: ImportPrefixReference
           name: a
           period: .
-          element: <testLibraryFragment>::@prefix2::a
+          element: <testLibraryFragment>::@prefix::a
         name: Future
         element: dart:async::@class::Future
         type: null
@@ -438,7 +438,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1035,9 +1035,9 @@ FunctionReference
     period: .
     identifier: SimpleIdentifier
       token: m
-      element: <testLibrary>::@extension::0::@method::m
+      element: <testLibrary>::@extension::#0::@method::m
       staticType: void Function<T>(T)
-    element: <testLibrary>::@extension::0::@method::m
+    element: <testLibrary>::@extension::#0::@method::m
     staticType: void Function<T>(T)
   typeArguments: TypeArgumentList
     leftBracket: <
@@ -1267,7 +1267,7 @@ ImplicitCallReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -1318,7 +1318,7 @@ ImplicitCallReference
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -1973,7 +1973,7 @@ FunctionReference
       operator: .
       propertyName: SimpleIdentifier
         token: foo
-        element: <testLibrary>::@extension::0::@method::foo
+        element: <testLibrary>::@extension::#0::@method::foo
         staticType: void Function<T>(T)
       staticType: void Function<T>(T)
     operator: .
@@ -2249,7 +2249,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -2301,7 +2301,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -2562,7 +2562,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: foo
-      element: <testLibrary>::@extension::0::@getter::foo
+      element: <testLibrary>::@extension::#0::@getter::foo
       staticType: A
     period: .
     identifier: SimpleIdentifier
@@ -2746,7 +2746,7 @@ MethodInvocation
   operator: .
   methodName: SimpleIdentifier
     token: m
-    element: <testLibrary>::@extension::0::@method::m
+    element: <testLibrary>::@extension::#0::@method::m
     staticType: void Function()
   argumentList: ArgumentList
     leftParenthesis: (
@@ -3023,7 +3023,7 @@ ExpressionStatement
   expression: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3545,7 +3545,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: a
-        element: <testLibraryFragment>::@prefix2::a
+        element: <testLibraryFragment>::@prefix::a
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3595,7 +3595,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3646,7 +3646,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -3876,7 +3876,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -3920,7 +3920,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -4066,7 +4066,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: prefix
-      element: <testLibraryFragment>::@prefix2::prefix
+      element: <testLibraryFragment>::@prefix::prefix
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -4109,7 +4109,7 @@ FunctionReference
     target: PrefixedIdentifier
       prefix: SimpleIdentifier
         token: prefix
-        element: <testLibraryFragment>::@prefix2::prefix
+        element: <testLibraryFragment>::@prefix::prefix
         staticType: null
       period: .
       identifier: SimpleIdentifier
@@ -4294,7 +4294,7 @@ FunctionReference
   function: PrefixedIdentifier
     prefix: SimpleIdentifier
       token: a
-      element: <testLibraryFragment>::@prefix2::a
+      element: <testLibraryFragment>::@prefix::a
       staticType: null
     period: .
     identifier: SimpleIdentifier
@@ -4445,13 +4445,13 @@ FunctionReference
     operator: +=
     rightHandSide: IntegerLiteral
       literal: 1
-      correspondingParameter: <testLibrary>::@extension::0::@method::+::@formalParameter::i
+      correspondingParameter: <testLibrary>::@extension::#0::@method::+::@formalParameter::i
       staticType: int
     readElement: <testLibrary>::@function::foo::@formalParameter::f
     readType: void Function<T>(T)
     writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
-    element: <testLibrary>::@extension::0::@method::+
+    element: <testLibrary>::@extension::#0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4778,7 +4778,7 @@ FunctionReference
     readType: void Function<T>(T)
     writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
-    element: <testLibrary>::@extension::0::@method::+
+    element: <testLibrary>::@extension::#0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes
@@ -4842,7 +4842,7 @@ FunctionReference
     readType: void Function<T>(T)
     writeElement: <testLibrary>::@function::foo::@formalParameter::f
     writeType: void Function<T>(T)
-    element: <testLibrary>::@extension::0::@method::+
+    element: <testLibrary>::@extension::#0::@method::+
     staticType: void Function<T>(T)
   staticType: void Function(int)
   typeArgumentTypes

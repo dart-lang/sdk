@@ -8,7 +8,8 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
-import 'package:analyzer/dart/analysis/session.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -20,21 +21,39 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     implements ConvertMethodToGetterRefactoring {
   final RefactoringWorkspace workspace;
-  final SearchEngine searchEngine;
+  final ResolvedUnitResult resolvedUnit;
   final AnalysisSessionHelper sessionHelper;
+  final SearchEngine searchEngine;
+  final CorrectionUtils utils;
   final ExecutableElement element;
-
-  late SourceChange change;
 
   ConvertMethodToGetterRefactoringImpl(
     this.workspace,
-    AnalysisSession session,
+    this.resolvedUnit,
     this.element,
-  ) : sessionHelper = AnalysisSessionHelper(session),
-      searchEngine = workspace.searchEngine;
+  ) : sessionHelper = AnalysisSessionHelper(resolvedUnit.session),
+      searchEngine = workspace.searchEngine,
+      utils = CorrectionUtils(resolvedUnit);
 
   @override
   String get refactoringName => 'Convert Method To Getter';
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    // FunctionElement
+    var element = this.element;
+    if (element is TopLevelFunctionElement) {
+      await _updateElementDeclaration(builder, element);
+      await _updateElementReferences(builder, element);
+    }
+    // MethodElement
+    if (element is MethodElement) {
+      var elements = await getHierarchyMembers(searchEngine, element);
+      await Future.forEach(elements, (Element element) async {
+        await _updateElementDeclaration(builder, element as ExecutableElement);
+        return _updateElementReferences(builder, element);
+      });
+    }
+  }
 
   @override
   Future<RefactoringStatus> checkFinalConditions() {
@@ -49,23 +68,14 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange({ChangeBuilder? builder}) async {
-    change = SourceChange(refactoringName);
-    // FunctionElement
-    var element = this.element;
-    if (element is TopLevelFunctionElement) {
-      await _updateElementDeclaration(element);
-      await _updateElementReferences(element);
-    }
-    // MethodElement
-    if (element is MethodElement) {
-      var elements = await getHierarchyMembers(searchEngine, element);
-      await Future.forEach(elements, (Element element) async {
-        await _updateElementDeclaration(element as ExecutableElement);
-        return _updateElementReferences(element);
-      });
-    }
-    // done
-    return change;
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return sourceChange;
   }
 
   @override
@@ -103,7 +113,10 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
     return RefactoringStatus();
   }
 
-  Future<void> _updateElementDeclaration(ExecutableElement element) async {
+  Future<void> _updateElementDeclaration(
+    ChangeBuilder builder,
+    ExecutableElement element,
+  ) async {
     // prepare parameters
     FormalParameterList? parameters;
     for (
@@ -123,20 +136,19 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
       if (parameters == null) {
         return;
       }
-      // insert "get "
-      {
-        var edit = SourceEdit(fragment.nameOffset ?? -1, 0, 'get ');
-        doSourceChange_addFragmentEdit(change, fragment, edit);
-      }
-      // remove parameters
-      {
-        var edit = newSourceEdit_range(range.node(parameters), '');
-        doSourceChange_addFragmentEdit(change, fragment, edit);
-      }
+      await builder.addDartFileEdit(fragment.libraryFragment.source.fullName, (
+        builder,
+      ) {
+        builder.addSimpleInsertion(fragment!.nameOffset ?? -1, 'get ');
+        builder.addDeletion(range.node(parameters!));
+      });
     }
   }
 
-  Future<void> _updateElementReferences(Element element) async {
+  Future<void> _updateElementReferences(
+    ChangeBuilder builder,
+    Element element,
+  ) async {
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
@@ -154,11 +166,11 @@ class ConvertMethodToGetterRefactoringImpl extends RefactoringImpl
 
       // we need invocation
       if (invocation != null) {
-        var edit = newSourceEdit_range(
-          range.startOffsetEndOffset(refRange.end, invocation.end),
-          '',
-        );
-        doSourceChange_addSourceEdit(change, reference.unitSource, edit);
+        await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+          builder.addDeletion(
+            range.startOffsetEndOffset(refRange.end, invocation.end),
+          );
+        });
       }
     }
   }

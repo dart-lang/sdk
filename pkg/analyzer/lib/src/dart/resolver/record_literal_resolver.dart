@@ -48,8 +48,8 @@ class RecordLiteralResolver {
     }
     var numPositionalFields = 0;
     for (var field in node.fields) {
-      if (field is NamedExpressionImpl) {
-        if (contextType.namedField(field.name.label.name) == null) {
+      if (field is RecordLiteralNamedFieldImpl) {
+        if (contextType.namedField(field.name.lexeme) == null) {
           return null;
         }
       } else {
@@ -77,10 +77,10 @@ class RecordLiteralResolver {
   /// Report any named fields in the record literal [node] that use a previously
   /// defined name.
   void _reportDuplicateFieldDefinitions(RecordLiteralImpl node) {
-    var usedNames = <String, NamedExpression>{};
+    var usedNames = <String, RecordLiteralNamedField>{};
     for (var field in node.fields) {
-      if (field is NamedExpressionImpl) {
-        var name = field.name.label.name;
+      if (field is RecordLiteralNamedFieldImpl) {
+        var name = field.name.lexeme;
         var previousField = usedNames[name];
         if (previousField != null) {
           _diagnosticReporter.report(
@@ -102,16 +102,21 @@ class RecordLiteralResolver {
     var fields = node.fields;
     var positionalCount = 0;
     for (var field in fields) {
-      if (field is! NamedExpression) {
+      if (field is! RecordLiteralNamedField) {
         positionalCount++;
       }
     }
     for (var field in fields) {
-      if (field is NamedExpressionImpl) {
-        var nameNode = field.name.label;
-        var name = nameNode.name;
+      if (field is RecordLiteralNamedFieldImpl) {
+        var nameNode = field.name;
+        var name = nameNode.lexeme;
         if (name.startsWith('_')) {
-          _diagnosticReporter.report(diag.invalidFieldNamePrivate.at(nameNode));
+          _diagnosticReporter.report(
+            diag.invalidFieldNamePrivate.atOffset(
+              offset: nameNode.offset,
+              length: nameNode.length,
+            ),
+          );
         } else {
           var index = RecordTypeExtension.positionalFieldIndex(name);
           if (index != null) {
@@ -130,12 +135,13 @@ class RecordLiteralResolver {
     }
   }
 
-  DartType _resolveField(ExpressionImpl field, TypeImpl contextType) {
+  DartType _resolveField(RecordLiteralFieldImpl field, TypeImpl contextType) {
+    var expression = field.fieldExpression;
     var staticType = _resolver
-        .analyzeExpression(field, SharedTypeSchemaView(contextType))
+        .analyzeExpression(expression, SharedTypeSchemaView(contextType))
         .type
         .unwrapTypeView<TypeImpl>();
-    field = _resolver.popRewrite()!;
+    expression = _resolver.popRewrite()!;
 
     // Implicit cast from `dynamic`.
     if (contextType is! UnknownInferredType && staticType is DynamicType) {
@@ -163,8 +169,8 @@ class RecordLiteralResolver {
     var contextTypeAsRecord = _matchContextType(node, contextType);
     var index = 0;
     for (var field in node.fields) {
-      if (field is NamedExpressionImpl) {
-        var name = field.name.label.name;
+      if (field is RecordLiteralNamedFieldImpl) {
+        var name = field.name.lexeme;
         var fieldContextType =
             contextTypeAsRecord?.namedField(name)!.type ??
             UnknownInferredType.instance;

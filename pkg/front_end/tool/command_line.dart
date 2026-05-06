@@ -238,7 +238,7 @@ ProcessedOptions analyzeCommandLine(
     ..explicitExperimentalFlags = explicitExperimentalFlags
     ..environmentDefines = environmentDefines
     ..enableUnscheduledExperiments = enableUnscheduledExperiments
-    ..additionalDills = linkDependencies
+    ..additionalDillModules = linkDependencies
     ..emitDeps = !noDeps
     ..invocationModes = InvocationMode.parseArguments(invocationModes)
     ..verbosity = Verbosity.parseArgument(verbosity);

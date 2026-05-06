@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/file_system/physical_file_system.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -135,9 +134,10 @@ final class _ArgumentIndex extends _Argument {
 
   @override
   Expression get(ArgumentList argumentList) {
-    return argumentList.arguments.whereNotType<NamedExpression>().elementAt(
-      index,
-    );
+    return argumentList.arguments
+        .where((argument) => argument is! NamedArgument)
+        .map((argument) => argument.argumentExpression)
+        .elementAt(index);
   }
 }
 

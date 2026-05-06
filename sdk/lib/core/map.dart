@@ -92,7 +92,25 @@ abstract interface class Map<K, V> {
   /// final unmodifiableMap = Map.unmodifiable(planets);
   /// unmodifiableMap[4] = 'Mars'; // Throws
   /// ```
+  // @Deprecated("Use Map.unmodifiableOf instead")
   external factory Map.unmodifiable(Map<dynamic, dynamic> other);
+
+  /// Creates an unmodifiable hash-based map containing the entries of [other].
+  ///
+  /// The map requires the keys to implement compatible
+  /// `operator==` and `hashCode`.
+  /// The created map iterates keys in a fixed order,
+  /// preserving the order provided by [other].
+  ///
+  /// The resulting map behaves like the result of [Map.of],
+  /// except that the map returned by this constructor is not modifiable.
+  /// ```dart
+  /// final planets = <int, String>{1: 'Mercury', 2: 'Venus', 3: 'Earth'};
+  /// final unmodifiableMap = Map.unmodifiableOf(planets);
+  /// unmodifiableMap[4] = 'Mars'; // Throws
+  /// ```
+  @Since("3.13")
+  factory Map.unmodifiableOf(Map<K, V> other) = Map<K, V>.unmodifiable;
 
   /// Creates an identity map with the default implementation, [LinkedHashMap].
   ///

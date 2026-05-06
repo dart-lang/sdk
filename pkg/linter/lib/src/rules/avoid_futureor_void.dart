@@ -130,7 +130,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     for (var formalParameter in node.formalParameters.parameters) {
-      if (formalParameter is SimpleFormalParameter) {
+      if (formalParameter is RegularFormalParameter) {
         checker.checkOut(formalParameter.type);
       }
     }

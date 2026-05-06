@@ -41,7 +41,9 @@ parseUnit(UnterminatedString(r"""))
                             listener: beginLiteralString(r"""
 æbler
 æbler""")
-                            listener: endLiteralString(0, ;)
+                            listener: endLiteralString(0, r"""
+æbler
+æbler""")
                 ensureSemicolon(r"""
 æbler
 æbler""")
@@ -89,7 +91,8 @@ parseUnit(UnterminatedString(r"""))
                           parseSingleLiteralString(return)
                             listener: beginLiteralString(r"""
 æbler""")
-                            listener: endLiteralString(0, })
+                            listener: endLiteralString(0, r"""
+æbler""")
                 ensureSemicolon(r"""
 æbler""")
                   reportRecoverableError(r"""

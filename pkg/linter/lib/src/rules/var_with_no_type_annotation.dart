@@ -7,10 +7,9 @@ import 'package:analyzer/analysis_rule/rule_context.dart';
 import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -44,9 +43,22 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var param in node.parameters) {
       // Super parameters and function typed parameters aren't included here.
       // A compile-time error is produced for those cases.
-      if (param.notDefault
-          case SimpleFormalParameter(:var keyword?, :var type) ||
-              FieldFormalParameter(:var keyword?, :var type)
+      var parameter = param;
+      Token? keyword;
+      TypeAnnotation? type;
+      switch (parameter) {
+        case RegularFormalParameter():
+          if (parameter.functionTypedSuffix == null) {
+            keyword = parameter.constFinalOrVarKeyword;
+            type = parameter.type;
+          }
+        case FieldFormalParameter():
+          keyword = parameter.constFinalOrVarKeyword;
+          type = parameter.type;
+        case _:
+          continue;
+      }
+      if (keyword case var keyword?
           when keyword.lexeme == 'var' && type == null) {
         rule.reportAtToken(keyword);
       }

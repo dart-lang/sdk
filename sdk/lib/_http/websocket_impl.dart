@@ -366,7 +366,19 @@ class _WebSocketProtocolTransformer
             throw WebSocketException("Protocol error");
           }
           closeCode = payload[0] << 8 | payload[1];
-          if (closeCode == WebSocketStatus.noStatusReceived) {
+          // RFC 6455 §7.4.1 designates 1005, 1006, and 1015 as
+          // application-internal sentinels that MUST NOT be set as a
+          // status code in a Close control frame.
+          if (closeCode == WebSocketStatus.noStatusReceived ||
+              closeCode == WebSocketStatus.abnormalClosure ||
+              closeCode == WebSocketStatus.reserved1015) {
+            throw WebSocketException("Protocol error");
+          }
+          // Reject codes outside 1000-4999. RFC 6455 §7.4.2 only assigns
+          // meaning to codes in that range, so accepting anything else
+          // would let a peer push an arbitrary 16-bit value into
+          // `closeCode`.
+          if (closeCode < 1000 || closeCode > 4999) {
             throw WebSocketException("Protocol error");
           }
           if (payload.length > 2) {
@@ -1410,6 +1422,8 @@ class _WebSocketImpl extends Stream with _ServiceObject implements WebSocket {
             code == WebSocketStatus.abnormalClosure ||
             (code > WebSocketStatus.internalServerError &&
                 code < WebSocketStatus.reserved1015) ||
-            (code >= WebSocketStatus.reserved1015 && code < 3000));
+            (code >= WebSocketStatus.reserved1015 && code < 3000) ||
+            // RFC 6455 §7.4.2 only assigns meaning to codes 1000-4999.
+            code > 4999);
   }
 }

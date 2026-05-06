@@ -2,6 +2,9 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+@Deprecated('Use package:analyzer_testing/package_config_file_builder.dart.')
+library;
+
 import 'package:path/path.dart' as path;
 
 /// Helper for building `.dart_tool/package_config.json` files.
@@ -11,6 +14,7 @@ import 'package:path/path.dart' as path;
 ///
 /// Use the [add] method to add package configurations. These configurations
 /// will accumulate into one package config file with the [toContent] method.
+@Deprecated('Use PackageConfigFileBuilder from analyzer_testing')
 class PackageConfigFileBuilder {
   final List<_PackageDescription> _packages = [];
 

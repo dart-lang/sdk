@@ -392,12 +392,10 @@ var v = m(foo: "a");
     var node =
         parseResult.findNode.singleMethodInvocation.argumentList.arguments[0];
     assertParsedNodeText(node, r'''
-NamedExpression
-  name: Label
-    label: SimpleIdentifier
-      token: foo
-    colon: :
-  expression: SimpleStringLiteral
+NamedArgument
+  name: foo
+  colon: :
+  argumentExpression: SimpleStringLiteral
     literal: "a"
 ''');
   }
@@ -429,19 +427,15 @@ ArgumentList
       token: w
     SimpleIdentifier
       token: x
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: y
-        colon: :
-      expression: SimpleIdentifier
+    NamedArgument
+      name: y
+      colon: :
+      argumentExpression: SimpleIdentifier
         token: y
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: z
-        colon: :
-      expression: SimpleIdentifier
+    NamedArgument
+      name: z
+      colon: :
+      argumentExpression: SimpleIdentifier
         token: z
   rightParenthesis: )
 ''');
@@ -477,19 +471,15 @@ var v = m(x: x, y: y);
 ArgumentList
   leftParenthesis: (
   arguments
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: x
-        colon: :
-      expression: SimpleIdentifier
+    NamedArgument
+      name: x
+      colon: :
+      argumentExpression: SimpleIdentifier
         token: x
-    NamedExpression
-      name: Label
-        label: SimpleIdentifier
-          token: y
-        colon: :
-      expression: SimpleIdentifier
+    NamedArgument
+      name: y
+      colon: :
+      argumentExpression: SimpleIdentifier
         token: y
   rightParenthesis: )
 ''');

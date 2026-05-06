@@ -9,7 +9,7 @@ class C1<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::C1::T% e;
   covariant-by-class field self::C1::T% f;
   field core::Type g;
-  constructor •(self::C1::T% a, self::C1::T% b, self::C1::T% c) → self::C1<self::C1::T%>
+  constructor •(self::C1::T% a, initializing-formal self::C1::T% b, initializing-formal self::C1::T% c) → self::C1<self::C1::T%>
     ;
 }
 class C2<T extends core::Object? = dynamic> extends core::Object {
@@ -19,7 +19,7 @@ class C2<T extends core::Object? = dynamic> extends core::Object {
   covariant-by-class field self::C2::T% e;
   covariant-by-class field self::C2::T% f;
   field core::Type g;
-  constructor •(final self::C2::T% a, self::C2::T% b, final self::C2::T% c) → self::C2<self::C2::T%>
+  constructor •(final self::C2::T% a, initializing-formal self::C2::T% b, final initializing-formal self::C2::T% c) → self::C2<self::C2::T%>
     ;
 }
 class E1<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
@@ -29,7 +29,7 @@ class E1<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   final field self::E1::T% d;
   final field core::Type f;
   static const field core::List<self::E1<dynamic>> values = const <self::E1<dynamic>>[self::E1::a];
-  const constructor •(core::int #index, core::String #name, self::E1::T% a, self::E1::T% b) → self::E1<self::E1::T%>
+  const constructor •(core::int #index, core::String #name, self::E1::T% a, initializing-formal self::E1::T% b) → self::E1<self::E1::T%>
     : self::E1::b = b, self::E1::c = a, self::E1::d = b, self::E1::f = self::E1::T%, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -42,7 +42,7 @@ class E2<T extends core::Object? = dynamic> extends core::_Enum /*isEnum*/  {
   final field self::E2::T% e;
   final field core::Type f;
   static const field core::List<self::E2<dynamic>> values = const <self::E2<dynamic>>[self::E2::a];
-  const constructor •(core::int #index, core::String #name, final self::E2::T% a, final self::E2::T% b) → self::E2<self::E2::T%>
+  const constructor •(core::int #index, core::String #name, final self::E2::T% a, final initializing-formal self::E2::T% b) → self::E2<self::E2::T%>
     : self::E2::d = a, self::E2::e = b, self::E2::f = self::E2::T%, self::E2::b = b, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String
@@ -60,15 +60,15 @@ extension type ET2<T extends core::Object? = dynamic>(T% a) {
   constructor • = self::ET2|constructor#;
   constructor tearoff • = self::ET2|constructor#_#new#tearOff;
 }
-static extension-type-member method ET1|constructor#<T extends core::Object? = dynamic>(self::ET1|constructor#::T% a) → self::ET1<self::ET1|constructor#::T%>% /* erasure=self::ET1|constructor#::T%, declared=! */
+static extension-type-member method ET1|constructor#<T extends core::Object? = dynamic>(initializing-formal self::ET1|constructor#::T% a) → self::ET1<self::ET1|constructor#::T%>% /* erasure=self::ET1|constructor#::T%, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET1|constructor#_#new#tearOff::T% a) → self::ET1<self::ET1|constructor#_#new#tearOff::T%>% /* erasure=self::ET1|constructor#_#new#tearOff::T%, declared=! */
   return self::ET1|constructor#<self::ET1|constructor#_#new#tearOff::T%>(a);
-static extension-type-member method ET1|constructor#other<T extends core::Object? = dynamic>(self::ET1|constructor#other::T% a) → self::ET1<self::ET1|constructor#other::T%>% /* erasure=self::ET1|constructor#other::T%, declared=! */
+static extension-type-member method ET1|constructor#other<T extends core::Object? = dynamic>(initializing-formal self::ET1|constructor#other::T% a) → self::ET1<self::ET1|constructor#other::T%>% /* erasure=self::ET1|constructor#other::T%, declared=! */
   ;
 static extension-type-member synthetic method ET1|constructor#_#other#tearOff<T extends core::Object? = dynamic>(self::ET1|constructor#_#other#tearOff::T% a) → self::ET1<self::ET1|constructor#_#other#tearOff::T%>% /* erasure=self::ET1|constructor#_#other#tearOff::T%, declared=! */
   return self::ET1|constructor#other<self::ET1|constructor#_#other#tearOff::T%>(a);
-static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(self::ET2|constructor#::T% a) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */
+static extension-type-member method ET2|constructor#<T extends core::Object? = dynamic>(initializing-formal self::ET2|constructor#::T% a) → self::ET2<self::ET2|constructor#::T%>% /* erasure=self::ET2|constructor#::T%, declared=! */
   ;
 static extension-type-member synthetic method ET2|constructor#_#new#tearOff<T extends core::Object? = dynamic>(self::ET2|constructor#_#new#tearOff::T% a) → self::ET2<self::ET2|constructor#_#new#tearOff::T%>% /* erasure=self::ET2|constructor#_#new#tearOff::T%, declared=! */
   return self::ET2|constructor#<self::ET2|constructor#_#new#tearOff::T%>(a);

@@ -270,10 +270,10 @@ Future<CompilerResult> _compile(
     onWarning: print,
   );
 
-  var trackWidgetCreation = argResults.flag('track-widget-creation');
+  var trackCreationLocations = argResults.flag('track-creation-locations');
   var oldCompilerState = compilerState;
   var recordUsedInputs = argResults.option('used-inputs-file') != null;
-  var additionalDills = summaryModules.keys.toList();
+  var additionalDillModules = summaryModules.keys.toList();
   fe.DdcResult? result;
 
   // TODO(jmesserly): is there a cleaner way to do this?
@@ -289,8 +289,10 @@ Future<CompilerResult> _compile(
       compileSdk ? null : sourcePathToUri(sdkSummaryPath!),
       packageFile != null ? sourcePathToUri(packageFile) : null,
       sourcePathToUri(librarySpecPath),
-      additionalDills,
-      DevCompilerTarget(TargetFlags(trackWidgetCreation: trackWidgetCreation)),
+      additionalDillModules,
+      DevCompilerTarget(
+        TargetFlags(trackCreationLocations: trackCreationLocations),
+      ),
       fileSystem: fileSystem,
       explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines: declaredVariables,
@@ -311,26 +313,28 @@ Future<CompilerResult> _compile(
         inputDigests[uri] = const [0];
       }
     }
-    var doneAdditionalDills = List.filled(
+    var doneAdditionalDillModules = List.filled(
       summaryModules.length,
       dummyComponent,
     );
     compilerState = await fe.initializeIncrementalCompiler(
       oldCompilerState,
       {
-        'trackWidgetCreation=$trackWidgetCreation',
+        'trackCreationLocations=$trackCreationLocations',
         'multiRootScheme=${fileSystem.markerScheme}',
         'multiRootRoots=${fileSystem.roots}',
       },
-      doneAdditionalDills,
+      doneAdditionalDillModules,
       compileSdk,
       sourcePathToUri(getSdkPath()),
       compileSdk ? null : sourcePathToUri(sdkSummaryPath!),
       packageFile != null ? sourcePathToUri(packageFile) : null,
       sourcePathToUri(librarySpecPath),
-      additionalDills,
+      additionalDillModules,
       inputDigests,
-      DevCompilerTarget(TargetFlags(trackWidgetCreation: trackWidgetCreation)),
+      DevCompilerTarget(
+        TargetFlags(trackCreationLocations: trackCreationLocations),
+      ),
       fileSystem: fileSystem,
       explicitExperimentalFlags: explicitExperimentalFlags,
       environmentDefines: declaredVariables,
@@ -349,7 +353,7 @@ Future<CompilerResult> _compile(
     result = fe.DdcResult(
       incrementalCompilerResult.component,
       cachedSdkInput?.component,
-      doneAdditionalDills,
+      doneAdditionalDillModules,
       incrementalCompilerResult.classHierarchy,
       incrementalCompilerResult.neededDillLibraries,
     );
@@ -470,13 +474,13 @@ Future<CompilerResult> _compile(
 
   final importToSummary = Map<Library, Component>.identity();
   final summaryToModule = Map<Component, String>.identity();
-  for (var i = 0; i < result.additionalDills.length; i++) {
-    var additionalDill = result.additionalDills[i];
-    var moduleImport = summaryModules[additionalDills[i]]!;
-    for (var l in additionalDill.libraries) {
+  for (var i = 0; i < result.additionalDillModules.length; i++) {
+    var additionalDillModule = result.additionalDillModules[i];
+    var moduleImport = summaryModules[additionalDillModules[i]]!;
+    for (var l in additionalDillModule.libraries) {
       assert(!importToSummary.containsKey(l));
-      importToSummary[l] = additionalDill;
-      summaryToModule[additionalDill] = moduleImport;
+      importToSummary[l] = additionalDillModule;
+      summaryToModule[additionalDillModule] = moduleImport;
     }
   }
 
@@ -485,10 +489,10 @@ Future<CompilerResult> _compile(
   // This is only required for non-SDK modules, as SDK modules are all bundled
   // in the same module and are never deferred.
   // `result.component` contains all the compiled libraries as well as libraries
-  // already seen in `additionalDills`.
+  // already seen in `additionalDillModules`.
   if (!compileSdk) {
     for (var l in result.component.libraries) {
-      // Don't override libraries already recorded in `additionalDills`.
+      // Don't override libraries already recorded in `additionalDillModules`.
       if (importToSummary.containsKey(l)) {
         continue;
       }

@@ -147,7 +147,7 @@ class FunctionConstantValue extends ConstantValue {
   FunctionConstantValue(this.element, this.type);
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     if (other is! FunctionConstantValue) return false;
     return identical(other.element, element);
   }
@@ -187,7 +187,7 @@ abstract class PrimitiveConstantValue extends ConstantValue {
   const PrimitiveConstantValue();
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     // Making this method abstract does not give us an error.
     throw UnsupportedError('PrimitiveConstant.==');
   }
@@ -277,7 +277,7 @@ class IntConstantValue extends NumConstantValue {
   DartType getType(CommonElements types) => types.intType;
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     // Ints and doubles are treated as separate constants.
     if (other is! IntConstantValue) return false;
     IntConstantValue otherInt = other;
@@ -347,7 +347,7 @@ class DoubleConstantValue extends NumConstantValue {
   DartType getType(CommonElements types) => types.doubleType;
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     if (other is! DoubleConstantValue) return false;
     DoubleConstantValue otherDouble = other;
     double otherValue = otherDouble.doubleValue;
@@ -416,7 +416,7 @@ class TrueConstantValue extends BoolConstantValue {
   FalseConstantValue negate() => FalseConstantValue();
 
   @override
-  bool operator ==(var other) => identical(this, other);
+  bool operator ==(other) => identical(this, other);
 
   // The magic constant is just a random value. It does not have any
   // significance.
@@ -439,7 +439,7 @@ class FalseConstantValue extends BoolConstantValue {
   TrueConstantValue negate() => TrueConstantValue();
 
   @override
-  bool operator ==(var other) => identical(this, other);
+  bool operator ==(other) => identical(this, other);
 
   // The magic constant is just a random value. It does not have any
   // significance.
@@ -465,7 +465,7 @@ class StringConstantValue extends PrimitiveConstantValue {
   DartType getType(CommonElements types) => types.stringType;
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! StringConstantValue) return false;
     StringConstantValue otherString = other;
@@ -552,7 +552,7 @@ class ListConstantValue extends ObjectConstantValue {
     : hashCode = Hashing.listHash(entries, Hashing.objectHash(type));
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ListConstantValue) return false;
     ListConstantValue otherList = other;
@@ -614,7 +614,7 @@ abstract class SetConstantValue extends ObjectConstantValue {
     : hashCode = Hashing.listHash(values, Hashing.objectHash(type));
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! SetConstantValue) return false;
     SetConstantValue otherSet = other;
@@ -677,7 +677,7 @@ abstract class MapConstantValue extends ObjectConstantValue {
   }
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! MapConstantValue) return false;
     MapConstantValue otherMap = other;
@@ -927,7 +927,7 @@ class ConstructedConstantValue extends ObjectConstantValue {
     : hashCode = Hashing.unorderedMapHash(fields, Hashing.objectHash(type));
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     if (identical(this, other)) return true;
     if (other is! ConstructedConstantValue) return false;
     if (hashCode != other.hashCode) return false;
@@ -1123,7 +1123,7 @@ class JavaScriptObjectConstantValue extends ConstantValue {
   }
 
   @override
-  bool operator ==(var other) {
+  bool operator ==(other) {
     return identical(this, other) ||
         other is JavaScriptObjectConstantValue && _equals(this, other);
   }

@@ -11,7 +11,7 @@ import '../ast.dart';
 import '../extensions.dart';
 
 bool argumentsMatchParameters(
-  NodeList<Expression> arguments,
+  NodeList<Argument> arguments,
   NodeList<FormalParameter> parameters,
 ) {
   var namedParameters = <String, Element?>{};
@@ -30,14 +30,14 @@ bool argumentsMatchParameters(
     }
   }
   for (var argument in arguments) {
-    if (argument is NamedExpression) {
-      var element = argument.expression.canonicalElement;
+    if (argument is NamedArgument) {
+      var element = argument.argumentExpression.canonicalElement;
       if (element == null) {
         return false;
       }
-      namedArguments[argument.name.label.name] = element;
+      namedArguments[argument.name.lexeme] = element;
     } else {
-      var element = argument.canonicalElement;
+      var element = argument.argumentExpression.canonicalElement;
       if (element == null) {
         return false;
       }
@@ -195,13 +195,9 @@ bool typesAreUnrelated(
       promotedRightType.element.bound,
     );
   } else if (promotedLeftType is FunctionType) {
-    if (_isFunctionTypeUnrelatedToType(promotedLeftType, promotedRightType)) {
-      return true;
-    }
+    if (_isTypeUnrelatedToFunctionType(promotedRightType)) return true;
   } else if (promotedRightType is FunctionType) {
-    if (_isFunctionTypeUnrelatedToType(promotedRightType, promotedLeftType)) {
-      return true;
-    }
+    if (_isTypeUnrelatedToFunctionType(promotedLeftType)) return true;
   } else if (promotedLeftType is RecordType ||
       promotedRightType is RecordType) {
     return !typeSystem.isAssignableTo(promotedLeftType, promotedRightType) &&
@@ -210,21 +206,21 @@ bool typesAreUnrelated(
   return false;
 }
 
-bool _isFunctionTypeUnrelatedToType(FunctionType type1, DartType type2) {
-  if (type2 is FunctionType) {
-    return false;
-  }
-  if (type2 is InterfaceType) {
-    var element2 = type2.element;
-    if (element2 is ClassElement &&
-        element2.thisType.lookUpMethod(
-              'call',
-              element2.library,
-              concrete: true,
-            ) !=
-            null) {
-      return false;
-    }
+/// Returns whether [type] is definitely unrelated to a function type.
+///
+/// A returned value of `false` indicates [type] _might_ be related to a
+/// function type.
+bool _isTypeUnrelatedToFunctionType(DartType type) {
+  if (type is FunctionType) return false;
+  if (type is InterfaceType) {
+    var element = type.element;
+    if (element is! ClassElement) return true;
+    var callMethod = element.thisType.lookUpMethod(
+      'call',
+      element.library,
+      concrete: true,
+    );
+    if (callMethod != null) return false;
   }
   return true;
 }

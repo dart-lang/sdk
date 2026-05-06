@@ -1197,8 +1197,7 @@ CompilationUnit
               LabeledStatement
                 labels
                   Label
-                    label: SimpleIdentifier
-                      token: l
+                    name: l
                     colon: :
                 statement: Block
                   leftBracket: {
@@ -2691,8 +2690,7 @@ CompilationUnit
                 body: LabeledStatement
                   labels
                     Label
-                      label: SimpleIdentifier
-                        token: l
+                      name: l
                       colon: :
                   statement: Block
                     leftBracket: {
@@ -5661,8 +5659,7 @@ CompilationUnit
                 body: LabeledStatement
                   labels
                     Label
-                      label: SimpleIdentifier
-                        token: l
+                      name: l
                       colon: :
                   statement: Block
                     leftBracket: {

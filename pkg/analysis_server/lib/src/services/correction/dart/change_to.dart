@@ -344,7 +344,7 @@ class ChangeTo extends ResolvedCorrectionProducer {
     if (constructorDeclaration == null) return;
 
     var formalParameters = constructorDeclaration.parameters.parameters
-        .whereType<DefaultFormalParameter>();
+        .whereType<SuperFormalParameter>();
 
     var finder = _ClosestElementFinder(superParameter.name.lexeme, (e) => true);
 

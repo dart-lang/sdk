@@ -18,13 +18,17 @@ late List<String> _testArguments;
 
 Future<void> test() async {
   final batchRunner = BatchRunnerProcess.byIdentifier('dummy', 1);
-  final command = DummyProcessCommand('dummy batch runner', Platform.executable,
-      [Platform.script.toFilePath()]);
+  final command = DummyProcessCommand(
+    'dummy batch runner',
+    Platform.executable,
+    [Platform.script.toFilePath()],
+  );
   final incompatibleCommand = DummyProcessCommand(
-      'dummy batch runner',
-      Platform.executable,
-      [Platform.script.toFilePath()],
-      {'ENV_VAR': 'VALUE'});
+    'dummy batch runner',
+    Platform.executable,
+    [Platform.script.toFilePath()],
+    {'ENV_VAR': 'VALUE'},
+  );
   try {
     print('run commands');
     Expect.isFalse(batchRunner.hasRunningProcess);
@@ -42,11 +46,19 @@ Future<void> test() async {
     Expect.isTrue(batchRunner.hasRunningProcess);
     await runCommand(batchRunner, command, 'PARSE_FAIL', parseFailExitCode);
     Expect.isTrue(batchRunner.hasRunningProcess);
-    await runCommand(batchRunner, command, 'BATCH_RUNNER_CRASH',
-        unhandledCompilerExceptionExitCode);
+    await runCommand(
+      batchRunner,
+      command,
+      'BATCH_RUNNER_CRASH',
+      unhandledCompilerExceptionExitCode,
+    );
     Expect.isFalse(batchRunner.hasRunningProcess);
     await runCommand(
-        batchRunner, command, 'CRASH', unhandledCompilerExceptionExitCode);
+      batchRunner,
+      command,
+      'CRASH',
+      unhandledCompilerExceptionExitCode,
+    );
     Expect.isTrue(batchRunner.hasRunningProcess);
   } finally {
     print('terminate');
@@ -56,21 +68,37 @@ Future<void> test() async {
   print('exiting');
 }
 
-Future<void> runCommand(BatchRunnerProcess batchRunner, ProcessCommand command,
-    String result, int expectedExitCode) async {
+Future<void> runCommand(
+  BatchRunnerProcess batchRunner,
+  ProcessCommand command,
+  String result,
+  int expectedExitCode,
+) async {
   _testArguments = [result];
   final output = await batchRunner.runCommand(command, 10);
-  Expect.equals('stdout $result\n', utf8.decode(output.stdout),
-      "$result: unexpected test stdout");
+  Expect.equals(
+    'stdout $result\n',
+    utf8.decode(output.stdout),
+    "$result: unexpected test stdout",
+  );
   if (result == 'BATCH_RUNNER_CRASH') {
-    Expect.contains('Unhandled exception:\nException: Dummy crashed!\n',
-        utf8.decode(output.stderr), "$result: unexpected test stderr");
+    Expect.contains(
+      'Unhandled exception:\nException: Dummy crashed!\n',
+      utf8.decode(output.stderr),
+      "$result: unexpected test stderr",
+    );
   } else {
-    Expect.equals('stderr $result\n', utf8.decode(output.stderr),
-        "$result: unexpected test stderr");
+    Expect.equals(
+      'stderr $result\n',
+      utf8.decode(output.stderr),
+      "$result: unexpected test stderr",
+    );
   }
   Expect.equals(
-      expectedExitCode, output.exitCode, "$result: unexpected exit code");
+    expectedExitCode,
+    output.exitCode,
+    "$result: unexpected exit code",
+  );
   Expect.equals(result == 'TIMEOUT', output.hasTimedOut);
 }
 
@@ -89,8 +117,12 @@ void dummy() {
 }
 
 class DummyProcessCommand extends ProcessCommand {
-  DummyProcessCommand(super.displayName, super.executable, super.arguments,
-      [super.environmentOverrides]);
+  DummyProcessCommand(
+    super.displayName,
+    super.executable,
+    super.arguments, [
+    super.environmentOverrides,
+  ]);
 
   @override
   List<String> get arguments => _testArguments;

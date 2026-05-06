@@ -340,7 +340,7 @@ class ScannerTest_Cfe extends ScannerTestBase {
 
 /// Base class for scanner tests that examine the token stream in Fasta format.
 abstract class ScannerTest_Fasta_Base {
-  Token scan(String source, {bool? enableTripleShift});
+  Token scan(String source);
 
   void expectToken(
     Token token,
@@ -663,7 +663,7 @@ abstract class ScannerTest_Fasta_Base {
   void test_match_angle_brackets_gt_gt_gt() {
     // When a ">>>" appears in the token stream, Fasta's scanner matches it to
     // the outer "<".  The inner "<" are left unmatched.
-    var a = scan('a<b<c<d>>>', enableTripleShift: true);
+    var a = scan('a<b<c<d>>>');
     BeginToken lessThan1 = a.next as BeginToken;
     var b = lessThan1.next!;
     BeginToken lessThan2 = b.next as BeginToken;
@@ -811,21 +811,11 @@ abstract class ScannerTest_Fasta_Base {
 @reflectiveTest
 class ScannerTest_Cfe_Direct_UTF8 extends ScannerTest_Cfe_Direct {
   @override
-  ScannerResult scanSource(
-    source, {
-    bool includeComments = true,
-    bool? enableTripleShift,
-  }) {
+  ScannerResult scanSource(source, {bool includeComments = true}) {
     Uint8List encoded = encodeAsUtf8(source);
-
-    ScannerConfiguration? configuration;
-    if (enableTripleShift == true) {
-      configuration = new ScannerConfiguration(enableTripleShift: true);
-    }
     return usedForFuzzTesting.scan(
       encoded,
       includeComments: includeComments,
-      configuration: configuration,
       languageVersionChanged: languageVersionChanged,
     );
   }
@@ -843,30 +833,17 @@ class ScannerTest_Cfe_Direct extends ScannerTest_Fasta_Base {
     this.languageVersion = languageVersion;
   }
 
-  ScannerResult scanSource(
-    source, {
-    bool includeComments = true,
-    bool? enableTripleShift,
-  }) {
-    ScannerConfiguration? configuration;
-    if (enableTripleShift == true) {
-      configuration = new ScannerConfiguration(enableTripleShift: true);
-    }
+  ScannerResult scanSource(source, {bool includeComments = true}) {
     return scanString(
       source,
       includeComments: includeComments,
-      configuration: configuration,
       languageVersionChanged: languageVersionChanged,
     );
   }
 
   @override
-  Token scan(String source, {bool? enableTripleShift}) {
-    var result = scanSource(
-      source,
-      includeComments: true,
-      enableTripleShift: enableTripleShift,
-    );
+  Token scan(String source) {
+    var result = scanSource(source, includeComments: true);
     final Token first = result.tokens;
     Token token = first;
     while (!token.isEof) {

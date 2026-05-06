@@ -27,9 +27,9 @@ class MakeRequiredNamedParametersFirst extends ResolvedCorrectionProducer {
 
   @override
   Future<void> compute(ChangeBuilder builder) async {
-    var parent = node.parent;
-    if (parent == null) return;
-    var parameterList = parent.parent;
+    var targetParameter = node.thisOrAncestorOfType<FormalParameter>();
+    if (targetParameter == null) return;
+    var parameterList = targetParameter.parent;
     if (parameterList is! FormalParameterList) return;
 
     int? firstOptionalParameter;
@@ -39,12 +39,13 @@ class MakeRequiredNamedParametersFirst extends ResolvedCorrectionProducer {
     for (var i = 0; i < parameters.length; i++) {
       var parameter = parameters[i];
       if (parameter.isNamed) {
-        if (parameter.isOptional) {
+        if (parameter.requiredKeyword == null) {
           firstOptionalParameter ??= i;
         } else {
           if (firstOptionalParameter != null) {
             // compute changes for only the first required parameter
-            if (parent == parameter && requiredParameterIndices.isNotEmpty) {
+            if (targetParameter == parameter &&
+                requiredParameterIndices.isNotEmpty) {
               return;
             }
             requiredParameterIndices.add(i);

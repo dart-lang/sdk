@@ -1236,12 +1236,12 @@ void CallSpecializer::ReplaceWithInstanceOf(InstanceCallInstr* call) {
     instantiator_type_args = flow_graph()->constant_null();
     function_type_args = flow_graph()->constant_null();
     ASSERT(call->MatchesCoreName(Symbols::_simpleInstanceOf()));
-    type = AbstractType::Cast(call->ArgumentAt(1)->AsConstant()->value()).ptr();
+    type = AbstractType::Cast(call->ArgumentValueAt(1)->BoundConstant()).ptr();
   } else {
     ASSERT(call->ArgumentCount() == 4);
     instantiator_type_args = call->ArgumentAt(1);
     function_type_args = call->ArgumentAt(2);
-    type = AbstractType::Cast(call->ArgumentAt(3)->AsConstant()->value()).ptr();
+    type = AbstractType::Cast(call->ArgumentValueAt(3)->BoundConstant()).ptr();
   }
 
   if (TryOptimizeInstanceOfUsingStaticTypes(call, type)) {
@@ -3027,6 +3027,11 @@ static bool InlineSimdOp(FlowGraph* flow_graph,
     case MethodRecognizer::kFloat64x2Div:
     case MethodRecognizer::kFloat64x2Add:
     case MethodRecognizer::kFloat64x2Sub:
+    case MethodRecognizer::kInt32x4Add:
+    case MethodRecognizer::kInt32x4Sub:
+    case MethodRecognizer::kInt32x4BitAnd:
+    case MethodRecognizer::kInt32x4BitOr:
+    case MethodRecognizer::kInt32x4BitXor:
       *last = SimdOpInstr::CreateFromCall(Z, kind, receiver, call);
       if (CompilerState::Current().is_aot()) {
         // Add null-checks in case of the arguments are known to be compatible
@@ -3415,6 +3420,11 @@ bool CallSpecializer::TryInlineRecognizedMethod(
     case MethodRecognizer::kFloat64x2Div:
     case MethodRecognizer::kFloat64x2Add:
     case MethodRecognizer::kFloat64x2Sub:
+    case MethodRecognizer::kInt32x4Add:
+    case MethodRecognizer::kInt32x4Sub:
+    case MethodRecognizer::kInt32x4BitAnd:
+    case MethodRecognizer::kInt32x4BitOr:
+    case MethodRecognizer::kInt32x4BitXor:
       return InlineSimdOp(flow_graph, is_dynamic_call, call, receiver, kind,
                           graph_entry, entry, last, result);
 

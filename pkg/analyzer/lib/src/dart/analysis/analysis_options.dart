@@ -17,7 +17,6 @@ import 'package:analyzer/src/analysis_options/analysis_options_file.dart';
 import 'package:analyzer/src/analysis_options/code_style_options.dart';
 import 'package:analyzer/src/analysis_rule/rule_context.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
-import 'package:analyzer/src/generated/utilities_general.dart' show toBool;
 import 'package:analyzer/src/lint/config.dart';
 import 'package:analyzer/src/lint/registry.dart';
 import 'package:analyzer/src/summary/api_signature.dart';
@@ -95,9 +94,9 @@ final class AnalysisOptionsBuilder {
   void _applyCodeStyleOptions(YamlNode? codeStyle) {
     var useFormatter = false;
     if (codeStyle is YamlMap) {
-      var formatNode = codeStyle.valueAt(AnalysisOptionsFile.format);
-      if (formatNode != null) {
-        var formatValue = toBool(formatNode);
+      var formatNode = codeStyle.valueAt(AnalysisOptionsFileKeys.format);
+      if (formatNode is YamlScalar) {
+        var formatValue = formatNode.toBool();
         if (formatValue is bool) {
           useFormatter = formatValue;
         }
@@ -119,14 +118,14 @@ final class AnalysisOptionsBuilder {
     int? pageWidth;
     TrailingCommas? trailingCommas;
     if (formatter is YamlMap) {
-      var pageWidthNode = formatter.valueAt(AnalysisOptionsFile.pageWidth);
+      var pageWidthNode = formatter.valueAt(AnalysisOptionsFileKeys.pageWidth);
       var pageWidthValue = pageWidthNode?.value;
       if (pageWidthValue is int && pageWidthValue > 0) {
         pageWidth = pageWidthValue;
       }
 
       var trailingCommasNode = formatter.valueAt(
-        AnalysisOptionsFile.trailingCommas,
+        AnalysisOptionsFileKeys.trailingCommas,
       );
       var trailingCommasValue = trailingCommasNode?.value;
       trailingCommas = TrailingCommas.values.firstWhereOrNull(
@@ -155,11 +154,11 @@ final class AnalysisOptionsBuilder {
       }
 
       switch (feature) {
-        case AnalysisOptionsFile.strictCasts:
+        case AnalysisOptionsFileKeys.strictCasts:
           strictCasts = boolValue;
-        case AnalysisOptionsFile.strictInference:
+        case AnalysisOptionsFileKeys.strictInference:
           strictInference = boolValue;
-        case AnalysisOptionsFile.strictRawTypes:
+        case AnalysisOptionsFileKeys.strictRawTypes:
           strictRawTypes = boolValue;
       }
     });
@@ -197,9 +196,9 @@ final class AnalysisOptionsBuilder {
           if (key is YamlScalar && value is YamlScalar) {
             if (value.boolValue case var boolValue?) {
               switch ('${key.value}') {
-                case AnalysisOptionsFile.chromeOsManifestChecks:
+                case AnalysisOptionsFileKeys.chromeOsManifestChecks:
                   chromeOsManifestChecks = boolValue;
-                case AnalysisOptionsFile.propagateLinterExceptions:
+                case AnalysisOptionsFileKeys.propagateLinterExceptions:
                   propagateLinterExceptions = boolValue;
               }
             }
@@ -207,9 +206,9 @@ final class AnalysisOptionsBuilder {
         }
       case YamlScalar():
         switch ('${config.value}') {
-          case AnalysisOptionsFile.chromeOsManifestChecks:
+          case AnalysisOptionsFileKeys.chromeOsManifestChecks:
             chromeOsManifestChecks = true;
-          case AnalysisOptionsFile.propagateLinterExceptions:
+          case AnalysisOptionsFileKeys.propagateLinterExceptions:
             propagateLinterExceptions = true;
         }
     }
@@ -257,7 +256,7 @@ final class AnalysisOptionsBuilder {
         return;
       }
 
-      var diagnostics = pluginNode.valueAt(AnalysisOptionsFile.diagnostics);
+      var diagnostics = pluginNode.valueAt(AnalysisOptionsFileKeys.diagnostics);
       var diagnosticConfigurations = diagnostics == null
           ? const <String, RuleConfig>{}
           : parseDiagnosticsSection(diagnostics);
@@ -322,8 +321,8 @@ final class AnalysisOptionsBuilder {
     // warning should be reported by `OptionsFileValidator`.
     // TODO(srawlins): In adition to 'version' and 'path', try 'git'.
 
-    var versionSource = pluginNode.valueAt(AnalysisOptionsFile.version);
-    var hostedUrlSource = pluginNode.valueAt(AnalysisOptionsFile.hosted);
+    var versionSource = pluginNode.valueAt(AnalysisOptionsFileKeys.version);
+    var hostedUrlSource = pluginNode.valueAt(AnalysisOptionsFileKeys.hosted);
 
     if ((versionSource, hostedUrlSource) case (
       YamlScalar(value: String version),
@@ -334,7 +333,24 @@ final class AnalysisOptionsBuilder {
       return VersionedPluginSource(constraint: version);
     }
 
-    var pathSource = pluginNode.valueAt(AnalysisOptionsFile.path);
+    var gitSource = pluginNode.valueAt(AnalysisOptionsFileKeys.git);
+    if (gitSource case YamlScalar(:String value)) {
+      return GitPluginSource(url: value);
+    } else if (gitSource is YamlMap) {
+      var urlSource = gitSource.valueAt(AnalysisOptionsFileKeys.url);
+      if (urlSource case YamlScalar(:String value)) {
+        return GitPluginSource(
+          url: value,
+          path: gitSource.valueAt(AnalysisOptionsFileKeys.path).stringValue,
+          ref: gitSource.valueAt(AnalysisOptionsFileKeys.ref).stringValue,
+          tagPattern: gitSource
+              .valueAt(AnalysisOptionsFileKeys.tagPattern)
+              .stringValue,
+        );
+      }
+    }
+
+    var pathSource = pluginNode.valueAt(AnalysisOptionsFileKeys.path);
     if (pathSource case YamlScalar(value: String pathValue)) {
       var file = this.file;
       assert(
@@ -457,15 +473,15 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   }) {
     var builder = AnalysisOptionsBuilder()..file = file;
 
-    var analyzer = optionsMap.valueAt(AnalysisOptionsFile.analyzer);
+    var analyzer = optionsMap.valueAt(AnalysisOptionsFileKeys.analyzer);
     if (analyzer is YamlMap) {
       // Process filters.
-      var filters = analyzer.valueAt(AnalysisOptionsFile.errors);
+      var filters = analyzer.valueAt(AnalysisOptionsFileKeys.errors);
       builder.errorProcessors = ErrorConfig(filters).processors;
 
       // Process enabled experiments.
       var experimentNames = analyzer.valueAt(
-        AnalysisOptionsFile.enableExperiment,
+        AnalysisOptionsFileKeys.enableExperiment,
       );
       if (experimentNames is YamlList) {
         var enabledExperiments = <String>[];
@@ -485,31 +501,33 @@ class AnalysisOptionsImpl implements AnalysisOptions {
       }
 
       // Process optional checks options.
-      var optionalChecks = analyzer.valueAt(AnalysisOptionsFile.optionalChecks);
+      var optionalChecks = analyzer.valueAt(
+        AnalysisOptionsFileKeys.optionalChecks,
+      );
       builder._applyOptionalChecks(optionalChecks);
 
       // Process language options.
-      var language = analyzer.valueAt(AnalysisOptionsFile.language);
+      var language = analyzer.valueAt(AnalysisOptionsFileKeys.language);
       builder._applyLanguageOptions(language);
 
       // Process excludes.
-      var excludes = analyzer.valueAt(AnalysisOptionsFile.exclude);
+      var excludes = analyzer.valueAt(AnalysisOptionsFileKeys.exclude);
       builder._applyExcludes(excludes);
 
-      var cannotIgnore = analyzer.valueAt(AnalysisOptionsFile.cannotIgnore);
+      var cannotIgnore = analyzer.valueAt(AnalysisOptionsFileKeys.cannotIgnore);
       builder._applyUnignorables(cannotIgnore);
 
       // Process legacy plugins.
-      var legacyPlugins = analyzer.valueAt(AnalysisOptionsFile.plugins);
+      var legacyPlugins = analyzer.valueAt(AnalysisOptionsFileKeys.plugins);
       builder._applyLegacyPlugins(legacyPlugins);
     }
 
     // Process the 'formatter' option.
-    var formatter = optionsMap.valueAt(AnalysisOptionsFile.formatter);
+    var formatter = optionsMap.valueAt(AnalysisOptionsFileKeys.formatter);
     builder._applyFormatterOptions(formatter);
 
     // Process the 'plugins' option.
-    var plugins = optionsMap.valueAt(AnalysisOptionsFile.plugins);
+    var plugins = optionsMap.valueAt(AnalysisOptionsFileKeys.plugins);
     builder._applyPluginsOptions(plugins, resourceProvider);
 
     var ruleConfigs = parseLinterSection(optionsMap);
@@ -522,7 +540,7 @@ class AnalysisOptionsImpl implements AnalysisOptions {
     }
 
     // Process the 'code-style' option.
-    var codeStyle = optionsMap.valueAt(AnalysisOptionsFile.codeStyle);
+    var codeStyle = optionsMap.valueAt(AnalysisOptionsFileKeys.codeStyle);
     builder._applyCodeStyleOptions(codeStyle);
 
     return builder.build();
@@ -620,6 +638,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
             if (source._ref case var ref?) {
               buffer.addString(ref);
             }
+            if (source._tagPattern case var tagPattern?) {
+              buffer.addString(tagPattern);
+            }
           case PathPluginSource source:
             buffer.addString(source._path);
           case VersionedPluginSource source:
@@ -647,6 +668,9 @@ class AnalysisOptionsImpl implements AnalysisOptions {
                 }
                 if (source._ref case var ref?) {
                   buffer.addString(ref);
+                }
+                if (source._tagPattern case var tagPattern?) {
+                  buffer.addString(tagPattern);
                 }
               case PathPluginSource source:
                 buffer.addString(source._path);
@@ -704,6 +728,69 @@ class AnalysisOptionsImpl implements AnalysisOptions {
   bool isLintEnabled(String name) {
     return lintRules.any((rule) => rule.name == name);
   }
+
+  /// Returns a "debug information" map of this set of analysis options.
+  ///
+  /// This map can be presented in different formats, like text in a
+  /// terminal, or HTML.
+  Map<String, Object> toDebugInfo() {
+    return {
+      'enable-experiment': contextFeatures,
+      'diagnostic severities': {
+        for (var processor in errorProcessors)
+          processor.code: processor.severity,
+      },
+      'excludes': excludePatterns,
+      'lint rules': lintRules.map(
+        (e) => DebugLink(e.name, e.diagnosticCodes.first.url),
+      ),
+      'strict-casts': strictCasts,
+      'strict-inference': strictInference,
+      'strict-raw-types': strictRawTypes,
+      'formatter': {
+        'page_width': ?formatterOptions.pageWidth,
+        'trailing_commas': ?formatterOptions.trailingCommas,
+      },
+      'chrome_os_manifest_checks': chromeOsManifestChecks,
+      'legacy plugins': enabledLegacyPluginNames,
+      for (var pluginConfiguration in pluginConfigurations)
+        // TODO(srawlins): Having a top-level 'plugins' section, and then a Map
+        // for each plugin is way too nested in the HTML table. This
+        // interpolated "plugins/foo" section solves that, but is a bit hacky.
+        // It'd be nice to have a general way in the Insights HTML to have a
+        // cell with `colspan=2` and then each plugin Map inside that.
+        'plugins/${pluginConfiguration.name}': {
+          'enabled': pluginConfiguration.isEnabled,
+          'diagnostics': [
+            for (var MapEntry(key: ruleName, value: ruleConfig)
+                in pluginConfiguration.diagnosticConfigs.entries)
+              {ruleName: ruleConfig.severity.name},
+          ],
+          'source': DebugCodeBlock(
+            pluginConfiguration.source
+                .toYaml(name: pluginConfiguration.name)
+                .trimRight(),
+            lang: 'yaml',
+          ),
+        },
+    };
+  }
+}
+
+/// A code block for use as "debug information."
+final class DebugCodeBlock {
+  final String text;
+  final String? lang;
+  DebugCodeBlock(this.text, {this.lang});
+}
+
+/// A debug link object, to be rendered as a Markdown link or an HTML link.
+///
+/// If [url] is `null`, then the [text] is to be rendered as plain text.
+final class DebugLink {
+  final String text;
+  final String? url;
+  DebugLink(this.text, this.url);
 }
 
 @AnalyzerPublicApi(
@@ -716,10 +803,17 @@ final class GitPluginSource implements PluginSource {
 
   final String? _ref;
 
-  GitPluginSource({required String url, String? path, String? ref})
-    : _url = url,
-      _path = path,
-      _ref = ref;
+  final String? _tagPattern;
+
+  GitPluginSource({
+    required String url,
+    String? path,
+    String? ref,
+    String? tagPattern,
+  }) : _url = url,
+       _path = path,
+       _ref = ref,
+       _tagPattern = tagPattern;
 
   @override
   String toYaml({required String name}) {
@@ -732,6 +826,9 @@ final class GitPluginSource implements PluginSource {
     }
     if (_path != null) {
       buffer.writeln('      path: $_path');
+    }
+    if (_tagPattern != null) {
+      buffer.writeln('      tag_pattern: $_tagPattern');
     }
     return buffer.toString();
   }

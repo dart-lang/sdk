@@ -46,7 +46,7 @@ Future<Component> compileTestCaseToKernelProgram(
     environmentDefines ??= <String, String>{};
     final options = new CompilerOptions()
       ..target = target
-      ..additionalDills = <Uri>[platformKernel]
+      ..sdkSummary = platformKernel
       ..environmentDefines = environmentDefines
       ..packagesFileUri = packagesFileUri
       ..explicitExperimentalFlags = parseExperimentalFlags(
@@ -72,7 +72,7 @@ Future<Component> compileTestCaseToKernelProgram(
       } finally {
         await sink.close();
       }
-      options..additionalDills = <Uri>[platformKernel, uri];
+      options..additionalDillModules = <Uri>[uri];
     }
 
     final Component component = (await kernelForProgram(

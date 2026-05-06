@@ -75,7 +75,7 @@ Future<Component> compileTestCaseToKernelProgram(
   );
   final options = CompilerOptions()
     ..target = target
-    ..additionalDills = <Uri>[platformKernel]
+    ..sdkSummary = platformKernel
     ..environmentDefines = {}
     ..onDiagnostic = (CfeDiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");

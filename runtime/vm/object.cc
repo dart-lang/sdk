@@ -496,7 +496,6 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
   auto heap = isolate_group->heap();
 
   // TODO(iposva): NoSafepointScope needs to be added here.
-  ASSERT(class_class() == Roots::null_obj());
 
   // Allocate and initialize the null instance.
   // 'null_' must be the first object allocated as it is used in allocation to
@@ -507,6 +506,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     Roots::set_null_obj(static_cast<InstancePtr>(address + kHeapObjectTag));
     InitializeObjectVariant<Instance>(address, kNullCid);
     Roots::null_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::null_obj(), kNullIdentityHash);
+#endif
   }
 
   // Allocate and initialize the bool instances.
@@ -526,6 +528,9 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     InitializeObject<Bool>(address);
     Roots::true_obj()->untag()->value_ = true;
     Roots::true_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::true_obj(), kTrueIdentityHash);
+#endif
   }
   {
     // Allocate false.
@@ -534,6 +539,37 @@ void Object::InitNullAndBool(IsolateGroup* isolate_group) {
     InitializeObject<Bool>(address);
     Roots::false_obj()->untag()->value_ = false;
     Roots::false_obj()->untag()->SetCanonical();
+#if defined(HASH_IN_OBJECT_HEADER)
+    Object::SetCachedHashIfNotSet(Roots::false_obj(), kFalseIdentityHash);
+#endif
+  }
+
+  {
+    uword address =
+        heap->Allocate(thread, Sentinel::InstanceSize(), Heap::kOld);
+    Roots::set_sentinel_obj(static_cast<SentinelPtr>(address + kHeapObjectTag));
+    InitializeObject<Sentinel>(address);
+  }
+  {
+    uword address =
+        heap->Allocate(thread, Sentinel::InstanceSize(), Heap::kOld);
+    Roots::set_unknown_constant_obj(
+        static_cast<SentinelPtr>(address + kHeapObjectTag));
+    InitializeObject<Sentinel>(address);
+  }
+  {
+    uword address =
+        heap->Allocate(thread, Sentinel::InstanceSize(), Heap::kOld);
+    Roots::set_non_constant_obj(
+        static_cast<SentinelPtr>(address + kHeapObjectTag));
+    InitializeObject<Sentinel>(address);
+  }
+  {
+    uword address =
+        heap->Allocate(thread, Sentinel::InstanceSize(), Heap::kOld);
+    Roots::set_optimized_out_obj(
+        static_cast<SentinelPtr>(address + kHeapObjectTag));
+    InitializeObject<Sentinel>(address);
   }
 
   // Check that the objects have been allocated at appropriate addresses.
@@ -647,6 +683,11 @@ void Object::InitVtables() {
   }
 
   {
+    LinkedHashBase fake_handle;
+    builtin_vtables_[kLinkedHashBaseCid] = fake_handle.vtable();
+  }
+
+  {
     Instance fake_handle;
     builtin_vtables_[kByteBufferCid] = fake_handle.vtable();
     builtin_vtables_[kNullCid] = fake_handle.vtable();
@@ -683,6 +724,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   Roots::null_compressed_stackmaps().initRO(CompressedStackMaps::null());
   Roots::bool_true().initRO(Roots::true_obj());
   Roots::bool_false().initRO(Roots::false_obj());
+  Roots::sentinel().initRO(Roots::sentinel_obj());
+  Roots::unknown_constant().initRO(Roots::unknown_constant_obj());
+  Roots::non_constant().initRO(Roots::non_constant_obj());
+  Roots::optimized_out().initRO(Roots::optimized_out_obj());
 
   // Initialize the empty array and empty instantiations cache array handles to
   // null_ in order to be able to check if the empty and zero arrays were
@@ -698,14 +743,13 @@ void Object::Init(IsolateGroup* isolate_group) {
   {
     intptr_t size = Class::InstanceSize();
     uword address = heap->Allocate(thread, size, Heap::kOld);
-    Roots::set_class_class(static_cast<ClassPtr>(address + kHeapObjectTag));
     InitializeObject<Class>(address);
 
     Class fake;
     // Initialization from Class::New<Class>.
     // Directly set ptr_ to break a circular dependency: SetRaw will attempt
     // to lookup class class in the class table where it is not registered yet.
-    cls.ptr_ = Roots::class_class();
+    cls.ptr_ = static_cast<ClassPtr>(address + kHeapObjectTag);
     ASSERT(builtin_vtables_[kClassCid] == fake.vtable());
     cls.set_instance_size(
         Class::InstanceSize(),
@@ -757,140 +801,52 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
-  // Allocate and initialize Sentinel class.
-  cls = Class::New<Sentinel, RTN::Sentinel>(isolate_group);
-  Roots::set_sentinel_class(cls.ptr());
-
-  // Allocate and initialize the sentinel values.
-  {
-    Roots::sentinel().initRO(Sentinel::New());
-  }
-
-  // Allocate and initialize optimizing compiler constants.
-  {
-    Roots::unknown_constant().initRO(Sentinel::New());
-    Roots::non_constant().initRO(Sentinel::New());
-    Roots::optimized_out().initRO(Sentinel::New());
-  }
-
   // Allocate the remaining VM internal classes.
+  cls = Class::New<Sentinel, RTN::Sentinel>(isolate_group);
   cls = Class::New<TypeParameters, RTN::TypeParameters>(isolate_group);
-  Roots::set_type_parameters_class(cls.ptr());
-
   cls = Class::New<TypeArguments, RTN::TypeArguments>(isolate_group);
-  Roots::set_type_arguments_class(cls.ptr());
-
   cls = Class::New<PatchClass, RTN::PatchClass>(isolate_group);
-  Roots::set_patch_class_class(cls.ptr());
-
   cls = Class::New<Function, RTN::Function>(isolate_group);
-  Roots::set_function_class(cls.ptr());
-
   cls = Class::New<ClosureData, RTN::ClosureData>(isolate_group);
-  Roots::set_closure_data_class(cls.ptr());
-
   cls = Class::New<FfiTrampolineData, RTN::FfiTrampolineData>(isolate_group);
-  Roots::set_ffi_trampoline_data_class(cls.ptr());
-
   cls = Class::New<Field, RTN::Field>(isolate_group);
-  Roots::set_field_class(cls.ptr());
-
   cls = Class::New<Script, RTN::Script>(isolate_group);
-  Roots::set_script_class(cls.ptr());
-
   cls = Class::New<Library, RTN::Library>(isolate_group);
-  Roots::set_library_class(cls.ptr());
-
   cls = Class::New<Namespace, RTN::Namespace>(isolate_group);
-  Roots::set_namespace_class(cls.ptr());
-
   cls = Class::New<KernelProgramInfo, RTN::KernelProgramInfo>(isolate_group);
-  Roots::set_kernel_program_info_class(cls.ptr());
-
   cls = Class::New<Code, RTN::Code>(isolate_group);
-  Roots::set_code_class(cls.ptr());
-
   cls = Class::New<Instructions, RTN::Instructions>(isolate_group);
-  Roots::set_instructions_class(cls.ptr());
-
   cls =
       Class::New<InstructionsSection, RTN::InstructionsSection>(isolate_group);
-  Roots::set_instructions_section_class(cls.ptr());
-
   cls = Class::New<InstructionsTable, RTN::InstructionsTable>(isolate_group);
-  Roots::set_instructions_table_class(cls.ptr());
-
   cls = Class::New<ObjectPool, RTN::ObjectPool>(isolate_group);
-  Roots::set_object_pool_class(cls.ptr());
-
   cls = Class::New<PcDescriptors, RTN::PcDescriptors>(isolate_group);
-  Roots::set_pc_descriptors_class(cls.ptr());
-
   cls = Class::New<CodeSourceMap, RTN::CodeSourceMap>(isolate_group);
-  Roots::set_code_source_map_class(cls.ptr());
-
   cls =
       Class::New<CompressedStackMaps, RTN::CompressedStackMaps>(isolate_group);
-  Roots::set_compressed_stackmaps_class(cls.ptr());
-
   cls =
       Class::New<LocalVarDescriptors, RTN::LocalVarDescriptors>(isolate_group);
-  Roots::set_var_descriptors_class(cls.ptr());
-
   cls = Class::New<ExceptionHandlers, RTN::ExceptionHandlers>(isolate_group);
-  Roots::set_exception_handlers_class(cls.ptr());
-
   cls = Class::New<Context, RTN::Context>(isolate_group);
-  Roots::set_context_class(cls.ptr());
-
   cls = Class::New<ContextScope, RTN::ContextScope>(isolate_group);
-  Roots::set_context_scope_class(cls.ptr());
-
   cls = Class::New<Bytecode, RTN::Bytecode>(isolate_group);
-  Roots::set_bytecode_class(cls.ptr());
-
   cls = Class::New<SingleTargetCache, RTN::SingleTargetCache>(isolate_group);
-  Roots::set_singletargetcache_class(cls.ptr());
-
   cls = Class::New<UnlinkedCall, RTN::UnlinkedCall>(isolate_group);
-  Roots::set_unlinkedcall_class(cls.ptr());
-
   cls = Class::New<MonomorphicSmiableCall, RTN::MonomorphicSmiableCall>(
       isolate_group);
-  Roots::set_monomorphicsmiablecall_class(cls.ptr());
-
   cls = Class::New<ICData, RTN::ICData>(isolate_group);
-  Roots::set_icdata_class(cls.ptr());
-
   cls = Class::New<MegamorphicCache, RTN::MegamorphicCache>(isolate_group);
-  Roots::set_megamorphic_cache_class(cls.ptr());
-
   cls = Class::New<SubtypeTestCache, RTN::SubtypeTestCache>(isolate_group);
-  Roots::set_subtypetestcache_class(cls.ptr());
-
   cls = Class::New<LoadingUnit, RTN::LoadingUnit>(isolate_group);
-  Roots::set_loadingunit_class(cls.ptr());
-
   cls = Class::New<ApiError, RTN::ApiError>(isolate_group);
-  Roots::set_api_error_class(cls.ptr());
-
   cls = Class::New<LanguageError, RTN::LanguageError>(isolate_group);
-  Roots::set_language_error_class(cls.ptr());
-
   cls = Class::New<UnhandledException, RTN::UnhandledException>(isolate_group);
-  Roots::set_unhandled_exception_class(cls.ptr());
-
   cls = Class::New<UnwindError, RTN::UnwindError>(isolate_group);
-  Roots::set_unwind_error_class(cls.ptr());
-
   cls = Class::New<WeakSerializationReference, RTN::WeakSerializationReference>(
       isolate_group);
-  Roots::set_weak_serialization_reference_class(cls.ptr());
-
   cls = Class::New<WeakArray, RTN::WeakArray>(isolate_group);
-  Roots::set_weak_array_class(cls.ptr());
 
-  ASSERT(class_class() != Roots::null_obj());
+  ASSERT(isolate_group->class_table()->At(kClassCid) != Roots::null_obj());
 
   // Pre-allocate classes in the vm isolate so that we can for example create a
   // symbol table and populate it with some frequently used strings as symbols.
@@ -982,7 +938,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     InstantiationsCacheTable table(Roots::empty_instantiations_cache_array());
     table.At(0).Set<TypeArguments::Cache::kSentinelIndex>(smi);
     // The other contents of the array are immaterial.
-    Roots::empty_instantiations_cache_array().SetCanonical();
   }
 
   // Allocate and initialize the empty subtype test cache array instance,
@@ -1005,7 +960,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     table.At(0).Set<SubtypeTestCache::kInstanceCidOrSignature>(
         Object::null_object());
     // The other contents of the array are immaterial.
-    Roots::empty_subtype_test_cache_array().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty context scope object.
@@ -1019,7 +973,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         &Roots::empty_context_scope().untag()->num_variables_, 0);
     Roots::empty_context_scope().StoreNonPointer(
         &Roots::empty_context_scope().untag()->is_implicit_, true);
-    Roots::empty_context_scope().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty object pool object.
@@ -1031,7 +984,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<ObjectPoolPtr>(address + kHeapObjectTag));
     Roots::empty_object_pool().StoreNonPointer(
         &Roots::empty_object_pool().untag()->length_, 0);
-    Roots::empty_object_pool().SetCanonical();
   }
 
   // Allocate and initialize the empty_compressed_stackmaps instance.
@@ -1043,7 +995,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<CompressedStackMapsPtr>(address + kHeapObjectTag));
     Roots::empty_compressed_stackmaps().untag()->payload()->set_flags_and_size(
         0);
-    Roots::empty_compressed_stackmaps().SetCanonical();
   }
 
   // Allocate and initialize the empty_descriptors instance.
@@ -1055,7 +1006,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<PcDescriptorsPtr>(address + kHeapObjectTag));
     Roots::empty_descriptors().StoreNonPointer(
         &Roots::empty_descriptors().untag()->length_, 0);
-    Roots::empty_descriptors().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty variable descriptor object.
@@ -1067,7 +1017,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<LocalVarDescriptorsPtr>(address + kHeapObjectTag));
     Roots::empty_var_descriptors().StoreNonPointer(
         &Roots::empty_var_descriptors().untag()->num_entries_, 0);
-    Roots::empty_var_descriptors().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty exception handler info object.
@@ -1081,7 +1030,6 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<ExceptionHandlersPtr>(address + kHeapObjectTag));
     Roots::empty_exception_handlers().StoreNonPointer(
         &Roots::empty_exception_handlers().untag()->packed_fields_, 0);
-    Roots::empty_exception_handlers().SetCanonical();
   }
 
   // Empty exception handlers for async/async* functions.
@@ -1094,7 +1042,6 @@ void Object::Init(IsolateGroup* isolate_group) {
     Roots::empty_async_exception_handlers().StoreNonPointer(
         &Roots::empty_async_exception_handlers().untag()->packed_fields_,
         UntaggedExceptionHandlers::AsyncHandlerBit::update(true, 0));
-    Roots::empty_async_exception_handlers().SetCanonical();
   }
 
   // Allocate and initialize the canonical empty type arguments object.
@@ -1106,6 +1053,7 @@ void Object::Init(IsolateGroup* isolate_group) {
         static_cast<TypeArgumentsPtr>(address + kHeapObjectTag));
     Roots::empty_type_arguments().untag()->set_length(Smi::New(0));
     Roots::empty_type_arguments().untag()->set_hash(Smi::New(0));
+    Roots::empty_type_arguments().untag()->set_nullability(Smi::New(0));
     Roots::empty_type_arguments().ComputeHash();
     Roots::empty_type_arguments().SetCanonical();
   }
@@ -1120,14 +1068,12 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  Roots::set_dynamic_class(cls.ptr());
 
   cls = Class::New<Instance, RTN::Instance>(kVoidCid, isolate_group);
   cls.set_num_type_arguments_unsafe(0);
   cls.set_is_allocate_finalized();
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
-  Roots::set_void_class(cls.ptr());
 
   cls = Class::New<Type, RTN::Type>(isolate_group);
   cls.set_is_allocate_finalized();
@@ -1144,14 +1090,14 @@ void Object::Init(IsolateGroup* isolate_group) {
   cls.set_is_declaration_loaded();
   cls.set_is_type_finalized();
 
-  cls = Roots::dynamic_class();
+  cls = isolate_group->class_table()->At(kDynamicCid);
   Roots::dynamic_type().initRO(
       Type::New(cls, Object::null_type_arguments(), Nullability::kNullable));
   Roots::dynamic_type().SetIsFinalized();
   Roots::dynamic_type().ComputeHash();
   Roots::dynamic_type().SetCanonical();
 
-  cls = Roots::void_class();
+  cls = isolate_group->class_table()->At(kVoidCid);
   Roots::void_type().initRO(
       Type::New(cls, Object::null_type_arguments(), Nullability::kNullable));
   Roots::void_type().SetIsFinalized();
@@ -1162,7 +1108,7 @@ void Object::Init(IsolateGroup* isolate_group) {
   // behave as Dart instances, although they are just VM objects.
   // Note that we cannot set the super type to ObjectType, which does not live
   // in the vm isolate. See special handling in Class::SuperClass().
-  cls = Roots::type_arguments_class();
+  cls = isolate_group->class_table()->At(kTypeArgumentsCid);
   cls.set_interfaces(Object::empty_array());
   cls.SetFields(Object::empty_array());
   cls.SetFunctions(Object::empty_array());
@@ -1229,8 +1175,11 @@ void Object::Init(IsolateGroup* isolate_group) {
   Roots::implicit_shared_static_setter_bytecode().initRO(
       CreateVMInternalBytecode(
           KernelBytecode::kVMInternal_ImplicitSharedStaticSetter));
-  Roots::method_extractor_bytecode().initRO(
-      CreateVMInternalBytecode(KernelBytecode::kVMInternal_MethodExtractor));
+  Roots::method_extractor_with_ita_bytecode().initRO(CreateVMInternalBytecode(
+      KernelBytecode::kVMInternal_MethodExtractorWithITA));
+  Roots::method_extractor_without_ita_bytecode().initRO(
+      CreateVMInternalBytecode(
+          KernelBytecode::kVMInternal_MethodExtractorWithoutITA));
   Roots::invoke_closure_bytecode().initRO(
       CreateVMInternalBytecode(KernelBytecode::kVMInternal_InvokeClosure));
   Roots::invoke_field_bytecode().initRO(
@@ -1254,7 +1203,8 @@ void Object::Init(IsolateGroup* isolate_group) {
   Roots::implicit_shared_static_getter_bytecode().initRO(Bytecode::null());
   Roots::implicit_static_setter_bytecode().initRO(Bytecode::null());
   Roots::implicit_shared_static_setter_bytecode().initRO(Bytecode::null());
-  Roots::method_extractor_bytecode().initRO(Bytecode::null());
+  Roots::method_extractor_with_ita_bytecode().initRO(Bytecode::null());
+  Roots::method_extractor_without_ita_bytecode().initRO(Bytecode::null());
   Roots::invoke_closure_bytecode().initRO(Bytecode::null());
   Roots::invoke_field_bytecode().initRO(Bytecode::null());
   Roots::nsm_dispatcher_bytecode().initRO(Bytecode::null());
@@ -1356,8 +1306,10 @@ void Object::Init(IsolateGroup* isolate_group) {
   ASSERT(Roots::implicit_static_getter_bytecode().IsBytecode());
   ASSERT(!Roots::implicit_static_setter_bytecode().IsSmi());
   ASSERT(Roots::implicit_static_setter_bytecode().IsBytecode());
-  ASSERT(!Roots::method_extractor_bytecode().IsSmi());
-  ASSERT(Roots::method_extractor_bytecode().IsBytecode());
+  ASSERT(!Roots::method_extractor_with_ita_bytecode().IsSmi());
+  ASSERT(Roots::method_extractor_with_ita_bytecode().IsBytecode());
+  ASSERT(!Roots::method_extractor_without_ita_bytecode().IsSmi());
+  ASSERT(Roots::method_extractor_without_ita_bytecode().IsBytecode());
   ASSERT(!Roots::invoke_closure_bytecode().IsSmi());
   ASSERT(Roots::invoke_closure_bytecode().IsBytecode());
   ASSERT(!Roots::invoke_field_bytecode().IsSmi());
@@ -1391,9 +1343,7 @@ void Object::FinishInit(IsolateGroup* isolate_group) {
   Roots::void_type().InitializeTypeTestingStubNonAtomic(code);
 }
 
-void Object::Cleanup() {
-  Roots::Current().Reset();
-}
+void Object::Cleanup() {}
 
 // An object visitor which will mark all visited objects. This is used to
 // premark all objects in the vm_isolate_ heap.  Also precalculates hash
@@ -1424,13 +1374,7 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
         // Some classes have identity hash codes that depend on their contents,
         // not per object.
         ASSERT(!obj->IsStringInstance());
-        if (obj == Object::null()) {
-          Object::SetCachedHashIfNotSet(obj, kNullIdentityHash);
-        } else if (obj == Object::bool_true().ptr()) {
-          Object::SetCachedHashIfNotSet(obj, kTrueIdentityHash);
-        } else if (obj == Object::bool_false().ptr()) {
-          Object::SetCachedHashIfNotSet(obj, kFalseIdentityHash);
-        } else if (!obj->IsMint() && !obj->IsDouble()) {
+        if (!obj->IsMint() && !obj->IsDouble()) {
           counter_ += 2011;  // The year Dart was announced and a prime.
           counter_ &= 0x3fffffff;
           if (counter_ == 0) counter_++;
@@ -1457,7 +1401,7 @@ class FinalizeVMIsolateVisitor : public ObjectVisitor {
 };
 
 #define SET_CLASS_NAME(class_name, name)                                       \
-  cls = class_name##_class();                                                  \
+  cls = table->At(class_name);                                                 \
   cls.set_name(Symbols::name());
 
 void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
@@ -1470,63 +1414,59 @@ void Object::FinalizeVMIsolate(IsolateGroup* isolate_group) {
 
   // Set up names for all VM singleton classes.
   Class& cls = Class::Handle();
+  ClassTable* table = isolate_group->class_table();
 
-  SET_CLASS_NAME(class, Class);
-  SET_CLASS_NAME(dynamic, Dynamic);
-  SET_CLASS_NAME(void, Void);
-  SET_CLASS_NAME(type_parameters, TypeParameters);
-  SET_CLASS_NAME(type_arguments, TypeArguments);
-  SET_CLASS_NAME(patch_class, PatchClass);
-  SET_CLASS_NAME(function, Function);
-  SET_CLASS_NAME(closure_data, ClosureData);
-  SET_CLASS_NAME(ffi_trampoline_data, FfiTrampolineData);
-  SET_CLASS_NAME(field, Field);
-  SET_CLASS_NAME(script, Script);
-  SET_CLASS_NAME(library, LibraryClass);
-  SET_CLASS_NAME(namespace, Namespace);
-  SET_CLASS_NAME(kernel_program_info, KernelProgramInfo);
-  SET_CLASS_NAME(weak_serialization_reference, WeakSerializationReference);
-  SET_CLASS_NAME(weak_array, WeakArray);
-  SET_CLASS_NAME(code, Code);
-  SET_CLASS_NAME(instructions, Instructions);
-  SET_CLASS_NAME(instructions_section, InstructionsSection);
-  SET_CLASS_NAME(instructions_table, InstructionsTable);
-  SET_CLASS_NAME(object_pool, ObjectPool);
-  SET_CLASS_NAME(code_source_map, CodeSourceMap);
-  SET_CLASS_NAME(pc_descriptors, PcDescriptors);
-  SET_CLASS_NAME(compressed_stackmaps, CompressedStackMaps);
-  SET_CLASS_NAME(var_descriptors, LocalVarDescriptors);
-  SET_CLASS_NAME(exception_handlers, ExceptionHandlers);
-  SET_CLASS_NAME(context, Context);
-  SET_CLASS_NAME(context_scope, ContextScope);
-  SET_CLASS_NAME(bytecode, Bytecode);
-  SET_CLASS_NAME(sentinel, Sentinel);
-  SET_CLASS_NAME(singletargetcache, SingleTargetCache);
-  SET_CLASS_NAME(unlinkedcall, UnlinkedCall);
-  SET_CLASS_NAME(monomorphicsmiablecall, MonomorphicSmiableCall);
-  SET_CLASS_NAME(icdata, ICData);
-  SET_CLASS_NAME(megamorphic_cache, MegamorphicCache);
-  SET_CLASS_NAME(subtypetestcache, SubtypeTestCache);
-  SET_CLASS_NAME(loadingunit, LoadingUnit);
-  SET_CLASS_NAME(api_error, ApiError);
-  SET_CLASS_NAME(language_error, LanguageError);
-  SET_CLASS_NAME(unhandled_exception, UnhandledException);
-  SET_CLASS_NAME(unwind_error, UnwindError);
+  SET_CLASS_NAME(kClassCid, Class);
+  SET_CLASS_NAME(kDynamicCid, Dynamic);
+  SET_CLASS_NAME(kVoidCid, Void);
+  SET_CLASS_NAME(kTypeParametersCid, TypeParameters);
+  SET_CLASS_NAME(kTypeArgumentsCid, TypeArguments);
+  SET_CLASS_NAME(kPatchClassCid, PatchClass);
+  SET_CLASS_NAME(kFunctionCid, Function);
+  SET_CLASS_NAME(kClosureDataCid, ClosureData);
+  SET_CLASS_NAME(kFfiTrampolineDataCid, FfiTrampolineData);
+  SET_CLASS_NAME(kFieldCid, Field);
+  SET_CLASS_NAME(kScriptCid, Script);
+  SET_CLASS_NAME(kLibraryCid, LibraryClass);
+  SET_CLASS_NAME(kNamespaceCid, Namespace);
+  SET_CLASS_NAME(kKernelProgramInfoCid, KernelProgramInfo);
+  SET_CLASS_NAME(kWeakSerializationReferenceCid, WeakSerializationReference);
+  SET_CLASS_NAME(kWeakArrayCid, WeakArray);
+  SET_CLASS_NAME(kCodeCid, Code);
+  SET_CLASS_NAME(kInstructionsCid, Instructions);
+  SET_CLASS_NAME(kInstructionsSectionCid, InstructionsSection);
+  SET_CLASS_NAME(kInstructionsTableCid, InstructionsTable);
+  SET_CLASS_NAME(kObjectPoolCid, ObjectPool);
+  SET_CLASS_NAME(kCodeSourceMapCid, CodeSourceMap);
+  SET_CLASS_NAME(kPcDescriptorsCid, PcDescriptors);
+  SET_CLASS_NAME(kCompressedStackMapsCid, CompressedStackMaps);
+  SET_CLASS_NAME(kLocalVarDescriptorsCid, LocalVarDescriptors);
+  SET_CLASS_NAME(kExceptionHandlersCid, ExceptionHandlers);
+  SET_CLASS_NAME(kContextCid, Context);
+  SET_CLASS_NAME(kContextScopeCid, ContextScope);
+  SET_CLASS_NAME(kBytecodeCid, Bytecode);
+  SET_CLASS_NAME(kSentinelCid, Sentinel);
+  SET_CLASS_NAME(kSingleTargetCacheCid, SingleTargetCache);
+  SET_CLASS_NAME(kUnlinkedCallCid, UnlinkedCall);
+  SET_CLASS_NAME(kMonomorphicSmiableCallCid, MonomorphicSmiableCall);
+  SET_CLASS_NAME(kICDataCid, ICData);
+  SET_CLASS_NAME(kMegamorphicCacheCid, MegamorphicCache);
+  SET_CLASS_NAME(kSubtypeTestCacheCid, SubtypeTestCache);
+  SET_CLASS_NAME(kLoadingUnitCid, LoadingUnit);
+  SET_CLASS_NAME(kApiErrorCid, ApiError);
+  SET_CLASS_NAME(kLanguageErrorCid, LanguageError);
+  SET_CLASS_NAME(kUnhandledExceptionCid, UnhandledException);
+  SET_CLASS_NAME(kUnwindErrorCid, UnwindError);
 
   // Set up names for classes which are also pre-allocated in the vm isolate.
-  cls = isolate_group->object_store()->array_class();
-  cls.set_name(Symbols::_List());
-  cls = isolate_group->object_store()->one_byte_string_class();
-  cls.set_name(Symbols::OneByteString());
-  cls = isolate_group->object_store()->never_class();
-  cls.set_name(Symbols::Never());
+  SET_CLASS_NAME(kArrayCid, _List);
+  SET_CLASS_NAME(kOneByteStringCid, OneByteString);
+  SET_CLASS_NAME(kNeverCid, Never);
 
   // Set up names for the pseudo-classes for free list elements and forwarding
   // corpses. Mainly this makes VM debugging easier.
-  cls = isolate_group->class_table()->At(kFreeListElement);
-  cls.set_name(Symbols::FreeListElement());
-  cls = isolate_group->class_table()->At(kForwardingCorpse);
-  cls.set_name(Symbols::ForwardingCorpse());
+  SET_CLASS_NAME(kFreeListElement, FreeListElement);
+  SET_CLASS_NAME(kForwardingCorpse, ForwardingCorpse);
 
 #if defined(DART_PRECOMPILER)
   const auto& function =
@@ -2139,6 +2079,18 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
 
     ASSERT(!lib.IsNull());
     ASSERT(lib.ptr() == Library::CompactHashLibrary());
+
+    cls = Class::New<LinkedHashBase, RTN::LinkedHashBase>(
+        kLinkedHashBaseCid, isolate_group, /*register_class=*/true,
+        /*is_abstract=*/true);
+    cls.set_type_arguments_field_offset(
+        LinkedHashBase::type_arguments_offset(),
+        RTN::LinkedHashBase::type_arguments_offset());
+    cls.set_is_prefinalized();
+    isolate_group->class_table()->Register(cls);
+    RegisterPrivateClass(cls, Symbols::_LinkedHashBase(), lib);
+    pending_classes.Add(cls);
+
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
     cls.set_type_arguments_field_offset(Map::type_arguments_offset(),
@@ -2619,6 +2571,10 @@ ErrorPtr Object::Init(IsolateGroup* isolate_group,
     cls = Class::New<GrowableObjectArray, RTN::GrowableObjectArray>(
         isolate_group);
     object_store->set_growable_object_array_class(cls);
+
+    cls = Class::New<LinkedHashBase, RTN::LinkedHashBase>(
+        kLinkedHashBaseCid, isolate_group, /*register_class=*/true,
+        /*is_abstract=*/true);
 
     cls = Class::New<Map, RTN::Map>(isolate_group);
     object_store->set_map_impl_class(cls);
@@ -3173,7 +3129,7 @@ TypePtr Class::RareType() const {
 
 template <class FakeObject, class TargetFakeObject>
 ClassPtr Class::New(IsolateGroup* isolate_group, bool register_class) {
-  ASSERT(Object::class_class() != Class::null());
+  ASSERT(isolate_group->class_table()->At(kClassCid) != Class::null());
   const auto& result = Class::Handle(Object::Allocate<Class>(Heap::kOld));
   Object::VerifyBuiltinVtable<FakeObject>(FakeObject::kClassId);
   NOT_IN_PRECOMPILED(result.set_token_pos(TokenPosition::kNoSource));
@@ -4153,7 +4109,18 @@ FunctionPtr Function::CreateMethodExtractor(const String& getter_name) const {
   const bool attach_bytecode = is_declared_in_bytecode();
 #endif
   if (attach_bytecode) {
-    extractor.AttachBytecode(Object::method_extractor_bytecode());
+    // Bytecode method extractor may be used to create a closure instance
+    // with a compiled closure function, so layout of the closure object
+    // has to be compatible between them.
+    // 'Closure::HasInstantiatorTypeArgumentsField' involves a heavy signature
+    // type inspection which is not feasible to perform in the method
+    // extractor. So it is performed here to select a variant of the bytecode
+    // method extractor.
+    if (Closure::HasInstantiatorTypeArgumentsField(closure_function)) {
+      extractor.AttachBytecode(Object::method_extractor_with_ita_bytecode());
+    } else {
+      extractor.AttachBytecode(Object::method_extractor_without_ita_bytecode());
+    }
   }
 #endif  // defined(DART_DYNAMIC_MODULES)
 
@@ -4403,17 +4370,22 @@ FunctionPtr Function::CreateDynamicInvocationForwarder(
 #endif
   forwarder.ClearICDataArray();
   forwarder.ClearCode();
+#if !defined(DART_PRECOMPILED_RUNTIME)
   forwarder.set_usage_counter(0);
   forwarder.set_deoptimization_counter(0);
   forwarder.set_optimized_instruction_count(0);
   forwarder.set_inlining_depth(0);
   forwarder.set_optimized_call_site_count(0);
+#endif
 
   forwarder.InheritKernelOffsetFrom(*this);
   forwarder.SetForwardingTarget(*this);
 
 #if defined(DART_DYNAMIC_MODULES)
 #if defined(DART_PRECOMPILED_RUNTIME)
+  // Allow the creation of a lazily created interpreted dynamic invocation
+  // forwarders for compiled code that does not already have one created,
+  // for example, when the only dynamic callers are in interpreted code.
   const bool attach_bytecode = true;
 #else
   const bool attach_bytecode = is_declared_in_bytecode();
@@ -5637,7 +5609,8 @@ bool Class::InjectCIDFields() const {
 
 template <class FakeInstance, class TargetFakeInstance>
 ClassPtr Class::NewCommon(intptr_t index) {
-  ASSERT(Object::class_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kClassCid) !=
+         Class::null());
   const auto& result = Class::Handle(Object::Allocate<Class>(Heap::kOld));
   // Here kIllegalCid means not-yet-assigned.
   Object::VerifyBuiltinVtable<FakeInstance>(index == kIllegalCid ? kInstanceCid
@@ -7210,7 +7183,8 @@ const char* TypeParameters::ToCString() const {
 }
 
 TypeParametersPtr TypeParameters::New(Heap::Space space) {
-  ASSERT(Object::type_parameters_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kTypeParametersCid) !=
+         Class::null());
   return Object::Allocate<TypeParameters>(space);
 }
 
@@ -8329,7 +8303,8 @@ PatchClassPtr PatchClass::New(const Class& wrapped_class,
 }
 
 PatchClassPtr PatchClass::New() {
-  ASSERT(Object::patch_class_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kPatchClassCid) !=
+         Class::null());
   return Object::Allocate<PatchClass>(Heap::kOld);
 }
 
@@ -8443,23 +8418,27 @@ bool Function::HasCode(FunctionPtr function) {
 }
 
 void Function::ClearCode() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
   ASSERT(IsolateGroup::Current()->program_lock()->IsCurrentThreadWriter());
-  untag()->set_unoptimized_code(Code::null());
-  SetInstructions(StubCode::LazyCompile());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+  ClearCodeSafe();
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 void Function::ClearCodeSafe() const {
-#if defined(DART_PRECOMPILED_RUNTIME)
+#if defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
   UNREACHABLE();
 #else
+  // This may get called when lazily creating dynamic invocation forwarders
+  // in the precompiled runtime, which can be done with dynamic modules.
+  // While the original function from which the forwarder is cloned may have
+  // been compiled, the forwarder is instead interpreted once complete.
+#if !defined(DART_PRECOMPILED_RUNTIME)
   untag()->set_unoptimized_code(Code::null());
-
+#endif  // !defined(DART_PRECOMPILED_RUNTIME)
   SetInstructionsSafe(StubCode::LazyCompile());
-#endif  // defined(DART_PRECOMPILED_RUNTIME)
+#endif  // defined(DART_PRECOMPILED_RUNTIME) && !defined(DART_DYNAMIC_MODULES)
 }
 
 void Function::EnsureHasCompiledUnoptimizedCode() const {
@@ -9559,6 +9538,13 @@ bool Function::IsCachableIdempotent() const {
 
   // For run_vm_tests and runtime/tests/vm allow marking arbitrary functions.
   return InVmTests(*this);
+}
+
+bool Function::IsExternalEffect() const {
+  if (!has_pragma()) return false;
+
+  return Library::FindPragma(dart::Thread::Current(), /*only_core=*/false,
+                             *this, Symbols::external_effect());
 }
 
 bool Function::IsFfiCallClosure() const {
@@ -10728,7 +10714,8 @@ bool Function::IsImplicitInstanceClosureFunction(FunctionPtr func) {
 }
 
 FunctionPtr Function::New(Heap::Space space) {
-  ASSERT(Object::function_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kFunctionCid) !=
+         Class::null());
   return Object::Allocate<Function>(space);
 }
 
@@ -11513,7 +11500,6 @@ const char* Function::UserVisibleNameCString() const {
   if (FLAG_show_internal_names) {
     return String::Handle(name()).ToCString();
   }
-  is_extension_type_member();
   return String::ScrubName(String::Handle(name()),
                            is_extension_member() || is_extension_type_member());
 }
@@ -12179,7 +12165,8 @@ void ClosureData::set_captures_only_final_not_late_vars(bool value) const {
 }
 
 ClosureDataPtr ClosureData::New() {
-  ASSERT(Object::closure_data_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kClosureDataCid) !=
+         Class::null());
   return Object::Allocate<ClosureData>(Heap::kOld);
 }
 
@@ -12315,7 +12302,8 @@ void FfiTrampolineData::set_ffi_function_kind(FfiCallbackKind kind) const {
 }
 
 FfiTrampolineDataPtr FfiTrampolineData::New() {
-  ASSERT(Object::ffi_trampoline_data_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kFfiTrampolineDataCid) !=
+         Class::null());
   const auto& data = FfiTrampolineData::Handle(
       Object::Allocate<FfiTrampolineData>(Heap::kOld));
   data.set_callback_id(-1);
@@ -12561,7 +12549,8 @@ void Field::set_exact_type(const AbstractType& value) const {
 #endif  // !defined(DART_PRECOMPILED_RUNTIME)
 
 FieldPtr Field::New() {
-  ASSERT(Object::field_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kFieldCid) !=
+         Class::null());
   return Object::Allocate<Field>(Heap::kOld);
 }
 
@@ -14187,7 +14176,8 @@ ScriptPtr Script::New(const String& url, const String& source) {
 ScriptPtr Script::New(const String& url,
                       const String& resolved_url,
                       const String& source) {
-  ASSERT(Object::script_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kScriptCid) !=
+         Class::null());
   Thread* thread = Thread::Current();
   Zone* zone = thread->zone();
   const Script& result =
@@ -14983,7 +14973,8 @@ void Library::InitImportList() const {
 }
 
 LibraryPtr Library::New() {
-  ASSERT(Object::library_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kLibraryCid) !=
+         Class::null());
   return Object::Allocate<Library>(Heap::kOld);
 }
 
@@ -15801,7 +15792,8 @@ ObjectPtr Namespace::Lookup(const String& name,
 }
 
 NamespacePtr Namespace::New() {
-  ASSERT(Object::namespace_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kNamespaceCid) !=
+         Class::null());
   return Object::Allocate<Namespace>(Heap::kOld);
 }
 
@@ -16191,7 +16183,8 @@ InstructionsPtr Instructions::New(intptr_t size,
                                   bool has_monomorphic_entry,
                                   bool should_be_aligned) {
   ASSERT(size >= 0);
-  ASSERT(Object::instructions_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kInstructionsCid) !=
+         Class::null());
   if (size < 0 || size > kMaxElements) {
     // This should be caught before we reach here.
     FATAL("Fatal error in Instructions::New: invalid size %" Pd "\n", size);
@@ -16260,7 +16253,8 @@ InstructionsTablePtr InstructionsTable::New(intptr_t length,
                                             uword start_pc,
                                             uword end_pc,
                                             uword rodata) {
-  ASSERT(Object::instructions_table_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kInstructionsTableCid) !=
+         Class::null());
   ASSERT(length >= 0);
   ASSERT(start_pc <= end_pc);
   auto* const zone = Thread::Current()->zone();
@@ -16391,7 +16385,8 @@ const char* InstructionsTable::ToCString() const {
 }
 
 ObjectPoolPtr ObjectPool::New(intptr_t len) {
-  ASSERT(Object::object_pool_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kObjectPoolCid) !=
+         Class::null());
   if (len < 0 || len > kMaxElements) {
     // This should be caught before we reach here.
     FATAL("Fatal error in ObjectPool::New: invalid length %" Pd "\n", len);
@@ -16534,7 +16529,8 @@ void PcDescriptors::CopyData(const void* bytes, intptr_t size) {
 
 PcDescriptorsPtr PcDescriptors::New(const void* delta_encoded_data,
                                     intptr_t size) {
-  ASSERT(Object::pc_descriptors_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kPcDescriptorsCid) !=
+         Class::null());
   Thread* thread = Thread::Current();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
@@ -16548,7 +16544,8 @@ PcDescriptorsPtr PcDescriptors::New(const void* delta_encoded_data,
 }
 
 PcDescriptorsPtr PcDescriptors::New(intptr_t length) {
-  ASSERT(Object::pc_descriptors_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kPcDescriptorsCid) !=
+         Class::null());
   Thread* thread = Thread::Current();
   PcDescriptors& result = PcDescriptors::Handle(thread->zone());
   {
@@ -16662,7 +16659,8 @@ void CodeSourceMap::SetLength(intptr_t value) const {
 }
 
 CodeSourceMapPtr CodeSourceMap::New(intptr_t length) {
-  ASSERT(Object::code_source_map_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kCodeSourceMapCid) !=
+         Class::null());
   Thread* thread = Thread::Current();
   CodeSourceMap& result = CodeSourceMap::Handle(thread->zone());
   {
@@ -16719,7 +16717,8 @@ CompressedStackMapsPtr CompressedStackMaps::New(const void* payload,
                                                 intptr_t size,
                                                 bool is_global_table,
                                                 bool uses_global_table) {
-  ASSERT(Object::compressed_stackmaps_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kCompressedStackMapsCid) !=
+         Class::null());
   // We don't currently allow both flags to be true.
   ASSERT(!is_global_table || !uses_global_table);
   // The canonical empty instance should be used instead.
@@ -16873,7 +16872,8 @@ const char* LocalVarDescriptors::KindToCString(
 }
 
 LocalVarDescriptorsPtr LocalVarDescriptors::New(intptr_t num_variables) {
-  ASSERT(Object::var_descriptors_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kLocalVarDescriptorsCid) !=
+         Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
     FATAL(
@@ -16980,7 +16980,8 @@ void ExceptionHandlers::set_handled_types_data(const Array& value) const {
 }
 
 ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
-  ASSERT(Object::exception_handlers_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kExceptionHandlersCid) !=
+         Class::null());
   if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
     FATAL(
         "Fatal error in ExceptionHandlers::New(): "
@@ -16994,7 +16995,8 @@ ExceptionHandlersPtr ExceptionHandlers::New(intptr_t num_handlers) {
 }
 
 ExceptionHandlersPtr ExceptionHandlers::New(const Array& handled_types_data) {
-  ASSERT(Object::exception_handlers_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kExceptionHandlersCid) !=
+         Class::null());
   const intptr_t num_handlers = handled_types_data.Length();
   if ((num_handlers < 0) || (num_handlers >= kMaxHandlers)) {
     FATAL(
@@ -18026,7 +18028,8 @@ ICDataPtr ICData::NewDescriptor(Zone* zone,
 #endif
   ASSERT(!target_name.IsNull());
   ASSERT(!arguments_descriptor.IsNull());
-  ASSERT(Object::icdata_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kICDataCid) !=
+         Class::null());
   ASSERT(num_args_tested >= 0);
   // IC data objects are long living objects, allocate them in old generation.
   const auto& result =
@@ -18215,7 +18218,8 @@ const char* WeakSerializationReference::ToCString() const {
 
 ObjectPtr WeakSerializationReference::New(const Object& target,
                                           const Object& replacement) {
-  ASSERT(Object::weak_serialization_reference_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(
+             kWeakSerializationReferenceCid) != Class::null());
   // Don't wrap any object in the VM heap, as all objects in the VM isolate
   // heap are currently serialized.
   //
@@ -18247,7 +18251,8 @@ const char* WeakArray::ToCString() const {
 }
 
 WeakArrayPtr WeakArray::New(intptr_t length, Heap::Space space) {
-  ASSERT(Object::weak_array_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kWeakArrayCid) !=
+         Class::null());
   if (!IsValidLength(length)) {
     // This should be caught before we reach here.
     FATAL("Fatal error in WeakArray::New: invalid len %" Pd "\n", length);
@@ -18672,7 +18677,7 @@ CodePtr Code::New(intptr_t pointer_offsets_length) {
     FATAL("Fatal error in Code::New: invalid pointer_offsets_length %" Pd "\n",
           pointer_offsets_length);
   }
-  ASSERT(Object::code_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kCodeCid) != Class::null());
   Code& result = Code::Handle();
   {
     auto raw = Object::Allocate<Code>(Heap::kOld, pointer_offsets_length);
@@ -19234,7 +19239,8 @@ BytecodePtr Bytecode::New(uword instructions,
                           intptr_t instructions_offset,
                           const TypedDataBase& binary,
                           const ObjectPool& object_pool) {
-  ASSERT(Object::bytecode_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kBytecodeCid) !=
+         Class::null());
   Bytecode& result = Bytecode::Handle();
   {
     auto raw = Object::Allocate<Bytecode>(Heap::kOld);
@@ -19368,8 +19374,12 @@ static const char* BytecodeStubName(const Bytecode& bytecode) {
   } else if (bytecode.ptr() ==
              Object::implicit_shared_static_setter_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_ImplicitSharedStaticSetter";
-  } else if (bytecode.ptr() == Object::method_extractor_bytecode().ptr()) {
-    return "[Bytecode Stub] VMInternal_MethodExtractor";
+  } else if (bytecode.ptr() ==
+             Object::method_extractor_with_ita_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_MethodExtractorWithITA";
+  } else if (bytecode.ptr() ==
+             Object::method_extractor_without_ita_bytecode().ptr()) {
+    return "[Bytecode Stub] VMInternal_MethodExtractorWithoutITA";
   } else if (bytecode.ptr() == Object::invoke_closure_bytecode().ptr()) {
     return "[Bytecode Stub] VMInternal_InvokeClosure";
   } else if (bytecode.ptr() == Object::invoke_field_bytecode().ptr()) {
@@ -19384,8 +19394,7 @@ const char* Bytecode::Name() const {
   if (fun.IsNull()) {
     return BytecodeStubName(*this);
   }
-  const char* function_name =
-      String::Handle(zone, fun.UserVisibleName()).ToCString();
+  const char* function_name = fun.UserVisibleNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
@@ -19395,8 +19404,7 @@ const char* Bytecode::QualifiedName() const {
   if (fun.IsNull()) {
     return BytecodeStubName(*this);
   }
-  const char* function_name =
-      String::Handle(zone, fun.QualifiedScrubbedName()).ToCString();
+  const char* function_name = fun.QualifiedScrubbedNameCString();
   return zone->PrintToString("[Bytecode] %s", function_name);
 }
 
@@ -19460,7 +19468,8 @@ intptr_t Context::GetLevel() const {
 
 ContextPtr Context::New(intptr_t num_variables, Heap::Space space) {
   ASSERT(num_variables >= 0);
-  ASSERT(Object::context_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kContextCid) !=
+         Class::null());
 
   if (!IsValidLength(num_variables)) {
     // This should be caught before we reach here.
@@ -19525,7 +19534,8 @@ void Context::Dump(int indent) const {
 }
 
 ContextScopePtr ContextScope::New(intptr_t num_variables, bool is_implicit) {
-  ASSERT(Object::context_scope_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kContextScopeCid) !=
+         Class::null());
   if (num_variables < 0 || num_variables > kMaxElements) {
     // This should be caught before we reach here.
     FATAL("Fatal error in ContextScope::New: invalid num_variables %" Pd "\n",
@@ -19857,7 +19867,8 @@ const char* MegamorphicCache::ToCString() const {
 }
 
 SubtypeTestCachePtr SubtypeTestCache::New(intptr_t num_inputs) {
-  ASSERT(Object::subtypetestcache_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kSubtypeTestCacheCid) !=
+         Class::null());
   ASSERT(num_inputs >= 1);
   ASSERT(num_inputs <= kMaxInputs);
   // SubtypeTestCache objects are long living objects, allocate them in the
@@ -20663,7 +20674,8 @@ const char* SubtypeTestCache::ToCString() const {
 }
 
 LoadingUnitPtr LoadingUnit::New(intptr_t id, const LoadingUnit& parent) {
-  ASSERT(Object::loadingunit_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kLoadingUnitCid) !=
+         Class::null());
   // LoadingUnit objects are long living objects, allocate them in the
   // old generation.
   auto result = Object::Allocate<LoadingUnit>(Heap::kOld);
@@ -20772,7 +20784,8 @@ const char* Error::ToCString() const {
 }
 
 ApiErrorPtr ApiError::New() {
-  ASSERT(Object::api_error_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kApiErrorCid) !=
+         Class::null());
   return Object::Allocate<ApiError>(Heap::kOld);
 }
 
@@ -20784,7 +20797,8 @@ ApiErrorPtr ApiError::New(const String& message, Heap::Space space) {
   }
 #endif  // !PRODUCT
 
-  ASSERT(Object::api_error_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kApiErrorCid) !=
+         Class::null());
   const auto& result = ApiError::Handle(Object::Allocate<ApiError>(space));
   result.set_message(message);
   return result.ptr();
@@ -20804,7 +20818,8 @@ const char* ApiError::ToCString() const {
 }
 
 LanguageErrorPtr LanguageError::New() {
-  ASSERT(Object::language_error_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kLanguageErrorCid) !=
+         Class::null());
   return Object::Allocate<LanguageError>(Heap::kOld);
 }
 
@@ -20816,7 +20831,8 @@ LanguageErrorPtr LanguageError::NewFormattedV(const Error& prev_error,
                                               Heap::Space space,
                                               const char* format,
                                               va_list args) {
-  ASSERT(Object::language_error_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kLanguageErrorCid) !=
+         Class::null());
   const auto& result =
       LanguageError::Handle(Object::Allocate<LanguageError>(space));
   result.set_previous_error(prev_error);
@@ -20850,7 +20866,8 @@ LanguageErrorPtr LanguageError::NewFormatted(const Error& prev_error,
 LanguageErrorPtr LanguageError::New(const String& formatted_message,
                                     Report::Kind kind,
                                     Heap::Space space) {
-  ASSERT(Object::language_error_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kLanguageErrorCid) !=
+         Class::null());
   const auto& result =
       LanguageError::Handle(Object::Allocate<LanguageError>(space));
   result.set_formatted_message(formatted_message);
@@ -20916,7 +20933,8 @@ const char* LanguageError::ToCString() const {
 UnhandledExceptionPtr UnhandledException::New(const Instance& exception,
                                               const Instance& stacktrace,
                                               Heap::Space space) {
-  ASSERT(Object::unhandled_exception_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kUnhandledExceptionCid) !=
+         Class::null());
   const auto& result =
       UnhandledException::Handle(Object::Allocate<UnhandledException>(space));
   result.set_exception(exception);
@@ -20925,7 +20943,8 @@ UnhandledExceptionPtr UnhandledException::New(const Instance& exception,
 }
 
 UnhandledExceptionPtr UnhandledException::New(Heap::Space space) {
-  ASSERT(Object::unhandled_exception_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kUnhandledExceptionCid) !=
+         Class::null());
   return Object::Allocate<UnhandledException>(space);
 }
 
@@ -20980,7 +20999,8 @@ const char* UnhandledException::ToCString() const {
 }
 
 UnwindErrorPtr UnwindError::New(const String& message, Heap::Space space) {
-  ASSERT(Object::unwind_error_class() != Class::null());
+  ASSERT(IsolateGroup::Current()->class_table()->At(kUnwindErrorCid) !=
+         Class::null());
   const auto& result =
       UnwindError::Handle(Object::Allocate<UnwindError>(space));
   result.set_message(message);
@@ -26768,18 +26788,35 @@ uword Closure::ComputeHash() const {
   return FinalizeHash(result, String::kHashBits);
 }
 
+ClosurePtr Closure::New(intptr_t length_and_flags, Heap::Space space) {
+  const intptr_t num_elements =
+      UntaggedClosure::LengthBits::decode(length_and_flags);
+  ASSERT(num_elements >= 0);
+  if (!IsValidLength(num_elements)) {
+    // This should be caught before we reach here.
+    FATAL("Fatal error in Closure::New: invalid num_elements %" Pd "\n",
+          num_elements);
+  }
+  auto raw = Object::Allocate<Closure>(space, num_elements);
+  NoSafepointScope no_safepoint;
+  raw->untag()->set_length_and_flags(Smi::New(length_and_flags));
+  raw->untag()->set_hash(Smi::New(0));
+  if (UntaggedClosure::HasDelayedTypeArgumentsBit::decode(length_and_flags)) {
+    raw->untag()->set_element(UntaggedClosure::kDelayedTypeArgumentsIndex,
+                              Object::empty_type_arguments().ptr());
+  }
+  return raw;
+}
+
 ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
                         const TypeArguments& function_type_arguments,
                         const Function& function,
                         const Object& context,
                         Heap::Space space) {
-  // We store null delayed type arguments, not empty ones, in closures with
-  // non-generic functions a) to make method extraction slightly faster and
-  // b) to make the Closure::IsGeneric check fast.
-  // Keep in sync with StubCodeCompiler::GenerateAllocateClosureStub.
   return Closure::New(instantiator_type_arguments, function_type_arguments,
-                      function.IsGeneric() ? Object::empty_type_arguments()
-                                           : Object::null_type_arguments(),
+                      Closure::HasDelayedTypeArgumentsField(function)
+                          ? Object::empty_type_arguments()
+                          : Object::null_type_arguments(),
                       function, context, space);
 }
 
@@ -26792,21 +26829,39 @@ ClosurePtr Closure::New(const TypeArguments& instantiator_type_arguments,
   ASSERT(instantiator_type_arguments.IsCanonical());
   ASSERT(function_type_arguments.IsCanonical());
   ASSERT(delayed_type_arguments.IsCanonical());
+  ASSERT(function.IsClosureFunction());
   ASSERT(FunctionType::Handle(function.signature()).IsCanonical());
   ASSERT(
       (function.IsImplicitInstanceClosureFunction() && context.IsInstance()) ||
       (function.IsNonImplicitClosureFunction() && context.IsContext()) ||
       context.IsNull());
-  const auto& result = Closure::Handle(Object::Allocate<Closure>(space));
-  result.untag()->set_instantiator_type_arguments(
-      instantiator_type_arguments.ptr());
-  result.untag()->set_function_type_arguments(function_type_arguments.ptr());
-  result.untag()->set_delayed_type_arguments(delayed_type_arguments.ptr());
-  result.untag()->set_function(function.ptr());
-  result.untag()->set_context(context.ptr());
-#if defined(DART_PRECOMPILED_RUNTIME)
-  result.set_entry_point(function.entry_point());
-#endif
+
+  const bool has_delayed_type_args =
+      Closure::HasDelayedTypeArgumentsField(function);
+  const bool has_instantiator_type_args =
+      Closure::HasInstantiatorTypeArgumentsField(function);
+  const bool has_function_type_args =
+      Closure::HasFunctionTypeArgumentsField(function);
+  const intptr_t context_index = UntaggedClosure::ContextIndex(
+      has_delayed_type_args, has_instantiator_type_args,
+      has_function_type_args);
+  const intptr_t num_elements = context_index + 1;
+  const intptr_t length_and_flags = UntaggedClosure::EncodeLengthAndFlags(
+      has_delayed_type_args, has_instantiator_type_args, has_function_type_args,
+      num_elements);
+
+  const auto& result = Closure::Handle(Closure::New(length_and_flags, space));
+  result.set_function(function);
+  if (has_delayed_type_args) {
+    result.set_delayed_type_arguments(delayed_type_arguments);
+  }
+  if (has_instantiator_type_args) {
+    result.set_instantiator_type_arguments(instantiator_type_arguments);
+  }
+  if (has_function_type_args) {
+    result.set_function_type_arguments(function_type_arguments);
+  }
+  result.SetElementAt(context_index, context);
   return result.ptr();
 }
 

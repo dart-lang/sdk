@@ -2,9 +2,9 @@ void main() {}
 
 class AssertIdentical {
   const AssertIdentical(Object? v1, Object? v2)
-      : assert(identical(v1, v2), "${(v1, v2)}");
+    : assert(identical(v1, v2), "${(v1, v2)}");
   const AssertIdentical.not(Object? v1, Object? v2)
-      : assert(!identical(v1, v2), "${(v1, v2)}");
+    : assert(!identical(v1, v2), "${(v1, v2)}");
 }
 
 class C<T> {

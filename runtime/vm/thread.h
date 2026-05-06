@@ -1378,14 +1378,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
     return OFFSET_OF(Thread, thread_locals_);
   }
 
-  std::unique_ptr<VirtualMemory> TakeRegexpBacktrackStack() {
-    return std::move(regexp_backtracking_stack_cache_);
-  }
-
-  void CacheRegexpBacktrackStack(std::unique_ptr<VirtualMemory> stack) {
-    regexp_backtracking_stack_cache_ = std::move(stack);
-  }
-
  private:
   template <class T>
   T* AllocateReusableHandle();
@@ -1661,8 +1653,6 @@ class Thread : public ThreadState, public IntrusiveDListEntry<Thread> {
   std::unique_ptr<WeakTable> forward_table_old_;
 
   MallocGrowableArray<ObjectPtr> pointers_to_verify_at_exit_;
-
-  std::unique_ptr<VirtualMemory> regexp_backtracking_stack_cache_ = nullptr;
 
   explicit Thread(bool is_vm_isolate);
 

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -31,8 +31,8 @@ class PlatformUseCaseTest extends DataDrivenFixProcessorTest {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p')
-        ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
+        ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
     );
 
     addPackageDataFile('''
@@ -88,7 +88,7 @@ class HostPlatform {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
 
     addPackageDataFile('''
@@ -145,7 +145,7 @@ class NativePlatform {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
 
     addPackageDataFile('''
@@ -202,7 +202,7 @@ class NativePlatform {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
 
     addSdkDataFile('''
@@ -254,7 +254,7 @@ class HostPlatform {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
 
     addSdkDataFile('''

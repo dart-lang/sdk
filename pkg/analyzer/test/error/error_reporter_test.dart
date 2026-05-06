@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/dart/element/nullability_suffix.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/error/listener.dart';
 import 'package:source_span/source_span.dart';
@@ -216,7 +217,7 @@ main() {
   }
 
   test_atSourceSpan() async {
-    var source = TestSource();
+    var source = FileSource(newFile('/test.dart', ''));
     var reporter = DiagnosticReporter(listener, source);
 
     var text = '''
@@ -248,7 +249,7 @@ zap: baz
   }
 
   test_creation() async {
-    var source = TestSource();
+    var source = FileSource(newFile('/test.dart', ''));
     var reporter = DiagnosticReporter(listener, source);
     expect(reporter, isNotNull);
   }

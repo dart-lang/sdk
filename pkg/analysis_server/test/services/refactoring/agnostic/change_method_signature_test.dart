@@ -20,8 +20,8 @@ import 'package:analyzer/src/summary2/reference.dart';
 import 'package:analyzer/src/test_utilities/platform.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -127,26 +127,14 @@ class AbstractChangeMethodSignatureTest extends AbstractContextTest {
   String _referenceToString(Reference reference) {
     var selfLibrary = refactoringContext.resolvedLibraryResult.element;
     var selfUriStr = '${selfLibrary.uri}';
-
-    var name = reference.name;
-    if (name == selfUriStr) {
-      name = 'self';
-    }
-
-    var parent =
-        reference.parent ?? (throw StateError('Should not go past libraries'));
-
-    // A library.
-    if (parent.parent == null) {
-      return name;
-    }
-
-    // A unit of the self library.
-    if (parent.name == '@unit' && name == 'self') {
-      return 'self';
-    }
-
-    return '${_referenceToString(parent)}::$name';
+    return reference.debugString(
+      formatLibraryUri: (uriString) {
+        if (uriString == selfUriStr) {
+          return 'self';
+        }
+        return uriString;
+      },
+    );
   }
 }
 
@@ -612,7 +600,7 @@ void test(int a, int b) {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'foo', rootPath: '$packagesRootPath/foo'),
+        ..add(name: 'foo', rootFolder: getFolder('$packagesRootPath/foo')),
     );
 
     var availability = await _analyzeAvailability(r'''

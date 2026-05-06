@@ -11,9 +11,9 @@ import 'package:analysis_server/src/plugin/plugin_locator.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/utilities/extensions/file_system.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart' as plugin;
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/utilities/utilities.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
@@ -447,7 +447,7 @@ AnalysisErrors
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
 
     await pumpEventQueue(times: 5000);
@@ -997,7 +997,7 @@ AnalysisErrors
     // Write `package_config.json`, recreate analysis contexts.
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
 
     await pumpEventQueue(times: 5000);
@@ -1330,7 +1330,7 @@ class A {}
     // Write the empty file, without `package:aaa`.
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
 
     newFile(testFilePath, '''
@@ -1908,7 +1908,7 @@ class A {}
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaRootPath)),
     );
 
     newFile(testFilePath, '''
@@ -2133,7 +2133,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // plugins.
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
-      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2177,8 +2178,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'plugin1', rootPath: plugin1.path)
-        ..add(name: 'plugin2', rootPath: plugin2.path),
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path))
+        ..add(name: 'plugin2', rootFolder: getFolder(plugin2.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2220,7 +2221,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // plugins.
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
-      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2261,7 +2263,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // plugins.
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
-      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2313,8 +2316,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'plugin1', rootPath: plugin1.path)
-        ..add(name: 'plugin2', rootPath: plugin2.path),
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path))
+        ..add(name: 'plugin2', rootFolder: getFolder(plugin2.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2355,8 +2358,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'plugin1', rootPath: plugin1.path)
-        ..add(name: 'plugin2', rootPath: plugin2.path),
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path))
+        ..add(name: 'plugin2', rootFolder: getFolder(plugin2.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains both
@@ -2396,7 +2399,8 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
     // Write the single package config at the root that can resolve the plugin.
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
-      PackageConfigFileBuilder()..add(name: 'plugin1', rootPath: plugin1.path),
+      PackageConfigFileBuilder()
+        ..add(name: 'plugin1', rootFolder: getFolder(plugin1.path)),
     );
 
     // Set the analysis roots to the folder ('/home') that contains the
@@ -2447,9 +2451,12 @@ class SetAnalysisRootsTest extends PubPackageAnalysisServerTest {
 
     if (withPackageConfig) {
       var packageConfig = PackageConfigFileBuilder()
-        ..add(name: name, rootPath: packagePath);
+        ..add(name: name, rootFolder: getFolder(packagePath));
       for (var plugin in plugins) {
-        packageConfig.add(name: plugin.name, rootPath: plugin.path);
+        packageConfig.add(
+          name: plugin.name,
+          rootFolder: getFolder(plugin.path),
+        );
       }
       newPackageConfigJsonFileFromBuilder(packagePath, packageConfig);
     }
@@ -2516,7 +2523,7 @@ class A {}
     writePackageConfig(
       convertPath('/project'),
       config: (PackageConfigFileBuilder()
-        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+        ..add(name: 'pkgA', rootFolder: getFolder('/packages/pkgA'))),
     );
     //
     addTestFile('''
@@ -2568,7 +2575,7 @@ class A {}
     writePackageConfig(
       convertPath('/project'),
       config: (PackageConfigFileBuilder()
-        ..add(name: 'pkgA', rootPath: convertPath('/packages/pkgA'))),
+        ..add(name: 'pkgA', rootFolder: getFolder('/packages/pkgA'))),
     );
     //
     addTestFile('// no "pkgA" reference');

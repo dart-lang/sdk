@@ -10,7 +10,7 @@ import 'package:analyzer/src/dart/analysis/search.dart';
 import 'package:analyzer/src/test_utilities/find_element2.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:collection/collection.dart';
 import 'package:test/test.dart';
@@ -325,6 +325,29 @@ testFile
     );
   }
 
+  test_declarations_class_unnamed() async {
+    await resolveTestCode('''
+class {
+  void foo() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+''',
+    );
+  }
+
   test_declarations_discover() async {
     var aaaPackageRootPath = '$packagesRootPath/aaa';
     var bbbPackageRootPath = '$packagesRootPath/bbb';
@@ -335,8 +358,8 @@ testFile
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath)
-        ..add(name: 'bbb', rootPath: bbbPackageRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath))
+        ..add(name: 'bbb', rootFolder: getFolder(bbbPackageRootPath)),
     );
 
     var file_a = newFile(aaaFilePath, 'class A {}');
@@ -413,6 +436,29 @@ testFile
   ENUM_CONSTANT ccc
     offset: 18 2:10
     codeOffset: 18 + 3
+''',
+    );
+  }
+
+  test_declarations_enum_unnamed() async {
+    await resolveTestCode('''
+enum {
+  foo
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 ''',
     );
   }
@@ -509,6 +555,27 @@ testFile
     );
   }
 
+  test_declarations_extensionType_unnamed() async {
+    await resolveTestCode('''
+extension type (int foo) {}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
+''',
+    );
+  }
+
   test_declarations_fuzzyMatch() async {
     await resolveTestCode('''
 class A {}
@@ -599,6 +666,29 @@ testFile
     codeOffset: 58 + 11
     mixinName: M
     parameters: ()
+''',
+    );
+  }
+
+  test_declarations_mixin_unnamed() async {
+    await resolveTestCode('''
+mixin {
+  void foo() {}
+}
+''');
+    var results = WorkspaceSymbols();
+    await FindDeclarations(
+      [driver],
+      results,
+      'foo',
+      null,
+      ownedFiles: analysisContextCollection.ownedFiles,
+      performance: performance,
+    ).compute();
+    assertDeclarationsText(
+      results,
+      {testFile: 'testFile'},
+      r'''
 ''',
     );
   }
@@ -815,7 +905,7 @@ class A {}
     // Configure `package:my`.
     writePackageConfig(
       myRoot.path,
-      PackageConfigFileBuilder()..add(name: 'my', rootPath: myRoot.path),
+      PackageConfigFileBuilder()..add(name: 'my', rootFolder: myRoot),
     );
 
     var myDriver = driverFor(myFile);
@@ -1803,6 +1893,28 @@ class A {
 ''');
   }
 
+  test_searchReferences_ConstructorElement_class_named_dotShorthand_otherFile() async {
+    // Note, we don't mention `A`, only the constructor name `foo`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useConstructor() {
+  useA(.foo());
+}
+''');
+    await resolveTestCode('''
+class A {
+  A.foo();
+}
+void useA(A a) {}
+''');
+    var element = findElement2.constructor('foo');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useConstructor@26
+  53 4:9 |foo| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
+''');
+  }
+
   test_searchReferences_ConstructorElement_class_named_newHead() async {
     await resolveTestCode('''
 /// [new A.foo] and [A.foo]
@@ -1941,6 +2053,26 @@ void useConstructor() {
   197 12:4 |.foo| INVOCATION qualified
   208 13:4 |.foo| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
   223 14:10 |foo| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
+''');
+  }
+
+  test_searchReferences_ConstructorElement_class_unnamed_dotShorthand_otherFile() async {
+    // Note, we don't mention `A`, only the constructor name `new`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useConstructor() {
+  useA(.new());
+}
+''');
+    await resolveTestCode('''
+class A {}
+void useA(A a) {}
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useConstructor@26
+  53 4:9 |new| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
 ''');
   }
 
@@ -2186,6 +2318,59 @@ void useConstructor() {
   170 11:4 |.new| INVOCATION qualified
   181 12:4 |.new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
   196 13:10 |new| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
+''');
+  }
+
+  test_searchReferences_ConstructorElement_class_unnamed_viaTypeAlias_otherFile() async {
+    // Note, we use neither `A` nor `new`, only `B`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+class C extends B {
+  C() : super();
+}
+
+void useConstructor() {
+  B();
+}
+''');
+    await resolveTestCode('''
+class A<T> {}
+typedef B = A<int>;
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart new@null
+  54 4:14 || INVOCATION qualified
+package:test/other.dart useConstructor@66
+  88 8:4 || INVOCATION qualified
+''');
+  }
+
+  test_searchReferences_ConstructorElement_class_unnamed_viaTypeAliasChain_otherFile() async {
+    // Note, we use neither `A` nor `new`, only `C`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+class D extends C {
+  D() : super();
+}
+
+void useConstructor() {
+  C();
+}
+''');
+    await resolveTestCode('''
+class A<T> {}
+typedef B = A<int>;
+typedef C = B;
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart new@null
+  54 4:14 || INVOCATION qualified
+package:test/other.dart useConstructor@66
+  88 8:4 || INVOCATION qualified
 ''');
   }
 
@@ -3840,6 +4025,37 @@ void f() {
 ''');
   }
 
+  test_searchReferences_FormalParameterElement_ofLocalFunction_optionalNamed_generic() async {
+    _makeTestFilePriority();
+    await resolveTestCode('''
+void f() {
+  void foo<T>({T? test}) {
+    test;
+    test = 0;
+    test += 0;
+    (test,) = (0,);
+    for (test in [0]) {}
+  }
+
+  foo(test: 0);
+  foo.call(test: 1);
+  (foo)(test: 2);
+}
+''');
+    var element = findElement2.parameter('test');
+    await assertElementReferencesText(element, r'''
+<testLibraryFragment> f@5
+  42 3:5 |test| READ
+  52 4:5 |test| WRITE
+  66 5:5 |test| READ_WRITE
+  82 6:6 |test| WRITE
+  106 7:10 |test| WRITE
+  133 10:7 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  154 11:12 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+  172 12:9 |test| REFERENCE_BY_NAMED_ARGUMENT qualified
+''');
+  }
+
   test_searchReferences_FormalParameterElement_ofLocalFunction_optionalPositional() async {
     _makeTestFilePriority();
     await resolveTestCode('''
@@ -4424,7 +4640,7 @@ Random bar() => null;
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
     );
 
     fileForContextSelection = testFile;
@@ -4522,7 +4738,7 @@ label:
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
     );
 
     var libPath = convertPath('$aaaPackageRootPath/lib/a.dart');
@@ -4752,7 +4968,7 @@ main() {
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
     );
 
     fileForContextSelection = testFile;
@@ -4884,6 +5100,53 @@ void useFoo() {
   205 16:11 |foo| REFERENCE qualified
   216 17:7 |foo| INVOCATION qualified
   229 18:7 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_MethodElement_normal_ofClass_static_dotShorthand_otherFile() async {
+    // Note, we don't mention `A`, only the method name `foo`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useFoo() {
+  useA(.foo());
+}
+''');
+    await resolveTestCode('''
+class A {
+  static A foo() => A();
+}
+void useA(A a) {}
+''');
+    var element = findElement2.method('foo');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useFoo@26
+  45 4:9 |foo| INVOCATION qualified
+''');
+  }
+
+  test_searchReferences_MethodElement_normal_ofClass_static_viaTypeAlias_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useFoo() {
+  B.foo();
+  B.foo;
+}
+''');
+    await resolveTestCode('''
+class A {
+  static A foo() => A();
+}
+typedef B = A;
+''');
+    var element = findElement2.method('foo');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useFoo@26
+  41 4:5 |foo| INVOCATION qualified
+  52 5:5 |foo| REFERENCE qualified
 ''');
   }
 
@@ -5707,7 +5970,7 @@ class A<T> {
 class B extends A<String> {}
 ''');
     var element = findNode
-        .namedExpression('p: null); // 1')
+        .namedArgument('p: null); // 1')
         .correspondingParameter!;
     await assertElementReferencesText(element, r'''
 <testLibraryFragment>::@function::f
@@ -5736,7 +5999,7 @@ class A<T> {
 class B extends A<String> {}
 ''');
     var element = findNode
-        .namedExpression('p: null); // 1')
+        .namedArgument('p: null); // 1')
         .correspondingParameter!;
     expect(driver.search.references(element, SearchedFiles()), completes);
   }
@@ -5792,7 +6055,7 @@ void f() {
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
     );
 
     fileForContextSelection = testFile;
@@ -5897,7 +6160,7 @@ package:test/part2.dart v2@16
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath)),
     );
 
     fileForContextSelection = this.testFile;
@@ -6737,8 +7000,8 @@ class F {}
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath)
-        ..add(name: 'bbb', rootPath: bbbPackageRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath))
+        ..add(name: 'bbb', rootFolder: getFolder(bbbPackageRootPath)),
     );
 
     var tUri = 'package:test/test.dart';
@@ -6807,8 +7070,8 @@ class A {
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: aaaPackageRootPath)
-        ..add(name: 'bbb', rootPath: bbbPackageRootPath),
+        ..add(name: 'aaa', rootFolder: getFolder(aaaPackageRootPath))
+        ..add(name: 'bbb', rootFolder: getFolder(bbbPackageRootPath)),
     );
 
     addTestFile('class T implements List {}');

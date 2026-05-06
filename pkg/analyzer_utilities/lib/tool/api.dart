@@ -5,7 +5,7 @@
 /// Generates the file `api.txt`, which describes a package's public API.
 library;
 
-import 'package:analyzer_utilities/src/api_summary/summarize_package.dart';
+import 'package:api_summary/api_summary.dart';
 import 'package:analyzer_utilities/tools.dart';
 import 'package:path/path.dart';
 

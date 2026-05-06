@@ -15,47 +15,10 @@ namespace dart {
   V(ObjectPtr, null_obj)                                                       \
   V(BoolPtr, true_obj)                                                         \
   V(BoolPtr, false_obj)                                                        \
-  V(ClassPtr, class_class)                                                     \
-  V(ClassPtr, dynamic_class)                                                   \
-  V(ClassPtr, void_class)                                                      \
-  V(ClassPtr, type_parameters_class)                                           \
-  V(ClassPtr, type_arguments_class)                                            \
-  V(ClassPtr, patch_class_class)                                               \
-  V(ClassPtr, function_class)                                                  \
-  V(ClassPtr, closure_data_class)                                              \
-  V(ClassPtr, ffi_trampoline_data_class)                                       \
-  V(ClassPtr, field_class)                                                     \
-  V(ClassPtr, script_class)                                                    \
-  V(ClassPtr, library_class)                                                   \
-  V(ClassPtr, namespace_class)                                                 \
-  V(ClassPtr, kernel_program_info_class)                                       \
-  V(ClassPtr, code_class)                                                      \
-  V(ClassPtr, instructions_class)                                              \
-  V(ClassPtr, instructions_section_class)                                      \
-  V(ClassPtr, instructions_table_class)                                        \
-  V(ClassPtr, object_pool_class)                                               \
-  V(ClassPtr, pc_descriptors_class)                                            \
-  V(ClassPtr, code_source_map_class)                                           \
-  V(ClassPtr, compressed_stackmaps_class)                                      \
-  V(ClassPtr, var_descriptors_class)                                           \
-  V(ClassPtr, exception_handlers_class)                                        \
-  V(ClassPtr, context_class)                                                   \
-  V(ClassPtr, context_scope_class)                                             \
-  V(ClassPtr, bytecode_class)                                                  \
-  V(ClassPtr, sentinel_class)                                                  \
-  V(ClassPtr, singletargetcache_class)                                         \
-  V(ClassPtr, unlinkedcall_class)                                              \
-  V(ClassPtr, monomorphicsmiablecall_class)                                    \
-  V(ClassPtr, icdata_class)                                                    \
-  V(ClassPtr, megamorphic_cache_class)                                         \
-  V(ClassPtr, subtypetestcache_class)                                          \
-  V(ClassPtr, loadingunit_class)                                               \
-  V(ClassPtr, api_error_class)                                                 \
-  V(ClassPtr, language_error_class)                                            \
-  V(ClassPtr, unhandled_exception_class)                                       \
-  V(ClassPtr, unwind_error_class)                                              \
-  V(ClassPtr, weak_serialization_reference_class)                              \
-  V(ClassPtr, weak_array_class)
+  V(SentinelPtr, sentinel_obj)                                                 \
+  V(SentinelPtr, unknown_constant_obj)                                         \
+  V(SentinelPtr, non_constant_obj)                                             \
+  V(SentinelPtr, optimized_out_obj)
 
 #define HANDLE_ROOTS_LIST(V)                                                   \
   V(Object, null_object)                                                       \
@@ -89,7 +52,8 @@ namespace dart {
   V(Bytecode, implicit_shared_static_getter_bytecode)                          \
   V(Bytecode, implicit_static_setter_bytecode)                                 \
   V(Bytecode, implicit_shared_static_setter_bytecode)                          \
-  V(Bytecode, method_extractor_bytecode)                                       \
+  V(Bytecode, method_extractor_with_ita_bytecode)                              \
+  V(Bytecode, method_extractor_without_ita_bytecode)                           \
   V(Bytecode, invoke_closure_bytecode)                                         \
   V(Bytecode, invoke_field_bytecode)                                           \
   V(Bytecode, nsm_dispatcher_bytecode)                                         \
@@ -162,6 +126,78 @@ class LocalHandle;
 class ObjectPointerVisitor;
 
 class Roots {
+ public:
+  Roots() {}
+  ~Roots() {}
+
+#define DECL(type, name)                                                       \
+  static type name() { return current_->raw_.name##_; }                        \
+  static void set_##name(type v) { current_->raw_.name##_ = v; }
+  RAW_ROOTS_LIST(DECL)
+#undef DECL
+
+  static ArrayPtr cached_args_descriptor(intptr_t i) {
+    return current_->raw_.cached_args_descriptors_[i];
+  }
+  static void set_cached_args_descriptor(intptr_t i, ArrayPtr v) {
+    current_->raw_.cached_args_descriptors_[i] = v;
+  }
+  static ArrayPtr cached_icdata_array(intptr_t i) {
+    return current_->raw_.cached_icdata_arrays_[i];
+  }
+  static void set_cached_icdata_array(intptr_t i, ArrayPtr v) {
+    current_->raw_.cached_icdata_arrays_[i] = v;
+  }
+  static StringPtr one_char_symbol(intptr_t i) {
+    return current_->raw_.one_char_symbols_[i];
+  }
+  static void set_one_char_symbol(intptr_t i, StringPtr v) {
+    current_->raw_.one_char_symbols_[i] = v;
+  }
+  static StringPtr* one_char_symbols() {
+    return &current_->raw_.one_char_symbols_[0];
+  }
+
+#define DECL(type, name)                                                       \
+  static const type& name() {                                                  \
+    return *reinterpret_cast<type*>(&current_->internal_.name##_);             \
+  }
+  HANDLE_ROOTS_LIST(DECL)
+#undef DECL
+  static const String& symbol_handle(intptr_t i) {
+    return *reinterpret_cast<const String*>(
+        &current_->internal_.symbol_handles_[i]);
+  }
+  static const Code& stub_handle(intptr_t i) {
+    return *reinterpret_cast<const Code*>(
+        &current_->internal_.stub_handles_[i]);
+  }
+  const Code& x_stub_handle(intptr_t i) {
+    return *reinterpret_cast<const Code*>(&internal_.stub_handles_[i]);
+  }
+
+#define DECL(name)                                                             \
+  static LocalHandle* name() {                                                 \
+    return reinterpret_cast<LocalHandle*>(&current_->api_.name##_);            \
+  }
+  API_HANDLE_ROOTS_LIST(DECL)
+#undef DECL
+
+  static bool IsReadOnlyHandle(uword handle) {
+    return handle - reinterpret_cast<uword>(&current_->internal_) <
+           sizeof(Internal);
+  }
+  static bool IsReadOnlyApiHandle(uword handle) {
+    return handle - reinterpret_cast<uword>(&current_->api_) < sizeof(Api);
+  }
+
+  void VisitObjectPointers(ObjectPointerVisitor* visitor);
+
+  static Roots* Current() { return current_; }
+  static void SetCurrent(Roots* roots) { current_ = roots; }
+  static void ClearCurrent() { current_ = nullptr; }
+
+ private:
   enum {
 #define DEFINE_SYMBOL_INDEX(symbol, literal) k##symbol##Id,
     PREDEFINED_SYMBOLS_LIST(DEFINE_SYMBOL_INDEX)
@@ -174,89 +210,6 @@ class Roots {
 #undef STUB_CODE_ENTRY
         kNumStubEntries,
   };
-
- public:
-#define DECL(type, name)                                                       \
-  static type name() { return roots_.raw_.name##_; }                           \
-  static void set_##name(type v) { roots_.raw_.name##_ = v; }
-  RAW_ROOTS_LIST(DECL)
-#undef DECL
-
-  static ArrayPtr cached_args_descriptor(intptr_t i) {
-    return roots_.raw_.cached_args_descriptors_[i];
-  }
-  static void set_cached_args_descriptor(intptr_t i, ArrayPtr v) {
-    roots_.raw_.cached_args_descriptors_[i] = v;
-  }
-  static ArrayPtr cached_icdata_array(intptr_t i) {
-    return roots_.raw_.cached_icdata_arrays_[i];
-  }
-  static void set_cached_icdata_array(intptr_t i, ArrayPtr v) {
-    roots_.raw_.cached_icdata_arrays_[i] = v;
-  }
-  static StringPtr one_char_symbol(intptr_t i) {
-    return roots_.raw_.one_char_symbols_[i];
-  }
-  static void set_one_char_symbol(intptr_t i, StringPtr v) {
-    roots_.raw_.one_char_symbols_[i] = v;
-  }
-  static StringPtr* one_char_symbols() {
-    return &roots_.raw_.one_char_symbols_[0];
-  }
-
-#define DECL(type, name)                                                       \
-  static const type& name() {                                                  \
-    return *reinterpret_cast<type*>(&roots_.internal_.name##_);                \
-  }
-  HANDLE_ROOTS_LIST(DECL)
-#undef DECL
-  static const String& symbol_handle(intptr_t i) {
-    return *reinterpret_cast<const String*>(
-        &roots_.internal_.symbol_handles_[i]);
-  }
-  static const Code& stub_handle(intptr_t i) {
-    return *reinterpret_cast<const Code*>(&roots_.internal_.stub_handles_[i]);
-  }
-
-#define DECL(name)                                                             \
-  static LocalHandle* name() {                                                 \
-    return reinterpret_cast<LocalHandle*>(&roots_.api_.name##_);               \
-  }
-  API_HANDLE_ROOTS_LIST(DECL)
-#undef DECL
-
-  void Reset() {
-#define DECL(type, name)                                                       \
-  raw_.name##_ = type{static_cast<uword>(kHeapObjectTag)};
-    RAW_ROOTS_LIST(DECL)
-#undef DECL
-    for (size_t i = 0; i < ARRAY_SIZE(raw_.cached_args_descriptors_); i++) {
-      raw_.cached_args_descriptors_[i] =
-          ArrayPtr{static_cast<uword>(kHeapObjectTag)};
-    }
-    for (size_t i = 0; i < ARRAY_SIZE(raw_.cached_icdata_arrays_); i++) {
-      raw_.cached_icdata_arrays_[i] =
-          ArrayPtr{static_cast<uword>(kHeapObjectTag)};
-    }
-    for (size_t i = 0; i < ARRAY_SIZE(raw_.one_char_symbols_); i++) {
-      raw_.one_char_symbols_[i] = StringPtr{static_cast<uword>(kHeapObjectTag)};
-    }
-  }
-
-  static Roots& Current() { return roots_; }
-
-  static bool IsReadOnlyHandle(uword handle) {
-    return handle - reinterpret_cast<uword>(&roots_.internal_) <
-           sizeof(Internal);
-  }
-  static bool IsReadOnlyApiHandle(uword handle) {
-    return handle - reinterpret_cast<uword>(&roots_.api_) < sizeof(Api);
-  }
-
-  void VisitObjectPointers(ObjectPointerVisitor* visitor);
-
- private:
-  Roots() {}
 
   struct Raw {
 #define DECL(type, name)                                                       \
@@ -273,7 +226,6 @@ class Roots {
     uword ptr;
   };
   struct Api {
-    // COMPILE_ASSERT(sizeof(ApiHandle) == sizeof(LocalHandle))
 #define DECL(name) ApiHandle name##_ = {};
     API_HANDLE_ROOTS_LIST(DECL)
 #undef DECL
@@ -282,12 +234,11 @@ class Roots {
 
   struct VMHandle {
     cpp_vtable vtable;
-    ObjectPtr ptr;
+    ObjectPtr ptr = {nullptr};
 #if defined(DEBUG)
-    uword is_zone_handle = false;
+    uword is_zone_handle = 0;
 #endif
   };
-  // COMPILE_ASSERT(sizeof(Handle) == kVMHandleSizeInWords * kWordSize)
   struct Internal {
 #define DECL(type, name) VMHandle name##_ = {};
     HANDLE_ROOTS_LIST(DECL)
@@ -295,12 +246,12 @@ class Roots {
     VMHandle symbol_handles_[kNumPredefinedSymbols + 256] = {};
     VMHandle stub_handles_[kNumStubEntries] = {};
   };
-  Internal internal_;
+  Internal internal_ = {};
 
-  static Roots roots_;
   static inline thread_local Roots* current_ = nullptr;
 
-  DISALLOW_COPY_AND_ASSIGN(Roots);
+  // TODO(rmacnak): Re-enable after groups initialize separately.
+  // DISALLOW_COPY_AND_ASSIGN(Roots);
 };
 
 }  // namespace dart

@@ -7,7 +7,6 @@
 
 import 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/assigned_variables.dart';
-import 'package:_fe_analyzer_shared/src/type_inference/body_inference_context.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/null_shorting.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart';
 import 'package:_fe_analyzer_shared/src/type_inference/type_analyzer.dart'
@@ -63,7 +62,7 @@ import '../source/check_helper.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
 import '../util/helpers.dart';
-import 'closure_context.dart';
+import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
 import 'for_in.dart';
 import 'inference_results.dart';
@@ -95,11 +94,11 @@ abstract class InferenceVisitor {
 
   /// Performs type inference on the given [statement].
   ///
-  /// If [closureContext] is not null, the [statement] is inferred using
-  /// [closureContext] as the current context.
+  /// If [bodyContext] is not null, the [statement] is inferred using
+  /// [bodyContext] as the current context.
   StatementInferenceResult inferStatement(
     Statement statement, [
-    ClosureContext? closureContext,
+    BodyInferenceContext? bodyContext,
   ]);
 
   /// Performs type inference on the given [initializer].
@@ -142,7 +141,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   /// Context information for the current closure, or `null` if we are not
   /// inside a closure.
-  ClosureContext? _closureContext;
+  BodyInferenceContext? _bodyContext;
 
   /// If a switch statement is being visited and the type being switched on is a
   /// (possibly nullable) enumerated type, the set of enum values for which no
@@ -201,8 +200,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     this._constructorBuilder,
     this.operations,
     this.typeAnalyzerOptions,
-    super.expressionEvaluationHelper,
-  ) : _contextAllocationStrategy = new LoopDepthAllocationStrategy();
+    super.expressionEvaluationHelper, {
+    required ContextAllocationStrategy contextAllocationStrategy,
+  }) : _contextAllocationStrategy = contextAllocationStrategy;
 
   @override
   ThisVariable get internalThisVariable =>
@@ -275,10 +275,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     );
   }
 
-  ClosureContext get closureContext => _closureContext!;
-
   @override
-  SharedBodyInferenceContext get bodyContext => closureContext;
+  BodyInferenceContext get bodyContext => _bodyContext!;
 
   @override
   ExpressionTypeAnalysisResult finishNullShorting(
@@ -360,11 +358,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   @override
   StatementInferenceResult inferStatement(
     Statement statement, [
-    ClosureContext? closureContext,
+    BodyInferenceContext? bodyContext,
   ]) {
-    ClosureContext? oldClosureContext = _closureContext;
-    if (closureContext != null) {
-      _closureContext = closureContext;
+    BodyInferenceContext? oldBodyContext = _bodyContext;
+    if (bodyContext != null) {
+      _bodyContext = bodyContext;
     }
     registerIfUnreachableForTesting(statement);
 
@@ -376,7 +374,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       result = statement.accept(this);
     }
-    _closureContext = oldClosureContext;
+    _bodyContext = oldBodyContext;
     return result;
   }
 
@@ -542,7 +540,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     if (scopeProviderInfo != null) {
       // Coverage-ignore-block(suite): Not run.
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return new ExpressionInferenceResult(valueResult.inferredType, node);
   }
@@ -1291,7 +1289,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return statementInferenceResult;
   }
@@ -3578,7 +3576,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     node.body = body..parent = node;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return const StatementInferenceResult();
   }
@@ -3640,9 +3638,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         scopeProviderInfoKind: ScopeProviderInfoKind.Loop,
       );
     }
-    List<VariableInitializationBase>? variables;
-    for (int index = 0; index < node.variableInitializations.length; index++) {
-      VariableInitializationBase variable = node.variableInitializations[index];
+    List<VariableDeclaration>? variables;
+    for (int index = 0; index < node.variables.length; index++) {
+      VariableDeclaration variable = node.variables[index];
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
@@ -3658,8 +3656,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         if (variableResult.hasChanged) {
           // Coverage-ignore-block(suite): Not run.
           if (variables == null) {
-            variables = <VariableInitializationBase>[];
-            variables.addAll(node.variableInitializations.sublist(0, index));
+            variables = <VariableDeclaration>[];
+            variables.addAll(node.variables.sublist(0, index));
           }
           if (variableResult.statementCount == 1) {
             variables.add(variableResult.statement as VariableDeclaration);
@@ -3677,8 +3675,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (variables != null) {
       // Coverage-ignore-block(suite): Not run.
-      node.variableInitializations.clear();
-      node.variableInitializations.addAll(variables);
+      node.variables.clear();
+      node.variables.addAll(variables);
       setParents(variables, node);
     }
     flowAnalysis.for_conditionBegin(node);
@@ -3719,7 +3717,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.for_end();
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
     return const StatementInferenceResult();
   }
@@ -3790,13 +3788,13 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   ScopeProviderInfo beginFunctionBodyInference(
     List<VariableDeclaration> parameters, {
     required ThisVariable? internalThisVariable,
+    required ScopeProviderInfo? scopeProviderInfo,
   }) {
-    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
-        .enterScopeProvider(
-          scopeProviderInfoKind: internalThisVariable == null
-              ? ScopeProviderInfoKind.FunctionNode
-              : ScopeProviderInfoKind.FunctionNodeWithThis,
-        );
+    scopeProviderInfo ??= _contextAllocationStrategy.enterScopeProvider(
+      scopeProviderInfoKind: internalThisVariable == null
+          ? ScopeProviderInfoKind.FunctionNode
+          : ScopeProviderInfoKind.FunctionNodeWithThis,
+    );
     if (internalThisVariable != null) {
       _contextAllocationStrategy.handleDeclarationOfVariable(
         internalThisVariable,
@@ -3863,7 +3861,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _inTryOrLocalFunction = oldInTryOrLocalFunction;
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.function.scope = scopeProviderInfo.scope;
+      node.function.scope = scopeProviderInfo.scope?..parent = node.function;
     }
     return new ExpressionInferenceResult(inferredType, node);
   }
@@ -4737,7 +4735,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [element]
       // is desugared into.
-      element.scope = scopeProviderInfo.scope;
+      element.scope = scopeProviderInfo.scope?..parent = element;
     }
     return new ExpressionInferenceResult(bodyResult.inferredType, element);
   }
@@ -5466,7 +5464,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         : _createBlock(statements);
     ForStatement loop = _createForStatement(
       element.fileOffset,
-      element.variableInitializations,
+      element.variables,
       element.condition,
       element.updates,
       loopBody,
@@ -5501,7 +5499,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           _createBlock(statements);
     ForStatement loop = _createForStatement(
       element.fileOffset,
-      element.variableInitializations,
+      element.variables,
       element.condition,
       element.updates,
       loopBody,
@@ -6069,7 +6067,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         : _createBlock(statements);
     ForStatement loop = _createForStatement(
       entry.fileOffset,
-      entry.variableInitializations,
+      entry.variables,
       entry.condition,
       entry.updates,
       loopBody,
@@ -6102,7 +6100,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         : _createBlock(statements);
     ForStatement loop = _createForStatement(
       entry.fileOffset,
-      entry.variableInitializations,
+      entry.variables,
       entry.condition,
       entry.updates,
       loopBody,
@@ -7067,7 +7065,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
   ForStatement _createForStatement(
     int fileOffset,
-    List<VariableInitializationBase> variables,
+    List<VariableDeclaration> variables,
     Expression? condition,
     List<Expression> updates,
     Statement body,
@@ -7676,11 +7674,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     List<VariableDeclaration> declaredVariables =
         patternVariableDeclaration.pattern.declaredVariables;
     assert(declaredVariables.length == entry.intermediateVariables.length);
-    assert(declaredVariables.length == entry.variableInitializations.length);
+    assert(declaredVariables.length == entry.variables.length);
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
       entry.intermediateVariables[i].type = type;
-      entry.variableInitializations[i].type = type;
+      entry.variables[i].type = type;
     }
 
     return _inferForMapEntryBase(
@@ -7736,10 +7734,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     _MapLiteralEntryOffsets offsets,
   ) {
     // TODO(johnniwinther): Use _visitStatements instead.
-    List<VariableInitializationBase>? variables;
-    for (int index = 0; index < entry.variableInitializations.length; index++) {
-      VariableInitializationBase variable =
-          entry.variableInitializations[index];
+    List<VariableDeclaration>? variables;
+    for (int index = 0; index < entry.variables.length; index++) {
+      VariableDeclaration variable = entry.variables[index];
       if (variable.name == null) {
         if (variable.initializer != null) {
           ExpressionInferenceResult result = inferExpression(
@@ -7756,7 +7753,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore-block(suite): Not run.
           if (variables == null) {
             variables = <VariableDeclaration>[];
-            variables.addAll(entry.variableInitializations.sublist(0, index));
+            variables.addAll(entry.variables.sublist(0, index));
           }
           if (variableResult.statementCount == 1) {
             variables.add(variableResult.statement as VariableDeclaration);
@@ -7774,8 +7771,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (variables != null) {
       // Coverage-ignore-block(suite): Not run.
-      entry.variableInitializations.clear();
-      entry.variableInitializations.addAll(variables);
+      entry.variables.clear();
+      entry.variables.addAll(variables);
       setParents(variables, entry);
     }
 
@@ -7916,7 +7913,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
       // The scope will later be passed to the [ForInStatement] the [entry]
       // is desugared into.
-      entry.scope = scopeProviderInfo.scope;
+      entry.scope = scopeProviderInfo.scope?..parent = entry;
     }
     return entry;
   }
@@ -8551,7 +8548,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           PatternForElement result = new PatternForElement(
             patternVariableDeclaration: entry.patternVariableDeclaration,
             intermediateVariables: entry.intermediateVariables,
-            variables: entry.variableInitializations,
+            variables: entry.variables,
             condition: entry.condition,
             updates: entry.updates,
             body: convertToElement(entry.body, onConvertMapEntry),
@@ -8560,7 +8557,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           return result;
         case ForMapEntry():
           ForElement result = new ForElement(
-            entry.variableInitializations,
+            entry.variables,
             entry.condition,
             entry.updates,
             convertToElement(entry.body, onConvertMapEntry),
@@ -8641,94 +8638,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       isExpressionInvocation: false,
       isImplicitCall: false,
     );
-  }
-
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAugmentSuperInvocation(
-    AugmentSuperInvocation node,
-    DartType typeContext,
-  ) {
-    Member member = node.target;
-    if (member.isInstanceMember) {
-      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
-        thisType!,
-        member,
-        hasNonObjectMemberAccess: true,
-      );
-      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
-      DartType receiverType = thisType!;
-      return inferMethodInvocation(
-        this,
-        node.fileOffset,
-        receiver,
-        receiverType,
-        member.name,
-        node.typeArguments,
-        node.arguments,
-        typeContext,
-        isExpressionInvocation: false,
-        isImplicitCall: false,
-        target: target,
-      );
-    } else if (member is Procedure) {
-      FunctionType calleeType = member.function.computeFunctionType(
-        Nullability.nonNullable,
-      );
-      InvocationInferenceResult result = inferInvocation(
-        this,
-        typeContext,
-        node.fileOffset,
-        new InvocationTargetFunctionType(calleeType),
-        node.typeArguments,
-        node.arguments,
-        staticTarget: node.target,
-      );
-      StaticInvocation invocation = new StaticInvocation(
-        member,
-        createArgumentsFromInternalNode(
-          result.typeArguments,
-          result.positional,
-          result.named,
-          node.arguments,
-        ),
-      );
-      String targetName = member.name.text;
-      if (member.enclosingClass != null) {
-        targetName = '${member.enclosingClass!.name}.$targetName';
-      }
-      problemReporting.checkBoundsInStaticInvocation(
-        problemReportingHelper: problemReportingHelper,
-        libraryFeatures: libraryFeatures,
-        targetName: targetName,
-        typeEnvironment: typeSchemaEnvironment,
-        fileUri: fileUri,
-        fileOffset: node.fileOffset,
-        hasInferredTypeArguments: node.typeArguments == null,
-        typeParameters: invocation.target.typeParameters,
-        explicitOrInferredTypeArguments: invocation.arguments.types,
-      );
-      return new ExpressionInferenceResult(
-        result.inferredType,
-        result.applyResult(invocation),
-      );
-    } else {
-      // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
-      DartType receiverType = member.getterType;
-      Expression receiver = new StaticGet(member)..fileOffset = node.fileOffset;
-      return inferMethodInvocation(
-        this,
-        node.fileOffset,
-        receiver,
-        receiverType,
-        callName,
-        node.typeArguments,
-        node.arguments,
-        typeContext,
-        isExpressionInvocation: true,
-        isImplicitCall: true,
-      );
-    }
   }
 
   ExpressionInferenceResult visitExpressionInvocation(
@@ -12300,6 +12209,136 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return new ExpressionInferenceResult(inferredType, node);
   }
 
+  ExpressionInferenceResult visitAnonymousMethodExpression(
+    AnonymousMethodExpression node,
+    DartType typeContext,
+  ) {
+    DartType variableType = node.variable.type;
+    ExpressionInferenceResult initializerResult = inferExpression(
+      node.variable.initializer!,
+      const UnknownType(),
+      continueNullShorting: true,
+    );
+
+    Expression initializer = initializerResult.expression;
+    DartType initializerType = initializerResult.inferredType;
+
+    if (initializerType is VoidType) {
+      initializer = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: initializer,
+        message: diag.voidExpression,
+        fileUri: fileUri,
+        fileOffset: initializer.fileOffset,
+        length: noLength,
+      );
+    }
+
+    if (node.isImplicitlyTyped) {
+      node.variable.type = node.isNullAware
+          ? initializerType.toNonNull()
+          : initializerType;
+    } else {
+      DartType checkedType = node.isNullAware
+          ? initializerType.toNonNull()
+          : initializerType;
+      if (!isAssignable(variableType, checkedType)) {
+        initializer = wrapUnassignableExpression(
+          initializer,
+          checkedType,
+          variableType,
+          diag.anonymousMethodWrongParameterTypeCfe.withArguments(
+            receiverType: checkedType,
+            parameterType: variableType,
+          ),
+          fileOffset: node.typeOffset,
+        );
+      }
+    }
+    node.variable.initializer = initializer..parent = node.variable;
+
+    flowAnalysis.declare(
+      node.variable,
+      new SharedTypeView(node.variable.type),
+      initialized: true,
+    );
+    if (node.isNullAware) {
+      flow.nullAwareAccess_rightBegin(
+        flowAnalysis.getExpressionInfo(node.variable.initializer!),
+        new SharedTypeView(initializerType),
+        guardVariable: node.variable,
+      );
+    }
+
+    ExpressionInferenceResult bodyResult = inferExpression(
+      node.body,
+      typeContext,
+      isVoidAllowed: true,
+    );
+
+    if (node.isNullAware) {
+      flow.nullAwareAccess_end();
+    }
+
+    DartType inferredType;
+    Expression body;
+
+    if (node.isCascade) {
+      inferredType = initializerType;
+
+      VariableDeclaration tempVar = new VariableDeclaration(
+        null,
+        initializer: bodyResult.expression,
+        isSynthesized: true,
+      )..fileOffset = node.fileOffset;
+
+      body = new Let(tempVar, new VariableGet(node.variable))
+        ..fileOffset = node.fileOffset;
+    } else {
+      inferredType = bodyResult.inferredType;
+      body = bodyResult.expression;
+    }
+
+    Expression replacement;
+    if (node.isNullAware) {
+      VariableDeclaration tempVar =
+          new VariableDeclaration(
+              null,
+              initializer: node.variable.initializer!,
+              isSynthesized: true,
+            )
+            ..type = initializerType
+            ..fileOffset = node.fileOffset;
+
+      Expression condition = new EqualsNull(new VariableGet(tempVar));
+      Expression thenExpression = new NullLiteral();
+
+      node.variable.initializer =
+          new AsExpression(new VariableGet(tempVar), node.variable.type)
+            ..fileOffset = node.fileOffset
+            ..parent = node.variable;
+
+      Expression elseExpression = new Let(node.variable, body)
+        ..fileOffset = node.fileOffset;
+
+      replacement = new Let(
+        tempVar,
+        new ConditionalExpression(
+          condition,
+          thenExpression,
+          elseExpression,
+          inferredType.withDeclaredNullability(Nullability.nullable),
+        ),
+      )..fileOffset = node.fileOffset;
+
+      inferredType = inferredType.withDeclaredNullability(Nullability.nullable);
+    } else {
+      replacement = new Let(node.variable, body)..fileOffset = node.fileOffset;
+    }
+
+    return new ExpressionInferenceResult(inferredType, replacement);
+  }
+
   ExpressionInferenceResult visitPropertySet(
     PropertySet node,
     DartType typeContext,
@@ -12361,73 +12400,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     DartType replacementType = replacementResult.inferredType;
 
     return new ExpressionInferenceResult(replacementType, replacement);
-  }
-
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAugmentSuperSet(
-    AugmentSuperSet node,
-    DartType typeContext,
-  ) {
-    Member member = node.target;
-    if (member.isInstanceMember) {
-      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
-      DartType receiverType = thisType!;
-
-      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
-        thisType!,
-        member,
-        hasNonObjectMemberAccess: true,
-      );
-      DartType writeContext = target.getSetterType(this);
-      ExpressionInferenceResult rhsResult = inferExpression(
-        node.value,
-        writeContext,
-        isVoidAllowed: true,
-      );
-      rhsResult = ensureAssignableResult(
-        writeContext,
-        rhsResult,
-        fileOffset: node.fileOffset,
-        isVoidAllowed: writeContext is VoidType,
-      );
-      Expression rhs = rhsResult.expression;
-      DartType rhsType = rhsResult.inferredType;
-
-      ExpressionInferenceResult replacementResult = _computePropertySet(
-        node.fileOffset,
-        receiver,
-        receiverType,
-        member.name,
-        target,
-        rhs,
-        valueType: rhsType,
-        forEffect: node.forEffect,
-      );
-      Expression replacement = replacementResult.expression;
-      DartType replacementType = replacementResult.inferredType;
-
-      return new ExpressionInferenceResult(replacementType, replacement);
-    } else {
-      // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
-      DartType writeContext = member.setterType;
-      ExpressionInferenceResult rhsResult = inferExpression(
-        node.value,
-        writeContext,
-        isVoidAllowed: true,
-      );
-      rhsResult = ensureAssignableResult(
-        writeContext,
-        rhsResult,
-        fileOffset: node.fileOffset,
-        isVoidAllowed: writeContext is VoidType,
-      );
-      Expression rhs = rhsResult.expression;
-      StaticSet result = new StaticSet(member, rhs)
-        ..fileOffset = node.fileOffset;
-      DartType rhsType = rhsResult.inferredType;
-      return new ExpressionInferenceResult(rhsType, result);
-    }
   }
 
   ExpressionInferenceResult visitPropertyGet(
@@ -12568,56 +12540,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         node.fileOffset,
         noLength,
       );
-    }
-  }
-
-  // Coverage-ignore(suite): Not run.
-  ExpressionInferenceResult visitAugmentSuperGet(
-    AugmentSuperGet node,
-    DartType typeContext,
-  ) {
-    Member member = node.target;
-    if (member.isInstanceMember) {
-      ObjectAccessTarget target = new ObjectAccessTarget.interfaceMember(
-        thisType!,
-        member,
-        hasNonObjectMemberAccess: true,
-      );
-      Expression receiver = new ThisExpression()..fileOffset = node.fileOffset;
-      DartType receiverType = thisType!;
-
-      PropertyGetInferenceResult propertyGetInferenceResult =
-          _computePropertyGet(
-            node.fileOffset,
-            receiver,
-            receiverType,
-            member.name,
-            typeContext,
-            isThisReceiver: true,
-            readTarget: target,
-            propertyGetNode: node,
-          );
-      ExpressionInferenceResult readResult =
-          propertyGetInferenceResult.expressionInferenceResult;
-      return new ExpressionInferenceResult(
-        readResult.inferredType,
-        readResult.expression,
-      );
-    } else {
-      // TODO(johnniwinther): Handle augmentation of field with inferred types.
-      TypeInferenceEngine.resolveInferenceNode(member, hierarchyBuilder);
-      DartType type = member.getterType;
-
-      if (member is Procedure && member.kind == ProcedureKind.Method) {
-        Expression tearOff = new StaticTearOff(node.target as Procedure)
-          ..fileOffset = node.fileOffset;
-        return instantiateTearOff(type, typeContext, tearOff);
-      } else {
-        return new ExpressionInferenceResult(
-          type,
-          new StaticGet(member)..fileOffset = node.fileOffset,
-        );
-      }
     }
   }
 
@@ -12788,7 +12710,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   StatementInferenceResult visitReturnStatement(
     covariant ReturnStatementImpl node,
   ) {
-    DartType typeContext = closureContext.returnContext;
+    DartType typeContext = bodyContext.returnContext;
     DartType inferredType;
     if (node.expression != null) {
       ExpressionInferenceResult expressionResult = inferExpression(
@@ -12801,7 +12723,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     } else {
       inferredType = const NullType();
     }
-    closureContext.handleReturn(node, inferredType, node.isArrow);
+    bodyContext.handleReturn(node, inferredType, node.isArrow);
     flowAnalysis.handleReturn();
     return const StatementInferenceResult();
   }
@@ -13693,7 +13615,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     }
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope = scopeProviderInfo.scope?..parent = node;
     }
   }
 
@@ -13912,7 +13834,10 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.whileStatement_end();
     if (scopeProviderInfo != null) {
       _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
-      node.scope = scopeProviderInfo.scope;
+      node.scope =
+          scopeProviderInfo
+              .scope // Coverage-ignore(suite): Not run.
+            ?..parent = node;
     }
     return const StatementInferenceResult();
   }
@@ -13927,7 +13852,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       analysisResult.operandType.unwrapTypeView(),
       popRewrite() as Expression,
     );
-    closureContext.handleYield(node, expressionResult);
+    bodyContext.handleYield(node, expressionResult);
     return const StatementInferenceResult();
   }
 
@@ -15717,9 +15642,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         case ObjectAccessTargetKind.dynamic:
           field.accessKind = ObjectAccessKind.Dynamic;
           break;
-        // Coverage-ignore(suite): Not run.
         case ObjectAccessTargetKind.never:
-          field.accessKind = ObjectAccessKind.Dynamic;
+          field.accessKind = ObjectAccessKind.Never;
           break;
       }
       if (fieldTarget.isInstanceMember || fieldTarget.isObjectMember) {
@@ -16217,9 +16141,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     // TODO(johnniwinther): Share this through the type analyzer.
     Pattern? replacement;
-    VariableDeclarationImpl variable = node.variable as VariableDeclarationImpl;
-    bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable);
-    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(variable);
+    InternalVariable variable = node.variable as InternalVariable;
+    bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable.astVariable);
+    bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
+      variable.astVariable,
+    );
     if ((variable.isLate && variable.isFinal) ||
         variable.isLateFinalWithoutInitializer) {
       if (isDefinitelyAssigned) {
@@ -17441,6 +17367,30 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new StatementInferenceResult.multiple(node.fileOffset, result);
     }
     return const StatementInferenceResult();
+  }
+
+  @override
+  ScopeProviderInfo beginFieldInference({
+    required ThisVariable? internalThisVariable,
+  }) {
+    ScopeProviderInfo scopeProviderInfo = _contextAllocationStrategy
+        .enterScopeProvider(
+          scopeProviderInfoKind: internalThisVariable == null
+              ? ScopeProviderInfoKind.StaticField
+              : ScopeProviderInfoKind.InstanceField,
+        );
+    if (internalThisVariable != null) {
+      _contextAllocationStrategy.handleDeclarationOfVariable(
+        internalThisVariable,
+        captureKind: _captureKindForVariable(internalThisVariable),
+      );
+    }
+    return scopeProviderInfo;
+  }
+
+  @override
+  void endFieldInference(ScopeProviderInfo scopeProviderInfo) {
+    _contextAllocationStrategy.exitScopeProvider(scopeProviderInfo);
   }
 }
 

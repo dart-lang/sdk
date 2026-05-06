@@ -2,10 +2,10 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:cfg/ir/constant_value.dart';
 import 'package:cfg/ir/dominators.dart';
 import 'package:cfg/ir/flow_graph.dart';
 import 'package:cfg/ir/instructions.dart';
-import 'package:cfg/ir/ir_to_text.dart';
 import 'package:cfg/ir/liveness_analysis.dart';
 import 'package:cfg/passes/pass.dart';
 import 'package:cfg/utils/bit_vector.dart';
@@ -134,7 +134,7 @@ final class SSAComputation extends Pass {
           case LoadLocal():
             instr.replaceUsesWith(
               variableValues[instr.variable.index] ??
-                  (throw 'Variable ${instr.variable} is used in ${IrToText.instruction(instr)} before defined.'),
+                  graph.getConstant(ConstantValue(UndefinedConstant())),
             );
             instr.removeFromGraph();
         }
@@ -149,7 +149,8 @@ final class SSAComputation extends Pass {
           for (final phi in successor.phis) {
             phi.setInputAt(
               predecessorIndex,
-              variableValues[phi.variable.index]!,
+              variableValues[phi.variable.index] ??
+                  graph.getConstant(ConstantValue(UndefinedConstant())),
             );
             phi.addInputToUseList(predecessorIndex);
           }

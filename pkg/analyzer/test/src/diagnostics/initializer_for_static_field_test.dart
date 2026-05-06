@@ -22,7 +22,7 @@ class A(this.x) {
   static int? x;
 }
 ''',
-      [error(diag.initializerForStaticField, 8, 6)],
+      [error(diag.initializerForStaticField, 8, 4)],
     );
   }
 
@@ -34,7 +34,7 @@ class A {
   A([this.x = 0]) {}
 }
 ''',
-      [error(diag.initializerForStaticField, 32, 6)],
+      [error(diag.initializerForStaticField, 32, 4)],
     );
   }
 
@@ -61,7 +61,7 @@ enum E(this.x) {
   static int? x;
 }
 ''',
-      [error(diag.initializerForStaticField, 7, 6)],
+      [error(diag.initializerForStaticField, 7, 4)],
     );
   }
 
@@ -74,7 +74,7 @@ enum E {
   const E(this.x);
 }
 ''',
-      [error(diag.initializerForStaticField, 47, 6)],
+      [error(diag.initializerForStaticField, 47, 4)],
     );
   }
 
@@ -112,7 +112,7 @@ extension type E(int it) {
   E.named(this.x) : this.it = 0;
 }
 ''',
-      [error(diag.initializerForStaticField, 57, 6)],
+      [error(diag.initializerForStaticField, 57, 4)],
     );
   }
 

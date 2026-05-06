@@ -10,10 +10,10 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart' hide Element;
 import 'package:analyzer_plugin/src/utilities/change_builder/change_builder_dart.dart'
     show DartFileEditBuilderImpl, DartLinkedEditBuilderImpl;
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -1455,7 +1455,11 @@ class A {}
     var builder = await newBuilder();
     await builder.addDartFileEdit(path, (builder) {
       builder.addInsertion(2, (builder) {
-        builder.writeParameterMatchingArgument(argument, 0, <String>{});
+        builder.writeParameterMatchingArgument(
+          argument.argumentExpression,
+          0,
+          <String>{},
+        );
       });
     });
     var edit = getEdit(builder);
@@ -1770,7 +1774,10 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {/* TODO */}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('set s(value) {/* TODO */}'),
+    );
   }
 
   Future<void> test_writeSetterDeclaration_isStatic() async {
@@ -1785,7 +1792,10 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('static set s(s) {}'));
+    expect(
+      edit.replacement,
+      equalsIgnoringWhitespace('static set s(value) {}'),
+    );
   }
 
   Future<void> test_writeSetterDeclaration_nameGroupName() async {
@@ -1800,7 +1810,7 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(s) {}'));
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(value) {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));
@@ -1828,7 +1838,7 @@ a''');
       });
     });
     var edit = getEdit(builder);
-    expect(edit.replacement, equalsIgnoringWhitespace('set s(A s) {}'));
+    expect(edit.replacement, equalsIgnoringWhitespace('set s(A value) {}'));
 
     var linkedEditGroups = builder.sourceChange.linkedEditGroups;
     expect(linkedEditGroups, hasLength(1));

@@ -1277,7 +1277,7 @@ String destructure(Map<String, dynamic> map) {
 
       // destructure
       "{\"scriptIndex\":0,\"startPos\":81,\"endPos\":216,\"compiled\":true,"
-      "\"coverage\":{\"hits\":[81,144,160,214],\"misses\":[]}}],"
+      "\"coverage\":{\"hits\":[81,144,160,185],\"misses\":[]}}],"
 
       // Only one script in the script table.
       "\"scripts\":[{\"type\":\"@Script\",\"fixedId\":true,\"id\":\"\","

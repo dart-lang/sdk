@@ -10,7 +10,6 @@ import 'package:_fe_analyzer_shared/src/messages/diagnostic_message.dart'
     show CfeDiagnosticMessage, DiagnosticMessageHandler;
 import 'package:front_end/src/api_unstable/ddc.dart';
 import 'package:kernel/ast.dart' show Component, Library, TreeNode;
-import 'package:kernel/dart_scope_calculator.dart';
 
 import '../compiler/js_names.dart' as js_ast;
 import '../compiler/module_builder.dart';

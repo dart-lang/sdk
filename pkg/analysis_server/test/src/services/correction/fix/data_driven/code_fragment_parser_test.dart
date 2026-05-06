@@ -9,10 +9,11 @@ import 'package:analysis_server/src/services/correction/fix/data_driven/expressi
 import 'package:analysis_server/src/services/correction/fix/data_driven/value_generator.dart';
 import 'package:analysis_server/src/services/correction/fix/data_driven/variable_scope.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../../../mocks.dart';
 import '../../../../../utils/test_support.dart';
 
 void main() {
@@ -22,7 +23,7 @@ void main() {
   });
 }
 
-abstract class AbstractCodeFragmentParserTest {
+abstract class AbstractCodeFragmentParserTest with ResourceProviderMixin {
   // ignore:unreachable_from_main
   List<Accessor>? assertErrors(
     String content,
@@ -76,7 +77,8 @@ abstract class AbstractCodeFragmentParserTest {
     GatheringDiagnosticListener listener, {
     List<String>? variables,
   }) {
-    var diagnosticReporter = DiagnosticReporter(listener, MockSource());
+    var file = newFile('/test.dart', '');
+    var diagnosticReporter = DiagnosticReporter(listener, FileSource(file));
     var map = <String, ValueGenerator>{};
     if (variables != null) {
       for (var variableName in variables) {

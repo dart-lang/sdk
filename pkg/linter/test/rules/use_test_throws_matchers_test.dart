@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../rule_test_support.dart';
@@ -23,7 +23,10 @@ class UseTestThrowsMatchersTest extends LintRuleTest {
     super.setUp();
     var testApiPath = '$workspaceRootPath/test_api';
     var packageConfigBuilder = PackageConfigFileBuilder();
-    packageConfigBuilder.add(name: 'test_api', rootPath: testApiPath);
+    packageConfigBuilder.add(
+      name: 'test_api',
+      rootFolder: getFolder(testApiPath),
+    );
     writeTestPackageConfig(packageConfigBuilder);
     newFile('$testApiPath/lib/src/frontend/expect.dart', r'''
 void expect(dynamic actual, dynamic matcher) {}

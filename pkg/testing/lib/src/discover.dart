@@ -14,11 +14,15 @@ final Uri packageConfig = computePackageConfig();
 
 /// Common arguments when running a dart program. Returns a copy that can
 /// safely be modified by caller.
-List<String> get dartArguments =>
-    <String>["-c", "--packages=${packageConfig.toFilePath()}"];
+List<String> get dartArguments => <String>[
+  "-c",
+  "--packages=${packageConfig.toFilePath()}",
+];
 
-Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
-    {Pattern? pattern}) {
+Stream<FileBasedTestDescription> listTests(
+  List<Uri> testRoots, {
+  Pattern? pattern,
+}) {
   StreamController<FileBasedTestDescription> controller =
       StreamController<FileBasedTestDescription>();
   Map<Uri, StreamSubscription?> subscriptions = <Uri, StreamSubscription>{};
@@ -27,23 +31,32 @@ Stream<FileBasedTestDescription> listTests(List<Uri> testRoots,
     Directory testRoot = Directory.fromUri(testRootUri);
     testRoot.exists().then((bool exists) {
       if (exists) {
-        Stream<FileSystemEntity> stream =
-            testRoot.list(recursive: true, followLinks: false);
-        var subscription = stream.listen((FileSystemEntity entity) {
-          FileBasedTestDescription? description = FileBasedTestDescription.from(
-              testRootUri, entity,
-              pattern: pattern);
-          if (description != null) {
-            controller.add(description);
-          }
-        }, onError: (error, StackTrace trace) {
-          controller.addError(error, trace);
-        }, onDone: () {
-          subscriptions.remove(testRootUri);
-          if (subscriptions.isEmpty) {
-            controller.close(); // TODO(ahe): catchError???
-          }
-        });
+        Stream<FileSystemEntity> stream = testRoot.list(
+          recursive: true,
+          followLinks: false,
+        );
+        var subscription = stream.listen(
+          (FileSystemEntity entity) {
+            FileBasedTestDescription? description =
+                FileBasedTestDescription.from(
+                  testRootUri,
+                  entity,
+                  pattern: pattern,
+                );
+            if (description != null) {
+              controller.add(description);
+            }
+          },
+          onError: (error, StackTrace trace) {
+            controller.addError(error, trace);
+          },
+          onDone: () {
+            subscriptions.remove(testRootUri);
+            if (subscriptions.isEmpty) {
+              controller.close(); // TODO(ahe): catchError???
+            }
+          },
+        );
         subscriptions[testRootUri] = subscription;
       } else {
         controller.addError("$testRootUri isn't a directory");
@@ -63,8 +76,11 @@ Uri computePackageConfig() {
   return Uri.base.resolve(".dart_tool/package_config.json");
 }
 
-Future<Process> startDart(Uri program,
-    [List<String>? arguments, List<String>? vmArguments]) {
+Future<Process> startDart(
+  Uri program, [
+  List<String>? arguments,
+  List<String>? vmArguments,
+]) {
   List<String> allArguments = <String>[];
   allArguments.addAll(vmArguments ?? dartArguments);
   allArguments.add(program.toFilePath());

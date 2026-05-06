@@ -15,17 +15,11 @@ class AstBinaryFlags {
 
   static final _hasInitializer = _checkBit(
     2,
-    DefaultFormalParameter,
+    FormalParameter,
     VariableDeclaration,
   );
 
-  static final _hasName = _checkBit(
-    5,
-    ConstructorDeclaration,
-    FieldFormalParameter,
-    FunctionTypedFormalParameter,
-    SimpleFormalParameter,
-  );
+  static final _hasName = _checkBit(5, ConstructorDeclaration, FormalParameter);
 
   static final _hasNot = _checkBit(0, IsExpression);
 
@@ -42,7 +36,6 @@ class AstBinaryFlags {
 
   static final _hasQuestion = _checkBit(
     2,
-    FieldFormalParameter,
     GenericFunctionType,
     IndexExpression,
     NamedType,
@@ -82,16 +75,11 @@ class AstBinaryFlags {
     ConstructorDeclaration,
     DeclaredIdentifier,
     InstanceCreationExpression,
-    NormalFormalParameter,
     TypedLiteral,
     VariableDeclarationList,
   );
 
-  static final _isCovariant = _checkBit(
-    2,
-    FieldDeclaration,
-    NormalFormalParameter,
-  );
+  static final _isCovariant = _checkBit(2, FieldDeclaration);
 
   static final _isDeclaration = _checkBit(0, SimpleIdentifier);
 
@@ -120,7 +108,6 @@ class AstBinaryFlags {
   static final _isFinal = _checkBit(
     4,
     DeclaredIdentifier,
-    NormalFormalParameter,
     VariableDeclarationList,
   );
 
@@ -140,13 +127,9 @@ class AstBinaryFlags {
 
   static final _isOperator = _checkBit(0, MethodDeclaration);
 
-  static final _isPositional = _checkBit(1, DefaultFormalParameter);
+  static final _isPositional = _checkBit(1, FormalParameter);
 
-  static final _isRequired = _checkBit(
-    0,
-    DefaultFormalParameter,
-    NormalFormalParameter,
-  );
+  static final _isRequired = _checkBit(0, FormalParameter);
 
   static final _isSet = _checkBit(
     5,
@@ -171,9 +154,15 @@ class AstBinaryFlags {
   static final _isVar = _checkBit(
     1,
     DeclaredIdentifier,
-    NormalFormalParameter,
     VariableDeclarationList,
   );
+
+  static const _formalParameterKeywordFinal = 1 << 3;
+  static const _formalParameterKeywordConst = 1 << 4;
+  static const _formalParameterKeywordMask =
+      _formalParameterKeywordFinal | _formalParameterKeywordConst;
+  static const _formalParameterHasQuestion = 1 << 6;
+  static const _formalParameterIsCovariant = 1 << 7;
 
   static int encode({
     bool hasAwait = false,
@@ -335,6 +324,79 @@ class AstBinaryFlags {
       result |= _isVar;
     }
     return result;
+  }
+
+  static int encodeFormalParameter({
+    required bool hasInitializer,
+    required bool hasName,
+    required bool hasQuestion,
+    required bool isConst,
+    required bool isCovariant,
+    required bool isFinal,
+    required bool isPositional,
+    required bool isRequired,
+    required bool isVar,
+  }) {
+    var result = encode(
+      hasInitializer: hasInitializer,
+      hasName: hasName,
+      isPositional: isPositional,
+      isRequired: isRequired,
+    );
+    if (isFinal) {
+      result |= _formalParameterKeywordFinal;
+    }
+    if (isConst) {
+      result |= _formalParameterKeywordConst;
+    }
+    if (isVar) {
+      result |= _formalParameterKeywordMask;
+    }
+    if (hasQuestion) {
+      result |= _formalParameterHasQuestion;
+    }
+    if (isCovariant) {
+      result |= _formalParameterIsCovariant;
+    }
+    return result;
+  }
+
+  static bool formalParameterHasInitializer(int flags) {
+    return hasInitializer(flags);
+  }
+
+  static bool formalParameterHasName(int flags) {
+    return hasName(flags);
+  }
+
+  static bool formalParameterHasQuestion(int flags) {
+    return (flags & _formalParameterHasQuestion) != 0;
+  }
+
+  static bool formalParameterIsConst(int flags) {
+    return (flags & _formalParameterKeywordMask) ==
+        _formalParameterKeywordConst;
+  }
+
+  static bool formalParameterIsCovariant(int flags) {
+    return (flags & _formalParameterIsCovariant) != 0;
+  }
+
+  static bool formalParameterIsFinal(int flags) {
+    return (flags & _formalParameterKeywordMask) ==
+        _formalParameterKeywordFinal;
+  }
+
+  static bool formalParameterIsPositional(int flags) {
+    return isPositional(flags);
+  }
+
+  static bool formalParameterIsRequired(int flags) {
+    return isRequired(flags);
+  }
+
+  static bool formalParameterIsVar(int flags) {
+    return (flags & _formalParameterKeywordMask) == _formalParameterKeywordMask;
   }
 
   static bool hasAwait(int flags) {

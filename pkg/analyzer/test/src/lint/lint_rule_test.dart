@@ -6,20 +6,23 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
-import 'package:analyzer/source/source.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
+import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:test/test.dart';
 
 import '../../generated/test_support.dart';
 
 main() {
+  var testSources = _TestSources();
+
   group('lint rule', () {
     group('error code reporting', () {
       test('reportLintForToken (custom)', () {
         var rule = TestRule();
         var listener = GatheringDiagnosticListener();
-        var reporter = DiagnosticReporter(listener, _MockSource('mock'));
+        var reporter = DiagnosticReporter(listener, testSources.source('mock'));
         rule.reporter = reporter;
 
         rule.reportAtToken(
@@ -31,7 +34,7 @@ main() {
       test('reportLintForToken (default)', () {
         var rule = TestRule();
         var listener = GatheringDiagnosticListener();
-        var reporter = DiagnosticReporter(listener, _MockSource('mock'));
+        var reporter = DiagnosticReporter(listener, testSources.source('mock'));
         rule.reporter = reporter;
 
         rule.reportAtToken(
@@ -43,7 +46,7 @@ main() {
       test('reportLint (custom)', () {
         var rule = TestRule();
         var listener = GatheringDiagnosticListener();
-        var reporter = DiagnosticReporter(listener, _MockSource('mock'));
+        var reporter = DiagnosticReporter(listener, testSources.source('mock'));
         rule.reporter = reporter;
 
         var node = EmptyStatementImpl(
@@ -55,7 +58,7 @@ main() {
       test('reportLint (default)', () {
         var rule = TestRule();
         var listener = GatheringDiagnosticListener();
-        var reporter = DiagnosticReporter(listener, _MockSource('mock'));
+        var reporter = DiagnosticReporter(listener, testSources.source('mock'));
         rule.reporter = reporter;
 
         var node = EmptyStatementImpl(
@@ -89,14 +92,6 @@ class TestRule extends MultiAnalysisRule {
   List<DiagnosticCode> get diagnosticCodes => [code, customCode];
 }
 
-class _MockSource implements Source {
-  @override
-  final String fullName;
-
-  _MockSource(this.fullName);
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    throw StateError('Unexpected invocation of ${invocation.memberName}');
-  }
+class _TestSources with ResourceProviderMixin {
+  FileSource source(String name) => FileSource(newFile('/$name.dart', ''));
 }

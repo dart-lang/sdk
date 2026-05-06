@@ -80,7 +80,7 @@ class LibraryContext {
     elementFactory = LinkedElementFactory(
       analysisContext,
       analysisSession,
-      Reference.root(),
+      RootReference(),
     );
     if (externalSummaries != null) {
       for (var bundle in externalSummaries.bundles) {

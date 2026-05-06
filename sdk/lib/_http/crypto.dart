@@ -8,7 +8,7 @@ class _CryptoUtils {
   static Uint8List getRandomBytes(int count) {
     final Uint8List result = Uint8List(count);
     for (int i = 0; i < count; i++) {
-      result[i] = Random.secure().nextInt(0xff);
+      result[i] = Random.secure().nextInt(256);
     }
     return result;
   }

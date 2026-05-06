@@ -6,8 +6,8 @@ import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/legacy_analysis_server.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_testing/experiments/experiments.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -233,7 +233,7 @@ environment:
   sdk: ^3.7.0
 ''');
     var config = PackageConfigFileBuilder();
-    config.add(name: 'a', rootPath: join(projectFolderPath, 'pkgs', 'a'));
+    config.add(name: 'a', rootFolder: getFolder('$projectFolderPath/pkgs/a'));
     writeTestPackageConfig(config: config, flutter: true);
 
     var fileUri = toUri(

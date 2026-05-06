@@ -5,7 +5,6 @@
   (type $#Vtable-0-1 <...>)
   (type $Array<_NamedParameter> <...>)
   (type $Array<_Type> <...>)
-  (type $BoxedInt <...>)
   (type $H0 (sub final $Object (struct
     (field $field0 i32)
     (field $field1 (mut i32))
@@ -22,7 +21,7 @@
   (table $module0.constant-table0 (import "module0" "constant-table0") 1 (ref null $_FunctionType))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 11 funcref)
   (global $"\"globalH0Foo\"" (ref $JSExternWrapper)
-    (i32.const 107)
+    (i32.const 102)
     (i32.const 0)
     (global.get $.globalH0Foo)
     (struct.new $JSExternWrapper))
@@ -33,19 +32,19 @@
   (global $global0 (ref $"dummy struct") <...>)
   (global $global2 (ref $#Vtable-0-1) <...>)
   (elem $module0.cross-module-funcs-0
-    (set 8 (ref.func $globalH0Foo))
-    (set 9 (ref.func $0))
-    (set 10 (ref.func $"H0 (lazy initializer)")))
+    (set 8 (ref.func $0))
+    (set 9 (ref.func $"H0 (lazy initializer)"))
+    (set 10 (ref.func $1)))
   (func $"H0 (lazy initializer)" (result (ref $H0))
     (local $var0 (ref $_FunctionType))
     (local $var1 (ref $#Closure-0-1))
     (local $var2 (ref $H0))
-    i32.const 110
+    i32.const 107
     i32.const 0
     block $label0 (result (ref $#Closure-0-1))
       global.get $"globalH0Foo tear-off"
       br_on_non_null $label0
-      i32.const 52
+      i32.const 31
       i32.const 0
       global.get $global0
       global.get $global2
@@ -80,15 +79,11 @@
     local.get $var2
   )
   (func $"globalH0Foo tear-off trampoline" (param $var0 (ref struct)) (param $var1 (ref null $#Top)) (result (ref null $#Top))
-    local.get $var1
-    ref.cast $BoxedInt
-    struct.get $BoxedInt $value
-    call $globalH0Foo
-  )
-  (func $null (result (ref null $H0)) <...>)
-  (func $globalH0Foo (param $var0 i64) (result (ref null $#Top))
     global.get $"\"globalH0Foo\""
     i32.const 5
-    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top)) (result (ref null $#Top))
+    call_indirect $module0.cross-module-funcs-0 (param (ref null $#Top))
+    ref.null none
   )
+  (func $null (result (ref null $H0)) <...>)
+  (func $null (result (ref $JSExternWrapper)) <...>)
 )

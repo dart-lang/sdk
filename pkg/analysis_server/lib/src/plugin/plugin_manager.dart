@@ -26,7 +26,6 @@ import 'package:analyzer/src/util/glob.dart';
 import 'package:analyzer/src/util/platform_info.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart';
 import 'package:analyzer_plugin/protocol/protocol_generated.dart';
@@ -752,18 +751,18 @@ class PluginManager {
 
         packages.sort((a, b) => a.name.compareTo(b.name));
 
-        var packageConfigBuilder = PackageConfigFileBuilder();
-        for (var package in packages) {
-          packageConfigBuilder.add(
-            name: package.name,
-            rootPath: package.root.path,
-          );
-        }
-        packageConfigFile.writeAsStringSync(
-          packageConfigBuilder.toContent(
-            pathContext: _resourceProvider.pathContext,
-          ),
-        );
+        var packageConfigContent = const JsonEncoder.withIndent('  ').convert({
+          'configVersion': 2,
+          'packages': [
+            for (var package in packages)
+              {
+                'name': package.name,
+                'rootUri': '${package.root.toUri()}',
+                'packageUri': 'lib/',
+              },
+          ],
+        });
+        packageConfigFile.writeAsStringSync('$packageConfigContent\n');
       } catch (exception) {
         // If we are not able to produce a package config file, return `null` so
         // that callers will not try to load the plugin.

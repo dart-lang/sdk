@@ -44,7 +44,7 @@ class AnalysisOptionsGeneratorTest extends YamlGeneratorTest
 analyzer:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.enableExperiment}:');
+    assertSuggestion('${AnalysisOptionsFileKeys.enableExperiment}:');
   }
 
   void test_analyzer_enableExperiment() {
@@ -148,7 +148,7 @@ analyzer:
 code-style:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.format}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.format}: ');
   }
 
   void test_codeStyle_format() {
@@ -162,10 +162,10 @@ code-style:
 
   void test_empty() {
     getCompletions('^');
-    assertSuggestion('${AnalysisOptionsFile.analyzer}: ');
-    assertSuggestion('${AnalysisOptionsFile.codeStyle}: ');
-    assertSuggestion('${AnalysisOptionsFile.formatter}: ');
-    assertSuggestion('${AnalysisOptionsFile.include}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.analyzer}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.codeStyle}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.formatter}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
     // TODO(brianwilkerson): Replace this with a constant.
     assertSuggestion('linter: ');
   }
@@ -175,8 +175,8 @@ code-style:
 formatter:
   ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.pageWidth}: ');
-    assertSuggestion('${AnalysisOptionsFile.trailingCommas}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.pageWidth}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.trailingCommas}: ');
   }
 
   void test_formatter_trailingCommas() {
@@ -295,6 +295,32 @@ linter:
     assertNoSuggestion('removed_lint');
   }
 
+  void test_plugins_git_keys() {
+    getCompletions('''
+plugins:
+  my_plugin:
+    git:
+      ^
+''');
+    assertSuggestion('${AnalysisOptionsFileKeys.url}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.ref}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.path}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.tagPattern}: ');
+  }
+
+  void test_plugins_keys() {
+    getCompletions('''
+plugins:
+  my_plugin:
+    ^
+''');
+    assertSuggestion('${AnalysisOptionsFileKeys.diagnostics}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.git}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.path}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.version}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.hosted}: ');
+  }
+
   @failingTest
   void test_topLevel_afterOtherKeys() {
     // This test fails because the cursor is considered to be inside the exclude
@@ -305,7 +331,7 @@ analyzer:
     - '*.g.dart'
 ^
 ''');
-    assertSuggestion('${AnalysisOptionsFile.include}: ');
+    assertSuggestion('${AnalysisOptionsFileKeys.include}: ');
   }
 
   @failingTest

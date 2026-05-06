@@ -69,7 +69,7 @@ class TestController {
 
 class CustomTestSuite extends TestSuite {
   CustomTestSuite(TestConfiguration configuration)
-      : super(configuration, "CustomTestSuite", []);
+    : super(configuration, "CustomTestSuite", []);
 
   @override
   void findTestCases(TestCaseEvent onTest, Map testCache) {
@@ -78,15 +78,21 @@ class CustomTestSuite extends TestSuite {
       onTest(testCase);
     }
 
-    var testCaseCrash =
-        _makeTestCase("crash", defaultTimeout, [Expectation.crash]);
-    var testCasePass =
-        _makeTestCase("pass", defaultTimeout, [Expectation.pass]);
-    var testCaseFail =
-        _makeTestCase("fail", defaultTimeout, [Expectation.runtimeError]);
+    var testCaseCrash = _makeTestCase("crash", defaultTimeout, [
+      Expectation.crash,
+    ]);
+    var testCasePass = _makeTestCase("pass", defaultTimeout, [
+      Expectation.pass,
+    ]);
+    var testCaseFail = _makeTestCase("fail", defaultTimeout, [
+      Expectation.runtimeError,
+    ]);
     var testCaseTimeout = _makeTestCase("timeout", 5, [Expectation.timeout]);
-    var testCaseFailUnexpected =
-        _makeTestCase("fail-unexpected", defaultTimeout, [Expectation.pass]);
+    var testCaseFailUnexpected = _makeTestCase(
+      "fail-unexpected",
+      defaultTimeout,
+      [Expectation.pass],
+    );
 
     enqueueTestCase(testCaseCrash);
     enqueueTestCase(testCasePass);
@@ -96,7 +102,10 @@ class CustomTestSuite extends TestSuite {
   }
 
   TestCase _makeTestCase(
-      String name, timeout, Iterable<Expectation> expectations) {
+    String name,
+    timeout,
+    Iterable<Expectation> expectations,
+  ) {
     var configuration = OptionsParser().parse(['--timeout', '$timeout'])[0];
     final args = [
       if (Platform.packageConfig != null)
@@ -105,14 +114,23 @@ class CustomTestSuite extends TestSuite {
       name,
     ];
     final command = VMCommand(Platform.executable, args, {});
-    final testFile = TestFile.vmUnitTest('suite/dummy_test',
-        hasCompileError: expectations
-            .any((e) => e.canBeOutcomeOf(Expectation.compileTimeError)),
-        hasRuntimeError:
-            expectations.any((e) => e.canBeOutcomeOf(Expectation.runtimeError)),
-        hasCrash: expectations.any((e) => e.canBeOutcomeOf(Expectation.crash)));
-    return TestCase(name, [command], configuration,
-        Set<Expectation>.from(expectations), testFile);
+    final testFile = TestFile.vmUnitTest(
+      'suite/dummy_test',
+      hasCompileError: expectations.any(
+        (e) => e.canBeOutcomeOf(Expectation.compileTimeError),
+      ),
+      hasRuntimeError: expectations.any(
+        (e) => e.canBeOutcomeOf(Expectation.runtimeError),
+      ),
+      hasCrash: expectations.any((e) => e.canBeOutcomeOf(Expectation.crash)),
+    );
+    return TestCase(
+      name,
+      [command],
+      configuration,
+      Set<Expectation>.from(expectations),
+      testFile,
+    );
   }
 }
 
@@ -120,8 +138,14 @@ void testProcessQueue() {
   var maxProcesses = 2;
   var maxBrowserProcesses = maxProcesses;
   var config = OptionsParser().parse(['--no-batch'])[0];
-  ProcessQueue(config, maxProcesses, maxBrowserProcesses,
-      [CustomTestSuite(config)], [EventListener()], TestController.finished);
+  ProcessQueue(
+    config,
+    maxProcesses,
+    maxBrowserProcesses,
+    [CustomTestSuite(config)],
+    [EventListener()],
+    TestController.finished,
+  );
 }
 
 class EventListener extends progress.EventListener {

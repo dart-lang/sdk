@@ -257,7 +257,7 @@ extension type ExtensionType<T extends core::Object? = dynamic>(core::List<T%> i
   constructor • = ali::ExtensionType|constructor#;
   constructor tearoff • = ali::ExtensionType|constructor#_#new#tearOff;
 }
-static extension-type-member method ExtensionType|constructor#<T extends core::Object? = dynamic>(core::List<ali::ExtensionType|constructor#::T%> it) → ali::ExtensionType<ali::ExtensionType|constructor#::T%>% /* erasure=core::List<ali::ExtensionType|constructor#::T%>, declared=! */ {
+static extension-type-member method ExtensionType|constructor#<T extends core::Object? = dynamic>(initializing-formal core::List<ali::ExtensionType|constructor#::T%> it) → ali::ExtensionType<ali::ExtensionType|constructor#::T%>% /* erasure=core::List<ali::ExtensionType|constructor#::T%>, declared=! */ {
   lowered final ali::ExtensionType<ali::ExtensionType|constructor#::T%>% /* erasure=core::List<ali::ExtensionType|constructor#::T%>, declared=! */ #this = it;
   return #this;
 }

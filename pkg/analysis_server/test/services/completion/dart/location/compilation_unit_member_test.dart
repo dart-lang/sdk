@@ -37,7 +37,6 @@ suggestions
 ''');
   }
 
-  // TODO(keertip): Do not suggest 'library'.
   Future<void> test_afterAbstract_base_prefix() async {
     await computeSuggestions('''
 abstract b^
@@ -46,11 +45,7 @@ abstract b^
 replacement
   left: 1
 suggestions
-  abstract
-    kind: keyword
   base
-    kind: keyword
-  library
     kind: keyword
 ''');
   }

@@ -37,7 +37,7 @@ class Benchmarker {
     _currentPhase = BenchmarkPhases.implicitInitialization;
   }
 
-  void beginSubdivide(final BenchmarkSubdivides phase) {
+  void beginSubdivide(BenchmarkSubdivides phase) {
     _pauseLatestSubdivide(addAsCount: false);
     _subdivideStopwatch.reset();
     _subdivides.add(phase);
@@ -162,7 +162,7 @@ class SubdivideTiming {
 enum BenchmarkPhases {
   implicitInitialization,
   loadSDK,
-  loadAdditionalDills,
+  loadAdditionalDillModules,
 
   dill_buildOutlines,
   dill_finalizeExports,

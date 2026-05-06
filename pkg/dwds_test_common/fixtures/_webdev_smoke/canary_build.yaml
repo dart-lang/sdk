@@ -1,0 +1,7 @@
+global_options:
+  build_web_compilers:ddc:
+    options:
+      canary: false
+  build_web_compilers:sdk_js:
+    options:
+      canary: false

@@ -2546,8 +2546,11 @@ CompilationUnit
 mixin const a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.missingIdentifier, 6, 5),
-      error(diag.expectedMixinBody, 6, 5),
+      error(diag.mixinPrimaryConstructor, 6, 5),
+      error(diag.expectedMixinBody, 12, 1),
+      error(diag.expectedExecutable, 14, 1),
+      error(diag.expectedExecutable, 16, 1),
+      error(diag.unexpectedToken, 17, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -2555,20 +2558,10 @@ CompilationUnit
   declarations
     MixinDeclaration
       mixinKeyword: mixin
-      name: <empty> <synthetic>
+      name: a
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        keyword: const
-        variables
-          VariableDeclaration
-            name: a
-            equals: =
-            initializer: IntegerLiteral
-              literal: 0
-      semicolon: ;
 ''');
   }
 

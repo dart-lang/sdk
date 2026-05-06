@@ -357,7 +357,8 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       cache_mutex_(),
       handler_info_cache_(),
       catch_entry_moves_cache_(),
-      tag_table_lock_() {
+      tag_table_lock_(),
+      roots_(new Roots()) {
   FlagsCopyFrom(api_flags);
   if (!is_vm_isolate) {
     intptr_t max_worker_threads;
@@ -384,20 +385,20 @@ IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
       new ClassTable(&class_table_allocator_);
   cached_class_table_table_.store(class_table_->table());
   memset(&native_assets_api_, 0, sizeof(NativeAssetsApi));
+
+  if (!is_vm_isolate) {
+    *roots() = *Dart::vm_isolate_group()->roots();
+  }
+  Roots::SetCurrent(roots());
 }
 
 IsolateGroup::IsolateGroup(std::shared_ptr<IsolateGroupSource> source,
                            void* embedder_data,
                            Dart_IsolateFlags api_flags,
                            bool is_vm_isolate)
-    : IsolateGroup(source,
-                   embedder_data,
-                   new ObjectStore(),
-                   api_flags,
-                   is_vm_isolate) {
-  if (object_store() != nullptr) {
-    object_store()->InitStubs();
-  }
+    : IsolateGroup(source, embedder_data, nullptr, api_flags, is_vm_isolate) {
+  set_object_store(new ObjectStore());
+  object_store()->InitStubs();
 }
 
 IsolateGroup::~IsolateGroup() {
@@ -500,6 +501,8 @@ void IsolateGroup::CreateHeap(bool is_vm_isolate,
 }
 
 void IsolateGroup::Shutdown() {
+  Roots::SetCurrent(roots());
+
   char* name = nullptr;
   // We retrieve the flag value once to avoid the compiler complaining about the
   // possibly uninitialized value of name, as the compiler is unaware that when
@@ -558,6 +561,7 @@ void IsolateGroup::Shutdown() {
   }
 
   delete this;
+  Roots::ClearCurrent();
 
   // After this isolate group has died we might need to notify a pending
   // `Dart_Cleanup()` call.
@@ -912,6 +916,7 @@ void IsolateGroup::FreeStaticField(const Field& field) {
 }
 
 Isolate* IsolateGroup::EnterTemporaryIsolate() {
+  Roots::SetCurrent(roots());
   Dart_IsolateFlags flags;
   Isolate::FlagsInitialize(&flags);
   Isolate* const isolate = Isolate::InitIsolate("temp", this, flags);
@@ -925,6 +930,7 @@ void IsolateGroup::ExitTemporaryIsolate() {
   ASSERT(thread != nullptr);
   thread->set_execution_state(Thread::kThreadInVM);
   Dart::ShutdownIsolate(thread);
+  Roots::ClearCurrent();
 }
 
 void IsolateGroup::RunWithCachedCatchEntryMoves(
@@ -1440,7 +1446,6 @@ MessageHandler::MessageStatus IsolateMessageHandler::HandleMessage(
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
   Zone* zone = stack_zone.GetZone();
-  HandleScope handle_scope(thread);
 #if defined(SUPPORT_TIMELINE)
   TimelineBeginEndScope tbes(
       thread, Timeline::GetIsolateStream(),
@@ -1569,7 +1574,6 @@ void IsolateMessageHandler::NotifyPauseOnStart() {
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
     StartIsolateScope start_isolate(I);
     StackZone zone(T);
-    HandleScope handle_scope(T);
     ServiceEvent pause_event(I, ServiceEvent::kPauseStart);
     Service::HandleEvent(&pause_event);
   } else if (FLAG_trace_service) {
@@ -1585,7 +1589,6 @@ void IsolateMessageHandler::NotifyPauseOnExit() {
   if (Service::debug_stream.enabled() || FLAG_warn_on_pause_with_no_debugger) {
     StartIsolateScope start_isolate(I);
     StackZone zone(T);
-    HandleScope handle_scope(T);
     ServiceEvent pause_event(I, ServiceEvent::kPauseExit);
     Service::HandleEvent(&pause_event);
   } else if (FLAG_trace_service) {
@@ -2457,7 +2460,7 @@ void Isolate::SetStickyError(ErrorPtr sticky_error) {
 }
 
 void Isolate::Run() {
-  message_handler()->Run(group()->thread_pool(), nullptr, ShutdownIsolate,
+  message_handler()->Run(group()->thread_pool(), ShutdownIsolate,
                          reinterpret_cast<uword>(this));
 }
 
@@ -2472,7 +2475,6 @@ void Isolate::RunAndCleanupFinalizersOnShutdown() {
   // but we no longer allocate new heap objects.
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
-  HandleScope handle_scope(thread);
   NoSafepointScope no_safepoint_scope;
 
   // Set live finalizers isolate to null, before deleting the message handler.
@@ -2520,7 +2522,6 @@ void Isolate::LowLevelShutdown() {
   // but we no longer allocate new heap objects.
   Thread* thread = Thread::Current();
   StackZone stack_zone(thread);
-  HandleScope handle_scope(thread);
   NoSafepointScope no_safepoint_scope;
 
   // Notify exit listeners that this isolate is shutting down.
@@ -2606,7 +2607,6 @@ void Isolate::Shutdown() {
     StackZone zone(thread);
     ServiceIsolate::SendIsolateShutdownMessage();
 #if !defined(PRODUCT)
-    HandleScope handle_scope(thread);
     debugger()->Shutdown();
 #endif
 
@@ -2704,6 +2704,13 @@ void Isolate::LowLevelCleanup(Isolate* isolate) {
       // isolate group still being available.
       FinalizeWeakPersistentHandlesVisitor visitor(isolate_group);
       isolate_group->api_state()->VisitWeakHandlesUnlocked(&visitor);
+
+      // Clean up any synchronous FFI callbacks registered with this
+      // isolate group. Skip if this isolate group never registered any.
+      if (isolate_group->ffi_callback_list_head_ != nullptr) {
+        FfiCallbackMetadata::Instance()->DeleteAllCallbacks(
+            &isolate_group->ffi_callback_list_head_);
+      }
 
       Thread::ExitIsolateGroupAsHelper(/*bypass_safepoint=*/false);
     }
@@ -2972,9 +2979,8 @@ void IsolateGroup::VisitSharedPointers(ObjectPointerVisitor* visitor,
       api_state()->VisitObjectPointersUnlocked(visitor);
       break;
     case kObjectStore:
-      if (object_store() != nullptr) {
-        object_store()->VisitObjectPointers(visitor);
-      }
+      object_store()->VisitObjectPointers(visitor);
+      roots()->VisitObjectPointers(visitor);
       break;
     case kInitialFieldTable:
       initial_field_table()->VisitObjectPointers(visitor);
@@ -3818,14 +3824,18 @@ FfiCallbackMetadata::Trampoline Isolate::CreateIsolateLocalFfiCallback(
       &ffi_callback_list_head_);
 }
 
-// TODO(aam): Should this be in IsolateGroup?
-FfiCallbackMetadata::Trampoline Isolate::CreateIsolateGroupBoundFfiCallback(
-    Zone* zone,
-    const Function& trampoline,
-    const Closure& target) {
+FfiCallbackMetadata::Trampoline
+IsolateGroup::CreateIsolateGroupBoundFfiCallback(Zone* zone,
+                                                 const Function& trampoline,
+                                                 const Closure& target) {
   return FfiCallbackMetadata::Instance()->CreateLocalFfiCallback(
-      /*isolate=*/nullptr, group(), zone, trampoline, target,
+      /*isolate=*/nullptr, this, zone, trampoline, target,
       &ffi_callback_list_head_);
+}
+
+void IsolateGroup::DeleteFfiCallback(FfiCallbackMetadata::Trampoline callback) {
+  FfiCallbackMetadata::Instance()->DeleteCallback(callback,
+                                                  &ffi_callback_list_head_);
 }
 
 bool Isolate::HasLivePorts() {

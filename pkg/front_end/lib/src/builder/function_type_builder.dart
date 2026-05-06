@@ -341,7 +341,7 @@ abstract class FunctionTypeBuilderImpl extends FunctionTypeBuilder {
     Map<TypeParameterBuilder, TypeBuilder> upperSubstitution,
     Map<TypeParameterBuilder, TypeBuilder> lowerSubstitution,
     TypeParameterFactory typeParameterFactory, {
-    final Variance variance = Variance.covariant,
+    Variance variance = Variance.covariant,
   }) {
     List<StructuralParameterBuilder>? typeParameters = this.typeParameters;
     List<ParameterBuilder>? formals = this.formals;

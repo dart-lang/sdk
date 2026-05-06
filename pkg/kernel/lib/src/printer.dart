@@ -260,12 +260,12 @@ class AstPrinter {
         return _variableNames[node] ??= '#${_variableNames.length}';
       case CatchVariable(catchVariableName: var name):
         return name;
-      case LegacyVariableDeclaration():
-        String? name = node.name;
+      case LegacyVariableDeclaration(:var name):
+      case VariableInitialization(:var name):
         if (name != null) {
           return name;
         }
-        return _variableDeclarationNames[node] ??=
+        return _variableDeclarationNames[node as VariableDeclaration] ??=
             '#${_variableDeclarationNames.length}';
     }
   }

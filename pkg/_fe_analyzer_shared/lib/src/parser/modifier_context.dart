@@ -305,7 +305,6 @@ class ModifierContext {
   /// Parse modifiers for top level functions and fields.
   Token parseTopLevelMemberModifiers(Token token) {
     token = _parseModifiers(token);
-    reportExtraneousModifier(abstractToken);
     reportExtraneousModifier(covariantToken);
     reportExtraneousModifier(requiredToken);
     reportExtraneousModifier(staticToken);

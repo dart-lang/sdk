@@ -4,7 +4,7 @@
 
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../dart/resolution/context_collection_resolution.dart';
@@ -145,7 +145,7 @@ class DeprecatedMemberUse_PackageBuildWorkspaceTest
   test_generated() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
 
     newPubspecYamlFile(testPackageRootPath, 'name: test');
@@ -171,7 +171,7 @@ void f(A a) {}
   test_lib() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
 
     newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
@@ -231,7 +231,7 @@ $code
 
     writeTestPackageConfig(
       PackageConfigFileBuilder()
-        ..add(name: 'aaa', rootPath: '$workspaceRootPath/aaa'),
+        ..add(name: 'aaa', rootFolder: getFolder('$workspaceRootPath/aaa')),
     );
   }
 
@@ -389,6 +389,22 @@ f(A a, A b) {
 }
 ''',
       [error(diag.deprecatedMemberUse, 45, 6)],
+    );
+  }
+
+  test_constructor_inAnnotation() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class MyAnnotation {
+  @deprecated
+  const MyAnnotation();
+}
+''',
+      code: r'''
+@MyAnnotation()
+void g() {}
+''',
+      [error(diag.deprecatedMemberUse, 30, 12)],
     );
   }
 
@@ -1165,6 +1181,26 @@ void f() {
     );
   }
 
+  test_instanceCreation_undeprecatedClass_deprecatedConstructor_primary() async {
+    newFile('$workspaceRootPath/aaa/lib/a.dart', r'''
+class A() {
+  @deprecated
+  this;
+}
+''');
+
+    await assertErrorsInCode(
+      r'''
+import 'package:aaa/a.dart';
+
+void f() {
+  A();
+}
+''',
+      [error(diag.deprecatedMemberUse, 43, 1)],
+    );
+  }
+
   test_instanceCreation_unnamedConstructor() async {
     await assertErrorsInCode2(
       externalCode: r'''
@@ -1483,6 +1519,21 @@ void f({@deprecated int x = 0}) {}
 ''',
       code: r'''
 void g() => f(x: 1);
+''',
+      [error(diag.deprecatedMemberUse, 43, 1)],
+    );
+  }
+
+  test_parameter_named_inAnnotation() async {
+    await assertErrorsInCode2(
+      externalCode: r'''
+class MyAnnotation {
+  const MyAnnotation({@deprecated int? x});
+}
+''',
+      code: r'''
+@MyAnnotation(x: 1)
+void g() {}
 ''',
       [error(diag.deprecatedMemberUse, 43, 1)],
     );

@@ -386,6 +386,43 @@ class ActualArguments extends TreeNode with InternalTreeNode {
 
   bool get hasNamedBeforePositional => _hasNamedBeforePositional;
 
+  /// Determines how many argument expressions should be hoisted when
+  /// implementing the "named arguments anywhere" feature.
+  ///
+  /// The reason argument expressions need to be hoisted when implementing this
+  /// feature is that in kernel semantics, positional arguments are evaluated
+  /// before named arguments, so if any named argument appears before a
+  /// positional argument, it needs to be hoisted to ensure that it is evaluated
+  /// before the positional arguments that follow it.
+  int computeHoistingEndIndexForNamedArgumentsAnywhere() {
+    // The computation is based on the following observation: the largest suffix
+    // of the argument vector, such that every positional argument in that
+    // suffix comes before any named argument, retains the evaluation order
+    // after the rest of the arguments are hoisted, and therefore doesn't need
+    // to be hoisted itself. The loop below finds the starting position of such
+    // suffix and returns it. In case all positional arguments come before all
+    // named arguments, the suffix coincides with the entire argument vector,
+    // and none of the arguments is hoisted. That way the legacy behavior is
+    // preserved.
+    if (hasNamedBeforePositional) {
+      int hoistingEndIndex = argumentList.length - 1;
+      for (
+        int i = argumentList.length - 2;
+        i >= 0 && hoistingEndIndex == i + 1;
+        i--
+      ) {
+        int previousWeight = argumentList[i + 1] is NamedArgument ? 1 : 0;
+        int currentWeight = argumentList[i] is NamedArgument ? 1 : 0;
+        if (currentWeight <= previousWeight) {
+          --hoistingEndIndex;
+        }
+      }
+      return hoistingEndIndex;
+    } else {
+      return 0;
+    }
+  }
+
   void prependArguments(List<Argument> list, {required int positionalCount}) {
     assert(list.whereType<PositionalArgument>().length == positionalCount);
     argumentList.insertAll(0, list);
@@ -507,6 +544,50 @@ class Cascade extends InternalExpression {
     }
     printer.write('} => ');
     printer.write(printer.getVariableName(variable));
+  }
+}
+
+/// Internal expression representing an anonymous method invocation.
+class AnonymousMethodExpression extends InternalExpression {
+  VariableDeclaration variable;
+  Expression body;
+  final bool isImplicitlyTyped;
+  final bool isNullAware;
+  final bool isCascade;
+  final int typeOffset;
+
+  AnonymousMethodExpression(
+    this.variable,
+    this.body, {
+    required this.isImplicitlyTyped,
+    required this.isNullAware,
+    required this.isCascade,
+    required this.typeOffset,
+  }) {
+    variable.parent = this;
+    body.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitAnonymousMethodExpression(this, typeContext);
+  }
+
+  @override
+  String toString() {
+    return "AnonymousMethodExpression(${toStringInternal()})";
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('let ');
+    printer.writeVariableInitialization(variable);
+    printer.write(' in ');
+    printer.writeExpression(body);
   }
 }
 
@@ -1072,13 +1153,13 @@ class InternalLocalVariable extends TreeNode
   int binaryOffsetNoTag = -1;
 
   @override
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1124,14 +1205,14 @@ class InternalPositionalParameter extends TreeNode
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1227,14 +1308,14 @@ class InternalNamedParameter extends TreeNode
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1288,6 +1369,15 @@ class InternalNamedParameter extends TreeNode
   // Coverage-ignore(suite): Not run.
   void clearAnnotations() {
     astVariable.clearAnnotations();
+  }
+
+  @override
+  List<Expression> get annotations => astVariable.annotations;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void addAnnotation(Expression node) {
+    astVariable.addAnnotation(node);
   }
 
   @override
@@ -1442,7 +1532,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   bool get hasDeclaredInitializer => astVariable.hasDeclaredInitializer;
 
   @override
-  // Coverage-ignore(suite): Not run.
   void set hasDeclaredInitializer(bool value) {
     astVariable.hasDeclaredInitializer = value;
   }
@@ -1484,7 +1573,6 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   bool get isErroneouslyInitialized => astVariable.isErroneouslyInitialized;
 
   @override
@@ -1757,12 +1845,12 @@ mixin DelegatingVariableMixin on InternalVariableMixin
 
   @override
   // Coverage-ignore(suite): Not run.
-  List<VariableContext>? get contexts => astVariable.contexts;
+  List<VariableContext>? get capturedContexts => astVariable.capturedContexts;
 
   @override
   // Coverage-ignore(suite): Not run.
-  void set contexts(List<VariableContext>? value) {
-    astVariable.contexts = value;
+  void set capturedContexts(List<VariableContext>? value) {
+    astVariable.capturedContexts = value;
   }
 
   @override
@@ -5069,130 +5157,6 @@ class PropertySet extends InternalExpression {
     printer.write('.');
     printer.writeName(name);
     printer.write(' = ');
-    printer.writeExpression(value);
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-/// An augment super invocation of the form `augment super()`.
-///
-/// This will be transformed into an [InstanceInvocation], [InstanceGet] plus
-/// [FunctionInvocation], or [StaticInvocation] after type inference.
-class AugmentSuperInvocation extends InternalExpression {
-  final Member target;
-
-  final TypeArguments? typeArguments;
-
-  ActualArguments arguments;
-
-  AugmentSuperInvocation(
-    this.target,
-    this.typeArguments,
-    this.arguments, {
-    required int fileOffset,
-  }) {
-    arguments.parent = this;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-    InferenceVisitorImpl visitor,
-    DartType typeContext,
-  ) {
-    return visitor.visitAugmentSuperInvocation(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "AugmentSuperInvocation(${toStringInternal()})";
-  }
-
-  @override
-  int get precedence => Precedence.PRIMARY;
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('augment super');
-    typeArguments?.toText(printer);
-    arguments.toTextInternal(printer);
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-/// An augment super read of the form `augment super`.
-///
-/// This will be transformed into an [InstanceGet], [InstanceTearOff],
-/// [DynamicGet], [FunctionTearOff] or [StaticInvocation] (for implicit
-/// extension member access) after type inference.
-class AugmentSuperGet extends InternalExpression {
-  final Member target;
-
-  AugmentSuperGet(this.target, {required int fileOffset}) {
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-    InferenceVisitorImpl visitor,
-    DartType typeContext,
-  ) {
-    return visitor.visitAugmentSuperGet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "AugmentSuperGet(${toStringInternal()})";
-  }
-
-  @override
-  int get precedence => Precedence.PRIMARY;
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('augment super');
-  }
-}
-
-// Coverage-ignore(suite): Not run.
-/// An augment super write of the form `augment super = e`.
-///
-/// This will be transformed into an [InstanceSet], or [StaticSet] after type
-/// inference.
-class AugmentSuperSet extends InternalExpression {
-  final Member target;
-
-  Expression value;
-
-  /// If `true` the assignment is need for its effect and not for its value.
-  final bool forEffect;
-
-  AugmentSuperSet(
-    this.target,
-    this.value, {
-    required this.forEffect,
-    required int fileOffset,
-  }) {
-    value.parent = this;
-    this.fileOffset = fileOffset;
-  }
-
-  @override
-  ExpressionInferenceResult acceptInference(
-    InferenceVisitorImpl visitor,
-    DartType typeContext,
-  ) {
-    return visitor.visitAugmentSuperSet(this, typeContext);
-  }
-
-  @override
-  String toString() {
-    return "AugmentSuperSet(${toStringInternal()})";
-  }
-
-  @override
-  void toTextInternal(AstPrinter printer) {
-    printer.write('augment super = ');
     printer.writeExpression(value);
   }
 }

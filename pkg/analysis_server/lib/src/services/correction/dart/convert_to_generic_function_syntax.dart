@@ -6,7 +6,6 @@ import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
 import 'package:analyzer/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/utilities/extensions/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -34,9 +33,9 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
     for (var node in this.node.withAncestors) {
       if (node is FunctionTypeAlias) {
         return _convertFunctionTypeAlias(builder, node);
-      } else if (node is FunctionTypedFormalParameter) {
+      } else if (node is FormalParameter && node.functionTypedSuffix != null) {
         return _convertFunctionTypedFormalParameter(builder, node);
-      } else if (node is FormalParameterList) {
+      } else if (node is FormalParameterList && diagnostic == null) {
         // It would be confusing for this assist to alter a surrounding context
         // when the selection is inside a parameter list.
         return;
@@ -48,12 +47,10 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
   /// have an explicit type annotation.
   bool _allParametersHaveTypes(FormalParameterList parameters) {
     for (var parameter in parameters.parameters) {
-      parameter = parameter.notDefault;
-      if (parameter is SimpleFormalParameter) {
-        if (parameter.type == null) {
-          return false;
-        }
-      } else if (parameter is! FunctionTypedFormalParameter) {
+      if (parameter.functionTypedSuffix != null) {
+        continue;
+      }
+      if (parameter.type == null) {
         return false;
       }
     }
@@ -95,25 +92,30 @@ class ConvertToGenericFunctionSyntax extends ParsedCorrectionProducer {
 
   Future<void> _convertFunctionTypedFormalParameter(
     ChangeBuilder builder,
-    FunctionTypedFormalParameter node,
+    FormalParameter node,
   ) async {
-    if (!_allParametersHaveTypes(node.parameters)) {
+    var functionTypedSuffix = node.functionTypedSuffix;
+    if (functionTypedSuffix == null ||
+        !_allParametersHaveTypes(functionTypedSuffix.formalParameters)) {
       return;
     }
     var required = node.requiredKeyword != null ? 'required ' : '';
     var covariant = node.covariantKeyword != null ? 'covariant ' : '';
-    var returnTypeNode = node.returnType;
+    var returnTypeNode = node.type;
     var returnType = returnTypeNode != null
         ? '${utils.getNodeText(returnTypeNode)} '
         : '';
-    var functionName = node.name.lexeme;
-    var typeParametersNode = node.typeParameters;
+    var functionName = node.name?.lexeme;
+    if (functionName == null) {
+      return;
+    }
+    var typeParametersNode = functionTypedSuffix.typeParameters;
     var typeParameters = typeParametersNode != null
         ? utils.getNodeText(typeParametersNode)
         : '';
 
-    var parameters = utils.getNodeText(node.parameters);
-    var question = node.question != null ? '?' : '';
+    var parameters = utils.getNodeText(functionTypedSuffix.formalParameters);
+    var question = functionTypedSuffix.question != null ? '?' : '';
     var replacement =
         '$required$covariant${returnType}Function'
         '$typeParameters$parameters$question $functionName';

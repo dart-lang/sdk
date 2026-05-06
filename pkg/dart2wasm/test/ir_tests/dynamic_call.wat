@@ -46,7 +46,7 @@
   (table $dtable0 3 i31ref)
   (table $dtable2 3 funcref)
   (global $1 (ref $BoxedInt)
-    (i32.const 65)
+    (i32.const 63)
     (i64.const 1)
     (struct.new $BoxedInt))
   (global $true (ref $BoxedBool)
@@ -54,8 +54,8 @@
     (i32.const 1)
     (struct.new $BoxedBool))
   (elem $dtable0
-    (set 0 (i32.const 108) (i31.new) (end))
-    (set 1 (i32.const 109) (i31.new) (end)))
+    (set 0 (i32.const 105) (i31.new) (end))
+    (set 1 (i32.const 106) (i31.new) (end)))
   (elem $dtable2
     (set 0 (ref.func $"Bar.toString (MethodCallShape(toString names:a))"))
     (set 1 (ref.func $"Foo.toString (MethodCallShape(toString names:a))")))
@@ -73,7 +73,7 @@
       local.set $var3
       block $label1
         local.get $var3
-        i32.const -108
+        i32.const -105
         i32.add
         local.tee $var4
         table.size $dtable0
@@ -109,7 +109,7 @@
   (func $Foo (result (ref $Object)) <...>)
   (func $Object._invokeNoSuchMethod (param $receiver (ref null $#Top)) (param $invocation (ref $_Invocation)) (result (ref null $#Top)) <...>)
   (func $confuse (param $a (ref null $#Top)) (result (ref null $#Top)) <...>)
-  (func $main (result (ref null $#Top))
+  (func $main
     (local $var0 (ref null $#Top))
     (local $var1 (ref null $#Top))
     call $Foo
@@ -119,6 +119,7 @@
     local.get $var0
     call $"Dynamic dispatcher for MethodCallShape(toString names:a)"
     call $print
+    ref.null none
     drop
     call $Bar
     call $confuse
@@ -127,8 +128,8 @@
     local.get $var1
     call $"Dynamic dispatcher for MethodCallShape(toString names:a)"
     call $print
-    drop
     ref.null none
+    drop
   )
-  (func $print (param $object (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $print (param $object (ref null $#Top)) <...>)
 )

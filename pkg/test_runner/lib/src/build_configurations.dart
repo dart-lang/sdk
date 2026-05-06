@@ -58,7 +58,7 @@ Future<bool> buildConfigurations(List<TestConfiguration> configurations) async {
     '-a',
     architectures.join(','),
     ...osFlags,
-    ...buildTargets
+    ...buildTargets,
   ];
   print('Running command: python3 ${command.join(' ')}');
 
@@ -85,14 +85,18 @@ List<String> _selectBuildTargets(Configuration inner) {
     Compiler.fasta: ['create_sdk', 'ddc_stable_test', 'kernel_platform_files'],
     Compiler.ddc: ['ddc_stable_test'],
     Compiler.dart2js: ['create_sdk'],
+    Compiler.dart2wasm: ['dart2wasm_benchmark'],
     Compiler.dart2analyzer: ['create_sdk', 'utils/dartanalyzer'],
     Compiler.specParser: <String>[],
   };
   final result = [...targetsForCompilers[compiler]!];
 
   if (compiler == Compiler.dartkp &&
-      [Architecture.arm, Architecture.arm64, Architecture.arm_x64]
-          .contains(inner.architecture)) {
+      [
+        Architecture.arm,
+        Architecture.arm64,
+        Architecture.arm_x64,
+      ].contains(inner.architecture)) {
     result.add('gen_snapshot');
   }
   if ([Mode.release, Mode.product].contains(inner.mode) &&
@@ -103,10 +107,14 @@ List<String> _selectBuildTargets(Configuration inner) {
         Architecture.arm64c,
         Architecture.x64c,
         Architecture.simarm64,
-        Architecture.simarm64c
+        Architecture.simarm64c,
       ].contains(inner.architecture) &&
       [System.linux, System.android].contains(inner.system)) {
     result.add('analyze_snapshot');
+  }
+
+  if (compiler == Compiler.dart2wasm && inner.useSdk) {
+    result.add('create_sdk');
   }
 
   if (compiler == Compiler.ddc) {

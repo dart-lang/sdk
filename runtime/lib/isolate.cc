@@ -885,7 +885,6 @@ class SpawnIsolateTask : public ThreadPool::Task {
       auto thread = Thread::Current();
       TransitionNativeToVM transition(thread);
       StackZone zone(thread);
-      HandleScope hs(thread);
 
       success = EnqueueEntrypointInvocationAndNotifySpawner(thread);
 

@@ -1015,7 +1015,6 @@ void BackgroundCompiler::Run() {
     Thread* thread = Thread::Current();
     StackZone stack_zone(thread);
     Zone* zone = stack_zone.GetZone();
-    HANDLESCOPE(thread);
     Function& function = Function::Handle(zone);
     QueueElement* element = nullptr;
     {

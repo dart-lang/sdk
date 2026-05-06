@@ -2,17 +2,16 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/ast/token.dart';
 import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/element/type_schema.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/generated/source.dart';
-import 'package:path/path.dart' show toUri;
+import 'package:analyzer/src/test_utilities/test_library_builder.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -28,56 +27,39 @@ main() {
 class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByAnotherTypeParameter() {
     // <TFrom, TTo extends Iterable<TFrom>>(TFrom) -> TTo
-    var tFrom = typeParameter('TFrom');
-    var tTo = typeParameter(
-      'TTo',
-      bound: iterableNone(typeParameterTypeNone(tFrom)),
+    var cast = parseFunctionType(
+      'TTo Function<TFrom, TTo extends Iterable<TFrom>>(TFrom)',
     );
-    var cast = functionTypeNone(
-      typeParameters: [tFrom, tTo],
-      formalParameters: [requiredParameter(type: typeParameterTypeNone(tFrom))],
-      returnType: typeParameterTypeNone(tTo),
-    );
-    _assertTypes(_inferCall(cast, [stringNone]), [
-      stringNone,
-      iterableNone(stringNone),
+    _assertTypes(_inferCall(cast, [parseType('String')]), [
+      parseType('String'),
+      parseType('Iterable<String>'),
     ]);
   }
 
   void test_boundedByOuterClass() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
-    // class A {}
-    var A = class_2(name: 'A', superType: objectNone);
-    var typeA = interfaceTypeNone(A);
-
-    // class B extends A {}
-    var B = class_2(name: 'B', superType: typeA);
-    var typeB = interfaceTypeNone(B);
-
-    // class C<T extends A> {
-    var CT = typeParameter('T', bound: typeA);
-    var C = class_2(name: 'C', superType: objectNone, typeParameters: [CT]);
-    //   S m<S extends T>(S);
-    var S = typeParameter('S', bound: typeParameterTypeNone(CT));
-    var m = method(
-      'm',
-      typeParameterTypeNone(S),
-      typeParameters: [S],
-      formalParameters: [
-        requiredParameter(name: '_', type: typeParameterTypeNone(S)),
+    buildTestLibrary(
+      classes: [
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec(
+          'class C<T extends A>',
+          methods: [MethodSpec('S m<S extends T>(S _)')],
+        ),
       ],
     );
-    C.firstFragment.methods = [m];
-    C.methods = [m.element];
-    // }
 
+    // class B extends A {}
+    var typeB = parseInterfaceType('B');
+
+    // class C<T extends A> { S m<S extends T>(S); }
     // C<Object> cOfObject;
-    var cOfObject = interfaceTypeNone(C, typeArguments: [objectNone]);
+    var cOfObject = parseInterfaceType('C<Object>');
     // C<A> cOfA;
-    var cOfA = interfaceTypeNone(C, typeArguments: [typeA]);
+    var cOfA = parseInterfaceType('C<A>');
     // C<B> cOfB;
-    var cOfB = interfaceTypeNone(C, typeArguments: [typeB]);
+    var cOfB = parseInterfaceType('C<B>');
     // B b;
     // cOfB.m(b); // infer <B>
     _assertType(
@@ -99,40 +81,26 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   void test_boundedByOuterClassSubstituted() {
     // Regression test for https://github.com/dart-lang/sdk/issues/25740.
 
-    // class A {}
-    var A = class_2(name: 'A', superType: objectNone);
-    var typeA = interfaceTypeNone(A);
-
-    // class B extends A {}
-    var B = class_2(name: 'B', superType: typeA);
-    var typeB = interfaceTypeNone(B);
-
-    // class C<T extends A> {
-    var CT = typeParameter('T', bound: typeA);
-    var C = class_2(name: 'C', superType: objectNone, typeParameters: [CT]);
-    //   S m<S extends Iterable<T>>(S);
-    var iterableOfT = iterableNone(typeParameterTypeNone(CT));
-    var S = typeParameter('S', bound: iterableOfT);
-    var m = method(
-      'm',
-      typeParameterTypeNone(S),
-      typeParameters: [S],
-      formalParameters: [
-        requiredParameter(name: '_', type: typeParameterTypeNone(S)),
+    buildTestLibrary(
+      classes: [
+        ClassSpec('class A'),
+        ClassSpec('class B extends A'),
+        ClassSpec(
+          'class C<T extends A>',
+          methods: [MethodSpec('S m<S extends Iterable<T>>(S _)')],
+        ),
       ],
     );
-    C.firstFragment.methods = [m];
-    C.methods = [m.element];
-    // }
 
+    // class C<T extends A> { S m<S extends Iterable<T>>(S); }
     // C<Object> cOfObject;
-    var cOfObject = interfaceTypeNone(C, typeArguments: [objectNone]);
+    var cOfObject = parseInterfaceType('C<Object>');
     // C<A> cOfA;
-    var cOfA = interfaceTypeNone(C, typeArguments: [typeA]);
+    var cOfA = parseInterfaceType('C<A>');
     // C<B> cOfB;
-    var cOfB = interfaceTypeNone(C, typeArguments: [typeB]);
+    var cOfB = parseInterfaceType('C<B>');
     // List<B> b;
-    var listOfB = listNone(typeB);
+    var listOfB = parseType('List<B>');
     // cOfB.m(b); // infer <B>
     _assertType(
       _inferCall2(cOfB.getMethod('m')!.type, [listOfB]),
@@ -151,399 +119,215 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }
 
   void test_boundedRecursively() {
-    // class A<T extends A<T>>
-    var T = typeParameter('T');
-    var A = class_2(
-      name: 'Cloneable',
-      superType: objectNone,
-      typeParameters: [T],
+    buildTestLibrary(
+      classes: [
+        ClassSpec('class Cloneable<T extends Cloneable<T>>'),
+        ClassSpec('class B extends Cloneable<B>'),
+      ],
     );
-    T.bound = interfaceTypeNone(A, typeArguments: [typeParameterTypeNone(T)]);
+
+    // class Cloneable<T extends Cloneable<T>>
 
     // class B extends A<B> {}
-    var B = class_2(name: 'B');
-    B.supertype = interfaceTypeNone(A, typeArguments: [interfaceTypeNone(B)]);
-    var typeB = interfaceTypeNone(B);
-
-    // <S extends A<S>>
-    var S = typeParameter('S');
-    var typeS = typeParameterTypeNone(S);
-    S.bound = interfaceTypeNone(A, typeArguments: [typeS]);
+    var typeB = parseInterfaceType('B');
 
     // (S, S) -> S
-    var clone = functionTypeNone(
-      typeParameters: [S],
-      formalParameters: [
-        requiredParameter(type: typeS),
-        requiredParameter(type: typeS),
-      ],
-      returnType: typeS,
-    );
+    var clone = parseFunctionType('S Function<S extends Cloneable<S>>(S, S)');
     _assertTypes(_inferCall(clone, [typeB, typeB]), [typeB]);
 
     // Something invalid...
-    _assertTypes(_inferCall(clone, [stringNone, numNone], expectError: true), [
-      interfaceTypeNone(A, typeArguments: [objectQuestion]),
-    ]);
+    _assertTypes(
+      _inferCall(clone, [
+        parseType('String'),
+        parseType('num'),
+      ], expectError: true),
+      [parseInterfaceType('Cloneable<Object?>')],
+    );
+  }
+
+  void test_buildTestLibrary_topLevelFunctionHeader() {
+    buildTestLibrary(functions: [TopLevelFunctionSpec('T f<T>(T value)')]);
+
+    _assertType(testLibrary.topLevelFunctions.single.type, 'T Function<T>(T)');
+  }
+
+  void test_buildTestLibrary_topLevelFunctionHeader_namedParameters() {
+    buildTestLibrary(
+      functions: [
+        TopLevelFunctionSpec('void f({int optional, required int required})'),
+      ],
+    );
+
+    _assertType(
+      testLibrary.topLevelFunctions.single.type,
+      'void Function({int optional, required int required})',
+    );
   }
 
   /// https://github.com/dart-lang/language/issues/1182#issuecomment-702272641
   void test_demoteType() {
     // <T>(T x) -> void
-    var T = typeParameter('T');
-    var rawType = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-      returnType: voidNone,
-    );
+    var rawType = parseFunctionType('void Function<T>(T)');
 
-    var S = typeParameter('S');
-    var S_and_int = typeParameterTypeNone(S, promotedBound: intNone);
+    withTypeParameterScope('S', (scope) {
+      var S = scope.typeParameter('S');
+      var S_and_int = scope.parseTypeParameterType('S & int');
 
-    var inferredTypes = _inferCall(rawType, [S_and_int]);
-    var inferredType = inferredTypes[0] as TypeParameterTypeImpl;
-    expect(inferredType.element, S);
-    expect(inferredType.promotedBound, isNull);
+      var inferredTypes = _inferCall(rawType, [S_and_int]);
+      var inferredType = inferredTypes[0] as TypeParameterTypeImpl;
+      expect(inferredType.element, S);
+      expect(inferredType.promotedBound, isNull);
+    });
   }
 
   void test_genericCastFunction() {
     // <TFrom, TTo>(TFrom) -> TTo
-    var tFrom = typeParameter('TFrom');
-    var tTo = typeParameter('TTo');
-    var cast = functionTypeNone(
-      typeParameters: [tFrom, tTo],
-      formalParameters: [requiredParameter(type: typeParameterTypeNone(tFrom))],
-      returnType: typeParameterTypeNone(tTo),
-    );
-    _assertTypes(_inferCall(cast, [intNone]), [intNone, dynamicType]);
+    var cast = parseFunctionType('TTo Function<TFrom, TTo>(TFrom)');
+    _assertTypes(_inferCall(cast, [parseType('int')]), [
+      parseType('int'),
+      parseType('dynamic'),
+    ]);
   }
 
   void test_genericCastFunctionWithUpperBound() {
     // <TFrom, TTo extends TFrom>(TFrom) -> TTo
-    var tFrom = typeParameter('TFrom');
-    var tTo = typeParameter('TTo', bound: typeParameterTypeNone(tFrom));
-    var cast = functionTypeNone(
-      typeParameters: [tFrom, tTo],
-      formalParameters: [requiredParameter(type: typeParameterTypeNone(tFrom))],
-      returnType: typeParameterTypeNone(tTo),
+    var cast = parseFunctionType(
+      'TTo Function<TFrom, TTo extends TFrom>(TFrom)',
     );
-    _assertTypes(_inferCall(cast, [intNone]), [intNone, intNone]);
+    _assertTypes(_inferCall(cast, [parseType('int')]), [
+      parseType('int'),
+      parseType('int'),
+    ]);
   }
 
   void test_parameter_contravariantUseUpperBound() {
     // <T>(T x, void Function(T) y) -> T
     // Generates constraints int <: T <: num.
     // Since T is contravariant, choose num.
-    var T = typeParameter('T', variance: Variance.contravariant);
-    var tFunction = functionTypeNone(
-      formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-      returnType: voidNone,
-    );
-    var numFunction = functionTypeNone(
-      formalParameters: [requiredParameter(type: numNone)],
-      returnType: voidNone,
-    );
-    var function = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(type: typeParameterTypeNone(T)),
-        requiredParameter(type: tFunction),
-      ],
-      returnType: typeParameterTypeNone(T),
-    );
+    var numFunction = parseFunctionType('void Function(num)');
+    var function = parseFunctionType('T Function<in T>(T, void Function(T))');
 
-    _assertTypes(_inferCall(function, [intNone, numFunction]), [numNone]);
+    _assertTypes(_inferCall(function, [parseType('int'), numFunction]), [
+      parseType('num'),
+    ]);
   }
 
   void test_parameter_covariantUseLowerBound() {
     // <T>(T x, void Function(T) y) -> T
     // Generates constraints int <: T <: num.
     // Since T is covariant, choose int.
-    var T = typeParameter('T', variance: Variance.covariant);
-    var tFunction = functionTypeNone(
-      formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-      returnType: voidNone,
-    );
-    var numFunction = functionTypeNone(
-      formalParameters: [requiredParameter(type: numNone)],
-      returnType: voidNone,
-    );
-    var function = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(type: typeParameterTypeNone(T)),
-        requiredParameter(type: tFunction),
-      ],
-      returnType: typeParameterTypeNone(T),
-    );
+    var numFunction = parseFunctionType('void Function(num)');
+    var function = parseFunctionType('T Function<out T>(T, void Function(T))');
 
-    _assertTypes(_inferCall(function, [intNone, numFunction]), [intNone]);
+    _assertTypes(_inferCall(function, [parseType('int'), numFunction]), [
+      parseType('int'),
+    ]);
   }
 
   void test_parametersToFunctionParam() {
     // <T>(f(T t)) -> T
-    var T = typeParameter('T');
-    var cast = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: typeParameterTypeNone(T)),
-            ],
-            returnType: dynamicType,
-          ),
-        ),
-      ],
-      returnType: typeParameterTypeNone(T),
-    );
+    var cast = parseFunctionType('T Function<T>(dynamic Function(T))');
     _assertTypes(
-      _inferCall(cast, [
-        functionTypeNone(
-          formalParameters: [requiredParameter(type: numNone)],
-          returnType: dynamicType,
-        ),
-      ]),
-      [numNone],
+      _inferCall(cast, [parseFunctionType('dynamic Function(num)')]),
+      [parseType('num')],
     );
   }
 
   void test_parametersUseLeastUpperBound() {
     // <T>(T x, T y) -> T
-    var T = typeParameter('T');
-    var cast = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(type: typeParameterTypeNone(T)),
-        requiredParameter(type: typeParameterTypeNone(T)),
-      ],
-      returnType: typeParameterTypeNone(T),
-    );
-    _assertTypes(_inferCall(cast, [intNone, doubleNone]), [numNone]);
+    var cast = parseFunctionType('T Function<T>(T, T)');
+    _assertTypes(_inferCall(cast, [parseType('int'), parseType('double')]), [
+      parseType('num'),
+    ]);
   }
 
   void test_parameterTypeUsesUpperBound() {
     // <T extends num>(T) -> dynamic
-    var T = typeParameter('T', bound: numNone);
-    var f = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-      returnType: dynamicType,
-    );
-    _assertTypes(_inferCall(f, [intNone]), [intNone]);
+    var f = parseFunctionType('dynamic Function<T extends num>(T)');
+    _assertTypes(_inferCall(f, [parseType('int')]), [parseType('int')]);
   }
 
   void test_returnFunctionWithGenericParameter() {
     // <T>(T -> T) -> (T -> void)
-    var T = typeParameter('T');
-    var f = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: typeParameterTypeNone(T)),
-            ],
-            returnType: typeParameterTypeNone(T),
-          ),
-        ),
-      ],
-      returnType: functionTypeNone(
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-        returnType: voidNone,
-      ),
-    );
-    _assertTypes(
-      _inferCall(f, [
-        functionTypeNone(
-          formalParameters: [requiredParameter(type: numNone)],
-          returnType: intNone,
-        ),
-      ]),
-      [intNone],
-    );
+    var f = parseFunctionType('void Function(T) Function<T>(T Function(T))');
+    _assertTypes(_inferCall(f, [parseFunctionType('int Function(num)')]), [
+      parseType('int'),
+    ]);
   }
 
   void test_returnFunctionWithGenericParameterAndContext() {
     // <T>(T -> T) -> (T -> Null)
-    var T = typeParameter('T');
-    var f = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: typeParameterTypeNone(T)),
-            ],
-            returnType: typeParameterTypeNone(T),
-          ),
-        ),
-      ],
-      returnType: functionTypeNone(
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-        returnType: nullNone,
-      ),
-    );
+    var f = parseFunctionType('Null Function(T) Function<T>(T Function(T))');
     _assertTypes(
-      _inferCall(
-        f,
-        [],
-        returnType: functionTypeNone(
-          formalParameters: [requiredParameter(type: numNone)],
-          returnType: intQuestion,
-        ),
-      ),
-      [numNone],
+      _inferCall(f, [], returnType: parseFunctionType('int? Function(num)')),
+      [parseType('num')],
     );
   }
 
   void test_returnFunctionWithGenericParameterAndReturn() {
     // <T>(T -> T) -> (T -> T)
-    var T = typeParameter('T');
-    var f = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: typeParameterTypeNone(T)),
-            ],
-            returnType: typeParameterTypeNone(T),
-          ),
-        ),
-      ],
-      returnType: functionTypeNone(
-        formalParameters: [requiredParameter(type: typeParameterTypeNone(T))],
-        returnType: typeParameterTypeNone(T),
-      ),
-    );
-    _assertTypes(
-      _inferCall(f, [
-        functionTypeNone(
-          formalParameters: [requiredParameter(type: numNone)],
-          returnType: intNone,
-        ),
-      ]),
-      [intNone],
-    );
+    var f = parseFunctionType('T Function(T) Function<T>(T Function(T))');
+    _assertTypes(_inferCall(f, [parseFunctionType('int Function(num)')]), [
+      parseType('int'),
+    ]);
   }
 
   void test_returnFunctionWithGenericReturn() {
     // <T>(T -> T) -> (() -> T)
-    var T = typeParameter('T');
-    var f = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: typeParameterTypeNone(T)),
-            ],
-            returnType: typeParameterTypeNone(T),
-          ),
-        ),
-      ],
-      returnType: functionTypeNone(returnType: typeParameterTypeNone(T)),
-    );
-    _assertTypes(
-      _inferCall(f, [
-        functionTypeNone(
-          formalParameters: [requiredParameter(type: numNone)],
-          returnType: intNone,
-        ),
-      ]),
-      [intNone],
-    );
+    var f = parseFunctionType('T Function() Function<T>(T Function(T))');
+    _assertTypes(_inferCall(f, [parseFunctionType('int Function(num)')]), [
+      parseType('int'),
+    ]);
   }
 
   void test_returnTypeFromContext() {
     // <T>() -> T
-    var T = typeParameter('T');
-    var f = functionTypeNone(
-      typeParameters: [T],
-      returnType: typeParameterTypeNone(T),
-    );
-    _assertTypes(_inferCall(f, [], returnType: stringNone), [stringNone]);
+    var f = parseFunctionType('T Function<T>()');
+    _assertTypes(_inferCall(f, [], returnType: parseType('String')), [
+      parseType('String'),
+    ]);
   }
 
   void test_returnTypeWithBoundFromContext() {
     // <T extends num>() -> T
-    var T = typeParameter('T', bound: numNone);
-    var f = functionTypeNone(
-      typeParameters: [T],
-      returnType: typeParameterTypeNone(T),
-    );
-    _assertTypes(_inferCall(f, [], returnType: doubleNone), [doubleNone]);
+    var f = parseFunctionType('T Function<T extends num>()');
+    _assertTypes(_inferCall(f, [], returnType: parseType('double')), [
+      parseType('double'),
+    ]);
   }
 
   void test_returnTypeWithBoundFromInvalidContext() {
     // <T extends num>() -> T
-    var T = typeParameter('T', bound: numNone);
-    var f = functionTypeNone(
-      typeParameters: [T],
-      returnType: typeParameterTypeNone(T),
-    );
-    _assertTypes(_inferCall(f, [], returnType: stringNone), [neverNone]);
+    var f = parseFunctionType('T Function<T extends num>()');
+    _assertTypes(_inferCall(f, [], returnType: parseType('String')), [
+      parseType('Never'),
+    ]);
   }
 
   void test_unifyParametersToFunctionParam() {
     // <T>(f(T t), g(T t)) -> T
-    var T = typeParameter('T');
-    var cast = functionTypeNone(
-      typeParameters: [T],
-      formalParameters: [
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: typeParameterTypeNone(T)),
-            ],
-            returnType: dynamicType,
-          ),
-        ),
-        requiredParameter(
-          type: functionTypeNone(
-            formalParameters: [
-              requiredParameter(type: typeParameterTypeNone(T)),
-            ],
-            returnType: dynamicType,
-          ),
-        ),
-      ],
-      returnType: typeParameterTypeNone(T),
+    var cast = parseFunctionType(
+      'T Function<T>(dynamic Function(T), dynamic Function(T))',
     );
     _assertTypes(
       _inferCall(cast, [
-        functionTypeNone(
-          formalParameters: [requiredParameter(type: intNone)],
-          returnType: dynamicType,
-        ),
-        functionTypeNone(
-          formalParameters: [requiredParameter(type: doubleNone)],
-          returnType: dynamicType,
-        ),
+        parseFunctionType('dynamic Function(int)'),
+        parseFunctionType('dynamic Function(double)'),
       ]),
-      [neverNone],
+      [parseType('Never')],
     );
   }
 
   void test_unusedReturnTypeIsDynamic() {
     // <T>() -> T
-    var T = typeParameter('T');
-    var f = functionTypeNone(
-      typeParameters: [T],
-      returnType: typeParameterTypeNone(T),
-    );
-    _assertTypes(_inferCall(f, []), [dynamicType]);
+    var f = parseFunctionType('T Function<T>()');
+    _assertTypes(_inferCall(f, []), [parseType('dynamic')]);
   }
 
   void test_unusedReturnTypeWithUpperBound() {
     // <T extends num>() -> T
-    var T = typeParameter('T', bound: numNone);
-    var f = functionTypeNone(
-      typeParameters: [T],
-      returnType: typeParameterTypeNone(T),
-    );
-    _assertTypes(_inferCall(f, []), [numNone]);
+    var f = parseFunctionType('T Function<T extends num>()');
+    _assertTypes(_inferCall(f, []), [parseType('num')]);
   }
 
   void _assertType(DartType type, String expected) {
@@ -571,10 +355,9 @@ class GenericFunctionInferenceTest extends AbstractTypeSystemTest {
   }) {
     var listener = RecordingDiagnosticListener();
 
-    var reporter = DiagnosticReporter(
-      listener,
-      NonExistingSource('/test.dart', toUri('/test.dart')),
-    );
+    var file = newFile('/test.dart', '');
+    var fileSource = FileSource(file);
+    var reporter = DiagnosticReporter(listener, fileSource);
 
     var inferrer = typeSystem.setupGenericTypeInference(
       typeParameters: ft.typeParameters,

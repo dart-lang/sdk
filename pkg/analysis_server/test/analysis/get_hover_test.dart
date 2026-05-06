@@ -1964,7 +1964,7 @@ class B extends A{
 
   Future<void> test_parameter_ofPrimaryConstructor() async {
     newFile(testFilePath, '''
-class A(var int a = 1);
+class A({var int a = 1});
 
 void f() {
   new A(a: 42);

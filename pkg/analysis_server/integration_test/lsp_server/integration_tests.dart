@@ -28,6 +28,7 @@ abstract class AbstractLspAnalysisServerIntegrationTest
         LspReverseRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
+        LspNotificationsMixin,
         LspAnalysisServerTestMixin {
   final List<String> vmArgs = [];
   LspServerClient? client;

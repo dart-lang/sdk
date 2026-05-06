@@ -8,7 +8,6 @@ import '../rule_test_support.dart';
 
 void main() {
   defineReflectiveSuite(() {
-    // TODO(srawlins): Add test with conditional inside if-element.
     defineReflectiveTests(PreferIfElementsToConditionalExpressionsTest);
   });
 }
@@ -18,6 +17,36 @@ class PreferIfElementsToConditionalExpressionsTest extends LintRuleTest {
   @override
   String get lintRule =>
       LintNames.prefer_if_elements_to_conditional_expressions;
+
+  test_conditionalInForElement() async {
+    await assertDiagnostics(
+      r'''
+List<String> f(List<bool> blist) {
+  return ['a', for (var b in blist) b ? 'c' : 'd', 'e'];
+}
+''',
+      [lint(71, 13)],
+    );
+  }
+
+  test_conditionalInIfElement_condition() async {
+    await assertNoDiagnostics(r'''
+List<String> f(bool b, bool c) {
+  return ['a', if (c ? false : true) 'd', 'e'];
+}
+''');
+  }
+
+  test_conditionalInIfElement_then() async {
+    await assertDiagnostics(
+      r'''
+List<String> f(bool b, bool c) {
+  return ['a', if (b) c ? 'd' : 'e', 'f'];
+}
+''',
+      [lint(55, 13)],
+    );
+  }
 
   test_conditionalInList() async {
     await assertDiagnostics(

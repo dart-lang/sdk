@@ -104,11 +104,11 @@ class DiagnosticFactory {
   /// already used by [originalField].
   LocatedDiagnostic duplicateFieldDefinitionInLiteral(
     Source source,
-    NamedExpression duplicateField,
-    NamedExpression originalField,
+    RecordLiteralNamedField duplicateField,
+    RecordLiteralNamedField originalField,
   ) {
-    var duplicateNode = duplicateField.name.label;
-    var duplicateName = duplicateNode.name;
+    var duplicateNode = duplicateField.name;
+    var duplicateName = duplicateNode.lexeme;
     return diag.duplicateFieldName
         .withArguments(name: duplicateName)
         .withContextMessages([
@@ -116,7 +116,7 @@ class DiagnosticFactory {
             filePath: source.fullName,
             length: duplicateName.length,
             message: 'The first ',
-            offset: originalField.name.label.offset,
+            offset: originalField.name.offset,
             url: source.uri.toString(),
           ),
         ])

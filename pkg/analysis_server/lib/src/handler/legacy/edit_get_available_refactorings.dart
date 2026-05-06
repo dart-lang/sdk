@@ -82,7 +82,7 @@ class EditGetAvailableRefactoringsHandler extends LegacyHandler {
         if (element is ExecutableElement) {
           if (ConvertMethodToGetterRefactoring(
             refactoringWorkspace,
-            resolvedUnit.session,
+            resolvedUnit,
             element,
           ).isAvailable()) {
             kinds.add(RefactoringKind.CONVERT_METHOD_TO_GETTER);

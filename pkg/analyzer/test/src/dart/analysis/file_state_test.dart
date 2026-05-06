@@ -7,6 +7,7 @@ import 'dart:typed_data';
 import 'package:analyzer/dart/analysis/declared_variables.dart';
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/context/packages.dart';
 import 'package:analyzer/src/dart/analysis/analysis_options.dart';
@@ -7136,7 +7137,7 @@ enum E2 with M {
     String templatePath = convertPath('/aaa/lib/foo.dart');
     String generatedPath = convertPath('/generated/aaa/lib/foo.dart');
 
-    Source generatedSource = _SourceMock(generatedPath, uri);
+    Source generatedSource = FileSource(newFile(generatedPath, ''), uri);
 
     generatedUriResolver.resolveAbsoluteFunction = (uri) => generatedSource;
 
@@ -7250,21 +7251,6 @@ class _GeneratedUriResolverMock extends UriResolver {
       return resolveAbsoluteFunction!(uri);
     }
     return null;
-  }
-}
-
-class _SourceMock implements Source {
-  @override
-  final String fullName;
-
-  @override
-  final Uri uri;
-
-  _SourceMock(this.fullName, this.uri);
-
-  @override
-  noSuchMethod(Invocation invocation) {
-    throw StateError('Unexpected invocation of ${invocation.memberName}');
   }
 }
 

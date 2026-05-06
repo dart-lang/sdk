@@ -11,18 +11,18 @@ import self as self;
 import "dart:core" as core;
 
 class C3 extends self::B3 {
-  constructor •(invalid-type bar) → self::C3
+  constructor •(super-initializing-formal invalid-type bar) → self::C3
     ;
 }
 class B3 extends self::A3 {
   field invalid-type bar;
-  constructor •(invalid-type bar) → self::B3
+  constructor •(initializing-formal invalid-type bar) → self::B3
     ;
 }
 class A3 extends core::Object {
   field (invalid-type) → self::C3 foo;
   constructor •() → self::A3
     ;
-  constructor initializeFoo((invalid-type) → self::C3 foo) → self::A3
+  constructor initializeFoo(initializing-formal (invalid-type) → self::C3 foo) → self::A3
     ;
 }

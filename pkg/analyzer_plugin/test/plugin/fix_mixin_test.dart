@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analyzer/diagnostic/diagnostic.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/plugin/fix_mixin.dart';
@@ -95,7 +96,7 @@ class _TestServerPlugin extends MockServerPlugin with FixesMixin {
   Future<FixesRequest> getFixesRequest(EditGetFixesParams parameters) async {
     var offset = parameters.offset;
     var diagnostic = Diagnostic.tmp(
-      source: MockSource(),
+      source: FileSource(resourceProvider.getFile(parameters.file)),
       offset: 0,
       length: 0,
       diagnosticCode: diag.awaitInWrongContext,

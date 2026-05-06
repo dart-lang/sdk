@@ -7,14 +7,13 @@ import '../util/local_stack.dart';
 
 extension type ScopeProviderInfoStack<Info extends ScopeProviderInfo>(
   List<Info> _list
-)
-    implements LocalStack<Info> {
+) implements LocalStack<Info> {
   ScopeProviderInfo? topmostOfKind(
-    ScopeProviderInfoKind scopeProviderInfoKind,
+    Set<ScopeProviderInfoKind> scopeProviderInfoKinds,
   ) {
     for (int index = _list.length - 1; index >= 0; index--) {
       Info info = _list[index];
-      if (info.kind == scopeProviderInfoKind) {
+      if (scopeProviderInfoKinds.contains(info.kind)) {
         return info;
       }
     }
@@ -26,15 +25,18 @@ enum ScopeProviderInfoKind {
   Block,
   BlockExpression,
   Catch,
-  Loop,
   FunctionNode,
   FunctionNodeWithThis,
+  InstanceField,
+  Loop,
+  StaticField,
 }
 
 class ScopeProviderInfo {
   final ScopeProviderInfoKind kind;
 
   Scope? scope;
+  VariableDeclaration? thisVariable;
 
   ScopeProviderInfo({required this.kind});
 }
@@ -107,7 +109,10 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
 
   Scope _ensureScopeWithThis() {
     ScopeProviderInfo? scopeProviderInfo = _scopeProviderInfoStack
-        .topmostOfKind(ScopeProviderInfoKind.FunctionNodeWithThis);
+        .topmostOfKind(const {
+          ScopeProviderInfoKind.FunctionNodeWithThis,
+          ScopeProviderInfoKind.InstanceField,
+        });
     assert(scopeProviderInfo != null);
     return scopeProviderInfo!.scope ??= // Coverage-ignore(suite): Not run.
     new Scope(
@@ -156,7 +161,7 @@ abstract class ContextAllocationStrategy<Info extends ScopeProviderInfo> {
     Set<VariableContext> contexts = {
       for (VariableBase variable in variables) variable.context,
     };
-    (node.contexts ??= []).addAll(contexts);
+    (node.capturedContexts ??= []).addAll(contexts);
   }
 
   ThisVariable get thisVariable {
@@ -230,6 +235,9 @@ class LoopDepthAllocationStrategy
       case ScopeProviderInfoKind.Loop:
       case ScopeProviderInfoKind.FunctionNode:
       case ScopeProviderInfoKind.FunctionNodeWithThis:
+      case ScopeProviderInfoKind.InstanceField:
+      // Coverage-ignore(suite): Not run.
+      case ScopeProviderInfoKind.StaticField:
         return true;
     }
   }
@@ -260,6 +268,9 @@ class LoopDepthAllocationStrategy
     required CaptureKind captureKind,
   }) {
     CollectorScopeProviderInfo currentScope = _currentScopeProviderInfo!;
+    if (variable is ThisVariable) {
+      currentScope.thisVariable = variable;
+    }
 
     // Delegation happens when the current variable is not uncaptured (that is,
     // it's either captured or assert-captured), and there's a collector to

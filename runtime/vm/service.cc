@@ -61,6 +61,10 @@
 #include "vm/perfetto_utils.h"
 #endif  // defined(SUPPORT_PERFETTO)
 
+#if defined(DART_HOST_OS_WINDOWS)
+#include <psapi.h>
+#endif  // defined(DART_HOST_OS_WINDOWS)
+
 namespace dart {
 
 #define Z (T->zone())
@@ -1751,8 +1755,8 @@ static void GetStack(Thread* thread, JSONStream* js) {
   jsobj.AddProperty("truncated", truncated);
 
   {
-    MessageHandler::AcquiredQueues aq(isolate->message_handler());
-    jsobj.AddProperty("messages", aq.queue());
+    // Deprecated and always empty since protocol version 4.22.
+    JSONArray jsarr(&jsobj, "messages");
   }
 }
 
@@ -2205,29 +2209,6 @@ static ObjectPtr LookupHeapObjectCode(char** parts, int num_parts) {
   return Object::sentinel().ptr();
 }
 
-static ObjectPtr LookupHeapObjectMessage(Thread* thread,
-                                         char** parts,
-                                         int num_parts) {
-  if (num_parts != 2) {
-    return Object::sentinel().ptr();
-  }
-  uword message_id = 0;
-  if (!GetUnsignedIntegerId(parts[1], &message_id, 16)) {
-    return Object::sentinel().ptr();
-  }
-  MessageHandler::AcquiredQueues aq(thread->isolate()->message_handler());
-  Message* message = aq.queue()->FindMessageById(message_id);
-  if (message == nullptr) {
-    // The user may try to load an expired message.
-    return Object::sentinel().ptr();
-  }
-  if (message->IsRaw()) {
-    return message->raw_obj();
-  } else {
-    return ReadMessage(thread, message);
-  }
-}
-
 static ObjectPtr LookupHeapObject(Thread* thread,
                                   const char* id_original,
                                   ObjectIdRing::LookupResult* result) {
@@ -2280,8 +2261,6 @@ static ObjectPtr LookupHeapObject(Thread* thread,
     return LookupHeapObjectTypeArguments(thread, parts, num_parts);
   } else if (strcmp(parts[0], "code") == 0) {
     return LookupHeapObjectCode(parts, num_parts);
-  } else if (strcmp(parts[0], "messages") == 0) {
-    return LookupHeapObjectMessage(thread, parts, num_parts);
   }
 
   // Not found.
@@ -4031,8 +4010,6 @@ static void ReloadKernel(Thread* thread, JSONStream* js) {
   isolate_group->ReloadKernel(js, force_reload, kernel_buffer,
                               kernel_buffer_size);
 
-  free(kernel_buffer);
-
   Service::CheckForPause(isolate, js);
 #endif  // defined(DART_PRECOMPILED_RUNTIME)
 }
@@ -4943,6 +4920,64 @@ static void AddVMMappings(JSONArray* rss_children) {
 }
 #endif
 
+#if defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_WINDOWS_UWP)
+class VMMappingTrait {
+ public:
+  struct Pair {
+    char* path;
+    size_t size;
+  };
+  using Key = char*;
+  using Value = size_t;
+
+  static Key KeyOf(const Pair& kv) { return kv.path; }
+  static Value ValueOf(const Pair& kv) { return kv.size; }
+  static uword Hash(Key key) { return Utils::StringHash(key, strlen(key)); }
+  static bool IsKeyEqual(const Pair& kv, Key key) {
+    return strcmp(kv.path, key) == 0;
+  }
+};
+
+static void AddVMMappings(JSONArray* rss_children) {
+  MallocDirectChainedHashMap<VMMappingTrait> mappings;
+
+  MEMORY_BASIC_INFORMATION mbi;
+  uint8_t* address = nullptr;
+  while (VirtualQuery(address, &mbi, sizeof(mbi)) == sizeof(mbi)) {
+    if ((mbi.State == MEM_COMMIT) &&
+        (mbi.Type == MEM_IMAGE || mbi.Type == MEM_MAPPED)) {
+      char path_buffer[MAX_PATH];
+      if (GetMappedFileNameA(GetCurrentProcess(), address, path_buffer,
+                             MAX_PATH) != 0) {
+        auto lookup_result = mappings.Lookup(path_buffer);
+        if (lookup_result != nullptr) {
+          lookup_result->size += mbi.RegionSize;
+        } else {
+          char* path = strdup(path_buffer);
+          mappings.Insert({path, mbi.RegionSize});
+        }
+      }
+    }
+    if (address == nullptr) {
+      address = reinterpret_cast<uint8_t*>(mbi.RegionSize);
+    } else {
+      address += mbi.RegionSize;
+    }
+  }
+
+  auto it = mappings.GetIterator();
+  for (auto* pair = it.Next(); pair != nullptr; pair = it.Next()) {
+    JSONObject mapping(rss_children);
+    mapping.AddProperty("name", pair->path);
+    mapping.AddProperty("description",
+                        "Mapped file / shared library / executable");
+    mapping.AddProperty64("size", pair->size);
+    JSONArray(&mapping, "children");
+    free(pair->path);
+  }
+}
+#endif
+
 static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   JSONObject response(js);
   response.AddProperty("type", "ProcessMemoryUsage");
@@ -5052,6 +5087,8 @@ static intptr_t GetProcessMemoryUsageHelper(JSONStream* js) {
   }
 
 #if defined(DART_HOST_OS_LINUX) || defined(DART_HOST_OS_ANDROID)
+  AddVMMappings(&rss_children);
+#elif defined(DART_HOST_OS_WINDOWS) && !defined(DART_TARGET_OS_WINDOWS_UWP)
   AddVMMappings(&rss_children);
 #endif
   // TODO(46166): Implement for other operating systems.

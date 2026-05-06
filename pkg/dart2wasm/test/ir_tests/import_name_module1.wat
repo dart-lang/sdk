@@ -11,20 +11,18 @@
   (global $".hello world" (import "" "hello world") (ref extern))
   (table $module0.cross-module-funcs-0 (import "module0" "cross-module-funcs-0") 2 funcref)
   (global $"\"hello world\"" (ref $JSExternWrapper)
-    (i32.const 105)
+    (i32.const 96)
     (i32.const 0)
     (global.get $".hello world")
     (struct.new $JSExternWrapper))
   (elem $module0.cross-module-funcs-0
     (set 0 (ref.func $"deferredFoo <noInline>")))
-  (func $"deferredFoo <noInline>" (result (ref null $#Top))
+  (func $"deferredFoo <noInline>"
     call $"mainFoo <noInline>"
-    ref.null none
   )
   (func $"mainFoo <noInline>"
     global.get $"\"hello world\""
     i32.const 1
-    call_indirect (param (ref null $#Top)) (result (ref null $#Top))
-    drop
+    call_indirect (param (ref null $#Top))
   )
 )

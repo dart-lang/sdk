@@ -48,9 +48,9 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       var unicode = args.any(
         (arg) =>
-            arg is NamedExpression &&
-            arg.name.label.name == 'unicode' &&
-            isTrue(arg.expression),
+            arg is NamedArgument &&
+            arg.name.lexeme == 'unicode' &&
+            isTrue(arg.argumentExpression),
       );
 
       var sourceExpression = args.first;

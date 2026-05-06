@@ -9,17 +9,17 @@ import 'package:expect/expect.dart';
 import '../helpers/compiler_helper.dart';
 
 const String FOO = r"""
-void foo(var a, var b) {
+void foo(a, b) {
 }
 """;
 
 const String BAR = r"""
-void bar(var eval, var $eval) {
+void bar(eval, $eval) {
 }
 """;
 
 const String PARAMETER_AND_TEMP = r"""
-void bar(var t0, var b) {
+void bar(t0, b) {
   {
     var t0 = 2;
     if (b) {
@@ -62,7 +62,7 @@ foo(param1, param2, param3) {
 """;
 
 const String PARAMETER_INIT = r"""
-void foo(var start, var test) {
+void foo(start, test) {
   var result = start;
   if (test) {
     foo(1, 2);

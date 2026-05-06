@@ -33,6 +33,7 @@ enum ConstantTag {
   kExternalCall,
   kFfiCall,
   kDeferredLibraryPrefix,
+  kAllocateClosure,
 }
 
 String constantTagToString(ConstantTag tag) =>
@@ -93,6 +94,8 @@ abstract class ConstantPoolEntry {
         return new ConstantFfiCall.read(reader);
       case ConstantTag.kDeferredLibraryPrefix:
         return new ConstantDeferredLibraryPrefix.read(reader);
+      case ConstantTag.kAllocateClosure:
+        return new ConstantAllocateClosure.read(reader);
     }
     throw 'Unexpected constant tag $tag';
   }
@@ -607,6 +610,52 @@ class ConstantDeferredLibraryPrefix extends ConstantPoolEntry {
       this.targetLibrary == other.targetLibrary;
 }
 
+class ConstantAllocateClosure extends ConstantPoolEntry {
+  static const int hasDelayedTypeArguments = 1 << 0;
+  static const int hasInstantiatorTypeArguments = 1 << 1;
+  static const int hasFunctionTypeArguments = 1 << 2;
+
+  final int closureIndex;
+  final int numElements;
+  final int flags;
+
+  ConstantAllocateClosure(this.closureIndex, this.numElements, this.flags);
+
+  @override
+  ConstantTag get tag => ConstantTag.kAllocateClosure;
+
+  // 2 slots: function, encoded length and flags.
+  @override
+  int get numReservedEntries => 1;
+
+  @override
+  void writeValue(BufferedWriter writer) {
+    writer.writePackedUInt30(closureIndex);
+    writer.writePackedUInt30(numElements);
+    writer.writePackedUInt30(flags);
+  }
+
+  ConstantAllocateClosure.read(BufferedReader reader)
+    : closureIndex = reader.readPackedUInt30(),
+      numElements = reader.readPackedUInt30(),
+      flags = reader.readPackedUInt30();
+
+  @override
+  String toString() {
+    return 'AllocateClosure $closureIndex, num-elements: $numElements, flags: $flags';
+  }
+
+  @override
+  int get hashCode => closureIndex.hashCode;
+
+  @override
+  bool operator ==(other) =>
+      other is ConstantAllocateClosure &&
+      this.closureIndex == other.closureIndex &&
+      this.flags == other.flags &&
+      this.numElements == other.numElements;
+}
+
 /// Reserved constant pool entry.
 class _ReservedConstantPoolEntry extends ConstantPoolEntry {
   const _ReservedConstantPoolEntry();
@@ -785,6 +834,28 @@ class ConstantPool {
         isGetter: invocationKind == InvocationKind.getter,
         isSetter: invocationKind == InvocationKind.setter,
       ),
+    ),
+  );
+
+  int addAllocateClosure(
+    int closureIndex,
+    int numElements, {
+    required bool hasDelayedTypeArguments,
+    required bool hasInstantiatorTypeArguments,
+    required bool hasFunctionTypeArguments,
+  }) => _add(
+    ConstantAllocateClosure(
+      closureIndex,
+      numElements,
+      (hasDelayedTypeArguments
+              ? ConstantAllocateClosure.hasDelayedTypeArguments
+              : 0) |
+          (hasInstantiatorTypeArguments
+              ? ConstantAllocateClosure.hasInstantiatorTypeArguments
+              : 0) |
+          (hasFunctionTypeArguments
+              ? ConstantAllocateClosure.hasFunctionTypeArguments
+              : 0),
     ),
   );
 

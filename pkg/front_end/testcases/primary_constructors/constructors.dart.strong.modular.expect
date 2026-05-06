@@ -4,31 +4,31 @@ import "dart:core" as core;
 
 class C1 extends core::Object {
   field core::int i;
-  constructor •(core::int i) → self::C1
+  constructor •(initializing-formal core::int i) → self::C1
     : self::C1::i = i, super core::Object::•()
     ;
 }
 class C2 extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
-  const constructor •(core::int i) → self::C2
+  const constructor •(initializing-formal core::int i) → self::C2
     : self::C2::i = i, super core::Object::•()
     ;
 }
 class C3 extends core::Object {
   field core::int i;
-  constructor named({required core::int i}) → self::C3
+  constructor named({required initializing-formal core::int i}) → self::C3
     : self::C3::i = i, super core::Object::•()
     ;
 }
 class C4 extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
-  const constructor named({required core::int i}) → self::C4
+  const constructor named({required initializing-formal core::int i}) → self::C4
     : self::C4::i = i, super core::Object::•()
     ;
 }
 class C5 extends core::Object {
   field core::int i;
-  constructor _(core::int i) → self::C5
+  constructor _(initializing-formal core::int i) → self::C5
     : self::C5::i = i, super core::Object::•()
     ;
   static factory •(core::int i) → self::C5
@@ -36,7 +36,7 @@ class C5 extends core::Object {
 }
 class C6 extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
-  const constructor _(core::int i) → self::C6
+  const constructor _(initializing-formal core::int i) → self::C6
     : self::C6::i = i, super core::Object::•()
     ;
   static factory •(core::int i) → self::C6
@@ -44,7 +44,7 @@ class C6 extends core::Object /*hasConstConstructor*/  {
 }
 class C7 extends core::Object {
   field core::int i;
-  constructor _({required core::int i}) → self::C7
+  constructor _({required initializing-formal core::int i}) → self::C7
     : self::C7::i = i, super core::Object::•()
     ;
   static factory •({required core::int i}) → self::C7 /* redirection-target: self::C7::_ */
@@ -52,7 +52,7 @@ class C7 extends core::Object {
 }
 class C8 extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
-  const constructor _(core::int i) → self::C8
+  const constructor _(initializing-formal core::int i) → self::C8
     : self::C8::i = i, super core::Object::•()
     ;
   static const factory •(core::int i) → self::C8 /* redirection-target: self::C8::_ */
@@ -60,7 +60,7 @@ class C8 extends core::Object /*hasConstConstructor*/  {
 }
 class C9 extends core::Object {
   field core::int i;
-  constructor _(core::int i) → self::C9
+  constructor _(initializing-formal core::int i) → self::C9
     : self::C9::i = i, super core::Object::•()
     ;
   static factory named(core::int i) → self::C9
@@ -68,7 +68,7 @@ class C9 extends core::Object {
 }
 class C10 extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
-  const constructor _(core::int i) → self::C10
+  const constructor _(initializing-formal core::int i) → self::C10
     : self::C10::i = i, super core::Object::•()
     ;
   static factory named(core::int i) → self::C10
@@ -76,7 +76,7 @@ class C10 extends core::Object /*hasConstConstructor*/  {
 }
 class C11 extends core::Object {
   field core::int i;
-  constructor _({required core::int i}) → self::C11
+  constructor _({required initializing-formal core::int i}) → self::C11
     : self::C11::i = i, super core::Object::•()
     ;
   static factory named({required core::int i}) → self::C11 /* redirection-target: self::C11::_ */
@@ -84,7 +84,7 @@ class C11 extends core::Object {
 }
 class C12 extends core::Object /*hasConstConstructor*/  {
   final field core::int i;
-  const constructor _(core::int i) → self::C12
+  const constructor _(initializing-formal core::int i) → self::C12
     : self::C12::i = i, super core::Object::•()
     ;
   static const factory named(core::int i) → self::C12 /* redirection-target: self::C12::_ */
@@ -95,7 +95,7 @@ class C13 extends core::Object {
   constructor •(core::int i) → self::C13
     : this self::C13::_(i)
     ;
-  constructor _(core::int i) → self::C13
+  constructor _(initializing-formal core::int i) → self::C13
     : self::C13::i = i, super core::Object::•()
     ;
 }
@@ -104,7 +104,7 @@ class C14 extends core::Object /*hasConstConstructor*/  {
   const constructor •(core::int i) → self::C14
     : this self::C14::_(i)
     ;
-  const constructor _(core::int i) → self::C14
+  const constructor _(initializing-formal core::int i) → self::C14
     : self::C14::i = i, super core::Object::•()
     ;
 }
@@ -113,7 +113,7 @@ class C15 extends core::Object {
   constructor named({required core::int i}) → self::C15
     : this self::C15::_(i)
     ;
-  constructor _(core::int i) → self::C15
+  constructor _(initializing-formal core::int i) → self::C15
     : self::C15::i = i, super core::Object::•()
     ;
 }
@@ -122,7 +122,7 @@ class C16 extends core::Object /*hasConstConstructor*/  {
   const constructor named({required core::int i}) → self::C16
     : this self::C16::_(i)
     ;
-  const constructor _(core::int i) → self::C16
+  const constructor _(initializing-formal core::int i) → self::C16
     : self::C16::i = i, super core::Object::•()
     ;
 }

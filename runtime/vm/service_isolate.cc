@@ -401,7 +401,7 @@ class RunServiceTask : public ThreadPool::Task {
     }
 
     isolate->message_handler()->Run(
-        isolate->group()->thread_pool(), nullptr,
+        isolate->group()->thread_pool(),
         [](uword parameter) {
           ShutdownIsolate(reinterpret_cast<Dart_Isolate>(parameter));
           ServiceIsolate::FinishedExiting();
@@ -419,7 +419,6 @@ class RunServiceTask : public ThreadPool::Task {
       auto T = Thread::Current();
       TransitionNativeToVM transition(T);
       StackZone zone(T);
-      HandleScope handle_scope(T);
 
       auto I = T->isolate();
       ASSERT(I->is_service_isolate());

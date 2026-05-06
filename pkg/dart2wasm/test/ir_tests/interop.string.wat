@@ -4,8 +4,8 @@
   (type $JSExternWrapper (sub $#Top (struct
     (field $field0 i32)
     (field $_externRef externref))))
-  (func $"dart2wasm._322 (import)" (import "dart2wasm" "_322") (param externref) (result externref))
-  (func $"dart2wasm._323 (import)" (import "dart2wasm" "_323") (param externref) (result externref))
+  (func $"dart2wasm.M (import)" (import "dart2wasm" "M") (param externref) (result externref))
+  (func $"dart2wasm.P (import)" (import "dart2wasm" "P") (param externref) (result externref))
   (global $.a (import "" "a") (ref extern))
   (global $"stringValueNullable initialized" (mut i32) <...>)
   (global $stringValueNullable (mut (ref null $JSExternWrapper)) <...>)
@@ -16,20 +16,20 @@
   (func $stringValue implicit getter (result (ref $JSExternWrapper)) <...>)
   (func $"testStringConstant <noInline>"
     global.get $.a
-    call $"dart2wasm._322 (import)"
+    call $"dart2wasm.P (import)"
     call $"new JSStringImpl.fromRef"
     call $"sinkString <noInline>"
   )
   (func $"testStringConstantNullable <noInline>"
     ref.null noextern
-    call $"dart2wasm._323 (import)"
+    call $"dart2wasm.M (import)"
     call $JSStringImpl.fromRefNullable
     call $"sinkStringNullable <noInline>"
   )
   (func $"testStringValue <noInline>"
     call $"stringValue implicit getter"
     struct.get $JSExternWrapper $_externRef
-    call $"dart2wasm._322 (import)"
+    call $"dart2wasm.P (import)"
     call $"new JSStringImpl.fromRef"
     call $"sinkString <noInline>"
   )
@@ -60,7 +60,7 @@
       local.get $var1
       struct.get $JSExternWrapper $_externRef
     end
-    call $"dart2wasm._323 (import)"
+    call $"dart2wasm.M (import)"
     call $JSStringImpl.fromRefNullable
     call $"sinkStringNullable <noInline>"
   )

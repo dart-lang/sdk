@@ -329,9 +329,10 @@ final class _ArgumentIndex extends _Argument {
 
   @override
   Expression get(ArgumentList argumentList) {
-    return argumentList.arguments.whereNotType<NamedExpression>().elementAt(
-      index,
-    );
+    return argumentList.arguments
+        .whereNotType<NamedArgument>()
+        .elementAt(index)
+        .argumentExpression;
   }
 }
 
@@ -344,10 +345,10 @@ final class _ArgumentNamed extends _Argument {
   @override
   Expression get(ArgumentList argumentList) {
     return argumentList.arguments
-        .whereType<NamedExpression>()
-        .where((argument) => argument.name.label.name == name)
+        .whereType<NamedArgument>()
+        .where((argument) => argument.name.lexeme == name)
         .single
-        .expression;
+        .argumentExpression;
   }
 }
 

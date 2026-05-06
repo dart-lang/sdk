@@ -558,7 +558,7 @@ anonymousMethodWrongParameterList:
   hasPublishedDocs: false
   experiments: anonymous-methods
   statement:
-    - "1.(a, b){};"
+    - "1.(a, b) => 1;"
 
 missingExpressionInThrow:
   type: syntacticError
@@ -1495,14 +1495,15 @@ constructorWithWrongName:
   analyzerCode: invalidConstructorName
   hasPublishedDocs: false
   script:
-    - >-
+    - |
       class A { B.foo() {} }
-    - >-
+    - |
+      // @dart=3.11
       class A {
         factory B() => new A.internal();
         A.internal();
       }
-    - >-
+    - |
       class A {
         factory B.foo() => new A.internal();
         A.internal();
@@ -1531,7 +1532,7 @@ fieldInitializerOutsideConstructor:
     class A {
       int x = 0;
 
-      m([[!this.x!] = 0]) {}
+      m([[!this!].x = 0]) {}
     }
     ```
 
@@ -2492,6 +2493,7 @@ constWithoutPrimaryConstructor:
   correctionMessage: "Try removing the 'const' keyword or adding a primary constructor declaration."
   analyzerCode: constWithoutPrimaryConstructor
   hasPublishedDocs: false
+  experiments: primary-constructors
   script: |
     class const C {}
 
@@ -2620,6 +2622,7 @@ primaryConstructorBodyWithoutDeclaration:
     a primary constructor body but doesn't declare a primary constructor:
 
     ```dart
+    %ignore=undefined_identifier
     class C {
       [!this!] : assert(x > 0);
     }
@@ -2790,3 +2793,25 @@ redirectGenerativeToNonGenerativeConstructor:
       factory C() => throw '';
       C.named() : this();
     }
+
+mixinPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Mixins can't have primary constructors."
+  correctionMessage: "Try removing the primary constructor or changing the mixin to a class."
+  analyzerCode: mixinPrimaryConstructor
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    mixin M() {}
+
+extensionPrimaryConstructor:
+  type: syntacticError
+  parameters: none
+  problemMessage: "Extensions can't have primary constructors."
+  correctionMessage: "Try removing the primary constructor or changing the extension to an extension type."
+  analyzerCode: extensionPrimaryConstructor
+  hasPublishedDocs: false
+  experiments: primary-constructors
+  script: |
+    extension E() on int {}

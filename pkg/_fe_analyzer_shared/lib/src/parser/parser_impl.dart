@@ -562,7 +562,6 @@ class Parser {
         /* beginToken = */ token.next!,
         /* modifierStart = */ token,
         /* keyword = */ next,
-        /* macroToken = */ null,
         /* sealedToken = */ null,
         /* baseToken = */ null,
         /* interfaceToken = */ null,
@@ -592,16 +591,10 @@ class Parser {
       }
     }
     next = token.next!;
-    Token? macroToken;
     Token? sealedToken;
     Token? baseToken;
     Token? interfaceToken;
-    if (next.isIdentifier &&
-        next.lexeme == 'macro' &&
-        next.next!.isA(Keyword.CLASS)) {
-      macroToken = next;
-      next = next.next!;
-    } else if (next.isIdentifier && next.isA(Keyword.SEALED)) {
+    if (next.isIdentifier && next.isA(Keyword.SEALED)) {
       sealedToken = next;
       if (next.next!.isA(Keyword.CLASS) ||
           next.next!.isA(Keyword.MIXIN) ||
@@ -635,7 +628,6 @@ class Parser {
         /* beginToken = */ beginToken,
         /* modifierStart = */ modifierStart,
         /* keyword = */ next,
-        /* macroToken = */ macroToken,
         /* sealedToken = */ sealedToken,
         /* baseToken = */ baseToken,
         /* interfaceToken = */ interfaceToken,
@@ -681,7 +673,6 @@ class Parser {
     Token beginToken,
     Token modifierStart,
     Token keyword,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -694,7 +685,6 @@ class Parser {
         beginToken,
         modifierStart,
         keyword,
-        macroToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -791,7 +781,6 @@ class Parser {
               beginToken,
               modifierStart,
               keyword.next!,
-              macroToken,
               sealedToken,
               baseToken,
               interfaceToken,
@@ -847,7 +836,6 @@ class Parser {
     Token beginToken,
     Token modifierStart,
     Token classKeyword,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -875,7 +863,6 @@ class Parser {
     return parseClassOrNamedMixinApplication(
       beginToken,
       context.abstractToken,
-      macroToken,
       sealedToken,
       baseToken,
       interfaceToken,
@@ -974,21 +961,17 @@ class Parser {
     listener.beginUncategorizedTopLevelDeclaration(importKeyword);
     listener.beginImport(importKeyword);
     Token start = importKeyword;
-    Token? augmentToken;
-    if (start.next!.isIdentifier && start.next!.lexeme == 'augment') {
-      start = augmentToken = start.next!;
-    }
     Token token = ensureLiteralString(start);
     Token uri = token;
     token = parseConditionalUriStar(token);
     token = parseImportPrefixOpt(token);
     token = parseCombinatorStar(token).next!;
     if (token.isA(TokenType.SEMICOLON)) {
-      listener.endImport(importKeyword, augmentToken, token);
+      listener.endImport(importKeyword, token);
       return token;
     } else {
       // Recovery
-      listener.endImport(importKeyword, augmentToken, /* semicolon = */ null);
+      listener.endImport(importKeyword, /* semicolon = */ null);
       return parseImportRecovery(uri);
     }
   }
@@ -1741,7 +1724,7 @@ class Parser {
   ///                           ( ',' recordTypeNamedField )* ','? '}'
   /// recordTypeNamedField  ::= metadata type identifier
   Token parseRecordType(
-    final Token start,
+    Token start,
     Token token,
     bool isQuestionMarkPartOfType,
   ) {
@@ -2840,7 +2823,7 @@ class Parser {
   /// and the last skipped token is returned.
   /// Otherwise null is returned.
   Token? recoverySmallLookAheadSkipTokens(
-    final Token token,
+    Token token,
     List<TokenType> lookFor,
   ) {
     // Recovery: Allow a small lookahead for '{'. E.g. the user might be in
@@ -2938,7 +2921,6 @@ class Parser {
   Token parseClassOrNamedMixinApplication(
     Token beginToken,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -2995,7 +2977,6 @@ class Parser {
       listener.beginNamedMixinApplication(
         beginToken,
         abstractToken,
-        macroToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -3009,7 +2990,6 @@ class Parser {
       listener.beginClassDeclaration(
         beginToken,
         abstractToken,
-        macroToken,
         sealedToken,
         baseToken,
         interfaceToken,
@@ -3380,8 +3360,15 @@ class Parser {
   ) {
     assert(mixinKeyword.isA(Keyword.MIXIN));
     listener.beginClassOrMixinOrNamedMixinApplicationPrelude(mixinKeyword);
+    Token token = mixinKeyword;
+    Token? constKeyword;
+    if (token.next!.type == Keyword.CONST) {
+      // Error recovery. Error reported in [parsePrimaryConstructorOpt] called
+      // through [parseMixinHeaderOpt].
+      token = constKeyword = token.next!;
+    }
     Token name = ensureIdentifier(
-      mixinKeyword,
+      token,
       IdentifierContext.classOrMixinOrExtensionDeclaration,
     );
     Token headerStart = computeTypeParamOrArg(
@@ -3396,7 +3383,7 @@ class Parser {
       mixinKeyword,
       name,
     );
-    Token token = parseMixinHeaderOpt(headerStart, mixinKeyword);
+    token = parseMixinHeaderOpt(headerStart, constKeyword, mixinKeyword);
     if (token.next!.isA(TokenType.SEMICOLON)) {
       Token semicolonToken = token = token.next!;
       if (!isPrimaryConstructorsFeatureEnabled) {
@@ -3423,7 +3410,16 @@ class Parser {
     return token;
   }
 
-  Token parseMixinHeaderOpt(Token token, Token mixinKeyword) {
+  Token parseMixinHeaderOpt(
+    Token token,
+    Token? constKeyword,
+    Token mixinKeyword,
+  ) {
+    token = parsePrimaryConstructorOpt(
+      DeclarationKind.Mixin,
+      token,
+      constKeyword,
+    );
     token = parseMixinOnOpt(token);
     token = parseClassOrMixinOrEnumImplementsOpt(token);
     listener.handleMixinHeader(mixinKeyword);
@@ -3442,7 +3438,11 @@ class Parser {
     // Reparse to determine which clauses have already been parsed
     // but intercept the events so they are not sent to the primary listener.
     listener = recoveryListener;
-    token = parseMixinHeaderOpt(headerStart, mixinKeyword);
+    token = parseMixinHeaderOpt(
+      headerStart,
+      /* constKeyword */ null,
+      mixinKeyword,
+    );
     bool hasOn = recoveryListener.onKeyword != null;
     bool hasImplements = recoveryListener.implementsKeyword != null;
 
@@ -3606,6 +3606,11 @@ class Parser {
     Token extensionKeyword,
   ) {
     assert(extensionKeyword.isA(Keyword.EXTENSION));
+    Token? constKeyword;
+    if (token.next!.type == Keyword.CONST) {
+      // Error recovery. Error reported in [parsePrimaryConstructorOpt].
+      token = constKeyword = token.next!;
+    }
     Token? name = token.next!;
     if (name.isIdentifier && !name.isA(Keyword.ON)) {
       token = name;
@@ -3623,6 +3628,11 @@ class Parser {
       /* inDeclaration = */ true,
     ).parseVariables(token, this);
     listener.beginExtensionDeclaration(augmentToken, extensionKeyword, name);
+    token = parsePrimaryConstructorOpt(
+      DeclarationKind.Extension,
+      token,
+      constKeyword,
+    );
 
     Token? onKeyword = token.next!;
     if (augmentToken != null) {
@@ -3718,6 +3728,45 @@ class Parser {
     if (token.next!.isA(TokenType.OPEN_PAREN) ||
         token.next!.isA(TokenType.PERIOD)) {
       Token beginPrimaryConstructor = token.next!;
+
+      switch (kind) {
+        case DeclarationKind.TopLevel:
+          assert(false, "Unexpected primary constructor kind: $kind");
+        case DeclarationKind.Mixin:
+          if (isPrimaryConstructorsFeatureEnabled) {
+            reportRecoverableError(
+              constKeyword ?? beginPrimaryConstructor,
+              diag.mixinPrimaryConstructor,
+            );
+          } else {
+            reportRecoverableError(
+              constKeyword ?? beginPrimaryConstructor,
+              diag.unexpectedToken.withArguments(
+                lexeme: constKeyword ?? beginPrimaryConstructor,
+              ),
+            );
+          }
+        case DeclarationKind.Extension:
+          if (isPrimaryConstructorsFeatureEnabled) {
+            reportRecoverableError(
+              constKeyword ?? beginPrimaryConstructor,
+              diag.extensionPrimaryConstructor,
+            );
+          } else {
+            reportRecoverableError(
+              constKeyword ?? beginPrimaryConstructor,
+              diag.unexpectedToken.withArguments(
+                lexeme: constKeyword ?? beginPrimaryConstructor,
+              ),
+            );
+          }
+        case DeclarationKind.Class:
+        case DeclarationKind.ExtensionType:
+        case DeclarationKind.Enum:
+          // Valid cases.
+          break;
+      }
+
       listener.beginPrimaryConstructor(beginPrimaryConstructor);
       bool hasConstructorName = beginPrimaryConstructor.isA(TokenType.PERIOD);
       if (hasConstructorName) {
@@ -3740,6 +3789,7 @@ class Parser {
       listener.endPrimaryConstructor(
         kind,
         beginPrimaryConstructor,
+        token,
         constKeyword,
         hasConstructorName,
       );
@@ -3747,12 +3797,34 @@ class Parser {
       if (kind == DeclarationKind.ExtensionType) {
         reportRecoverableError(token, diag.missingPrimaryConstructor);
       } else if (constKeyword != null) {
-        // TODO(johnniwinther): It should be possible to report if the
-        //  declaring constructors feature is not enabled here.
-        reportRecoverableError(
-          constKeyword,
-          diag.constWithoutPrimaryConstructor,
-        );
+        if (isPrimaryConstructorsFeatureEnabled) {
+          switch (kind) {
+            case DeclarationKind.TopLevel:
+              assert(false, "Unexpected primary constructor kind: $kind");
+            case DeclarationKind.Mixin:
+              reportRecoverableError(
+                constKeyword,
+                diag.mixinPrimaryConstructor,
+              );
+            case DeclarationKind.Extension:
+              reportRecoverableError(
+                constKeyword,
+                diag.extensionPrimaryConstructor,
+              );
+            case DeclarationKind.Class:
+            case DeclarationKind.ExtensionType:
+            case DeclarationKind.Enum:
+              reportRecoverableError(
+                constKeyword,
+                diag.constWithoutPrimaryConstructor,
+              );
+          }
+        } else {
+          reportRecoverableError(
+            constKeyword,
+            diag.unexpectedToken.withArguments(lexeme: constKeyword),
+          );
+        }
       }
       listener.handleNoPrimaryConstructor(kind, token, constKeyword);
     }
@@ -4026,6 +4098,7 @@ class Parser {
 
     Token? skippedNonLateLate;
 
+    Token? abstractToken;
     Token? externalToken;
     Token? augmentToken;
     Token? lateToken;
@@ -4075,6 +4148,7 @@ class Parser {
             token = context.parseTopLevelMemberModifiers(token);
             next = token.next!;
 
+            abstractToken = context.abstractToken;
             augmentToken = context.augmentToken;
             externalToken = context.externalToken;
             lateToken = context.lateToken;
@@ -4105,7 +4179,7 @@ class Parser {
         rewriter.dropRange(syntheticName, afterOuterPattern.next!);
         return parseFields(
           beforeStart,
-          /* abstractToken = */ null,
+          abstractToken,
           augmentToken,
           externalToken,
           /* staticToken = */ null,
@@ -4235,6 +4309,9 @@ class Parser {
       } else if (lateToken != null) {
         reportRecoverableErrorWithToken(lateToken, diag.extraneousModifier);
       }
+      if (abstractToken != null) {
+        reportRecoverableErrorWithToken(abstractToken, diag.extraneousModifier);
+      }
       return parseTopLevelMethod(
         beforeStart,
         augmentToken,
@@ -4250,9 +4327,12 @@ class Parser {
     if (getOrSet != null) {
       reportRecoverableErrorWithToken(getOrSet, diag.extraneousModifier);
     }
+    if (!_isAugmentationsFeatureEnabled && abstractToken != null) {
+      reportRecoverableErrorWithToken(abstractToken, diag.extraneousModifier);
+    }
     return parseFields(
       beforeStart,
-      /* abstractToken = */ null,
+      abstractToken,
       augmentToken,
       externalToken,
       /* staticToken = */ null,
@@ -4286,8 +4366,8 @@ class Parser {
   ) {
     listener.beginFields(
       kind,
-      abstractToken,
       augmentToken,
+      abstractToken,
       externalToken,
       staticToken,
       covariantToken,
@@ -4380,7 +4460,6 @@ class Parser {
     }
     switch (kind) {
       case DeclarationKind.TopLevel:
-        assert(abstractToken == null);
         break;
       case DeclarationKind.Class:
       case DeclarationKind.Mixin:
@@ -4409,6 +4488,7 @@ class Parser {
     if (kind == DeclarationKind.TopLevel) {
       listener.endTopLevelFields(
         augmentToken,
+        abstractToken,
         externalToken,
         staticToken,
         covariantToken,
@@ -4751,7 +4831,7 @@ class Parser {
   /// ```
   ///   'super' ('.' identifier)? arguments ;
   /// ```
-  Token parseSuperInitializerExpression(final Token start) {
+  Token parseSuperInitializerExpression(Token start) {
     Token token = start.next!;
     assert(token.isA(Keyword.SUPER));
     Token next = token.next!;
@@ -6882,14 +6962,22 @@ class Parser {
     return token;
   }
 
-  /// Returns `true` if [period] is a `.` and the next token after is an
-  /// identifier or the `new` keyword.
+  /// Returns `true` if [token] is a `.` and the next token after is an
+  /// identifier or the `new` keyword, or if [token] is `const` followed by a
+  /// `.` and an identifier or the `new` keyword after.
   ///
-  /// This indicates the parsing of a dot shorthand e.g. `.parse(42)`.
-  bool _isDotShorthand(Token period) {
-    if (period.isA(TokenType.PERIOD) &&
-        (period.next!.isIdentifier || period.next!.isA(Keyword.NEW))) {
+  /// This indicates the parsing of a dot shorthand e.g. `.parse(42)` or
+  /// `const .parse(42)`.
+  bool _isDotShorthand(Token token) {
+    if (token.isA(TokenType.PERIOD) &&
+        (token.next!.isIdentifier || token.next!.isA(Keyword.NEW))) {
       return true;
+    }
+    if (token.isA(Keyword.CONST) && token.next!.isA(TokenType.PERIOD)) {
+      Token period = token.next!;
+      if (period.next!.isIdentifier || period.next!.isA(Keyword.NEW)) {
+        return true;
+      }
     }
     return false;
   }
@@ -6906,6 +6994,21 @@ class Parser {
     Token nextToken = token.next!;
     bool isDotShorthand = _isDotShorthand(nextToken);
     if (!isDotShorthand) {
+      if (nextToken.isA(Keyword.CONST) &&
+          nextToken.next!.isA(TokenType.PERIOD)) {
+        // Recovery.
+        // This is an incomplete dot shorthand like `C c = const .`.
+        // This allows for better code completion, assuming the user wanted to
+        // write a dot shorthand.
+        Token constKeyword = nextToken;
+        Token dot = nextToken.next!;
+        listener.beginConstDotShorthand(constKeyword);
+        token = ensureIdentifier(dot, IdentifierContext.expressionContinuation);
+        listener.handleDotShorthandHead(dot);
+        listener.endConstDotShorthand(constKeyword);
+        listener.handleDotShorthandContext(dot);
+        return token;
+      }
       if (nextToken.isA(TokenType.PERIOD)) {
         // Recovery.
         // This is an incomplete dot shorthand like `var x = .`.
@@ -6951,7 +7054,56 @@ class Parser {
       }
     }
 
-    if (isDotShorthand) {
+    token = _parseDotShorthand(
+      token,
+      nextToken,
+      isDotShorthand,
+      allowCascades,
+      typeArg,
+      constantPatternContext,
+    );
+
+    return _parsePrecedenceExpressionLoop(
+      precedence,
+      allowCascades,
+      typeArg,
+      token,
+      constantPatternContext,
+    );
+  }
+
+  Token _parseDotShorthand(
+    Token token,
+    Token nextToken,
+    bool isDotShorthand,
+    bool allowCascades,
+    TypeParamOrArgInfo typeArg,
+    ConstantPatternContext constantPatternContext,
+  ) {
+    if (!isDotShorthand) return token;
+
+    if (nextToken.isA(Keyword.CONST)) {
+      Token dot = nextToken.next!;
+      listener.beginConstDotShorthand(nextToken);
+      token = parsePrimary(
+        dot,
+        IdentifierContext.expressionContinuation,
+        constantPatternContext,
+      );
+
+      listener.handleDotShorthandHead(dot);
+      listener.endConstDotShorthand(nextToken);
+
+      token = _parsePrecedenceExpressionLoop(
+        SELECTOR_PRECEDENCE,
+        allowCascades,
+        typeArg,
+        token,
+        constantPatternContext,
+      );
+
+      listener.handleDotShorthandContext(dot);
+    } else {
       Token dot = token.next!;
       token = _parsePrecedenceExpressionLoop(
         SELECTOR_PRECEDENCE,
@@ -6974,14 +7126,7 @@ class Parser {
       // The entire shorthand is parsed at this point.
       listener.handleDotShorthandContext(dot);
     }
-
-    return _parsePrecedenceExpressionLoop(
-      precedence,
-      allowCascades,
-      typeArg,
-      token,
-      constantPatternContext,
-    );
+    return token;
   }
 
   Token _parsePrecedenceExpressionLoop(
@@ -7924,9 +8069,6 @@ class Parser {
         return parseThisExpression(token, context);
       } else if (identical(value, "super")) {
         return parseSuperExpression(token, context);
-      } else if (identical(value, "augment") &&
-          token.next!.next!.isA(Keyword.SUPER)) {
-        return parseAugmentSuperExpression(token, context);
       } else if (identical(value, "new")) {
         return parseNewExpression(token);
       } else if (identical(value, "const")) {
@@ -8217,21 +8359,6 @@ class Parser {
       listener.handleSend(superToken, token);
     } else if (next.isA(TokenType.QUESTION_PERIOD)) {
       reportRecoverableError(next, diag.superNullAware);
-    }
-    return token;
-  }
-
-  Token parseAugmentSuperExpression(Token token, IdentifierContext context) {
-    Token augmentToken = token = token.next!;
-    assert(token.isA(Keyword.AUGMENT));
-    Token superToken = token = token.next!;
-    assert(token.isA(Keyword.SUPER));
-    listener.handleAugmentSuperExpression(augmentToken, superToken, context);
-    Token next = token.next!;
-    if (next.isA(TokenType.OPEN_PAREN)) {
-      listener.handleNoTypeArguments(next);
-      token = parseArguments(token);
-      listener.handleSend(augmentToken, token);
     }
     return token;
   }
@@ -8537,10 +8664,7 @@ class Parser {
   ///   genericFunctionLiteral ::=
   ///       typeParameters formalParameterList functionBody
   /// Provide token for [constKeyword] if preceded by 'const', null if not.
-  Token parseLiteralListSetMapOrFunction(
-    final Token start,
-    Token? constKeyword,
-  ) {
+  Token parseLiteralListSetMapOrFunction(Token start, Token? constKeyword) {
     assert(start.next!.isA(TokenType.LT));
     TypeParamOrArgInfo typeParamOrArg = computeTypeParamOrArg(
       start,
@@ -8929,33 +9053,6 @@ class Parser {
       }
     }
 
-    // Handling const dot shorthands.
-    if (next.isA(TokenType.PERIOD)) {
-      listener.beginConstDotShorthand(constKeyword);
-
-      if (_isDotShorthand(next)) {
-        token = parsePrimary(
-          next,
-          IdentifierContext.expressionContinuation,
-          ConstantPatternContext.explicit,
-        );
-      } else {
-        // Recovery.
-        // This is an incomplete dot shorthand like `C c = const .`.
-        // This allows for better code completion, assuming the user wanted to
-        // write a dot shorthand.
-        token = ensureIdentifier(
-          next,
-          IdentifierContext.expressionContinuation,
-        );
-      }
-
-      listener.handleDotShorthandHead(next);
-      listener.handleDotShorthandContext(next);
-      listener.endConstDotShorthand(constKeyword);
-      return token;
-    }
-
     listener.beginConstExpression(constKeyword);
     token = parseConstructorReference(
       token,
@@ -9100,7 +9197,7 @@ class Parser {
       next = token.next!;
       kind = next.kind;
     }
-    listener.endLiteralString(interpolationCount, next);
+    listener.endLiteralString(interpolationCount, token);
     return token;
   }
 
@@ -9389,7 +9486,7 @@ class Parser {
             // Shortcut common cases:
             // "STRING COMMA" and "STRING CLOSE_PAREN"
             listener.beginLiteralString(next1);
-            listener.endLiteralString(0, next2);
+            listener.endLiteralString(0, next1);
             token = next1;
             expressionHandled = true;
           }
@@ -9565,7 +9662,7 @@ class Parser {
         token.isA(Keyword.SYNC);
   }
 
-  Token parseExpressionStatementOrConstDeclaration(final Token start) {
+  Token parseExpressionStatementOrConstDeclaration(Token start) {
     Token constToken = start.next!;
     assert(constToken.isA(Keyword.CONST));
     if (!isModifier(constToken.next!)) {
@@ -9614,7 +9711,7 @@ class Parser {
   /// local variable declaration nor a pattern variable declaration is found,
   /// then this method will return [start].
   Token parseExpressionStatementOrDeclaration(
-    final Token start, [
+    Token start, [
     ForPartsContext? forPartsContext,
   ]) {
     Token token = start;
@@ -11443,6 +11540,8 @@ class Parser {
             patternContext,
             precedence: tokenLevel + 1,
           );
+          // Note that "next" here is before "token" and the one that had either
+          // "&&" or "||".
           listener.endBinaryPattern(next);
           break;
         default:

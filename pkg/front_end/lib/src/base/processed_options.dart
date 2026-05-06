@@ -14,8 +14,7 @@ import 'package:_fe_analyzer_shared/src/util/libraries_specification.dart'
         TargetLibrariesSpecification;
 import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/binary/ast_from_binary.dart' show BinaryBuilder;
-import 'package:kernel/kernel.dart'
-    show CanonicalName, Component, Location, Version;
+import 'package:kernel/kernel.dart' show CanonicalName, Component, Location;
 import 'package:kernel/target/targets.dart'
     show NoneTarget, Target, TargetFlags;
 import 'package:package_config/package_config.dart';
@@ -89,13 +88,13 @@ class ProcessedOptions {
   /// types unless legacy mode is enabled.
   Component? _sdkSummaryComponent;
 
-  /// The component for each uri in `options.additionalDills`.
+  /// The component for each uri in `options.additionalDillModules`.
   ///
   /// A summary, also referred to as "outline" internally, is a [Component]
   /// where all method bodies are left out. In essence, it contains just API
   /// signatures and constants. The summaries should include inferred top-level
   /// types unless legacy mode is enabled.
-  List<Component>? _additionalDillComponents;
+  List<Component>? _additionalDillModuleComponents;
 
   /// The location of the SDK, or `null` if the location hasn't been determined
   /// yet.
@@ -133,6 +132,12 @@ class ProcessedOptions {
 
   Uri? get dynamicInterfaceSpecificationUri =>
       _raw.dynamicInterfaceSpecificationUri;
+
+  bool get allowDynamicCallsInDynamicModules =>
+      _raw.allowDynamicCallsInDynamicModules;
+
+  List<String> get dynamicCallsSelectorAllowList =>
+      _raw.dynamicCallsSelectorAllowList;
 
   String? _dynamicInterfaceSpecificationContents;
   bool _triedLoadingDynamicInterfaceSpecification = false;
@@ -173,7 +178,6 @@ class ProcessedOptions {
 
   bool get throwOnErrorsForDebugging => _raw.throwOnErrorsForDebugging;
 
-  // Coverage-ignore(suite): Not run.
   bool get throwOnWarningsForDebugging => _raw.throwOnWarningsForDebugging;
 
   // Coverage-ignore(suite): Not run.
@@ -182,7 +186,7 @@ class ProcessedOptions {
   // Coverage-ignore(suite): Not run.
   bool get enableUnscheduledExperiments => _raw.enableUnscheduledExperiments;
 
-  bool get hasAdditionalDills => _raw.additionalDills.isNotEmpty;
+  bool get hasAdditionalDillModules => _raw.additionalDillModules.isNotEmpty;
 
   /// The entry-points provided to the compiler.
   final List<Uri> inputs;
@@ -430,7 +434,7 @@ class ProcessedOptions {
       return false;
     }
 
-    for (Uri source in _raw.additionalDills) {
+    for (Uri source in _raw.additionalDillModules) {
       // Coverage-ignore-block(suite): Not run.
       // TODO(ahe): Remove this check, the compiler itself should handle and
       // recover from this.
@@ -503,29 +507,6 @@ class ProcessedOptions {
   /// Returns the global state of the experimental features.
   flags.GlobalFeatures get globalFeatures => _raw.globalFeatures;
 
-  // Coverage-ignore(suite): Not run.
-  /// Returns the minimum language version needed for a library with the given
-  /// [importUri] to opt into the experiment with the given [flag].
-  ///
-  /// Note that the experiment might not be enabled at all for the library, as
-  /// computed by [isExperimentEnabledInLibrary].
-  Version getExperimentEnabledVersionInLibrary(
-    flags.ExperimentalFlag flag,
-    Uri importUri,
-  ) {
-    return _raw.getExperimentEnabledVersionInLibrary(flag, importUri);
-  }
-
-  /// Return `true` if the experiment with the given [flag] is enabled for the
-  /// library with the given [importUri] and language [version].
-  bool isExperimentEnabledInLibraryByVersion(
-    flags.ExperimentalFlag flag,
-    Uri importUri,
-    Version version,
-  ) {
-    return _raw.isExperimentEnabledInLibraryByVersion(flag, importUri, version);
-  }
-
   /// Get an outline component that summarizes the SDK, if any.
   // TODO(sigmund): move, this doesn't feel like an "option".
   Future<Component?> loadSdkSummary(CanonicalName? nameRoot) async {
@@ -551,12 +532,14 @@ class ProcessedOptions {
   }
 
   // Coverage-ignore(suite): Not run.
-  /// Get the components for each of the underlying `additionalDill`
+  /// Get the components for each of the underlying `additionalDillModules`
   /// provided via [CompilerOptions].
   // TODO(sigmund): move, this doesn't feel like an "option".
-  Future<List<Component>> loadAdditionalDills(CanonicalName? nameRoot) async {
-    if (_additionalDillComponents == null) {
-      List<Uri> uris = _raw.additionalDills;
+  Future<List<Component>> loadAdditionalDillModules(
+    CanonicalName? nameRoot,
+  ) async {
+    if (_additionalDillModuleComponents == null) {
+      List<Uri> uris = _raw.additionalDillModules;
       if (uris.isEmpty) return const <Component>[];
       // TODO(sigmund): throttle # of concurrent operations.
       List<Uint8List?> allBytes = await Future.wait(
@@ -568,9 +551,9 @@ class ProcessedOptions {
         if (bytes == null) continue;
         result.add(loadComponent(bytes, nameRoot, fileUri: uris[i]));
       }
-      _additionalDillComponents = result;
+      _additionalDillModuleComponents = result;
     }
-    return _additionalDillComponents!;
+    return _additionalDillModuleComponents!;
   }
 
   /// Helper to load a .dill file from [fileUri] using the existing [nameRoot].
@@ -954,7 +937,7 @@ class ProcessedOptions {
       '(provided: ${_raw.fileSystem.runtimeType})',
     );
 
-    writeList('Additional Dills', _raw.additionalDills);
+    writeList('Additional Dill Modules', _raw.additionalDillModules);
 
     sb.writeln('Packages uri: ${_raw.packagesFileUri}');
     sb.writeln('Packages: ${_packages}');

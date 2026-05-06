@@ -246,11 +246,12 @@ class CommandLineOptions {
 
     // Check SDK.
     {
+      var pathContext = resourceProvider.pathContext;
       var sdkPath = options.dartSdkPath;
 
-      // Check that SDK is existing directory.
       if (sdkPath != null) {
-        if (!io.Directory(sdkPath).existsSync()) {
+        var normalized = file_paths.absoluteNormalized(pathContext, sdkPath);
+        if (!resourceProvider.getFolder(normalized).exists) {
           printAndFail('Invalid Dart SDK path: $sdkPath');
           return null; // Only reachable in testing.
         }
@@ -259,7 +260,6 @@ class CommandLineOptions {
       // Infer if unspecified.
       sdkPath ??= getSdkPath();
 
-      var pathContext = resourceProvider.pathContext;
       options.dartSdkPath = file_paths.absoluteNormalized(pathContext, sdkPath);
     }
 

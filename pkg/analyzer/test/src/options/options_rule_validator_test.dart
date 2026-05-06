@@ -6,10 +6,10 @@ import 'package:analyzer/analysis_rule/analysis_rule.dart';
 import 'package:analyzer/analysis_rule/rule_state.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/error/listener.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/analysis_options_provider.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer/src/lint/options_rule_validator.dart';
-import 'package:analyzer/src/string_source.dart';
 import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:analyzer_testing/analysis_rule/analysis_rule.dart';
 import 'package:pub_semver/pub_semver.dart';
@@ -798,17 +798,19 @@ mixin OptionsRuleValidatorTestMixin on AbstractAnalysisOptionsTest {
     VersionConstraint? sdk,
   }) {
     GatheringDiagnosticListener listener = GatheringDiagnosticListener();
-    String filePath = 'analysis_options.yaml';
+    var optionsFile = analysisOptionsFile;
     if (testProjectPath != null) {
-      filePath = resourceProvider.pathContext.join(testProjectPath!, filePath);
+      optionsFile = newFile('$testProjectPath/analysis_options.yaml', '');
     }
-    var source = StringSource(content, filePath);
+    optionsFile.writeAsStringSync(content);
+    var source = FileSource(optionsFile);
     var reporter = DiagnosticReporter(listener, source);
     var validator = LinterRuleOptionsValidator(
       optionsProvider: AnalysisOptionsProvider(sourceFactory),
       resourceProvider: resourceProvider,
       sourceFactory: sourceFactory,
       sdkVersionConstraint: sdk,
+      analysisOptionsCache: {},
     );
     validator.validate(
       reporter,

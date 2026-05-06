@@ -144,7 +144,15 @@ final class MessageScheduler {
           listener?.addActiveMessage(message);
           var id = _processCancellation(msg);
           listener?.messageCompleted(message, id: id);
-          return;
+          // Only skip adding to the queue if we processed the cancellation, as
+          // there are cases where an active message might not be in our queue
+          // because we sometimes pretend a request is completed when it isn't,
+          // but it has made an outbound reverse-request and we cannot stall
+          // the server while that's open if the server is in non-overlapping
+          // request mode.
+          if (id != null) {
+            return;
+          }
         } else if (method == lsp.Method.textDocument_didChange) {
           // Document change notifications are _not_ handled immediately, but
           // some active or pending requests can be cancelled before the normal

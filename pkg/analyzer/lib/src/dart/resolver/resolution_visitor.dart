@@ -84,9 +84,16 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       strictCasts: strictCasts,
     );
 
+    var scopeContext = ScopeContext(
+      libraryFragment: libraryFragment,
+      nameScope: nameScope,
+      docImportLibraries: docImportLibraries,
+    );
+
     var namedTypeResolver = NamedTypeResolver(
       libraryElement,
       libraryFragment,
+      scopeContext,
       diagnosticReporter,
       strictInference: strictInference,
       strictCasts: strictCasts,
@@ -107,8 +114,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       AstRewriter(diagnosticReporter),
       namedTypeResolver,
       recordTypeResolver,
-      nameScope,
-      docImportLibraries,
+      scopeContext,
       typeSystemOperations,
       dataForTesting,
     );
@@ -122,15 +128,10 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     this._astRewriter,
     this._namedTypeResolver,
     this._recordTypeResolver,
-    Scope nameScope,
-    List<LibraryElement> docImportLibraries,
+    this._scopeContext,
     this.typeSystemOperations,
     this.dataForTesting,
-  ) : _scopeContext = ScopeContext(
-        libraryFragment: _libraryFragment,
-        nameScope: nameScope,
-        docImportLibraries: docImportLibraries,
-      );
+  );
 
   Scope get nameScope => _scopeContext.nameScope;
 
@@ -358,17 +359,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitDefaultFormalParameter(covariant DefaultFormalParameterImpl node) {
-    var normalParameter = node.parameter;
-    normalParameter.accept(this);
-
-    var defaultValue = node.defaultValue;
-    if (defaultValue != null) {
-      defaultValue.accept(this);
-    }
-  }
-
-  @override
   void visitDoStatement(covariant DoStatementImpl node) {
     _withUnlabeledBreakContinueContextNested(node, () {
       _visitStatementInScope(node.body);
@@ -456,8 +446,13 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
+  void visitFieldDeclaration(covariant FieldDeclarationImpl node) {
+    _scopeContext.visitFieldDeclaration(node, visitor: this);
+  }
+
+  @override
   void visitFieldFormalParameter(covariant FieldFormalParameterImpl node) {
-    _scopeContext.visitFieldFormalParameter(node, visitor: this);
+    _scopeContext.visitFormalParameter(node, visitor: this);
   }
 
   @override
@@ -531,21 +526,6 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitFunctionTypedFormalParameter(
-    covariant FunctionTypedFormalParameterImpl node,
-  ) {
-    _scopeContext.visitFunctionTypedFormalParameter(node, visitor: this);
-
-    var element = node.declaredFragment!.element;
-    element.type = FunctionTypeImpl(
-      typeParameters: element.typeParameters,
-      parameters: element.formalParameters,
-      returnType: node.returnType?.type ?? _typeProvider.dynamicType,
-      nullabilitySuffix: _getNullability(node.question != null),
-    );
-  }
-
-  @override
   void visitGenericFunctionType(covariant GenericFunctionTypeImpl node) {
     _scopeContext.visitGenericFunctionType(node, visitor: this);
 
@@ -554,7 +534,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
     var type = FunctionTypeImpl(
       typeParameters: element.typeParameters,
-      parameters: element.formalParameters,
+      formalParameters: element.formalParameters,
       returnType: element.returnType,
       nullabilitySuffix: _getNullability(node.question != null),
     );
@@ -723,15 +703,14 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitNamedExpression(covariant NamedExpressionImpl node) {
-    node.visitChildrenWithHooks(this, visitName: (_) {});
+  void visitNamedArgument(covariant NamedArgumentImpl node) {
+    node.visitChildren(this);
   }
 
   @override
   void visitNamedType(covariant NamedTypeImpl node) {
     node.typeArguments?.accept(this);
 
-    _namedTypeResolver.nameScope = nameScope;
     _namedTypeResolver.resolve(node, dataForTesting: dataForTesting);
 
     if (_namedTypeResolver.rewriteResult != null) {
@@ -810,18 +789,22 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   }
 
   @override
-  void visitShowCombinator(ShowCombinator node) {
-    var scope = nameScope.tryCast<LibraryFragmentScope>();
-    scope?.importsTrackingActive(false);
-    try {
-      super.visitShowCombinator(node);
-    } finally {
-      scope?.importsTrackingActive(true);
-    }
-  }
+  void visitRegularFormalParameter(covariant RegularFormalParameterImpl node) {
+    if (node.functionTypedSuffix case var functionTypedSuffix?) {
+      _scopeContext.visitFormalParameter(node, visitor: this);
 
-  @override
-  void visitSimpleFormalParameter(covariant SimpleFormalParameterImpl node) {
+      var element = node.declaredFragment!.element;
+      element.type = FunctionTypeImpl(
+        typeParameters: element.typeParameters,
+        formalParameters: element.formalParameters,
+        returnType: node.type?.type ?? _typeProvider.dynamicType,
+        nullabilitySuffix: _getNullability(
+          functionTypedSuffix.question != null,
+        ),
+      );
+      return;
+    }
+
     node.visitChildren(this);
 
     var element = node.declaredFragment!.element;
@@ -830,6 +813,17 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     } else if (element.type is InvalidTypeImpl) {
       // TODO(scheglov): review and improve resolution to not rely on dynamic.
       element.type = _typeProvider.dynamicType;
+    }
+  }
+
+  @override
+  void visitShowCombinator(ShowCombinator node) {
+    var scope = nameScope.tryCast<LibraryFragmentScope>();
+    scope?.importsTrackingActive(false);
+    try {
+      super.visitShowCombinator(node);
+    } finally {
+      scope?.importsTrackingActive(true);
     }
   }
 
@@ -873,7 +867,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   @override
   void visitSuperFormalParameter(covariant SuperFormalParameterImpl node) {
-    _scopeContext.visitSuperFormalParameter(node, visitor: this);
+    _scopeContext.visitFormalParameter(node, visitor: this);
   }
 
   @override
@@ -1062,7 +1056,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
 
   AstNode? _lookupBreakOrContinueTarget(
     AstNode parentNode,
-    SimpleIdentifierImpl? labelNode, {
+    LabelReferenceImpl? labelNode, {
     required bool isContinue,
   }) {
     if (labelNode == null) {
@@ -1070,10 +1064,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
           ? _unlabeledBreakContinueContext.continueTarget
           : _unlabeledBreakContinueContext.breakTarget;
     } else {
-      var definingScope = _labelScope?.lookup(labelNode.name);
+      var labelName = labelNode.name.lexeme;
+      var definingScope = _labelScope?.lookup(labelName);
       if (definingScope == null) {
         _diagnosticReporter.report(
-          diag.labelUndefined.withArguments(name: labelNode.name).at(labelNode),
+          diag.labelUndefined.withArguments(name: labelName).at(labelNode),
         );
         return null;
       }
@@ -1083,9 +1078,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
         var labelContainer = labelFragment.enclosingFragment;
         if (!identical(labelContainer, enclosingClosure.firstFragment)) {
           _diagnosticReporter.report(
-            diag.labelInOuterScope
-                .withArguments(name: labelNode.name)
-                .at(labelNode),
+            diag.labelInOuterScope.withArguments(name: labelName).at(labelNode),
           );
         }
       }
@@ -1108,8 +1101,7 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
   ) {
     var current = outer;
     for (var label in labels) {
-      var labelNameNode = label.label;
-      var labelElement = labelNameNode.element as LabelElement;
+      var labelElement = label.declaredFragment!.element;
       current = LabelScope(current, labelElement, node);
     }
     return current;
@@ -1194,8 +1186,11 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
       return;
     }
 
-    var element = type.element;
-    switch (element) {
+    if (namedType.isSynthetic) {
+      return;
+    }
+
+    switch (type.element) {
       case ClassElement():
         return;
       case MixinElement():

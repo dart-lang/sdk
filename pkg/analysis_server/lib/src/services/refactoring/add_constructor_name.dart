@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/lsp/constants.dart';
 import 'package:analysis_server/src/services/refactoring/framework/refactoring_producer.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
@@ -10,6 +11,7 @@ import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
+import 'package:language_server_protocol/protocol_generated.dart';
 
 /// The refactoring that adds a name to an unnamed constructor.
 class AddConstructorName extends RefactoringProducer {
@@ -21,6 +23,9 @@ class AddConstructorName extends RefactoringProducer {
 
   @override
   bool get isExperimental => false;
+
+  @override
+  CodeActionKind get kind => DartCodeActionKind.refactorAdd;
 
   @override
   List<CommandParameter> get parameters => const <CommandParameter>[];

@@ -47,7 +47,7 @@ class AlwaysSpecifyTypes extends MultiAnalysisRule {
     registry.addDeclaredIdentifier(this, visitor);
     registry.addListLiteral(this, visitor);
     registry.addSetOrMapLiteral(this, visitor);
-    registry.addSimpleFormalParameter(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
     registry.addNamedType(this, visitor);
     registry.addDeclaredVariablePattern(this, visitor);
     registry.addVariableDeclarationList(this, visitor);
@@ -137,15 +137,10 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSetOrMapLiteral(SetOrMapLiteral literal) {
-    checkLiteral(literal);
-  }
-
-  @override
-  void visitSimpleFormalParameter(SimpleFormalParameter param) {
+  void visitRegularFormalParameter(RegularFormalParameter param) {
     var name = param.name;
     if (name != null && param.type == null && !name.lexeme.isJustUnderscores) {
-      var keyword = param.keyword;
+      var keyword = param.constFinalOrVarKeyword;
       var type = param.declaredFragment?.element.type;
       if (keyword != null) {
         if (keyword.type == Keyword.VAR &&
@@ -177,6 +172,11 @@ class _Visitor extends SimpleAstVisitor<void> {
         }
       }
     }
+  }
+
+  @override
+  void visitSetOrMapLiteral(SetOrMapLiteral literal) {
+    checkLiteral(literal);
   }
 
   @override

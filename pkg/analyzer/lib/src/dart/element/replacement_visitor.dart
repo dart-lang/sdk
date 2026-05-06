@@ -44,7 +44,7 @@ class ReplacementVisitor
       return null;
     }
 
-    return FunctionTypeImpl.v2(
+    return FunctionTypeImpl(
       typeParameters: newTypeParameters ?? type.typeParameters,
       formalParameters: newParameters ?? type.formalParameters,
       returnType: newReturnType ?? type.returnType,

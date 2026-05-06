@@ -43,7 +43,7 @@ abstract class Util<E extends core::Object? = dynamic> extends core::Object {
 }
 class _UtilImpl<E extends core::Object? = dynamic> extends core::Object implements red::Util<red::_UtilImpl::E%>, red::Interface {
   final field core::int integer;
-  constructor •(core::int integer) → red::_UtilImpl<red::_UtilImpl::E%>
+  constructor •(initializing-formal core::int integer) → red::_UtilImpl<red::_UtilImpl::E%>
     : red::_UtilImpl::integer = integer, super core::Object::•()
     ;
 }

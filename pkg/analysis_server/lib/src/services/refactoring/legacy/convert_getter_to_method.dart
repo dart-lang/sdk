@@ -8,6 +8,7 @@ import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring_internal.dart';
 import 'package:analysis_server/src/services/search/hierarchy.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
 import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/analysis/session.dart';
 import 'package:analyzer/dart/ast/ast.dart';
@@ -22,19 +23,29 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     implements ConvertGetterToMethodRefactoring {
   final RefactoringWorkspace workspace;
   final SearchEngine searchEngine;
-  final AnalysisSession session;
+  final ResolvedUnitResult resolvedUnit;
+  final CorrectionUtils utils;
   final GetterElement element;
-
-  late SourceChange change;
 
   ConvertGetterToMethodRefactoringImpl(
     this.workspace,
-    this.session,
+    this.resolvedUnit,
     this.element,
-  ) : searchEngine = workspace.searchEngine;
+  ) : searchEngine = workspace.searchEngine,
+      utils = CorrectionUtils(resolvedUnit);
 
   @override
   String get refactoringName => 'Convert Getter To Method';
+
+  AnalysisSession get session => resolvedUnit.session;
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var elements = await _getElements();
+    for (var element in elements) {
+      await _updateElementDeclaration(builder, element);
+      await _updateElementReferences(builder, element);
+    }
+  }
 
   @override
   Future<RefactoringStatus> checkFinalConditions() async {
@@ -63,13 +74,14 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
 
   @override
   Future<SourceChange> createChange({ChangeBuilder? builder}) async {
-    change = SourceChange(refactoringName);
-    var elements = await _getElements();
-    for (var element in elements) {
-      await _updateElementDeclaration(element);
-      await _updateElementReferences(element);
-    }
-    return change;
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = refactoringName;
+    return sourceChange;
   }
 
   @override
@@ -143,7 +155,10 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
     return null;
   }
 
-  Future<void> _updateElementDeclaration(GetterElement element) async {
+  Future<void> _updateElementDeclaration(
+    ChangeBuilder builder,
+    GetterElement element,
+  ) async {
     // prepare "get" keyword
     Token? getKeyword;
     for (
@@ -166,21 +181,26 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
         return;
       }
       // remove "get "
-      if (getKeyword != null) {
-        var getRange = range.startOffsetEndOffset(
-          getKeyword.offset,
-          fragment.nameOffset!,
-        );
-        var edit = newSourceEdit_range(getRange, '');
-        doSourceChange_addFragmentEdit(change, fragment, edit);
-      }
-      // add parameters "()"
-      var edit = SourceEdit(nameRange.end, 0, '()');
-      doSourceChange_addFragmentEdit(change, fragment, edit);
+      await builder.addDartFileEdit(fragment.libraryFragment.source.fullName, (
+        builder,
+      ) {
+        if (getKeyword != null) {
+          var getRange = range.startOffsetEndOffset(
+            getKeyword.offset,
+            fragment!.nameOffset!,
+          );
+          builder.addDeletion(getRange);
+        }
+        // add parameters "()"
+        builder.addSimpleInsertion(nameRange.end, '()');
+      });
     }
   }
 
-  Future<void> _updateElementReferences(GetterElement element) async {
+  Future<void> _updateElementReferences(
+    ChangeBuilder builder,
+    GetterElement element,
+  ) async {
     var matches = await searchEngine.searchReferences(element);
     var references = getSourceReferences(matches);
     for (var reference in references) {
@@ -189,8 +209,9 @@ class ConvertGetterToMethodRefactoringImpl extends RefactoringImpl
       }
       var refRange = reference.range;
       // insert "()"
-      var edit = SourceEdit(refRange.end, 0, '()');
-      doSourceChange_addSourceEdit(change, reference.unitSource, edit);
+      await builder.addDartFileEdit(reference.unitSource.fullName, (builder) {
+        builder.addSimpleInsertion(refRange.end, '()');
+      });
     }
   }
 }

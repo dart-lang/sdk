@@ -608,7 +608,8 @@ class JsInteropChecks extends RecursiveVisitor {
     final uri = member.enclosingLibrary.importUri;
     return uri.isScheme('dart') &&
             _pathsWithAllowedDartExternalUsage.contains(uri.path) ||
-        _allowedNativeTestPatterns.any(uri.path.contains);
+        _allowedNativeTestPatterns.any(uri.path.contains) ||
+        (member is Procedure && member.hasExternalEffectPragma);
   }
 
   /// Assumes given [member] is not JS interop, and reports an error if

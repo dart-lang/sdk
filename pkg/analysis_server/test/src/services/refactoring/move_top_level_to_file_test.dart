@@ -9,7 +9,6 @@ import 'package:analyzer/src/test_utilities/test_code_format.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../lsp/request_helpers_mixin.dart';
 import 'refactoring_test_support.dart';
 
 void main() {
@@ -19,8 +18,7 @@ void main() {
 }
 
 @reflectiveTest
-class MoveTopLevelToFileTest extends RefactoringTest
-    with LspProgressNotificationsMixin {
+class MoveTopLevelToFileTest extends RefactoringTest {
   /// Simple file content with a single class named 'A'.
   static const simpleClassContent = '''
 class ^A {}
@@ -30,7 +28,7 @@ class ^A {}
   static const simpleClassRefactorTitle = "Move 'A' to file";
 
   @override
-  String get refactoringName => MoveTopLevelToFile.commandName;
+  String get refactoringCommandId => MoveTopLevelToFile.commandName;
 
   /// Replaces the "Save URI" argument in [action].
   void replaceSaveUriArgument(CodeAction action, Uri newFileUri) {
@@ -2036,38 +2034,12 @@ int variableToMove = 3;
     String? otherFilePath,
     String? otherFileContent,
   }) async {
-    await _refactor(
+    await assertRefactoring(
       originalSource: originalSource,
       expected: expected,
-      actionTitle: 'Move $count declarations to file',
+      refactoringTitle: 'Move $count declarations to file',
       otherFilePath: otherFilePath,
       otherFileContent: otherFileContent,
-    );
-  }
-
-  Future<void> _refactor({
-    required String originalSource,
-    required String actionTitle,
-    required String expected,
-    String? otherFilePath,
-    String? otherFileContent,
-    ProgressToken? commandWorkDoneToken,
-  }) async {
-    if (originalSource.contains('>>>>') ||
-        (otherFileContent?.contains('>>>>>') ?? false)) {
-      throw 'File content must not include >>>>>';
-    }
-    addTestSource(originalSource);
-    if (otherFilePath != null) {
-      newFile(otherFilePath, otherFileContent!);
-    }
-
-    await initializeServer();
-    var action = await expectCodeActionWithTitle(actionTitle);
-    await verifyCommandEdits(
-      action.command!,
-      expected,
-      workDoneToken: commandWorkDoneToken,
     );
   }
 
@@ -2079,10 +2051,10 @@ int variableToMove = 3;
     String? otherFileContent,
     ProgressToken? commandWorkDoneToken,
   }) async {
-    await _refactor(
+    await assertRefactoring(
       originalSource: originalSource,
       expected: expected,
-      actionTitle: "Move '$declarationName' to file",
+      refactoringTitle: "Move '$declarationName' to file",
       otherFilePath: otherFilePath,
       otherFileContent: otherFileContent,
       commandWorkDoneToken: commandWorkDoneToken,
@@ -2092,7 +2064,7 @@ int variableToMove = 3;
   /// Tests that prefixes are included in imports copied to the new code.
   ///
   /// [declarations] will be written to 'package:test/other.dart' which will
-  /// be imported into [code] with the prefix 'other'.
+  /// be imported into [movingCode] with the prefix 'other'.
   Future<void> _testPrefixCopied({
     required String declarations,
     required String movingCode,

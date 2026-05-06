@@ -54,11 +54,11 @@ class _Visitor extends SimpleAstVisitor<void> {
     var hasDecoration = false;
 
     for (var argument in argumentList.arguments) {
-      if (argument is! NamedExpression) {
+      if (argument is! NamedArgument) {
         // Positional arguments are not supported.
         return false;
       }
-      switch (argument.name.label.name) {
+      switch (argument.name.lexeme) {
         case 'child':
           hasChild = true;
         case 'decoration':

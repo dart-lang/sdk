@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A<X extends core::Object? = dynamic> extends core::Object {
   final field self::A::X% x;
-  constructor •(self::A::X% x) → self::A<self::A::X%>
+  constructor •(initializing-formal self::A::X% x) → self::A<self::A::X%>
     ;
 }
 extension /* unnamed */ _extension#0<X extends core::Object? = dynamic> on self::A<X%> {

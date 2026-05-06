@@ -10,8 +10,6 @@ import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
-// ignore: implementation_imports
-import 'package:analyzer/src/dart/ast/extensions.dart';
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -57,8 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   @override
   void visitPrimaryConstructorDeclaration(PrimaryConstructorDeclaration node) {
     for (var parameter in node.formalParameters.parameters) {
-      var baseParameter = parameter.notDefault;
-      if (baseParameter is! FieldFormalParameter) {
+      if (parameter is! FieldFormalParameter) {
         var element = parameter.declaredFragment?.element;
         if (element is FieldFormalParameterElement) {
           var fieldElement = element.field;

@@ -54,21 +54,36 @@ class C {
     );
   }
 
+  test_instanceField_private_assignedInConstructorInitializer() async {
+    await assertNoDiagnostics('''
+class C {
+  C([int? i]) : _i = i;
+  int? _i;
+}
+''');
+  }
+
+  test_instanceField_private_assignedInPrimaryConstructorInitializer() async {
+    await assertNoDiagnostics('''
+class C([int? i]) {
+  this : _i = i;
+  int? _i;
+}
+''');
+  }
+
   test_instanceField_private_declaredInPart() async {
     newFile('$testPackageLibPath/lib.dart', r'''
 part 'test.dart';
 ''');
-    await assertDiagnostics(
-      '''
+    await assertNoDiagnostics('''
 part of 'lib.dart';
 
 class C {
   final String? _s;
   C(this._s);
 }
-''',
-      [lint(47, 2)],
-    );
+''');
   }
 
   /// https://github.com/dart-lang/linter/issues/3823
@@ -124,6 +139,37 @@ class const C([this._i]) {
 ''');
   }
 
+  test_instanceField_private_primaryConstructor() async {
+    await assertNoDiagnostics('''
+class C(int? _i);
+''');
+  }
+
+  test_instanceField_private_primaryConstructor_namedParameter() async {
+    await assertNoDiagnostics('''
+// ignore: unused_field_from_primary_constructor
+class C({final int? _i});
+''');
+  }
+
+  test_instanceField_private_withFieldFormalParameter() async {
+    await assertNoDiagnostics('''
+class C {
+  C([this._i]);
+  int? _i;
+}
+''');
+  }
+
+  test_instanceField_private_withFieldFormalParameter_named() async {
+    await assertNoDiagnostics('''
+class C {
+  C({this._i});
+  int? _i;
+}
+''');
+  }
+
   test_instanceField_public() async {
     await assertNoDiagnostics('''
 class C {
@@ -174,6 +220,17 @@ m() {
     );
   }
 
+  test_staticField_private_onClass() async {
+    await assertDiagnostics(
+      '''
+class C {
+  static int? _i;
+}
+''',
+      [lint(24, 2)],
+    );
+  }
+
   test_staticField_private_onExtension() async {
     await assertDiagnostics(
       '''
@@ -184,8 +241,6 @@ extension E on int {
       [lint(35, 2)],
     );
   }
-
-  // TODO(srawlins): Add test_staticField_private_onClass.
 
   test_staticField_public_onPrivateExtension() async {
     await assertDiagnostics(

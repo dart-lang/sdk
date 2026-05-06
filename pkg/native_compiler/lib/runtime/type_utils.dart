@@ -117,6 +117,14 @@ int computeIndexOfTypeParameter(ast.TypeParameter tp) {
   return index;
 }
 
+/// Return enclosing member of the given [node].
+ast.Member getEnclosingMember(ast.TreeNode node) {
+  do {
+    node = node.parent!;
+  } while (node is! ast.Member);
+  return node;
+}
+
 /// Returns true if [field] has a non-trivial initializer.
 ///
 /// VM does not allow field initializer functions for fields
@@ -140,5 +148,37 @@ bool hasNonTrivialInitializer(ast.Field field) {
       ast.ConstantExpression(constant: ast.NullConstant()) => false,
       _ => true,
     };
+  }
+}
+
+/// Returns true if [type] references class type parameters.
+bool containsClassTypeParameters(ast.DartType type) {
+  final visitor = _FindClassTypeParameters();
+  type.accept(visitor);
+  return visitor.containsClassTypeParams;
+}
+
+class _FindClassTypeParameters extends ast.RecursiveVisitor {
+  bool containsClassTypeParams = false;
+
+  _FindClassTypeParameters();
+
+  @override
+  void visitTypeParameterType(ast.TypeParameterType node) {
+    if (node.parameter.declaration is ast.Class) {
+      containsClassTypeParams = true;
+    }
+  }
+}
+
+bool hasGenericEnclosingFunction(ast.TreeNode node) {
+  for (;;) {
+    node = node.parent!;
+    if (node is ast.Member) {
+      return false;
+    }
+    if (node is ast.FunctionNode && node.typeParameters.isNotEmpty) {
+      return true;
+    }
   }
 }

@@ -79,7 +79,7 @@ Future<void> test() async {
 
   options = new CompilerOptions()
     ..fileSystem = fs
-    ..additionalDills = <Uri>[base.resolve("lib.dart.dill")]
+    ..additionalDillModules = <Uri>[base.resolve("lib.dart.dill")]
     ..sdkSummary = platformDill
     ..target = new NoneTarget(new TargetFlags());
 

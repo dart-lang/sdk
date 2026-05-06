@@ -20,11 +20,17 @@ final _lineCommentRegExp = RegExp(r"^\s*//");
 /// sources. If [includeContext] is `true`, then includes context messages in
 /// the output. Otherwise discards them.
 String updateErrorExpectations(
-    String path, String source, List<StaticError> errors,
-    {Set<ErrorSource> remove = const {}, bool includeContext = false}) {
+  String path,
+  String source,
+  List<StaticError> errors, {
+  Set<ErrorSource> remove = const {},
+  bool includeContext = false,
+}) {
   // Split the existing errors into kept and deleted lists.
-  var existingErrors =
-      StaticError.parseExpectations(source: source, path: path);
+  var existingErrors = StaticError.parseExpectations(
+    source: source,
+    path: path,
+  );
   var keptErrors = <StaticError>[];
   var removedErrors = <StaticError>[];
   for (var error in existingErrors) {
@@ -128,8 +134,10 @@ String updateErrorExpectations(
           if (error.length == 0) {
             result.add("$comment [error column ${error.column}]");
           } else {
-            result.add("$comment [error column "
-                "${error.column}, length ${error.length}]");
+            result.add(
+              "$comment [error column "
+              "${error.column}, length ${error.length}]",
+            );
           }
         } else {
           var spacing = " " * (error.column - 1 - 2 - indent);

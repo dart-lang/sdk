@@ -123,7 +123,7 @@ mixin SharedExtractMethodRefactorCodeActionsTests
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
         ClientCapabilitiesHelperMixin,
-        LspProgressNotificationsMixin {
+        LspNotificationsMixin {
   final extractMethodTitle = 'Extract Method';
 
   Future<void> test_appliesCorrectEdits() async {
@@ -801,12 +801,122 @@ void f() {
 mixin SharedInlineMethodRefactorCodeActionsTests
     on
         SharedTestInterface,
+        SharedRefactorCodeActionsTests,
         CodeActionsTestMixin,
         LspRequestHelpersMixin,
         LspEditHelpersMixin,
         LspVerifyEditHelpersMixin,
-        ClientCapabilitiesHelperMixin {
+        ClientCapabilitiesHelperMixin,
+        LspNotificationsMixin {
   final inlineMethodTitle = 'Inline Method';
+
+  Future<void> test_error_cancel() async {
+    failTestOnErrorDiagnostic = false;
+    setSupportsWindowShowMessageRequest();
+
+    const content = '''
+void f() {
+  bar();
+}
+
+void b^ar(int a) {
+  print(a);
+}
+''';
+
+    await handleRefactorAnywayPrompt(
+      expectedMessage: 'No argument for the parameter "a".',
+      expectedActions: [
+        UserPromptActions.refactorAnyway,
+        UserPromptActions.cancel,
+      ],
+      selectAction: UserPromptActions.cancel,
+      () async {
+        var codeAction = await expectCodeActionLiteral(
+          content,
+          command: Commands.performRefactor,
+          title: inlineMethodTitle,
+        );
+        // The command will return successfully with null, but no edit would've
+        // been sent (we have not set up a handler, so if it was, we would
+        // have thrown).
+        var result = await executeCommand(codeAction.command!);
+        expect(result, isNull);
+      },
+    );
+  }
+
+  Future<void> test_error_promptNotSupported() async {
+    if (!clientSupportsShowMessageNotification) {
+      return;
+    }
+
+    failTestOnErrorDiagnostic = false;
+    setSupportsWindowShowMessageRequest(false);
+
+    const content = '''
+void f() {
+  bar();
+}
+
+void b^ar(int a) {
+  print(a);
+}
+''';
+
+    // Expect an error notification because we don't support the prompt.
+    var error = await expectErrorNotification(() async {
+      var codeAction = await expectCodeActionLiteral(
+        content,
+        command: Commands.performRefactor,
+        title: inlineMethodTitle,
+      );
+      // The command will return successfully with null, but no edit would've
+      // been sent (we have not set up a handler, so if it was, we would
+      // have thrown).
+      var result = await executeCommand(codeAction.command!);
+      expect(result, isNull);
+    });
+
+    expect(error.message, 'No argument for the parameter "a".');
+  }
+
+  Future<void> test_error_refactorAnyway() async {
+    failTestOnErrorDiagnostic = false;
+    setSupportsWindowShowMessageRequest();
+
+    const content = '''
+void f() {
+  bar();
+}
+
+void b^ar(int a) {
+  print(a);
+}
+''';
+    const expectedContent = '''
+void f() {
+  print(a);
+}
+''';
+
+    await handleRefactorAnywayPrompt(
+      expectedMessage: 'No argument for the parameter "a".',
+      expectedActions: [
+        UserPromptActions.refactorAnyway,
+        UserPromptActions.cancel,
+      ],
+      selectAction: UserPromptActions.refactorAnyway,
+      () async {
+        await verifyCodeActionLiteralEdits(
+          content,
+          expectedContent,
+          command: Commands.performRefactor,
+          title: inlineMethodTitle,
+        );
+      },
+    );
+  }
 
   Future<void> test_inlineAtCallSite() async {
     const content = '''
@@ -875,4 +985,19 @@ void foo2() {
       title: inlineMethodTitle,
     );
   }
+}
+
+mixin SharedRefactorCodeActionsTests {
+  /// Invokes [f] and handles responding to a "Refactor anyway?" prompt.
+  ///
+  /// This is implemented by each servers own test base class because when
+  /// using LSP-over-Legacy, we will get the native legacy showMessageRequest
+  /// and not a wrapped LSP one, since the server always sends its native
+  /// version of this.
+  Future<T> handleRefactorAnywayPrompt<T>(
+    Future<T> Function() f, {
+    required String expectedMessage,
+    required List<String> expectedActions,
+    String? selectAction,
+  });
 }

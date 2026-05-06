@@ -33,3 +33,22 @@ can-be-overridden:
     class: 'D'
     member: 'build'
   - library: 'lib4.dart'
+
+dynamically-callable:
+  - library: 'lib6.dart'
+    class: ['A', 'B', 'D']
+  - library: 'lib6.dart'
+    class: E
+    member: dcMethod5
+  - library: 'lib6.dart'
+    class: E
+    member: 'get:dcGetter3'
+  - library: 'lib6.dart'
+    class: E
+    member: 'set:dcSetter3'
+  - library: 'lib6.dart'
+    class: E
+    member: dcField7
+  - library: 'lib6.dart'
+    class: E
+    member: dcField8

@@ -4,7 +4,7 @@ import "dart:core" as core;
 
 class A extends core::Object /*hasConstConstructor*/  {
   final field self::BExt% /* erasure=self::C, declared=! */ bExt;
-  const constructor •({required self::BExt% /* erasure=self::C, declared=! */ bExt}) → self::A
+  const constructor •({required initializing-formal self::BExt% /* erasure=self::C, declared=! */ bExt}) → self::A
     : self::A::bExt = bExt, super core::Object::•()
     ;
 }
@@ -21,7 +21,7 @@ extension type BExt(self::C c) {
   constructor tearoff f = self::BExt|constructor#_#f#tearOff;
 }
 static final field self::A a = new self::A::•(bExt: self::BExt|constructor#f(c: new self::C::f(0)));
-static extension-type-member method BExt|constructor#(self::C c) → self::BExt% /* erasure=self::C, declared=! */ {
+static extension-type-member method BExt|constructor#(initializing-formal self::C c) → self::BExt% /* erasure=self::C, declared=! */ {
   lowered final self::BExt% /* erasure=self::C, declared=! */ #this = c;
   return #this;
 }

@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
 import 'package:analyzer/file_system/file_system.dart';
+import 'package:analyzer/source/file_source.dart';
 import 'package:analyzer/src/analysis_options/options_file_validator.dart';
 import 'package:analyzer/src/context/source.dart';
 import 'package:analyzer/src/file_system/file_system.dart';
@@ -32,7 +33,7 @@ abstract class AbstractAnalysisOptionsTest
   ) async {
     analysisOptionsFile.writeAsStringSync(code);
     var diagnostics = AnalysisOptionsAnalyzer(
-      initialSource: TestSource(analysisOptionsPath),
+      initialSource: FileSource(analysisOptionsFile),
       sourceFactory: sourceFactory,
       contextRoot: '/',
       sdkVersionConstraint: sdkVersionConstraint,

@@ -291,9 +291,9 @@ class SummaryWriter {
     if (element.isRequiredNamed) {
       buffer.write('required ');
     }
-    if (element.isInitializingFormal) {
+    if (element is FieldFormalParameterElement) {
       buffer.write('this.');
-    } else if (element.isSuperFormal) {
+    } else if (element is SuperFormalParameterElement) {
       buffer.write('super.');
     } else {
       if (element.isFinal) {

@@ -11,7 +11,7 @@ extension type H<T extends core::Object? = dynamic>(mai::E<T%> e) implements mai
   constructor • = self::H|constructor#;
   constructor tearoff • = self::H|constructor#_#new#tearOff;
 }
-static extension-type-member method H|constructor#<T extends core::Object? = dynamic>(mai::E<self::H|constructor#::T%> e) → self::H<self::H|constructor#::T%> /* erasure=mai::E<self::H|constructor#::T%> */
+static extension-type-member method H|constructor#<T extends core::Object? = dynamic>(initializing-formal mai::E<self::H|constructor#::T%> e) → self::H<self::H|constructor#::T%> /* erasure=mai::E<self::H|constructor#::T%> */
   ;
 static extension-type-member synthetic method H|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::E<self::H|constructor#_#new#tearOff::T%> e) → self::H<self::H|constructor#_#new#tearOff::T%> /* erasure=mai::E<self::H|constructor#_#new#tearOff::T%> */
   return self::H|constructor#<self::H|constructor#_#new#tearOff::T%>(e);
@@ -57,11 +57,11 @@ extension type G<T extends core::Object? = dynamic>(mai::E<T%> e) implements mai
   constructor • = mai::G|constructor#;
   constructor tearoff • = mai::G|constructor#_#new#tearOff;
 }
-static extension-type-member method F|constructor#<T extends core::Object? = dynamic>(mai::C<mai::F|constructor#::T%> c) → mai::F<mai::F|constructor#::T%> /* erasure=mai::C<mai::F|constructor#::T%> */
+static extension-type-member method F|constructor#<T extends core::Object? = dynamic>(initializing-formal mai::C<mai::F|constructor#::T%> c) → mai::F<mai::F|constructor#::T%> /* erasure=mai::C<mai::F|constructor#::T%> */
   ;
 static extension-type-member synthetic method F|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::C<mai::F|constructor#_#new#tearOff::T%> c) → mai::F<mai::F|constructor#_#new#tearOff::T%> /* erasure=mai::C<mai::F|constructor#_#new#tearOff::T%> */
   return mai::F|constructor#<mai::F|constructor#_#new#tearOff::T%>(c);
-static extension-type-member method G|constructor#<T extends core::Object? = dynamic>(mai::E<mai::G|constructor#::T%> e) → mai::G<mai::G|constructor#::T%> /* erasure=mai::E<mai::G|constructor#::T%> */
+static extension-type-member method G|constructor#<T extends core::Object? = dynamic>(initializing-formal mai::E<mai::G|constructor#::T%> e) → mai::G<mai::G|constructor#::T%> /* erasure=mai::E<mai::G|constructor#::T%> */
   ;
 static extension-type-member synthetic method G|constructor#_#new#tearOff<T extends core::Object? = dynamic>(mai::E<mai::G|constructor#_#new#tearOff::T%> e) → mai::G<mai::G|constructor#_#new#tearOff::T%> /* erasure=mai::E<mai::G|constructor#_#new#tearOff::T%> */
   return mai::G|constructor#<mai::G|constructor#_#new#tearOff::T%>(e);

@@ -5,7 +5,6 @@
 import 'package:analyzer/source/line_info.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
-import 'package:analyzer/src/dart/ast/utilities.dart';
 import 'package:analyzer/src/generated/utilities_collection.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:test/test.dart';
@@ -363,9 +362,10 @@ class A<T> = A0 with M implements I;
 /// Comment B.
 class B<U> = B0 with N implements J;
 ''');
-    _assertAnnotatedNode(findNode.classTypeAlias('A<T>'));
+    var destination = findNode.classTypeAlias('A<T>');
+    _assertAnnotatedNode(destination);
     _assertReplacementForChildren<ClassTypeAlias>(
-      destination: findNode.classTypeAlias('A<T>'),
+      destination: destination,
       source: findNode.classTypeAlias('B<U>'),
       childAccessors: [
         (node) => node.documentationComment!,
@@ -374,6 +374,10 @@ class B<U> = B0 with N implements J;
         (node) => node.typeParameters!,
         (node) => node.withClause,
       ],
+    );
+    _assertRemovalForNullableChild<ClassTypeAlias>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
     );
   }
 
@@ -554,10 +558,10 @@ void f() {
     var findNode = _parseStringToFindNode(r'''
 void f({int a = 0, double b = 1}) {}
 ''');
-    _assertReplacementForChildren<DefaultFormalParameter>(
-      destination: findNode.defaultParameter('a ='),
-      source: findNode.defaultParameter('b ='),
-      childAccessors: [(node) => node.parameter, (node) => node.defaultValue!],
+    _assertReplacementForChildren<FormalParameter>(
+      destination: findNode.formalParameter('a ='),
+      source: findNode.formalParameter('b ='),
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
@@ -565,10 +569,10 @@ void f({int a = 0, double b = 1}) {}
     var findNode = _parseStringToFindNode(r'''
 void f({int a = 0, double b = 1}) {}
 ''');
-    _assertReplacementForChildren<DefaultFormalParameter>(
-      destination: findNode.defaultParameter('a ='),
-      source: findNode.defaultParameter('b ='),
-      childAccessors: [(node) => node.parameter, (node) => node.defaultValue!],
+    _assertReplacementForChildren<FormalParameter>(
+      destination: findNode.formalParameter('a ='),
+      source: findNode.formalParameter('b ='),
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
@@ -682,6 +686,32 @@ class B extends B0 {}
     );
   }
 
+  void test_extensionDeclaration() {
+    var findNode = _parseStringToFindNode(r'''
+/// Comment A.
+@myA1
+@myA2
+extension E<T> on int {}
+
+/// Comment B.
+extension F<U> on double {}
+''');
+    var destination = findNode.extensionDeclaration('E<T>');
+    _assertAnnotatedNode(destination);
+    _assertReplacementForChildren<ExtensionDeclaration>(
+      destination: destination,
+      source: findNode.extensionDeclaration('F<U>'),
+      childAccessors: [
+        (node) => node.documentationComment!,
+        (node) => node.typeParameters!,
+      ],
+    );
+    _assertRemovalForNullableChild<ExtensionDeclaration>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
+    );
+  }
+
   void test_fieldDeclaration() {
     var findNode = _parseStringToFindNode(r'''
 class A {
@@ -703,6 +733,19 @@ class B extends B0 {}
   void test_fieldFormalParameter() {
     var findNode = _parseStringToFindNode(r'''
 class A {
+  A([int this.foo = 0, double this.bar = 1]);
+}
+''');
+    _assertReplacementForChildren<FieldFormalParameter>(
+      destination: findNode.fieldFormalParameter('foo ='),
+      source: findNode.fieldFormalParameter('bar ='),
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
+    );
+  }
+
+  void test_fieldFormalParameter_functionTyped() {
+    var findNode = _parseStringToFindNode(r'''
+class A {
   A(
     @myA1
     @myA2
@@ -717,9 +760,8 @@ class A {
       destination: findNode.fieldFormalParameter('foo'),
       source: findNode.fieldFormalParameter('bar'),
       childAccessors: [
-        (node) => node.parameters!,
         (node) => node.type!,
-        (node) => node.typeParameters!,
+        (node) => node.functionTypedSuffix!,
       ],
     );
   }
@@ -786,8 +828,8 @@ void f(int a, int b) {}
 ''');
     _assertReplaceInList(
       destination: findNode.formalParameterList('int a'),
-      child: findNode.simpleFormalParameter('int a'),
-      replacement: findNode.simpleFormalParameter('int b'),
+      child: findNode.regularFormalParameter('int a'),
+      replacement: findNode.regularFormalParameter('int b'),
     );
   }
 
@@ -875,14 +917,19 @@ void g<U>(double b) {
   1;
 }
 ''');
+    var destination = findNode.functionExpression('T>');
     _assertReplacementForChildren<FunctionExpression>(
-      destination: findNode.functionExpression('T>'),
+      destination: destination,
       source: findNode.functionExpression('U>'),
       childAccessors: [
         (node) => node.body,
         (node) => node.parameters!,
         (node) => node.typeParameters!,
       ],
+    );
+    _assertRemovalForNullableChild<FunctionExpression>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
     );
   }
 
@@ -911,9 +958,10 @@ void f() {
 typedef int F<T>(int a);
 typedef double G<U>(double b);
 ''');
-    _assertAnnotatedNode(findNode.functionTypeAlias('int F'));
+    var destination = findNode.functionTypeAlias('int F');
+    _assertAnnotatedNode(destination);
     _assertReplacementForChildren<FunctionTypeAlias>(
-      destination: findNode.functionTypeAlias('int F'),
+      destination: destination,
       source: findNode.functionTypeAlias('double G'),
       childAccessors: [
         (node) => node.parameters,
@@ -921,27 +969,72 @@ typedef double G<U>(double b);
         (node) => node.typeParameters!,
       ],
     );
+    _assertRemovalForNullableChild<FunctionTypeAlias>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
+    );
   }
 
-  void test_functionTypedFormalParameter() {
+  void test_functionTypedFormalParameterSuffix() {
     var findNode = _parseStringToFindNode(r'''
 void f(
-  @myA1
-  @myA2
   int a<T>(int a1),
   double b<U>(double b2),
 ) {}
 ''');
-    var a = findNode.functionTypedFormalParameter('a<T>');
-    _assertFormalParameterMetadata(a);
-    _assertReplacementForChildren<FunctionTypedFormalParameter>(
-      destination: findNode.functionTypedFormalParameter('a<T>'),
-      source: findNode.functionTypedFormalParameter('b<U>'),
+    var destination = findNode.functionTypedFormalParameterSuffix('T>');
+    _assertReplacementForChildren<FunctionTypedFormalParameterSuffix>(
+      destination: destination,
+      source: findNode.functionTypedFormalParameterSuffix('U>'),
+      childAccessors: [
+        (node) => node.typeParameters!,
+        (node) => node.formalParameters,
+      ],
+    );
+    _assertRemovalForNullableChild<FunctionTypedFormalParameterSuffix>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
+    );
+  }
+
+  void test_genericFunctionType() {
+    var findNode = _parseStringToFindNode(r'''
+typedef A = int Function<T>(int a);
+typedef B = double Function<U>(double b);
+''');
+    var destination = findNode.genericFunctionType('Function<T>');
+    _assertReplacementForChildren<GenericFunctionType>(
+      destination: destination,
+      source: findNode.genericFunctionType('Function<U>'),
       childAccessors: [
         (node) => node.returnType!,
         (node) => node.typeParameters!,
         (node) => node.parameters,
       ],
+    );
+    _assertRemovalForNullableChild<GenericFunctionType>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
+    );
+  }
+
+  void test_genericTypeAlias() {
+    var findNode = _parseStringToFindNode(r'''
+@myA1
+@myA2
+typedef A<T> = int;
+typedef B<U> = double;
+''');
+    var destination = findNode.genericTypeAlias('A<T>');
+    _assertAnnotatedNode(destination);
+    _assertReplacementForChildren<GenericTypeAlias>(
+      destination: destination,
+      source: findNode.genericTypeAlias('B<U>'),
+      childAccessors: [(node) => node.typeParameters!, (node) => node.type],
+    );
+    _assertRemovalForNullableChild<GenericTypeAlias>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
     );
   }
 
@@ -1074,20 +1167,6 @@ void f() {
     );
   }
 
-  void test_label() {
-    var findNode = _parseStringToFindNode(r'''
-void f() {
-  foo: while (true) {}
-  bar: while (true) {}
-}
-''');
-    _assertReplacementForChildren<Label>(
-      destination: findNode.label('foo:'),
-      source: findNode.label('bar'),
-      childAccessors: [(node) => node.label],
-    );
-  }
-
   void test_labeledStatement() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
@@ -1156,6 +1235,38 @@ void f() {
     );
   }
 
+  void test_methodDeclaration() {
+    var findNode = _parseStringToFindNode(r'''
+class A {
+  @myA1
+  @myA2
+  int a<T>(int a1) {
+    0;
+  }
+
+  double b<U>(double b1) {
+    1;
+  }
+}
+''');
+    var destination = findNode.methodDeclaration('a<T>');
+    _assertAnnotatedNode(destination);
+    _assertReplacementForChildren<MethodDeclaration>(
+      destination: destination,
+      source: findNode.methodDeclaration('b<U>'),
+      childAccessors: [
+        (node) => node.returnType!,
+        (node) => node.typeParameters!,
+        (node) => node.parameters!,
+        (node) => node.body,
+      ],
+    );
+    _assertRemovalForNullableChild<MethodDeclaration>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
+    );
+  }
+
   void test_methodInvocation() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
@@ -1174,16 +1285,62 @@ void f() {
     );
   }
 
-  void test_namedExpression() {
+  void test_mixinDeclaration() {
+    var findNode = _parseStringToFindNode(r'''
+@myA1
+@myA2
+mixin A<T> on A0 implements I {
+  void a() {}
+}
+mixin B<U> on B0 implements J {
+  void b() {}
+}
+''');
+    var destination = findNode.mixinDeclaration('A<T>');
+    _assertAnnotatedNode(destination);
+    _assertReplacementForChildren<MixinDeclaration>(
+      destination: destination,
+      source: findNode.mixinDeclaration('B<U>'),
+      childAccessors: [
+        (node) => node.typeParameters!,
+        (node) => node.onClause!,
+        (node) => node.implementsClause!,
+        (node) => node.body,
+      ],
+    );
+    _assertRemovalForNullableChild<MixinDeclaration>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
+    );
+  }
+
+  void test_namedArgument() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
   g(foo: 0, bar: 1);
 }
 ''');
-    _assertReplacementForChildren<NamedExpression>(
-      destination: findNode.namedExpression('foo'),
-      source: findNode.namedExpression('bar'),
-      childAccessors: [(node) => node.name, (node) => node.expression],
+    _assertReplacementForChildren<NamedArgument>(
+      destination: findNode.namedArgument('foo'),
+      source: findNode.namedArgument('bar'),
+      childAccessors: [(node) => node.argumentExpression],
+    );
+  }
+
+  void test_nameWithTypeParameters() {
+    var findNode = _parseStringToFindNode(r'''
+class A<T> {}
+class B<U> {}
+''');
+    var destination = findNode.nameWithTypeParameters('A<T>');
+    _assertReplacementForChildren<NameWithTypeParameters>(
+      destination: destination,
+      source: findNode.nameWithTypeParameters('B<U>'),
+      childAccessors: [(node) => node.typeParameters!],
+    );
+    _assertRemovalForNullableChild<NameWithTypeParameters>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
     );
   }
 
@@ -1316,6 +1473,27 @@ void f() {
     );
   }
 
+  void test_primaryConstructorDeclaration() {
+    var findNode = _parseStringToFindNode(r'''
+class A<T>.a(int a) {}
+class B<U>.b(double b) {}
+''');
+    var destination = findNode.primaryConstructorDeclaration('A<T>');
+    _assertReplacementForChildren<PrimaryConstructorDeclaration>(
+      destination: destination,
+      source: findNode.primaryConstructorDeclaration('B<U>'),
+      childAccessors: [
+        (node) => node.typeParameters!,
+        (node) => node.constructorName!,
+        (node) => node.formalParameters,
+      ],
+    );
+    _assertRemovalForNullableChild<PrimaryConstructorDeclaration>(
+      destination: destination,
+      childAccessor: (node) => node.typeParameters,
+    );
+  }
+
   void test_propertyAccess() {
     var findNode = _parseStringToFindNode(r'''
 void f() {
@@ -1358,6 +1536,38 @@ class A {
       childAccessors: [
         (node) => node.constructorName!,
         (node) => node.argumentList,
+      ],
+    );
+  }
+
+  void test_regularFormalParameter() {
+    var findNode = _parseStringToFindNode(r'''
+void f([int a = 0, double b = 1]) {}
+''');
+    _assertReplacementForChildren<RegularFormalParameter>(
+      destination: findNode.formalParameter('a =') as RegularFormalParameter,
+      source: findNode.formalParameter('b =') as RegularFormalParameter,
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
+    );
+  }
+
+  void test_regularFormalParameter_functionTyped() {
+    var findNode = _parseStringToFindNode(r'''
+void f(
+  @myA1
+  @myA2
+  int a<T>(int a1),
+  double b<U>(double b2),
+) {}
+''');
+    var a = findNode.formalParameter('a<T>');
+    _assertFormalParameterMetadata(a);
+    _assertReplacementForChildren<RegularFormalParameter>(
+      destination: findNode.formalParameter('a<T>') as RegularFormalParameter,
+      source: findNode.formalParameter('b<U>') as RegularFormalParameter,
+      childAccessors: [
+        (node) => node.type!,
+        (node) => node.functionTypedSuffix!,
       ],
     );
   }
@@ -1431,11 +1641,11 @@ void f(
   int b
 ) {}
 ''');
-    var a = findNode.simpleFormalParameter('int a');
+    var a = findNode.regularFormalParameter('int a');
     _assertFormalParameterMetadata(a);
-    _assertReplacementForChildren<SimpleFormalParameter>(
+    _assertReplacementForChildren<RegularFormalParameter>(
       destination: a,
-      source: findNode.simpleFormalParameter('int b'),
+      source: findNode.regularFormalParameter('int b'),
       childAccessors: [(node) => node.type!],
     );
   }
@@ -1474,18 +1684,18 @@ class A {
   void test_superFormalParameter() {
     var findNode = _parseStringToFindNode(r'''
 class A {
-  A(num a);
+  A([num a = 0]);
 }
 
 class B extends A {
-  B.sub1(int super.a1);
-  B.sub2(double super.a2);
+  B.sub1([int super.a1 = 1]);
+  B.sub2([double super.a2 = 2]);
 }
 ''');
     _assertReplacementForChildren<SuperFormalParameter>(
-      destination: findNode.superFormalParameter('a1'),
-      source: findNode.superFormalParameter('a2'),
-      childAccessors: [(node) => node.type!],
+      destination: findNode.superFormalParameter('a1 ='),
+      source: findNode.superFormalParameter('a2 ='),
+      childAccessors: [(node) => node.type!, (node) => node.defaultClause!],
     );
   }
 
@@ -1505,8 +1715,7 @@ class B extends A {
       source: findNode.superFormalParameter('bar2'),
       childAccessors: [
         (node) => node.type!,
-        (node) => node.typeParameters!,
-        (node) => node.parameters!,
+        (node) => node.functionTypedSuffix!,
       ],
     );
   }
@@ -1786,6 +1995,19 @@ void f() sync* {
     );
   }
 
+  /// Asserts that a nullable [childAccessor] child can be removed from
+  /// [destination].
+  void _assertRemovalForNullableChild<T extends AstNode>({
+    required T destination,
+    required AstNode? Function(T node) childAccessor,
+  }) {
+    var child = childAccessor(destination)!;
+    expect(child.parent, destination);
+
+    (child as AstNodeImpl).removeFromParent();
+    expect(childAccessor(destination), isNull);
+  }
+
   /// Asserts that a [child] node, with parent that is [destination], can
   /// by replaced with the [replacement], and then its parent is [destination].
   void _assertReplaceInList({
@@ -1795,7 +2017,7 @@ void f() sync* {
   }) {
     expect(child.parent, destination);
 
-    NodeReplacer.replace(child, replacement);
+    (child as AstNodeImpl).replaceWith(replacement as AstNodeImpl);
     expect(replacement.parent, destination);
   }
 
@@ -1814,7 +2036,7 @@ void f() sync* {
       expect(child.parent, destination);
 
       var replacement = childAccessor(source);
-      NodeReplacer.replace(child, replacement);
+      (child as AstNodeImpl).replaceWith(replacement as AstNodeImpl);
       expect(childAccessor(destination), replacement);
       expect(replacement.parent, destination);
     }

@@ -15,7 +15,7 @@ class CyclicReference extends core::_Enum /*isEnum*/  {
   enum-element static const field self::CyclicReference e2 = const self::CyclicReference::•(1, "e2", self::CyclicReference::e1);
   final field self::CyclicReference other;
   static const field core::List<self::CyclicReference> values = const <self::CyclicReference>[self::CyclicReference::e1, self::CyclicReference::e2];
-  const constructor •(core::int #index, core::String #name, self::CyclicReference other) → self::CyclicReference
+  const constructor •(core::int #index, core::String #name, initializing-formal self::CyclicReference other) → self::CyclicReference
     : self::CyclicReference::other = other, super core::_Enum::•(#index, #name)
     ;
   method core::_enumToString() → core::String

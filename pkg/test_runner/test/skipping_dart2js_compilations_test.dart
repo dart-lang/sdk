@@ -38,13 +38,15 @@ class FileUtils {
   File? testDart;
   File? testSnapshot;
 
-  FileUtils(
-      {required bool createJs,
-      required bool createJsDeps,
-      required bool createDart,
-      required bool createSnapshot}) {
-    tempDir = Directory.systemTemp
-        .createTempSync('dart_skipping_dart2js_compilations');
+  FileUtils({
+    required bool createJs,
+    required bool createJsDeps,
+    required bool createDart,
+    required bool createSnapshot,
+  }) {
+    tempDir = Directory.systemTemp.createTempSync(
+      'dart_skipping_dart2js_compilations',
+    );
     if (createJs) {
       testJs = _createFile(testJsFilePath);
       _writeToFile(testJs!, "test.js content");
@@ -132,10 +134,12 @@ class CommandCompletedHandler {
     if (_shouldHaveRun) {
       Expect.equals(0, output.stdout.length);
       Expect.isTrue(
-          File(fileUtils.scriptOutputPath.toNativePath()).existsSync());
+        File(fileUtils.scriptOutputPath.toNativePath()).existsSync(),
+      );
     } else {
       Expect.isFalse(
-          File(fileUtils.scriptOutputPath.toNativePath()).existsSync());
+        File(fileUtils.scriptOutputPath.toNativePath()).existsSync(),
+      );
     }
   }
 }
@@ -151,9 +155,16 @@ Command makeCompilationCommand(String testName, FileUtils fileUtils) {
     fileUtils.scriptOutputPath.toNativePath(),
   ];
   var bootstrapDeps = [Uri.parse("file://${fileUtils.testSnapshotFilePath}")];
-  return CompilationCommand('dart2js', fileUtils.testJsFilePath.toNativePath(),
-      bootstrapDeps, executable, arguments, {},
-      alwaysCompile: false, workingDirectory: Directory.current.path);
+  return CompilationCommand(
+    'dart2js',
+    fileUtils.testJsFilePath.toNativePath(),
+    bootstrapDeps,
+    executable,
+    arguments,
+    {},
+    alwaysCompile: false,
+    workingDirectory: Directory.current.path,
+  );
 }
 
 void main() {
@@ -161,40 +172,47 @@ void main() {
   Repository.uri = Platform.script.resolve('../../..');
 
   var fsNoTestJs = FileUtils(
-      createJs: false,
-      createJsDeps: true,
-      createDart: true,
-      createSnapshot: true);
+    createJs: false,
+    createJsDeps: true,
+    createDart: true,
+    createSnapshot: true,
+  );
   var fsNoTestJsDeps = FileUtils(
-      createJs: true,
-      createJsDeps: false,
-      createDart: true,
-      createSnapshot: true);
+    createJs: true,
+    createJsDeps: false,
+    createDart: true,
+    createSnapshot: true,
+  );
   var fsNoTestDart = FileUtils(
-      createJs: true,
-      createJsDeps: true,
-      createDart: false,
-      createSnapshot: true);
+    createJs: true,
+    createJsDeps: true,
+    createDart: false,
+    createSnapshot: true,
+  );
   var fsNoTestSnapshot = FileUtils(
-      createJs: true,
-      createJsDeps: true,
-      createDart: true,
-      createSnapshot: false);
+    createJs: true,
+    createJsDeps: true,
+    createDart: true,
+    createSnapshot: false,
+  );
   var fsNotUpToDateSnapshot = FileUtils(
-      createJs: true,
-      createJsDeps: true,
-      createDart: true,
-      createSnapshot: true);
+    createJs: true,
+    createJsDeps: true,
+    createDart: true,
+    createSnapshot: true,
+  );
   var fsNotUpToDateDart = FileUtils(
-      createJs: true,
-      createJsDeps: true,
-      createDart: true,
-      createSnapshot: true);
+    createJs: true,
+    createJsDeps: true,
+    createDart: true,
+    createSnapshot: true,
+  );
   var fsUpToDate = FileUtils(
-      createJs: true,
-      createJsDeps: true,
-      createDart: true,
-      createSnapshot: true);
+    createJs: true,
+    createJsDeps: true,
+    createDart: true,
+    createSnapshot: true,
+  );
 
   void cleanup() {
     fsNoTestJs.cleanup();
@@ -214,8 +232,11 @@ void main() {
     Future runTest(String name, FileUtils fileUtils, bool shouldRun) {
       var completedHandler = CommandCompletedHandler(fileUtils, shouldRun);
       var command = makeCompilationCommand(name, fileUtils) as ProcessCommand;
-      var process = RunningProcess(command, 60,
-          configuration: makeConfiguration([], 'dummy'));
+      var process = RunningProcess(
+        command,
+        60,
+        configuration: makeConfiguration([], 'dummy'),
+      );
       return process.run().then((CommandOutput output) {
         completedHandler.processCompletedTest(output);
       });

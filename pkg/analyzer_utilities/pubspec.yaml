@@ -11,6 +11,7 @@ resolution: workspace
 dependencies:
   analyzer: any
   analyzer_testing: any
+  api_summary: any
   collection: any
   package_config: any
   path: any
@@ -23,4 +24,3 @@ dependencies:
 dev_dependencies:
   analyzer_plugin: any
   lints: any
-  test_reflective_loader: any

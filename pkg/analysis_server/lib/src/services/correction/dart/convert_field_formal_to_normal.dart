@@ -5,6 +5,7 @@
 import 'package:_fe_analyzer_shared/src/scanner/token_impl.dart';
 import 'package:analysis_server/src/services/correction/assist.dart';
 import 'package:analysis_server_plugin/edit/dart/correction_producer.dart';
+import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer_plugin/utilities/assist/assist.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
@@ -24,20 +25,39 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
   @override
   Future<void> compute(ChangeBuilder builder) async {
     var parameter = node;
-    if (parameter is! FieldFormalParameter || parameter.parameters != null) {
+    if (parameter is! FieldFormalParameter ||
+        parameter.functionTypedSuffix != null) {
       return;
     }
-    var field = parameter.declaredFragment?.element.field;
+    var element = parameter.declaredFragment?.element;
+    if (element is! FieldFormalParameterElement) {
+      return;
+    }
+    var field = element.field;
     if (field == null) {
       return;
     }
+    NodeList<ConstructorInitializer>? initializers;
+    FormalParameterList parameters;
     var constructor = parameter
         .thisOrAncestorOfType<FormalParameterList>()
         ?.parent;
-    if (constructor is! ConstructorDeclaration) {
+    if (constructor == null) {
       return;
     }
-    var initializers = constructor.initializers;
+    var container = constructor.thisOrAncestorOfType<CompilationUnitMember>();
+    if (constructor is ConstructorDeclaration) {
+      parameters = constructor.parameters;
+      initializers = constructor.initializers;
+    } else if (constructor is PrimaryConstructorDeclaration) {
+      parameters = constructor.formalParameters;
+      initializers = constructor.body?.initializers;
+      if (initializers == null && container == null) {
+        return;
+      }
+    } else {
+      return;
+    }
     await builder.addDartFileEdit(file, (builder) {
       var thisRange = range.startEnd(parameter.thisKeyword, parameter.period);
 
@@ -66,8 +86,14 @@ class ConvertFieldFormalToNormal extends ResolvedCorrectionProducer {
 
       int offset;
       String prefix;
+      if (initializers == null) {
+        builder.insertConstructor(container!, (builder) {
+          builder.write('this : $fieldName = $parameterName;');
+        });
+        return;
+      }
       if (initializers.isEmpty) {
-        offset = constructor.parameters.end;
+        offset = parameters.end;
         prefix = ' :';
       } else {
         offset = initializers.last.end;

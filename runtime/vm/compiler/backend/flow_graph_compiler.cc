@@ -264,13 +264,6 @@ bool FlowGraphCompiler::CanOSRFunction() const {
          !is_optimizing();
 }
 
-void FlowGraphCompiler::InsertBSSRelocation(BSS::Relocation reloc) {
-  const intptr_t offset = assembler()->InsertAlignedRelocation(reloc);
-  AddDescriptor(UntaggedPcDescriptors::kBSSRelocation, /*pc_offset=*/offset,
-                /*deopt_id=*/DeoptId::kNone, InstructionSource(),
-                /*try_index=*/-1);
-}
-
 bool FlowGraphCompiler::ForceSlowPathForStackOverflow() const {
 #if !defined(PRODUCT)
   if (FLAG_stacktrace_every > 0 || FLAG_deoptimize_every > 0 ||

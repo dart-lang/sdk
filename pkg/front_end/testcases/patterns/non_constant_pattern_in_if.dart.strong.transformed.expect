@@ -17,7 +17,7 @@ import "dart:core" as core;
 
 class Const<T extends core::Object? = dynamic> extends core::Object /*hasConstConstructor*/  {
   final field self::Const::T% value;
-  const constructor •(self::Const::T% value) → self::Const<self::Const::T%>
+  const constructor •(initializing-formal self::Const::T% value) → self::Const<self::Const::T%>
     : self::Const::value = value, super core::Object::•()
     ;
 }

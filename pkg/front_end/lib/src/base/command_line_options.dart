@@ -26,6 +26,7 @@ class Flags {
 
   static const String target = "--target";
 
+  /// TODO(jensj): Consider removing this. Or renaming it.
   static const String linkDependencies = "--link-dependencies";
 
   static const String compileSdk = "--compile-sdk";

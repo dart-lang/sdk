@@ -270,9 +270,9 @@ class _Visitor extends SimpleAstVisitor<void> {
     for (var i = 0; i < args.length; i++) {
       var arg = args[i];
 
-      if (arg is NamedExpression) {
-        if (arg.expression is NullLiteral &&
-            names.contains(arg.name.label.name)) {
+      if (arg is NamedArgument) {
+        if (arg.argumentExpression is NullLiteral &&
+            names.contains(arg.name.lexeme)) {
           rule.reportAtNode(arg);
         }
       } else {

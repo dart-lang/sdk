@@ -19,7 +19,6 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
-import 'package:analyzer/src/dart/element/type.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/utilities/extensions/element.dart';
 import 'package:analyzer/utilities/extensions/uri.dart';
@@ -393,10 +392,7 @@ class ImportLibrary extends MultiCorrectionProducer {
       foundImport = true;
       extensionsInLibrary[import] = importedLibrary.exportedExtensions
           .havingMemberWithBaseName(memberName)
-          .applicableTo(
-            targetLibrary: libraryElement2,
-            targetType: targetType as TypeImpl,
-          );
+          .applicableTo(targetLibrary: libraryElement2, targetType: targetType);
     }
 
     // If the library at the URI is not already imported, we return a correction
@@ -405,10 +401,7 @@ class ImportLibrary extends MultiCorrectionProducer {
     if (!foundImport) {
       extensionsInLibrary[null] = libraryToImport.exportedExtensions
           .havingMemberWithBaseName(memberName)
-          .applicableTo(
-            targetLibrary: libraryElement2,
-            targetType: targetType as TypeImpl,
-          );
+          .applicableTo(targetLibrary: libraryElement2, targetType: targetType);
     }
     for (var entry in extensionsInLibrary.entries) {
       var extensionsInLibrary = entry.value;

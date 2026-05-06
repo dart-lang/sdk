@@ -61,6 +61,18 @@ class U {
     expect(names, unorderedEquals(['A', 'b']));
   }
 
+  test_class_constructor_superFormalParameter() {
+    Set<String> names = _computeReferencedNames('''
+class A {
+  A({x});
+}
+class B extends A {
+  B({super.x});
+}
+''');
+    expect(names, unorderedEquals(['x']));
+  }
+
   test_class_extends_sameName_importPrefix() {
     Set<String> names = _computeReferencedNames('''
 import 'a.dart' as p;

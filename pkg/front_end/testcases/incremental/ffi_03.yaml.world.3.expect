@@ -3,7 +3,7 @@ library from "org-dartlang-test:///lib.dart" as lib {
 
   class FooX extends dart.core::Object implements lib::BarX /*hasConstConstructor*/  {
     final field lib::HelperClassX bar;
-    const constructor •({required lib::HelperClassX bar}) → lib::FooX
+    const constructor •({required initializing-formal lib::HelperClassX bar}) → lib::FooX
       : lib::FooX::bar = bar, super dart.core::Object::•()
       ;
   }
@@ -37,7 +37,7 @@ library from "org-dartlang-test:///main.dart" as main {
 
   class Foo extends dart.core::Object implements main::Bar /*hasConstConstructor*/  {
     final field main::HelperClass bar;
-    const constructor •({required main::HelperClass bar}) → main::Foo
+    const constructor •({required initializing-formal main::HelperClass bar}) → main::Foo
       : main::Foo::bar = bar, super dart.core::Object::•() {
       ;
       dart._internal::reachabilityFence(bar);

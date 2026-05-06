@@ -6,6 +6,8 @@ Part 0
      - pkg/compiler/test/custom_split/data/fuse_with_or/lib4.dart prefix: b4
   References
      - dart:_boxed_int::BoxedInt::@methods::toRadixString
+     - dart:_string::@methods::dart:_string::_JS_Inline_22
+     - dart:_string::@methods::dart:_string::_JS_Inline_30
      - dart:_string::@methods::dart:_string::_jsIdentical
      - dart:_string::@methods::dart:_string::_jsStringToUpperCase
      - dart:_string::@methods::jsStringFromCharCodeArray

@@ -4,7 +4,6 @@
 
 import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/dart/analysis/results.dart';
-import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/constant/value.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -12,6 +11,7 @@ import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/file_system/file_system.dart';
 import 'package:analyzer/src/dart/analysis/results.dart';
+import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/dart/constant/value.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/inheritance_manager3.dart';
@@ -489,6 +489,15 @@ mixin ResolutionTest implements ResourceProviderMixin {
         configuration: nodeTextConfiguration,
       ),
     );
+
+    var unit = node.thisOrAncestorOfType<CompilationUnitImpl>();
+    if (unit != null) {
+      sink.writeElements('invalidNodes', unit.invalidNodes, (node) {
+        var range = '[${node.offset}, ${node.end})';
+        sink.writelnWithIndent('${node.runtimeType} $range');
+      });
+    }
+
     return buffer.toString();
   }
 }

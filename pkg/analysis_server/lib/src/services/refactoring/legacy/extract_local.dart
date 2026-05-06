@@ -325,7 +325,7 @@ class ExtractLocalRefactoringImpl extends RefactoringImpl
       // skip some nodes
       if (node is ArgumentList ||
           node is AssignmentExpression ||
-          node is NamedExpression ||
+          node is NamedArgument ||
           node is TypeArgumentList) {
         continue;
       }

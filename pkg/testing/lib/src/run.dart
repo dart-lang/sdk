@@ -46,13 +46,16 @@ Future<TestRoot> computeTestRoot(String? configurationPath, Uri? base) {
 /// The optional argument [configurationPath] should be used when
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to [me] which defaults to `Platform.script`.
-Future<void> runMe(List<String> arguments, CreateContext f,
-    {String? configurationPath,
-    Uri? me,
-    int shards = 1,
-    int shard = 0,
-    int? limitTo,
-    Logger logger = const StdoutLogger()}) {
+Future<void> runMe(
+  List<String> arguments,
+  CreateContext f, {
+  String? configurationPath,
+  Uri? me,
+  int shards = 1,
+  int shard = 0,
+  int? limitTo,
+  Logger logger = const StdoutLogger(),
+}) {
   me ??= Platform.script;
   return withErrorHandling(() async {
     TestRoot testRoot = await computeTestRoot(configurationPath, me);
@@ -61,8 +64,14 @@ Future<void> runMe(List<String> arguments, CreateContext f,
     for (Chain suite in testRoot.toolChains) {
       if (me == suite.source) {
         ChainContext context = await f(suite, cl.environment);
-        await context.run(suite, Set<String>.from(cl.selectors),
-            shards: shards, shard: shard, limitTo: limitTo, logger: logger);
+        await context.run(
+          suite,
+          Set<String>.from(cl.selectors),
+          shards: shards,
+          shard: shard,
+          limitTo: limitTo,
+          logger: logger,
+        );
       }
     }
   }, logger: logger);
@@ -94,15 +103,23 @@ Future<void> runMe(List<String> arguments, CreateContext f,
 /// The optional argument [configurationPath] should be used when
 /// `testing.json` isn't located in the current working directory and is a path
 /// relative to `Uri.base`.
-Future<void> run(List<String> arguments, List<String> suiteNames,
-    [String? configurationPath]) {
+Future<void> run(
+  List<String> arguments,
+  List<String> suiteNames, [
+  String? configurationPath,
+]) {
   return withErrorHandling(() async {
     TestRoot root = await computeTestRoot(configurationPath, Uri.base);
     List<Suite> suites = root.suites
         .where((Suite suite) => suiteNames.contains(suite.name))
         .toList();
     SuiteRunner runner = SuiteRunner(
-        suites, <String, String>{}, const <String>[], <String>{}, <String>{});
+      suites,
+      <String, String>{},
+      const <String>[],
+      <String>{},
+      <String>{},
+    );
     String? program = await runner.generateDartProgram();
     await runner.analyze(root.packages);
     if (program != null) {
@@ -116,12 +133,16 @@ Future<void> runProgram(String program, Uri packages) async {
   const StdoutLogger().logNumberedLines(program);
   Uri dataUri = Uri.dataFromString(program);
   ReceivePort exitPort = ReceivePort();
-  Isolate isolate = await Isolate.spawnUri(dataUri, <String>[], null,
-      paused: true,
-      onExit: exitPort.sendPort,
-      errorsAreFatal: false,
-      checked: true,
-      packageConfig: packages);
+  Isolate isolate = await Isolate.spawnUri(
+    dataUri,
+    <String>[],
+    null,
+    paused: true,
+    onExit: exitPort.sendPort,
+    errorsAreFatal: false,
+    checked: true,
+    packageConfig: packages,
+  );
   List? error;
   var subscription = isolate.errors.listen((data) {
     error = data;
@@ -150,9 +171,13 @@ class SuiteRunner {
 
   final List<Uri> testUris = <Uri>[];
 
-  SuiteRunner(this.suites, this.environment, Iterable<String> selectors,
-      this.selectedSuites, this.skippedSuites)
-      : selectors = selectors.toList(growable: false);
+  SuiteRunner(
+    this.suites,
+    this.environment,
+    Iterable<String> selectors,
+    this.selectedSuites,
+    this.skippedSuites,
+  ) : selectors = selectors.toList(growable: false);
 
   bool shouldRunSuite(Suite suite) {
     return !skippedSuites.contains(suite.name) &&

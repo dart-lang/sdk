@@ -116,6 +116,104 @@ B0 = EntryBlock()
   StoreInstanceField(C.y, v1, v2)
   Return(v6)
 
+--- D.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
+  Return(v4)
+
+--- M.m1
+B0 = EntryBlock()
+  Parameter(this)
+  Unreachable()
+
+--- getter M.m2
+B0 = EntryBlock()
+  Parameter(this)
+  Unreachable()
+
+--- setter M.m3
+B0 = EntryBlock()
+  Parameter(this)
+  Parameter(value)
+  Unreachable()
+
+--- M.abstractSuperCalls
+B0 = EntryBlock()
+  Parameter(this)
+  Unreachable()
+
+--- E.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall Object.(v1)
+  Return(v4)
+
+--- E.m1
+B0 = EntryBlock()
+  v2 = Constant(null)
+  Parameter(this)
+  Return(v2)
+
+--- getter E.m2
+B0 = EntryBlock()
+  v2 = Constant(3)
+  Parameter(this)
+  Return(v2)
+
+--- setter E.m3
+B0 = EntryBlock()
+  v3 = Constant(null)
+  Parameter(this)
+  Parameter(value)
+  Return(v3)
+
+--- F.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall _F&E&M.(v1)
+  Return(v4)
+
+--- _F&E&M.
+B0 = EntryBlock()
+  v4 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall E.(v1)
+  Return(v4)
+
+--- _F&E&M.m1
+B0 = EntryBlock()
+  v2 = Constant(null)
+  Parameter(this)
+  Return(v2)
+
+--- getter _F&E&M.m2
+B0 = EntryBlock()
+  v2 = Constant(2)
+  Parameter(this)
+  Return(v2)
+
+--- setter _F&E&M.m3
+B0 = EntryBlock()
+  v3 = Constant(null)
+  Parameter(this)
+  Parameter(value)
+  Return(v3)
+
+--- _F&E&M.abstractSuperCalls
+B0 = EntryBlock()
+  v8 = Constant(3)
+  v10 = Constant(null)
+  v1 = Parameter(this)
+  DirectCall E.m1(v1)
+  v5 = DirectCall getter E.m2(v1)
+  DirectCall print(v5)
+  DirectCall setter E.m3(v1, v8)
+  Return(v10)
+
 --- instanceCalls
 B0 = EntryBlock() dominates:(B20, B22, B19)
   v17 = Constant(null)

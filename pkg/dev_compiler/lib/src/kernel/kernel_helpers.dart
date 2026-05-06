@@ -243,6 +243,22 @@ bool isUnsupportedFactoryConstructor(Procedure node) {
   return false;
 }
 
+bool hasPragma(Annotatable node, String name, CoreTypes coreTypes) {
+  for (var a in node.annotations) {
+    if (a is! ConstantExpression) continue;
+    final value = a.constant;
+    if (value is! InstanceConstant) continue;
+    if (value.classReference != coreTypes.pragmaClass.reference) {
+      continue;
+    }
+    final nameValue = value.fieldValues[coreTypes.pragmaName.fieldReference];
+    if (nameValue is StringConstant && nameValue.value == name) {
+      return true;
+    }
+  }
+  return false;
+}
+
 /// Gets the real supertype of [c] and the list of [mixins] in reverse
 /// application order (mixins will appear before ones they override).
 ///

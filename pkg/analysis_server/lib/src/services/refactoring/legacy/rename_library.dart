@@ -6,15 +6,25 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/naming_conventions.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/rename.dart';
+import 'package:analysis_server_plugin/edit/correction_utils.dart';
+import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/dart/element/element.dart';
+import 'package:analyzer_plugin/protocol/protocol_common.dart';
+import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 
 /// A [Refactoring] for renaming [LibraryElement]s.
 class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
+  final ResolvedUnitResult resolvedUnit;
+
+  final CorrectionUtils utils;
+
   RenameLibraryRefactoringImpl(
     super.workspace,
     super.sessionHelper,
+    this.resolvedUnit,
     LibraryElement super.element2,
-  ) : super();
+  ) : utils = CorrectionUtils(resolvedUnit),
+      super();
 
   @override
   LibraryElement get element => super.element as LibraryElement;
@@ -22,6 +32,16 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   @override
   String get refactoringName {
     return 'Rename Library';
+  }
+
+  Future<void> buildChange({required ChangeBuilder builder}) async {
+    var processor = RenameProcessor2(
+      workspace,
+      sessionHelper,
+      builder,
+      newName,
+    );
+    await processor.renameElement(element);
   }
 
   @override
@@ -38,8 +58,19 @@ class RenameLibraryRefactoringImpl extends RenameRefactoringImpl {
   }
 
   @override
-  Future<void> fillChange() async {
-    var processor = RenameProcessor(workspace, sessionHelper, change, newName);
-    await processor.renameElement(element);
+  Future<SourceChange> createChange({ChangeBuilder? builder}) async {
+    builder ??= ChangeBuilder(
+      session: resolvedUnit.session,
+      defaultEol: utils.endOfLine,
+    );
+    await buildChange(builder: builder);
+    var sourceChange = builder.sourceChange;
+    sourceChange.message = "$refactoringName '$oldName' to '$newName'";
+    return sourceChange;
+  }
+
+  @override
+  Future<void> fillChange() {
+    throw UnsupportedError('This method should never be called.');
   }
 }

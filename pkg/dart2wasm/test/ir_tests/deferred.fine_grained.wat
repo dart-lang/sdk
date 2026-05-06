@@ -22,14 +22,14 @@
   (global $"\"foo0Code(\"" (ref $JSExternWrapper) <...>)
   (global $0 (ref $BoxedInt) <...>)
   (global $FooConst0 (ref $Object)
-    (i32.const 111)
+    (i32.const 108)
     (i32.const 0)
     (struct.new $Object))
   (global $fooGlobal0 (mut (ref null $#Top))
     (ref.null none))
   (elem $cross-module-funcs-0
-    (set 1 (ref.func $_makeFuture))
-    (set 2 (ref.func $_newAsyncSuspendState))
+    (set 1 (ref.func $_Future))
+    (set 2 (ref.func $_AsyncSuspendState))
     (set 4 (ref.func $loadLibraryFromLoadId))
     (set 5 (ref.func $_awaitHelper))
     (set 6 (ref.func $checkLibraryIsLoadedFromLoadId))
@@ -52,21 +52,18 @@
     (set 32 (ref.func $JSStringImpl._interpolate))
     (set 33 (ref.func $JSStringImpl.fromRefUnchecked))
     (set 34 (ref.func $JSStringImpl._interpolate2)))
-  (func $Error._throwWithCurrentStackTrace <noInline> (param $var0 (ref $#Top)) (result (ref none)) <...>)
-  (func $_throwIndexError <noInline> (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSExternWrapper)) (result (ref none)) <...>)
-  (func $"foo0Code <noInline>" (param $var0 (ref null $#Top)) (result (ref null $#Top))
+  (func $Error._throwWithCurrentStackTrace <noInline> (param $var0 (ref $#Top)) <...>)
+  (func $_throwIndexError <noInline> (param $var0 i64) (param $var1 i64) (param $var2 (ref null $JSExternWrapper)) <...>)
+  (func $"foo0Code <noInline>" (param $var0 (ref null $#Top))
     global.get $FooConst0
     call $print
-    drop
     global.get $"\"foo0Code(\""
     local.get $var0
     global.get $"\")\""
     call $JSStringImpl._interpolate3
     call $print
-    drop
     global.get $0
     global.set $fooGlobal0
-    ref.null none
   )
   (func $GrowableList._withData (param $var0 (ref $_Type)) (param $var1 (ref $Array<Object?>)) (result (ref $WasmListBase)) <...>)
   (func $IntegerDivisionByZeroException (result (ref $Object)) <...>)
@@ -76,14 +73,14 @@
   (func $JSStringImpl._interpolate3 (param $var0 (ref null $#Top)) (param $var1 (ref null $#Top)) (param $var2 (ref null $#Top)) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl.fromRefUnchecked (param $var0 externref) (result (ref $JSExternWrapper)) <...>)
   (func $JSStringImpl.substring (param $var0 (ref $JSExternWrapper)) (param $var1 i64) (param $var2 i64) (result (ref $JSExternWrapper)) <...>)
-  (func $_AsyncSuspendState._complete (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref null $#Top)) (result (ref null $#Top)) <...>)
-  (func $_AsyncSuspendState._completeError (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref $#Top)) (param $var2 (ref $Object)) (result (ref null $#Top)) <...>)
-  (func $_awaitHelper (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref $_Future)) (result (ref null $#Top)) <...>)
-  (func $_makeFuture (param $var0 (ref $_Type)) (result (ref $_Future)) <...>)
-  (func $_newAsyncSuspendState (param $var0 (ref $type0)) (param $var1 structref) (param $var2 (ref $_Future)) (result (ref $_AsyncSuspendState)) <...>)
+  (func $_AsyncSuspendState (param $var0 (ref $type0)) (param $var1 structref) (param $var2 (ref $_Future)) (result (ref $_AsyncSuspendState)) <...>)
+  (func $_AsyncSuspendState._complete (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref null $#Top)) <...>)
+  (func $_AsyncSuspendState._completeError (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref $#Top)) (param $var2 (ref $Object)) <...>)
+  (func $_Future (param $var0 (ref $_Type)) (result (ref $_Future)) <...>)
+  (func $_awaitHelper (param $var0 (ref $_AsyncSuspendState)) (param $var1 (ref $_Future)) <...>)
   (func $boxJsException (param $var0 externref) (result (ref $#Top)) <...>)
   (func $checkLibraryIsLoadedFromLoadId (param $var0 i64) (result i32) <...>)
   (func $jsExceptionStackTrace (param $var0 externref) (result (ref $JavaScriptStack)) <...>)
   (func $loadLibraryFromLoadId (param $var0 i64) (result (ref $_Future)) <...>)
-  (func $print (param $var0 (ref null $#Top)) (result (ref null $#Top)) <...>)
+  (func $print (param $var0 (ref null $#Top)) <...>)
 )

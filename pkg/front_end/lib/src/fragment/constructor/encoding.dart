@@ -87,7 +87,11 @@ abstract class ConstructorEncoding {
     ConstructorFragmentDeclaration constructorDeclaration,
   );
 
-  void registerFunctionBody({required Statement? body, Scope? scope});
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  });
 
   void registerNoBodyConstructor();
 
@@ -131,11 +135,16 @@ class RegularConstructorEncoding implements ConstructorEncoding {
        _isEnumConstructor = isEnumConstructor;
 
   @override
-  void registerFunctionBody({required Statement? body, Scope? scope}) {
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
-    _constructor.function.scope = scope;
+    _constructor.function.scope = scope?..parent = _constructor.function;
+    _constructor.function.thisVariable = thisVariable;
   }
 
   @override
@@ -511,11 +520,18 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
   }
 
   @override
-  void registerFunctionBody({required Statement? body, Scope? scope}) {
+  void registerFunctionBody({
+    required Statement? body,
+    Scope? scope,
+    VariableDeclaration? thisVariable,
+  }) {
     if (body != null) {
       _constructor.function.registerFunctionBody(body);
     }
-    _constructor.function.scope = scope;
+    _constructor.function.scope =
+        // Coverage-ignore(suite): Not run.
+        scope?..parent = _constructor.function;
+    _constructor.function.thisVariable = thisVariable;
   }
 
   @override
@@ -610,13 +626,28 @@ mixin _ExtensionTypeConstructorEncodingMixin<T extends DeclarationBuilder>
       }
 
       _thisVariable =
-          new VariableDeclarationImpl(
-              syntheticThisName,
-              isFinal: true,
+          libraryBuilder
+              .loader
+              .target
+              .backendTarget
+              .flags
+              .isClosureContextLoweringEnabled
+          ?
+            // Coverage-ignore(suite): Not run.
+            (new PositionalParameter(
+              cosmeticName: syntheticThisName,
               type: _computeThisType(declarationBuilder, typeArguments),
-            )
-            ..fileOffset = fileOffset
-            ..isLowered = true;
+
+              isFinal: true,
+              isLowered: true,
+            )..fileOffset = fileOffset)
+          : (new VariableDeclarationImpl(
+                syntheticThisName,
+                isFinal: true,
+                type: _computeThisType(declarationBuilder, typeArguments),
+              )
+              ..fileOffset = fileOffset
+              ..isLowered = true);
 
       List<DartType> typeParameterTypes = <DartType>[];
       for (int i = 0; i < _constructor.function.typeParameters.length; i++) {

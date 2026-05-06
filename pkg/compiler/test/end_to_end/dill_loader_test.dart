@@ -29,9 +29,9 @@ main() {
     var options = CompilerOptions()
       ..target = Dart2jsTarget("dart2js", TargetFlags())
       ..packagesFileUri = Uri.base.resolve('.dart_tool/package_config.json')
-      ..additionalDills = <Uri>[
-        computePlatformBinariesLocation().resolve("dart2js_platform.dill"),
-      ]
+      ..sdkSummary = computePlatformBinariesLocation().resolve(
+        "dart2js_platform.dill",
+      )
       ..setExitCodeOnProblem = true
       ..verify = true;
 

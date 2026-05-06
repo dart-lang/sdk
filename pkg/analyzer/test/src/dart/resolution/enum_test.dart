@@ -18,6 +18,25 @@ main() {
 
 @reflectiveTest
 class EnumDeclarationResolutionTest extends PubPackageResolutionTest {
+  test_constant_argumentList_functionExpression_flowAnalysis() async {
+    await assertErrorsInCode(
+      r'''
+enum E {
+  v(() {
+    Object? x = 0;
+    if (x is int) {
+      x.isEven;
+    }
+  });
+
+  final void Function() f;
+  const E(this.f);
+}
+''',
+      [error(diag.constWithNonConstantArgument, 13, 69)],
+    );
+  }
+
   test_constructor_argumentList_contextType() async {
     await assertNoErrorsInCode(r'''
 enum E {
@@ -182,6 +201,53 @@ EnumConstantDeclaration
     baseElement: <testLibrary>::@enum::E::@constructor::named
     substitution: {T: double}
   declaredFragment: <testLibraryFragment> v@14
+''');
+  }
+
+  test_constructor_newHead_unnamed() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  new ();
+}
+''');
+
+    var node = findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E Function()
+''');
+  }
+
+  test_constructor_newHead_unnamed_const() async {
+    await assertNoErrorsInCode(r'''
+enum E {
+  v;
+  const new ();
+}
+''');
+
+    var node = findNode.singleConstructorDeclaration;
+    assertResolvedNodeText(node, r'''
+ConstructorDeclaration
+  constKeyword: const
+  newKeyword: new
+  parameters: FormalParameterList
+    leftParenthesis: (
+    rightParenthesis: )
+  body: EmptyFunctionBody
+    semicolon: ;
+  declaredFragment: <testLibraryFragment> new@null
+    element: <testLibrary>::@enum::E::@constructor::new
+      type: E Function()
 ''');
   }
 
@@ -351,7 +417,7 @@ enum E;
 
     await assertErrorsInCode(code, [
       error(diag.enumWithoutConstants, 21, 1),
-      error(diag.experimentNotEnabledOffByDefault, 22, 1),
+      error(diag.experimentNotEnabled, 22, 1),
     ]);
 
     var node = findNode.singleEnumDeclaration;
@@ -718,14 +784,10 @@ EnumDeclaration
           argumentList: ArgumentList
             leftParenthesis: (
             arguments
-              NamedExpression
-                name: Label
-                  label: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                    staticType: null
-                  colon: :
-                expression: IntegerLiteral
+              NamedArgument
+                name: a
+                colon: :
+                argumentExpression: IntegerLiteral
                   literal: 1
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
@@ -777,14 +839,10 @@ EnumDeclaration
           argumentList: ArgumentList
             leftParenthesis: (
             arguments
-              NamedExpression
-                name: Label
-                  label: SimpleIdentifier
-                    token: a
-                    element: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a
-                    staticType: null
-                  colon: :
-                expression: IntegerLiteral
+              NamedArgument
+                name: a
+                colon: :
+                argumentExpression: IntegerLiteral
                   literal: 0
                   staticType: int
                 correspondingParameter: <testLibrary>::@enum::A::@constructor::new::@formalParameter::a

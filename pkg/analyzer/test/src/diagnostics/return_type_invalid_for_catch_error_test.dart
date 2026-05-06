@@ -43,6 +43,14 @@ void f(Future<int> future, String Function(dynamic, StackTrace) cb) {
     );
   }
 
+  test_Null_returnTypeIsVoid() async {
+    await assertNoErrorsInCode('''
+void f(Future<Null> future, void Function(dynamic, StackTrace) cb) {
+  future.catchError(cb);
+}
+''');
+  }
+
   test_nullableReturnType() async {
     await assertErrorsInCode(
       '''

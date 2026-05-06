@@ -101,7 +101,7 @@ class CreateMethodOrFunction extends ResolvedCorrectionProducer {
       if (parameterType is InterfaceType && parameterType.isDartCoreFunction) {
         parameterType = FunctionTypeImpl(
           typeParameters: const [],
-          parameters: const [],
+          formalParameters: const [],
           returnType: DynamicTypeImpl.instance,
           nullabilitySuffix: NullabilitySuffix.none,
         );

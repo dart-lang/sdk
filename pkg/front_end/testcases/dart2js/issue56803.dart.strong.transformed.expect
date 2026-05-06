@@ -10,7 +10,7 @@ extension type Ext(core::String _) implements core::String {
   constructor tearoff • = self::Ext|constructor#_#new#tearOff;
 }
 static const field core::String? maybe = #C5;
-static extension-type-member const method Ext|constructor#_(wildcard core::String _#wc0#formal) → self::Ext /* erasure=core::String */ {
+static extension-type-member const method Ext|constructor#_(wildcard initializing-formal core::String _#wc0#formal) → self::Ext /* erasure=core::String */ {
   lowered final self::Ext /* erasure=core::String */ #this = _#wc0#formal;
   return #this;
 }

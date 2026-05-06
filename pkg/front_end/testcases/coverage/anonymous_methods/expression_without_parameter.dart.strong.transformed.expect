@@ -1,0 +1,18 @@
+library;
+import self as self;
+import "dart:core" as core;
+
+static method main() → void {
+  let final core::int #t1 = 1 in 1;
+  let final core::int #t2 = 1 in #t2;
+  let final core::int #t3 = 1 in #t3.{core::int::isEven}{core::bool};
+  let final core::int #t4 = 1 in #t4.{core::int::isEven}{core::bool};
+}
+
+
+Extra constant evaluation status:
+Evaluated: Let @ org-dartlang-testcase:///expression_without_parameter.dart:6:3 -> IntConstant(1)
+Evaluated: Let @ org-dartlang-testcase:///expression_without_parameter.dart:7:3 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_without_parameter.dart:8:8 -> IntConstant(1)
+Evaluated: VariableGet @ org-dartlang-testcase:///expression_without_parameter.dart:9:8 -> IntConstant(1)
+Extra constant evaluation: evaluated: 8, effectively constant: 4

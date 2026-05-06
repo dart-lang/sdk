@@ -10,6 +10,7 @@ import 'package:analysis_server/src/services/completion/dart/completion_manager.
 import 'package:analysis_server/src/services/completion/dart/suggestion_builder.dart';
 import 'package:analysis_server/src/utilities/extensions/ast.dart';
 import 'package:analyzer/dart/ast/ast.dart';
+import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/dart/element/nullability_suffix.dart';
 import 'package:analyzer/dart/element/type.dart';
@@ -128,21 +129,21 @@ CompletionDefaultArgumentList computeCompletionDefaultArgumentList(
 }
 
 /// Create a new protocol Element for inclusion in a completion suggestion.
-protocol.Element createLocalElement(
+protocol.Element createLocalElementFromToken(
   Source source,
   protocol.ElementKind kind,
-  SimpleIdentifier id, {
+  Token nameToken, {
   String? parameters,
-  TypeAnnotation? returnType,
+  String? returnType,
   bool isAbstract = false,
   bool isDeprecated = false,
 }) {
-  var name = id.name;
+  var name = nameToken.lexeme;
   // TODO(danrubel): use lineInfo to determine startLine and startColumn
   var location = Location(
     source.fullName,
-    id.offset,
-    id.length,
+    nameToken.offset,
+    nameToken.length,
     0,
     0,
     endLine: 0,
@@ -159,7 +160,7 @@ protocol.Element createLocalElement(
     flags,
     location: location,
     parameters: parameters,
-    returnType: nameForType(id, returnType),
+    returnType: returnType,
   );
 }
 

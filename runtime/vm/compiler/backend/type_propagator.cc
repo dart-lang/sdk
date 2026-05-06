@@ -407,8 +407,8 @@ void FlowGraphTypePropagator::VisitBranch(BranchInstr* instr) {
     const AbstractType* type = nullptr;
     Definition* left = nullptr;
     if (is_simple_instance_of) {
-      ASSERT(call->ArgumentAt(1)->IsConstant());
-      const Object& type_obj = call->ArgumentAt(1)->AsConstant()->value();
+      ASSERT(call->ArgumentValueAt(1)->BindsToConstant());
+      const Object& type_obj = call->ArgumentValueAt(1)->BoundConstant();
       if (!type_obj.IsType()) {
         return;
       }
@@ -1881,6 +1881,7 @@ CompileType LoadIndexedInstr::ComputeType() const {
                                            CompileType::kCannotBeNull,
                                            CompileType::kCannotBeSentinel);
 
+    case kClosureCid:
     case kRecordCid:
       return CompileType::Dynamic();
 

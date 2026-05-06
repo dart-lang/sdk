@@ -48,13 +48,13 @@ extension type F(asy::Future<core::int> _) implements asy::Future<core::int> {
   constructor • = self::F|constructor#;
   constructor tearoff • = self::F|constructor#_#new#tearOff;
 }
-static extension-type-member method N|constructor#(wildcard asy::Future<core::int> _#wc0#formal) → self::N% /* erasure=asy::Future<core::int>, declared=! */ {
+static extension-type-member method N|constructor#(wildcard initializing-formal asy::Future<core::int> _#wc0#formal) → self::N% /* erasure=asy::Future<core::int>, declared=! */ {
   lowered final self::N% /* erasure=asy::Future<core::int>, declared=! */ #this = _#wc0#formal;
   return #this;
 }
 static extension-type-member synthetic method N|constructor#_#new#tearOff(asy::Future<core::int> _#wc0#formal) → self::N% /* erasure=asy::Future<core::int>, declared=! */
   return self::N|constructor#(_#wc0#formal);
-static extension-type-member method F|constructor#(wildcard asy::Future<core::int> _#wc1#formal) → self::F /* erasure=asy::Future<core::int> */ {
+static extension-type-member method F|constructor#(wildcard initializing-formal asy::Future<core::int> _#wc1#formal) → self::F /* erasure=asy::Future<core::int> */ {
   lowered final self::F /* erasure=asy::Future<core::int> */ #this = _#wc1#formal;
   return #this;
 }

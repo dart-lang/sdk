@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/src/services/correction/fix.dart';
-import 'package:analyzer/dart/analysis/features.dart';
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
@@ -453,23 +452,18 @@ void f() {
 @reflectiveTest
 class PreferFinalParametersBulkTest extends BulkFixProcessorTest {
   @override
-  List<String> get experiments => super.experiments
-      .where(
-        (experiment) => experiment != Feature.primary_constructors.enableString,
-      )
-      .toList();
-
-  @override
   String get lintCode => LintNames.prefer_final_parameters;
 
   Future<void> test_singleFile() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn(String test, int other) {
   print(test);
   print(other);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn(final String test, final int other) {
   print(test);
   print(other);
@@ -481,13 +475,6 @@ void fn(final String test, final int other) {
 @reflectiveTest
 class PreferFinalParametersTest extends FixProcessorLintTest {
   @override
-  List<String> get experiments => super.experiments
-      .where(
-        (experiment) => experiment != Feature.primary_constructors.enableString,
-      )
-      .toList();
-
-  @override
   FixKind get kind => DartFixKind.makeFinal;
 
   @override
@@ -495,6 +482,7 @@ class PreferFinalParametersTest extends FixProcessorLintTest {
 
   Future<void> test_class_constructor() async {
     await resolveTestCode('''
+// @dart = 3.12
 class C {
   C(String content) {
     print(content);
@@ -502,6 +490,7 @@ class C {
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 class C {
   C(final String content) {
     print(content);
@@ -512,6 +501,7 @@ class C {
 
   Future<void> test_class_requiredCovariant() async {
     await resolveTestCode('''
+// @dart = 3.12
 class C {
   void fn({required covariant String test}) {
     print(test);
@@ -519,6 +509,7 @@ class C {
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 class C {
   void fn({required covariant final String test}) {
     print(test);
@@ -529,11 +520,13 @@ class C {
 
   Future<void> test_closure_hasType() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn() {
   ['1', '2', '3'].forEach((String string) => print(string));
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn() {
   ['1', '2', '3'].forEach((final String string) => print(string));
 }
@@ -542,11 +535,13 @@ void fn() {
 
   Future<void> test_closure_noType() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn() {
   ['1', '2', '3'].forEach((string) => print(string));
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn() {
   ['1', '2', '3'].forEach((final string) => print(string));
 }
@@ -555,11 +550,13 @@ void fn() {
 
   Future<void> test_functionLiteral() async {
     await resolveTestCode('''
+// @dart = 3.12
 var fn = (String test) {
   print(test);
 };
 ''');
     await assertHasFix('''
+// @dart = 3.12
 var fn = (final String test) {
   print(test);
 };
@@ -568,11 +565,13 @@ var fn = (final String test) {
 
   Future<void> test_named_optional() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn({String? test}) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn({final String? test}) {
   print(test);
 }
@@ -581,11 +580,13 @@ void fn({final String? test}) {
 
   Future<void> test_named_optional_withDefault() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn({String test = 'value'}) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn({final String test = 'value'}) {
   print(test);
 }
@@ -594,11 +595,13 @@ void fn({final String test = 'value'}) {
 
   Future<void> test_named_required() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn({required String test}) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn({required final String test}) {
   print(test);
 }
@@ -607,11 +610,13 @@ void fn({required final String test}) {
 
   Future<void> test_positional_optional() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn([String? test]) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn([final String? test]) {
   print(test);
 }
@@ -620,11 +625,13 @@ void fn([final String? test]) {
 
   Future<void> test_positional_optional_withDefault() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn([String? test = 'value']) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn([final String? test = 'value']) {
   print(test);
 }
@@ -633,11 +640,13 @@ void fn([final String? test = 'value']) {
 
   Future<void> test_simple_hasType() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn(String test) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn(final String test) {
   print(test);
 }
@@ -646,11 +655,13 @@ void fn(final String test) {
 
   Future<void> test_simple_noType() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn(test) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn(final test) {
   print(test);
 }
@@ -659,11 +670,13 @@ void fn(final test) {
 
   Future<void> test_simple_nullable() async {
     await resolveTestCode('''
+// @dart = 3.12
 void fn(String? test) {
   print(test);
 }
 ''');
     await assertHasFix('''
+// @dart = 3.12
 void fn(final String? test) {
   print(test);
 }
@@ -672,14 +685,14 @@ void fn(final String? test) {
 
   Future<void> test_simple_second() async {
     await resolveTestCode('''
-// @dart = 3.10
+// @dart = 3.12
 void fn(final String test, String other) {
   print(test);
   print(other);
 }
 ''');
     await assertHasFix('''
-// @dart = 3.10
+// @dart = 3.12
 void fn(final String test, final String other) {
   print(test);
   print(other);
@@ -689,13 +702,13 @@ void fn(final String test, final String other) {
 
   Future<void> test_simple_var() async {
     await resolveTestCode('''
-// @dart = 3.10
+// @dart = 3.12
 void fn(var test) {
   print(test);
 }
 ''');
     await assertHasFix('''
-// @dart = 3.10
+// @dart = 3.12
 void fn(final test) {
   print(test);
 }

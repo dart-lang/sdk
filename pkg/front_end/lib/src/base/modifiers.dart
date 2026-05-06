@@ -33,9 +33,7 @@ const int _lateMask = _staticMask << 1;
 
 const int _requiredMask = _lateMask << 1;
 
-const int _macroMask = _requiredMask << 1;
-
-const int _sealedMask = _macroMask << 1;
+const int _sealedMask = _requiredMask << 1;
 
 const int _baseMask = _sealedMask << 1;
 
@@ -131,9 +129,6 @@ extension type const Modifiers(int _mask) implements Object {
   ///     lateToken: new SimpleToken(Keyword.LATE, -1)),
   ///     Modifiers.Late)
   /// DartDocTest(Modifiers.from(
-  ///     macroToken: new StringToken(TokenType.IDENTIFIER, 'macro', -1)),
-  ///     Modifiers.Macro)
-  /// DartDocTest(Modifiers.from(
   ///     mixinToken: new SimpleToken(Keyword.MIXIN, -1)),
   ///     Modifiers.Mixin)
   /// DartDocTest(Modifiers.from(
@@ -173,7 +168,6 @@ extension type const Modifiers(int _mask) implements Object {
     Token? finalToken,
     Token? interfaceToken,
     Token? lateToken,
-    Token? macroToken,
     Token? mixinToken,
     Token? requiredToken,
     Token? sealedToken,
@@ -188,11 +182,6 @@ extension type const Modifiers(int _mask) implements Object {
     assert(finalToken == null || finalToken.type == Keyword.FINAL);
     assert(interfaceToken == null || interfaceToken.type == Keyword.INTERFACE);
     assert(lateToken == null || lateToken.type == Keyword.LATE);
-    assert(
-      macroToken == null ||
-          // Coverage-ignore(suite): Not run.
-          macroToken.lexeme == 'macro',
-    );
     assert(mixinToken == null || mixinToken.type == Keyword.MIXIN);
     assert(requiredToken == null || requiredToken.type == Keyword.REQUIRED);
     assert(sealedToken == null || sealedToken.type == Keyword.SEALED);
@@ -208,7 +197,6 @@ extension type const Modifiers(int _mask) implements Object {
         (finalToken != null ? _finalMask : 0) |
         (interfaceToken != null ? _interfaceMask : 0) |
         (lateToken != null ? _lateMask : 0) |
-        (macroToken != null ? _macroMask : 0) |
         (mixinToken != null ? _mixinMask : 0) |
         (requiredToken != null ? _requiredMask : 0) |
         (sealedToken != null ? _sealedMask : 0) |
@@ -341,25 +329,11 @@ extension type const Modifiers(int _mask) implements Object {
   /// ```
   /// DartDocTest(Modifiers.Required.isRequired, true)
   /// DartDocTest(Modifiers.Required.isEmpty, false)
-  /// DartDocTest(Modifiers.Required.isMacro, false)
   /// ```
   static const Modifiers Required = const Modifiers(_requiredMask);
 
   /// Returns `true` if the set of modifiers contains `required'.
   bool get isRequired => (_mask & _requiredMask) != 0;
-
-  /// The set of modifiers containing only `macro`.
-  ///
-  /// ```
-  /// DartDocTest(Modifiers.Macro.isMacro, true)
-  /// DartDocTest(Modifiers.Macro.isEmpty, false)
-  /// DartDocTest(Modifiers.Macro.isSealed, false)
-  /// ```
-  static const Modifiers Macro = const Modifiers(_macroMask);
-
-  // Coverage-ignore(suite): Not run.
-  /// Returns `true` if the set of modifiers contains `macro'.
-  bool get isMacro => (_mask & _macroMask) != 0;
 
   /// The set of modifiers containing only `sealed`.
   ///
@@ -554,7 +528,6 @@ extension type const Modifiers(int _mask) implements Object {
   ///     Modifiers.InitializingFormal.containsSyntacticModifiers(), false)
   /// DartDocTest(Modifiers.Interface.containsSyntacticModifiers(), true)
   /// DartDocTest(Modifiers.Late.containsSyntacticModifiers(), true)
-  /// DartDocTest(Modifiers.Macro.containsSyntacticModifiers(), true)
   /// DartDocTest(Modifiers.Mixin.containsSyntacticModifiers(), true)
   /// DartDocTest(
   ///     Modifiers.NamedMixinApplication.containsSyntacticModifiers(), false)

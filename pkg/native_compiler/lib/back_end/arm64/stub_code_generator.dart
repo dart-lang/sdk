@@ -118,6 +118,15 @@ final class TypeTestingStub {
   static const Register subtypeTestCacheResultReg = R7;
 }
 
+final class InitSuspendableFunctionStub {
+  static const Register typeArgsReg = R0;
+}
+
+final class SuspendStub {
+  static const Register argumentReg = R0;
+  static const Register typeArgsReg = R1;
+}
+
 final class Arm64StubFactory extends StubFactory {
   final VMOffsets vmOffsets;
   final ObjectLayout objectLayout;

@@ -89,4 +89,12 @@ class A {}
 mixin class B;
 ''');
   }
+
+  Future<void> test_mixinClass_with_noExtends() async {
+    await resolveTestCode('''
+mixin M {}
+mixin class B with M {}
+''');
+    await assertNoFix();
+  }
 }

@@ -2,7 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'data_driven_test_support.dart';
@@ -347,6 +347,47 @@ void f() {
   }
 
   Future<void>
+  test_cupertino_CupertinoTextThemeData_primaryConstructor_deprecated() async {
+    setPackageContent('''
+class  CupertinoTextThemeData({Color color, @deprecated Brightness brightness}){}
+class Color {}
+class Colors {
+  static Color blue = Color();
+}
+class Brightness {
+  static Brightness dark = Brightness();
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Removed brightness'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'CupertinoTextThemeData'
+    changes:
+      - kind: 'removeParameter'
+        name: 'brightness'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  CupertinoTextThemeData(color: Colors.blue, brightness: Brightness.dark);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  CupertinoTextThemeData(color: Colors.blue);
+}
+''');
+  }
+
+  Future<void>
   test_gestures_PointerEnterEvent_fromHoverEvent_deprecated() async {
     setPackageContent('''
 class PointerEnterEvent {
@@ -389,6 +430,47 @@ void f(PointerHoverEvent event) {
   Future<void> test_gestures_PointerEnterEvent_fromHoverEvent_removed() async {
     setPackageContent('''
 class PointerEnterEvent {
+  PointerEnterEvent.fromMouseEvent(PointerEvent event);
+}
+class PointerHoverEvent extends PointerEvent {}
+class PointerEvent {}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Rename to fromMouseEvent'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: 'fromHoverEvent'
+      inClass: 'PointerEnterEvent'
+    changes:
+      - kind: 'rename'
+        newName: 'fromMouseEvent'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f(PointerHoverEvent event) {
+  PointerEnterEvent.fromHoverEvent(event);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f(PointerHoverEvent event) {
+  PointerEnterEvent.fromMouseEvent(event);
+}
+''');
+  }
+
+  Future<void>
+  test_gestures_PointerEnterEvent_primaryConstructor_deprecated() async {
+    setPackageContent('''
+class PointerEnterEvent.fromHoverEvent(PointerHoverEvent event) {
+  @deprecated
+  this;
+
   PointerEnterEvent.fromMouseEvent(PointerEvent event);
 }
 class PointerHoverEvent extends PointerEvent {}
@@ -604,6 +686,54 @@ VelocityTracker tracker = VelocityTracker();
 import '$importUri';
 
 VelocityTracker tracker = VelocityTracker.withKind(PointerDeviceKind.touch);
+''');
+  }
+
+  Future<void>
+  test_material_BottomNavigationBarItem_primaryConstructor_deprecated() async {
+    setPackageContent('''
+class BottomNavigationBarItem({String label, @deprecated Text title}){
+}
+class Text {
+  Text(String text);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Replaced title with label'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'BottomNavigationBarItem'
+    changes:
+      - kind: 'addParameter'
+        index: 0
+        name: 'label'
+        style: required_named
+        argumentValue:
+          expression: '{% label %}'
+          variables:
+            label:
+              kind: fragment
+              value: 'arguments[title].arguments[0]'
+      - kind: 'removeParameter'
+        name: 'title'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  BottomNavigationBarItem(title: Text('x'));
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  BottomNavigationBarItem(label: 'x');
+}
 ''');
   }
 
@@ -2625,7 +2755,7 @@ void f() {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
 
     addPackageDataFile('''
@@ -2688,8 +2818,8 @@ void f(CupertinoPageTransitionsBuilder builder) {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p')
-        ..add(name: 'p2', rootPath: '$workspaceRootPath/p2'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
+        ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2')),
     );
 
     addPackageDataFile('''
@@ -2739,7 +2869,7 @@ void f(CupertinoPageTransitionsBuilder builder) {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p')),
     );
 
     addPackageDataFile('''
@@ -2795,9 +2925,9 @@ class MyApp extends StatelessWidget {
 
     writeTestPackageConfig(
       config: PackageConfigFileBuilder()
-        ..add(name: 'p', rootPath: '$workspaceRootPath/p')
-        ..add(name: 'p2', rootPath: '$workspaceRootPath/p2')
-        ..add(name: 'p3', rootPath: '$workspaceRootPath/p3'),
+        ..add(name: 'p', rootFolder: getFolder('$workspaceRootPath/p'))
+        ..add(name: 'p2', rootFolder: getFolder('$workspaceRootPath/p2'))
+        ..add(name: 'p3', rootFolder: getFolder('$workspaceRootPath/p3')),
     );
 
     addPackageDataFile('''
@@ -2903,6 +3033,79 @@ import '$importUri';
 
 void f() {
   Typography.material2014();
+}
+''');
+  }
+
+  Future<void>
+  test_material_Typography_defaultConstructor_to_primaryConstructor() async {
+    setPackageContent('''
+class Typography.material2014() {
+  @deprecated
+  Typography()
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Use Typography.material2014'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'Typography'
+    changes:
+      - kind: 'rename'
+        newName: 'material2014'
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  Typography();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  Typography.material2014();
+}
+''');
+  }
+
+  Future<void> test_material_Typography_namedConstructor_deprecated() async {
+    setPackageContent('''
+class Typography(final String a) {
+  @deprecated
+  Typography.material2014([String a = '']): this(a);
+}
+''');
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: 'Use Typography.material2014'
+    date: 2020-09-24
+    element:
+      uris: ['$importUri']
+      constructor: 'material2014'
+      inClass: 'Typography'
+    changes:
+      - kind: 'rename'
+        newName: ''
+''');
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  Typography.material2014();
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  Typography();
 }
 ''');
   }
@@ -3050,6 +3253,47 @@ class ClipboardData {
   final String text;
   final String p;
 }
+''');
+
+    addPackageDataFile('''
+version: 1
+transforms:
+  - title: "Migrate to empty 'text' string"
+    date: 2023-04-19
+    element:
+      uris: ['$importUri']
+      constructor: ''
+      inClass: 'ClipboardData'
+    changes:
+      - kind: 'changeParameterType'
+        index: 1
+        nullability: non_null
+        argumentValue:
+          expression: "''"
+''');
+
+    await resolveTestCode('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData('hello', null);
+  print(c);
+}
+''');
+    await assertHasFix('''
+import '$importUri';
+
+void f() {
+  var c = ClipboardData('hello', '');
+  print(c);
+}
+''');
+  }
+
+  Future<void>
+  test_services_ClipboardData_primaryConstructor_changePositionalParameter() async {
+    setPackageContent('''
+class const ClipboardData(final String text, final String p){}
 ''');
 
     addPackageDataFile('''

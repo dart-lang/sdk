@@ -48,7 +48,7 @@ abstract interface class IVariable implements TreeNode {
   // The following is due to [VariableDeclaration] implementing
   // [VariableInitialization].
   abstract int binaryOffsetNoTag;
-  abstract List<VariableContext>? contexts;
+  abstract List<VariableContext>? capturedContexts;
   abstract int fileEqualsOffset;
   abstract VariableDeclaration variable;
   void clearAnnotations();
@@ -462,13 +462,13 @@ class LocalVariable extends VariableDeclaration {
   int binaryOffsetNoTag = -1;
 
   @override
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -768,13 +768,13 @@ class CatchVariable extends VariableDeclaration {
   int binaryOffsetNoTag = -1;
 
   @override
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1030,14 +1030,14 @@ class PositionalParameter extends FunctionParameter {
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1174,14 +1174,14 @@ class NamedParameter extends FunctionParameter {
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
   // TODO(62620): Conforming to [VariableInitialization] interface. Remove this.
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1532,13 +1532,13 @@ class ThisVariable extends VariableDeclaration {
   int binaryOffsetNoTag = -1;
 
   @override
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1809,13 +1809,13 @@ class SyntheticVariable extends VariableDeclaration {
   int binaryOffsetNoTag = -1;
 
   @override
-  List<VariableContext>? get contexts {
-    throw new UnsupportedError("${this.runtimeType}.contexts");
+  List<VariableContext>? get capturedContexts {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts");
   }
 
   @override
-  void set contexts(List<VariableContext>? value) {
-    throw new UnsupportedError("${this.runtimeType}.contexts=");
+  void set capturedContexts(List<VariableContext>? value) {
+    throw new UnsupportedError("${this.runtimeType}.capturedContexts=");
   }
 
   @override
@@ -1979,5 +1979,5 @@ sealed class ScopeProvider implements TreeNode {
 /// functions or initialization nodes of late variables.
 sealed class ContextConsumer implements TreeNode {
   /// Contexts the variables captured by [ContextConsumer] are from.
-  abstract List<VariableContext>? contexts;
+  abstract List<VariableContext>? capturedContexts;
 }

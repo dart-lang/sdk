@@ -40,7 +40,7 @@ const expected = <String>[
   '$file:${LINE_A + 2}:20', // on 'await'
   '$file:${LINE_A + 3}:26', // on 'exists'
   '$file:${LINE_A + 3}:18', // on 'await'
-  '$file:${LINE_A + 4}:47', // on ')', i.e. before ';'
+  '$file:${LINE_A + 4}:9', // on the first "'"
   '$file:${LINE_A + 4}:3', // on call to 'print'
   '$file:${LINE_A + 5}:3', // on call to 'foo'
   '$file:${LINE_A + 6}:1', // ending '}'

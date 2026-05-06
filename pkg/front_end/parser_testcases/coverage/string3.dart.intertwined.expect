@@ -40,7 +40,8 @@ parseUnit(UnterminatedString("""))
                           parseSingleLiteralString(return)
                             listener: beginLiteralString("""
 æbler""")
-                            listener: endLiteralString(0, })
+                            listener: endLiteralString(0, """
+æbler""")
                 ensureSemicolon("""
 æbler""")
                   reportRecoverableError("""

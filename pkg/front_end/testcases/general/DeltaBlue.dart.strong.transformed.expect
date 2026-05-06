@@ -14,7 +14,7 @@ class DeltaBlue extends core::Object {
 class Strength extends core::Object /*hasConstConstructor*/  {
   final field core::int value;
   final field core::String name;
-  const constructor •(core::int value, core::String name) → self::Strength
+  const constructor •(initializing-formal core::int value, initializing-formal core::String name) → self::Strength
     : self::Strength::value = value, self::Strength::name = name, super core::Object::•()
     ;
   method nextWeaker() → self::Strength
@@ -34,7 +34,7 @@ class Strength extends core::Object /*hasConstConstructor*/  {
 }
 abstract class Constraint extends core::Object /*hasConstConstructor*/  {
   final field self::Strength strength;
-  const constructor •(self::Strength strength) → self::Constraint
+  const constructor •(initializing-formal self::Strength strength) → self::Constraint
     : self::Constraint::strength = strength, super core::Object::•()
     ;
   abstract method isSatisfied() → core::bool;
@@ -81,7 +81,7 @@ abstract class Constraint extends core::Object /*hasConstConstructor*/  {
 abstract class UnaryConstraint extends self::Constraint {
   final field self::Variable myOutput;
   field core::bool satisfied = false;
-  constructor •(self::Variable myOutput, self::Strength strength) → self::UnaryConstraint
+  constructor •(initializing-formal self::Variable myOutput, self::Strength strength) → self::UnaryConstraint
     : self::UnaryConstraint::myOutput = myOutput, super self::Constraint::•(strength) {
     this.{self::Constraint::addConstraint}(){() → void};
   }
@@ -132,7 +132,7 @@ abstract class BinaryConstraint extends self::Constraint {
   field self::Variable v1;
   field self::Variable v2;
   field core::int direction = #C1;
-  constructor •(self::Variable v1, self::Variable v2, self::Strength strength) → self::BinaryConstraint
+  constructor •(initializing-formal self::Variable v1, initializing-formal self::Variable v2, self::Strength strength) → self::BinaryConstraint
     : self::BinaryConstraint::v1 = v1, self::BinaryConstraint::v2 = v2, super self::Constraint::•(strength) {
     this.{self::Constraint::addConstraint}(){() → void};
   }
@@ -190,7 +190,7 @@ abstract class BinaryConstraint extends self::Constraint {
 class ScaleConstraint extends self::BinaryConstraint {
   final field self::Variable scale;
   final field self::Variable offset;
-  constructor •(self::Variable src, self::Variable scale, self::Variable offset, self::Variable dest, self::Strength strength) → self::ScaleConstraint
+  constructor •(self::Variable src, initializing-formal self::Variable scale, initializing-formal self::Variable offset, self::Variable dest, self::Strength strength) → self::ScaleConstraint
     : self::ScaleConstraint::scale = scale, self::ScaleConstraint::offset = offset, super self::BinaryConstraint::•(src, dest, strength)
     ;
   method addToGraph() → void {
@@ -242,7 +242,7 @@ class Variable extends core::Object {
   field core::bool stay = true;
   field core::int value;
   final field core::String name;
-  constructor •(core::String name, core::int value) → self::Variable
+  constructor •(initializing-formal core::String name, initializing-formal core::int value) → self::Variable
     : self::Variable::name = name, self::Variable::value = value, super core::Object::•()
     ;
   method addConstraint(self::Constraint c) → void {

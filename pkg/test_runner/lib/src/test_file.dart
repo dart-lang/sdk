@@ -13,23 +13,31 @@ import 'utils.dart';
 final _multitestRegExp = RegExp(r"//# \w+:");
 
 final _vmOptionsRegExp = RegExp(r"^[ \t]*// VMOptions=(.*)", multiLine: true);
-final _environmentRegExp =
-    RegExp(r"^[ \t]*// Environment=(.*)", multiLine: true);
+final _environmentRegExp = RegExp(
+  r"^[ \t]*// Environment=(.*)",
+  multiLine: true,
+);
 final _packagesRegExp = RegExp(r"^[ \t]*// Packages=(.*)", multiLine: true);
 final _experimentRegExp = RegExp(r"^--enable-experiment=([a-z0-9,-]+)$");
 final _localFileRegExp = RegExp(
-    r"""^[ \t]*(?:import|part)\s*"""
-    r"""['"](?!package:|dart:)(.*?)['"]\s*"""
-    r"""(?:(?:deferred\s+)?as\s+\w+\s*)?"""
-    r"""(?:(?:show|hide)\s+\w+\s*(?:,\s*\w+\s*))*;""",
-    multiLine: true);
+  r"""^[ \t]*(?:import|part)\s*"""
+  r"""['"](?!package:|dart:)(.*?)['"]\s*"""
+  r"""(?:(?:deferred\s+)?as\s+\w+\s*)?"""
+  r"""(?:(?:show|hide)\s+\w+\s*(?:,\s*\w+\s*))*;""",
+  multiLine: true,
+);
 
 List<T> _parseOption<T>(
-    String filePath, String contents, String name, T Function(String) convert,
-    {bool allowMultiple = false}) {
-  var matches = RegExp('^[ \t]*// $name=(.*)', multiLine: true)
-      .allMatches(contents)
-      .toList();
+  String filePath,
+  String contents,
+  String name,
+  T Function(String) convert, {
+  bool allowMultiple = false,
+}) {
+  var matches = RegExp(
+    '^[ \t]*// $name=(.*)',
+    multiLine: true,
+  ).allMatches(contents).toList();
   if (!allowMultiple && matches.length > 1) {
     throw FormatException('More than one "// $name=" line in test $filePath');
   }
@@ -44,10 +52,18 @@ List<T> _parseOption<T>(
   return options;
 }
 
-List<String> _parseStringOption(String filePath, String contents, String name,
-        {bool allowMultiple = false}) =>
-    _parseOption<String>(filePath, contents, name, (string) => string,
-        allowMultiple: allowMultiple);
+List<String> _parseStringOption(
+  String filePath,
+  String contents,
+  String name, {
+  bool allowMultiple = false,
+}) => _parseOption<String>(
+  filePath,
+  contents,
+  name,
+  (string) => string,
+  allowMultiple: allowMultiple,
+);
 
 abstract class _TestFileBase {
   /// The test suite directory containing this test.
@@ -190,33 +206,41 @@ class TestFile extends _TestFileBase {
   /// Read the test file from the given [filePath].
   factory TestFile.read(Path suiteDirectory, String filePath) {
     if (filePath.endsWith('.dill')) {
-      return TestFile._(suiteDirectory, Path(filePath), [],
-          requirements: [],
-          vmOptions: [[]],
-          sharedOptions: [],
-          dart2jsOptions: [],
-          dart2wasmOptions: [],
-          ddcOptions: [],
-          dartOptions: [],
-          packages: null,
-          isMultitest: false,
-          sharedObjects: [],
-          otherResources: [],
-          environment: {},
-          experiments: []);
+      return TestFile._(
+        suiteDirectory,
+        Path(filePath),
+        [],
+        requirements: [],
+        vmOptions: [[]],
+        sharedOptions: [],
+        dart2jsOptions: [],
+        dart2wasmOptions: [],
+        ddcOptions: [],
+        dartOptions: [],
+        packages: null,
+        isMultitest: false,
+        sharedObjects: [],
+        otherResources: [],
+        environment: {},
+        experiments: [],
+      );
     }
 
     final contents = File(filePath).readAsStringSync();
 
     // Required features.
-    var requirements =
-        _parseOption<Feature>(filePath, contents, 'Requirements', (name) {
-      for (var feature in Feature.all) {
-        if (feature.name == name) return feature;
-      }
+    var requirements = _parseOption<Feature>(
+      filePath,
+      contents,
+      'Requirements',
+      (name) {
+        for (var feature in Feature.all) {
+          if (feature.name == name) return feature;
+        }
 
-      throw FormatException('Unknown feature "$name" in test $filePath');
-    });
+        throw FormatException('Unknown feature "$name" in test $filePath');
+      },
+    );
 
     final isVmIntermediateLanguageTest = filePath.endsWith('_il_test.dart');
 
@@ -231,16 +255,29 @@ class TestFile extends _TestFileBase {
     // Other options.
     var dartOptions = _parseStringOption(filePath, contents, 'DartOptions');
     var sharedOptions = _parseStringOption(filePath, contents, 'SharedOptions');
-    var dart2jsOptions =
-        _parseStringOption(filePath, contents, 'dart2jsOptions');
-    var dart2wasmOptions =
-        _parseStringOption(filePath, contents, 'dart2wasmOptions');
+    var dart2jsOptions = _parseStringOption(
+      filePath,
+      contents,
+      'dart2jsOptions',
+    );
+    var dart2wasmOptions = _parseStringOption(
+      filePath,
+      contents,
+      'dart2wasmOptions',
+    );
     var ddcOptions = _parseStringOption(filePath, contents, 'ddcOptions');
     var otherResources = _parseStringOption(
-        filePath, contents, 'OtherResources',
-        allowMultiple: true);
-    var sharedObjects = _parseStringOption(filePath, contents, 'SharedObjects',
-        allowMultiple: true);
+      filePath,
+      contents,
+      'OtherResources',
+      allowMultiple: true,
+    );
+    var sharedObjects = _parseStringOption(
+      filePath,
+      contents,
+      'SharedObjects',
+      allowMultiple: true,
+    );
 
     // Extract the experiments from the shared options.
     // TODO(rnystrom): Either tests should stop specifying experiment flags
@@ -254,8 +291,9 @@ class TestFile extends _TestFileBase {
         var match = _experimentRegExp.firstMatch(sharedOption);
         if (match == null) {
           throw Exception(
-              "SharedOptions marker cannot mix experiment flags with other "
-              "flags. Was:\n$sharedOption");
+            "SharedOptions marker cannot mix experiment flags with other "
+            "flags. Was:\n$sharedOption",
+          );
         }
 
         experiments.addAll(match[1]!.split(","));
@@ -286,21 +324,24 @@ class TestFile extends _TestFileBase {
     for (var match in matches) {
       if (packages != null) {
         throw FormatException(
-            'More than one "// Package..." line in test $filePath');
+          'More than one "// Package..." line in test $filePath',
+        );
       }
       packages = match[1]!;
       if (packages != 'none') {
         // Packages=none means that no packages option should be given. Any
         // other value overrides packages.
-        packages =
-            Uri.file(filePath).resolveUri(Uri.file(packages)).toFilePath();
+        packages = Uri.file(
+          filePath,
+        ).resolveUri(Uri.file(packages)).toFilePath();
       }
     }
 
     var isMultitest = _multitestRegExp.hasMatch(contents);
     if (isMultitest) {
       DebugLogger.warning(
-          "${Path(filePath).toNativePath()} is a legacy multi-test file.");
+        "${Path(filePath).toNativePath()} is a legacy multi-test file.",
+      );
     }
 
     var errorExpectations = <StaticError>[];
@@ -308,31 +349,38 @@ class TestFile extends _TestFileBase {
       errorExpectations.addAll(_parseExpectations(filePath));
     } on FormatException catch (error) {
       throw FormatException(
-          "Invalid error expectation syntax in $filePath:\n$error");
+        "Invalid error expectation syntax in $filePath:\n$error",
+      );
     }
 
-    return TestFile._(suiteDirectory, Path(filePath), errorExpectations,
-        packages: packages,
-        environment: environment,
-        isMultitest: isMultitest,
-        requirements: requirements,
-        sharedOptions: sharedOptions,
-        dartOptions: dartOptions,
-        dart2jsOptions: dart2jsOptions,
-        dart2wasmOptions: dart2wasmOptions,
-        ddcOptions: ddcOptions,
-        vmOptions: vmOptions,
-        sharedObjects: sharedObjects,
-        otherResources: otherResources,
-        experiments: experiments,
-        isVmIntermediateLanguageTest: isVmIntermediateLanguageTest);
+    return TestFile._(
+      suiteDirectory,
+      Path(filePath),
+      errorExpectations,
+      packages: packages,
+      environment: environment,
+      isMultitest: isMultitest,
+      requirements: requirements,
+      sharedOptions: sharedOptions,
+      dartOptions: dartOptions,
+      dart2jsOptions: dart2jsOptions,
+      dart2wasmOptions: dart2wasmOptions,
+      ddcOptions: ddcOptions,
+      vmOptions: vmOptions,
+      sharedObjects: sharedObjects,
+      otherResources: otherResources,
+      experiments: experiments,
+      isVmIntermediateLanguageTest: isVmIntermediateLanguageTest,
+    );
   }
 
   /// Parse expectations from the file with [path].
   ///
   /// Recurses to follow local (not `dart:` or `package:`) imports.
-  static List<StaticError> _parseExpectations(String path,
-      {Set<String>? alreadyParsed}) {
+  static List<StaticError> _parseExpectations(
+    String path, {
+    Set<String>? alreadyParsed,
+  }) {
     alreadyParsed ??= {};
     var file = File(path);
     var pathUri = Uri.parse(path);
@@ -353,55 +401,60 @@ class TestFile extends _TestFileBase {
       // Broken import paths set no expectations.
       if (localPath == null) continue;
       var uriString = pathUri.resolve(localPath.path).toString();
-      result
-          .addAll(_parseExpectations(uriString, alreadyParsed: alreadyParsed));
+      result.addAll(
+        _parseExpectations(uriString, alreadyParsed: alreadyParsed),
+      );
     }
     return result;
   }
 
   /// A special fake test file for representing a VM unit test written in C++.
-  TestFile.vmUnitTest(String name,
-      {required this.hasCompileError,
-      required this.hasRuntimeError,
-      required this.hasCrash})
-      : packages = null,
-        environment = {},
-        isMultitest = false,
-        hasSyntaxError = false,
-        hasStaticWarning = false,
-        requirements = [],
-        sharedOptions = [],
-        dartOptions = [],
-        dart2jsOptions = [],
-        dart2wasmOptions = [],
-        ddcOptions = [],
-        vmOptions = [],
-        sharedObjects = [],
-        otherResources = [],
-        experiments = [],
-        isVmIntermediateLanguageTest = false,
-        super(null, Path("/fake/vm/cc/$name"), []);
+  TestFile.vmUnitTest(
+    String name, {
+    required this.hasCompileError,
+    required this.hasRuntimeError,
+    required this.hasCrash,
+  }) : packages = null,
+       environment = {},
+       isMultitest = false,
+       hasSyntaxError = false,
+       hasStaticWarning = false,
+       requirements = [],
+       sharedOptions = [],
+       dartOptions = [],
+       dart2jsOptions = [],
+       dart2wasmOptions = [],
+       ddcOptions = [],
+       vmOptions = [],
+       sharedObjects = [],
+       otherResources = [],
+       experiments = [],
+       isVmIntermediateLanguageTest = false,
+       super(null, Path("/fake/vm/cc/$name"), []);
 
-  TestFile._(Path super.suiteDirectory, super.path, super.expectedErrors,
-      {this.packages,
-      required this.environment,
-      required this.isMultitest,
-      required this.requirements,
-      required this.sharedOptions,
-      required this.dartOptions,
-      required this.dart2jsOptions,
-      required this.dart2wasmOptions,
-      required this.ddcOptions,
-      required this.vmOptions,
-      required this.sharedObjects,
-      required this.otherResources,
-      required this.experiments,
-      this.isVmIntermediateLanguageTest = false})
-      : hasSyntaxError = false,
-        hasCompileError = false,
-        hasRuntimeError = false,
-        hasStaticWarning = false,
-        hasCrash = false {
+  TestFile._(
+    Path super.suiteDirectory,
+    super.path,
+    super.expectedErrors, {
+    this.packages,
+    required this.environment,
+    required this.isMultitest,
+    required this.requirements,
+    required this.sharedOptions,
+    required this.dartOptions,
+    required this.dart2jsOptions,
+    required this.dart2wasmOptions,
+    required this.ddcOptions,
+    required this.vmOptions,
+    required this.sharedObjects,
+    required this.otherResources,
+    required this.experiments,
+    this.isVmIntermediateLanguageTest = false,
+  }) : hasSyntaxError = false,
+       hasCompileError = false,
+       hasRuntimeError = false,
+       hasStaticWarning = false,
+       hasCrash = false {
     assert(!isMultitest || dartOptions.isEmpty);
   }
 
@@ -448,24 +501,28 @@ class TestFile extends _TestFileBase {
 
   /// Derive a multitest test section file from this multitest file with the
   /// given [multitestKey] and expectations.
-  TestFile split(Path path, String multitestKey, String contents,
-          {bool hasCompileError = false,
-          bool hasRuntimeError = false,
-          bool hasStaticWarning = false,
-          bool hasSyntaxError = false}) =>
-      _MultitestFile(
-          this,
-          path,
-          multitestKey,
-          StaticError.parseExpectations(
-              path: path.toString(), source: contents),
-          hasCompileError: hasCompileError,
-          hasRuntimeError: hasRuntimeError,
-          hasStaticWarning: hasStaticWarning,
-          hasSyntaxError: hasSyntaxError);
+  TestFile split(
+    Path path,
+    String multitestKey,
+    String contents, {
+    bool hasCompileError = false,
+    bool hasRuntimeError = false,
+    bool hasStaticWarning = false,
+    bool hasSyntaxError = false,
+  }) => _MultitestFile(
+    this,
+    path,
+    multitestKey,
+    StaticError.parseExpectations(path: path.toString(), source: contents),
+    hasCompileError: hasCompileError,
+    hasRuntimeError: hasRuntimeError,
+    hasStaticWarning: hasStaticWarning,
+    hasSyntaxError: hasSyntaxError,
+  );
 
   @override
-  String toString() => """TestFile(
+  String toString() =>
+      """TestFile(
   packages: $packages
   environment: $environment
   isMultitest: $isMultitest
@@ -511,13 +568,16 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   @override
   bool get isVmIntermediateLanguageTest => _origin.isVmIntermediateLanguageTest;
 
-  _MultitestFile(this._origin, Path path, this.multitestKey,
-      List<StaticError> expectedErrors,
-      {required this.hasCompileError,
-      required this.hasRuntimeError,
-      required this.hasStaticWarning,
-      required this.hasSyntaxError})
-      : super(_origin._suiteDirectory, path, expectedErrors);
+  _MultitestFile(
+    this._origin,
+    Path path,
+    this.multitestKey,
+    List<StaticError> expectedErrors, {
+    required this.hasCompileError,
+    required this.hasRuntimeError,
+    required this.hasStaticWarning,
+    required this.hasSyntaxError,
+  }) : super(_origin._suiteDirectory, path, expectedErrors);
 
   @override
   Path get originPath => _origin.path;
@@ -553,11 +613,15 @@ class _MultitestFile extends _TestFileBase implements TestFile {
   List<List<String>> get vmOptions => _origin.vmOptions;
 
   @override
-  TestFile split(Path path, String multitestKey, String contents,
-          {bool hasCompileError = false,
-          bool hasRuntimeError = false,
-          bool hasStaticWarning = false,
-          bool hasSyntaxError = false}) =>
-      throw UnsupportedError(
-          "Can't derive a test from one already derived from a multitest.");
+  TestFile split(
+    Path path,
+    String multitestKey,
+    String contents, {
+    bool hasCompileError = false,
+    bool hasRuntimeError = false,
+    bool hasStaticWarning = false,
+    bool hasSyntaxError = false,
+  }) => throw UnsupportedError(
+    "Can't derive a test from one already derived from a multitest.",
+  );
 }

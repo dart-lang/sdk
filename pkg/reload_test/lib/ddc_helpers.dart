@@ -23,14 +23,20 @@ class D8Configuration {
   final Uri preamblesScript;
   final Uri sealNativeObjectScript;
 
-  D8Configuration._(this.sdkRoot, this.binary, this.preamblesScript,
-      this.sealNativeObjectScript);
+  D8Configuration._(
+    this.sdkRoot,
+    this.binary,
+    this.preamblesScript,
+    this.sealNativeObjectScript,
+  );
 
   factory D8Configuration(Uri sdkRoot) {
-    final preamblesScript = sdkRoot
-        .resolve('sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js');
+    final preamblesScript = sdkRoot.resolve(
+      'sdk/lib/_internal/js_dev_runtime/private/preambles/d8.js',
+    );
     final sealNativeObjectScript = sdkRoot.resolve(
-        'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js');
+      'sdk/lib/_internal/js_runtime/lib/preambles/seal_native_object.js',
+    );
     final arch = Abi.current().toString().split('_')[1];
     final Uri binaryFromRoot;
     if (Platform.isWindows) {
@@ -40,12 +46,18 @@ class D8Configuration {
     } else if (Platform.isMacOS) {
       binaryFromRoot = Uri.file('third_party/d8/macos/$arch/d8');
     } else {
-      throw UnsupportedError('Unsupported platform for running d8: '
-          '${Platform.operatingSystem}');
+      throw UnsupportedError(
+        'Unsupported platform for running d8: '
+        '${Platform.operatingSystem}',
+      );
     }
     final binary = sdkRoot.resolveUri(binaryFromRoot);
     return D8Configuration._(
-        sdkRoot, binary, preamblesScript, sealNativeObjectScript);
+      sdkRoot,
+      binary,
+      preamblesScript,
+      sealNativeObjectScript,
+    );
   }
 }
 
@@ -80,7 +92,8 @@ String generateD8Bootstrapper({
   required List<Map<String, String?>> scriptDescriptors,
   required FileDataPerGeneration modifiedFilesPerGeneration,
 }) {
-  final d8BootstrapJS = '''
+  final d8BootstrapJS =
+      '''
 load("$ddcModuleLoaderJsPath");
 load("$dartSdkJsPath");
 
@@ -343,7 +356,8 @@ String generateChromeBootstrapper({
   required List<Map<String, String?>> scriptDescriptors,
   required FileDataPerGeneration modifiedFilesPerGeneration,
 }) {
-  final bootstrapJS = '''
+  final bootstrapJS =
+      '''
 var _currentDirectory = "$jsFileRoot";
 
 window.\$dartCreateScript = (function() {

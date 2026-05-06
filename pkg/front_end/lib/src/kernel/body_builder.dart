@@ -91,7 +91,6 @@ import '../source/diet_parser.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_factory_builder.dart';
 import '../source/source_library_builder.dart';
-import '../source/source_member_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_parameter_builder.dart';
 import '../source/stack_listener_impl.dart'
@@ -326,11 +325,14 @@ class BodyBuilderImpl extends StackListenerImpl
 
   List<MultiTargetAnnotations>? _multiTargetAnnotations;
 
+  final LocalStack<VariableDeclaration> _thisVariables;
+
   /// If the current member is an instance member in an extension declaration or
   /// an instance member or constructor in and extension type declaration,
   /// [thisVariable] holds the synthetically added variable holding the value
   /// for `this`.
-  final VariableDeclaration? thisVariable;
+  @override
+  VariableDeclaration? get thisVariable => _thisVariables.currentOrNull;
 
   /// If the current member is an instance member of a non-extension
   /// declaration, and the closure context lowering experiment is enabled, this
@@ -341,6 +343,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   final LocalStack<LocalScope> _localScopes;
 
+  int _parameterlessAnonymousMethodDepth = 0;
   Set<VariableDeclaration>? declaredInCurrentGuard;
 
   JumpTarget? breakTarget;
@@ -360,7 +363,7 @@ class BodyBuilderImpl extends StackListenerImpl
     this.formalParameterScope,
     required this.hierarchy,
     required this.coreTypes,
-    this.thisVariable,
+    VariableDeclaration? thisVariable,
     this.thisTypeParameters,
     required this.uri,
     required this.assignedVariables,
@@ -375,6 +378,7 @@ class BodyBuilderImpl extends StackListenerImpl
        benchmarker = libraryBuilder.loader.target.benchmarker,
        _localScopes = new LocalStack([enclosingScope]),
        _labelScopes = new LocalStack([new LabelScopeImpl()]),
+       _thisVariables = new LocalStack([?thisVariable]),
        _internalThisVariable = internalThisVariable {
     this.constantContext = constantContext;
     if (formalParameterScope != null) {
@@ -1030,6 +1034,7 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -1929,10 +1934,10 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
-  void endBinaryPattern(Token token) {
+  void endBinaryPattern(Token operatorToken) {
     debugEvent("BinaryPattern");
     assert(
-      checkState(token, [
+      checkState(operatorToken, [
         unionOfKinds([
           ValueKinds.Expression,
           ValueKinds.Generator,
@@ -1947,16 +1952,16 @@ class BodyBuilderImpl extends StackListenerImpl
     );
     reportIfNotEnabled(
       libraryFeatures.patterns,
-      token.charOffset,
-      token.charCount,
+      operatorToken.charOffset,
+      operatorToken.charCount,
     );
     Pattern right = toPattern(pop());
     Pattern left = toPattern(pop());
 
-    String operator = token.lexeme;
+    String operator = operatorToken.lexeme;
     switch (operator) {
       case '&&':
-        push(intern.createAndPattern(token.charOffset, left, right));
+        push(intern.createAndPattern(operatorToken.charOffset, left, right));
         break;
       case '||':
         Map<String, VariableDeclaration> leftVariablesByName = {
@@ -2002,7 +2007,7 @@ class BodyBuilderImpl extends StackListenerImpl
         }
         push(
           intern.createOrPattern(
-            token.charOffset,
+            operatorToken.charOffset,
             left,
             right,
             orPatternJointVariables: jointVariables,
@@ -2016,7 +2021,7 @@ class BodyBuilderImpl extends StackListenerImpl
             what: operator,
             where: 'endBinaryPattern',
           ),
-          token.charOffset,
+          operatorToken.charOffset,
           uri,
         );
     }
@@ -2607,16 +2612,16 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       // TODO(johnniwinther): This should exclude identifies occurring in
       //  metadata.
-      hasThisAccess = isDeclarationInstanceContext && !inFormals;
-      if (hasThisAccess) {
-        if (isQualified) {
-          hasThisAccess = false;
-        } else if (inFieldInitializer) {
-          if (!inLateFieldInitializer ||
-              _context.isExtensionDeclaration ||
-              _context.isExtensionTypeDeclaration) {
-            hasThisAccess = false;
-          }
+      hasThisAccess = false;
+      if (!isQualified) {
+        if (_parameterlessAnonymousMethodDepth > 0) {
+          hasThisAccess = true;
+        } else if (isDeclarationInstanceContext && !inFormals) {
+          hasThisAccess =
+              !inFieldInitializer ||
+              (inLateFieldInitializer &&
+                  !_context.isExtensionDeclaration &&
+                  !_context.isExtensionTypeDeclaration);
         }
       }
     }
@@ -3059,7 +3064,7 @@ class BodyBuilderImpl extends StackListenerImpl
         }
       }
       push(
-        intern.createStringConcatenation(offsetForToken(endToken), expressions),
+        intern.createStringConcatenation(offsetForToken(first), expressions),
       );
     }
   }
@@ -3708,7 +3713,7 @@ class BodyBuilderImpl extends StackListenerImpl
     }
   }
 
-  List<VariableInitializationBase>? _buildForLoopVariableDeclarations(
+  List<VariableDeclaration>? _buildForLoopVariableDeclarations(
     variableOrExpression,
   ) {
     // TODO(ahe): This can be simplified now that we have the events
@@ -3720,37 +3725,36 @@ class BodyBuilderImpl extends StackListenerImpl
       // Late for loop variables are not supported. An error has already been
       // reported by the parser.
       variableOrExpression.isLate = false;
-      return <VariableInitializationBase>[variableOrExpression];
+      return <VariableDeclaration>[variableOrExpression as VariableDeclaration];
     } else if (variableOrExpression is Expression) {
-      VariableInitializationBase variable =
-          new VariableDeclarationImpl.forEffect(variableOrExpression);
-      return <VariableInitializationBase>[variable];
+      VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
+        variableOrExpression,
+      );
+      return <VariableDeclaration>[variable];
     } else if (variableOrExpression is ExpressionStatement) {
       // Coverage-ignore-block(suite): Not run.
-      VariableInitializationBase variable =
-          new VariableDeclarationImpl.forEffect(
-            variableOrExpression.expression,
-          );
-      return <VariableInitializationBase>[variable];
+      VariableDeclaration variable = new VariableDeclarationImpl.forEffect(
+        variableOrExpression.expression,
+      );
+      return <VariableDeclaration>[variable];
     } else if (intern.isVariablesDeclaration(variableOrExpression)) {
       return intern.variablesDeclarationExtractDeclarations(
         variableOrExpression,
       );
     } else if (variableOrExpression is List<Object>) {
       // Coverage-ignore-block(suite): Not run.
-      List<VariableInitializationBase> variables =
-          <VariableInitializationBase>[];
+      List<VariableDeclaration> variables = <VariableDeclaration>[];
       for (Object v in variableOrExpression) {
         variables.addAll(_buildForLoopVariableDeclarations(v)!);
       }
       return variables;
     } else if (variableOrExpression is PatternVariableDeclaration) {
       // Coverage-ignore-block(suite): Not run.
-      return <VariableInitializationBase>[];
+      return <VariableDeclaration>[];
     } else if (variableOrExpression is ParserRecovery) {
-      return <VariableInitializationBase>[];
+      return <VariableDeclaration>[];
     } else if (variableOrExpression == null) {
-      return <VariableInitializationBase>[];
+      return <VariableDeclaration>[];
     }
     return null;
   }
@@ -3950,7 +3954,7 @@ class BodyBuilderImpl extends StackListenerImpl
         .popNode();
 
     Object? variableOrExpression = pop();
-    List<VariableInitializationBase>? variables;
+    List<VariableDeclaration>? variables;
     List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
       variables = pop() as List<VariableDeclaration>; // Internal variables.
@@ -4069,7 +4073,7 @@ class BodyBuilderImpl extends StackListenerImpl
         .deferNode();
 
     Object? variableOrExpression = pop();
-    List<VariableInitializationBase>? variables;
+    List<VariableDeclaration>? variables;
     List<VariableDeclaration>? intermediateVariables;
     if (variableOrExpression is PatternVariableDeclaration) {
       variables = pop() as List<VariableDeclaration>;
@@ -5400,7 +5404,8 @@ class BodyBuilderImpl extends StackListenerImpl
     int nameOffset = offsetForToken(nameToken);
     if (!inCatchClause &&
         functionNestingLevel == 0 &&
-        memberKind != MemberKind.GeneralizedFunctionType) {
+        memberKind != MemberKind.GeneralizedFunctionType &&
+        memberKind != MemberKind.AnonymousMethod) {
       parameter = _context.getFormalParameterByNameOffset(nameOffset);
 
       if (parameter == null) {
@@ -5771,7 +5776,9 @@ class BodyBuilderImpl extends StackListenerImpl
       inFormals = pop() as bool;
       constantContext = pop() as ConstantContext;
       push(formals);
-      if ((inCatchClause || functionNestingLevel != 0) &&
+      if ((inCatchClause ||
+              functionNestingLevel != 0 ||
+              kind == MemberKind.AnonymousMethod) &&
           kind != MemberKind.GeneralizedFunctionType) {
         enterLocalScope(
           formals.computeFormalParameterScope(
@@ -6516,7 +6523,6 @@ class BodyBuilderImpl extends StackListenerImpl
     } else if (type is ParserRecovery) {
       push(new ParserErrorGenerator(this, nameToken, diag.syntheticToken));
     } else if (type is InvalidExpression) {
-      // Coverage-ignore-block(suite): Not run.
       push(type);
     } else if (type is Expression) {
       push(
@@ -7551,7 +7557,9 @@ class BodyBuilderImpl extends StackListenerImpl
   @override
   void handleThisExpression(Token token, IdentifierContext context) {
     debugEvent("ThisExpression");
-    if (context.isScopeReference && isDeclarationInstanceContext) {
+    if (context.isScopeReference &&
+        (isDeclarationInstanceContext ||
+            _thisVariables.currentOrNull != null)) {
       if (thisVariable != null && !inConstructorInitializer) {
         if (constantContext != ConstantContext.none) {
           push(
@@ -7574,13 +7582,15 @@ class BodyBuilderImpl extends StackListenerImpl
         // In an extension (type) where we don't (here) have a "this" variable.
         push(new IncompleteErrorGenerator(this, token, diag.thisAsIdentifier));
       } else {
+        bool inParameterlessAnonymousMethod =
+            _parameterlessAnonymousMethodDepth > 0;
         push(
           new ThisAccessGenerator(
             this,
             token,
             inInitializerLeftHandSide,
-            inFieldInitializer,
-            inLateFieldInitializer,
+            inFieldInitializer && !inParameterlessAnonymousMethod,
+            inLateFieldInitializer && !inParameterlessAnonymousMethod,
           ),
         );
       }
@@ -7609,30 +7619,6 @@ class BodyBuilderImpl extends StackListenerImpl
     } else {
       push(new IncompleteErrorGenerator(this, token, diag.superAsIdentifier));
     }
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void handleAugmentSuperExpression(
-    Token augmentToken,
-    Token superToken,
-    IdentifierContext context,
-  ) {
-    debugEvent("AugmentSuperExpression");
-    AugmentSuperTarget? augmentSuperTarget = _context.augmentSuperTarget;
-    if (augmentSuperTarget != null) {
-      push(
-        new AugmentSuperAccessGenerator(this, augmentToken, augmentSuperTarget),
-      );
-      return;
-    }
-    push(
-      new IncompleteErrorGenerator(
-        this,
-        augmentToken,
-        diag.invalidAugmentSuper,
-      ),
-    );
   }
 
   @override
@@ -7987,6 +7973,147 @@ class BodyBuilderImpl extends StackListenerImpl
   }
 
   @override
+  void beginAnonymousMethodInvocation(Token token) {
+    debugEvent("beginAnonymousMethodInvocation");
+    assert(
+      checkState(token, [
+        /* receiver */ const UnionValueKind([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+        ]),
+      ]),
+    );
+    assignedVariables.beginNode();
+  }
+
+  @override
+  void handleImplicitFormalParameters(Token punctuation) {
+    debugEvent("handleImplicitFormalParameters");
+    Token token = punctuation; // fallback offset
+    Expression receiver = toValue(peek());
+    VariableDeclaration variable = intern.createVariableDeclarationForValue(
+      receiver,
+    )..isSynthesized = true;
+    variable.fileOffset = offsetForToken(token);
+    _thisVariables.push(variable);
+    _parameterlessAnonymousMethodDepth++;
+
+    assignedVariables.declare(variable);
+    push(NullValues.FormalParameters);
+  }
+
+  @override
+  void endAnonymousMethodInvocation(
+    Token beginToken,
+    Token? functionDefinition,
+    Token endToken, {
+    required bool isExpression,
+  }) {
+    debugEvent("endAnonymousMethodInvocation");
+    assert(
+      checkState(beginToken, [
+        /* body */ const UnionValueKind([
+          ValueKinds.Block,
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+        ]),
+        /* formal parameters */ const UnionValueKind([
+          ValueKinds.FormalParameters,
+          ValueKinds.FormalListOrNull,
+        ]),
+        /* receiver */ const UnionValueKind([
+          ValueKinds.Expression,
+          ValueKinds.Generator,
+        ]),
+      ]),
+    );
+
+    Object? body = pop();
+    Object? formals = pop(NullValues.FormalParameters);
+    if (formals != null && _localScope.kind == LocalScopeKind.formals) {
+      exitLocalScope(expectedScopeKinds: const [LocalScopeKind.formals]);
+    }
+
+    if (isExpression) {
+      Expression bodyExpr;
+      Expression receiver;
+      VariableDeclaration variable;
+
+      bool isImplicitlyTyped;
+      int typeOffset;
+      if (formals is FormalParameters &&
+          formals.parameters?.length == 1 &&
+          formals.parameters![0].isRequiredPositional) {
+        bodyExpr = toValue(body);
+        receiver = popForValue();
+        FormalParameterBuilder formal = formals.parameters![0];
+
+        // Build the variable declaration.
+        variable = formal.build(libraryBuilder);
+        variable.initializer = receiver;
+        variable.initializer!.parent = variable;
+
+        isImplicitlyTyped = false;
+        if (variable is InternalVariable) {
+          isImplicitlyTyped = (variable as InternalVariable).isImplicitlyTyped;
+        }
+        typeOffset = formal.type.charOffset ?? variable.fileOffset;
+      } else if (formals == null) {
+        bodyExpr = toValue(body);
+        variable = _thisVariables.pop();
+        _parameterlessAnonymousMethodDepth--;
+        receiver = popForValue();
+        isImplicitlyTyped = true;
+        typeOffset = variable.fileOffset;
+      } else {
+        FormalParameters formalParameters = formals as FormalParameters;
+        addProblem(
+          diag.anonymousMethodWrongParameterList,
+          formalParameters.charOffset,
+          formalParameters.length,
+        );
+        popForValue();
+        bodyExpr = toValue(body);
+        Expression result = new InvalidExpression(
+          "An anonymous method must have a single mandatory positional "
+          "parameter, or no parameter list at all",
+        )..fileOffset = offsetForToken(beginToken);
+        push(result);
+        assignedVariables.endNode(
+          result,
+          isClosureOrLateVariableInitializer: false,
+        );
+        return;
+      }
+      int variableOffset = variable.initializer!.fileOffset;
+
+      // Build the result expression.
+      bool isNullAware =
+          beginToken.lexeme == '?.' || beginToken.lexeme == '?..';
+      bool isCascade = beginToken.lexeme == '..' || beginToken.lexeme == '?..';
+
+      Expression result = new AnonymousMethodExpression(
+        variable,
+        bodyExpr,
+        isImplicitlyTyped: isImplicitlyTyped,
+        isNullAware: isNullAware,
+        isCascade: isCascade,
+        typeOffset: typeOffset,
+      )..fileOffset = variableOffset;
+
+      push(result);
+      assignedVariables.endNode(
+        result,
+        isClosureOrLateVariableInitializer: false,
+      );
+      return;
+    }
+
+    // Coverage-ignore-block(suite): Not run.
+    throw new UnimplementedError("endAnonymousMethodInvocation other cases");
+  }
+
+  @override
   void beginDoWhileStatement(Token token) {
     debugEvent("beginDoWhileStatement");
     // This is matched by the [endNode] call in [endDoWhileStatement].
@@ -8187,23 +8314,7 @@ class BodyBuilderImpl extends StackListenerImpl
     Statement? body,
   ) {
     ForInElements elements = new ForInElements();
-    if (lvalue is VariableDeclaration) {
-      // Late for-in variables are not supported. An error has already been
-      // reported by the parser.
-      lvalue.isLate = false;
-      elements.explicitVariableDeclaration = lvalue;
-      if (lvalue.isConst) {
-        elements.expressionProblem = buildProblem(
-          message: diag.forInLoopWithConstVariable,
-          fileUri: uri,
-          fileOffset: lvalue.fileOffset,
-          length: lvalue.name!.length,
-        );
-        // As a recovery step, remove the const flag, to not confuse the
-        // constant evaluator further in the pipeline.
-        lvalue.isConst = false;
-      }
-    } else if (lvalue is VariableInitializationBase) {
+    if (lvalue is VariableInitialization) {
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
       lvalue.isLate = false;
@@ -8221,7 +8332,6 @@ class BodyBuilderImpl extends StackListenerImpl
         lvalue.isConst = false;
       }
     } else if (lvalue is VariableDeclaration) {
-      // Coverage-ignore-block(suite): Not run.
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
       lvalue.isLate = false;

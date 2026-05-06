@@ -243,8 +243,8 @@ class TypeArgumentsVerifier {
   void checkNamedType(NamedTypeImpl node) {
     _checkForTypeArgumentNotMatchingBounds(node);
     var parent = node.parent;
-    if (parent is! ConstructorName ||
-        parent.parent is! InstanceCreationExpression) {
+    if (parent is! ConstructorNameImpl ||
+        parent.parent is! InstanceCreationExpressionImpl) {
       _checkForRawTypeName(node);
     }
   }
@@ -598,7 +598,10 @@ class TypeArgumentsVerifier {
         }
       case GenericFunctionType(:var returnType, :var parameters):
         for (var parameter in parameters.parameters) {
-          if (parameter case SimpleFormalParameter(type: var typeAnnotation?)) {
+          if (parameter case RegularFormalParameter(
+            functionTypedSuffix: null,
+            type: var typeAnnotation?,
+          )) {
             if (typeAnnotation case TypeAnnotation(:TypeParameterType type)) {
               _diagnosticReporter.report(
                 diagnosticCode
@@ -609,9 +612,8 @@ class TypeArgumentsVerifier {
               _checkTypeArgumentConst(typeAnnotation, diagnosticCode);
             }
           }
-          // `parameter` cannot legally be a DefaultFormalParameter,
-          // FieldFormalParameter, FunctionTypedFormalParameter, or
-          // SuperFormalParameter.
+          // `parameter` cannot legally be a function-typed, field, or super
+          // formal parameter.
         }
         if (returnType case TypeAnnotation(:var type)) {
           if (type is TypeParameterType) {

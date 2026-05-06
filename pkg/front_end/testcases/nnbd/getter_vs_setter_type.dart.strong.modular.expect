@@ -52,7 +52,7 @@ abstract class B1 extends core::Object {
   final field core::int property4;
   final field core::int property5;
   final field core::num property6;
-  constructor •(core::int property4, core::int property5, core::num property6) → self::B1
+  constructor •(initializing-formal core::int property4, initializing-formal core::int property5, initializing-formal core::num property6) → self::B1
     : self::B1::property4 = property4, self::B1::property5 = property5, self::B1::property6 = property6, super core::Object::•()
     ;
   abstract get property1() → core::int;

@@ -706,7 +706,7 @@ PropertyAccess
 void f({a = b?..foo}) {}
 ''');
 
-    var node = findNode.defaultParameter('a =');
+    var node = findNode.singleFormalParameter;
     assertResolvedNodeText(node, r'''
 RegularFormalParameter
   name: a
@@ -2054,7 +2054,7 @@ PropertyAccess
   operator: .
   propertyName: SimpleIdentifier
     token: $3
-    element: <testLibrary>::@extension::0::@getter::$3
+    element: <testLibrary>::@extension::#0::@getter::$3
     staticType: bool
   staticType: bool
 ''');

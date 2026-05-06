@@ -33,7 +33,6 @@ abstract class OmittedTypeBuilderImpl extends OmittedTypeBuilder {
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   int? get charOffset => null;
 
   @override

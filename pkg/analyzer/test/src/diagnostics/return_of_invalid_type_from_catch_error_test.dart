@@ -69,6 +69,16 @@ void f(Future<int> future) {
     );
   }
 
+  test_blockFunctionBody_emptyReturn_Null() async {
+    await assertNoErrorsInCode('''
+void f(Future<Null> future) {
+  future.catchError((e, st) {
+    return;
+  });
+}
+''');
+  }
+
   test_blockFunctionBody_emptyReturn_void() async {
     await assertNoErrorsInCode('''
 void f(Future<void> future) {
@@ -137,6 +147,14 @@ void f(Future<int> future) {
     await assertNoErrorsInCode('''
 void f(Future<Null> future) {
   future.catchError((e, st) => null);
+}
+''');
+  }
+
+  test_Null_voidReturnType() async {
+    await assertNoErrorsInCode('''
+void f(Future<Null> future, void Function() g) {
+  future.catchError((e, st) => g());
 }
 ''');
   }

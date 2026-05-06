@@ -99,6 +99,13 @@ sealed class CFunction {
   /// Return type of this function.
   CType get returnType;
 
+  /// Async marker of this function.
+  ast.AsyncMarker get asyncMarker =>
+      functionNode?.asyncMarker ?? ast.AsyncMarker.Sync;
+
+  /// Whether this function is suspendable (i.e. async, async* or sync*).
+  bool get isSuspendable => asyncMarker != ast.AsyncMarker.Sync;
+
   /// Source position of the beginning of this function.
   SourcePosition get sourcePosition => SourcePosition(member.fileOffset);
 }
@@ -106,9 +113,6 @@ sealed class CFunction {
 /// Function representing a getter.
 final class GetterFunction extends CFunction {
   GetterFunction._(super.member) : assert(member.hasGetter), super._();
-
-  @override
-  ast.FunctionNode? get functionNode => null;
 
   @override
   int get numberOfRequiredPositionalParameters => numberOfImplicitParameters;
@@ -131,9 +135,6 @@ final class ImplicitFieldGetter extends GetterFunction {
 /// Function representing a setter.
 final class SetterFunction extends CFunction {
   SetterFunction._(super.member) : assert(member.hasSetter), super._();
-
-  @override
-  ast.FunctionNode? get functionNode => null;
 
   @override
   int get numberOfRequiredPositionalParameters =>
@@ -260,6 +261,9 @@ final class TearOffFunction extends ClosureFunction {
           )
         : member.function!.returnType,
   );
+
+  @override
+  ast.AsyncMarker get asyncMarker => .Sync;
 }
 
 class ArgumentsShape {

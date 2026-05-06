@@ -104,8 +104,6 @@ class TemplateContext {
         if (grandparent is InstanceCreationExpression) {
           return grandparent;
         }
-      } else if (parent is Label && parent.parent is NamedExpression) {
-        return parent.parent?.parent?.parent;
       } else if (parent is MethodInvocation && parent.methodName == node) {
         return parent;
       } else if (parent is NamedType &&
@@ -124,7 +122,7 @@ class TemplateContext {
       }
     }
     var parent = node.parent;
-    if (parent is NamedExpression &&
+    if (parent is NamedArgument &&
         parent.parent?.parent is InstanceCreationExpression) {
       return parent.parent?.parent;
     }

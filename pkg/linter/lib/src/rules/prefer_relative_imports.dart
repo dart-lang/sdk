@@ -10,7 +10,6 @@ import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/utilities/extensions/uri.dart';
-import 'package:path/path.dart' as path;
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;
@@ -60,9 +59,8 @@ class _Visitor extends SimpleAstVisitor<void> {
 
       // TODO(pq): `context.package.contains(source)` should work (but does
       // not).
-      var packageRoot = context.package?.root.path;
-      return packageRoot != null &&
-          path.isWithin(packageRoot, importedLibrary.source.fullName);
+      return context.package?.root.contains(importedLibrary.source.fullName) ??
+          false;
     }
 
     return false;

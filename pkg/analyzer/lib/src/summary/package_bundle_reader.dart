@@ -6,10 +6,10 @@ import 'dart:math' show min;
 
 import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/generated/engine.dart';
-import 'package:analyzer/src/generated/source.dart'
-    show BasicSource, UriResolver;
+import 'package:analyzer/src/generated/source.dart' show UriResolver;
 import 'package:analyzer/src/summary2/package_bundle_format.dart';
 import 'package:analyzer/src/util/platform_info.dart';
+import 'package:path/path.dart' as path;
 
 /// A [ConflictingSummaryException] indicates that two different summaries
 /// provided to a [SummaryDataStore] conflict.
@@ -67,20 +67,35 @@ include the same source.
 /// A placeholder of a source that is part of a package whose analysis results
 /// are served from its summary.  This source uses its URI as [fullName] and has
 /// empty contents.
-class InSummarySource extends BasicSource {
+class InSummarySource extends Source {
+  @override
+  final Uri uri;
+
   /// The summary file where this source was defined.
   final String summaryPath;
 
   final InSummarySourceKind kind;
 
   InSummarySource({
-    required Uri uri,
+    required this.uri,
     required this.summaryPath,
     required this.kind,
-  }) : super(uri);
+  });
 
   @override
   TimestampedData<String> get contents => TimestampedData<String>(0, '');
+
+  @override
+  String get fullName => '$uri';
+
+  @override
+  int get hashCode => uri.hashCode;
+
+  @override
+  String get shortName => path.basename(fullName);
+
+  @override
+  bool operator ==(Object other) => other is Source && other.uri == uri;
 
   @override
   bool exists() => true;

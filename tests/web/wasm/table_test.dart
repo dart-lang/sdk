@@ -9,15 +9,16 @@ import 'dart:_wasm';
 import 'package:expect/expect.dart';
 
 WasmTable<WasmFuncRef?> funcrefTable = WasmTable(3);
-WasmTable<WasmFunction<int Function(int)>?> funcTable = WasmTable(1);
+WasmTable<WasmFunction<WasmI32 Function(WasmI32)>?> funcTable = WasmTable(1);
 
-void f1() {}
+WasmVoid f1() => WasmVoid();
 
-void f2(int x) {
-  Expect.equals(4, x);
+WasmVoid f2(WasmI32 x) {
+  Expect.equals(4, x.toIntSigned());
+  return WasmVoid();
 }
 
-int f3(int x) => x + 1;
+WasmI32 f3(WasmI32 x) => x + 1.toWasmI32();
 
 main() {
   // Initialize untyped function table
@@ -27,25 +28,29 @@ main() {
   funcrefTable[2.toWasmI32()] = WasmFunction.fromFunction(f3);
 
   // Reading and calling functions in untyped function table
-  WasmFunction<void Function()>.fromFuncRef(
+  WasmFunction<WasmVoid Function()>.fromFuncRef(
     funcrefTable[0.toWasmI32()]!,
   ).call();
-  WasmFunction<void Function(int)>.fromFuncRef(
+  WasmFunction<WasmVoid Function(WasmI32)>.fromFuncRef(
     funcrefTable[1.toWasmI32()]!,
-  ).call(4);
+  ).call(4.toWasmI32());
   Expect.equals(
     6,
-    WasmFunction<int Function(int)>.fromFuncRef(
+    WasmFunction<WasmI32 Function(WasmI32)>.fromFuncRef(
       funcrefTable[2.toWasmI32()]!,
-    ).call(5),
+    ).call(5.toWasmI32()).toIntSigned(),
   );
 
   // Calling functions in untyped function table with callIndirect
-  funcrefTable.callIndirect<void Function()>(0.toWasmI32())();
-  funcrefTable.callIndirect<void Function(int)>(1.toWasmI32())(4);
+  funcrefTable.callIndirect<WasmVoid Function()>(0.toWasmI32())();
+  funcrefTable.callIndirect<WasmVoid Function(WasmI32)>(1.toWasmI32())(
+    4.toWasmI32(),
+  );
   Expect.equals(
     16,
-    funcrefTable.callIndirect<int Function(int)>(2.toWasmI32())(15),
+    funcrefTable
+        .callIndirect<WasmI32 Function(WasmI32)>(2.toWasmI32())(15.toWasmI32())
+        .toIntSigned(),
   );
 
   // Initialize typed function table
@@ -53,11 +58,13 @@ main() {
   funcTable[0.toWasmI32()] = WasmFunction.fromFunction(f3);
 
   // Reading and calling function in typed function table
-  Expect.equals(8, funcTable[0.toWasmI32()]!.call(7));
+  Expect.equals(8, funcTable[0.toWasmI32()]!.call(7.toWasmI32()).toIntSigned());
 
   // Calling function in typed function table with callIndirect
   Expect.equals(
     18,
-    funcTable.callIndirect<int Function(int)>(0.toWasmI32())(17),
+    funcTable
+        .callIndirect<WasmI32 Function(WasmI32)>(0.toWasmI32())(17.toWasmI32())
+        .toIntSigned(),
   );
 }

@@ -920,7 +920,6 @@ class FragmentFactoryImpl implements FragmentFactory {
     OffsetMap? offsetMap,
     Token? importKeyword,
     required List<MetadataBuilder>? metadata,
-    required bool isAugmentationImport,
     required String uri,
     required List<Configuration>? configurations,
     required String? prefix,
@@ -970,31 +969,22 @@ class FragmentFactoryImpl implements FragmentFactory {
       compilationUnit = loader.read(
         resolvedUri,
         uriOffset,
-        origin: isAugmentationImport
-            ?
-              // Coverage-ignore(suite): Not run.
-              _augmentationRoot
-            : null,
+        origin: null,
         accessor: _compilationUnit,
-        referencesFromIndex: isAugmentationImport
-            ?
-              // Coverage-ignore(suite): Not run.
-              _indexedLibrary
-            : null,
+        referencesFromIndex: null,
       );
     }
 
     Import import = new Import(
-      _compilationUnit,
-      compilationUnit,
-      isAugmentationImport,
-      deferred,
-      prefix,
-      combinators,
-      configurations,
-      _compilationUnit.fileUri,
-      charOffset,
-      prefixCharOffset,
+      importer: _compilationUnit,
+      importedCompilationUnit: compilationUnit,
+      deferred: deferred,
+      prefix: prefix,
+      combinators: combinators,
+      configurations: configurations,
+      fileUri: _compilationUnit.fileUri,
+      importOffset: charOffset,
+      prefixOffset: prefixCharOffset,
       nativeImportPath: nativePath,
     );
     _compilationUnitRegistry.registerImport(import);
@@ -1403,6 +1393,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required String? name,
     required List<FormalParameterBuilder>? formals,
     required int startOffset,
+    required int endOffset,
     required int? nameOffset,
     required int formalsOffset,
     required bool isConst,
@@ -1481,6 +1472,7 @@ class FragmentFactoryImpl implements FragmentFactory {
       constructorName: constructorName,
       fileUri: _compilationUnit.fileUri,
       startOffset: startOffset,
+      endOffset: endOffset,
       formalsOffset: formalsOffset,
       modifiers: isConst ? Modifiers.Const : Modifiers.empty,
       returnType: addInferableType(InferenceDefaultType.Dynamic),
@@ -2251,7 +2243,9 @@ class FragmentFactoryImpl implements FragmentFactory {
       modifiers |= Modifiers.SuperInitializingFormal;
     }
     bool isWildcard =
-        libraryFeatures.wildcardVariables.isEnabled && name == '_';
+        kind.isPositional &&
+        libraryFeatures.wildcardVariables.isEnabled &&
+        name == '_';
     int? wildcardIndex;
     if (isWildcard) {
       wildcardIndex = wildcardVariableIndex++;

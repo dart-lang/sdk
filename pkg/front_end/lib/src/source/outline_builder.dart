@@ -739,7 +739,7 @@ class OutlineBuilder extends StackListenerImpl {
   }
 
   @override
-  void endImport(Token importKeyword, Token? augmentToken, Token? semicolon) {
+  void endImport(Token importKeyword, Token? semicolon) {
     debugEvent("endImport");
     assert(
       checkState(importKeyword, [
@@ -773,22 +773,10 @@ class OutlineBuilder extends StackListenerImpl {
       return;
     }
 
-    if (augmentToken != null) {
-      // Coverage-ignore-block(suite): Not run.
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        augmentToken.charOffset,
-        augmentToken.length,
-      )) {
-        augmentToken = null;
-      }
-    }
-    bool isAugmentationImport = augmentToken != null;
     _builderFactory.addImport(
       offsetMap: _offsetMap,
       importKeyword: importKeyword,
       metadata: metadata,
-      isAugmentationImport: isAugmentationImport,
       uri: uri,
       configurations: configurations,
       prefix: prefix?.name,
@@ -1105,7 +1093,6 @@ class OutlineBuilder extends StackListenerImpl {
   void beginClassDeclaration(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1121,15 +1108,6 @@ class OutlineBuilder extends StackListenerImpl {
     pushDeclarationContext(DeclarationContext.Class);
     NominalParameters? typeParameters =
         peek(NullValues.NominalParameters) as NominalParameters?;
-    if (macroToken != null) {
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        macroToken.charOffset,
-        macroToken.length,
-      )) {
-        macroToken = null;
-      }
-    }
     if (sealedToken != null) {
       if (reportIfNotEnabled(
         libraryFeatures.sealedClass,
@@ -1182,7 +1160,6 @@ class OutlineBuilder extends StackListenerImpl {
     );
     Modifiers modifiers = Modifiers.from(
       abstractToken: abstractToken,
-      macroToken: macroToken,
       sealedToken: sealedToken,
       baseToken: baseToken,
       interfaceToken: interfaceToken,
@@ -1274,7 +1251,6 @@ class OutlineBuilder extends StackListenerImpl {
   void beginNamedMixinApplication(
     Token begin,
     Token? abstractToken,
-    Token? macroToken,
     Token? sealedToken,
     Token? baseToken,
     Token? interfaceToken,
@@ -1295,15 +1271,6 @@ class OutlineBuilder extends StackListenerImpl {
       name.charOffset,
       typeParameters?.fragments,
     );
-    if (macroToken != null) {
-      if (reportIfNotEnabled(
-        libraryFeatures.macros,
-        macroToken.charOffset,
-        macroToken.length,
-      )) {
-        macroToken = null;
-      }
-    }
     if (sealedToken != null) {
       if (reportIfNotEnabled(
         libraryFeatures.sealedClass,
@@ -1352,7 +1319,6 @@ class OutlineBuilder extends StackListenerImpl {
     push(
       Modifiers.from(
         abstractToken: abstractToken,
-        macroToken: macroToken,
         sealedToken: sealedToken,
         baseToken: baseToken,
         interfaceToken: interfaceToken,
@@ -1818,6 +1784,7 @@ class OutlineBuilder extends StackListenerImpl {
   void endPrimaryConstructor(
     DeclarationKind kind,
     Token beginToken,
+    Token endToken,
     Token? constKeyword,
     bool hasConstructorName,
   ) {
@@ -1845,12 +1812,22 @@ class OutlineBuilder extends StackListenerImpl {
 
     int? startOffset = constKeyword?.charOffset ?? nameOffset ?? formalsOffset;
 
-    if (kind != DeclarationKind.ExtensionType) {
-      reportIfNotEnabled(
-        libraryFeatures.primaryConstructors,
-        beginToken.charOffset,
-        noLength,
-      );
+    switch (kind) {
+      case DeclarationKind.TopLevel:
+      case DeclarationKind.Mixin:
+      case DeclarationKind.Extension:
+        // Invalid. Error reported in the parser.
+        break;
+      case DeclarationKind.ExtensionType:
+        // Always valid.
+        break;
+      case DeclarationKind.Class:
+      case DeclarationKind.Enum:
+        reportIfNotEnabled(
+          libraryFeatures.primaryConstructors,
+          beginToken.charOffset,
+          noLength,
+        );
     }
 
     if (formals != null) {
@@ -2023,9 +2000,9 @@ class OutlineBuilder extends StackListenerImpl {
       beginToken: beginToken,
       name: name,
       startOffset: startOffset,
+      endOffset: endToken.charOffset,
       nameOffset: nameOffset,
       formalsOffset: formalsOffset,
-      // TODO(johnniwinther): Provide `endOffset`.
       formals: formals,
       isConst: constKeyword != null,
       forAbstractClassOrEnumOrMixin: forAbstractClassOrEnumOrMixin,
@@ -2627,7 +2604,7 @@ class OutlineBuilder extends StackListenerImpl {
         /* method body kind */ ValueKinds.MethodBody,
       ]),
     );
-    pop() as Token; // Method body token
+    Token bodyToken = pop() as Token;
     MethodBody bodyKind = pop() as MethodBody;
     if (bodyKind == MethodBody.RedirectingFactoryBody) {
       // This will cause an error later.
@@ -2692,14 +2669,24 @@ class OutlineBuilder extends StackListenerImpl {
       modifiers |= Modifiers.External;
     }
 
-    bool isConst = modifiers.isConst;
-
-    if (isConst &&
-        bodyKind != MethodBody.Abstract &&
-        !libraryFeatures.constFunctions.isEnabled) {
-      addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
-      modifiers -= Modifiers.Const;
+    if (modifiers.isConst) {
+      if (bodyKind != MethodBody.Abstract &&
+          !libraryFeatures.constFunctions.isEnabled) {
+        addProblem(diag.constConstructorWithBody, varFinalOrConstOffset, 5);
+      }
+    } else if (kind == DeclarationKind.Enum &&
+        libraryFeatures.primaryConstructors.isEnabled) {
+      modifiers |= Modifiers.Const;
+      if (bodyKind != MethodBody.Abstract &&
+          !libraryFeatures.constFunctions.isEnabled) {
+        addProblem(
+          diag.implicitlyConstEnumConstructorWithBody,
+          bodyToken.charOffset,
+          noLength,
+        );
+      }
     }
+
     if (returnType != null) {
       addProblem(
         diag.constructorWithReturnType,
@@ -3968,8 +3955,8 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void beginFields(
     DeclarationKind declarationKind,
-    Token? abstractToken,
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -4026,6 +4013,7 @@ class OutlineBuilder extends StackListenerImpl {
   @override
   void endTopLevelFields(
     Token? augmentToken,
+    Token? abstractToken,
     Token? externalToken,
     Token? staticToken,
     Token? covariantToken,
@@ -4063,6 +4051,8 @@ class OutlineBuilder extends StackListenerImpl {
     List<FieldInfo>? fieldInfos = popFieldInfos(count);
     TypeBuilder? type = nullIfParserRecovery(pop()) as TypeBuilder?;
     Modifiers modifiers = Modifiers.from(
+      abstractToken: abstractToken,
+      augmentToken: augmentToken,
       externalToken: externalToken,
       staticToken: staticToken,
       covariantToken: covariantToken,

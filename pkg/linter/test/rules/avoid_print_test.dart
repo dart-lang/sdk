@@ -20,6 +20,13 @@ class AvoidPrintTest extends LintRuleTest {
   @override
   String get lintRule => LintNames.avoid_print;
 
+  test_commentReference() async {
+    await assertNoDiagnostics(r'''
+/// See also [print].
+void f() {}
+''');
+  }
+
   test_directCall() async {
     await assertDiagnostics(
       r'''
@@ -98,6 +105,15 @@ void f() {
 var x = print;
 void f() {
   [1,2,3].forEach(x);
+}
+''');
+  }
+
+  test_tearoff_named() async {
+    await assertNoDiagnostics(r'''
+void g({void Function(Object?)? log}) {}
+void f() {
+  g(log: print);
 }
 ''');
   }

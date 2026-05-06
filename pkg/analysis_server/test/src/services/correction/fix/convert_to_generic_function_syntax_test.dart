@@ -152,6 +152,15 @@ g(List<String> Function()? f) {}
 ''');
   }
 
+  Future<void> test_functionTypedParameter_primaryConstructor() async {
+    await resolveTestCode('''
+class C(String ^f(int x)) {}
+''');
+    await assertHasFix('''
+class C(String Function(int x) f) {}
+''');
+  }
+
   Future<void> test_functionTypedParameter_requiredNamed() async {
     await resolveTestCode('''
 g({required List<Object?> f()}) {}

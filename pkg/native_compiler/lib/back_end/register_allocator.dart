@@ -5,6 +5,7 @@
 import 'dart:math' as math show min, max;
 import 'dart:typed_data';
 
+import 'package:cfg/utils/misc.dart';
 import 'package:native_compiler/back_end/back_end_state.dart';
 import 'package:native_compiler/back_end/constraints.dart';
 import 'package:native_compiler/back_end/locations.dart';
@@ -84,7 +85,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
   int instructionPos(Instruction instr) => _instructionPos[instr.id];
   int blockStartPos(Block block) => instructionPos(block);
-  int blockEndPos(Block block) => instructionPos(block.lastInstruction) + step;
+  int blockEndPos(Block block) => instructionPos(block.lastInstruction);
 
   Instruction instructionByPos(int pos) =>
       graph.instructions[_instructionByPos[pos ~/ step]];
@@ -146,10 +147,11 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     for (final block in backEndState.codeGenBlockOrder) {
       _instructionPos[block.id] = pos;
       _instructionByPos[pos ~/ step] = block.id;
+      assert(pos == blockStartPos(block));
       pos += step;
       for (final instr in block) {
-        if (instr is Phi || instr is Parameter) {
-          // All Phis and Parameters have the same position as their Block.
+        if (instr is Phi || instr is Constant || instr is Parameter) {
+          // All Phis, Constants and Parameters have the same position as their Block.
           _instructionPos[instr.id] = blockStartPos(block);
         } else {
           _instructionPos[instr.id] = pos;
@@ -157,7 +159,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           pos += step;
         }
       }
-      assert(pos == blockEndPos(block));
+      assert(pos == blockEndPos(block) + step);
     }
 
     errorContext.annotator = (Instruction instr) =>
@@ -205,9 +207,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
       for (final instr in block.reversed) {
         currentInstruction = instr;
-        if (instr is CallInstruction) {
-          backEndState.stackFrame.allocateArgumentsSlots(instr);
-        }
+        backEndState.stackFrame.allocateArgumentsSlots(instr);
         final pos = instructionPos(instr);
         final constr = constraints.getConstraints(instr);
         if (constr == null) {
@@ -359,8 +359,13 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
         );
       }
     } else if (constr is ParameterStackLocation) {
-      assert(liveRange.splitFrom == null);
-      liveRange.spillSlot = constr;
+      if (!graph.function.isSuspendable) {
+        // Lock spill slot to the parameter location on the stack,
+        // unless the current function is suspendable
+        // (suspend/resume does not preserve parameters on the stack).
+        assert(liveRange.splitFrom == null);
+        liveRange.spillSlot = constr;
+      }
       _operandLocations[operandId] = constr;
       if (instr.hasUses) {
         final loc = liveRange.addUse(pos + 1, constr);
@@ -414,14 +419,9 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     move.moves.add(moveOp);
   }
 
-  /// Returns the instruction after [instr], skipping all [ParallelMove]
-  /// instructions in between.
+  /// Returns the instruction at the next position after [instr].
   Instruction _nextInstruction(Instruction instr) {
-    instr = instr.next!;
-    while (instr is ParallelMove) {
-      instr = instr.next!;
-    }
-    return instr;
+    return instructionByPos(instructionPos(instr) + step);
   }
 
   /// Tries to merge live ranges which would benefit from
@@ -549,12 +549,15 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       int fixedRegister =
           (preferredRegisterUse.constraint as PhysicalRegister).index;
       int freeUntil = firstIntersectionWithAllocated(range, fixedRegister);
-      if (freeUntil > preferredRegisterUse.pos) {
+      if (toSplitPosition(freeUntil) > preferredRegisterUse.pos) {
+        // Split [range] if register is not free for the whole duration of the [range].
         if (freeUntil < range.end) {
           if (trace) {
             print('Split $range at $freeUntil');
           }
-          addToUnhandled(range.splitAt(freeUntil));
+          addToUnhandled(
+            splitBetween(range, preferredRegisterUse.pos, freeUntil),
+          );
         }
         if (trace) {
           print(
@@ -571,7 +574,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     for (var reg = 0; reg < _allocated.length; ++reg) {
       if (_allocated[reg] == null) continue;
       int intersection = firstIntersectionWithAllocated(range, reg);
-      if (intersection > freeUntil) {
+      if (toSplitPosition(intersection) > freeUntil) {
         candidate = reg;
         freeUntil = intersection;
       }
@@ -589,7 +592,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       if (trace) {
         print('Split $range at $freeUntil');
       }
-      addToUnhandled(range.splitAt(freeUntil));
+      addToUnhandled(splitBetween(range, range.start, freeUntil));
     }
     if (trace) {
       print('Allocating $range to free ${_registerLocations[candidate]}');
@@ -613,6 +616,29 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       }
     }
     return pos;
+  }
+
+  // Find the nearest valid position for live range splitting which doesn't exceed [pos].
+  int toSplitPosition(int pos) {
+    if (pos.isOdd) {
+      // Positions between instructions are always valid.
+      return pos;
+    }
+    final instr = instructionByPos(pos);
+    if (instr is Block || instr == instr.block!.lastInstruction) {
+      // Block start or end positions are valid for splitting.
+      return pos;
+    }
+    return pos - 1;
+  }
+
+  LiveRange splitBetween(LiveRange range, int start, int end) {
+    assert(start < end);
+    // TODO: figure out more optimal split position using loop boundaries.
+    final pos = toSplitPosition(end);
+    assert(pos >= start);
+    assert(pos <= end);
+    return range.splitAt(pos);
   }
 
   /// Add [tail] to the [_unhandled] list after splitting.
@@ -654,7 +680,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           if (allocated.isPhysical) {
             return;
           }
-          int nextUsePosition = allocated.nextUse?.pos ?? allocated.end;
+          int nextUsePosition =
+              allocated.findRegisterUseAfter(start)?.pos ?? allocated.end;
           if (nextUsePosition < freeUntil) {
             freeUntil = nextUsePosition;
           }
@@ -688,6 +715,8 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
     for (var reg = 0; reg < _allocated.length; ++reg) {
       inspectAllocatedRegister(reg);
     }
+
+    assert(bestFreeUntil <= bestBlockedAt);
 
     int firstUsePos = unallocated.uses.isEmpty
         ? unallocated.start
@@ -748,37 +777,45 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
       return false;
     }
     final spillPos = unallocated.start;
-    final nextUse = allocated.nextUse;
+    final nextUse = allocated.findRegisterUseAfter(spillPos);
     if (nextUse == null) {
       // No more uses which require registers.
       if (trace) {
         print('Split $allocated at $spillPos');
       }
-      spillLiveRange(allocated.splitAt(spillPos));
-      if (trace) {
-        print('Finish evicted $allocated at ${_registerLocations[reg]}');
+      if (toSplitPosition(spillPos) <= allocated.start) {
+        if (trace) {
+          print('Spill evicted $allocated');
+        }
+        spillLiveRange(allocated);
+      } else {
+        spillLiveRange(splitBetween(allocated, allocated.start, spillPos));
+        if (trace) {
+          print('Finish evicted $allocated at ${_registerLocations[reg]}');
+        }
+        allocated.setLocation(_registerLocations[reg]!);
       }
-      allocated.setLocation(_registerLocations[reg]!);
     } else {
       final usePos = nextUse.pos;
       final restorePos = (spillPos < intersection)
           ? math.min(intersection, usePos)
           : usePos;
-      if (spillPos == allocated.start) {
+      if (toSplitPosition(spillPos) <= allocated.start) {
         if (trace) {
           print('Split $allocated at $restorePos');
         }
-        addToUnhandled(allocated.splitAt(restorePos));
+        assert(restorePos > allocated.start);
+        addToUnhandled(splitBetween(allocated, spillPos, restorePos));
         spillLiveRange(allocated);
       } else {
         if (trace) {
           print('Split $allocated at $spillPos');
         }
-        final rangeToSpill = allocated.splitAt(spillPos);
+        final rangeToSpill = splitBetween(allocated, allocated.start, spillPos);
         if (trace) {
           print('Split $rangeToSpill at $restorePos');
         }
-        addToUnhandled(rangeToSpill.splitAt(restorePos));
+        addToUnhandled(splitBetween(rangeToSpill, spillPos, restorePos));
         spillLiveRange(rangeToSpill);
         if (trace) {
           print('Finish evicted $allocated at ${_registerLocations[reg]}');
@@ -791,6 +828,21 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
 
   /// Resolve data flow between blocks and split live ranges.
   void resolveDataFlow(SSALivenessAnalysis liveness) {
+    // Allocate spill slots to resolve data flow into catch blocks.
+    for (final block in backEndState.codeGenBlockOrder) {
+      if (block is CatchBlock) {
+        for (final instrId in liveness.liveIn(block).elements) {
+          LiveRange? liveRange = _liveRanges[instrId]?.bundle;
+          if (liveRange != null && liveRange.spillSlot == null) {
+            assert(liveRange.splitParent == liveRange);
+            liveRange.spillSlot = backEndState.stackFrame.allocateSpillSlot(
+              liveRange.registerClass,
+            );
+          }
+        }
+      }
+    }
+    // Insert moves for split and spilled live ranges.
     for (var i = 0; i < _liveRanges.length; ++i) {
       LiveRange? liveRange = _liveRanges[i];
       if (liveRange == null) {
@@ -809,16 +861,16 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           if (liveRange.end == next.start &&
               liveRange.allocatedLocation != next.allocatedLocation &&
               next.allocatedLocation is! StackLocation) {
-            Instruction instr = instructionByPos(next.start);
-            if (instr is JoinBlock && instr.hasPhis) {
-              instr = instr.phis.last;
-            }
-            ParallelMoveStage stage;
-            if (instr is! Goto && next.start.isOdd) {
+            Instruction instr = instructionByPos(roundUp(next.start, step));
+            ParallelMoveStage stage = next.start.isOdd
+                ? ParallelMoveStage.output
+                : ParallelMoveStage.input;
+            if (instr is Block) {
+              if (instr is JoinBlock && instr.hasPhis) {
+                instr = instr.phis.last;
+              }
               instr = _nextInstruction(instr);
-              stage = ParallelMoveStage.split;
-            } else {
-              stage = ParallelMoveStage.splitLate;
+              stage = ParallelMoveStage.output;
             }
             _insertMoveBefore(
               instr,
@@ -828,7 +880,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
             );
             if (trace) {
               print(
-                'Insert split move at ${next.start} (before ${IrToText.instruction(instr)})'
+                'Insert split move at ${next.start} (${stage.name} before ${IrToText.instruction(instr)})'
                 ' ${liveRange} ${liveRange.allocatedLocation} => $next ${next.allocatedLocation}',
               );
             }
@@ -845,37 +897,59 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
           spillSlot is! ParameterStackLocation &&
           i < graph.instructions.length) {
         Instruction instr = graph.instructions[i];
-        if (instr is Phi) {
-          instr = (instr.block as JoinBlock).phis.last;
-        }
-        liveRange = liveRange.findSplitChildAt(instructionPos(instr) + 1);
-        if (liveRange.allocatedLocation is! StackLocation) {
-          _insertMoveBefore(
-            _nextInstruction(instr),
-            ParallelMoveStage.spill,
-            liveRange.allocatedLocation!,
-            spillSlot,
+        if ((instr as Definition).hasUses) {
+          if (instr is Phi) {
+            instr = (instr.block as JoinBlock).phis.last;
+          }
+          final definitionPos = _liveRanges[i]!.definitionPos;
+          assert(definitionPos >= 0);
+          assert(
+            definitionPos == instructionPos(instr) ||
+                definitionPos == instructionPos(instr) + 1,
           );
+          LiveRange splitChild = liveRange.findSplitChildAt(definitionPos);
+          ParallelMoveStage stage = definitionPos.isOdd
+              ? ParallelMoveStage.spill
+              : ParallelMoveStage.output;
+          if (splitChild.allocatedLocation is! SpillSlot) {
+            _insertMoveBefore(
+              _nextInstruction(instr),
+              stage,
+              splitChild.allocatedLocation!,
+              spillSlot,
+            );
+            if (trace) {
+              print(
+                'Insert spill move at $definitionPos (${stage.name} before ${IrToText.instruction(_nextInstruction(instr))})'
+                ' $splitChild ${splitChild.allocatedLocation} => $spillSlot',
+              );
+            }
+          }
         }
       }
     }
 
     for (final block in backEndState.codeGenBlockOrder) {
       final blockStart = blockStartPos(block);
-
       for (
         int predIndex = 0, n = block.predecessors.length;
         predIndex < n;
         ++predIndex
       ) {
         final pred = block.predecessors[predIndex];
-        final insertionPoint = block is JoinBlock
-            ? pred.lastInstruction
-            : _nextInstruction(block);
+        final Instruction insertionPoint;
+        final ParallelMoveStage stage;
+        if (block is JoinBlock) {
+          insertionPoint = pred.lastInstruction;
+          stage = ParallelMoveStage.input;
+        } else {
+          insertionPoint = _nextInstruction(block);
+          stage = ParallelMoveStage.control;
+        }
         final predEnd = blockEndPos(pred);
         // Insert moves between split live ranges at control flow edges
         // which do not match linearized control flow.
-        if (predEnd != blockStart) {
+        if (block is! CatchBlock) {
           for (final instrId in liveness.liveIn(block).elements) {
             LiveRange? liveRange = _liveRanges[instrId]?.bundle;
             if (liveRange != null) {
@@ -885,7 +959,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
                   to.allocatedLocation is! StackLocation) {
                 _insertMoveBefore(
                   insertionPoint,
-                  ParallelMoveStage.control,
+                  stage,
                   from.allocatedLocation!,
                   to.allocatedLocation!,
                 );
@@ -901,7 +975,7 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
             if (input is Constant) {
               _insertMoveBefore(
                 insertionPoint,
-                ParallelMoveStage.control,
+                stage,
                 null,
                 to.allocatedLocation!,
                 input.value,
@@ -913,8 +987,26 @@ final class LinearScanRegisterAllocator extends RegisterAllocator {
               if (from.allocatedLocation != to.allocatedLocation) {
                 _insertMoveBefore(
                   insertionPoint,
-                  ParallelMoveStage.control,
+                  stage,
                   from.allocatedLocation!,
+                  to.allocatedLocation!,
+                );
+              }
+            }
+          }
+        }
+        // In the beginning of a catch block load live values from
+        // their corresponding spill slots.
+        if (block is CatchBlock) {
+          for (final instrId in liveness.liveIn(block).elements) {
+            LiveRange? liveRange = _liveRanges[instrId]?.bundle;
+            if (liveRange != null) {
+              final to = liveRange.findSplitChildAt(blockStart);
+              if (to.allocatedLocation is! StackLocation) {
+                _insertMoveBefore(
+                  insertionPoint,
+                  stage,
+                  liveRange.spillSlot!,
                   to.allocatedLocation!,
                 );
               }
@@ -973,6 +1065,9 @@ class LiveRange {
   // Spill slot assigned to this live range (and all its split siblings).
   StackLocation? spillSlot;
 
+  // Position of the Definition for this live range.
+  int definitionPos = -1;
+
   // Used for the currently tracked live ranges (both active and inactive).
   // Index in [intervals].
   int currentInterval = 0;
@@ -992,10 +1087,16 @@ class LiveRange {
 
   /// Cut the last use interval to start at [pos].
   void defineAt(int pos) {
+    definitionPos = pos;
     if (intervals.isEmpty) {
       // Value is defined but not used.
-      // Add synthetic one-point interval.
-      intervals.addInterval(pos, pos + 1);
+      // Add synthetic interval. Make sure the intermediate point between
+      // instructions is included into the interval as it is used to find
+      // output location for a spill move.
+      intervals.addInterval(
+        pos,
+        roundUp(pos + 1, LinearScanRegisterAllocator.step),
+      );
     } else {
       assert(intervals.startAt(0) <= pos && pos < intervals.endAt(0));
       intervals.setStartAt(0, pos);
@@ -1076,7 +1177,6 @@ class LiveRange {
 
   LiveRange get splitParent => splitFrom ?? this;
 
-  // TODO: figure out more optimal split position using loop boundaries.
   LiveRange splitAt(int pos) {
     assert(pos > start);
     assert(!isPhysical);
@@ -1121,6 +1221,19 @@ class LiveRange {
       ++currentUse;
     }
     return false;
+  }
+
+  UsePosition? findRegisterUseAfter(int pos) {
+    assert(!isPhysical);
+    for (int i = currentUse; i <= uses.length; ++i) {
+      final use = uses[uses.length - i];
+      if (use.pos >= pos &&
+          (use.constraint is AnyCpuRegister ||
+              use.constraint is AnyFpuRegister)) {
+        return use;
+      }
+    }
+    return null;
   }
 
   UsePosition? get nextUse =>

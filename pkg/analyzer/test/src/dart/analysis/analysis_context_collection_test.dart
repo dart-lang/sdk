@@ -15,7 +15,7 @@ import 'package:analyzer/src/utilities/extensions/file_system.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/pub.dart';
 import 'package:analyzer/src/workspace/workspace.dart';
-import 'package:analyzer/utilities/package_config_file_builder.dart';
+import 'package:analyzer_testing/package_config_file_builder.dart';
 import 'package:analyzer_testing/resource_provider_mixin.dart';
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:linter/src/rules.dart';
@@ -75,7 +75,7 @@ linter:
 ''');
 
     var packageConfigFileBuilder = PackageConfigFileBuilder()
-      ..add(name: 'foo', rootPath: fooFolder.path);
+      ..add(name: 'foo', rootFolder: fooFolder);
     newPackageConfigJsonFileFromBuilder(
       rootFolder.path,
       packageConfigFileBuilder,
@@ -424,6 +424,7 @@ analysisOptions
       nonfunction-type-aliases
       null-aware-elements
       patterns
+      primary-constructors
       private-named-parameters
       records
       sealed-class
@@ -507,6 +508,7 @@ analysisOptions
       nonfunction-type-aliases
       null-aware-elements
       patterns
+      primary-constructors
       private-named-parameters
       records
       sealed-class
@@ -1141,8 +1143,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1207,8 +1209,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1291,9 +1293,9 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath)
-        ..add(name: 'package3', rootPath: package3RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath))
+        ..add(name: 'package3', rootFolder: getFolder(package3RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1368,8 +1370,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newAnalysisOptionsYamlFile(workspaceRootPath, '');
@@ -1448,8 +1450,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1523,8 +1525,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'package1', rootPath: package1RootPath)
-        ..add(name: 'package2', rootPath: package2RootPath),
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath))
+        ..add(name: 'package2', rootFolder: getFolder(package2RootPath)),
     );
 
     newFile('$package1RootPath/lib/library1.dart', '');
@@ -1595,8 +1597,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'root_package', rootPath: workspaceRootPath)
-        ..add(name: 'package1', rootPath: package1RootPath),
+        ..add(name: 'root_package', rootFolder: getFolder(workspaceRootPath))
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath)),
     );
 
     var collection = AnalysisContextCollectionImpl(
@@ -1655,8 +1657,8 @@ resolution: workspace
     newPackageConfigJsonFileFromBuilder(
       workspaceRootPath,
       PackageConfigFileBuilder()
-        ..add(name: 'root_package', rootPath: workspaceRootPath)
-        ..add(name: 'package1', rootPath: package1RootPath),
+        ..add(name: 'root_package', rootFolder: getFolder(workspaceRootPath))
+        ..add(name: 'package1', rootFolder: getFolder(package1RootPath)),
     );
 
     var collection = AnalysisContextCollectionImpl(

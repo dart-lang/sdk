@@ -98,6 +98,7 @@ sealed class MethodEncoding implements InferredTypeListener {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   });
 }
 
@@ -393,6 +394,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -401,7 +403,8 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
+    function.scope = scope?..parent = function;
+    function.thisVariable = thisVariable;
   }
 }
 
@@ -796,6 +799,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
     required Scope? scope,
     required AsyncMarker asyncMarker,
     required DartType? emittedValueType,
+    required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
@@ -804,7 +808,10 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
         emittedValueType: emittedValueType,
       );
     }
-    function.scope = scope;
+    function.scope =
+        // Coverage-ignore(suite): Not run.
+        scope?..parent = function;
+    function.thisVariable = thisVariable;
   }
 
   /// Creates a top level function that creates a tear off of an extension
@@ -876,13 +883,35 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
       VariableDeclaration parameter,
       DartType type,
     ) {
-      VariableDeclaration newParameter = new VariableDeclaration(
-        parameter.name,
-        type: type,
-        isFinal: parameter.isFinal,
-        isLowered: parameter.isLowered,
-        isRequired: parameter.isRequired,
-      )..fileOffset = parameter.fileOffset;
+      VariableDeclaration newParameter;
+      switch (parameter) {
+        case PositionalParameter():
+          // Coverage-ignore(suite): Not run.
+          newParameter = new PositionalParameter(
+            cosmeticName: parameter.cosmeticName,
+            type: parameter.type,
+            isFinal: parameter.isFinal,
+            isLowered: parameter.isLowered,
+            isRequired: parameter.isRequired,
+          )..fileOffset = parameter.fileOffset;
+        case NamedParameter():
+          // Coverage-ignore(suite): Not run.
+          newParameter = new NamedParameter(
+            parameterName: parameter.parameterName,
+            type: parameter.type,
+            isFinal: parameter.isFinal,
+            isLowered: parameter.isLowered,
+            isRequired: parameter.isRequired,
+          )..fileOffset = parameter.fileOffset;
+        case VariableDeclaration():
+          newParameter = new VariableDeclaration(
+            parameter.name,
+            type: type,
+            isFinal: parameter.isFinal,
+            isLowered: parameter.isLowered,
+            isRequired: parameter.isRequired,
+          )..fileOffset = parameter.fileOffset;
+      }
       _extensionTearOffParameterMap![parameter] = newParameter;
       return newParameter;
     }

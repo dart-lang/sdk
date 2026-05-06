@@ -52,8 +52,11 @@ dev_compiler/test/options/*: Skip # test needs fixes
 dev_compiler/test/sourcemap/*: SkipByDesign # Skip sourcemap tests
 dev_compiler/test/sourcemap/testfiles/*: SkipByDesign # Skip dev_compiler codegen tests
 dev_compiler/test/worker/*: Skip # test needs fixes
+dwds/test/integration/*: SkipByDesign # Skip integration tests relying on build_daemon/build_runner.
+dwds_test_common/fixtures/*: SkipByDesign # Skip fixtures relying on build_daemon/build_runner.
 front_end/test/analyze_git_test: Pass, Slow
 front_end/test/bootstrap_test: Pass, Slow
+front_end/test/dart_scope_calculator_test: Slow, Pass
 front_end/test/incremental_compiler_leak_test: Pass, ExtraSlow
 front_end/test/incremental_dart2js_test: Pass, Slow
 front_end/test/rasta/*: SkipByDesign # Anything in rasta is input to cfe unit tests and shouldn't be run as tests.
@@ -61,7 +64,6 @@ front_end/test/types/dart2js_benchmark_test: Pass, Slow
 front_end/test/types/large_app_benchmark_test: Pass, ExtraSlow
 front_end/testcases/*: Skip # These are not tests but input for tests.
 front_end/tool/incremental_perf_test: Slow, Pass
-kernel/test/dart_scope_calculator_test: Slow, Pass
 kernel/testcases/*: Skip # These are not tests but input for tests.
 vm/test/kernel_front_end_test: Slow, Pass
 vm/test/transformations/ffi_test: Slow, Pass # https://github.com/dart-lang/sdk/issues/54950
@@ -264,8 +266,6 @@ front_end/test/incremental_dart2js_load_from_dill_test: Pass, Slow
 frontend_server_client/test/example/vm_client_test: SkipByDesign # Test is incompatible with Windows platform.
 frontend_server_client/test/example/web_client_test: SkipByDesign # Test is incompatible with Windows platform.
 vm_service/test/private_rpcs/dev_fs_http_put_test: Skip # Windows disallows "?" in paths
-vm_service/test/private_rpcs/dev_fs_http_put_weird_char_test: Skip # Windows disallows "\r" in paths
-vm_service/test/private_rpcs/dev_fs_weird_char_test: Skip # Windows disallows "\r" in paths
 
 [ $browser ]
 */test/analyzer_test: SkipByDesign # No need to run analysis tests on browser bots

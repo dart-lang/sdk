@@ -152,6 +152,9 @@ abstract base class Assembler {
   void jump(Label label);
   void branchIf(Condition condition, Label label);
 
+  /// Jump to [label] if Dart `bool` value in [left] matches [right].
+  void branchIfBoolIs(Register left, bool right, Label label);
+
   void loadFromPool(Register reg, Object obj);
   void loadConstant(Register reg, ConstantValue value);
 

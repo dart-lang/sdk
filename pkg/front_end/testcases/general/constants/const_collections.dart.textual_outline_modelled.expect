@@ -40,9 +40,11 @@ class CustomMap implements Map<String, String> {
       throw new UnimplementedError();
   @override
   String remove(Object? key) => throw new UnimplementedError();
-  String update(String key, String update(String value),
-          {String ifAbsent()?}) =>
-      throw new UnimplementedError();
+  String update(
+    String key,
+    String update(String value), {
+    String ifAbsent()?,
+  }) => throw new UnimplementedError();
   @override
   bool containsKey(Object? key) => throw new UnimplementedError();
   @override
@@ -86,7 +88,7 @@ const List<String> bar = [...foo, "!"];
 
 const List<String> barWithCustomIterableSpread1 = [
   ...bar,
-  ...const CustomIterable()
+  ...const CustomIterable(),
 ];
 
 const List<String> barWithCustomIterableSpread2 = [...bar, ...CustomIterable()];
@@ -128,7 +130,7 @@ const Map<String, String> quuzWithNullSpread = {...quux, ...?nullMap};
 const Map<String, String> quuzWithSetSpread = {...quux, ...baz};
 
 const Map<dynamic, int> mapWithNonPrimitiveEqualsKey = {
-  const WithEquals(42): 42
+  const WithEquals(42): 42,
 };
 
 const Map<int, int> mapWithDuplicates = {42: 42, 42: 42};
@@ -141,7 +143,7 @@ const Set<String> qux = {...baz, "!"};
 
 const Set<String> quxWithCustomIterableSpread1 = {
   ...baz,
-  ...const CustomIterable()
+  ...const CustomIterable(),
 };
 
 const Set<String> quxWithCustomIterableSpread2 = {...baz, ...CustomIterable()};

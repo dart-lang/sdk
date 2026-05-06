@@ -9,7 +9,6 @@ import 'dart:io';
 import 'package:analysis_server/src/plugin/notification_manager.dart';
 import 'package:analysis_server/src/protocol_server.dart';
 import 'package:analysis_server/src/utilities/process.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer_plugin/protocol/protocol.dart' as plugin;
 import 'package:analyzer_plugin/protocol/protocol_common.dart' as protocol;
 import 'package:http/http.dart' as http;
@@ -150,19 +149,6 @@ class MockProcessRunner implements ProcessRunner {
       environment: environment,
     );
   }
-}
-
-class MockSource implements Source {
-  @override
-  final String fullName;
-
-  MockSource({this.fullName = 'mocked.dart'});
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
-
-  @override
-  String toString() => fullName;
 }
 
 class TestNotificationManager implements AbstractNotificationManager {

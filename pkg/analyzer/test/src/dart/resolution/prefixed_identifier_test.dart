@@ -398,7 +398,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -428,7 +428,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -461,7 +461,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier
@@ -491,7 +491,7 @@ void f() {
 PrefixedIdentifier
   prefix: SimpleIdentifier
     token: prefix
-    element: <testLibraryFragment>::@prefix2::prefix
+    element: <testLibraryFragment>::@prefix::prefix
     staticType: null
   period: .
   identifier: SimpleIdentifier

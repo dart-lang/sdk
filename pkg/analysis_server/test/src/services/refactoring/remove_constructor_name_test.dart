@@ -4,12 +4,10 @@
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
 import 'package:analysis_server/src/lsp/constants.dart';
-import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/refactoring/remove_constructor_name.dart';
 import 'package:test/test.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
-import '../../../lsp/request_helpers_mixin.dart';
 import '../../../tool/lsp_spec/matchers.dart';
 import 'refactoring_test_support.dart';
 
@@ -408,20 +406,17 @@ void f() {
   }
 }
 
-abstract class _RemoveConstructorNameTest extends RefactoringTest
-    with LspProgressNotificationsMixin {
+abstract class _RemoveConstructorNameTest extends RefactoringTest {
   @override
-  String get refactoringName => RemoveConstructorName.commandName;
+  String get refactoringCommandId => RemoveConstructorName.commandName;
+
+  String get refactoringTitle => RemoveConstructorName.constTitle;
 
   Future<void> _assertNoRefactoring({required String originalSource}) async {
-    if (originalSource.contains('>>>>')) {
-      throw 'File content must not include >>>>>';
-    }
-    addTestSource(originalSource);
-
-    await initializeServer();
-
-    await expectNoCodeActionWithTitle(RemoveConstructorName.constTitle);
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
   }
 
   Future<void> _assertRefactoring({
@@ -431,31 +426,22 @@ abstract class _RemoveConstructorNameTest extends RefactoringTest
     String? otherFileContent,
     ProgressToken? commandWorkDoneToken,
   }) async {
-    if (originalSource.contains('>>>>') ||
-        (otherFileContent?.contains('>>>>>') ?? false)) {
-      throw 'File content must not include >>>>>';
-    }
-    addTestSource(originalSource);
-    if (otherFilePath != null) {
-      newFile(otherFilePath, otherFileContent!);
-    }
-
-    await initializeServer();
-
-    var action = await expectCodeActionWithTitle(
-      RemoveConstructorName.constTitle,
-    );
-    await verifyCommandEdits(
-      action.command!,
-      expected,
-      workDoneToken: commandWorkDoneToken,
+    await assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+      refactoringTitle: refactoringTitle,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+      commandWorkDoneToken: commandWorkDoneToken,
     );
   }
 
   Future<void> _assertRefactoringFails({required String originalSource}) async {
+    setSupportedCodeActionKinds([CodeActionKind.Refactor]);
+
     var codeAction = await expectCodeActionLiteral(
       originalSource,
-      command: refactoringName,
+      command: refactoringCommandId,
       title: RemoveConstructorName.constTitle,
     );
     await expectLater(

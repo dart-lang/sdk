@@ -120,8 +120,12 @@ class _Collector {
       return _methodInvocation(node);
     }
 
-    if (node is NamedExpression) {
-      return collect(node.expression);
+    if (node is NamedArgument) {
+      return collect(node.argumentExpression);
+    }
+
+    if (node is RecordLiteralNamedField) {
+      return collect(node.fieldExpression);
     }
 
     if (node is BinaryExpression) {
@@ -456,7 +460,8 @@ class _ConstantTypeChecker {
 
     var formalParameters = node.parameters.parameters;
     for (var formalParameter in formalParameters) {
-      if (formalParameter is SimpleFormalParameter) {
+      if (formalParameter is RegularFormalParameter &&
+          formalParameter.functionTypedSuffix == null) {
         if (!check(formalParameter.type)) {
           return false;
         }

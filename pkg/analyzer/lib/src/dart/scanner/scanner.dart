@@ -5,17 +5,15 @@
 import 'dart:typed_data';
 
 import 'package:_fe_analyzer_shared/src/base/errors.dart';
+import 'package:_fe_analyzer_shared/src/parser/experimental_features.dart';
 import 'package:_fe_analyzer_shared/src/scanner/scanner.dart' as fasta;
 import 'package:_fe_analyzer_shared/src/scanner/token.dart'
     show Token, TokenType;
 import 'package:analyzer/dart/analysis/features.dart';
-import 'package:analyzer/source/source.dart';
 import 'package:analyzer/src/dart/analysis/experiments.dart';
 import 'package:analyzer/src/dart/scanner/translate_error_token.dart'
     show translateErrorToken;
 import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
-import 'package:analyzer/src/error/listener.dart';
-import 'package:analyzer/src/utilities/extensions/source.dart';
 import 'package:meta/meta.dart';
 import 'package:pub_semver/pub_semver.dart';
 
@@ -35,17 +33,11 @@ class Scanner {
   @visibleForTesting
   static bool preserveCommentsDefaultForTesting = true;
 
-  final Source source;
+  /// The input text to be scanned.
+  final String _inputText;
 
-  /// The text to be scanned.
-  final String _contents;
-
-  /// The offset of the first character from the reader.
-  final int _readerOffset;
-
-  /// The diagnostic listener that will be informed of any diagnostics that are
-  /// found during the scan.
-  final DiagnosticReporter _diagnosticReporter;
+  /// The callback to report diagnostics.
+  final void Function(LocatedDiagnostic) reportError;
 
   /// If the file has [fasta.LanguageVersionToken], it is allowed to use the
   /// language version greater than the one specified in the package config.
@@ -55,37 +47,16 @@ class Scanner {
   /// The flag specifying whether documentation comments should be parsed.
   bool _preserveComments = preserveCommentsDefaultForTesting;
   List<int>? _lineStarts;
-  late final Token firstToken;
 
   Version? _overrideVersion;
 
   late FeatureSet _featureSet;
 
-  /// Initializes a scanner to scan the given [contents].
+  /// Initializes a scanner to scan the given [inputText].
   ///
-  /// The [diagnosticReporter] will be informed of any errors that are found.
-  factory Scanner(String contents, DiagnosticReporter diagnosticReporter) =>
-      Scanner.fasta(diagnosticReporter, contents: contents);
-
-  factory Scanner.fasta(
-    DiagnosticReporter diagnosticReporter, {
-    String? contents,
-    int offset = -1,
-  }) {
-    return Scanner._(
-      diagnosticReporter.source,
-      contents ?? diagnosticReporter.source.stringContents,
-      offset,
-      diagnosticReporter,
-    );
-  }
-
-  Scanner._(
-    this.source,
-    this._contents,
-    this._readerOffset,
-    this._diagnosticReporter,
-  );
+  /// The [reportError] callback will be informed of any errors that are found.
+  Scanner({required String inputText, required this.reportError})
+    : _inputText = inputText;
 
   /// The features associated with this scanner.
   ///
@@ -116,18 +87,16 @@ class Scanner {
     _featureSet = featureSet;
   }
 
-  void reportError(LocatedDiagnostic locatedDiagnostic) {
-    _diagnosticReporter.report(locatedDiagnostic);
-  }
-
   /// The fasta parser handles error tokens produced by the scanner
   /// but the old parser used by angular does not
   /// and expects that scanner errors to be reported by this method.
   /// Set [reportScannerErrors] `true` when using the old parser.
   Token tokenize({bool reportScannerErrors = true}) {
     fasta.ScannerResult result = fasta.scanString(
-      _contents,
-      configuration: buildConfig(_featureSet),
+      _inputText,
+      configuration: ExperimentalFeaturesStatus(
+        _featureSet,
+      ).buildScannerConfiguration(),
       includeComments: _preserveComments,
       languageVersionChanged: _languageVersionChanged,
     );
@@ -155,16 +124,7 @@ class Scanner {
       }
     }
 
-    firstToken = token;
-    // Update all token offsets based upon the reader's starting offset
-    if (_readerOffset != -1) {
-      int delta = _readerOffset + 1;
-      do {
-        token.offset += delta;
-        token = token.next!;
-      } while (!token.isEof);
-    }
-    return firstToken;
+    return token;
   }
 
   void _languageVersionChanged(
@@ -182,7 +142,7 @@ class Scanner {
 
     var latestVersion = ExperimentStatus.currentVersion;
     if (overrideVersion > latestVersion) {
-      _diagnosticReporter.report(
+      reportError(
         diag.invalidLanguageVersionOverrideGreater
             .withArguments(
               latestMajor: latestVersion.major,
@@ -193,16 +153,9 @@ class Scanner {
       _overrideVersion = null;
     } else {
       _featureSet = _featureSetForOverriding.restrictToVersion(overrideVersion);
-      scanner.configuration = buildConfig(_featureSet);
+      scanner.configuration = ExperimentalFeaturesStatus(
+        _featureSet,
+      ).buildScannerConfiguration();
     }
   }
-
-  /// Return a ScannerConfiguration based upon the specified feature set.
-  static fasta.ScannerConfiguration buildConfig(FeatureSet? featureSet) =>
-      featureSet == null
-      ? fasta.ScannerConfiguration()
-      : fasta.ScannerConfiguration(
-          enableTripleShift: featureSet.isEnabled(Feature.triple_shift),
-          forAugmentationLibrary: featureSet.isEnabled(Feature.augmentations),
-        );
 }

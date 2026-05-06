@@ -5,7 +5,7 @@ import "dart:core" as core;
 class C extends core::Object /*hasConstConstructor*/  {
   final field core::int _x;
   final field core::int _y;
-  const constructor •({required core::int x, required core::int y}) → self::C
+  const constructor •({required initializing-formal core::int x, required initializing-formal core::int y}) → self::C
     : self::C::_x = x, self::C::_y = y, super core::Object::•()
     ;
 }

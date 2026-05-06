@@ -51,9 +51,10 @@ abstract class _Timer implements Timer {
     }
   }
 
-  static void runtimeCallback(WasmAnyRef timer) {
+  static WasmVoid runtimeCallback(WasmAnyRef timer) {
     final dartTimer = timer.toObject() as _Timer;
     dartTimer._processTick();
+    return WasmVoid();
   }
 }
 
@@ -117,8 +118,10 @@ class _AsyncRun {
     );
   }
 
-  static void _runtimeCallback(WasmAnyRef callbackFunction) {
+  static WasmVoid _runtimeCallback(WasmAnyRef callbackFunction) {
     final function = callbackFunction.toObject() as void Function();
     function();
+
+    return WasmVoid();
   }
 }

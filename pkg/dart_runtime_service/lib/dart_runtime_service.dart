@@ -3,6 +3,7 @@
 // BSD-style license that can be found in the LICENSE file.
 
 export 'src/clients.dart';
+export 'src/dart_development_service_manager.dart';
 export 'src/dart_runtime_service.dart';
 export 'src/dart_runtime_service_backend.dart';
 export 'src/dart_runtime_service_options.dart';

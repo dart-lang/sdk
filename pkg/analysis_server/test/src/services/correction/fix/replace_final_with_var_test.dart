@@ -228,6 +228,25 @@ void foo(int a) {
 ''');
   }
 
+  Future<void> test_primaryConstructor_localVariable() async {
+    await resolveTestCode('''
+class C() {
+  this {
+    final x = 1;
+    print(x);
+  }
+}
+''');
+    await assertHasFix('''
+class C() {
+  this {
+    var x = 1;
+    print(x);
+  }
+}
+''');
+  }
+
   /// https://github.com/dart-lang/sdk/issues/51864
   Future<void> test_recordPattern_assignment() async {
     await resolveTestCode(r'''

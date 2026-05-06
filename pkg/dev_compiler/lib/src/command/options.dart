@@ -368,10 +368,17 @@ class Options {
         hide: true,
       )
       ..addFlag(
-        'track-widget-creation',
-        help: 'Enable inspecting of Flutter widgets.',
+        'track-creation-locations',
+        help:
+            'Run a kernel transformer to track creation locations for'
+            ' classes annotated with @pragma(\'track-creation-locations\').',
         defaultsTo: false,
         hide: true,
+        aliases: [
+          // TODO(http://dartbug.com/63225): Remove this once flutter is
+          // migrated to the new flag.
+          'track-widget-creation',
+        ],
       )
       // TODO(jmesserly): add verbose help to show hidden options
       ..addOption(

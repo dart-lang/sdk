@@ -434,9 +434,13 @@ CompilationUnit
 extension const a = 0;
 ''');
     parseResult.assertErrors([
-      error(diag.expectedToken, 0, 9),
-      error(diag.expectedTypeName, 10, 5),
-      error(diag.expectedExtensionBody, 10, 5),
+      error(diag.extensionPrimaryConstructor, 10, 5),
+      error(diag.expectedToken, 16, 1),
+      error(diag.expectedTypeName, 18, 1),
+      error(diag.expectedExtensionBody, 18, 1),
+      error(diag.expectedExecutable, 18, 1),
+      error(diag.expectedExecutable, 20, 1),
+      error(diag.unexpectedToken, 21, 1),
     ]);
     var node = parseResult.findNode.unit;
     assertParsedNodeText(node, r'''
@@ -444,6 +448,7 @@ CompilationUnit
   declarations
     ExtensionDeclaration
       extensionKeyword: extension
+      name: a
       onClause: ExtensionOnClause
         onKeyword: on <synthetic>
         extendedType: NamedType
@@ -451,16 +456,6 @@ CompilationUnit
       body: BlockClassBody
         leftBracket: { <synthetic>
         rightBracket: } <synthetic>
-    TopLevelVariableDeclaration
-      variables: VariableDeclarationList
-        keyword: const
-        variables
-          VariableDeclaration
-            name: a
-            equals: =
-            initializer: IntegerLiteral
-              literal: 0
-      semicolon: ;
 ''');
   }
 

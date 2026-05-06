@@ -30,7 +30,7 @@ class AvoidAnnotatingWithDynamic extends AnalysisRule {
   ) {
     var visitor = _Visitor(this);
     registry.addFieldFormalParameter(this, visitor);
-    registry.addSimpleFormalParameter(this, visitor);
+    registry.addRegularFormalParameter(this, visitor);
     registry.addSuperFormalParameter(this, visitor);
   }
 }
@@ -46,7 +46,7 @@ class _Visitor extends SimpleAstVisitor<void> {
   }
 
   @override
-  void visitSimpleFormalParameter(SimpleFormalParameter node) {
+  void visitRegularFormalParameter(RegularFormalParameter node) {
     _checkNode(node, node.type);
   }
 
@@ -55,7 +55,7 @@ class _Visitor extends SimpleAstVisitor<void> {
     _checkNode(node, node.type);
   }
 
-  void _checkNode(NormalFormalParameter node, TypeAnnotation? type) {
+  void _checkNode(FormalParameter node, TypeAnnotation? type) {
     if (node.inAugmentation) return;
 
     if (type is NamedType && type.type is DynamicType) {

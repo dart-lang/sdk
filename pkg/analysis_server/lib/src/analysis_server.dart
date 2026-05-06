@@ -84,6 +84,7 @@ import 'package:analyzer/src/generated/sdk.dart';
 import 'package:analyzer/src/util/file_paths.dart' as file_paths;
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/util/platform_info.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:analyzer/src/utilities/extensions/analysis_session.dart';
 import 'package:analyzer/src/workspace/basic.dart';
 import 'package:analyzer/src/workspace/blaze.dart';
@@ -108,6 +109,7 @@ typedef UserPromptSender =
       MessageType type,
       String message,
       List<String> actionLabels,
+      lsp.CancellationToken cancellationToken,
     );
 
 /// Implementations of [AnalysisServer] implement a server that listens
@@ -556,7 +558,9 @@ abstract class AnalysisServer {
     }
 
     unawaited(
-      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, ['Ok']),
+      prompt(MessageType.info, unifiedAnalytics.getConsentMessage, [
+        lsp.UserPromptActions.ok,
+      ], NotCancelableToken()),
     );
     unifiedAnalytics.clientShowedMessage();
   }
@@ -906,12 +910,6 @@ abstract class AnalysisServer {
     );
   }
 
-  /// Notify the declarations tracker that the file with the given [path] was
-  /// changed - added, updated, or removed.  Schedule processing of the file.
-  void notifyDeclarationsTracker(String path) {
-    analysisDriverScheduler.notify();
-  }
-
   /// Notify the flutter widget properties support that the file with the
   /// given [path] was changed - added, updated, or removed.
   void notifyFlutterWidgetDescriptions(String path) {}
@@ -1146,6 +1144,7 @@ abstract class AnalysisServer {
     MessageType type,
     String message,
     List<String> actionLabels,
+    lsp.CancellationToken cancellationToken,
   );
 
   @mustCallSuper
@@ -1250,7 +1249,6 @@ abstract class CommonServerContextManagerCallbacks
   @override
   @mustCallSuper
   void broadcastWatchEvent(WatchEvent event) {
-    analysisServer.notifyDeclarationsTracker(event.path);
     analysisServer.notifyFlutterWidgetDescriptions(event.path);
     analysisServer.pluginManager.broadcastWatchEvent(event);
   }

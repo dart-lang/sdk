@@ -191,7 +191,10 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   ///
   /// This constructor creates a growable list when [growable] is true;
   /// otherwise, it returns a fixed-length list.
-  external factory List.from(Iterable elements, {bool growable = true});
+  external factory List.from(
+    Iterable<Object?> elements, {
+    bool growable = true,
+  });
 
   /// Creates a list from [elements].
   ///
@@ -241,7 +244,23 @@ abstract interface class List<E> implements Iterable<E>, _ListIterable<E> {
   /// final unmodifiableList = List.unmodifiable(numbers); // [1, 2, 3]
   /// unmodifiableList[1] = 87; // Throws.
   /// ```
+  // @Deprecated("Use List.unmodifiableOf instead")
   external factory List.unmodifiable(Iterable elements);
+
+  /// Creates an unmodifiable list containing all [elements].
+  ///
+  /// The [Iterator] of [elements] provides the order of the elements.
+  ///
+  /// An unmodifiable list cannot have its length or elements changed.
+  /// If the elements are themselves immutable, then the resulting list
+  /// is also immutable.
+  /// ```dart
+  /// final numbers = <int>[1, 2, 3];
+  /// final unmodifiableList = List.unmodifiable(numbers); // [1, 2, 3]
+  /// unmodifiableList[1] = 87; // Throws.
+  /// ```
+  @Since("3.13")
+  factory List.unmodifiableOf(Iterable<E> elements) = List<E>.unmodifiable;
 
   /// Adapts [source] to be a `List<T>`.
   ///

@@ -299,7 +299,9 @@ Future foo;
     expect(await ofKind(CodeActionKind('quickfix.remove')), isNotEmpty);
     expect(await ofKind(CodeActionKind('quickfix.remove.foo')), isEmpty);
     expect(await ofKind(CodeActionKind('quickfix.other')), isEmpty);
-    expect(await ofKind(CodeActionKind.Refactor), isEmpty);
+    expect(await ofKind(CodeActionKind.Refactor), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.add')), isNotEmpty);
+    expect(await ofKind(CodeActionKind('refactor.remove')), isEmpty);
   }
 
   Future<void> test_fixAll_logsExecution() async {

@@ -18,9 +18,7 @@ import 'package:analyzer/dart/element/type.dart';
 import 'package:analyzer/src/dart/ast/extensions.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/extensions.dart';
-import 'package:analyzer/src/dart/element/member.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/dart/element/type_algebra.dart';
 import 'package:analyzer/src/dart/resolver/applicable_extensions.dart';
 import 'package:analyzer/src/dart/resolver/scope.dart';
 import 'package:analyzer/src/utilities/extensions/element.dart';
@@ -262,7 +260,6 @@ class DeclarationHelper {
     }
     // Skip fields that are already initialized in the parameter list.
     for (var parameter in constructor.parameters.parameters) {
-      parameter = parameter.notDefault;
       if (parameter is FieldFormalParameter) {
         var parameterElement = parameter.declaredFragment?.element;
         if (parameterElement is FieldFormalParameterElement) {
@@ -549,12 +546,9 @@ class DeclarationHelper {
         .applicableTo(
           targetLibrary: libraryElement,
           // Ignore nullability, consistent with non-extension members.
-          targetType:
-              (type.isDartCoreNull
-                      ? type
-                      : library.typeSystem.promoteToNonNull(type))
-                  as TypeImpl,
-          strictCasts: false,
+          targetType: type.isDartCoreNull
+              ? type
+              : library.typeSystem.promoteToNonNull(type),
         );
     var importData = ImportData(
       libraryUri: library.uri,
@@ -620,8 +614,8 @@ class DeclarationHelper {
       var specified = <String>{
         ...constructorElement.formalParameters.map((e) => e.name).nonNulls,
         ...?superConstructorInvocation?.argumentList.arguments
-            .whereType<NamedExpression>()
-            .map((e) => e.name.label.name),
+            .whereType<NamedArgument>()
+            .map((e) => e.name.lexeme),
       };
       for (var superParameter in superConstructor.formalParameters) {
         if (superParameter.isNamed &&
@@ -835,12 +829,9 @@ class DeclarationHelper {
     var applicableExtensions = accessibleExtensions.applicableTo(
       targetLibrary: libraryElement,
       // Ignore nullability, consistent with non-extension members.
-      targetType:
-          (type.isDartCoreNull
-                  ? type
-                  : libraryElement.typeSystem.promoteToNonNull(type))
-              as TypeImpl,
-      strictCasts: false,
+      targetType: type.isDartCoreNull
+          ? type
+          : libraryElement.typeSystem.promoteToNonNull(type),
     );
     for (var instantiatedExtension in applicableExtensions) {
       var extension = instantiatedExtension.extension;
@@ -1155,62 +1146,47 @@ class DeclarationHelper {
     bool isTypeNeeded = false,
     bool onlySuper = false,
   }) {
-    var substitution = Substitution.fromInterfaceType(type);
-    var map = onlySuper
-        ? type.element.inheritedConcreteMembers
-        : type.element.interfaceMembers;
+    var map = onlySuper ? type.inheritedConcreteMembers : type.interfaceMembers;
 
     var membersByName = <String, List<ExecutableElement>>{};
-    for (var rawMember in map.values) {
-      if (_canAccessInstanceMember(rawMember)) {
-        var name = rawMember.displayName;
+    for (var member in map.values) {
+      if (_canAccessInstanceMember(member)) {
+        var name = member.displayName;
         membersByName
             .putIfAbsent(name, () => <ExecutableElement>[])
-            .add(rawMember);
+            .add(member);
       }
     }
     var referencingInterface = _referencingInterfaceFor(type.element);
     for (var entry in membersByName.entries) {
       var members = entry.value;
-      var rawMember = _bestMember(members);
-      if (rawMember is MethodElement) {
+      var member = _bestMember(members);
+      if (member is MethodElement) {
         if (includeMethods) {
-          if (rawMember.isOperator) {
+          if (member.isOperator) {
             continue;
           }
           // Exclude static methods when completion on an instance.
-          var member = SubstitutedExecutableElementImpl.from(
-            rawMember,
-            substitution,
-          );
           _suggestMethod(
-            method: member as MethodElement,
+            method: member,
             referencingInterface: referencingInterface,
             isKeywordNeeded: isKeywordNeeded,
             isTypeNeeded: isTypeNeeded,
           );
         }
-      } else if (rawMember is GetterElement) {
+      } else if (member is GetterElement) {
         if (!excludedGetters.contains(entry.key)) {
-          var member = SubstitutedExecutableElementImpl.from(
-            rawMember,
-            substitution,
-          );
           _suggestProperty(
-            accessor: member as PropertyAccessorElement,
+            accessor: member,
             referencingInterface: referencingInterface,
             isKeywordNeeded: isKeywordNeeded,
             isTypeNeeded: isTypeNeeded,
           );
         }
-      } else if (rawMember is SetterElement) {
+      } else if (member is SetterElement) {
         if (includeSetters) {
-          var member = SubstitutedExecutableElementImpl.from(
-            rawMember,
-            substitution,
-          );
           _suggestProperty(
-            accessor: member as PropertyAccessorElement,
+            accessor: member,
             referencingInterface: referencingInterface,
           );
         }
@@ -1227,7 +1203,7 @@ class DeclarationHelper {
       } else {
         functionType = FunctionTypeImpl(
           typeParameters: const [],
-          parameters: const [],
+          formalParameters: const [],
           returnType: DynamicTypeImpl.instance,
           nullabilitySuffix: NullabilitySuffix.none,
         );

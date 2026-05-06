@@ -489,8 +489,7 @@ Block
     LabeledStatement
       labels
         Label
-          label: SimpleIdentifier
-            token: foo
+          name: foo
           colon: :
       statement: WhileStatement
         whileKeyword: while
@@ -503,8 +502,8 @@ Block
           statements
             BreakStatement
               breakKeyword: break
-              label: SimpleIdentifier
-                token: foo
+              label: LabelReference
+                name: foo
               semicolon: ;
           rightBracket: }
   rightBracket: }
@@ -560,8 +559,7 @@ Block
     LabeledStatement
       labels
         Label
-          label: SimpleIdentifier
-            token: foo
+          name: foo
           colon: :
       statement: WhileStatement
         whileKeyword: while
@@ -574,8 +572,8 @@ Block
           statements
             ContinueStatement
               continueKeyword: continue
-              label: SimpleIdentifier
-                token: foo
+              label: LabelReference
+                name: foo
               semicolon: ;
           rightBracket: }
   rightBracket: }
@@ -3435,12 +3433,10 @@ Block
     LabeledStatement
       labels
         Label
-          label: SimpleIdentifier
-            token: l
+          name: l
           colon: :
         Label
-          label: SimpleIdentifier
-            token: m
+          name: m
           colon: :
       statement: ReturnStatement
         returnKeyword: return
@@ -3488,8 +3484,7 @@ Block
     LabeledStatement
       labels
         Label
-          label: SimpleIdentifier
-            token: l
+          name: l
           colon: :
       statement: ReturnStatement
         returnKeyword: return
@@ -3593,16 +3588,13 @@ Block
         SwitchPatternCase
           labels
             Label
-              label: SimpleIdentifier
-                token: l1
+              name: l1
               colon: :
             Label
-              label: SimpleIdentifier
-                token: l2
+              name: l2
               colon: :
             Label
-              label: SimpleIdentifier
-                token: l3
+              name: l3
               colon: :
           keyword: case
           guardedPattern: GuardedPattern
@@ -3647,8 +3639,7 @@ Block
         SwitchPatternCase
           labels
             Label
-              label: SimpleIdentifier
-                token: l1
+              name: l1
               colon: :
           keyword: case
           guardedPattern: GuardedPattern
@@ -3659,8 +3650,7 @@ Block
         SwitchPatternCase
           labels
             Label
-              label: SimpleIdentifier
-                token: l2
+              name: l2
               colon: :
           keyword: case
           guardedPattern: GuardedPattern
@@ -3705,16 +3695,13 @@ Block
         SwitchDefault
           labels
             Label
-              label: SimpleIdentifier
-                token: l1
+              name: l1
               colon: :
             Label
-              label: SimpleIdentifier
-                token: l2
+              name: l2
               colon: :
             Label
-              label: SimpleIdentifier
-                token: l3
+              name: l3
               colon: :
           keyword: default
           colon: :
@@ -3752,8 +3739,7 @@ Block
         SwitchPatternCase
           labels
             Label
-              label: SimpleIdentifier
-                token: l1
+              name: l1
               colon: :
           keyword: case
           guardedPattern: GuardedPattern
@@ -3764,8 +3750,7 @@ Block
         SwitchDefault
           labels
             Label
-              label: SimpleIdentifier
-                token: l2
+              name: l2
               colon: :
           keyword: default
           colon: :
@@ -3823,8 +3808,7 @@ Block
             LabeledStatement
               labels
                 Label
-                  label: SimpleIdentifier
-                    token: l1
+                  name: l1
                   colon: :
               statement: ExpressionStatement
                 expression: MethodInvocation

@@ -9,7 +9,7 @@ abstract sealed class B extends core::Object {
 }
 class C extends self::B {
   final field core::int _i;
-  constructor •(core::int _i) → self::C
+  constructor •(initializing-formal core::int _i) → self::C
     : self::C::_i = _i, super self::B::•()
     ;
 }

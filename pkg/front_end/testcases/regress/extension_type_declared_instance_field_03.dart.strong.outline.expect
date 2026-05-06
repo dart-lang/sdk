@@ -19,13 +19,13 @@ extension type Foo(core::int _x) {
   constructor • = self::Foo|constructor#;
   constructor tearoff • = self::Foo|constructor#_#new#tearOff;
 }
-static extension-type-member method Foo|constructor#_(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
+static extension-type-member method Foo|constructor#_(initializing-formal core::int _x) → self::Foo% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method Foo|constructor#_#_#tearOff(core::int _x) → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#_(_x);
 static abstract extension-type-member method Foo|get#y(lowered core::int #this) → core::int;
 static abstract extension-type-member method Foo|set#y(lowered core::int #this, synthesized core::int #externalFieldValue) → void;
-static extension-type-member method Foo|constructor#(core::int _x, core::int y) → self::Foo% /* erasure=core::int, declared=! */
+static extension-type-member method Foo|constructor#(initializing-formal core::int _x, initializing-formal core::int y) → self::Foo% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method Foo|constructor#_#new#tearOff(core::int _x, core::int y) → self::Foo% /* erasure=core::int, declared=! */
   return self::Foo|constructor#(_x, y);

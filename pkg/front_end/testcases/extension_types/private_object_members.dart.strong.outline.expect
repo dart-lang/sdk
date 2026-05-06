@@ -16,7 +16,7 @@ extension type E(core::int i) {
   constructor • = self::E|constructor#;
   constructor tearoff • = self::E|constructor#_#new#tearOff;
 }
-static extension-type-member method E|constructor#(core::int i) → self::E% /* erasure=core::int, declared=! */
+static extension-type-member method E|constructor#(initializing-formal core::int i) → self::E% /* erasure=core::int, declared=! */
   ;
 static extension-type-member synthetic method E|constructor#_#new#tearOff(core::int i) → self::E% /* erasure=core::int, declared=! */
   return self::E|constructor#(i);

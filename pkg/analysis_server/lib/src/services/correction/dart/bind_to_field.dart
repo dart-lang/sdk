@@ -37,9 +37,8 @@ class BindToField extends ResolvedCorrectionProducer {
   Future<void> compute(ChangeBuilder builder) async {
     var parameter = node.thisOrAncestorOfType<FormalParameter>();
     if (parameter != null) {
-      if (parameter is DefaultFormalParameter) {
-        var separator = parameter.separator;
-        if (separator != null && node.offset >= separator.offset) {
+      if (parameter.defaultClause case var defaultClause?) {
+        if (node.offset >= defaultClause.separator.offset) {
           // Don't propose the assist if the selection is inside the default
           // value.
           return;
@@ -55,9 +54,7 @@ class BindToField extends ResolvedCorrectionProducer {
     FormalParameter parameter,
     LibraryElement libraryElement2,
   ) async {
-    if (parameter is SuperFormalParameter ||
-        (parameter is DefaultFormalParameter &&
-            parameter.parameter is SuperFormalParameter)) {
+    if (parameter is SuperFormalParameter) {
       // Don't propose the assist for super parameters because they can't be
       // bound to a field.
       return;
@@ -105,12 +102,10 @@ class BindToField extends ResolvedCorrectionProducer {
 
   static SourceRange _replaceable(FormalParameter parameter) {
     return switch (parameter) {
-      SimpleFormalParameter() => range.startEnd(
-        parameter.type ?? parameter.keyword ?? parameter.name!,
-        parameter,
+      RegularFormalParameter() => range.startEnd(
+        parameter.type ?? parameter.constFinalOrVarKeyword ?? parameter.name!,
+        parameter.functionTypedSuffix?.endToken ?? parameter.name!,
       ),
-      DefaultFormalParameter() => _replaceable(parameter.parameter),
-      FunctionTypedFormalParameter() => range.node(parameter),
       // Should not happen, as these are excluded, but better to not crash.
       FieldFormalParameter() || SuperFormalParameter() => range.node(parameter),
     };

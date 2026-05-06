@@ -6,6 +6,7 @@ import 'dart:async';
 
 import 'package:analysis_server/src/analysis_server.dart';
 import 'package:analyzer/instrumentation/service.dart';
+import 'package:analyzer/src/utilities/cancellation.dart';
 import 'package:unified_analytics/unified_analytics.dart';
 
 /// An interface for interacting with surveys via the unified_analytics package.
@@ -80,6 +81,7 @@ class SurveyManager {
         MessageType.info,
         survey.description,
         buttonMap.keys.toList(),
+        NotCancelableToken(), // Not user-cancellable
       );
       var clickedButton = buttonMap[clickedButtonText];
       if (clickedButton == null) return;

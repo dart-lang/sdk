@@ -484,7 +484,7 @@ extension ExpressionNullableExtension on Expression? {
         return function.returnType?.type;
       case ExpressionFunctionBody(parent: MethodDeclaration function):
         return function.returnType?.type;
-      case NamedExpression():
+      case NamedArgument():
         // Allow `void f({required LinkedHashSet<Foo> s})`.
         return ancestor.correspondingParameter?.type ??
             InvalidTypeImpl.instance;

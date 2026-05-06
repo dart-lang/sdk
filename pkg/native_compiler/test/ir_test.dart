@@ -85,7 +85,7 @@ Future<Component> compileTestCaseToKernelProgram(
   );
   final options = CompilerOptions()
     ..target = target
-    ..additionalDills = <Uri>[platformKernel]
+    ..sdkSummary = platformKernel
     ..environmentDefines = {}
     ..onDiagnostic = (CfeDiagnosticMessage message) {
       fail("Compilation error: ${message.plainTextFormatted.join('\n')}");
@@ -165,13 +165,14 @@ class CompileAndDumpIr extends RecursiveVisitor {
       compressedWordSize: 8,
     );
     backEndState.stackFrame = Arm64StackFrame(function);
+    backEndState.unboxing = Unboxing();
     final pipeline = Pipeline([
       SSAComputation(),
       ValueNumbering(simplification: Simplification()),
       ConstantPropagation(),
       ControlFlowOptimizations(),
       Lowering(functionRegistry, objectLayout),
-      Unboxing(),
+      backEndState.unboxing,
       ValueNumbering(simplification: Simplification()),
       ReorderBlocks(backEndState),
       LinearScanRegisterAllocator(backEndState, constraints),

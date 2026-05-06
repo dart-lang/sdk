@@ -10,13 +10,13 @@ abstract sealed class Result<T extends core::Object? = dynamic> extends core::Ob
 }
 final class Ok<T extends core::Object? = dynamic> extends self::Result<self::Ok::T%> /*hasConstConstructor*/  {
   final field self::Ok::T% value;
-  const constructor •(self::Ok::T% value) → self::Ok<self::Ok::T%>
+  const constructor •(initializing-formal self::Ok::T% value) → self::Ok<self::Ok::T%>
     : self::Ok::value = value, super self::Result::•()
     ;
 }
 final class Error<T extends core::Object? = dynamic> extends self::Result<self::Error::T%> /*hasConstConstructor*/  {
   final field core::String error;
-  const constructor •(core::String error) → self::Error<self::Error::T%>
+  const constructor •(initializing-formal core::String error) → self::Error<self::Error::T%>
     : self::Error::error = error, super self::Result::•()
     ;
 }

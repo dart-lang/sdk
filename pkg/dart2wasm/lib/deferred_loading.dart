@@ -235,13 +235,13 @@ class StressTestModuleStrategy extends ModuleStrategy {
   ModuleOutputData buildModuleOutputData() => moduleOutputData;
 }
 
-Future<void> writeLoadIdsFile(
+Future<void> writeDeferredMapFile(
   Component component,
   CoreTypes coreTypes,
   WasmCompilerOptions options,
   DeferredModuleLoadingMap loadingMap,
 ) async {
-  final file = File.fromUri(options.loadsIdsUri!);
+  final file = File.fromUri(options.deferredMapUri!);
   await file.create(recursive: true);
   await file.writeAsString(
     _generateDeferredMapJson(
