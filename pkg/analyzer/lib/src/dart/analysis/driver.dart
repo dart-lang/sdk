@@ -207,8 +207,8 @@ class AnalysisDriver {
   final _definingClassMemberNameRequests =
       <_GetFilesDefiningClassMemberNameRequest>[];
 
-  /// The requests to compute files referencing a name.
-  final _referencingNameRequests = <_GetFilesReferencingNameRequest>[];
+  /// The requests to compute files referencing any of a set of names.
+  final _referencingNameRequests = <_GetFilesReferencingNamesRequest>[];
 
   /// The mapping from the files for which errors were requested using
   /// [getErrors] to the [Completer]s to report the result.
@@ -834,10 +834,13 @@ class AnalysisDriver {
     return request.completer.future;
   }
 
-  /// Completes with files that reference the given external [name].
-  Future<List<FileState>> getFilesReferencingName(String name) async {
+  /// Completes with files that reference any of the given external [names].
+  Future<List<FileState>> getFilesReferencingNames(Set<String> names) async {
+    if (names.isEmpty) {
+      return const [];
+    }
     discoverAvailableFiles();
-    var request = _GetFilesReferencingNameRequest(name);
+    var request = _GetFilesReferencingNamesRequest(names);
     _referencingNameRequests.add(request);
     _scheduler.notify();
     return request.completer.future;
@@ -1223,9 +1226,9 @@ class AnalysisDriver {
       return;
     }
 
-    // Compute files referencing a name.
+    // Compute files referencing any of a set of names.
     if (_referencingNameRequests.removeLastOrNull() case var request?) {
-      await _getFilesReferencingName(request);
+      await _getFilesReferencingNames(request);
       return;
     }
 
@@ -1837,12 +1840,12 @@ class AnalysisDriver {
     request.completer.complete(result);
   }
 
-  Future<void> _getFilesReferencingName(
-    _GetFilesReferencingNameRequest request,
+  Future<void> _getFilesReferencingNames(
+    _GetFilesReferencingNamesRequest request,
   ) async {
     var result = <FileState>[];
     for (var file in knownFiles) {
-      if (file.referencedNames.contains(request.name)) {
+      if (request.names.any(file.referencedNames.contains)) {
         result.add(file);
       }
     }
@@ -3028,11 +3031,11 @@ class _GetFilesDefiningClassMemberNameRequest {
   _GetFilesDefiningClassMemberNameRequest(this.name);
 }
 
-class _GetFilesReferencingNameRequest {
-  final String name;
+class _GetFilesReferencingNamesRequest {
+  final Set<String> names;
   final completer = Completer<List<FileState>>();
 
-  _GetFilesReferencingNameRequest(this.name);
+  _GetFilesReferencingNamesRequest(this.names);
 }
 
 class _ResolveForCompletionRequest {

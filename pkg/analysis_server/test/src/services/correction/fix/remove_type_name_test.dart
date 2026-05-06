@@ -4,6 +4,7 @@
 
 import 'package:analysis_server/src/services/correction/fix.dart';
 import 'package:analyzer_plugin/utilities/fixes/fixes.dart';
+import 'package:linter/src/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import 'fix_processor.dart';
@@ -31,7 +32,7 @@ class C {
     await assertHasFix(r'''
 class C {
   new name();
-  new ();
+  new();
   factory f() => C();
 }
 ''');
@@ -63,6 +64,23 @@ class C {
 ''');
   }
 
+  Future<void> test_factory_named_withInterveningComment() async {
+    await resolveTestCode('''
+class C {
+  factory /* comment */ C.name() => C._();
+
+  new _();
+}
+''');
+    await assertHasFix('''
+class C {
+  factory /* comment */ name() => C._();
+
+  new _();
+}
+''');
+  }
+
   Future<void> test_factory_unnamed() async {
     await resolveTestCode('''
 class C {
@@ -73,7 +91,24 @@ class C {
 ''');
     await assertHasFix('''
 class C {
-  factory () => C._();
+  factory() => C._();
+
+  new _();
+}
+''');
+  }
+
+  Future<void> test_factory_unnamed_withInterveningComment() async {
+    await resolveTestCode('''
+class C {
+  factory /* comment */ C() => C._();
+
+  new _();
+}
+''');
+    await assertHasFix('''
+class C {
+  factory /* comment */ () => C._();
 
   new _();
 }
@@ -88,7 +123,7 @@ class C {
 ''');
     await assertHasFix('''
 class C {
-  new ();
+  new();
 }
 ''');
   }
@@ -114,8 +149,25 @@ class C {
 ''');
     await assertHasFix('''
 class C {
-  new ();
+  new();
 }
 ''');
+  }
+
+  Future<void> test_new_named() async {
+    await resolveTestCode('''
+class C {
+  new C.name();
+}
+''');
+    await assertHasFix(
+      '''
+class C {
+  new name();
+}
+''',
+      filter: (diagnostic) =>
+          diagnostic.diagnosticCode == diag.unnecessaryTypeNameInConstructor,
+    );
   }
 }

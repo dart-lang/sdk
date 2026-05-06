@@ -33,11 +33,8 @@ class Scanner {
   @visibleForTesting
   static bool preserveCommentsDefaultForTesting = true;
 
-  /// The text to be scanned.
-  final String _contents;
-
-  /// The offset of the first character from the reader.
-  final int _readerOffset;
+  /// The input text to be scanned.
+  final String _inputText;
 
   /// The callback to report diagnostics.
   final void Function(LocatedDiagnostic) reportError;
@@ -50,31 +47,16 @@ class Scanner {
   /// The flag specifying whether documentation comments should be parsed.
   bool _preserveComments = preserveCommentsDefaultForTesting;
   List<int>? _lineStarts;
-  late final Token firstToken;
 
   Version? _overrideVersion;
 
   late FeatureSet _featureSet;
 
-  /// Initializes a scanner to scan the given [contents].
+  /// Initializes a scanner to scan the given [inputText].
   ///
   /// The [reportError] callback will be informed of any errors that are found.
-  factory Scanner(
-    String contents,
-    void Function(LocatedDiagnostic) reportError,
-  ) {
-    return Scanner.fasta(reportError, contents: contents);
-  }
-
-  factory Scanner.fasta(
-    void Function(LocatedDiagnostic) reportError, {
-    required String contents,
-    int offset = -1,
-  }) {
-    return Scanner._(contents, offset, reportError);
-  }
-
-  Scanner._(this._contents, this._readerOffset, this.reportError);
+  Scanner({required String inputText, required this.reportError})
+    : _inputText = inputText;
 
   /// The features associated with this scanner.
   ///
@@ -111,7 +93,7 @@ class Scanner {
   /// Set [reportScannerErrors] `true` when using the old parser.
   Token tokenize({bool reportScannerErrors = true}) {
     fasta.ScannerResult result = fasta.scanString(
-      _contents,
+      _inputText,
       configuration: ExperimentalFeaturesStatus(
         _featureSet,
       ).buildScannerConfiguration(),
@@ -142,16 +124,7 @@ class Scanner {
       }
     }
 
-    firstToken = token;
-    // Update all token offsets based upon the reader's starting offset
-    if (_readerOffset != -1) {
-      int delta = _readerOffset + 1;
-      do {
-        token.offset += delta;
-        token = token.next!;
-      } while (!token.isEof);
-    }
-    return firstToken;
+    return token;
   }
 
   void _languageVersionChanged(

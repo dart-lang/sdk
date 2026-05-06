@@ -375,6 +375,12 @@ class _ReferencedNamesComputer extends GeneralizingAstVisitor<void> {
     names.add(name);
   }
 
+  @override
+  void visitSuperFormalParameter(SuperFormalParameter node) {
+    names.add(node.name.lexeme);
+    super.visitSuperFormalParameter(node);
+  }
+
   /// Adds [token] if it is not shadowed by a local element.
   void _addIfNotShadowed(Token token, {required bool hasImportPrefix}) {
     var name = token.lexeme;

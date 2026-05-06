@@ -761,6 +761,8 @@ mixin ClientCapabilitiesHelperMixin {
     experimentalCapabilities['snippetTextEdit'] = supported;
   }
 
+  /// Sets the supported [CodeActionKind]s for this client. This implies
+  /// `codeActionLiteralSupport`.
   void setSupportedCodeActionKinds(List<CodeActionKind>? kinds) {
     textDocumentCapabilities = extendTextDocumentCapabilities(
       textDocumentCapabilities,

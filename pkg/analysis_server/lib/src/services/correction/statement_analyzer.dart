@@ -20,7 +20,7 @@ import 'package:analyzer_plugin/utilities/range_factory.dart';
 List<Token> _getTokens(String text, FeatureSet featureSet) {
   try {
     var tokens = <Token>[];
-    var scanner = Scanner(text, (_) {})
+    var scanner = Scanner(inputText: text, reportError: (_) {})
       ..configureFeatures(
         featureSetForOverriding: featureSet,
         featureSet: featureSet,

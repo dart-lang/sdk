@@ -1893,6 +1893,28 @@ class A {
 ''');
   }
 
+  test_searchReferences_ConstructorElement_class_named_dotShorthand_otherFile() async {
+    // Note, we don't mention `A`, only the constructor name `foo`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useConstructor() {
+  useA(.foo());
+}
+''');
+    await resolveTestCode('''
+class A {
+  A.foo();
+}
+void useA(A a) {}
+''');
+    var element = findElement2.constructor('foo');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useConstructor@26
+  53 4:9 |foo| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
+''');
+  }
+
   test_searchReferences_ConstructorElement_class_named_newHead() async {
     await resolveTestCode('''
 /// [new A.foo] and [A.foo]
@@ -2031,6 +2053,26 @@ void useConstructor() {
   197 12:4 |.foo| INVOCATION qualified
   208 13:4 |.foo| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
   223 14:10 |foo| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
+''');
+  }
+
+  test_searchReferences_ConstructorElement_class_unnamed_dotShorthand_otherFile() async {
+    // Note, we don't mention `A`, only the constructor name `new`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useConstructor() {
+  useA(.new());
+}
+''');
+    await resolveTestCode('''
+class A {}
+void useA(A a) {}
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useConstructor@26
+  53 4:9 |new| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
 ''');
   }
 
@@ -2276,6 +2318,59 @@ void useConstructor() {
   170 11:4 |.new| INVOCATION qualified
   181 12:4 |.new| REFERENCE_BY_CONSTRUCTOR_TEAR_OFF qualified
   196 13:10 |new| DOT_SHORTHANDS_CONSTRUCTOR_INVOCATION qualified
+''');
+  }
+
+  test_searchReferences_ConstructorElement_class_unnamed_viaTypeAlias_otherFile() async {
+    // Note, we use neither `A` nor `new`, only `B`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+class C extends B {
+  C() : super();
+}
+
+void useConstructor() {
+  B();
+}
+''');
+    await resolveTestCode('''
+class A<T> {}
+typedef B = A<int>;
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart new@null
+  54 4:14 || INVOCATION qualified
+package:test/other.dart useConstructor@66
+  88 8:4 || INVOCATION qualified
+''');
+  }
+
+  test_searchReferences_ConstructorElement_class_unnamed_viaTypeAliasChain_otherFile() async {
+    // Note, we use neither `A` nor `new`, only `C`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+class D extends C {
+  D() : super();
+}
+
+void useConstructor() {
+  C();
+}
+''');
+    await resolveTestCode('''
+class A<T> {}
+typedef B = A<int>;
+typedef C = B;
+''');
+    var element = findElement2.unnamedConstructor('A');
+    await assertElementReferencesText(element, r'''
+package:test/other.dart new@null
+  54 4:14 || INVOCATION qualified
+package:test/other.dart useConstructor@66
+  88 8:4 || INVOCATION qualified
 ''');
   }
 
@@ -5005,6 +5100,53 @@ void useFoo() {
   205 16:11 |foo| REFERENCE qualified
   216 17:7 |foo| INVOCATION qualified
   229 18:7 |foo| REFERENCE qualified
+''');
+  }
+
+  test_searchReferences_MethodElement_normal_ofClass_static_dotShorthand_otherFile() async {
+    // Note, we don't mention `A`, only the method name `foo`.
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useFoo() {
+  useA(.foo());
+}
+''');
+    await resolveTestCode('''
+class A {
+  static A foo() => A();
+}
+void useA(A a) {}
+''');
+    var element = findElement2.method('foo');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useFoo@26
+  45 4:9 |foo| INVOCATION qualified
+''');
+  }
+
+  test_searchReferences_MethodElement_normal_ofClass_static_viaTypeAlias_otherFile() async {
+    newFile('$testPackageLibPath/other.dart', '''
+import 'test.dart';
+
+void useFoo() {
+  B.foo();
+  B.foo;
+}
+''');
+    await resolveTestCode('''
+class A {
+  static A foo() => A();
+}
+typedef B = A;
+''');
+    var element = findElement2.method('foo');
+
+    await assertElementReferencesText(element, r'''
+package:test/other.dart useFoo@26
+  41 4:5 |foo| INVOCATION qualified
+  52 5:5 |foo| REFERENCE qualified
 ''');
   }
 

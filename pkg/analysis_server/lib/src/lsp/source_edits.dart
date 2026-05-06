@@ -667,7 +667,7 @@ class _MinimalEditComputer {
   /// be parsed.
   static Token? _parse(String s, FeatureSet featureSet) {
     try {
-      var scanner = Scanner(s, (_) {})
+      var scanner = Scanner(inputText: s, reportError: (_) {})
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,

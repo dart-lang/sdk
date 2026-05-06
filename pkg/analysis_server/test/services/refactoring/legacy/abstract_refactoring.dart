@@ -6,6 +6,7 @@ import 'package:analysis_server/src/services/correction/status.dart';
 import 'package:analysis_server/src/services/refactoring/legacy/refactoring.dart';
 import 'package:analysis_server/src/services/search/search_engine.dart';
 import 'package:analysis_server/src/services/search/search_engine_internal.dart';
+import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer_plugin/protocol/protocol_common.dart'
     show RefactoringProblemSeverity, SourceChange, SourceEdit;
@@ -117,7 +118,7 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
   }
 
   /// Checks that all conditions of [refactoring] are OK and the result of
-  /// applying the [Change] to [testUnit] is [expectedCode].
+  /// applying the [SourceChange] to [testUnit] is [expectedCode].
   Future<void> assertSuccessfulRefactoring(String expectedCode) async {
     expectedCode = normalizeSource(expectedCode);
     await assertRefactoringConditionsOK();
@@ -152,13 +153,16 @@ abstract class RefactoringTest extends AbstractSingleUnitTest
     expect(actualCode, expectedCode);
   }
 
-  Future<void> indexTestUnit(String code) async {
+  Future<void> indexTestUnit(
+    String code, {
+    List<DiagnosticCode>? ignore,
+  }) async {
     // Make it priority, so the resolved unit stays in memory.
     // So, when we get a local element, and search for it, we use this unit.
     // This is important when local elements equality is identity.
     makeFilePriority(testFile);
 
-    await resolveTestCode(code);
+    await resolveTestCode(code, ignore: ignore);
   }
 
   Future<void> indexUnit(String file, String code) async {

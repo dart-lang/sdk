@@ -9,17 +9,18 @@ import 'package:analysis_server/src/services/search/search_engine_internal.dart'
 import 'package:analysis_server/src/utilities/extensions/selection.dart';
 import 'package:analyzer/dart/element/element.dart';
 import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
+import 'package:analyzer/src/utilities/extensions/element.dart';
 import 'package:analyzer_plugin/utilities/change_builder/change_builder_core.dart';
 import 'package:language_server_protocol/protocol_custom_generated.dart';
 import 'package:language_server_protocol/protocol_generated.dart';
 
-/// The refactoring that removes a name from a named constructor.
-class RemoveConstructorName extends RefactoringProducer {
-  static const String commandName = 'dart.refactor.remove_constructor_name';
+/// The refactoring that removes a prefix from an import directive.
+class RemoveImportPrefix extends RefactoringProducer {
+  static const String commandName = 'dart.refactor.remove_import_prefix';
 
-  static const String constTitle = 'Remove the name from the constructor';
+  static const String constTitle = 'Remove the prefix from the import';
 
-  RemoveConstructorName(super.context);
+  RemoveImportPrefix(super.context);
 
   @override
   bool get isExperimental => false;
@@ -38,30 +39,21 @@ class RemoveConstructorName extends RefactoringProducer {
     List<Object?> commandArguments,
     ChangeBuilder builder,
   ) async {
-    var element = selection?.constructor(mustHaveName: true);
+    var element = selection?.importDirective(mustHavePrefix: true);
     if (element == null) {
       // This should never happen because `isAvailable` would have returned
       // `false`, so this method wouldn't have been called.
       return ComputeStatusFailure();
     }
 
-    for (var constructor in element.enclosingElement.constructors) {
-      if (constructor.name == 'new' || constructor.name == null) {
-        return ComputeStatusFailure(
-          reason: "There's already an unnamed constructor.",
-        );
-      }
-    }
-
     var refactoring = _createRefactoring(element);
     if (refactoring == null) {
       return ComputeStatusFailure();
     }
-
     refactoring.newName = '';
     var status = await refactoring.checkAllConditions();
     if (status.hasError) {
-      return ComputeStatusFailure(reason: status.message);
+      return ComputeStatusFailure();
     }
     await refactoring.createChange(builder: builder);
     return ComputeStatusSuccess();
@@ -69,10 +61,14 @@ class RemoveConstructorName extends RefactoringProducer {
 
   @override
   bool isAvailable() {
-    return selection?.constructor(mustHaveName: true) != null;
+    var import = selection?.importDirective(
+      mustHavePrefix: true,
+      mustNotBeDeferred: true,
+    );
+    return import != null;
   }
 
-  RenameRefactoring? _createRefactoring(ConstructorElement element) {
+  RenameRefactoring? _createRefactoring(LibraryImport import) {
     var analysisContext = libraryResult.session.analysisContext;
     if (analysisContext is! DriverBasedAnalysisContext) {
       return null;
@@ -82,7 +78,7 @@ class RemoveConstructorName extends RefactoringProducer {
     return RenameRefactoring.create(
       RefactoringWorkspace([driver], searchEngine),
       unitResult,
-      element,
+      MockLibraryImportElement(import),
     );
   }
 }

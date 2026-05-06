@@ -84,11 +84,12 @@ ParseStringResult parseString({
   var source = StringSource(content, path ?? '');
   var diagnosticCollector = RecordingDiagnosticListener();
   var diagnosticReporter = DiagnosticReporter(diagnosticCollector, source);
-  var scanner = Scanner(content, diagnosticReporter.report)
-    ..configureFeatures(
-      featureSetForOverriding: featureSet,
-      featureSet: featureSet,
-    );
+  var scanner =
+      Scanner(inputText: content, reportError: diagnosticReporter.report)
+        ..configureFeatures(
+          featureSetForOverriding: featureSet,
+          featureSet: featureSet,
+        );
   var token = scanner.tokenize();
   var languageVersion = LibraryLanguageVersion(
     package: ExperimentStatus.currentVersion,

@@ -252,7 +252,7 @@ class TypesBuilder {
 
   void _fieldFormalParameter(FieldFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    if (fragment.previousFragment != null) {
+    if (_hasPreviousFormalParameterWithType(fragment)) {
       return;
     }
 
@@ -328,6 +328,23 @@ class TypesBuilder {
     }
   }
 
+  /// Whether [fragment] has an earlier fragment that defines the type.
+  ///
+  /// Augmentation linking inserts synthetic fragments so that every executable
+  /// fragment has a complete formal parameter list. These fragments don't
+  /// carry type annotations, so they should not prevent the first AST
+  /// declaration from initializing the element type. Other preceding fragments,
+  /// such as the implicit setter parameter synthesized for a variable, already
+  /// establish the variable element type and later declarations must not
+  /// overwrite it.
+  bool _hasPreviousFormalParameterWithType(
+    FormalParameterFragmentImpl fragment,
+  ) {
+    return fragment.precedingFragments.any(
+      (fragment) => !fragment.isOriginOtherFragmentOfEnclosing,
+    );
+  }
+
   void _methodDeclaration(MethodDeclarationImpl node) {
     var returnType = node.returnType?.type;
     if (returnType == null) {
@@ -365,7 +382,7 @@ class TypesBuilder {
 
   void _regularFormalParameter(RegularFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    if (fragment.previousFragment != null) {
+    if (_hasPreviousFormalParameterWithType(fragment)) {
       return;
     }
 
@@ -414,7 +431,7 @@ class TypesBuilder {
 
   void _superFormalParameter(SuperFormalParameterImpl node) {
     var fragment = node.declaredFragment!;
-    if (fragment.previousFragment != null) {
+    if (_hasPreviousFormalParameterWithType(fragment)) {
       return;
     }
 

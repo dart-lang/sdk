@@ -14,6 +14,7 @@ import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:analyzer/src/summary2/ast_binary_tokens.dart';
 import 'package:analyzer/src/summary2/library_builder.dart';
 import 'package:analyzer/src/summary2/link.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/extensions/object.dart';
 import 'package:collection/collection.dart';
 
@@ -338,9 +339,9 @@ class ElementBuilder {
         currentFragment: fragment,
       );
 
-      fragment.formalParameters = _linkFormalParameters(
-        previousFragments: lastFragment.formalParameters,
-        currentFragments: fragment.formalParameters,
+      _linkFormalParameters(
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       return;
@@ -548,9 +549,9 @@ class ElementBuilder {
         currentFragment: fragment,
       );
 
-      fragment.formalParameters = _linkFormalParameters(
-        previousFragments: lastFragment.formalParameters,
-        currentFragments: fragment.formalParameters,
+      _linkFormalParameters(
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
 
       return;
@@ -589,9 +590,9 @@ class ElementBuilder {
 
     if (setterFragment.isAugmentation && lastSetterFragment != null) {
       lastSetterFragment.addFragment(setterFragment);
-      setterFragment.formalParameters = _linkFormalParameters(
-        previousFragments: lastSetterFragment.formalParameters,
-        currentFragments: setterFragment.formalParameters,
+      _linkFormalParameters(
+        previousFragment: lastSetterFragment,
+        currentFragment: setterFragment,
       );
       return;
     }
@@ -684,9 +685,9 @@ class ElementBuilder {
         currentFragment: fragment,
       );
 
-      fragment.formalParameters = _linkFormalParameters(
-        previousFragments: lastFragment.formalParameters,
-        currentFragments: fragment.formalParameters,
+      _linkFormalParameters(
+        previousFragment: lastFragment,
+        currentFragment: fragment,
       );
       return;
     }
@@ -769,12 +770,11 @@ class ElementBuilder {
     var lastVariableElement = _topLevelVariableElement(lastFragment);
     var lastSetterFragment = lastVariableElement?.setter?.lastFragment;
 
-    if (setterFragment.isAugmentation &&
-        lastSetterFragment is SetterFragmentImpl) {
+    if (setterFragment.isAugmentation && lastSetterFragment != null) {
       lastSetterFragment.addFragment(setterFragment);
-      setterFragment.formalParameters = _linkFormalParameters(
-        previousFragments: lastSetterFragment.formalParameters,
-        currentFragments: setterFragment.formalParameters,
+      _linkFormalParameters(
+        previousFragment: lastSetterFragment,
+        currentFragment: setterFragment,
       );
       return;
     }
@@ -905,105 +905,164 @@ class ElementBuilder {
     libraryBuilder.declare(element, element.reference);
   }
 
-  List<FormalParameterFragmentImpl> _linkFormalParameters({
-    required List<FormalParameterFragmentImpl> previousFragments,
-    required List<FormalParameterFragmentImpl> currentFragments,
+  /// Links formal parameter fragments in an executable augmentation chain.
+  ///
+  /// Each executable fragment's parameter list is kept chain-complete: if a
+  /// parameter exists in another fragment of the same executable, missing
+  /// fragments are represented by `isOriginOtherFragmentOfEnclosing`
+  /// parameters. Consumers that need the parameters declared by a concrete AST
+  /// node should filter to `isOriginDeclaration`.
+  void _linkFormalParameters({
+    required ExecutableFragmentImpl previousFragment,
+    required ExecutableFragmentImpl currentFragment,
   }) {
+    var previousParameters = previousFragment.formalParameters;
+    var currentParameters = currentFragment.formalParameters;
+
     int getPositionalSize(List<FormalParameterFragmentImpl> fragments) {
       return fragments.takeWhile((f) => f.isPositional).length;
     }
 
-    FormalParameterFragmentImpl createFragment(
-      FormalParameterFragmentImpl previousParameter,
+    FormalParameterFragmentImpl createSyntheticFragment(
+      FormalParameterFragmentImpl template,
     ) {
-      switch (previousParameter) {
+      switch (template) {
         case FieldFormalParameterFragmentImpl():
           return FieldFormalParameterFragmentImpl(
-            name: previousParameter.name,
+            name: template.name,
             nameOffset: null,
-            parameterKind: previousParameter.parameterKind,
-            privateName: previousParameter.privateName,
+            parameterKind: template.parameterKind,
+            privateName: template.privateName,
           )..isOriginOtherFragmentOfEnclosing = true;
         case SuperFormalParameterFragmentImpl():
           return SuperFormalParameterFragmentImpl(
-            name: previousParameter.name,
+            name: template.name,
             nameOffset: null,
-            parameterKind: previousParameter.parameterKind,
+            parameterKind: template.parameterKind,
           )..isOriginOtherFragmentOfEnclosing = true;
         default:
           return FormalParameterFragmentImpl(
-            name: previousParameter.name,
+            name: template.name,
             nameOffset: null,
-            parameterKind: previousParameter.parameterKind,
+            parameterKind: template.parameterKind,
           )..isOriginOtherFragmentOfEnclosing = true;
       }
     }
 
-    var currentPositionalSize = getPositionalSize(currentFragments);
-    var resultPositional = currentFragments.sublist(0, currentPositionalSize);
-    var currentNamed = currentFragments.sublist(currentPositionalSize);
+    Iterable<ExecutableFragmentImpl> precedingFragmentsOldestFirst() {
+      return currentFragment.precedingFragments
+          .cast<ExecutableFragmentImpl>()
+          .toList()
+          .reversed;
+    }
 
-    var previousPositionalSize = getPositionalSize(previousFragments);
-    var previousPositional = previousFragments.sublist(
-      0,
+    void growPrecedingFragmentsWithPositional({
+      required int index,
+      required FormalParameterFragmentImpl template,
+    }) {
+      FormalParameterFragmentImpl? previousSyntheticParameter;
+      for (var fragmentToGrow in precedingFragmentsOldestFirst()) {
+        var syntheticParameter = createSyntheticFragment(template);
+
+        var newParameters = fragmentToGrow.formalParameters.toList();
+        newParameters.insert(index, syntheticParameter);
+        fragmentToGrow.formalParameters = newParameters;
+
+        previousSyntheticParameter?.addFragment(syntheticParameter);
+        previousSyntheticParameter = syntheticParameter;
+      }
+    }
+
+    void growPrecedingFragmentsWithNamed(
+      FormalParameterFragmentImpl currentParameter,
+    ) {
+      FormalParameterFragmentImpl? previousSyntheticParameter;
+      for (var fragmentToGrow in precedingFragmentsOldestFirst()) {
+        var syntheticParameter = createSyntheticFragment(currentParameter);
+
+        fragmentToGrow.formalParameters = [
+          ...fragmentToGrow.formalParameters,
+          syntheticParameter,
+        ];
+
+        previousSyntheticParameter?.addFragment(syntheticParameter);
+        previousSyntheticParameter = syntheticParameter;
+      }
+
+      previousSyntheticParameter?.addFragment(currentParameter);
+    }
+
+    var previousPositionalSize = getPositionalSize(previousParameters);
+    var currentPositionalSize = getPositionalSize(currentParameters);
+
+    // Grow all previous fragments if current has more positional parameters.
+    if (previousPositionalSize < currentPositionalSize) {
+      for (var i = previousPositionalSize; i < currentPositionalSize; i++) {
+        growPrecedingFragmentsWithPositional(
+          index: i,
+          template: currentParameters[i],
+        );
+      }
+    }
+
+    // Refresh lists after growing.
+    previousParameters = previousFragment.formalParameters;
+    currentParameters = currentFragment.formalParameters;
+    previousPositionalSize = getPositionalSize(previousParameters);
+    currentPositionalSize = getPositionalSize(currentParameters);
+
+    var (previousPositional, previousNamed) = previousParameters.splitAt(
       previousPositionalSize,
     );
-    var previousNamed = previousFragments.sublist(previousPositionalSize);
+    var (currentPositionalResult, currentNamedResult) = currentParameters
+        .splitAt(currentPositionalSize);
+    var hasSyntheticCurrentParameter = false;
 
-    // Trim extra positional parameters.
-    if (previousPositionalSize < currentPositionalSize) {
-      // Recovery: phases that use AST, get fragment and expect element.
-      // TODO(scheglov): switch these phases to fragments
-      for (var i = previousPositionalSize; i < currentPositionalSize; i++) {
-        resultPositional[i].initElement();
-      }
-      resultPositional.length = previousPositional.length;
+    // Synthesize missing positional parameters in current fragment.
+    while (currentPositionalResult.length < previousPositional.length) {
+      var previousParameter =
+          previousPositional[currentPositionalResult.length];
+      var syntheticParameter = createSyntheticFragment(previousParameter);
+      currentPositionalResult.add(syntheticParameter);
+      hasSyntheticCurrentParameter = true;
     }
 
-    // Synthesize missing positional parameters.
-    if (previousPositional.length > resultPositional.length) {
-      for (var i = currentPositionalSize; i < previousPositionalSize; i++) {
-        var previousParameter = previousPositional[i];
-        resultPositional.add(createFragment(previousParameter));
-      }
+    for (var i = 0; i < currentPositionalResult.length; i++) {
+      previousPositional[i].addFragment(currentPositionalResult[i]);
     }
 
-    for (var i = 0; i < resultPositional.length; i++) {
-      previousPositional[i].addFragment(resultPositional[i]);
-    }
-
-    var resultNamed = <FormalParameterFragmentImpl>[];
-    var previousNamedMap = <String, List<FormalParameterFragmentImpl>>{};
+    var previousNamedMap = <String?, List<FormalParameterFragmentImpl>>{};
     for (var previousParameter in previousNamed) {
-      (previousNamedMap[previousParameter.name!] ??=
-              <FormalParameterFragmentImpl>[])
-          .add(previousParameter);
+      previousNamedMap.add(previousParameter.name, previousParameter);
     }
 
     // Link common formal parameters between previous and current fragments.
-    for (var currentParameter in currentNamed) {
-      var previousParameters = previousNamedMap[currentParameter.name];
-      if (previousParameters != null && previousParameters.isNotEmpty) {
-        var previousParameter = previousParameters.removeAt(0);
+    for (var currentParameter in currentNamedResult) {
+      var previousParameter = previousNamedMap[currentParameter.name]
+          ?.removeFirstOrNull();
+      if (previousParameter != null) {
         previousParameter.addFragment(currentParameter);
-        resultNamed.add(currentParameter);
       } else {
-        // Recovery: phases that use AST, get fragment and expect element.
-        // TODO(scheglov): switch these phases to fragments
-        currentParameter.initElement();
+        growPrecedingFragmentsWithNamed(currentParameter);
       }
     }
 
-    // Synthesize missing named parameters.
+    // Synthesize missing named parameters in current fragment.
     for (var previousParameters in previousNamedMap.values) {
       for (var previousParameter in previousParameters) {
-        var parameter = createFragment(previousParameter);
-        previousParameter.addFragment(parameter);
-        resultNamed.add(parameter);
+        var syntheticParameter = createSyntheticFragment(previousParameter);
+        previousParameter.addFragment(syntheticParameter);
+        currentNamedResult.add(syntheticParameter);
+        hasSyntheticCurrentParameter = true;
       }
     }
 
-    return [...resultPositional, ...resultNamed];
+    if (hasSyntheticCurrentParameter) {
+      currentFragment.formalParameters = [
+        ...currentPositionalResult,
+        ...currentNamedResult,
+      ];
+    }
   }
 
   void _linkTypeParameters({

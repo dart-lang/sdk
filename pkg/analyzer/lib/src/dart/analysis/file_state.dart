@@ -620,11 +620,12 @@ class FileState {
       performance.getDataInt('length').add(code.length);
 
       var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
-      Scanner scanner = Scanner(code, diagnosticReporter.report)
-        ..configureFeatures(
-          featureSetForOverriding: featureSet,
-          featureSet: featureSet.restrictToVersion(packageLanguageVersion),
-        );
+      Scanner scanner =
+          Scanner(inputText: code, reportError: diagnosticReporter.report)
+            ..configureFeatures(
+              featureSetForOverriding: featureSet,
+              featureSet: featureSet.restrictToVersion(packageLanguageVersion),
+            );
       scanner.preserveComments = scanComments;
       Token token = scanner.tokenize(reportScannerErrors: false);
       LineInfo lineInfo = LineInfo(scanner.lineStarts);

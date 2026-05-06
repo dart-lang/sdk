@@ -4161,6 +4161,15 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     return enclosingFragment?.libraryFragment;
   }
 
+  @override
+  Iterable<FormalParameterFragmentImpl> get precedingFragments sync* {
+    var current = previousFragment;
+    while (current != null) {
+      yield current;
+      current = current.previousFragment;
+    }
+  }
+
   /// The type parameters defined by this parameter.
   ///
   /// A parameter will only define type parameters if it is a function typed
@@ -4225,10 +4234,10 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
           index++;
         }
 
-        var namedMap = <String, List<FormalParameterFragmentImpl>>{};
+        var namedMap = <String?, List<FormalParameterFragmentImpl>>{};
         for (var i = index; i < length; i++) {
           var f = currentFragments[i];
-          (namedMap[f.name!] ??= <FormalParameterFragmentImpl>[]).add(f);
+          (namedMap[f.name] ??= <FormalParameterFragmentImpl>[]).add(f);
         }
 
         for (var i = index; i < length; i++) {

@@ -3,7 +3,6 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'package:analysis_server/lsp_protocol/protocol.dart';
-import 'package:analysis_server/src/lsp/extensions/code_action.dart';
 import 'package:analysis_server/src/services/refactoring/add_constructor_name.dart';
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
@@ -482,17 +481,15 @@ void f() {
 
 abstract class _AddConstructorNameTest extends RefactoringTest {
   @override
-  String get refactoringName => AddConstructorName.commandName;
+  String get refactoringCommandId => AddConstructorName.commandName;
+
+  String get refactoringTitle => AddConstructorName.constTitle;
 
   Future<void> _assertNoRefactoring({required String originalSource}) async {
-    if (originalSource.contains('>>>>')) {
-      throw 'File content must not include >>>>>';
-    }
-    addTestSource(originalSource);
-
-    await initializeServer();
-
-    await expectNoCodeActionWithTitle(AddConstructorName.constTitle);
+    await assertNoRefactoring(
+      originalSource: originalSource,
+      refactoringTitle: refactoringTitle,
+    );
   }
 
   Future<void> _assertRefactoring({
@@ -502,22 +499,13 @@ abstract class _AddConstructorNameTest extends RefactoringTest {
     String? otherFileContent,
     ProgressToken? commandWorkDoneToken,
   }) async {
-    if (originalSource.contains('>>>>') ||
-        (otherFileContent?.contains('>>>>>') ?? false)) {
-      throw 'File content must not include >>>>>';
-    }
-    addTestSource(originalSource);
-    if (otherFilePath != null) {
-      newFile(otherFilePath, otherFileContent!);
-    }
-
-    await initializeServer();
-
-    var action = await expectCodeActionWithTitle(AddConstructorName.constTitle);
-    await verifyCommandEdits(
-      action.command!,
-      expected,
-      workDoneToken: commandWorkDoneToken,
+    await assertRefactoring(
+      originalSource: originalSource,
+      expected: expected,
+      refactoringTitle: refactoringTitle,
+      otherFilePath: otherFilePath,
+      otherFileContent: otherFileContent,
+      commandWorkDoneToken: commandWorkDoneToken,
     );
   }
 }

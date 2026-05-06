@@ -277,7 +277,10 @@ class Scrape {
     var stringSource = StringSource(source, file.path);
     var diagnosticReporter =
         DiagnosticReporter(diagnosticListener, stringSource);
-    var scanner = Scanner(source, diagnosticReporter.report);
+    var scanner = Scanner(
+        inputText: source,
+        reportError:  diagnosticReporter.report,
+    );
     scanner.configureFeatures(
         featureSet: featureSet, featureSetForOverriding: featureSet);
     var startToken = scanner.tokenize();

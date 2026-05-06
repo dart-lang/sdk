@@ -217,7 +217,7 @@ class Driver {
   List<int> _getBreakOffsets(String text) {
     var breakOffsets = <int>[];
     var featureSet = FeatureSet.latestLanguageVersion();
-    var scanner = Scanner(text, (_) {})
+    var scanner = Scanner(inputText: text, reportError: (_) {})
       ..configureFeatures(
         featureSetForOverriding: featureSet,
         featureSet: featureSet,

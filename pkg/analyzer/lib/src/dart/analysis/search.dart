@@ -19,6 +19,7 @@ import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/summary/idl.dart';
 import 'package:analyzer/src/util/performance/operation_performance.dart';
 import 'package:analyzer/src/utilities/cancellation.dart';
+import 'package:analyzer/src/utilities/extensions/collection.dart';
 import 'package:analyzer/src/utilities/fuzzy_matcher.dart';
 import 'package:collection/collection.dart';
 
@@ -594,7 +595,7 @@ class Search {
     }
 
     // Prepare the list of files that reference the name.
-    var files = await _driver.getFilesReferencingName(name);
+    var files = await _driver.getFilesReferencingNames({name});
 
     // Check the index of every file that references the element name.
     List<SearchResult> results = [];
@@ -629,59 +630,69 @@ class Search {
     List<FileState>? filesToCheck,
   }) async {
     // Prepare the element name.
-    String name = element.displayName;
-    var externalElement = element;
-    if (externalElement case FormalParameterElement(:var enclosingElement?)) {
-      externalElement = enclosingElement;
-    }
-    if (externalElement is ConstructorElement) {
-      name = externalElement.enclosingElement.displayName;
-    }
-
-    var elementPath = element.firstFragment.libraryFragment?.source.fullName;
-    if (elementPath == null) {
+    var name = element.name;
+    if (name == null) {
       return;
     }
 
-    var elementFile = _driver.fsState.getExistingFromPath(elementPath);
-    if (elementFile == null) {
+    // Might be an element of FunctionType, not an actual declaration.
+    if (element.firstFragment.libraryFragment == null) {
       return;
     }
 
-    // Prepare the list of files that reference the element name.
-    var files = <FileState>[];
-    if (name.startsWith('_')) {
-      String libraryPath = element.library!.firstFragment.source.fullName;
+    var referenceNames = <String>{name};
+    var librariesToSearch = <LibraryElement>{};
+    if (element.library case var library?) {
+      librariesToSearch.add(library);
+    }
+
+    if (element case ConstructorElement constructorElement) {
+      // The unnamed constructor can be referenced without its name.
+      // So, add names of the declaring interface and all aliases.
+      if (constructorElement.name == 'new') {
+        var interfaceElement = constructorElement.enclosingElement;
+        referenceNames.addIfNotNull(interfaceElement.name);
+        librariesToSearch.add(interfaceElement.library);
+
+        var typeAliases = await _getTypeAliasesOfInterface(interfaceElement);
+        for (var typeAlias in typeAliases) {
+          referenceNames.addIfNotNull(typeAlias.name);
+          librariesToSearch.add(typeAlias.library);
+        }
+      }
+    }
+
+    var files = <FileState>{};
+
+    void addLibraryFiles(LibraryElement library) {
+      String libraryPath = library.firstFragment.source.fullName;
       if (searchedFiles.add(libraryPath, this)) {
         var libraryFile = _driver.fsState.getFileForPath(libraryPath);
-        var libraryKind = libraryFile.kind;
-        if (libraryKind is LibraryFileKind) {
-          for (var file in libraryKind.files) {
-            if (file == elementFile || file.referencedNames.contains(name)) {
-              files.add(file);
-            }
-          }
+        if (libraryFile.kind case LibraryFileKind libraryKind) {
+          files.addAll(libraryKind.files);
         }
+      }
+    }
+
+    // Prepare the list of files that reference one of the names that can
+    // syntactically denote the element.
+    if (name.startsWith('_')) {
+      for (var library in librariesToSearch) {
+        addLibraryFiles(library);
       }
     } else {
       if (filesToCheck != null) {
         for (FileState file in filesToCheck) {
-          if (file.referencedNames.contains(name)) {
+          if (referenceNames.any(file.referencedNames.contains)) {
             files.add(file);
           }
         }
       } else {
-        files = await _driver.getFilesReferencingName(name);
+        files.addAll(await _driver.getFilesReferencingNames(referenceNames));
       }
-      // Add all files of the library.
-      if (elementFile.kind.library case var library?) {
-        for (var file in library.files) {
-          if (searchedFiles.add(file.path, this)) {
-            if (!files.contains(file)) {
-              files.add(file);
-            }
-          }
-        }
+      // Add all files of libraries that declare the elements.
+      for (var library in librariesToSearch) {
+        addLibraryFiles(library);
       }
     }
 
@@ -718,6 +729,35 @@ class Search {
         results.addAll(fileResults);
       }
     }
+  }
+
+  /// Returns aliases that can denote [interfaceElement] in source.
+  Future<List<TypeAliasElement>> _getTypeAliasesOfInterface(
+    InterfaceElement interfaceElement,
+  ) async {
+    var result = <TypeAliasElement>[];
+    var pending = <Element>[interfaceElement];
+    var seen = Set<Element>.identity()..add(interfaceElement);
+
+    bool isAliasForInterface(TypeAliasElement alias) {
+      return identical(alias.aliasedType.element, interfaceElement);
+    }
+
+    while (pending.isNotEmpty) {
+      var element = pending.removeLast();
+      var searchResults = await _searchReferences(element, SearchedFiles());
+      for (var searchResult in searchResults) {
+        var enclosingFragment = searchResult.enclosingFragment;
+        if (enclosingFragment.element case TypeAliasElement alias) {
+          if (isAliasForInterface(alias) && seen.add(alias)) {
+            result.add(alias);
+            pending.add(alias);
+          }
+        }
+      }
+    }
+
+    return result;
   }
 
   Future<LibraryFragmentImpl?> _getUnitElement(String file) async {

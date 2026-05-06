@@ -60,11 +60,12 @@ ParseStringResult sortDirectives(String contents, {String? fileName}) {
     flags: [],
   );
   var diagnosticReporter = DiagnosticReporter(diagnosticListener, source);
-  var scanner = Scanner(contents, diagnosticReporter.report)
-    ..configureFeatures(
-      featureSetForOverriding: FeatureSet.latestLanguageVersion(),
-      featureSet: featureSet,
-    );
+  var scanner =
+      Scanner(inputText: contents, reportError: diagnosticReporter.report)
+        ..configureFeatures(
+          featureSetForOverriding: FeatureSet.latestLanguageVersion(),
+          featureSet: featureSet,
+        );
   var token = scanner.tokenize(reportScannerErrors: false);
   var lineInfo = LineInfo(scanner.lineStarts);
   var languageVersion = LibraryLanguageVersion(

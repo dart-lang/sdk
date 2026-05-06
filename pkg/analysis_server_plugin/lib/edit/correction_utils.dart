@@ -454,7 +454,7 @@ class TokenUtils {
   static List<Token> getTokens(String s, FeatureSet featureSet) {
     try {
       var tokens = <Token>[];
-      var scanner = Scanner(s, (_) {})
+      var scanner = Scanner(inputText: s, reportError: (_) {})
         ..configureFeatures(
           featureSetForOverriding: featureSet,
           featureSet: featureSet,

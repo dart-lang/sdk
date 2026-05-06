@@ -1783,7 +1783,7 @@ mixin D {
     await driver.assertFilesDefiningClassMemberName('m3', [d]);
   }
 
-  test_getFilesReferencingName() async {
+  test_getFilesReferencingNames() async {
     var a = newFile('$testPackageLibPath/a.dart', r'''
 class A {}
 ''');
@@ -1819,21 +1819,21 @@ void main() {}
     // `c` references an external `A`.
     // `d` references the local `A`.
     // `e` does not reference `A` at all.
-    await driver.assertFilesReferencingName(
-      'A',
+    await driver.assertFilesReferencingNames(
+      {'A'},
       includesAll: [b, c],
       excludesAll: [d, e],
     );
 
     // We get the same results second time.
-    await driver.assertFilesReferencingName(
-      'A',
+    await driver.assertFilesReferencingNames(
+      {'A'},
       includesAll: [b, c],
       excludesAll: [d, e],
     );
   }
 
-  test_getFilesReferencingName_discover() async {
+  test_getFilesReferencingNames_discover() async {
     writeTestPackageConfig(
       PackageConfigFileBuilder()
         ..add(name: 'aaa', rootFolder: getFolder('$packagesRootPath/aaa'))
@@ -1859,10 +1859,62 @@ int c = 0;
     var driver = driverFor(testFile);
     driver.addFile2(t);
 
-    await driver.assertFilesReferencingName(
-      'int',
+    await driver.assertFilesReferencingNames(
+      {'int'},
       includesAll: [t, a, b],
       excludesAll: [c],
+    );
+  }
+
+  test_getFilesReferencingNames_multiple() async {
+    var a = newFile('$testPackageLibPath/a.dart', r'''
+class A {}
+''');
+
+    var b = newFile('$testPackageLibPath/b.dart', r'''
+class B {}
+''');
+
+    var c = newFile('$testPackageLibPath/c.dart', r'''
+import 'a.dart';
+void f(A a) {}
+''');
+
+    var d = newFile('$testPackageLibPath/d.dart', r'''
+import 'b.dart';
+void f(B b) {}
+''');
+
+    var e = newFile('$testPackageLibPath/e.dart', r'''
+import 'a.dart';
+import 'b.dart';
+void f(A a, B b) {}
+''');
+
+    var f = newFile('$testPackageLibPath/f.dart', r'''
+class A {}
+class B {}
+void f(A a, B b) {}
+''');
+
+    var g = newFile('$testPackageLibPath/g.dart', r'''
+import 'a.dart';
+void main() {}
+''');
+
+    var driver = driverFor(testFile);
+    driver.addFile2(a);
+    driver.addFile2(b);
+    driver.addFile2(c);
+    driver.addFile2(d);
+    driver.addFile2(e);
+    driver.addFile2(f);
+    driver.addFile2(g);
+
+    await driver.assertFilesReferencingNames(
+      {'A', 'B'},
+      includesAll: [c, d, e],
+      excludesAll: [f, g],
     );
   }
 
@@ -5781,7 +5833,7 @@ class A2 {}
 ''');
 
     // Any work transitions to analyzing, and back to idle.
-    await driver.getFilesReferencingName('X');
+    await driver.getFilesReferencingNames({'X'});
     await assertEventsText(collector, r'''
 [status] working
 [status] idle
@@ -102683,12 +102735,12 @@ extension on AnalysisDriver {
     expect(files, unorderedEquals(expected));
   }
 
-  Future<void> assertFilesReferencingName(
-    String name, {
+  Future<void> assertFilesReferencingNames(
+    Set<String> names, {
     required List<File?> includesAll,
     required List<File?> excludesAll,
   }) async {
-    var fileStateList = await getFilesReferencingName(name);
+    var fileStateList = await getFilesReferencingNames(names);
     var files = fileStateList.resources;
     for (var expected in includesAll) {
       expect(files, contains(expected));

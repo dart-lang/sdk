@@ -124,7 +124,9 @@ mixin SharedDtdTests
       range: code.range.range,
     );
 
-    // Ensure all returned actions are Commands (not CodeActionLiterals).
+    // Ensure all returned actions are Commands not CodeActionLiterals, because
+    // our simple DTD client capabilities did not advertise CodeActionLiteral
+    // support (because we cannot accept inline edits at a non-editor caller).
     var commands = actions.map((action) => action.asCommand).toList();
 
     // Find the one with the matching title.
@@ -132,7 +134,7 @@ mixin SharedDtdTests
     return commands.singleWhere((command) => command.title == title);
   }
 
-  Future<void> expectedCommandCodeActionEdits(
+  Future<void> expectCommandCodeActionEdits(
     TestCode code,
     String title,
     String expected,
@@ -369,7 +371,7 @@ var a = [!''!];
 var a = "";
 ''';
 
-    await expectedCommandCodeActionEdits(code, title, expected);
+    await expectCommandCodeActionEdits(code, title, expected);
   }
 
   Future<void> test_service_codeAction_fix() async {
@@ -386,7 +388,7 @@ Future<void> [!f!]() {}
 Future<void> f() async {}
 ''';
 
-    await expectedCommandCodeActionEdits(code, title, expected);
+    await expectCommandCodeActionEdits(code, title, expected);
   }
 
   Future<void> test_service_codeAction_refactor() async {
@@ -410,7 +412,7 @@ void newMethod() {
 }
 ''';
 
-    await expectedCommandCodeActionEdits(code, title, expected);
+    await expectCommandCodeActionEdits(code, title, expected);
   }
 
   Future<void> test_service_codeAction_source() async {
@@ -431,7 +433,7 @@ import 'dart:async';
 FutureOr<void>? a;
 ''';
 
-    await expectedCommandCodeActionEdits(code, title, expected);
+    await expectCommandCodeActionEdits(code, title, expected);
   }
 
   Future<void> test_service_failure_hover() async {

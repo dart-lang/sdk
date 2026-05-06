@@ -339,7 +339,23 @@ class DartCodeActionsProducer extends AbstractCodeActionsProducer {
       refactorActions.addAll(
         actions
             .where((literal) => shouldIncludeKind(literal.kind))
-            .map(CodeAction.t1),
+            // If the caller doesn't support code action literals, filter out
+            // any actions with inline edits...
+            .where((literal) => allowCodeActionLiterals || literal.edit == null)
+            // ... and also extract the command from them to send directly.
+            .map((literal) {
+              if (allowCodeActionLiterals) {
+                return CodeAction.t1(literal);
+              } else {
+                var command = literal.command;
+                assert(
+                  command != null,
+                  'CodeAction "${literal.title}" has no edit and no command',
+                );
+                return command != null ? CodeAction.t2(command) : null;
+              }
+            })
+            .nonNulls,
       );
 
       // Extracts
