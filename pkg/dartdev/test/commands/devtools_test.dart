@@ -140,7 +140,13 @@ void devtools() {
           .join();
       client.close();
 
-      expect(contents, contains('DevTools'));
+      // This is a sanity check to make sure we're actually getting the content
+      // we expect. This String is in the DevTools index.html file:
+      // https://github.com/flutter/devtools/blob/master/packages/devtools_app/web/index.html#L14.
+      expect(
+        contents,
+        contains('Note: This tag is replaced when served through DDS!'),
+      );
 
       // kill the process
       process!.kill();

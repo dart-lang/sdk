@@ -105,7 +105,7 @@ vars = {
   "boringssl_rev": "a1c146745137642dfb53a1ec12ebe79817b31584",
   "browser-compat-data_tag": "ac8cae697014da1ff7124fba33b0b4245cc6cd1b", # v1.0.22
   "cpu_features_rev": "936b9ab5515dead115606559502e3864958f7f6e",
-  "devtools_rev": "fa063f322c03cc7a690d819db124c196a69cff56",
+  "devtools_rev": "23a1bf0ff30bc83b1dc16045d6d9b15da9b4bc9c",
   # Use the SHA found in `flutter-candidate.txt` in the devtools repo.
   "flutter_rev": "49233d08009d7e3313da0bfbd859960d14d9c90c",
   "icu_rev": "a86a32e67b8d1384b33f8fa48c83a6079b86f8cd",
@@ -134,26 +134,26 @@ vars = {
   ### /third_party/pkg dependencies
   # 'tools/rev_sdk_deps.dart' will rev pkg dependencies to their latest; put an
   # EOL comment after a dependency to instead pin at the current revision.
-  "ai_rev": "7270c43155f03423966891fe65a69676c7fdefc5",
+  "ai_rev": "9c96bfe5f091c9451eff5b59c9bffeb2e806b875",
   "core_rev": "be0b1531c445a185d3e93887b8d0355fc766c314",
-  "dartdoc_rev": "2e30b8e3494d8df041f3ef2256ccfd87a952ea22",
-  "ecosystem_rev": "ed4e053089e92300cc8dd5291bafef502a636ca5",
+  "dartdoc_rev": "77a52b6125ce8cc8a88a8a399d80701254e43838",
+  "ecosystem_rev": "319ff812d463fc194999a0d4b682097450279332",
   "flute_rev": "b84119fba67016a80c3eb80765762bcc4d0d0b8d",
-  "http_rev": "2c84f242401676c2cd026688301dd21a29b5f129",
+  "http_rev": "c140dc012da1df74b0fb99230b8736438b8eba6a",
   "i18n_rev": "2ae32fdd9ca14ecdca77dc37787dbba3c9e2c48a",
   "leak_tracker_rev": "f5620600a5ce1c44f65ddaa02001e200b096e14c", # rolled manually
   "material_color_utilities_rev": "799b6ba2f3f1c28c67cc7e0b4f18e0c7d7f3c03e",
   "native_rev": "2f0b168e61588a7c504cba544036be3c3b63f6e6", # rolled manually while record_use is experimental
   "protobuf_rev": "84079e8b8531309e06ba7276b1c28bdca9210ad6",
   "pub_rev": "74408212b5348003381bc63f3b59274aaa23cfa3", # rolled manually
-  "shelf_rev": "cc6b57dff13d74c3484e23197180547a47229598",
+  "shelf_rev": "74d58bc1499115f91f8120dbd08f77c83f7f343d",
   "sync_http_rev": "6666fff944221891182e1f80bf56569338164d72",
   "tar_rev": "13479f7c2a18f499e840ad470cfcca8c579f6909",
-  "test_rev": "d5da9229e3dd3da95194c79f0b929c08432e6ec5",
-  "tools_rev": "c0dc794b516ed1f7e54359bbb0b8edff4d113d84",
+  "test_rev": "14f99ecdcb74778654d936ce26c70798a3b6649f",
+  "tools_rev": "6a7dd15748e63db7d41cfee8294c54636b668f41",
   "vector_math_rev": "7bf60fb95e0fbbd7648944071de9ab5e32ce7387",
-  "web_rev": "7c908b1f96117d0b6ea84a263d4bc2fa68a847bb",
-  "webdev_rev": "d33d27044f2171da5f3f31ec52ba1dcc14a54440",
+  "web_rev": "294391c659526ecd0392eff2ccf133b07f9e1f80",
+  "webdev_rev": "f9a56607fac5ad0c979d2647cf11d3e3be993bf6",
   "webdriver_rev": "3a711ebb36871eac997c5d5d2429f7414873dc63",
   "webkit_inspection_protocol_rev": "762115a971d1968bc940454ad1e88d506d8c5640",
 
