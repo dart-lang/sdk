@@ -22,7 +22,7 @@ class FactoryFragment implements Fragment, FunctionFragment {
 
   final LookupScope typeParameterScope;
   final List<FormalParameterBuilder>? formals;
-  final AsyncMarker asyncModifier;
+  final AsyncModifier asyncModifier;
   final String? nativeMethodName;
   final ConstructorReferenceBuilder? redirectionTarget;
   final DeclarationFragment enclosingDeclaration;

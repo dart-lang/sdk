@@ -12,6 +12,7 @@ import '../../builder/type_builder.dart';
 import '../../kernel/body_builder_context.dart';
 import '../../source/source_library_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../type_inference/context_allocation_strategy.dart';
 import 'declaration.dart';
 
@@ -64,7 +65,7 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
   void registerFunctionBody({
     required Statement? body,
     required ScopeProviderInfo? scopeProviderInfo,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
   }) {
     _declaration.registerFunctionBody(
@@ -72,7 +73,7 @@ class GetterFragmentBodyBuilderContext extends BodyBuilderContext {
       scope: scopeProviderInfo
           // Coverage-ignore(suite): Not run.
           ?.scope,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
       thisVariable: scopeProviderInfo
           // Coverage-ignore(suite): Not run.

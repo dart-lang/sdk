@@ -29,6 +29,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
@@ -313,7 +314,7 @@ class RegularSetterDeclaration
     required ProblemReporting problemReporting,
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
@@ -349,16 +350,16 @@ class RegularSetterDeclaration
       ], fileOffset: fileOffset);
     }
     assert(
-      asyncMarker == _fragment.asyncModifier,
+      asyncModifier.kind == _fragment.asyncModifier.kind,
       "Unexpected change in async modifier on $this from "
-      "${_fragment.asyncModifier} to $asyncMarker.",
+      "${_fragment.asyncModifier} to ${asyncModifier.kind}.",
     );
     _encoding.registerFunctionBody(
       body: body,
       // TODO(cstefantsova): Update scope to handle the insertion of parameters
       // as locals above.
       scope: scope,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
       thisVariable: thisVariable,
     );
@@ -409,7 +410,7 @@ abstract class SetterFragmentDeclaration {
     required ProblemReporting problemReporting,
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   });

@@ -51,7 +51,7 @@ class SetterFragment implements Fragment, FunctionFragment {
   /// The declared formals on this setter.
   final List<FormalParameterBuilder>? declaredFormals;
 
-  final AsyncMarker asyncModifier;
+  final AsyncModifier asyncModifier;
   final String? nativeMethodName;
 
   final DeclarationFragment? enclosingDeclaration;

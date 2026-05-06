@@ -39,6 +39,7 @@ import '../kernel/body_builder.dart'
 import '../kernel/expression_generator.dart' as type;
 import '../kernel/internal_ast.dart' as type;
 import 'outline_builder.dart' as type;
+import 'stack_listener_impl.dart' as type;
 
 class ValueKinds {
   static const ValueKind AnnotationList =
@@ -54,10 +55,8 @@ class ValueKinds {
       const SingleValueKind<type.Token>(NullValues.Arguments);
   static const ValueKind AssignedVariablesNodeInfo =
       const SingleValueKind<type.AssignedVariablesNodeInfo>();
-  static const ValueKind AsyncMarker =
-      const SingleValueKind<type.AsyncMarker>();
   static const ValueKind AsyncModifier =
-      const SingleValueKind<type.AsyncMarker>();
+      const SingleValueKind<type.AsyncModifier>();
   static const ValueKind AwaitTokenOrNull = const SingleValueKind<type.Token>(
     NullValues.AwaitToken,
   );

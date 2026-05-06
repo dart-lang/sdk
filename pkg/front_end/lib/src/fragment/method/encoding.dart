@@ -31,6 +31,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_method_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
@@ -96,7 +97,7 @@ sealed class MethodEncoding implements InferredTypeListener {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   });
@@ -224,7 +225,7 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
     FunctionNode function =
         new FunctionNode(
             isAbstractOrExternal ? null : new EmptyStatement(),
-            asyncMarker: _fragment.asyncModifier,
+            asyncMarker: _fragment.asyncModifier.kind,
           )
           ..fileOffset = _fragment.formalsOffset
           ..fileEndOffset = _fragment.endOffset;
@@ -392,14 +393,14 @@ mixin _DirectMethodEncodingMixin implements MethodEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }
@@ -591,7 +592,7 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
             isAbstractOrExternal ? null : new EmptyStatement(),
             typeParameters: typeParameters,
             positionalParameters: [_thisFormal.build(libraryBuilder)],
-            asyncMarker: _fragment.asyncModifier,
+            asyncMarker: _fragment.asyncModifier.kind,
           )
           ..fileOffset = _fragment.formalsOffset
           ..fileEndOffset = _fragment.endOffset;
@@ -797,14 +798,14 @@ mixin _ExtensionInstanceMethodEncodingMixin implements MethodEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }

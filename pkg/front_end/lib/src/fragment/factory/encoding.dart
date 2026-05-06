@@ -35,6 +35,7 @@ import '../../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../../source/source_loader.dart' show SourceLoader;
 import '../../source/source_member_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../../type_inference/type_inferrer.dart';
 import '../../type_inference/type_schema.dart';
@@ -45,7 +46,7 @@ class FactoryEncoding implements InferredTypeListener {
 
   final FactoryFragment _fragment;
 
-  AsyncMarker _asyncModifier;
+  AsyncModifier _asyncModifier;
 
   final List<SourceNominalParameterBuilder>? typeParameters;
 
@@ -66,7 +67,7 @@ class FactoryEncoding implements InferredTypeListener {
     required ConstructorReferenceBuilder? redirectionTarget,
   }) : _redirectionTarget = redirectionTarget,
        _asyncModifier = redirectionTarget != null
-           ? AsyncMarker.Sync
+           ? AsyncModifier.implicitSync
            : _fragment.asyncModifier;
 
   Procedure get procedure => _procedure;
@@ -103,8 +104,8 @@ class FactoryEncoding implements InferredTypeListener {
                 ? ProcedureKind.Method
                 : ProcedureKind.Factory,
             new FunctionNode(null)
-              ..asyncMarker = _asyncModifier
-              ..dartAsyncMarker = _asyncModifier,
+              ..asyncMarker = _asyncModifier.kind
+              ..dartAsyncMarker = _asyncModifier.kind,
             fileUri: _fragment.fileUri,
             reference: factoryReferences?.factoryReference,
           )
@@ -125,7 +126,7 @@ class FactoryEncoding implements InferredTypeListener {
     )?..isExtensionTypeMember = nameScheme.isExtensionTypeMember;
     returnType.registerInferredTypeListener(this);
 
-    _procedure.function.asyncMarker = _asyncModifier;
+    _procedure.function.asyncMarker = _asyncModifier.kind;
     if (_redirectionTarget == null &&
         !_fragment.modifiers.isAbstract &&
         !_fragment.modifiers.isExternal) {
@@ -530,7 +531,7 @@ class FactoryEncoding implements InferredTypeListener {
       body: createRedirectingFactoryErrorBody(message),
       // TODO(cstefantsova): Pass a scope here.
       scope: null,
-      asyncMarker: AsyncMarker.Sync,
+      asyncModifier: AsyncModifier.implicitSync,
       emittedValueType: null,
       thisVariable: null,
     );
@@ -825,13 +826,13 @@ class FactoryEncoding implements InferredTypeListener {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
     assert(
-      asyncMarker == AsyncMarker.Sync,
-      "Unexpected async marker $asyncMarker for factory.",
+      asyncModifier.kind == AsyncMarker.Sync,
+      "Unexpected async marker $asyncModifier for factory.",
     );
     assert(
       emittedValueType == null,
@@ -840,7 +841,7 @@ class FactoryEncoding implements InferredTypeListener {
     if (body != null) {
       _procedure.function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }

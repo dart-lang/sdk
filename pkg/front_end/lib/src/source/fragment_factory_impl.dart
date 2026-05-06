@@ -6,7 +6,6 @@ import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:_fe_analyzer_shared/src/scanner/token.dart' show Token;
 import 'package:_fe_analyzer_shared/src/util/resolve_relative_uri.dart'
     show resolveRelativeUri;
-import 'package:front_end/src/codes/diagnostic.dart' as diag;
 import 'package:kernel/ast.dart' hide Combinator, MapLiteralEntry;
 import 'package:kernel/names.dart' show indexSetName;
 import 'package:kernel/reference_from_index.dart' show IndexedLibrary;
@@ -41,6 +40,7 @@ import '../builder/nullability_builder.dart';
 import '../builder/omitted_type_builder.dart';
 import '../builder/type_builder.dart';
 import '../builder/void_type_builder.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../fragment/fragment.dart';
 import '../util/helpers.dart';
 import '../util/local_stack.dart';
@@ -51,6 +51,7 @@ import 'nominal_parameter_name_space.dart';
 import 'offset_map.dart';
 import 'source_loader.dart' show SourceLoader;
 import 'source_type_parameter_builder.dart';
+import 'stack_listener_impl.dart' show AsyncModifier;
 import 'type_parameter_factory.dart';
 import 'type_scope.dart';
 
@@ -1313,7 +1314,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required bool forAbstractClassOrMixin,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required String? nativeMethodName,
     required ProcedureKind kind,
   }) {
@@ -1654,7 +1655,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
   }) {
     DeclarationFragmentImpl enclosingDeclaration =
         _declarationFragments.current;
@@ -1903,7 +1904,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -1978,7 +1979,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -2057,7 +2058,7 @@ class FragmentFactoryImpl implements FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,

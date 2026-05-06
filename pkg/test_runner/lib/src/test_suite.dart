@@ -210,7 +210,8 @@ abstract class TestSuite {
 
     // Other static error tests are run on front-end-only configurations.
     return configuration.compiler == Compiler.dart2analyzer ||
-        configuration.compiler == Compiler.fasta;
+        configuration.compiler == Compiler.fasta ||
+        configuration.compiler == Compiler.specParser;
   }
 
   /// Whether a test with [expectations] should be skipped under the current

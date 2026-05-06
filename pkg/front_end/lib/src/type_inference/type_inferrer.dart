@@ -15,6 +15,7 @@ import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
+import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../util/helpers.dart';
 import 'body_inference_context.dart';
 import 'context_allocation_strategy.dart';
@@ -62,7 +63,7 @@ abstract class TypeInferrer {
     required Uri fileUri,
     required int fileOffset,
     required DartType returnType,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required Statement body,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
@@ -260,7 +261,7 @@ class TypeInferrerImpl implements TypeInferrer {
     required Uri fileUri,
     required int fileOffset,
     required DartType returnType,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required Statement body,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
@@ -275,7 +276,7 @@ class TypeInferrerImpl implements TypeInferrer {
     );
     BodyInferenceContext bodyContext = new BodyInferenceContext(
       visitor,
-      asyncMarker,
+      asyncModifier.kind,
       returnType,
       false,
     );
@@ -306,7 +307,7 @@ class TypeInferrerImpl implements TypeInferrer {
     );
     visitor.checkCleanState();
     DartType? emittedValueType = bodyContext.emittedValueType;
-    assert(asyncMarker == AsyncMarker.Sync || emittedValueType != null);
+    assert(asyncModifier.kind == AsyncMarker.Sync || emittedValueType != null);
     flowAnalysis.finish();
     return new InferredFunctionBody(
       result.hasChanged ? result.statement : body,
@@ -546,7 +547,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
     required Uri fileUri,
     required int fileOffset,
     required DartType returnType,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required Statement body,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
@@ -559,7 +560,7 @@ class TypeInferrerImplBenchmarked implements TypeInferrer {
       fileUri: fileUri,
       fileOffset: fileOffset,
       returnType: returnType,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       body: body,
       expressionEvaluationHelper: expressionEvaluationHelper,
       parameters: parameters,

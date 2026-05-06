@@ -60,6 +60,7 @@ import '../source/source_method_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
 import '../source/source_type_parameter_builder.dart';
+import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../source/type_parameter_factory.dart';
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/type_inference_engine.dart';

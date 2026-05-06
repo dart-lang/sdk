@@ -9,6 +9,7 @@ import 'package:kernel/type_algebra.dart' show Substitution;
 import 'package:kernel/type_environment.dart';
 
 import '../builder/library_builder.dart';
+import '../source/stack_listener_impl.dart' show AsyncModifier;
 
 /// Data for clone default values for synthesized function nodes once the
 /// original default values have been computed.
@@ -390,20 +391,20 @@ void finishProcedureAugmentation(Procedure origin, Procedure augmentation) {
 extension FunctionNodeExtension on FunctionNode {
   void registerFunctionBody(
     Statement body, {
-    AsyncMarker asyncMarker = AsyncMarker.Sync,
+    AsyncModifier asyncModifier = AsyncModifier.implicitSync,
     DartType? emittedValueType = null,
   }) {
     assert(
-      !(asyncMarker == AsyncMarker.Sync && emittedValueType != null),
+      !(asyncModifier.kind == AsyncMarker.Sync && emittedValueType != null),
       "Unexpected emitted value type for sync function.",
     );
     assert(
-      !(asyncMarker != AsyncMarker.Sync && emittedValueType == null),
+      !(asyncModifier.kind != AsyncMarker.Sync && emittedValueType == null),
       "Missing emitted value type for non-sync function.",
     );
     this.body = body..parent = this;
-    this.asyncMarker = asyncMarker;
-    this.dartAsyncMarker = asyncMarker;
+    this.asyncMarker = asyncModifier.kind;
+    this.dartAsyncMarker = asyncModifier.kind;
     this.emittedValueType = emittedValueType;
   }
 }

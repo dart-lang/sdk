@@ -341,9 +341,74 @@ main() {
   it now throws if the wrapper JS function wasn't a result of `Function.toJS` or
   `Function.toJSCaptureThis`.
 
+## 3.11.6
+
+**Released on:** 2026-05-05
+
+This is a patch release that:
+
+- Fixes a bug causing network profiling to stop working in certain situations.
+  (issue [dart-lang/sdk#63156]).
+
+## 3.11.5
+
+**Released on:** 2026-04-15
+
+This is a patch release that:
+
+- Fixes an issue with the Dart MCP server and latest AntiGravity. (issue
+  [dart-lang/ai#439])
+
+[dart-lang/ai#439]: https://github.com/dart-lang/ai/issues/439
+
+## 3.11.4
+
+**Released on:** 2026-03-24
+
+This is a patch release that:
+
+- Fixes a bug causing the analyzer and analysis server to crash when calling a
+  dot shorthand function expression invocation. (issue [dart-lang/sdk#62595])
+
+[dart-lang/sdk#62595]: https://github.com/dart-lang/sdk/issues/62595
+
+## 3.11.3
+
+**Released on:** 2026-03-17
+
+This is a patch release that:
+
+- Fixes a bug causing Dart & Flutter DevTools to crash when using the skwasm renderer.
+  (issue [flutter/devtools#9701]).
+
+[flutter/devtools#9701]: https://github.com/flutter/devtools/issues/9701
+
+## 3.11.2
+
+**Released on:** 2026-03-10
+
+This is a patch release that:
+
+- Fixes a bug in pub's support tag_pattern git dependencies that prevented it to
+  load lightweight tags (as opposed to annotated tags).
+  (issue [dart-lang/pub#4756]).
+
+[dart-lang/pub#4756]: https://github.com/dart-lang/pub/issues/4756
+
+## 3.11.1
+
+**Released on:** 2026-02-24
+
+This is a patch release that:
+
+- Fixes a performance issue in the Dart Analysis Server when analyzing a workspace with many files (issue [#62456])
+- Fixes a performance issue in the Dart Analysis Server when analyzing a workspace with many directories (issue [#62456])
+
+[#62456]: https://github.com/dart-lang/sdk/issues/62456
+
 ## 3.11.0
 
-**Released on:** Unreleased
+**Released on:** 2026-02-11
 
 ### Language
 
@@ -441,6 +506,10 @@ There are no language changes in this release.
 
   Given this flag, `dart pub publish --dry-run` will only exit non-zero if your
   project validation has errors.
+
+- `dart pub cache repair` now by default only repairs the packages referenced
+  by the current projects pubspec.lock. For the old behavior of repairing all
+  packages use the `--all` flag.
 
 ## 3.10.9
 

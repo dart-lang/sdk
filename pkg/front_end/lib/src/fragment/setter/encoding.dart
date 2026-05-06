@@ -29,6 +29,7 @@ import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
 import '../../source/source_type_parameter_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../fragment.dart';
 
@@ -196,7 +197,7 @@ sealed class SetterEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   });
@@ -296,7 +297,7 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
     FunctionNode function =
         new FunctionNode(
             isAbstractOrExternal ? null : new EmptyStatement(),
-            asyncMarker: _fragment.asyncModifier,
+            asyncMarker: _fragment.asyncModifier.kind,
           )
           ..fileOffset = _fragment.formalsOffset
           ..fileEndOffset = _fragment.endOffset;
@@ -479,14 +480,14 @@ mixin _DirectSetterEncodingMixin implements SetterEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }
@@ -636,7 +637,7 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
             isAbstractOrExternal ? null : new EmptyStatement(),
             typeParameters: typeParameters,
             positionalParameters: [_thisFormal.build(libraryBuilder)],
-            asyncMarker: _fragment.asyncModifier,
+            asyncMarker: _fragment.asyncModifier.kind,
           )
           ..fileOffset = _fragment.formalsOffset
           ..fileEndOffset = _fragment.endOffset;
@@ -852,14 +853,14 @@ mixin _ExtensionInstanceSetterEncodingMixin implements SetterEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }

@@ -9,7 +9,6 @@ class A() {
 //     ^^^^^
 // [analyzer] SYNTACTIC_ERROR.PRIMARY_CONSTRUCTOR_BODY_WITH_MODIFIER
 // [cfe] A primary constructor body can't have the modifier 'async'.
-//           ^
 // [cfe] Constructor bodies can't use 'async', 'async*', or 'sync*'.
 }
 
@@ -18,7 +17,6 @@ class B() {
 //     ^^^^^
 // [analyzer] SYNTACTIC_ERROR.PRIMARY_CONSTRUCTOR_BODY_WITH_MODIFIER
 // [cfe] A primary constructor body can't have the modifier 'async*'.
-//            ^
 // [cfe] Constructor bodies can't use 'async', 'async*', or 'sync*'.
 }
 
@@ -27,7 +25,6 @@ class C() {
 //     ^^^^
 // [analyzer] SYNTACTIC_ERROR.PRIMARY_CONSTRUCTOR_BODY_WITH_MODIFIER
 // [cfe] A primary constructor body can't have the modifier 'sync*'.
-//           ^
 // [cfe] Constructor bodies can't use 'async', 'async*', or 'sync*'.
 }
 
@@ -39,10 +36,10 @@ enum E() {
 //     ^^^^^
 // [analyzer] SYNTACTIC_ERROR.PRIMARY_CONSTRUCTOR_BODY_WITH_MODIFIER
 // [cfe] A primary constructor body can't have the modifier 'async'.
+// [cfe] Constructor bodies can't use 'async', 'async*', or 'sync*'.
 //           ^
 // [analyzer] COMPILE_TIME_ERROR.CONST_PRIMARY_CONSTRUCTOR_WITH_BODY
 // [cfe] A const constructor can't have a body.
-// [cfe] Constructor bodies can't use 'async', 'async*', or 'sync*'.
 }
 
 extension type ET(int x) {
@@ -50,6 +47,5 @@ extension type ET(int x) {
 //     ^^^^^
 // [analyzer] SYNTACTIC_ERROR.PRIMARY_CONSTRUCTOR_BODY_WITH_MODIFIER
 // [cfe] A primary constructor body can't have the modifier 'async'.
-//           ^
 // [cfe] Constructor bodies can't use 'async', 'async*', or 'sync*'.
 }

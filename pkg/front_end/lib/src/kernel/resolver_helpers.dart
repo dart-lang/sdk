@@ -243,8 +243,7 @@ class _InitializerBuilder {
     required LibraryFeatures libraryFeatures,
     required _SuperParameterArguments? superParameterArguments,
     required List<Initializer> initializers,
-    required AsyncMarker asyncMarker,
-    required int? asyncModifierFileOffset,
+    required AsyncModifier asyncModifier,
     required bool forPrimaryConstructor,
     required List<VariableDeclaration> parameters,
     required ThisVariable? internalThisVariable,
@@ -406,14 +405,14 @@ class _InitializerBuilder {
       }
     }
 
-    if (asyncMarker != AsyncMarker.Sync) {
+    if (asyncModifier.kind != AsyncMarker.Sync) {
       scopeProviderInfo = _inferInitializer(
         extern.createInvalidInitializer(
           _problemReporting.buildProblem(
             compilerContext: _compilerContext,
             message: diag.constructorNotSync,
             fileUri: _fileUri,
-            fileOffset: asyncModifierFileOffset!,
+            fileOffset: asyncModifier.fileOffset,
             length: noLength,
           ),
         ),

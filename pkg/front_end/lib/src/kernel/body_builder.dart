@@ -94,7 +94,7 @@ import '../source/source_library_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_parameter_builder.dart';
 import '../source/stack_listener_impl.dart'
-    show StackListenerImpl, offsetForToken;
+    show StackListenerImpl, offsetForToken, AsyncModifier;
 import '../source/type_parameter_factory.dart';
 import '../source/value_kinds.dart';
 import '../util/helpers.dart';
@@ -7804,7 +7804,7 @@ class BodyBuilderImpl extends StackListenerImpl
 
   void pushNamedFunction(Token token, bool isFunctionExpression) {
     Statement body = popStatement(token);
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    AsyncModifier asyncModifier = pop() as AsyncModifier;
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
     Object? declaration = pop();
@@ -7841,7 +7841,7 @@ class BodyBuilderImpl extends StackListenerImpl
         problemReporting.checkAsyncReturnType(
           libraryBuilder: libraryBuilder,
           typeEnvironment: typeEnvironment,
-          asyncMarker: asyncModifier,
+          asyncModifier: asyncModifier,
           returnType: function.returnType,
           returnTypeBuilder: returnType,
           fileUri: uri,
@@ -7922,7 +7922,7 @@ class BodyBuilderImpl extends StackListenerImpl
     assert(
       checkState(beginToken, [
         /* body */ ValueKinds.StatementOrNull,
-        /* async marker */ ValueKinds.AsyncMarker,
+        /* async marker */ ValueKinds.AsyncModifier,
         /* formal parameters */ ValueKinds.FormalParameters,
         /* inCatchBlock */ ValueKinds.Bool,
         /* nominal parameters */ ValueKinds.NominalVariableListOrNull,
@@ -7934,7 +7934,7 @@ class BodyBuilderImpl extends StackListenerImpl
         // we use an empty statement instead.
         // TODO(jensj): Is this the offset we want?
         intern.createEmptyStatement(endToken.next!.charOffset);
-    AsyncMarker asyncModifier = pop() as AsyncMarker;
+    AsyncModifier asyncModifier = pop() as AsyncModifier;
     exitLocalScope();
     FormalParameters formals = pop() as FormalParameters;
     exitFunction();
@@ -11407,14 +11407,15 @@ class BodyBuilderImpl extends StackListenerImpl
     checkEmpty(token.next!.charOffset);
     token = parser.parseInitializersOpt(token);
     token = parser.parseAsyncModifierOpt(token);
-    AsyncMarker asyncMarker = pop() as AsyncMarker? ?? AsyncMarker.Sync;
-    if (kind == MemberKind.Factory && asyncMarker != AsyncMarker.Sync) {
+    AsyncModifier asyncModifier =
+        pop() as AsyncModifier? ?? AsyncModifier.implicitSync;
+    if (kind == MemberKind.Factory && asyncModifier.kind != AsyncMarker.Sync) {
       // Factories has to be sync. The parser issued an error.
       // Recover to sync.
-      asyncMarker = AsyncMarker.Sync;
+      asyncModifier = AsyncModifier.implicitSync;
     }
     bool isExpression = false;
-    bool allowAbstract = asyncMarker == AsyncMarker.Sync;
+    bool allowAbstract = asyncModifier.kind == AsyncMarker.Sync;
 
     benchmarker
     // Coverage-ignore(suite): Not run.
@@ -11428,7 +11429,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ?.endSubdivide();
     checkEmpty(token.charOffset);
     return new BuildFunctionBodyResult(
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       body: body,
       initializers: _initializers,
       annotations: _takePendingAnnotations(),
@@ -11462,9 +11463,10 @@ class BodyBuilderImpl extends StackListenerImpl
     }
     token = parser.parseInitializersOpt(token);
     token = parser.parseAsyncModifierOpt(token);
-    AsyncMarker asyncMarker = pop() as AsyncMarker? ?? AsyncMarker.Sync;
+    AsyncModifier asyncModifier =
+        pop() as AsyncModifier? ?? AsyncModifier.implicitSync;
     bool isExpression = false;
-    bool allowAbstract = asyncMarker == AsyncMarker.Sync;
+    bool allowAbstract = asyncModifier.kind == AsyncMarker.Sync;
 
     benchmarker
     // Coverage-ignore(suite): Not run.
@@ -11478,7 +11480,7 @@ class BodyBuilderImpl extends StackListenerImpl
         ?.endSubdivide();
     checkEmpty(token.charOffset);
     return new BuildPrimaryConstructorBodyResult(
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       body: body,
       initializers: _initializers,
       annotations: _takePendingAnnotations(),

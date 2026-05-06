@@ -24,6 +24,7 @@ import '../fragment/fragment.dart';
 import '../util/helpers.dart';
 import 'offset_map.dart';
 import 'source_type_parameter_builder.dart';
+import 'stack_listener_impl.dart';
 import 'type_parameter_factory.dart';
 
 abstract class FragmentFactory {
@@ -328,7 +329,7 @@ abstract class FragmentFactory {
     required bool forAbstractClassOrMixin,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required String? nativeMethodName,
     required ProcedureKind kind,
   });
@@ -393,7 +394,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
   });
 
   ConstructorName computeAndValidateConstructorName(
@@ -417,7 +418,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -438,7 +439,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,
@@ -458,7 +459,7 @@ abstract class FragmentFactory {
     required int formalsOffset,
     required int endOffset,
     required String? nativeMethodName,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required bool isInstanceMember,
     required bool isExtensionMember,
     required bool isExtensionTypeMember,

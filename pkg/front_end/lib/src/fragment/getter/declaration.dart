@@ -26,6 +26,7 @@ import '../../source/source_library_builder.dart';
 import '../../source/source_loader.dart';
 import '../../source/source_member_builder.dart';
 import '../../source/source_property_builder.dart';
+import '../../source/stack_listener_impl.dart' show AsyncModifier;
 import '../../source/type_parameter_factory.dart';
 import '../../type_inference/type_schema.dart';
 import '../fragment.dart';
@@ -109,7 +110,7 @@ class RegularGetterDeclaration
   UriOffsetLength get uriOffset => _fragment.uriOffset;
 
   @override
-  AsyncMarker get asyncModifier => _fragment.asyncModifier;
+  AsyncModifier get asyncModifier => _fragment.asyncModifier;
 
   @override
   // Coverage-ignore(suite): Not run.
@@ -313,19 +314,19 @@ class RegularGetterDeclaration
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
     assert(
-      asyncMarker == asyncModifier,
+      asyncModifier.kind == this.asyncModifier.kind,
       "Unexpected change in async modifier on $this from "
-      "${asyncModifier} to $asyncMarker.",
+      "${asyncModifier} to ${this.asyncModifier.kind}.",
     );
     _encoding.registerFunctionBody(
       body: body,
       scope: scope,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
       thisVariable: thisVariable,
     );
@@ -344,7 +345,7 @@ class RegularGetterDeclaration
 
 /// Interface for using a [GetterFragment] to create a [BodyBuilderContext].
 abstract class GetterFragmentDeclaration {
-  AsyncMarker get asyncModifier;
+  AsyncModifier get asyncModifier;
 
   List<FormalParameterBuilder>? get formals;
 
@@ -373,7 +374,7 @@ abstract class GetterFragmentDeclaration {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   });

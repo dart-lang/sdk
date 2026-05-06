@@ -4,6 +4,7 @@
 
 import 'package:_fe_analyzer_shared/src/parser/formal_parameter_kind.dart';
 import 'package:front_end/src/base/uri_offset.dart';
+import 'package:front_end/src/source/stack_listener_impl.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/class_hierarchy.dart';
 import 'package:kernel/type_environment.dart';
@@ -180,7 +181,7 @@ sealed class GetterEncoding implements InferredTypeListener {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   });
@@ -295,7 +296,7 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
     FunctionNode function =
         new FunctionNode(
             isAbstractOrExternal ? null : new EmptyStatement(),
-            asyncMarker: _fragment.asyncModifier,
+            asyncMarker: _fragment.asyncModifier.kind,
           )
           ..fileOffset = _fragment.formalsOffset
           ..fileEndOffset = _fragment.endOffset;
@@ -465,14 +466,14 @@ mixin _DirectGetterEncodingMixin implements GetterEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }
@@ -621,7 +622,7 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
             isAbstractOrExternal ? null : new EmptyStatement(),
             typeParameters: typeParameters,
             positionalParameters: [_thisFormal.build(libraryBuilder)],
-            asyncMarker: _fragment.asyncModifier,
+            asyncMarker: _fragment.asyncModifier.kind,
           )
           ..fileOffset = _fragment.formalsOffset
           ..fileEndOffset = _fragment.endOffset;
@@ -817,14 +818,14 @@ mixin _ExtensionInstanceGetterEncodingMixin implements GetterEncoding {
   void registerFunctionBody({
     required Statement? body,
     required Scope? scope,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
     required VariableDeclaration? thisVariable,
   }) {
     if (body != null) {
       function.registerFunctionBody(
         body,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         emittedValueType: emittedValueType,
       );
     }

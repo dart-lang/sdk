@@ -17,20 +17,34 @@ import '../codes/cfe_codes.dart';
 abstract class StackListenerImpl extends StackListener {
   LibraryFeatures get libraryFeatures;
 
-  AsyncMarker asyncMarkerFromTokens(Token? asyncToken, Token? starToken) {
+  AsyncModifier asyncMarkerFromTokens(Token? asyncToken, Token? starToken) {
     if (asyncToken == null || identical(asyncToken.stringValue, "sync")) {
       if (starToken == null) {
-        return AsyncMarker.Sync;
+        return asyncToken != null
+            ? new AsyncModifier(
+                kind: AsyncMarker.Sync,
+                fileOffset: asyncToken.charOffset,
+              )
+            : AsyncModifier.implicitSync;
       } else {
         assert(identical(starToken.stringValue, "*"));
-        return AsyncMarker.SyncStar;
+        return new AsyncModifier(
+          kind: AsyncMarker.SyncStar,
+          fileOffset: asyncToken!.charOffset,
+        );
       }
     } else if (identical(asyncToken.stringValue, "async")) {
       if (starToken == null) {
-        return AsyncMarker.Async;
+        return new AsyncModifier(
+          kind: AsyncMarker.Async,
+          fileOffset: asyncToken.charOffset,
+        );
       } else {
         assert(identical(starToken.stringValue, "*"));
-        return AsyncMarker.AsyncStar;
+        return new AsyncModifier(
+          kind: AsyncMarker.AsyncStar,
+          fileOffset: asyncToken.charOffset,
+        );
       }
     } else {
       return unhandled(
@@ -104,4 +118,16 @@ ProcedureKind computeProcedureKind(Token? token) {
   if (token.isA(Keyword.SET)) return ProcedureKind.Setter;
   // Coverage-ignore-block(suite): Not run.
   throw new UnsupportedError("Unexpected get/set token $token.");
+}
+
+class AsyncModifier {
+  final AsyncMarker kind;
+  final int fileOffset;
+
+  const AsyncModifier({required this.kind, required this.fileOffset});
+
+  static const AsyncModifier implicitSync = const AsyncModifier(
+    kind: AsyncMarker.Sync,
+    fileOffset: TreeNode.noOffset,
+  );
 }

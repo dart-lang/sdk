@@ -24,6 +24,7 @@ import '../source/source_extension_type_declaration_builder.dart';
 import '../source/source_library_builder.dart';
 import '../source/source_property_builder.dart';
 import '../source/source_type_alias_builder.dart';
+import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/type_inferrer.dart'
     show InferredConstructorInitializer, TypeInferrer;
@@ -387,7 +388,7 @@ abstract class BodyBuilderContext {
   void registerFunctionBody({
     required Statement? body,
     required ScopeProviderInfo? scopeProviderInfo,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required DartType? emittedValueType,
   }) {
     throw new UnsupportedError("${runtimeType}.registerFunctionBody");

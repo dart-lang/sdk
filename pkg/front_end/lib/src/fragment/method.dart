@@ -49,7 +49,7 @@ class MethodFragment implements Fragment, FunctionFragment {
   final List<FormalParameterBuilder>? declaredFormals;
 
   final bool isOperator;
-  final AsyncMarker asyncModifier;
+  final AsyncModifier asyncModifier;
   final String? nativeMethodName;
 
   final DeclarationFragment? enclosingDeclaration;

@@ -1,0 +1,221 @@
+library;
+//
+// Problems in library:
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:8: Error: A primary constructor body can't have the modifier 'async'.
+// Try removing the modifier.
+//   this async;
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:13: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this async;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:7:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this async;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:23: Error: A primary constructor body can't have the modifier 'async'.
+// Try removing the modifier.
+//   this: assert(x > 0) async;
+//                       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:28: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) async;
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:12:28: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this: assert(x > 0) async;
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:8: Error: A primary constructor body can't have the modifier 'async*'.
+// Try removing the modifier.
+//   this async*;
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:14: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this async*;
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:17:14: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this async*;
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:23: Error: A primary constructor body can't have the modifier 'async*'.
+// Try removing the modifier.
+//   this: assert(x > 0) async*;
+//                       ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:29: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) async*;
+//                             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:22:29: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this: assert(x > 0) async*;
+//                             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:8: Error: A primary constructor body can't have the modifier 'sync*'.
+// Try removing the modifier.
+//   this sync*;
+//        ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:13: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this sync*;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:27:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this sync*;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:23: Error: A primary constructor body can't have the modifier 'sync*'.
+// Try removing the modifier.
+//   this: assert(x > 0) sync*;
+//                       ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:28: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this: assert(x > 0) sync*;
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:32:28: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this: assert(x > 0) sync*;
+//                            ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:36:8: Error: A primary constructor body can't have the modifier 'async'.
+// Try removing the modifier.
+//   this async;
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:36:13: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this async;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:36:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this async;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:40:8: Error: A primary constructor body can't have the modifier 'async*'.
+// Try removing the modifier.
+//   this async*;
+//        ^^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:40:14: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this async*;
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:40:14: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this async*;
+//              ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:45:8: Error: A primary constructor body can't have the modifier 'sync*'.
+// Try removing the modifier.
+//   this sync*;
+//        ^^^^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:45:13: Error: Abstract methods can't use 'async', 'async*', or 'sync*'.
+//   this sync*;
+//             ^
+//
+// pkg/front_end/testcases/primary_constructors/async_modifier.dart:45:13: Error: Expected a function body or '=>'.
+// Try adding {}.
+//   this sync*;
+//             ^
+//
+import self as self;
+import "dart:core" as core;
+
+class E1 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E1 e0 = const self::E1::•(0, "e0", 0);
+  static const field core::List<self::E1> values = const <self::E1>[self::E1::e0];
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E1
+    : self::E1::x = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E1.${this.{core::_Enum::_name}{core::String}}";
+}
+class E2 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E2 e0 = const self::E2::•(0, "e0", 0);
+  static const field core::List<self::E2> values = const <self::E2>[self::E2::e0];
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E2
+    : self::E2::x = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E2.${this.{core::_Enum::_name}{core::String}}";
+}
+class E3 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E3 e0 = const self::E3::•(0, "e0", 0);
+  static const field core::List<self::E3> values = const <self::E3>[self::E3::e0];
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E3
+    : self::E3::x = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E3.${this.{core::_Enum::_name}{core::String}}";
+}
+class E4 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E4 e0 = const self::E4::•(0, "e0", 0);
+  static const field core::List<self::E4> values = const <self::E4>[self::E4::e0];
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E4
+    : self::E4::x = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E4.${this.{core::_Enum::_name}{core::String}}";
+}
+class E5 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E5 e0 = const self::E5::•(0, "e0", 0);
+  static const field core::List<self::E5> values = const <self::E5>[self::E5::e0];
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E5
+    : self::E5::x = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E5.${this.{core::_Enum::_name}{core::String}}";
+}
+class E6 extends core::_Enum /*isEnum*/  {
+  final field core::int x;
+  enum-element static const field self::E6 e0 = const self::E6::•(0, "e0", 0);
+  static const field core::List<self::E6> values = const <self::E6>[self::E6::e0];
+  const constructor •(core::int #index, core::String #name, final initializing-formal core::int x) → self::E6
+    : self::E6::x = x, super core::_Enum::•(#index, #name)
+    ;
+  method core::_enumToString() → core::String
+    return "E6.${this.{core::_Enum::_name}{core::String}}";
+}
+mixin class M1 extends core::Object {
+  constructor •() → self::M1
+    ;
+}
+mixin class M2 extends core::Object {
+  constructor •() → self::M2
+    ;
+}
+mixin class M3 extends core::Object {
+  constructor •() → self::M3
+    ;
+}
+
+
+Extra constant evaluation status:
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:6:3 -> InstanceConstant(const E1{E1.x: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:5:6 -> ListConstant(const <E1>[const E1{E1.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:11:3 -> InstanceConstant(const E2{E2.x: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:10:6 -> ListConstant(const <E2>[const E2{E2.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:16:3 -> InstanceConstant(const E3{E3.x: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:15:6 -> ListConstant(const <E3>[const E3{E3.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:21:3 -> InstanceConstant(const E4{E4.x: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:20:6 -> ListConstant(const <E4>[const E4{E4.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:26:3 -> InstanceConstant(const E5{E5.x: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:25:6 -> ListConstant(const <E5>[const E5{E5.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Evaluated: ConstructorInvocation @ org-dartlang-testcase:///async_modifier.dart:31:3 -> InstanceConstant(const E6{E6.x: 0, _Enum.index: 0, _Enum._name: "e0"})
+Evaluated: ListLiteral @ org-dartlang-testcase:///async_modifier.dart:30:6 -> ListConstant(const <E6>[const E6{E6.x: 0, _Enum.index: 0, _Enum._name: "e0"}])
+Extra constant evaluation: evaluated: 48, effectively constant: 12

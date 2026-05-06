@@ -53,7 +53,7 @@ class GetterFragment implements Fragment, FunctionFragment {
   /// This is only non-null in erroneous cases since getters don't have formal
   /// parameters.
   final List<FormalParameterBuilder>? declaredFormals;
-  final AsyncMarker asyncModifier;
+  final AsyncModifier asyncModifier;
   final String? nativeMethodName;
 
   final DeclarationFragment? enclosingDeclaration;

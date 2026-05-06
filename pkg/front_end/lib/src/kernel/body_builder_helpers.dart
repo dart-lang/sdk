@@ -284,7 +284,7 @@ class FormalParameters extends Parameters {
     SourceLibraryBuilder library,
     TypeBuilder? returnTypeBuilder,
     List<NominalParameterBuilder>? typeParameterBuilders,
-    AsyncMarker asyncModifier,
+    AsyncModifier asyncModifier,
     Statement body,
     int fileEndOffset,
   ) {
@@ -325,7 +325,7 @@ class FormalParameters extends Parameters {
         namedParameters: namedParameters,
         requiredParameterCount: requiredParameterCount,
         returnType: returnType,
-        asyncMarker: asyncModifier,
+        asyncMarker: asyncModifier.kind,
       )
       ..fileOffset = charOffset
       ..fileEndOffset = fileEndOffset;
@@ -549,13 +549,13 @@ class BuildPrimaryConstructorResult {
 }
 
 class BuildFunctionBodyResult {
-  final AsyncMarker asyncMarker;
+  final AsyncModifier asyncModifier;
   final Statement? body;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
   BuildFunctionBodyResult({
-    required this.asyncMarker,
+    required this.asyncModifier,
     required this.body,
     required this.initializers,
     required this.annotations,
@@ -563,13 +563,13 @@ class BuildFunctionBodyResult {
 }
 
 class BuildPrimaryConstructorBodyResult {
-  final AsyncMarker asyncMarker;
+  final AsyncModifier asyncModifier;
   final Statement? body;
   final List<Initializer> initializers;
   final PendingAnnotations? annotations;
 
   BuildPrimaryConstructorBodyResult({
-    required this.asyncMarker,
+    required this.asyncModifier,
     required this.body,
     required this.initializers,
     required this.annotations,

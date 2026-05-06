@@ -38,6 +38,7 @@ import '../source/check_helper.dart';
 import '../source/offset_map.dart';
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart';
+import '../source/stack_listener_impl.dart' show AsyncModifier;
 import '../type_inference/context_allocation_strategy.dart';
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart'
@@ -428,7 +429,7 @@ class Resolver {
         problemReporting: problemReporting,
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
-        asyncMarker: result.asyncMarker,
+        asyncModifier: result.asyncModifier,
         body: result.body,
         fileUri: fileUri,
         bodyBuilderContext: bodyBuilderContext,
@@ -512,7 +513,7 @@ class Resolver {
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
         bodyBuilderContext: bodyBuilderContext,
-        asyncModifier: AsyncMarker.Sync,
+        asyncModifier: AsyncModifier.implicitSync,
         body: null,
         superParameterArguments: superParameterArguments,
         fileUri: fileUri,
@@ -710,7 +711,7 @@ class Resolver {
           problemReporting: problemReporting,
           libraryBuilder: libraryBuilder,
           libraryFeatures: libraryFeatures,
-          asyncMarker: AsyncMarker.Sync,
+          asyncModifier: AsyncModifier.implicitSync,
           body: null,
           fileUri: fileUri,
           bodyBuilderContext: bodyBuilderContext,
@@ -794,7 +795,7 @@ class Resolver {
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
         bodyBuilderContext: bodyBuilderContext,
-        asyncMarker: result.asyncMarker,
+        asyncModifier: result.asyncModifier,
         body: result.body,
         fileUri: fileUri,
         constantContext: constantContext,
@@ -995,7 +996,7 @@ class Resolver {
           fileUri: fileUri,
           fileOffset: fileOffset,
           returnType: const DynamicType(),
-          asyncMarker: AsyncMarker.Sync,
+          asyncModifier: AsyncModifier.implicitSync,
           body: fakeReturn,
           expressionEvaluationHelper: expressionEvaluationHelper,
           parameters: formalParameters,
@@ -1282,7 +1283,7 @@ class Resolver {
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
     required BodyBuilderContext bodyBuilderContext,
-    required AsyncMarker asyncModifier,
+    required AsyncModifier asyncModifier,
     required Statement? body,
     required _SuperParameterArguments? superParameterArguments,
     required Uri fileUri,
@@ -1307,8 +1308,7 @@ class Resolver {
           libraryFeatures: libraryFeatures,
           superParameterArguments: superParameterArguments,
           initializers: initializers,
-          asyncMarker: asyncModifier,
-          asyncModifierFileOffset: body?.fileOffset,
+          asyncModifier: asyncModifier,
           forPrimaryConstructor: forPrimaryConstructor,
           parameters: parameters,
           internalThisVariable: internalThisVariable,
@@ -1350,7 +1350,7 @@ class Resolver {
     required ProblemReporting problemReporting,
     required SourceLibraryBuilder libraryBuilder,
     required LibraryFeatures libraryFeatures,
-    required AsyncMarker asyncMarker,
+    required AsyncModifier asyncModifier,
     required Statement? body,
     required Uri fileUri,
     required BodyBuilderContext bodyBuilderContext,
@@ -1446,7 +1446,7 @@ class Resolver {
         libraryBuilder: libraryBuilder,
         libraryFeatures: libraryFeatures,
         bodyBuilderContext: bodyBuilderContext,
-        asyncModifier: asyncMarker,
+        asyncModifier: asyncModifier,
         body: body,
         superParameterArguments: superParameterArguments,
         fileUri: fileUri,
@@ -1464,7 +1464,7 @@ class Resolver {
       problemReporting.checkAsyncReturnType(
         libraryBuilder: libraryBuilder,
         typeEnvironment: context.typeInferrer.typeSchemaEnvironment,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         returnType: returnType,
         returnTypeBuilder: bodyBuilderContext.returnTypeBuilder,
         fileUri: fileUri,
@@ -1477,7 +1477,7 @@ class Resolver {
         fileUri: fileUri,
         fileOffset: bodyBuilderContext.memberNameOffset,
         returnType: returnType,
-        asyncMarker: asyncMarker,
+        asyncModifier: asyncModifier,
         body: body,
         parameters: parameters,
         internalThisVariable: internalThisVariable,
@@ -1488,7 +1488,7 @@ class Resolver {
       scopeProviderInfo = inferredFunctionBody.scopeProviderInfo;
     } else {
       // Normalize abstract members markers to sync.
-      asyncMarker = AsyncMarker.Sync;
+      asyncModifier = AsyncModifier.implicitSync;
     }
 
     // No-such-method forwarders get their bodies injected during outline
@@ -1512,17 +1512,17 @@ class Resolver {
     }
     DartType? emittedValueType = inferredFunctionBody?.emittedValueType;
     assert(
-      !(asyncMarker == AsyncMarker.Sync && emittedValueType != null),
+      !(asyncModifier.kind == AsyncMarker.Sync && emittedValueType != null),
       "Unexpected emitted value type for sync function.",
     );
     assert(
-      !(asyncMarker != AsyncMarker.Sync && emittedValueType == null),
+      !(asyncModifier.kind != AsyncMarker.Sync && emittedValueType == null),
       "Missing emitted value type for non-sync function.",
     );
     bodyBuilderContext.registerFunctionBody(
       body: body,
       scopeProviderInfo: scopeProviderInfo,
-      asyncMarker: asyncMarker,
+      asyncModifier: asyncModifier,
       emittedValueType: emittedValueType,
     );
   }
