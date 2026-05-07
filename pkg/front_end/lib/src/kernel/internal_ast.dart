@@ -590,17 +590,6 @@ class DeferredCheck extends InternalExpression {
   }
 }
 
-/// Common base class for shadow objects representing expressions in kernel
-/// form.
-abstract class ExpressionJudgment extends AuxiliaryExpression {
-  /// Calls back to [inferrer] to perform type inference for whatever concrete
-  /// type of [Expression] this is.
-  ExpressionInferenceResult acceptInference(
-    InferenceVisitorImpl visitor,
-    DartType typeContext,
-  );
-}
-
 /// Internal expression for an invocation of a factory constructor.
 class FactoryConstructorInvocation extends InternalExpression {
   bool hasBeenInferred = false;
@@ -814,13 +803,17 @@ class IfNullExpression extends InternalExpression {
 }
 
 /// Concrete shadow object representing an integer literal in kernel form.
-class IntJudgment extends IntLiteral implements ExpressionJudgment {
+class InternalIntLiteral extends InternalExpression {
+  final int value;
+
   /// The literal text of the number, as it appears in the source, which may
   /// include digit separators (and may not be safe for parsing with
   /// `int.parse`).
   final String? literal;
 
-  IntJudgment(int value, this.literal) : super(value);
+  InternalIntLiteral(this.value, this.literal, {required int fileOffset}) {
+    this.fileOffset = fileOffset;
+  }
 
   double? asDouble({bool negated = false}) {
     if (value == 0 && negated) {
@@ -836,12 +829,12 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitIntJudgment(this, typeContext);
+    return visitor.visitInternalIntLiteral(this, typeContext);
   }
 
   @override
   String toString() {
-    return "IntJudgment(${toStringInternal()})";
+    return "InternalIntLiteral(${toStringInternal()})";
   }
 
   @override
@@ -855,18 +848,22 @@ class IntJudgment extends IntLiteral implements ExpressionJudgment {
   }
 }
 
-class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
+class LargeIntLiteral extends InternalExpression {
   /// The parsable String source, stripped of any digit separators.
   final String _strippedLiteral;
 
   /// The original textual source, possibly with digit separators.
   final String literal;
-  @override
-  final int fileOffset;
+
   bool isParenthesized = false;
 
-  ShadowLargeIntLiteral(this._strippedLiteral, this.literal, this.fileOffset)
-    : super(0);
+  LargeIntLiteral(
+    this._strippedLiteral,
+    this.literal, {
+    required int fileOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
 
   double? asDouble({bool negated = false}) {
     BigInt? intValue = BigInt.tryParse(
@@ -892,12 +889,12 @@ class ShadowLargeIntLiteral extends IntLiteral implements ExpressionJudgment {
     InferenceVisitorImpl visitor,
     DartType typeContext,
   ) {
-    return visitor.visitShadowLargeIntLiteral(this, typeContext);
+    return visitor.visitLargeIntLiteral(this, typeContext);
   }
 
   @override
   String toString() {
-    return "ShadowLargeIntLiteral(${toStringInternal()})";
+    return "LargeIntLiteral(${toStringInternal()})";
   }
 
   @override

@@ -61,16 +61,16 @@ DoubleLiteral createDoubleLiteral(int fileOffset, double value) {
 
 /// Return a representation of an integer literal at the given [fileOffset].
 /// The literal has the given [value].
-IntLiteral createIntLiteral(int fileOffset, int value, [String? literal]) {
-  return new IntJudgment(value, literal)..fileOffset = fileOffset;
+Expression createIntLiteral(int fileOffset, int value, [String? literal]) {
+  return new InternalIntLiteral(value, literal, fileOffset: fileOffset);
 }
 
-IntLiteral createIntLiteralLarge(
+Expression createIntLiteralLarge(
   int fileOffset,
   String strippedLiteral,
   String literal,
 ) {
-  return new ShadowLargeIntLiteral(strippedLiteral, literal, fileOffset);
+  return new LargeIntLiteral(strippedLiteral, literal, fileOffset: fileOffset);
 }
 
 /// Return a representation of a list literal at the given [fileOffset]. The

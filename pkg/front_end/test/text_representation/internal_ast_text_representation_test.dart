@@ -1176,10 +1176,16 @@ void _testIfNullExpression() {
 }
 
 void _testIntLiterals() {
-  testExpression(new IntJudgment(0, null), '0');
-  testExpression(new IntJudgment(0, 'foo'), 'foo');
   testExpression(
-    new ShadowLargeIntLiteral('bar', 'bar', TreeNode.noOffset),
+    new InternalIntLiteral(0, null, fileOffset: TreeNode.noOffset),
+    '0',
+  );
+  testExpression(
+    new InternalIntLiteral(0, 'foo', fileOffset: TreeNode.noOffset),
+    'foo',
+  );
+  testExpression(
+    new LargeIntLiteral('bar', 'bar', fileOffset: TreeNode.noOffset),
     'bar',
   );
 }

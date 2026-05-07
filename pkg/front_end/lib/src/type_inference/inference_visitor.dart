@@ -386,9 +386,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     registerIfUnreachableForTesting(expression);
 
     ExpressionInferenceResult result;
-    if (expression is ExpressionJudgment) {
-      result = expression.acceptInference(this, typeContext);
-    } else if (expression is InternalExpression) {
+    if (expression is InternalExpression) {
       result = expression.acceptInference(this, typeContext);
     } else {
       result = expression.accept1(this, typeContext);
@@ -3874,8 +3872,8 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     return const StatementInferenceResult();
   }
 
-  ExpressionInferenceResult visitIntJudgment(
-    IntJudgment node,
+  ExpressionInferenceResult visitInternalIntLiteral(
+    InternalIntLiteral node,
     DartType typeContext,
   ) {
     if (isDoubleContext(typeContext)) {
@@ -3899,11 +3897,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       return new ExpressionInferenceResult(const DynamicType(), error);
     }
     DartType inferredType = coreTypes.intRawType(Nullability.nonNullable);
-    return new ExpressionInferenceResult(inferredType, node);
+    Expression result = extern.createIntLiteral(
+      coreTypes,
+      node.value,
+      fileOffset: node.fileOffset,
+      encodeForWeb: false,
+    );
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(node, result);
+    return new ExpressionInferenceResult(inferredType, result);
   }
 
-  ExpressionInferenceResult visitShadowLargeIntLiteral(
-    ShadowLargeIntLiteral node,
+  ExpressionInferenceResult visitLargeIntLiteral(
+    LargeIntLiteral node,
     DartType typeContext,
   ) {
     if (isDoubleContext(typeContext)) {
@@ -3914,6 +3921,9 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         DartType inferredType = coreTypes.doubleRawType(
           Nullability.nonNullable,
         );
+        libraryBuilder.loader.dataForTesting
+        // Coverage-ignore(suite): Not run.
+        ?.registerAlias(node, replacement);
         return new ExpressionInferenceResult(inferredType, replacement);
       }
     }
@@ -3940,7 +3950,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // Coverage-ignore-block(suite): Not run.
       return new ExpressionInferenceResult(const DynamicType(), error);
     }
-    Expression replacement = new IntLiteral(intValue);
+    Expression replacement = extern.createIntLiteral(
+      coreTypes,
+      intValue,
+      fileOffset: node.fileOffset,
+      encodeForWeb: false,
+    );
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(node, replacement);
     DartType inferredType = coreTypes.intRawType(Nullability.nonNullable);
     return new ExpressionInferenceResult(inferredType, replacement);
   }
@@ -13563,8 +13581,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       // integer literal -9223372036854775808 which should be a positive number,
       // and negated 9223372036854775808 represented as
       // -9223372036854775808.unary-() which should be a negative number.
-      if (node.expression is IntJudgment) {
-        IntJudgment receiver = node.expression as IntJudgment;
+      if (node.expression case InternalIntLiteral receiver) {
         if (isDoubleContext(typeContext)) {
           double? doubleValue = receiver.asDouble(negated: true);
           if (doubleValue != null) {
@@ -13585,9 +13602,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
           // Coverage-ignore-block(suite): Not run.
           return new ExpressionInferenceResult(const DynamicType(), error);
         }
-      } else if (node.expression is ShadowLargeIntLiteral) {
-        ShadowLargeIntLiteral receiver =
-            node.expression as ShadowLargeIntLiteral;
+      } else if (node.expression case LargeIntLiteral receiver) {
         if (!receiver.isParenthesized) {
           if (isDoubleContext(typeContext)) {
             double? doubleValue = receiver.asDouble(negated: true);

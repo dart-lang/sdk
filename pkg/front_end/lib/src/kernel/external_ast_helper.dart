@@ -56,12 +56,17 @@ BoolLiteral createBoolLiteral(bool value, {required int fileOffset}) {
 }
 
 /// Creates an integer literal of [value].
+///
+/// If [encodeForWeb] is `true`, negative values are encoded using unary-. This
+/// should be done if the [value] isn't known to be a valid negative number in
+/// the web encoding.
 Expression createIntLiteral(
   CoreTypes coreTypes,
   int value, {
   required int fileOffset,
+  bool encodeForWeb = true,
 }) {
-  if (value < 0) {
+  if (encodeForWeb && value < 0) {
     /// The web backends need this to be encoded as a unary minus on the
     /// positive value.
     return new InstanceInvocation(

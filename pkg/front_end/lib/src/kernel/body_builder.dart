@@ -1445,7 +1445,7 @@ class BodyBuilderImpl extends StackListenerImpl
     );
     debugEvent("ParenthesizedExpression");
     Expression value = popForValue();
-    if (value is ShadowLargeIntLiteral) {
+    if (value is LargeIntLiteral) {
       // We need to know that the expression was parenthesized because we will
       // treat -n differently from -(n).  If the expression occurs in a double
       // context, -n is a double literal and -(n) is an application of unary- to
@@ -8311,6 +8311,10 @@ class BodyBuilderImpl extends StackListenerImpl
     required Object? lvalue,
   }) {
     if (lvalue is VariableInitialization) {
+      // Variable initializers are not supported. An error has already been
+      // reported by the parser.
+      lvalue.initializer = null;
+      lvalue.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
       lvalue.isLate = false;
@@ -8332,6 +8336,10 @@ class BodyBuilderImpl extends StackListenerImpl
         error: error,
       );
     } else if (lvalue is VariableDeclaration) {
+      // Variable initializers are not supported. An error has already been
+      // reported by the parser.
+      lvalue.initializer = null;
+      lvalue.hasDeclaredInitializer = false;
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
       lvalue.isLate = false;
