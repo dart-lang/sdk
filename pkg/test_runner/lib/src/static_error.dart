@@ -12,6 +12,7 @@ import 'test_file.dart';
 class ErrorSource {
   static const analyzer = ErrorSource._("analyzer");
   static const cfe = ErrorSource._("CFE", marker: "cfe");
+  static const specParser = ErrorSource._("spec_parser");
   static const web = ErrorSource._("web");
 
   /// Pseudo-front end for context messages.
@@ -21,7 +22,7 @@ class ErrorSource {
   ///
   /// The order is significant here. In static error tests, error expectations
   /// must be in this order for consistency.
-  static const all = [analyzer, cfe, web];
+  static const all = [analyzer, cfe, specParser, web];
 
   /// Gets the source whose lowercase name is [name] or `null` if no source
   /// with that name could be found.
@@ -452,6 +453,9 @@ class StaticError implements Comparable<StaticError> {
       case ErrorSource.web:
         // TODO(rnystrom): If the web compilers report warnings, encode that in
         // the message somehow and then look for it here.
+        return false;
+      case ErrorSource.specParser:
+        // The spec parser does not report warnings.
         return false;
       default:
         break;
