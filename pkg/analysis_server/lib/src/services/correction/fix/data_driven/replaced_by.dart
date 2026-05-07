@@ -178,7 +178,9 @@ class ReplacedBy extends Change<_Data> {
     var elements = fix.element.components;
     if (elements.isEmpty) return null;
     var simpleName = elements[0];
-    if (node is SimpleIdentifier) {
+    if (node is SimpleStringLiteral && node.stringValue == simpleName) {
+      return range.startOffsetEndOffset(node.contentsOffset, node.contentsEnd);
+    } else if (node is SimpleIdentifier) {
       if (node.name != (simpleName.isNotEmpty ? simpleName : elements[1])) {
         return null;
       }

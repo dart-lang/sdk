@@ -13,6 +13,7 @@ enum ElementKind {
   fieldKind('field'),
   functionKind('function'),
   getterKind('getter'),
+  libraryKind('library'),
   methodKind('method'),
   mixinKind('mixin'),
   setterKind('setter'),

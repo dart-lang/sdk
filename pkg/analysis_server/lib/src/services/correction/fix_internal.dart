@@ -1210,6 +1210,7 @@ final _builtInNonLintMultiGenerators = {
     // TODO(brianwilkerson): Support ImportLibrary for non-extension members.
     ImportLibrary.forExtensionMember,
   ],
+  diag.uriDoesNotExist: [DataDriven.new],
   diag.useOfPrivateParameterName: [ChangeArgumentName.new],
   diag.wrongNumberOfTypeArguments: [DataDriven.new],
   diag.wrongNumberOfTypeArgumentsConstructor: [DataDriven.new],
