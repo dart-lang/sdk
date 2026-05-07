@@ -517,6 +517,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         node.augmentKeyword,
         declaredFragment,
       );
+      _checkForAugmentationTypeParameters(
+        fragment: declaredFragment,
+        firstTypeParameters: declarationFragment.typeParameters,
+        nameOrKeywordToken: node.namePart.typeName,
+        typeParameterList: node.namePart.typeParameters,
+      );
 
       List<ClassMember> members = node.body.members;
       if (!declarationFragment.element.isDartCoreFunction) {
@@ -788,6 +794,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
 
+      _checkForAugmentationTypeParameters(
+        fragment: declaredFragment,
+        firstTypeParameters: firstFragment.typeParameters,
+        nameOrKeywordToken: node.namePart.typeName,
+        typeParameterList: node.namePart.typeParameters,
+      );
+
       var element = declaredFragment.element;
       _enclosingClass = element;
 
@@ -871,6 +884,14 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     _checkAugmentationWithoutDeclaration(node.augmentKeyword, declaredFragment);
 
     var declaredElement = declaredFragment.element;
+    var firstFragment = declaredElement.firstFragment;
+
+    _checkForAugmentationTypeParameters(
+      fragment: declaredFragment,
+      firstTypeParameters: firstFragment.typeParameters,
+      nameOrKeywordToken: node.name ?? node.extensionKeyword,
+      typeParameterList: node.typeParameters,
+    );
 
     _enclosingExtension = declaredFragment.asElement2;
     _checkForConflictingExtensionTypeVariableErrorCodes();
@@ -910,6 +931,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
+
+      _checkForAugmentationTypeParameters(
+        fragment: declaredFragment,
+        firstTypeParameters: firstFragment.typeParameters,
+        nameOrKeywordToken: node.primaryConstructor.typeName,
+        typeParameterList: node.primaryConstructor.typeParameters,
+      );
 
       _enclosingClass = firstFragment.asElement2;
 
@@ -1100,6 +1128,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var element = fragment.element;
 
     _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
+    _checkForAugmentationTypeParameters(
+      fragment: fragment,
+      firstTypeParameters: element.firstFragment.typeParameters,
+      nameOrKeywordToken: node.name,
+      typeParameterList: node.functionExpression.typeParameters,
+    );
 
     if (element.enclosingElement is! LibraryElement) {
       _hiddenElements!.declare(element);
@@ -1340,6 +1374,12 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     var element = fragment.element;
 
     _checkAugmentationWithoutDeclaration(node.augmentKeyword, fragment);
+    _checkForAugmentationTypeParameters(
+      fragment: fragment,
+      firstTypeParameters: element.firstFragment.typeParameters,
+      nameOrKeywordToken: node.name,
+      typeParameterList: node.typeParameters,
+    );
 
     _withEnclosingExecutable(
       element,
@@ -1435,6 +1475,13 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
 
       var declaredElement = declaredFragment.element;
       var firstFragment = declaredElement.firstFragment;
+
+      _checkForAugmentationTypeParameters(
+        fragment: declaredFragment,
+        firstTypeParameters: firstFragment.typeParameters,
+        nameOrKeywordToken: node.name,
+        typeParameterList: node.typeParameters,
+      );
 
       _enclosingClass = declaredElement;
 
@@ -2472,6 +2519,56 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           );
         default:
         // OK
+      }
+    }
+  }
+
+  void _checkForAugmentationTypeParameters({
+    required FragmentImpl fragment,
+    required List<TypeParameterFragmentImpl> firstTypeParameters,
+    required Token nameOrKeywordToken,
+    required TypeParameterList? typeParameterList,
+  }) {
+    if (!fragment.isAugmentation) {
+      return;
+    }
+
+    var introductoryCount = firstTypeParameters
+        .takeWhile((p) => !p.isOriginOtherFragmentOfEnclosing)
+        .length;
+
+    // If no type parameter nodes, but introductory has type parameters.
+    if (typeParameterList == null) {
+      if (introductoryCount != 0) {
+        diagnosticReporter.report(
+          diag.augmentationTypeParameterCount.at(nameOrKeywordToken),
+        );
+      }
+      return;
+    }
+
+    // If the number of type parameters does not match, it is an error.
+    if (typeParameterList.typeParameters.length > introductoryCount) {
+      diagnosticReporter.report(
+        diag.augmentationTypeParameterCount.at(
+          typeParameterList.typeParameters[introductoryCount].name,
+        ),
+      );
+      return;
+    } else if (typeParameterList.typeParameters.length < introductoryCount) {
+      diagnosticReporter.report(
+        diag.augmentationTypeParameterCount.at(typeParameterList.rightBracket),
+      );
+      return;
+    }
+
+    for (var i = 0; i < introductoryCount; i++) {
+      var firstTypeParameter = firstTypeParameters[i];
+      var typeParameterNode = typeParameterList.typeParameters[i];
+      if (typeParameterNode.name.lexeme != firstTypeParameter.name) {
+        diagnosticReporter.report(
+          diag.augmentationTypeParameterName.at(typeParameterNode.name),
+        );
       }
     }
   }

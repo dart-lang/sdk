@@ -9,95 +9,95 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(AugmentationTypeParameterNameTest);
+    defineReflectiveTests(AugmentationTypeParameterNameTest);
   });
 }
 
 @reflectiveTest
 class AugmentationTypeParameterNameTest extends PubPackageResolutionTest {
   test_class() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A<T> {}
-''');
-
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+class A<T> {}
 augment class A<U> {}
 ''',
-      [error(diag.augmentationTypeParameterName, 35, 1)],
+      [error(diag.augmentationTypeParameterName, 30, 1)],
+    );
+  }
+
+  test_class_method_differentClassFragment() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void foo<T>() {}
+}
+augment class A {
+  augment void foo<U>();
+}
+''',
+      [error(diag.augmentationTypeParameterName, 68, 1)],
+    );
+  }
+
+  test_class_method_sameClassFragment() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void foo<T>() {}
+  augment void foo<U>();
+}
+''',
+      [error(diag.augmentationTypeParameterName, 48, 1)],
     );
   }
 
   test_enum() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-enum A<T> {v}
-''');
-
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+enum A<T> {v}
 augment enum A<U> {}
 ''',
-      [error(diag.augmentationTypeParameterName, 34, 1)],
+      [error(diag.augmentationTypeParameterName, 29, 1)],
     );
   }
 
   test_extension() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-extension A<T> on int {}
-''');
-
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+extension A<T> on int {}
 augment extension A<U> {}
 ''',
-      [error(diag.augmentationTypeParameterName, 39, 1)],
+      [error(diag.augmentationTypeParameterName, 45, 1)],
     );
   }
 
   test_extensionType() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-extension type A<T>(int it) {}
-''');
-
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+extension type A<T>(int it) {}
 augment extension type A<U>(int it) {}
 ''',
-      [error(diag.augmentationTypeParameterName, 44, 1)],
+      [error(diag.augmentationTypeParameterName, 56, 1)],
     );
   }
 
   test_mixin() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-mixin A<T> {}
-''');
-
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+mixin A<T> {}
 augment mixin A<U> {}
 ''',
-      [error(diag.augmentationTypeParameterName, 35, 1)],
+      [error(diag.augmentationTypeParameterName, 30, 1)],
+    );
+  }
+
+  test_topLevelFunction() async {
+    await assertErrorsInCode(
+      r'''
+void foo<T>() {}
+augment void foo<U>() {}
+''',
+      [error(diag.augmentationTypeParameterName, 34, 1)],
     );
   }
 }
