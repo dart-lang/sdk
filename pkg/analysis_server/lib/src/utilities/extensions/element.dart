@@ -23,6 +23,21 @@ extension ClassElementExtensions on ClassElement {
 }
 
 extension ElementExtensions on Element {
+  /// Canonicalizes an element so that field formal parameters map to their
+  /// fields and property accessors map to their variables.
+  // TODO(FMorschel): Move this when the occurrences are removed and only LSP is
+  //  supported.
+  Element? get canonical => switch (this) {
+    FieldFormalParameterElement(:var field) when field?.name == name =>
+      field?.baseElement,
+    PropertyAccessorElement(:var variable, :var isOriginVariable)
+        when isOriginVariable ||
+            variable is FieldElement &&
+                variable.isOriginDeclaringFormalParameter =>
+      variable.baseElement,
+    _ => baseElement,
+  };
+
   /// Whether this element, the enclosing class (if there is one), or
   /// the enclosing library, has been annotated with the `@Deprecated()`
   /// annotation.

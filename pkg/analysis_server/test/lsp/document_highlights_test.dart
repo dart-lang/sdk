@@ -1093,11 +1093,37 @@ void g() {
     await _testMarkedContent('''
 class C {
   int? /*[0*/_aaa/*0]*/;
-  C({this./*[1*/_aaa/*1]*/});
+  C({this./*[1*/_aaa^/*1]*/});
 }
 
 void f() {
   C(/*[2*/aaa/*2]*/: 123);
+}
+''');
+  }
+
+  Future<void> test_parameter_privateNamed_argument() async {
+    await _testMarkedContent('''
+class C {
+  int? _aaa;
+  C({this./*[0*/_aaa/*0]*/});
+}
+
+void f() {
+  C(/*[1*/aaa^/*1]*/: 123);
+}
+''');
+  }
+
+  Future<void> test_parameter_privateNamed_field() async {
+    await _testMarkedContent('''
+class C {
+  int? /*[0*/_aaa^/*0]*/;
+  C({this./*[1*/_aaa/*1]*/});
+}
+
+void f() {
+  C(aaa: 123);
 }
 ''');
   }
@@ -1355,6 +1381,59 @@ class Aaa() {
 }
 
 Aaa a = Aaa();
+''');
+  }
+
+  Future<void> test_primaryConstructor_declaringParameter_declaration() async {
+    await _testMarkedContent('''
+/// This references [/*[0*/i/*0]*/].
+class C({var int? /*[1*/i^/*1]*/});
+
+void f(int? parameter) {
+  var c = C(/*[2*/i/*2]*/: parameter);
+  C(/*[3*/i/*3]*/: c./*[4*/i/*4]*/);
+}
+''');
+  }
+
+  Future<void>
+  test_primaryConstructor_declaringParameter_private_declaration() async {
+    await _testMarkedContent(r'''
+/// This references [/*[0*/_i/*0]*/].
+class C({var int? /*[1*/_i^/*1]*/}) {
+  String toString() => '${/*[2*/_i/*2]*/}';
+}
+
+void f(int? parameter) {
+  var _ = C(/*[3*/i/*3]*/: parameter);
+}
+''');
+  }
+
+  Future<void> test_primaryConstructor_declaringPrivateParameter_field() async {
+    await _testMarkedContent(r'''
+/// This references [/*[0*/_i^/*0]*/].
+class C({var int? /*[1*/_i/*1]*/}) {
+  String toString() => '${/*[2*/_i/*2]*/}';
+}
+
+void f(int? parameter) {
+  var _ = C(i: parameter);
+}
+''');
+  }
+
+  Future<void>
+  test_primaryConstructor_declaringPrivateParameter_parameter() async {
+    await _testMarkedContent(r'''
+/// This references [_i].
+class C({var int? /*[0*/_i/*0]*/}) {
+  String toString() => '${_i}';
+}
+
+void f(int? parameter) {
+  var _ = C(/*[1*/i^/*1]*/: parameter);
+}
 ''');
   }
 

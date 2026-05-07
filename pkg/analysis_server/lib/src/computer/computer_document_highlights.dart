@@ -2,6 +2,7 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
+import 'package:analysis_server/src/utilities/extensions/element.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/token.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
@@ -71,10 +72,15 @@ class DartDocumentHighlightsComputer {
     // Add the obvious target element.
     var mainTarget = _getTargetElement(coveringNode)?.canonical;
 
-    // For pattern variables in implicit pattern fields (where the field name
-    // is inferred from the variable name), also include the field element.
-
     var additionalTarget = switch (coveringNode) {
+      FormalParameter(
+        declaredFragment: FormalParameterFragment(
+          :FieldFormalParameterElement element,
+        ),
+      ) =>
+        element.field,
+      // For pattern variables in implicit pattern fields (where the field name
+      // is inferred from the variable name), also include the field element.
       VariablePattern(parent: PatternField(:var element, :var name))
           when name?.name == null =>
         element?.canonical,
@@ -89,7 +95,7 @@ class DartDocumentHighlightsComputer {
       ...?additionalTarget?.supertypeMembers,
     };
 
-    return _HighlightTargets.elements(mainTarget?.name, allTargets);
+    return _HighlightTargets.elements(allTargets);
   }
 
   /// Gets the target [AstNode] for [node] if it's a node-based highlight group
@@ -285,7 +291,17 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
 
   @override
   void visitFormalParameter(FormalParameter node) {
-    _addOccurrence(node.declaredFragment?.element, node.name);
+    var element = node.declaredFragment?.element;
+    if (element is FieldFormalParameterElement) {
+      // These tests have to be separate because of
+      // `DocumentHighlightsTest.test_field_unresolved`
+      if (element.field != null) {
+        _addOccurrence(element, node.name);
+        _addOccurrence(element.field, node.name);
+      }
+    } else {
+      _addOccurrence(element, node.name);
+    }
 
     super.visitFormalParameter(node);
   }
@@ -473,23 +489,26 @@ class _DartDocumentHighlightsVisitor extends GeneralizingAstVisitor<void> {
 /// cases (such as a variable pattern) there may be multiple target elements
 /// (such as a variable and the matched getter).
 class _HighlightTargets {
-  final String? _elementName;
   final Set<Element> _targetElements;
+  final Set<String> _targetElementNames;
   final AstNode? _targetNode;
 
-  _HighlightTargets.elements(this._elementName, this._targetElements)
-    : _targetNode = null;
+  _HighlightTargets.elements(this._targetElements)
+    : _targetNode = null,
+      _targetElementNames = {
+        for (var element in _targetElements) ?element.name,
+      };
 
   _HighlightTargets.node(this._targetNode)
-    : _elementName = null,
-      _targetElements = const {};
+    : _targetElements = const {},
+      _targetElementNames = const {};
 
   bool matchesElement(Element element) {
     return _targetElements.contains(element);
   }
 
   bool matchesElementName(Element canonicalElement) {
-    return canonicalElement.name == _elementName;
+    return _targetElementNames.contains(canonicalElement.name);
   }
 
   bool matchesNode(AstNode node) {
@@ -498,18 +517,6 @@ class _HighlightTargets {
 }
 
 extension on Element {
-  /// Canonicalizes an element so that field formal parameters map to their
-  /// fields and property accessors map to their variables.
-  Element? get canonical {
-    return switch (this) {
-      FieldFormalParameterElement(:var field) => field?.baseElement,
-      PropertyAccessorElement(:var variable)
-          when variable.isOriginDeclaration =>
-        variable.baseElement,
-      _ => baseElement,
-    };
-  }
-
   /// All members in superclasses that this element overrides.
   Iterable<Element> get supertypeMembers {
     var enclosing = enclosingElement;
