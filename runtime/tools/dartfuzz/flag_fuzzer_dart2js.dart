@@ -7,7 +7,7 @@
 
 import "flag_fuzzer.dart";
 
-main() => flagFuzz(
+Future<void> main() => flagFuzz(
   (String output) => [
     "pkg/compiler/lib/src/dart2js.dart",
     "--invoker=test",

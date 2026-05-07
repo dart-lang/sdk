@@ -142,7 +142,7 @@ Duration get remainingTimeout => overallTimeout - stopwatch.elapsed;
 const statusTimeout = Duration(minutes: 5);
 int pendingTaskCount = 0;
 late Timer pendingTimer;
-taskStart() {
+void taskStart() {
   if (pendingTaskCount++ == 0) {
     pendingTimer = new Timer.periodic(statusTimeout, (timer) {
       print(
@@ -153,13 +153,13 @@ taskStart() {
   }
 }
 
-taskEnd() {
+void taskEnd() {
   if (--pendingTaskCount == 0) {
     pendingTimer.cancel();
   }
 }
 
-test(
+Future<void> test(
   List<String> Function(String) createDartCommand,
   int taskIndex,
   String extension,
@@ -171,7 +171,7 @@ test(
   var dartArguments = dartCommand.getRange(1, dartCommand.length).toList();
 
   var buildDir = oneOf(buildDirs);
-  var commands;
+  List<List<String>> commands;
   if (random.nextBool()) {
     // JIT
     commands = [
@@ -266,7 +266,7 @@ test(
   taskEnd();
 }
 
-shard(
+Future<void> shard(
   List<String> Function(String) createDartCommand,
   int shardIndex,
   String extension,
@@ -276,7 +276,7 @@ shard(
   }
 }
 
-flagFuzz(
+Future<void> flagFuzz(
   List<String> Function(String) createDartCommand,
   String extension,
 ) async {
