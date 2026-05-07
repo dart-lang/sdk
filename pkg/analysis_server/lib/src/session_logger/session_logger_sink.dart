@@ -3,29 +3,34 @@
 // BSD-style license that can be found in the LICENSE file.
 
 import 'dart:convert';
+import 'dart:io' as io;
 
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:analysis_server/src/session_logger/log_normalizer.dart';
 import 'package:analysis_server/src/session_logger/process_id.dart';
-import 'package:analyzer/file_system/file_system.dart';
 import 'package:language_server_protocol/protocol_special.dart' show Either2;
 
 /// A sink for a session logger that will write entries to a file.
 final class SessionLoggerFileSink extends SessionLoggerSink {
   /// The sink used to write to the file.
-  final File _file;
+  late final io.IOSink _sink;
 
   @override
   final LogNormalizer _normalizer;
 
   /// Initializes a newly created sink to write to the file at the given
   /// [filePath].
-  SessionLoggerFileSink(this._file, {required this._normalizer});
+  SessionLoggerFileSink(String filePath, {required this._normalizer}) {
+    _sink = io.File(filePath).openWrite();
+  }
+
+  @override
+  Future<void> close() => _sink.close();
 
   @override
   void writeLogEntry(JsonMap entry) {
     var jsonString = _normalizer.normalize(json.encode(entry));
-    _file.writeAsStringSync('$jsonString\n');
+    _sink.writeln(jsonString);
   }
 }
 
@@ -71,11 +76,11 @@ final class SessionLoggerInMemorySink extends SessionLoggerSink {
   SessionLoggerInMemorySink({
     required this.maxBufferLength,
     required LogNormalizer normalizer,
-    File? sessionLogFile,
+    String? sessionLogFilePath,
   }) : _normalizer = normalizer,
-       _nextLogger = sessionLogFile == null
+       _nextLogger = sessionLogFilePath == null
            ? null
-           : SessionLoggerFileSink(sessionLogFile, normalizer: normalizer);
+           : SessionLoggerFileSink(sessionLogFilePath, normalizer: normalizer);
 
   /// Returns a list of the entries that have been captured.
   ///
@@ -208,6 +213,8 @@ final class SessionLoggerInMemorySink extends SessionLoggerSink {
 sealed class SessionLoggerSink {
   /// The normalizer used to normalize paths in log entries.
   LogNormalizer get _normalizer;
+
+  Future<void> close() async {}
 
   /// Writes the given log [entry] to this sink.
   void writeLogEntry(JsonMap entry);

@@ -343,10 +343,7 @@ class Driver implements ServerStarter {
 
     // Initialize the session logging service.
     var sessionLogFilePath = results.option(sessionLogOption);
-    var sessionLogFile = sessionLogFilePath == null
-        ? null
-        : PhysicalResourceProvider.INSTANCE.getFile(sessionLogFilePath);
-    _sessionLogger = SessionLogger(sessionLogFile: sessionLogFile);
+    _sessionLogger = SessionLogger(filePath: sessionLogFilePath);
     _sessionLogger.normalizer.addReplacementsForPath(
       defaultSdkPath,
       'dartSdkRoot',

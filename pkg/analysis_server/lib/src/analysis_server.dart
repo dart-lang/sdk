@@ -1169,6 +1169,7 @@ abstract class AnalysisServer {
     await contextManager.dispose();
     await analyticsManager.shutdown();
     await shutdownPerfWitness();
+    await sessionLogger.shutdown();
   }
 
   ResolvedForCompletionResultImpl?
