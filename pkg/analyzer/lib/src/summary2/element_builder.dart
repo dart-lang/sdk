@@ -949,19 +949,13 @@ class ElementBuilder {
       }
     }
 
-    Iterable<ExecutableFragmentImpl> precedingFragmentsOldestFirst() {
-      return currentFragment.precedingFragments
-          .cast<ExecutableFragmentImpl>()
-          .toList()
-          .reversed;
-    }
-
     void growPrecedingFragmentsWithPositional({
       required int index,
       required FormalParameterFragmentImpl template,
     }) {
       FormalParameterFragmentImpl? previousSyntheticParameter;
-      for (var fragmentToGrow in precedingFragmentsOldestFirst()) {
+      var fragmentsToGrow = currentFragment.precedingFragments.reversed;
+      for (var fragmentToGrow in fragmentsToGrow) {
         var syntheticParameter = createSyntheticFragment(template);
 
         var newParameters = fragmentToGrow.formalParameters.toList();
@@ -977,7 +971,8 @@ class ElementBuilder {
       FormalParameterFragmentImpl currentParameter,
     ) {
       FormalParameterFragmentImpl? previousSyntheticParameter;
-      for (var fragmentToGrow in precedingFragmentsOldestFirst()) {
+      var fragmentsToGrow = currentFragment.precedingFragments.reversed;
+      for (var fragmentToGrow in fragmentsToGrow) {
         var syntheticParameter = createSyntheticFragment(currentParameter);
 
         fragmentToGrow.formalParameters = [
@@ -1101,9 +1096,7 @@ class ElementBuilder {
 
     // Grow all previous fragments if current fragment has more type parameters.
     if (previousTypeParameters.length < currentTypeParameters.length) {
-      var fragmentsToGrow = currentFragment.precedingFragments
-          .toList()
-          .reversed;
+      var fragmentsToGrow = currentFragment.precedingFragments.reversed;
       for (
         var i = previousTypeParameters.length;
         i < currentTypeParameters.length;

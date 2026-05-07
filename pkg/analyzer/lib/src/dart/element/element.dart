@@ -2681,6 +2681,18 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
   }
 
   @override
+  List<ExecutableFragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
+  }
+
+  @override
   List<FormalParameterFragmentImpl> get formalParameters {
     _ensureReadResolution();
     return _formalParameters;
@@ -2799,6 +2811,18 @@ abstract class ExecutableFragmentImpl extends FunctionTypedFragmentImpl
 
   @override
   int get offset => nameOffset ?? firstTokenOffset!;
+
+  @override
+  List<ExecutableFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
+  }
 
   @override
   ExecutableFragmentImpl? get previousFragment;
@@ -4017,6 +4041,18 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
     };
   }
 
+  @override
+  List<FormalParameterFragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
+  }
+
   /// The parameters defined by this parameter.
   ///
   /// A parameter will only define other parameters if it is a function typed
@@ -4162,12 +4198,15 @@ class FormalParameterFragmentImpl extends VariableFragmentImpl
   }
 
   @override
-  Iterable<FormalParameterFragmentImpl> get precedingFragments sync* {
-    var current = previousFragment;
-    while (current != null) {
-      yield current;
-      current = current.previousFragment;
-    }
+  List<FormalParameterFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
   }
 
   /// The type parameters defined by this parameter.
@@ -4376,12 +4415,15 @@ abstract class FragmentImpl implements Fragment {
 
   /// The fragments in the augmentation chain that follow this fragment,
   /// in order from the immediate next fragment to the last fragment.
-  Iterable<FragmentImpl> get followingFragments sync* {
-    var current = nextFragment;
-    while (current != null) {
-      yield current;
-      current = current.nextFragment;
-    }
+  List<FragmentImpl> get followingFragments {
+    return [
+      for (
+        var current = nextFragment;
+        current != null;
+        current = current.nextFragment
+      )
+        current,
+    ];
   }
 
   @generated
@@ -4445,12 +4487,15 @@ abstract class FragmentImpl implements Fragment {
 
   /// The fragments in the augmentation chain that precede this fragment,
   /// in order from the immediate previous fragment to the first fragment.
-  Iterable<FragmentImpl> get precedingFragments sync* {
-    var current = previousFragment;
-    while (current != null) {
-      yield current;
-      current = current.previousFragment;
-    }
+  List<FragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
   }
 
   @override
