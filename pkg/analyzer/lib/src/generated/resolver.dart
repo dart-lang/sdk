@@ -1904,6 +1904,7 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       node.visitChildren(this);
       var returnType = _finishFunctionBodyInference();
       flowAnalysis.flow?.anonymousBlockBody_end();
+
       return returnType;
     } finally {
       _bodyContext = oldBodyContext;
@@ -1916,11 +1917,13 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     TypeImpl? imposedType,
   }) {
     checkUnreachableNode(node);
+
     analyzeExpression(
       node.expression,
       SharedTypeSchemaView(imposedType ?? UnknownInferredType.instance),
     );
     popRewrite();
+
     return node.expression.staticType ?? typeProvider.dynamicType;
   }
 
@@ -1975,11 +1978,33 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
       for (var parameter in parameters.parameters) {
         var element = parameter.declaredFragment?.element;
         if (element != null) {
-          flow.declare(
-            element,
-            SharedTypeView(element.type),
-            initialized: true,
-          );
+          if (parameter == parameters.parameters.first) {
+            flow.declare(
+              element,
+              SharedTypeView(element.type),
+              initialized: false,
+            );
+            flow.initialize(
+              element,
+              SharedTypeView(element.type),
+              target != null
+                  ? flowAnalysis.flow?.getExpressionInfo(target)
+                  : null,
+              isFinal: false,
+              isLate: false,
+              isImplicitlyTyped: parameter.type == null,
+              inheritPromotableProperties: true,
+            );
+          } else {
+            // An error will occur because there are multiple parameters, but
+            // those extra parameters should still allow for meaningful analysis
+            // in the body of the anonymous method.
+            flow.declare(
+              element,
+              SharedTypeView(element.type),
+              initialized: true,
+            );
+          }
         }
       }
     }
@@ -1988,9 +2013,15 @@ class ResolverVisitor extends ThrowingAstVisitor<void>
     if (parameters == null) {
       var oldThisType = _thisType;
       _thisType = parameterType;
+      var target = node.target;
+      var targetInfo = target != null
+          ? flowAnalysis.flow?.getExpressionInfo(target)
+          : null;
+      flowAnalysis.flow?.thisBinding_begin(targetInfo);
       try {
         returnedType = node.body.resolve(this, contextType);
       } finally {
+        flowAnalysis.flow?.thisBinding_end();
         _thisType = oldThisType;
       }
     } else {

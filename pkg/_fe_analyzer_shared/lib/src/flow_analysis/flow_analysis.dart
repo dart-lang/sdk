@@ -750,6 +750,7 @@ abstract class FlowAnalysis<
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
+    bool inheritPromotableProperties = false,
   });
 
   /// Whether the [variable] is definitely assigned in the current state.
@@ -1194,6 +1195,12 @@ abstract class FlowAnalysis<
     ExpressionInfo? scrutineeInfo,
     SharedTypeView scrutineeType,
   );
+
+  /// Call this method just before changing the binding of `this`.
+  void thisBinding_begin(ExpressionInfo? targetInfo);
+
+  /// Call this method just after the end of a `this` binding.
+  void thisBinding_end();
 
   /// Call this method just after visiting the expression `this` (or the
   /// pseudo-expression `super`, in the case of the analyzer, which represents
@@ -1956,11 +1963,13 @@ class FlowAnalysisDebug<
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
+    bool inheritPromotableProperties = false,
   }) {
     _wrap(
       'initialize($variable, $matchedType, $initializerExpressionInfo, '
       'isFinal: $isFinal, isLate: $isLate, '
-      'isImplicitlyTyped: $isImplicitlyTyped)',
+      'isImplicitlyTyped: $isImplicitlyTyped, '
+      'inheritPromotableProperties: $inheritPromotableProperties)',
       () => _wrapped.initialize(
         variable,
         matchedType,
@@ -1968,6 +1977,7 @@ class FlowAnalysisDebug<
         isFinal: isFinal,
         isLate: isLate,
         isImplicitlyTyped: isImplicitlyTyped,
+        inheritPromotableProperties: inheritPromotableProperties,
       ),
     );
   }
@@ -2496,6 +2506,19 @@ class FlowAnalysisDebug<
         scrutineeType,
       ),
     );
+  }
+
+  @override
+  void thisBinding_begin(ExpressionInfo? targetInfo) {
+    _wrap(
+      'thisBinding_begin($targetInfo)',
+      () => _wrapped.thisBinding_begin(targetInfo),
+    );
+  }
+
+  @override
+  void thisBinding_end() {
+    _wrap('thisBinding_end()', () => _wrapped.thisBinding_end());
   }
 
   @override
@@ -5173,8 +5196,10 @@ class _FlowAnalysisImpl<
   @override
   late final SsaNode _superSsaNode = new SsaNode();
 
+  final List<SsaNode> _thisSsaNodes = [new SsaNode()];
+
   @override
-  late final SsaNode _thisSsaNode = new SsaNode();
+  SsaNode get _thisSsaNode => _thisSsaNodes.last;
 
   @override
   final List<_Reference> _cascadeTargetStack = [];
@@ -5845,6 +5870,7 @@ class _FlowAnalysisImpl<
     required bool isFinal,
     required bool isLate,
     required bool isImplicitlyTyped,
+    bool inheritPromotableProperties = false,
   }) {
     SharedTypeView unpromotedType = operations.variableType(variable);
     int variableKey = promotionKeyStore.keyForVariable(variable);
@@ -5856,6 +5882,7 @@ class _FlowAnalysisImpl<
       isLate: isLate,
       isImplicitlyTyped: isImplicitlyTyped,
       unpromotedType: unpromotedType,
+      inheritPromotableProperties: inheritPromotableProperties,
     );
   }
 
@@ -6641,6 +6668,24 @@ class _FlowAnalysisImpl<
     if (switchStatement != null) {
       _statementToContext[switchStatement] = context;
     }
+  }
+
+  @override
+  void thisBinding_begin(ExpressionInfo? targetInfo) {
+    _Reference? expressionReference = _getExpressionReference(targetInfo);
+    SsaNode ssaNode =
+        expressionReference?.ssaNode ??
+        new SsaNode(
+          conditionVariableState: targetInfo != null && targetInfo.isNonTrivial
+              ? targetInfo
+              : null,
+        );
+    _thisSsaNodes.add(ssaNode);
+  }
+
+  @override
+  void thisBinding_end() {
+    _thisSsaNodes.removeLast();
   }
 
   @override
@@ -7445,6 +7490,7 @@ class _FlowAnalysisImpl<
     required bool isLate,
     required bool isImplicitlyTyped,
     required SharedTypeView unpromotedType,
+    bool inheritPromotableProperties = false,
   }) {
     if (isLate) {
       // Don't use expression info for late variables, since we don't know when
@@ -7458,12 +7504,15 @@ class _FlowAnalysisImpl<
       // https://github.com/dart-lang/language/issues/1785.
       expressionInfo = null;
     }
-    SsaNode newSsaNode = new SsaNode(
-      conditionVariableState:
-          expressionInfo != null && expressionInfo.isNonTrivial
-          ? expressionInfo
-          : null,
-    );
+    SsaNode newSsaNode =
+        inheritPromotableProperties && expressionInfo is _Reference
+        ? expressionInfo.ssaNode
+        : new SsaNode(
+            conditionVariableState:
+                expressionInfo != null && expressionInfo.isNonTrivial
+                ? expressionInfo
+                : null,
+          );
     _current = _current.write(
       this,
       null,
@@ -7731,16 +7780,23 @@ class _FlowAnalysisImpl<
     ).restoreConditionVariableState(scrutineeInfo, this, _current);
   }
 
-  TrivialVariableReference _thisOrSuperReference(
+  _Reference _thisOrSuperReference(
     SharedTypeView staticType, {
     required bool isSuper,
-  }) => new TrivialVariableReference(
-    promotionKey: promotionKeyStore.thisPromotionKey,
-    model: _current,
-    type: staticType,
-    isThisOrSuper: true,
-    ssaNode: isSuper ? _superSsaNode : _thisSsaNode,
-  );
+  }) {
+    SsaNode ssaNode = isSuper ? _superSsaNode : _thisSsaNode;
+    return new TrivialVariableReference(
+      promotionKey: promotionKeyStore.thisPromotionKey,
+      model: _current,
+      type: staticType,
+      isThisOrSuper: true,
+      ssaNode: ssaNode,
+    ).restoreConditionVariableState(
+      ssaNode.conditionVariableState,
+      this,
+      _current,
+    );
+  }
 
   TrivialVariableReference _variableReference(
     int variableKey,

@@ -6,7 +6,6 @@
 // SharedOptions=--enable-experiment=anonymous-methods
 
 import 'package:expect/expect.dart';
-import '../../static_type_helper.dart';
 
 extension on int {
   int get g1 => this + '$this'.=> this.length;

@@ -2453,17 +2453,26 @@ class InvokeAnonymousMethod extends Expression {
 
   final bool isNullAware;
 
+  final bool isParameterless;
+
+  final Var? parameter;
+
   InvokeAnonymousMethod._(
     this.target,
     this.body, {
     required this.returnType,
     required this.isNullAware,
+    required this.isParameterless,
+    this.parameter,
     required super.location,
   });
 
   @override
   void preVisit(PreVisitor visitor) {
     target.preVisit(visitor);
+    if (parameter != null) {
+      visitor._assignedVariables.declare(parameter!);
+    }
     body.preVisit(visitor);
   }
 
@@ -2484,10 +2493,40 @@ class InvokeAnonymousMethod extends Expression {
     if (isNullAware) {
       targetResult = h.typeAnalyzer.createNullAwareGuard(target, targetResult);
     }
+    var targetInfo = targetResult.flowAnalysisInfo;
+    var previousThisType = h._thisType;
+    if (isParameterless) {
+      h.flow.thisBinding_begin(targetInfo);
+      h._thisType = targetResult.type.unwrapTypeView();
+    }
     h.flow.anonymousBlockBody_begin();
+    if (parameter != null) {
+      bool isImplicitlyTyped = parameter!._type == null;
+      if (parameter!._type == null) {
+        parameter!._type = targetResult.type.unwrapTypeView<Type>();
+      }
+      h.flow.declare(
+        parameter!,
+        SharedTypeView(parameter!.type),
+        initialized: false,
+      );
+      h.flow.initialize(
+        parameter!,
+        targetResult.type,
+        targetInfo,
+        isFinal: false,
+        isLate: false,
+        isImplicitlyTyped: isImplicitlyTyped,
+        inheritPromotableProperties: true,
+      );
+    }
     // Analyze the block, and generate its IR.
     body.visit(h);
     h.flow.anonymousBlockBody_end();
+    if (isParameterless) {
+      h._thisType = previousThisType;
+      h.flow.thisBinding_end();
+    }
     // Form the IR for the anonymous method invocation.
     h.irBuilder.apply(
       'anonymous-method',
@@ -4971,6 +5010,8 @@ mixin ProtoExpression
     List<ProtoStatement> body, {
     required String returnType,
     bool isNullAware = false,
+    bool isParameterless = true,
+    Var? parameter,
   }) {
     var location = computeLocation();
     return new InvokeAnonymousMethod._(
@@ -4978,6 +5019,8 @@ mixin ProtoExpression
       Block._(body, location: location),
       returnType: Type(returnType),
       isNullAware: isNullAware,
+      isParameterless: isParameterless,
+      parameter: parameter,
       location: location,
     );
   }
@@ -7129,6 +7172,7 @@ class _MiniAstTypeAnalyzer
       SharedTypeView(thisType),
       isSuper: false,
     );
+    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(thisType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7151,6 +7195,9 @@ class _MiniAstTypeAnalyzer
       SharedTypeView(memberType),
     );
     var promotedType = wrappedPromotedType?.unwrapTypeView();
+    if (flowAnalysisInfo != null) {
+      flow.storeExpressionInfo(node, flowAnalysisInfo);
+    }
     return new ExpressionTypeAnalysisResult(
       type: SharedTypeView(promotedType ?? memberType),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7249,6 +7296,7 @@ class _MiniAstTypeAnalyzer
   ) {
     var (promotedType, flowAnalysisInfo) = flow.variableRead(variable);
     callback?.call(promotedType?.unwrapTypeView());
+    flow.storeExpressionInfo(node, flowAnalysisInfo);
     return new ExpressionTypeAnalysisResult(
       type: promotedType ?? SharedTypeView(variable.type),
       flowAnalysisInfo: flowAnalysisInfo,
@@ -7843,6 +7891,9 @@ class _MiniAstTypeAnalyzer
       member,
       SharedTypeView(memberType),
     );
+    if (propertyGetNode != null && flowAnalysisInfo != null) {
+      flow.storeExpressionInfo(propertyGetNode, flowAnalysisInfo);
+    }
     return ExpressionTypeAnalysisResult(
       type: wrappedPromotedType ?? SharedTypeView(memberType),
       flowAnalysisInfo: flowAnalysisInfo,

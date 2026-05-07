@@ -11868,7 +11868,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     flowAnalysis.declare(
       node.variable,
       new SharedTypeView(node.variable.type),
-      initialized: true,
+      initialized: false,
+    );
+    flowAnalysis.initialize(
+      node.variable,
+      new SharedTypeView(node.variable.type),
+      flowAnalysis.getExpressionInfo(node.variable.initializer!),
+      isFinal: false,
+      isLate: false,
+      isImplicitlyTyped: node.isImplicitlyTyped,
+      inheritPromotableProperties: true,
     );
     if (node.isNullAware) {
       flow.nullAwareAccess_rightBegin(
@@ -11878,11 +11887,20 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       );
     }
 
+    bool isParameterless = node.variable.isSynthesized;
+    if (isParameterless) {
+      flow.thisBinding_begin(
+        flowAnalysis.getExpressionInfo(node.variable.initializer!),
+      );
+    }
     ExpressionInferenceResult bodyResult = inferExpression(
       node.body,
       typeContext,
       isVoidAllowed: true,
     );
+    if (isParameterless) {
+      flow.thisBinding_end();
+    }
 
     if (node.isNullAware) {
       flow.nullAwareAccess_end();
