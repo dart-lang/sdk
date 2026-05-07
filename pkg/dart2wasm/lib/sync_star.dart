@@ -129,9 +129,6 @@ class SyncStarStateMachineCodeGenerator extends StateMachineCodeGenerator {
   late final ClassInfo suspendStateInfo =
       translator.classInfo[translator.suspendStateClass]!;
 
-  late final ClassInfo syncStarIterableInfo =
-      translator.classInfo[translator.syncStarIterableClass]!;
-
   late final ClassInfo syncStarIteratorInfo =
       translator.classInfo[translator.syncStarIteratorClass]!;
 
