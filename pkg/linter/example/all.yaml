@@ -218,6 +218,7 @@ linter:
     - unsafe_variance
     - use_build_context_synchronously
     - use_colored_box
+    - use_declaring_parameters
     - use_decorated_box
     - use_enums
     - use_full_hex_values_for_flutter_colors

@@ -606,6 +606,8 @@ abstract final class LintNames {
 
   static const String use_colored_box = 'use_colored_box';
 
+  static const String use_declaring_parameters = 'use_declaring_parameters';
+
   static const String use_decorated_box = 'use_decorated_box';
 
   static const String use_enums = 'use_enums';

@@ -3607,6 +3607,16 @@ const LinterLintWithoutArguments useColoredBox = LinterLintWithoutArguments(
 );
 
 /// No parameters.
+const LinterLintWithoutArguments useDeclaringParameters =
+    LinterLintWithoutArguments(
+      name: 'use_declaring_parameters',
+      problemMessage: "Use a declaring parameter.",
+      correctionMessage: "Try using a declaring parameter.",
+      uniqueName: 'use_declaring_parameters',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments useDecoratedBox = LinterLintWithoutArguments(
   name: 'use_decorated_box',
   problemMessage:

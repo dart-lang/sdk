@@ -308,6 +308,7 @@ import 'unsafe_variance_test.dart' as unsafe_variance;
 import 'use_build_context_synchronously_test.dart'
     as use_build_context_synchronously;
 import 'use_colored_box_test.dart' as use_colored_box;
+import 'use_declaring_parameters_test.dart' as use_declaring_parameters;
 import 'use_decorated_box_test.dart' as use_decorated_box;
 import 'use_enums_test.dart' as use_enums;
 import 'use_full_hex_values_for_flutter_colors_test.dart'
@@ -564,6 +565,7 @@ void main() {
   unsafe_variance.main();
   use_build_context_synchronously.main();
   use_colored_box.main();
+  use_declaring_parameters.main();
   use_decorated_box.main();
   use_enums.main();
   use_full_hex_values_for_flutter_colors.main();

@@ -2559,6 +2559,8 @@ use_build_context_synchronously_wrong_mounted:
     to a mounted check on the right element.
 use_colored_box:
   status: hasFix
+use_declaring_parameters:
+  status: needsFix
 use_decorated_box:
   status: hasFix
 use_enums:

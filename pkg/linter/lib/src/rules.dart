@@ -240,6 +240,7 @@ import 'rules/unsafe_html.dart';
 import 'rules/unsafe_variance.dart';
 import 'rules/use_build_context_synchronously.dart';
 import 'rules/use_colored_box.dart';
+import 'rules/use_declaring_parameters.dart';
 import 'rules/use_decorated_box.dart';
 import 'rules/use_enums.dart';
 import 'rules/use_full_hex_values_for_flutter_colors.dart';
@@ -502,6 +503,7 @@ void registerLintRules() {
     ..registerLintRule(UseBuildContextSynchronously())
     ..registerLintRule(UseColoredBox())
     ..registerLintRule(UseDecoratedBox())
+    ..registerLintRule(UseDeclaringParameters())
     ..registerLintRule(UseEnums())
     ..registerLintRule(UseFullHexValuesForFlutterColors())
     ..registerLintRule(UseFunctionTypeSyntaxForParameters())

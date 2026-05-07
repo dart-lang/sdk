@@ -16366,6 +16366,17 @@ LinterLintCode:
         );
       }
       ```
+  useDeclaringParameters:
+    type: lint
+    parameters: none
+    problemMessage: "Use a declaring parameter."
+    correctionMessage: "Try using a declaring parameter."
+    state:
+      experimental: "3.13"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Use a declaring parameter everywhere it's valid to do so.
   useDecoratedBox:
     type: lint
     parameters: none
