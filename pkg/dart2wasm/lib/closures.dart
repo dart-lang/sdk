@@ -1351,7 +1351,7 @@ class Context {
   /// The parent of this context, corresponding to the lexically enclosing
   /// owner. This is null if the context is a member context, or if all contexts
   /// in the parent chain are skipped.
-  final Context? parent;
+  Context? parent;
 
   /// The variables captured by this context.
   final List<VariableDeclaration> variables = [];
@@ -1502,7 +1502,10 @@ class Closures {
 
   void _collectContexts() {
     if (captures.isNotEmpty || _isThisCaptured) {
-      _member.accept(_ContextCollector(this, translator.options.enableAsserts));
+      _ContextCollector(
+        this,
+        translator.options.enableAsserts,
+      ).collect(_member);
     }
   }
 
@@ -1774,6 +1777,16 @@ class _ContextCollector extends RecursiveVisitor {
 
   _ContextCollector(this.closures, this.enableAsserts);
 
+  void collect(Member member) {
+    member.accept(this);
+
+    for (final context in closures.contexts.values) {
+      while (context.parent?.isEmpty ?? false) {
+        context.parent = context.parent!.parent;
+      }
+    }
+  }
+
   @override
   void visitAssertStatement(AssertStatement node) {
     if (enableAsserts) {
@@ -1793,12 +1806,8 @@ class _ContextCollector extends RecursiveVisitor {
         currentContext == null ||
         node.parent is Constructor && !isInInitializer;
     Context? oldContext = currentContext;
-    Context? parent = currentContext;
-    while (parent != null && parent.isEmpty) {
-      parent = parent.parent;
-    }
     bool containsThis = closures._isThisCaptured && outerMost;
-    currentContext = Context(node, parent, containsThis);
+    currentContext = Context(node, oldContext, containsThis);
     closures.contexts[node] = currentContext!;
     node.visitChildren(this);
     currentContext = oldContext;
