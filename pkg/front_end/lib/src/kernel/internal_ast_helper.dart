@@ -2,8 +2,8 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:kernel/ast.dart';
 import 'package:kernel/ast.dart' as ast_helper show isThisExpression;
+import 'package:kernel/ast.dart';
 import 'package:kernel/src/printer.dart';
 
 import '../base/problems.dart' show unsupported;
@@ -340,45 +340,39 @@ PatternForMapEntry createPatternForMapEntry(
 }
 
 ForInElement createForInElement(
-  int fileOffset,
-  VariableDeclaration variable,
+  InternalForInElement element,
   Expression iterable,
-  Expression? synthesizedAssignment,
-  Statement? expressionEffects,
-  Expression body,
-  Expression? problem, {
-  bool isAsync = false,
+  Expression body, {
+  required bool isAsync,
+  required int forOffset,
+  required int fileOffset,
 }) {
   return new ForInElement(
-    variable,
+    element,
     iterable,
-    synthesizedAssignment,
-    expressionEffects,
     body,
-    problem,
     isAsync: isAsync,
-  )..fileOffset = fileOffset;
+    forOffset: forOffset,
+    fileOffset: fileOffset,
+  );
 }
 
 ForInMapEntry createForInMapEntry(
-  int fileOffset,
-  VariableDeclaration variable,
+  InternalForInElement element,
   Expression iterable,
-  Expression? synthesizedAssignment,
-  Statement? expressionEffects,
-  MapLiteralEntry body,
-  Expression? problem, {
-  bool isAsync = false,
+  MapLiteralEntry body, {
+  required bool isAsync,
+  required int forOffset,
+  required int fileOffset,
 }) {
   return new ForInMapEntry(
-    variable,
+    element,
     iterable,
-    synthesizedAssignment,
-    expressionEffects,
     body,
-    problem,
     isAsync: isAsync,
-  )..fileOffset = fileOffset;
+    forOffset: forOffset,
+    fileOffset: fileOffset,
+  );
 }
 
 /// Return a representation of an assert that appears in a constructor's

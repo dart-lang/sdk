@@ -123,7 +123,7 @@ void main() {
   ) async {
     _testVariableDeclarations();
     _testTryStatement();
-    _testForInStatementWithSynthesizedVariable();
+    _testInternalForInStatement();
     _testSwitchCaseImpl();
     _testBreakStatementImpl();
     _testCascade();
@@ -344,8 +344,214 @@ try { return; } on void catch (e) { return; } catch (e) { return; } finally { re
   );
 }
 
-void _testForInStatementWithSynthesizedVariable() {
-  // TODO(johnniwinther): Test ForInStatementWithSynthesizedVariable
+void _testInternalForInStatement() {
+  testStatement(
+    new InternalForInStatement(
+      new SingleVariableDeclarationForInElement(
+        variableDeclaration: new VariableDeclarationImpl('e'),
+        error: null,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var e in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new SingleVariableDeclarationForInElement(
+        variableDeclaration: new VariableDeclarationImpl(
+          'e',
+          type: const VoidType(),
+        ),
+        error: null,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (void e in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new PatternForInElement(
+        pattern: new RecordPattern([
+          new VariablePattern(
+            const VoidType(),
+            new VariableDeclarationImpl('a'),
+          ),
+          new VariablePattern(null, new VariableDeclarationImpl('b')),
+        ]),
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var (void a, var b) in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new ExistingVariableForInElement(
+        variable: new VariableDeclarationImpl('a'),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  // TODO(johnniwinther,cstefantsova): Test toTextInternal for
+  //  [VariableInitializationForInElement].
+
+  testStatement(
+    new InternalForInStatement(
+      new InvalidForInElement(
+        error: new InvalidExpression('error'),
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (<invalid:error> in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new StaticForInElement(
+        target: new Field.mutable(new Name('a'), fileUri: dummyUri),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new PropertyForInElement(
+        receiver: new ThisExpression(),
+        name: new Name('a'),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new UnassignableForInElement(
+        expression: new NullLiteral(),
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (null in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new MultiVariableDeclarationForInElement(
+        variableDeclarations: [
+          new VariableDeclarationImpl('a'),
+          new VariableDeclarationImpl('b'),
+        ],
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (var a, b in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new MultiVariableDeclarationForInElement(
+        variableDeclarations: [
+          new VariableDeclarationImpl('a', type: const VoidType()),
+          new VariableDeclarationImpl('b'),
+        ],
+        error: new InvalidExpression('error'),
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (void a, b in null) {}''',
+  );
+
+  testStatement(
+    new InternalForInStatement(
+      new ExtensionForInElement(
+        extension: new Extension(name: 'Extension', fileUri: dummyUri),
+        thisTypeArguments: null,
+        thisAccess: new ThisExpression(),
+        name: new Name('a'),
+        setter: new Procedure(
+          new Name('Extension|a'),
+          ProcedureKind.Method,
+          new FunctionNode(null),
+          fileUri: dummyUri,
+        ),
+        nameOffset: -1,
+        inOffset: -1,
+      ),
+      new NullLiteral(),
+      new Block([]),
+      isAsync: false,
+      fileOffset: -1,
+      bodyOffset: -1,
+    ),
+    '''
+for (a in null) {}''',
+  );
 }
 
 void _testSwitchCaseImpl() {

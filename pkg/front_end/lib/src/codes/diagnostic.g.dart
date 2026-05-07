@@ -9925,6 +9925,15 @@ const MessageCode nonExtensionTypeMemberOneOfContext = const MessageCode(
 );
 
 // DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
+const MessageCode nonIdentifierForInElement = const MessageCode(
+  "NonIdentifierForInElement",
+  problemMessage:
+      """The element in a for-in loop must be an identifier or a local variable declaration.""",
+  correctionMessage:
+      """Try using an existing variable or a variable declaration.""",
+);
+
+// DO NOT EDIT. THIS FILE IS GENERATED. SEE TOP OF FILE.
 const Template<Message Function({required DartType spreadType})>
 nonNullAwareSpreadIsNull = const Template(
   "NonNullAwareSpreadIsNull",

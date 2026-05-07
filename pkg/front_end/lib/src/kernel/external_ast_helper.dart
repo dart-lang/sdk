@@ -126,9 +126,14 @@ VariableDeclaration createVariableCache(Expression expression, DartType type) {
 VariableDeclaration createUninitializedVariable(
   DartType type, {
   required int fileOffset,
+  bool isFinal = false,
 }) {
-  return new VariableDeclaration(null, type: type, isSynthesized: true)
-    ..fileOffset = fileOffset;
+  return new VariableDeclaration(
+    null,
+    type: type,
+    isSynthesized: true,
+    isFinal: isFinal,
+  )..fileOffset = fileOffset;
 }
 
 /// Creates an initialized (but mutable) [VariableDeclaration] of the static
@@ -161,9 +166,10 @@ VariableDeclaration createVariable(Expression expression, DartType type) {
 VariableGet createVariableGet(
   VariableDeclaration variable, {
   DartType? promotedType,
+  int? fileOffset,
 }) {
   return new VariableGet(variable)
-    ..fileOffset = variable.fileOffset
+    ..fileOffset = fileOffset ?? variable.fileOffset
     ..promotedType = promotedType != variable.type ? promotedType : null;
 }
 
@@ -377,4 +383,30 @@ InvalidInitializer createInvalidInitializer(
     ..fileOffset = expression.fileOffset
     ..isSuperInitializer = isSuperInitializer
     ..isRedirectingInitializer = isRedirectingInitializer;
+}
+
+/// Returns a block like this:
+///
+///     {
+///       statement;
+///       body;
+///     }
+///
+/// If [body] is a [Block], it's returned with [statement] prepended to it.
+Block combineStatements(Statement statement, Statement body) {
+  if (body is Block) {
+    if (statement is Block) {
+      body.statements.insertAll(0, statement.statements);
+      setParents(statement.statements, body);
+    } else {
+      body.statements.insert(0, statement);
+      statement.parent = body;
+    }
+    return body;
+  } else {
+    return new Block(<Statement>[
+      if (statement is Block) ...statement.statements else statement,
+      body,
+    ])..fileOffset = statement.fileOffset;
+  }
 }

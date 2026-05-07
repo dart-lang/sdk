@@ -524,6 +524,7 @@ class AstPrinter {
     bool? isLate,
     DartType? type,
     bool includeInitializer = true,
+    bool isImplicitlyTyped = false,
   }) {
     if (includeModifiersAndType) {
       if (node.isRequired) {
@@ -538,8 +539,12 @@ class AstPrinter {
       if (node.isConst) {
         _sb.write('const ');
       }
-      writeType(type ?? node.type);
-      _sb.write(' ');
+      if (isImplicitlyTyped) {
+        _sb.write('var ');
+      } else {
+        writeType(type ?? node.type);
+        _sb.write(' ');
+      }
     }
     _sb.write(getVariableName(node.variable));
     if (includeInitializer && node.initializer != null && !node.isRequired) {

@@ -2642,6 +2642,7 @@ class BodyBuilderImpl extends StackListenerImpl
           nameToken,
           memberName,
           thisVariable: thisVariable,
+          isThisExplicit: false,
         );
       } else {
         // [name] is unresolved.
@@ -2782,6 +2783,7 @@ class BodyBuilderImpl extends StackListenerImpl
             nameToken,
             memberName,
             thisVariable: thisVariable,
+            isThisExplicit: false,
           );
         } else {
           // [name] is an instance member but this is not an instance context.
@@ -2835,6 +2837,7 @@ class BodyBuilderImpl extends StackListenerImpl
           nameToken,
           getable,
           setable as MemberBuilder?,
+          isQualifiedAccess: false,
         );
       } else if (getable is PrefixBuilder) {
         // Wildcard import prefixes are non-binding and cannot be used.
@@ -2903,6 +2906,7 @@ class BodyBuilderImpl extends StackListenerImpl
             nameToken,
             memberName,
             thisVariable: thisVariable,
+            isThisExplicit: false,
           );
         } else {
           // [name] is an instance member but this is not an instance context.
@@ -2926,6 +2930,7 @@ class BodyBuilderImpl extends StackListenerImpl
           nameToken,
           null,
           setable,
+          isQualifiedAccess: false,
         );
       }
     }
@@ -8269,59 +8274,50 @@ class BodyBuilderImpl extends StackListenerImpl
     Object? lvalue = pop(); // lvalue
     exitLocalScope();
 
-    ForInElements elements = _computeForInElements(
-      forToken,
-      inToken,
-      lvalue,
-      null,
+    InternalForInElement element = _computeForInElement(
+      forToken: forToken,
+      inToken: inToken,
+      lvalue: lvalue,
     );
     assignedVariables.pushNode(assignedVariablesNodeInfo);
-    VariableDeclaration variable = elements.variable;
-    Expression? problem = elements.expressionProblem;
     if (entry is MapLiteralEntry) {
       ForInMapEntry result = intern.createForInMapEntry(
-        offsetForToken(forToken),
-        variable,
+        element,
         iterable,
-        elements.syntheticAssignment,
-        elements.expressionEffects,
         entry,
-        problem,
         isAsync: awaitToken != null,
+        fileOffset: awaitToken?.charOffset ?? forToken.charOffset,
+        forOffset: forToken.charOffset,
       );
       assignedVariables.endNode(result);
       push(result);
     } else {
       ForInElement result = intern.createForInElement(
-        offsetForToken(forToken),
-        variable,
+        element,
         iterable,
-        elements.syntheticAssignment,
-        elements.expressionEffects,
         toValue(entry),
-        problem,
         isAsync: awaitToken != null,
+        fileOffset: awaitToken?.charOffset ?? forToken.charOffset,
+        forOffset: forToken.charOffset,
       );
       assignedVariables.endNode(result);
       push(result);
     }
   }
 
-  ForInElements _computeForInElements(
-    Token forToken,
-    Token inToken,
-    Object? lvalue,
-    Statement? body,
-  ) {
-    ForInElements elements = new ForInElements();
+  InternalForInElement _computeForInElement({
+    required Token forToken,
+    required Token inToken,
+    required Object? lvalue,
+  }) {
     if (lvalue is VariableInitialization) {
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
       lvalue.isLate = false;
-      elements.explicitVariableDeclaration = lvalue.variable;
+      InvalidExpression? error;
       if (lvalue.isConst) {
         // Coverage-ignore-block(suite): Not run.
-        elements.expressionProblem = buildProblem(
+        error = buildProblem(
           message: diag.forInLoopWithConstVariable,
           fileUri: uri,
           fileOffset: lvalue.fileOffset,
@@ -8331,13 +8327,17 @@ class BodyBuilderImpl extends StackListenerImpl
         // constant evaluator further in the pipeline.
         lvalue.isConst = false;
       }
+      return new VariableInitializationForInElement(
+        variableInitialization: lvalue,
+        error: error,
+      );
     } else if (lvalue is VariableDeclaration) {
       // Late for-in variables are not supported. An error has already been
       // reported by the parser.
       lvalue.isLate = false;
-      elements.explicitVariableDeclaration = lvalue;
+      InvalidExpression? error;
       if (lvalue.isConst) {
-        elements.expressionProblem = buildProblem(
+        error = buildProblem(
           message: diag.forInLoopWithConstVariable,
           fileUri: uri,
           fileOffset: lvalue.fileOffset,
@@ -8347,117 +8347,73 @@ class BodyBuilderImpl extends StackListenerImpl
         // constant evaluator further in the pipeline.
         lvalue.isConst = false;
       }
-    } else {
-      VariableDeclaration astVariable;
-      VariableDeclaration variable;
-      if (isClosureContextLoweringEnabled) {
-        SyntheticVariable syntheticAstVariable = new SyntheticVariable(
-          type: const DynamicType(),
-        );
-        astVariable = syntheticAstVariable;
-        variable = new InternalSyntheticVariable(
-          astVariable: syntheticAstVariable,
-          isImplicitlyTyped: false,
-        );
-      } else {
-        variable = astVariable = intern.createVariableDeclaration(
-          offsetForToken(forToken),
-          null,
-          isFinal: true,
-          isSynthesized: true,
-        );
-      }
-      elements.syntheticVariableDeclaration = variable;
-      if (lvalue is Generator) {
-        /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
-        ///
-        ///     for (lvalue in expression) body
-        ///
-        /// This is normalized to:
-        ///
-        ///     for (final #t in expression) {
-        ///       lvalue = #t;
-        ///       body;
-        ///     }
-        ///
-        /// The value of [forOutput] is `true`, since the synthetic assignment
-        /// will not be inferred, but will present in the output directly as
-        /// generated.
-        elements.syntheticAssignment = lvalue.buildAssignment(
-          new VariableGet(astVariable)..fileOffset = inToken.offset,
-          voidContext: true,
-          forOutput: true,
-        );
-      } else if (lvalue is Pattern) {
-        /// We are in the case where `lvalue` is a pattern:
-        ///
-        ///     for (pattern in expression) body
-        ///
-        /// This is normalized to:
-        ///
-        ///     for (final #t in expression) {
-        ///       pattern = #t;
-        ///       body;
-        ///     }
-        elements.syntheticAssignment = null;
-        elements.expressionEffects = intern.createPatternVariableDeclaration(
-          inToken.offset,
-          lvalue,
-          new VariableGet(variable),
-          isFinal: false,
-        );
-      } else if (lvalue is InvalidExpression) {
-        // Coverage-ignore-block(suite): Not run.
-        elements.expressionProblem = lvalue;
-      } else if (lvalue is ParserRecovery) {
-        elements.expressionProblem = buildProblem(
+      return new SingleVariableDeclarationForInElement(
+        variableDeclaration: lvalue,
+        error: error,
+      );
+    } else if (lvalue is Generator) {
+      /// We are in this case, where `lvalue` isn't a [VariableDeclaration]:
+      ///
+      ///     for (lvalue in expression) body
+      ///
+      /// This is normalized to:
+      ///
+      ///     for (final #t in expression) {
+      ///       lvalue = #t;
+      ///       body;
+      ///     }
+      ///
+      return lvalue.buildForInElement(inOffset: inToken.offset);
+    } else if (lvalue is Pattern) {
+      /// We are in the case where `lvalue` is a pattern:
+      ///
+      ///     for (pattern in expression) body
+      ///
+      /// This is normalized to:
+      ///
+      ///     for (final #t in expression) {
+      ///       pattern = #t;
+      ///       body;
+      ///     }
+      return new PatternForInElement(pattern: lvalue, inOffset: inToken.offset);
+    } else if (lvalue is InvalidExpression) {
+      // Coverage-ignore-block(suite): Not run.
+      return new InvalidForInElement(error: lvalue, inOffset: inToken.offset);
+    } else if (lvalue is ParserRecovery) {
+      return new InvalidForInElement(
+        error: buildProblem(
           message: diag.syntheticToken,
           fileUri: uri,
           fileOffset: lvalue.charOffset,
           length: noLength,
-        );
-      } else {
-        Message message = intern.isVariablesDeclaration(lvalue)
-            ? diag.forInLoopExactlyOneVariable
-            : diag.forInLoopNotAssignable;
-        Token token = forToken.next!.next!;
-        elements.expressionProblem = buildProblem(
-          message: message,
-          fileUri: uri,
-          fileOffset: offsetForToken(token),
-          length: lengthForToken(token),
-        );
-        Statement effects;
-        if (intern.isVariablesDeclaration(lvalue)) {
-          effects = intern.createBlock(
-            noLocation,
-            noLocation,
-            // New list because the declarations are not a growable list.
-            new List<Statement>.of(
-              intern.variablesDeclarationExtractDeclarations(lvalue),
-            ),
-          );
-        } else {
-          effects = intern.createExpressionStatement(
-            noLocation,
-            lvalue as Expression,
-          );
-        }
-        elements.expressionEffects = combineStatements(
-          intern.createExpressionStatement(
-            noLocation,
-            buildProblem(
-              message: message,
-              fileUri: uri,
-              fileOffset: offsetForToken(token),
-              length: lengthForToken(token),
-            ),
-          ),
-          effects,
-        );
-      }
+        ),
+        inOffset: inToken.offset,
+      );
+    } else if (intern.isVariablesDeclaration(lvalue)) {
+      Token token = forToken.next!.next!;
+      InvalidExpression error = buildProblem(
+        message: diag.forInLoopExactlyOneVariable,
+        fileUri: uri,
+        fileOffset: offsetForToken(token),
+        length: lengthForToken(token),
+      );
+      return new MultiVariableDeclarationForInElement(
+        variableDeclarations: intern.variablesDeclarationExtractDeclarations(
+          lvalue,
+        ),
+        error: error,
+      );
+    } else {
+      lvalue as Expression;
+      Token token = forToken.next!.next!;
+      InvalidExpression error = buildProblem(
+        message: diag.forInLoopNotAssignable,
+        fileUri: uri,
+        fileOffset: offsetForToken(token),
+        length: lengthForToken(token),
+      );
+      return new UnassignableForInElement(expression: lvalue, error: error);
     }
-    return elements;
   }
 
   @override
@@ -8506,39 +8462,19 @@ class BodyBuilderImpl extends StackListenerImpl
       continueStatements = continueTarget.resolveContinues(labeledStatement);
       body = labeledStatement;
     }
-    ForInElements elements = _computeForInElements(
-      forToken,
-      inKeyword,
-      lvalue,
+    Statement forInStatement = new InternalForInStatement(
+      _computeForInElement(
+        forToken: forToken,
+        inToken: inKeyword,
+        lvalue: lvalue,
+      ),
+      expression,
       body,
+      isAsync: awaitToken != null,
+      fileOffset: awaitToken?.charOffset ?? forToken.charOffset,
+      bodyOffset: body.fileOffset,
     );
-    VariableDeclaration variable = elements.variable;
-    Expression? problem = elements.expressionProblem;
-    Statement forInStatement;
-    if (elements.explicitVariableDeclaration != null) {
-      forInStatement =
-          new ForInStatement(
-              variable,
-              expression,
-              body,
-              isAsync: awaitToken != null,
-            )
-            ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
-            ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
-    } else {
-      forInStatement =
-          new ForInStatementWithSynthesizedVariable(
-              variable,
-              expression,
-              elements.syntheticAssignment,
-              elements.expressionEffects,
-              body,
-              isAsync: awaitToken != null,
-              hasProblem: problem != null,
-            )
-            ..fileOffset = awaitToken?.charOffset ?? forToken.charOffset
-            ..bodyOffset = body.fileOffset; // TODO(ahe): Isn't this redundant?
-    }
+
     assignedVariables.storeInfo(forInStatement, assignedVariablesNodeInfo);
     if (continueStatements != null) {
       for (BreakStatementImpl continueStatement in continueStatements) {
@@ -8550,12 +8486,6 @@ class BodyBuilderImpl extends StackListenerImpl
       LabeledStatement labeledStatement = intern.createLabeledStatement(result);
       breakTarget.resolveBreaks(labeledStatement, forInStatement);
       result = labeledStatement;
-    }
-    if (problem != null) {
-      result = combineStatements(
-        intern.createExpressionStatement(noLocation, problem),
-        result,
-      );
     }
     exitLoopOrSwitch(result);
   }

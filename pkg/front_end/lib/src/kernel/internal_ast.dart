@@ -21,6 +21,7 @@ library;
 
 import 'package:_fe_analyzer_shared/src/type_inference/type_analysis_result.dart'
     as shared;
+import 'package:_fe_analyzer_shared/src/types/shared_type.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/names.dart';
 import 'package:kernel/src/printer.dart';
@@ -29,8 +30,14 @@ import 'package:kernel/type_environment.dart';
 
 import '../base/problems.dart' show unsupported;
 import '../builder/declaration_builders.dart';
+import '../codes/diagnostic.dart' as diag;
 import '../type_inference/inference_results.dart';
 import '../type_inference/inference_visitor.dart';
+import '../type_inference/inference_visitor_base.dart';
+import '../type_inference/type_schema.dart';
+import 'external_ast_helper.dart' as extern;
+
+/// @docImport 'package:_fe_analyzer_shared/src/flow_analysis/flow_analysis.dart';
 
 typedef SharedMatchContext =
     shared.MatchContext<TreeNode, Expression, Pattern, VariableDeclaration>;
@@ -96,49 +103,6 @@ abstract class InternalStatement extends AuxiliaryStatement {
       unsupported("${runtimeType}.visitChildren on ${v.runtimeType}", -1, null);
 
   StatementInferenceResult acceptInference(InferenceVisitorImpl visitor);
-}
-
-class ForInStatementWithSynthesizedVariable extends InternalStatement {
-  VariableDeclaration? variable;
-  Expression iterable;
-  Expression? syntheticAssignment;
-  Statement? expressionEffects;
-  Statement body;
-  final bool isAsync;
-  final bool hasProblem;
-  int bodyOffset = TreeNode.noOffset;
-
-  ForInStatementWithSynthesizedVariable(
-    this.variable,
-    this.iterable,
-    this.syntheticAssignment,
-    this.expressionEffects,
-    this.body, {
-    required this.isAsync,
-    required this.hasProblem,
-  }) {
-    variable?.parent = this;
-    iterable.parent = this;
-    syntheticAssignment?.parent = this;
-    expressionEffects?.parent = this;
-    body.parent = this;
-  }
-
-  @override
-  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
-    return visitor.visitForInStatementWithSynthesizedVariable(this);
-  }
-
-  @override
-  String toString() {
-    return "ForInStatementWithSynthesizedVariable(${toStringInternal()})";
-  }
-
-  @override
-  // Coverage-ignore(suite): Not run.
-  void toTextInternal(AstPrinter state) {
-    // TODO(johnniwinther): Implement this.
-  }
 }
 
 class TryStatement extends InternalStatement {
@@ -1452,6 +1416,7 @@ class InternalCatchVariable extends TreeNode
   String get catchVariableName => astVariable.catchVariableName;
 }
 
+// Coverage-ignore(suite): Not run.
 class InternalSyntheticVariable extends TreeNode
     with InternalVariableMixin, DelegatingVariableMixin
     implements SyntheticVariable, InternalVariable {
@@ -1480,7 +1445,6 @@ class InternalSyntheticVariable extends TreeNode
   }
 
   @override
-  // Coverage-ignore(suite): Not run.
   void toTextInternal(AstPrinter printer) {
     printer.writeExpressionVariable(astVariable);
     List<String> modifiers = [
@@ -1500,6 +1464,7 @@ mixin DelegatingVariableMixin on InternalVariableMixin
   String? get cosmeticName => astVariable.cosmeticName;
 
   @override
+  // Coverage-ignore(suite): Not run.
   TreeNode? get parent => astVariable.parent;
 
   @override
@@ -5645,5 +5610,920 @@ class InternalSuperInitializer extends InternalInitializer {
   @override
   String toString() {
     return "InternalSuperInitializer(${toStringInternal()})";
+  }
+}
+
+// Coverage-ignore(suite): Not run.
+/// Internal node for encoding the "element" of a for-in loop.
+///
+/// The element is the part before "in" which can either an identifier or
+/// a single variable declaration.
+sealed class InternalForInElement {
+  /// Infers the for-in element and the [iterable].
+  ForInHeaderResult inferForInHeader(
+    InferenceVisitorBase visitor, {
+    required TreeNode node,
+    required Expression iterable,
+    required bool isAsync,
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  });
+
+  void toTextInternal(AstPrinter printer);
+
+  String toText(AstTextStrategy strategy) {
+    AstPrinter printer = new AstPrinter(strategy);
+    toTextInternal(printer);
+    return printer.getText();
+  }
+
+  @override
+  String toString() {
+    return '$runtimeType(${toText(defaultAstTextStrategy)})';
+  }
+}
+
+/// Base implementation for non-pattern for-in elements.
+sealed class _BaseForInElement extends InternalForInElement {
+  /// Computes the type context from the element. This is type context used for
+  /// inferring the for-in iterable.
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor);
+
+  /// Computes the [VariableDeclaration] that will be used in the emitted
+  /// [ForInStatement].
+  ///
+  /// This can be the variable declared as the for-in element or a synthetic
+  /// variable, when there is no declared variable or it doesn't suffice for
+  /// the correct runtime behavior.
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  });
+
+  /// Computes the [ForInEncoding] for the additional nodes needed for the
+  /// assignment to the for-in element.
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  });
+
+  /// Helper for creating a synthetic variable declaration for the emitted
+  /// [ForInStatement].
+  VariableDeclaration _createSyntheticVariableDeclaration(
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    if (isClosureContextLoweringEnabled) {
+      return new SyntheticVariable(type: type)..fileOffset = forOffset;
+    }
+    return extern.createUninitializedVariable(
+      type,
+      fileOffset: forOffset,
+      isFinal: true,
+    );
+  }
+
+  @override
+  ForInHeaderResult inferForInHeader(
+    InferenceVisitorBase visitor, {
+    required TreeNode node,
+    required Expression iterable,
+    required bool isAsync,
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    DartType elementTypeContext = _computeElementTypeContext(visitor);
+
+    ExpressionInferenceResult iterableResult = visitor.inferForInIterable(
+      iterable,
+      elementTypeContext,
+      isAsync: isAsync,
+    );
+    DartType inferredType = iterableResult.inferredType;
+    VariableDeclaration variable = _computeLoopVariable(
+      visitor,
+      inferredType,
+      forOffset: forOffset,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    );
+
+    return new ForInHeaderResult(
+      loopVariable: variable,
+      iterable: iterableResult.expression,
+      computeEncoding: () => _computeEncoding(visitor, loopVariable: variable),
+    );
+  }
+}
+
+/// Base implementation for declared variable for-in elements.
+sealed class _VariableForInElement extends _BaseForInElement {
+  /// Error that must be emitted prior to the generated for-in statement.
+  ///
+  /// This is used for instance for constant loop variables.
+  final InvalidExpression? error;
+
+  _VariableForInElement({required this.error});
+
+  VariableDeclaration get _variableDeclaration;
+
+  /// If the assignment to [variableDeclaration] needs additional steps, like
+  /// a type coercion, this holds a synthetic variable declaration used as an
+  /// intermediate step.
+  VariableDeclaration? _variableForSideEffect;
+
+  @override
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    VariableDeclaration loopVariable;
+    DartType loopVariableType;
+    bool checkAssignment = true;
+    if (_variableDeclaration.variable case InternalVariable variable) {
+      loopVariable = variable.astVariable;
+      if (variable.isImplicitlyTyped) {
+        loopVariableType = variable.type = type;
+        checkAssignment = false;
+      } else {
+        loopVariableType = variable.type;
+      }
+    } else {
+      // Coverage-ignore-block(suite): Not run.
+      loopVariable = _variableDeclaration;
+      loopVariableType = _variableDeclaration.type;
+    }
+    if (checkAssignment) {
+      VariableDeclaration tempVariable = _createSyntheticVariableDeclaration(
+        type,
+        forOffset: forOffset,
+        isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+      );
+      ExpressionInferenceResult canary = new ExpressionInferenceResult(
+        type,
+        extern.createVariableGet(
+          tempVariable,
+          fileOffset: loopVariable.fileOffset,
+        ),
+      );
+      ExpressionInferenceResult assignmentResult = visitor
+          .ensureAssignableResult(
+            loopVariableType,
+            canary,
+            isVoidAllowed: true,
+            errorTemplate: diag.forInLoopElementTypeNotAssignable,
+          );
+      if (!identical(assignmentResult, canary)) {
+        // Something happened during assignment, like an error or a type
+        // coercion, so we need to use the temp variable as the loop variable
+        // and assign to the declared variable in the loop.
+        loopVariable.initializer = assignmentResult.expression
+          ..parent = loopVariable;
+        visitor.flowAnalysis.declare(
+          loopVariable,
+          new SharedTypeView(loopVariableType),
+          initialized: true,
+        );
+        _variableForSideEffect = loopVariable;
+        loopVariable = tempVariable;
+      }
+    }
+    return loopVariable;
+  }
+
+  @override
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  }) {
+    return new ForInEncoding(
+      preLoopError: error,
+      bodyPrologue: _variableForSideEffect,
+    );
+  }
+}
+
+/// For-in element for a single declared variable.
+class VariableInitializationForInElement extends _VariableForInElement {
+  /// The variable declaration.
+  final VariableInitialization variableInitialization;
+
+  VariableInitializationForInElement({
+    required this.variableInitialization,
+    required super.error,
+  });
+
+  @override
+  VariableDeclaration get _variableDeclaration =>
+      variableInitialization.variable;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeVariableInitialization(
+      variableInitialization,
+      includeInitializer: false,
+      isImplicitlyTyped:
+          (variableInitialization.variable is InternalVariable) &&
+          (variableInitialization.variable as InternalVariable)
+              .isImplicitlyTyped,
+    );
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
+    if (variableInitialization.variable case InternalVariable variable) {
+      if (variable.isImplicitlyTyped) {
+        return const UnknownType();
+      }
+    }
+    return variableInitialization.variable.type;
+  }
+}
+
+/// For-in element for a single declared variable.
+class SingleVariableDeclarationForInElement extends _VariableForInElement {
+  /// The declared variable.
+  final VariableDeclaration variableDeclaration;
+
+  SingleVariableDeclarationForInElement({
+    required this.variableDeclaration,
+    required super.error,
+  });
+
+  @override
+  VariableDeclaration get _variableDeclaration => variableDeclaration;
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeVariableInitialization(
+      variableDeclaration,
+      includeInitializer: false,
+      isImplicitlyTyped:
+          variableDeclaration.variable is InternalVariable &&
+          (variableDeclaration.variable as InternalVariable).isImplicitlyTyped,
+    );
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
+    if (variableDeclaration case InternalVariable variable) {
+      if (variable.isImplicitlyTyped) {
+        return const UnknownType();
+      }
+    }
+    return variableDeclaration.type;
+  }
+}
+
+/// For-in element for a multi-variable declaration, like
+/// `for (var a, b in [])`. This is an error case.
+class MultiVariableDeclarationForInElement extends _BaseForInElement {
+  /// The declared variables.
+  final List<VariableDeclaration> variableDeclarations;
+
+  /// The error that should be emitted prior to the for-in statement.
+  final InvalidExpression error;
+
+  MultiVariableDeclarationForInElement({
+    required this.variableDeclarations,
+    required this.error,
+  });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    for (int i = 0; i < variableDeclarations.length; i++) {
+      VariableDeclaration variableDeclaration = variableDeclarations[i];
+      if (i == 0) {
+        printer.writeVariableInitialization(
+          variableDeclaration,
+          includeModifiersAndType: true,
+          includeInitializer: false,
+          isImplicitlyTyped:
+              variableDeclaration is InternalVariable &&
+              (variableDeclaration as InternalVariable).isImplicitlyTyped,
+        );
+      } else {
+        printer.write(', ');
+        printer.writeVariableInitialization(
+          variableDeclaration,
+          includeModifiersAndType: false,
+          includeInitializer: false,
+        );
+      }
+    }
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) =>
+      const UnknownType();
+
+  @override
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  }) {
+    return new ForInEncoding(
+      preLoopError: error,
+      bodyPrologue: extern.createBlock([
+        ...variableDeclarations,
+      ], fileOffset: TreeNode.noOffset),
+    );
+  }
+
+  @override
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    return _createSyntheticVariableDeclaration(
+      type,
+      forOffset: forOffset,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    );
+  }
+}
+
+/// For-in element for an unassignable expression, like `for (1 in [])`. This is
+/// an error case.
+class UnassignableForInElement extends _BaseForInElement {
+  /// The unassignable expression.
+  final Expression expression;
+
+  /// The error that should be emitted prior to the for-in statement.
+  final InvalidExpression error;
+
+  UnassignableForInElement({required this.expression, required this.error});
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(expression);
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) =>
+      const UnknownType();
+
+  @override
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  }) {
+    return new ForInEncoding(
+      preLoopError: error,
+      bodyPrologue: extern.createBlock([
+        extern.createExpressionStatement(
+          visitor.inferExpression(expression, const UnknownType()).expression,
+        ),
+      ], fileOffset: TreeNode.noOffset),
+    );
+  }
+
+  @override
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    return _createSyntheticVariableDeclaration(
+      type,
+      forOffset: forOffset,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    );
+  }
+}
+
+/// For-in element for a pattern variable declaration.
+class PatternForInElement extends InternalForInElement {
+  /// The pattern used in the variable declaration.
+  final Pattern pattern;
+
+  /// The file offset of the `in` keyword.
+  final int inOffset;
+
+  PatternForInElement({required this.pattern, required this.inOffset});
+
+  @override
+  ForInHeaderResult inferForInHeader(
+    InferenceVisitorBase visitor, {
+    required TreeNode node,
+    required Expression iterable,
+    required bool isAsync,
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    PatternForInData data = visitor.inferPatternForInHeader(
+      node: node,
+      pattern: pattern,
+      iterable: iterable,
+      isAsync: isAsync,
+      inOffset: inOffset,
+    );
+    return new ForInHeaderResult(
+      loopVariable: data.loopVariable,
+      iterable: data.iterable,
+      computeEncoding: () => new ForInEncoding(
+        bodyPrologue: data.computePatternVariableDeclaration(),
+      ),
+    );
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write('var ');
+    pattern.toTextInternal(printer);
+  }
+}
+
+/// For-in element for an erroneous expression.
+class InvalidForInElement extends _BaseForInElement {
+  /// The error for the erroneous expression.
+  final InvalidExpression error;
+
+  /// The file offset of the `in` keyword.
+  final int inOffset;
+
+  InvalidForInElement({required this.error, required this.inOffset});
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeExpression(error);
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) =>
+      const UnknownType();
+
+  @override
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  }) {
+    return new ForInEncoding(
+      bodyPrologue: extern.createBlock([
+        extern.createExpressionStatement(error),
+      ], fileOffset: TreeNode.noOffset),
+    );
+  }
+
+  @override
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    return _createSyntheticVariableDeclaration(
+      type,
+      forOffset: forOffset,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    );
+  }
+}
+
+/// For-in element for an existing variable, like `for (a in [])` where `a` is
+/// an already defined local variable.
+class ExistingVariableForInElement extends _BaseForInElement {
+  /// The variable used as the for-in element.
+  final VariableDeclaration variable;
+
+  /// The file offset of the variable name.
+  final int nameOffset;
+
+  /// The file offset of the `in` keyword.
+  final int inOffset;
+
+  /// Error that must be emitted prior to the generated for-in statement.
+  ///
+  /// This is used for instance for a final local variable.
+  final InvalidExpression? error;
+
+  ExistingVariableForInElement({
+    required this.variable,
+    required this.nameOffset,
+    required this.inOffset,
+    this.error,
+  });
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write(variable.name!);
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
+    DartType? promotedType = visitor.flowAnalysis
+        .promotedType(variable)
+        ?.unwrapTypeView();
+    return promotedType ?? variable.type;
+  }
+
+  @override
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  }) {
+    ExpressionInferenceResult result = visitor.inferVariableSet(
+      variable: variable as InternalVariable,
+      variableType: variable.type,
+      rhsResult: new ExpressionInferenceResult(
+        loopVariable.type,
+        error ?? extern.createVariableGet(loopVariable),
+      ),
+      assignOffset: inOffset,
+      nameOffset: nameOffset,
+    );
+    return new ForInEncoding(
+      bodyPrologue: extern.createExpressionStatement(result.expression),
+    );
+  }
+
+  @override
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    return _createSyntheticVariableDeclaration(
+      type,
+      forOffset: inOffset,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    );
+  }
+}
+
+/// For-in element for a property access, like `for (a in [])` where `a` is an
+/// instance field in the enclosing class.
+class PropertyForInElement extends _BaseForInElement {
+  /// The implicit `this` expression on which the property write is performed.
+  final Expression receiver;
+
+  /// The name of the accessed instance member.
+  final Name name;
+
+  /// The file offset of the property name.
+  final int nameOffset;
+
+  /// The file offset of the `in` keyword.
+  final int inOffset;
+
+  /// Data computed during [_computeElementTypeContext] for use in
+  /// [_computeEncoding].
+  late final PropertySetData _data;
+
+  PropertyForInElement({
+    required this.receiver,
+    required this.name,
+    required this.nameOffset,
+    required this.inOffset,
+  });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeName(name);
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
+    _data = visitor.computePropertySetData(
+      receiver: receiver,
+      name: name,
+      fileOffset: nameOffset,
+      isNullAware: false,
+    );
+    return _data.writeContext;
+  }
+
+  @override
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  }) {
+    ExpressionInferenceResult result = visitor.inferPropertySet(
+      fileOffset: nameOffset,
+      receiver: _data.receiver,
+      receiverType: _data.receiverType,
+      propertyName: name,
+      writeTarget: _data.target,
+      writeContext: _data.writeContext,
+      valueResult: new ExpressionInferenceResult(
+        loopVariable.type,
+        extern.createVariableGet(loopVariable),
+      ),
+      forEffect: true,
+    );
+    return new ForInEncoding(
+      bodyPrologue: extern.createExpressionStatement(result.expression),
+    );
+  }
+
+  @override
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    return _createSyntheticVariableDeclaration(
+      type,
+      forOffset: inOffset,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    );
+  }
+}
+
+/// For-in element for a property access, like `for (a in [])` where `a` is a
+/// top-level field.
+class StaticForInElement extends _BaseForInElement {
+  /// The accessed property.
+  final Member target;
+
+  /// The file offset of the property name.
+  final int nameOffset;
+
+  /// The file offset of the `in` keyword.
+  final int inOffset;
+
+  /// The property type computed during [_computeElementTypeContext] for use in
+  /// [_computeEncoding].
+  late final DartType _writeContext;
+
+  StaticForInElement({
+    required this.target,
+    required this.nameOffset,
+    required this.inOffset,
+  });
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeName(target.name);
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
+    return _writeContext = visitor.computeStaticSetWriteContext(target);
+  }
+
+  @override
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  }) {
+    ExpressionInferenceResult result = visitor.inferStaticSet(
+      member: target,
+      rhsResult: new ExpressionInferenceResult(
+        loopVariable.type,
+        extern.createVariableGet(loopVariable),
+      ),
+      writeContext: _writeContext,
+      assignOffset: inOffset,
+      nameOffset: nameOffset,
+    );
+    return new ForInEncoding(
+      bodyPrologue: extern.createExpressionStatement(result.expression),
+    );
+  }
+
+  @override
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    return _createSyntheticVariableDeclaration(
+      type,
+      forOffset: inOffset,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    );
+  }
+}
+
+/// For-in element for a property access, like `for (a in [])` where `a` is an
+/// instance getter in the enclosing extension.
+class ExtensionForInElement extends _BaseForInElement {
+  /// The extension in which the [setter] is declared.
+  final Extension extension;
+
+  /// The known type arguments for the type parameters declared in
+  /// [extension], either explicitly provided like `E<int>(o).a = b` or
+  /// implied as in `a = b` from within the extension `E`.
+  final List<DartType>? thisTypeArguments;
+
+  /// The receiver for the assignment.
+  Expression thisAccess;
+
+  /// The name of setter.
+  ///
+  /// This is the name of the access and _not_ the name of the lowered method.
+  final Name name;
+
+  /// The extension member called for the assignment.
+  Procedure setter;
+
+  /// The file offset of the property name.
+  final int nameOffset;
+
+  /// The file offset of the `in` keyword.
+  final int inOffset;
+
+  /// Data computed during [_computeElementTypeContext] for use in
+  /// [_computeEncoding].
+  late final ExtensionSetData _data;
+
+  ExtensionForInElement({
+    required this.extension,
+    required this.thisTypeArguments,
+    required this.thisAccess,
+    required this.name,
+    required this.setter,
+    required this.nameOffset,
+    required this.inOffset,
+  }) : assert(
+         thisTypeArguments == null ||
+             // Coverage-ignore(suite): Not run.
+             extension.typeParameters.isNotEmpty &&
+                 thisTypeArguments.length == extension.typeParameters.length,
+       );
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.writeName(name);
+  }
+
+  @override
+  DartType _computeElementTypeContext(InferenceVisitorBase visitor) {
+    _data = visitor.computeExtensionSetData(
+      extension: extension,
+      knownTypeArguments: thisTypeArguments,
+      receiver: thisAccess,
+      extensionTypeArgumentOffset: null,
+      setter: setter,
+      isNullAware: false,
+      fileOffset: nameOffset,
+    );
+    return _data.valueType;
+  }
+
+  @override
+  ForInEncoding _computeEncoding(
+    InferenceVisitorBase visitor, {
+    required VariableDeclaration loopVariable,
+  }) {
+    ExpressionInferenceResult result = visitor.inferExtensionSet(
+      data: _data,
+      valueResult: new ExpressionInferenceResult(
+        loopVariable.type,
+        extern.createVariableGet(loopVariable),
+      ),
+      forEffect: true,
+      fileOffset: nameOffset,
+    );
+    return new ForInEncoding(
+      bodyPrologue: extern.createExpressionStatement(result.expression),
+    );
+  }
+
+  @override
+  VariableDeclaration _computeLoopVariable(
+    InferenceVisitorBase visitor,
+    DartType type, {
+    required int forOffset,
+    required bool isClosureContextLoweringEnabled,
+  }) {
+    return _createSyntheticVariableDeclaration(
+      type,
+      forOffset: inOffset,
+      isClosureContextLoweringEnabled: isClosureContextLoweringEnabled,
+    );
+  }
+}
+
+/// Encoding of additional nodes need for correct runtime behavior of a for-in
+/// loop.
+class ForInEncoding {
+  /// Error that needs to be thrown before trying to execute the loop.
+  final InvalidExpression? preLoopError;
+
+  /// Statement that needs to be executed before the loop body.
+  ///
+  /// This can contain variable declarations for variables used in the loop and
+  /// must therefore be emitted in the same block as the body content.
+  final Statement? bodyPrologue;
+
+  ForInEncoding({this.preLoopError, this.bodyPrologue});
+
+  @override
+  String toString() => 'ForInStatementResult($preLoopError,$bodyPrologue)';
+}
+
+/// The result of inferring a for-in loop element and iterable.
+class ForInHeaderResult {
+  /// The [VariableDeclaration] that should be used as the variable in the
+  /// emitted [ForInStatement].
+  final VariableDeclaration loopVariable;
+
+  /// The [Expression] that should be used as the iterable in the emitted
+  /// [ForInStatement].
+  final Expression iterable;
+
+  /// Function that computes the [ForInEncoding] need for the for-in element.
+  ///
+  /// This must be called between [FlowAnalysis.forEach_bodyBegin] and
+  /// [FlowAnalysis.forEach_end] to ensure the effect of the encoding is seen
+  /// as being part of the loop body.
+  final ForInEncoding Function() computeEncoding;
+
+  ForInHeaderResult({
+    required this.loopVariable,
+    required this.iterable,
+    required this.computeEncoding,
+  });
+
+  @override
+  String toString() =>
+      'ForInHeaderResult($loopVariable,$iterable,$computeEncoding)';
+}
+
+/// Internal node for a for-in loop statement.
+class InternalForInStatement extends InternalStatement
+    implements LoopStatement {
+  /// The element of the for-in loop.
+  ///
+  /// For instance 'x' and 'var x' in
+  ///
+  ///     for (x in list) {}
+  ///     for (var x in list) {}
+  ///
+  final InternalForInElement element;
+
+  /// The iterable of the for-in loop.
+  ///
+  /// For instance 'x' in
+  ///
+  ///     for (var e in x) {}
+  ///     await for (var e in x) {}
+  ///
+  final Expression iterable;
+
+  /// The for-in loop body.
+  @override
+  Statement body;
+
+  /// Whether the for-in loop is asynchronous.
+  final bool isAsync;
+
+  /// The file offset for the for-in body.
+  final int bodyOffset;
+
+  InternalForInStatement(
+    this.element,
+    this.iterable,
+    this.body, {
+    required this.isAsync,
+    required int fileOffset,
+    required this.bodyOffset,
+  }) {
+    this.fileOffset = fileOffset;
+  }
+
+  @override
+  StatementInferenceResult acceptInference(InferenceVisitorImpl visitor) {
+    return visitor.visitInternalForInStatement(this);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    if (isAsync) {
+      printer.write('async ');
+    }
+    printer.write('for (');
+    element.toTextInternal(printer);
+    printer.write(' in ');
+    printer.writeExpression(iterable);
+    printer.write(') ');
+    printer.writeStatement(body);
+  }
+
+  @override
+  String toString() {
+    return "$runtimeType(${toStringInternal()})";
   }
 }

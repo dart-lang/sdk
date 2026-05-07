@@ -1016,6 +1016,28 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     );
   }
 
+  /// Computes [ExtensionSetData] used for explicit writes to extension setter
+  /// as an expression or as a for-in element.
+  ExtensionSetData computeExtensionSetData({
+    required Extension extension,
+    required List<DartType>? knownTypeArguments,
+    required Expression receiver,
+    required int? extensionTypeArgumentOffset,
+    required Procedure setter,
+    required bool isNullAware,
+    required int fileOffset,
+    TreeNode? nodeForTesting,
+  });
+
+  /// Infers a write to an extension setter using the [ExtensionSetData]
+  /// computed in [computeExtensionSetData] with the inferred [valueResult].
+  ExpressionInferenceResult inferExtensionSet({
+    required ExtensionSetData data,
+    required ExpressionInferenceResult valueResult,
+    required bool forEffect,
+    required int fileOffset,
+  });
+
   /// Computes the type arguments for an access to an extension instance member
   /// on [extension] with the static [receiverType]. If [explicitTypeArguments]
   /// are provided, these are returned, otherwise type arguments are inferred
@@ -1053,7 +1075,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     Extension extension,
     List<DartType>? explicitTypeArguments,
     DartType receiverType, {
-    required TreeNode treeNodeForTesting,
+    required TreeNode? treeNodeForTesting,
   }) {
     if (explicitTypeArguments != null) {
       assert(explicitTypeArguments.length == extension.typeParameters.length);
@@ -1524,35 +1546,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
         );
         return target?.member;
     }
-  }
-
-  /// If target is missing on a non-dynamic receiver, an error is reported
-  /// using [diag.undefinedSetter] and an invalid expression is returned.
-  Expression? reportMissingInterfaceMember(
-    ObjectAccessTarget target,
-    DartType receiverType,
-    Name name,
-    int fileOffset,
-  ) {
-    assert(isKnown(receiverType));
-    if (target.isMissing) {
-      int length = name.text.length;
-      if (identical(name.text, callName.text) ||
-          identical(name.text, unaryMinusName.text)) {
-        length = 1;
-      }
-      return problemReporting.buildProblem(
-        compilerContext: compilerContext,
-        message: diag.undefinedSetter.withArguments(
-          name: name.text,
-          type: receiverType.nonTypeParameterBound,
-        ),
-        fileUri: fileUri,
-        fileOffset: fileOffset,
-        length: length,
-      );
-    }
-    return null;
   }
 
   /// Returns the getter type of [interfaceMember] on a receiver of type
@@ -4456,6 +4449,198 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     return new ExpressionInferenceResult(resultType, resultExpression);
   }
 
+  /// Computes [PropertySetData] used for writes to an instance setter as an
+  /// expression or as a for-in element.
+  PropertySetData computePropertySetData({
+    required Expression receiver,
+    required Name name,
+    required bool isNullAware,
+    required int fileOffset,
+  });
+
+  /// Creates a property set operation of [writeTarget] on [receiver] using
+  /// [valueResult] as the right-hand side. [valueResult] is created for
+  /// assignability to [writeContext].
+  ///
+  /// [fileOffset] is used as the file offset for created nodes. [propertyName]
+  /// is used for error reporting. [receiverType] is the already inferred type
+  /// of the [receiver] expression. The inferred type of [value] must already
+  /// have been computed.
+  ///
+  /// If [forEffect] the resulting expression is ensured to return the assigned
+  /// value. This is needed for extension setters which are encoded as static
+  /// method calls that do not implicitly return the value.
+  ///
+  /// The returned [ExpressionInferenceResult] holds the generated expression
+  /// and the type of this expression.
+  ExpressionInferenceResult inferPropertySet({
+    required int fileOffset,
+    required Expression receiver,
+    required DartType receiverType,
+    required Name propertyName,
+    required ObjectAccessTarget writeTarget,
+    required DartType writeContext,
+    required ExpressionInferenceResult valueResult,
+    required bool forEffect,
+  }) {
+    valueResult = ensureAssignableResult(
+      writeContext,
+      valueResult,
+      fileOffset: fileOffset,
+      isVoidAllowed: writeContext is VoidType,
+    );
+    Expression value = valueResult.expression;
+    DartType valueType = valueResult.inferredType;
+    if (expressionEvaluationHelper != null) {
+      // Coverage-ignore-block(suite): Not run.
+      OverwrittenInterfaceMember? overWritten = expressionEvaluationHelper
+          ?.overwriteFindInterfaceMember(
+            target: writeTarget,
+            name: propertyName,
+            receiverType: receiverType,
+            setter: true,
+          );
+      if (overWritten != null) {
+        writeTarget = overWritten.target;
+        propertyName = overWritten.name;
+      }
+    }
+    Expression write;
+    switch (writeTarget.kind) {
+      case ObjectAccessTargetKind.missing:
+        write = createMissingPropertySet(
+          fileOffset,
+          receiver,
+          receiverType,
+          propertyName,
+          value,
+          forEffect: forEffect,
+        );
+        break;
+      case ObjectAccessTargetKind.ambiguous:
+        write = createMissingPropertySet(
+          fileOffset,
+          receiver,
+          receiverType,
+          propertyName,
+          value,
+          forEffect: forEffect,
+          extensionAccessCandidates: writeTarget.candidates,
+        );
+        break;
+      case ObjectAccessTargetKind.extensionMember:
+      case ObjectAccessTargetKind.nullableExtensionMember:
+      case ObjectAccessTargetKind.extensionTypeMember:
+      case ObjectAccessTargetKind.nullableExtensionTypeMember:
+        if (forEffect) {
+          write = new StaticInvocation(
+            writeTarget.member as Procedure,
+            new Arguments(
+              <Expression>[receiver, value],
+              types: writeTarget.receiverTypeArguments,
+            )..fileOffset = fileOffset,
+          )..fileOffset = fileOffset;
+        } else {
+          VariableDeclaration valueVariable = createVariable(value, valueType);
+          VariableDeclaration assignmentVariable = createVariable(
+            new StaticInvocation(
+              writeTarget.member as Procedure,
+              new Arguments(
+                <Expression>[receiver, createVariableGet(valueVariable)],
+                types: writeTarget.receiverTypeArguments,
+              )..fileOffset = fileOffset,
+            )..fileOffset = fileOffset,
+            const VoidType(),
+          );
+          write = createLet(
+            valueVariable,
+            createLet(assignmentVariable, createVariableGet(valueVariable)),
+          )..fileOffset = fileOffset;
+        }
+        break;
+      case ObjectAccessTargetKind.invalid:
+        write = new DynamicSet(
+          DynamicAccessKind.Invalid,
+          receiver,
+          propertyName,
+          value,
+        )..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.never:
+        write = new DynamicSet(
+          DynamicAccessKind.Never,
+          receiver,
+          propertyName,
+          value,
+        )..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.callFunction:
+      case ObjectAccessTargetKind.nullableCallFunction:
+      case ObjectAccessTargetKind.dynamic:
+        write = new DynamicSet(
+          DynamicAccessKind.Dynamic,
+          receiver,
+          propertyName,
+          value,
+        )..fileOffset = fileOffset;
+        break;
+      case ObjectAccessTargetKind.instanceMember:
+      case ObjectAccessTargetKind.objectMember:
+      case ObjectAccessTargetKind.nullableInstanceMember:
+      // Coverage-ignore(suite): Not run.
+      case ObjectAccessTargetKind.superMember:
+        InstanceAccessKind kind;
+        switch (writeTarget.kind) {
+          case ObjectAccessTargetKind.instanceMember:
+            kind = InstanceAccessKind.Instance;
+            break;
+          case ObjectAccessTargetKind.nullableInstanceMember:
+            kind = InstanceAccessKind.Nullable;
+            break;
+          // Coverage-ignore(suite): Not run.
+          case ObjectAccessTargetKind.objectMember:
+            kind = InstanceAccessKind.Object;
+            break;
+          // Coverage-ignore(suite): Not run.
+          default:
+            throw new UnsupportedError('Unexpected target kind $writeTarget');
+        }
+        write = new InstanceSet(
+          kind,
+          receiver,
+          propertyName,
+          value,
+          interfaceTarget: writeTarget.classMember!,
+        )..fileOffset = fileOffset;
+        break;
+      // Coverage-ignore(suite): Not run.
+      case ObjectAccessTargetKind.recordIndexed:
+      case ObjectAccessTargetKind.recordNamed:
+      case ObjectAccessTargetKind.extensionTypeRepresentation:
+      case ObjectAccessTargetKind.nullableRecordIndexed:
+      case ObjectAccessTargetKind.nullableRecordNamed:
+      case ObjectAccessTargetKind.nullableExtensionTypeRepresentation:
+        throw new UnsupportedError('Unexpected write target ${writeTarget}');
+    }
+    Expression result;
+    if (writeTarget.isNullable) {
+      result = problemReporting.wrapInProblem(
+        compilerContext: compilerContext,
+        expression: write,
+        message: diag.nullablePropertyAccessError.withArguments(
+          propertyName: propertyName.text,
+          receiverType: receiverType,
+        ),
+        fileUri: fileUri,
+        fileOffset: write.fileOffset,
+        length: propertyName.text.length,
+      );
+    } else {
+      result = write;
+    }
+    return new ExpressionInferenceResult(valueType, result);
+  }
+
   /// Computes the implicit instantiation from an expression of [tearOffType]
   /// to the [context] type. Return `null` if an implicit instantiation is not
   /// necessary or possible.
@@ -4513,6 +4698,24 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     }
     return null;
   }
+
+  /// Infers [iterable] as the iterable of a for-in loop with the given
+  /// [elementType].
+  ExpressionInferenceResult inferForInIterable(
+    Expression iterable,
+    DartType elementType, {
+    required bool isAsync,
+  });
+
+  /// Infers the [pattern] occurring as the element in for-in header with the
+  /// given [iterable].
+  PatternForInData inferPatternForInHeader({
+    required TreeNode node,
+    required Pattern pattern,
+    required Expression iterable,
+    required bool isAsync,
+    required int inOffset,
+  });
 
   ExpressionInferenceResult _applyImplicitInstantiation(
     ImplicitInstantiation? implicitInstantiation,
@@ -6182,4 +6385,49 @@ class _ObjectAccessDescriptor {
         return false;
     }
   }
+}
+
+/// Data needed for the inference of a write to an instance property.
+class PropertySetData {
+  final Expression receiver;
+  final DartType receiverType;
+  final DartType writeContext;
+  final ObjectAccessTarget target;
+
+  PropertySetData({
+    required this.receiver,
+    required this.receiverType,
+    required this.writeContext,
+    required this.target,
+  });
+}
+
+/// Data needed for the inference of a write to an extension setter.
+class ExtensionSetData {
+  final Expression receiver;
+  final DartType inferredReceiverType;
+  final DartType valueType;
+  final List<DartType> extensionTypeArguments;
+  final Procedure setter;
+
+  ExtensionSetData({
+    required this.receiver,
+    required this.inferredReceiverType,
+    required this.valueType,
+    required this.extensionTypeArguments,
+    required this.setter,
+  });
+}
+
+/// Data resulting from the inference of a pattern in a for-in element.
+class PatternForInData {
+  final VariableDeclaration loopVariable;
+  final Expression iterable;
+  final PatternVariableDeclaration Function() computePatternVariableDeclaration;
+
+  PatternForInData({
+    required this.loopVariable,
+    required this.iterable,
+    required this.computePatternVariableDeclaration,
+  });
 }
