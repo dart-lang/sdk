@@ -3151,7 +3151,6 @@
   "../../../tests/lib/async/future_or_type_test.dart",
   "../../../tests/lib/async/future_record_extension_test.dart",
   "../../../tests/lib/async/future_regression_48493_test.dart",
-  "../../../tests/lib/async/future_test.dart",
   "../../../tests/lib/async/future_timeout_test.dart",
   "../../../tests/lib/async/future_value_chain2_test.dart",
   "../../../tests/lib/async/future_value_chain3_test.dart",

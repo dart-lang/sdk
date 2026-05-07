@@ -625,15 +625,6 @@ class AnalysisCommandOutput extends CommandOutput with _StaticErrorOutput {
       );
 
       for (var context in error.contextMessages) {
-        // TODO(rnystrom): Include these when static error tests get support
-        // for errors/context in other files.
-        if (context.file != error.file) {
-          DebugLogger.warning(
-            "Context messages in other files not currently supported.",
-          );
-          continue;
-        }
-
         staticError.contextMessages.add(
           StaticError(
             ErrorSource.context,

@@ -8,7 +8,6 @@ import 'package:analyzer/dart/analysis/results.dart';
 import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/source/line_info.dart';
-import 'package:analyzer/src/dart/analysis/driver_based_analysis_context.dart';
 import 'package:analyzer_cli/src/ansi.dart';
 import 'package:analyzer_cli/src/options.dart';
 import 'package:path/path.dart' as path;
@@ -223,6 +222,12 @@ abstract class ErrorFormatter {
   /// be filtered.
   DiagnosticSeverity? _computeSeverity(Diagnostic diagnostic) =>
       _severityProcessor(diagnostic);
+
+  // TODO(scheglov): We should add `LineInfo` to `DiagnosticMessage`.
+  LineInfo _getLineInfo(ErrorsResult result, String filePath) {
+    var fileResult = result.session.getFile(filePath) as FileResult;
+    return fileResult.lineInfo;
+  }
 }
 
 class HumanErrorFormatter extends ErrorFormatter {
@@ -322,23 +327,16 @@ class HumanErrorFormatter extends ErrorFormatter {
     }
     var contextMessages = <ContextMessage>[];
     for (var message in error.contextMessages) {
-      // TODO(scheglov): We should add `LineInfo` to `DiagnosticMessage`.
-      var session = result.session.analysisContext;
-      if (session is DriverBasedAnalysisContext) {
-        var fileResult = session.driver.getFileSync(message.filePath);
-        if (fileResult is FileResult) {
-          var lineInfo = fileResult.lineInfo;
-          var location = lineInfo.getLocation(message.offset);
-          contextMessages.add(
-            ContextMessage(
-              message.filePath,
-              message.messageText(includeUrl: true),
-              location.lineNumber,
-              location.columnNumber,
-            ),
-          );
-        }
-      }
+      var lineInfo = _getLineInfo(result, message.filePath);
+      var location = lineInfo.getLocation(message.offset);
+      contextMessages.add(
+        ContextMessage(
+          message.filePath,
+          message.messageText(includeUrl: true),
+          location.lineNumber,
+          location.columnNumber,
+        ),
+      );
     }
 
     batchedErrors.add(
@@ -413,9 +411,7 @@ class JsonErrorFormatter extends ErrorFormatter {
 
     var diagnostics = <Map<String, dynamic>>[];
     for (var result in results) {
-      var errors = result.diagnostics;
-      var lineInfo = result.lineInfo;
-      for (var error in errors) {
+      for (var error in result.diagnostics) {
         var severity = _computeSeverity(error);
         if (severity == null) {
           continue;
@@ -427,7 +423,7 @@ class JsonErrorFormatter extends ErrorFormatter {
               contextMessage.filePath,
               contextMessage.offset,
               contextMessage.length,
-              lineInfo,
+              _getLineInfo(result, contextMessage.filePath),
             ),
             'message': contextMessage.messageText(includeUrl: true),
           });
@@ -443,7 +439,7 @@ class JsonErrorFormatter extends ErrorFormatter {
             problemMessage.filePath,
             problemMessage.offset,
             problemMessage.length,
-            lineInfo,
+            result.lineInfo,
           ),
           'problemMessage': problemMessage.messageText(includeUrl: true),
           if (error.correctionMessage != null)

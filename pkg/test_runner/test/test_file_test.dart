@@ -741,6 +741,154 @@ int i = "s";
 /\/      ^^^
 /\/ [cfe 1] Error.
 """);
+
+  // Cross-file context messages.
+  {
+    late String rootPath;
+    late String helperPath;
+    var file = createTestFile(
+      path: "cross_file_test.dart",
+      source: """
+import 'helper.dart';
+
+void f(C c) {
+  c.value.isEven;
+  /\/      ^^^^^^
+  /\/ [analyzer 1 see helper.dart] Error.BAD
+}
+""",
+      additionalFiles: {
+        "helper.dart": """
+class C {
+  int? get value => 0;
+  /\/       ^^^^^
+  /\/ [context 1 for cross_file_test.dart] Context in helper.
+}
+""",
+      },
+      onPaths: (root, additionalPaths) {
+        rootPath = root;
+        helperPath = additionalPaths["helper.dart"]!;
+      },
+    );
+    Expect.listEquals([
+      makeError(
+        path: rootPath,
+        line: 4,
+        column: 11,
+        length: 6,
+        analyzerError: "Error.BAD",
+        context: [
+          makeError(
+            path: helperPath,
+            line: 2,
+            column: 12,
+            length: 5,
+            contextError: "Context in helper.",
+          ),
+        ],
+      ).toString(),
+    ], file.expectedErrors.map((error) => error.toString()).toList());
+  }
+
+  // A cross-file context owned by another root is inert.
+  {
+    var file = createTestFile(
+      path: "cross_file_test.dart",
+      source: """
+import 'helper.dart';
+""",
+      additionalFiles: {
+        "helper.dart": """
+class C {
+  int? get value => 0;
+  /\/       ^^^^^
+  /\/ [context 1 for other_test.dart] Context in helper.
+}
+""",
+      },
+    );
+    Expect.isTrue(file.expectedErrors.isEmpty);
+  }
+
+  // The cross-file relationship must be bidirectional.
+  expectThrowsFormatExceptionContains(
+    () => createTestFile(
+      path: "cross_file_test.dart",
+      source: """
+import 'helper.dart';
+
+void f(C c) {
+  c.value.isEven;
+  /\/      ^^^^^^
+  /\/ [analyzer 1] Error.BAD
+}
+""",
+      additionalFiles: {
+        "helper.dart": """
+class C {
+  int? get value => 0;
+  /\/       ^^^^^
+  /\/ [context 1 for cross_file_test.dart] Context in helper.
+}
+""",
+      },
+    ),
+    ["Missing context for numbered error 1", "Error.BAD"],
+  );
+
+  // A context owned by the root must have a matching numbered error.
+  expectThrowsFormatExceptionContains(
+    () => createTestFile(
+      path: "cross_file_test.dart",
+      source: """
+import 'helper.dart';
+""",
+      additionalFiles: {
+        "helper.dart": """
+class C {
+  int? get value => 0;
+  /\/       ^^^^^
+  /\/ [context 1 for cross_file_test.dart] Context in helper.
+}
+""",
+      },
+    ),
+    ["No error with number 1", "Context in helper."],
+  );
+
+  // A parsed `see` file must contain a matching context marker.
+  expectThrowsFormatExceptionContains(
+    () => createTestFile(
+      path: "cross_file_test.dart",
+      source: """
+bad.use;
+/\/      ^^^
+/\/ [analyzer 1 see helper.dart] Error.BAD
+""",
+      additionalFiles: {
+        "helper.dart": """
+class C {
+  int? get value => 0;
+}
+""",
+      },
+    ),
+    ["No context with number 1", "helper.dart", "Error.BAD"],
+  );
+
+  // A `see` path must point to a parsed context file.
+  expectThrowsFormatExceptionContains(
+    () => createTestFile(
+      path: "cross_file_test.dart",
+      source: """
+bad.use;
+/\/      ^^^
+/\/ [analyzer 1 see missing_helper.dart] Error.BAD
+""",
+    ),
+    ["Context file", "missing_helper.dart", "was not parsed", "Error.BAD"],
+  );
 }
 
 void testIsRuntimeTest() {
@@ -881,6 +1029,22 @@ void expectParseErrorExpectations(String source, List<StaticError> errors) {
 
 void expectFormatError(String source) {
   Expect.throwsFormatException(() => createTestFile(source: source));
+}
+
+void expectThrowsFormatExceptionContains(
+  void Function() callback,
+  List<String> expectedSubstrings,
+) {
+  try {
+    callback();
+  } on FormatException catch (error) {
+    for (var expectedSubstring in expectedSubstrings) {
+      Expect.contains(expectedSubstring, error.message);
+    }
+    return;
+  }
+
+  Expect.fail("Expected a FormatException.");
 }
 
 void expectParseThrows(String source) {

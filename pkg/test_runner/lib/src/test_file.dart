@@ -377,22 +377,40 @@ class TestFile extends _TestFileBase {
   /// Parse expectations from the file with [path].
   ///
   /// Recurses to follow local (not `dart:` or `package:`) imports.
-  static List<StaticError> _parseExpectations(
+  static List<StaticError> _parseExpectations(String path) {
+    var parsed = <ParsedStaticErrorExpectations>[];
+    _parseExpectationFiles(path, parsed: parsed);
+    return StaticError.attachContextExpectations(parsed, rootPath: path);
+  }
+
+  /// Recursively parses expectation files starting from [path].
+  ///
+  /// This follows local imports and explicit context paths in errors to find
+  /// all files that might contain expectations for the test.
+  ///
+  /// [parsed] accumulates the results. [alreadyParsed] is used to prevent
+  /// infinite recursion in case of circular references.
+  static void _parseExpectationFiles(
     String path, {
+    required List<ParsedStaticErrorExpectations> parsed,
     Set<String>? alreadyParsed,
   }) {
     alreadyParsed ??= {};
     var file = File(path);
     var pathUri = Uri.parse(path);
     // Missing files set no expectations.
-    if (!file.existsSync()) return [];
+    if (!file.existsSync()) return;
 
     // Catch import loops.
-    if (!alreadyParsed.add(pathUri.toString())) return [];
+    if (!alreadyParsed.add(StaticError.normalizePath(path))) return;
 
     // Parse one file.
     var contents = File(path).readAsStringSync();
-    var result = StaticError.parseExpectations(path: path, source: contents);
+    var result = StaticError.parseExpectationsUnattached(
+      path: path,
+      source: contents,
+    );
+    parsed.add(result);
 
     // Parse imports and recurse.
     var matches = _localFileRegExp.allMatches(contents);
@@ -401,11 +419,22 @@ class TestFile extends _TestFileBase {
       // Broken import paths set no expectations.
       if (localPath == null) continue;
       var uriString = pathUri.resolve(localPath.path).toString();
-      result.addAll(
-        _parseExpectations(uriString, alreadyParsed: alreadyParsed),
+      _parseExpectationFiles(
+        uriString,
+        parsed: parsed,
+        alreadyParsed: alreadyParsed,
       );
     }
-    return result;
+
+    for (var error in result.errors) {
+      for (var contextPath in error.contextPaths) {
+        _parseExpectationFiles(
+          contextPath,
+          parsed: parsed,
+          alreadyParsed: alreadyParsed,
+        );
+      }
+    }
   }
 
   /// A special fake test file for representing a VM unit test written in C++.

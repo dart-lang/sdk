@@ -12,6 +12,7 @@ abstract class BaseMembers {
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
 // [cfe] Expected ';' after this.
 // [cfe] Variables must be declared using the keywords 'const', 'final', 'var' or a type name.
+// [context 1] The first definition of this name.
 //          ^^^
 // [analyzer] COMPILE_TIME_ERROR.NOT_INITIALIZED_NON_NULLABLE_INSTANCE_FIELD
 // [cfe] Field 'foo' should be initialized because its type 'int' doesn't allow null.
@@ -23,7 +24,7 @@ abstract class BaseMembers {
 
   mixin void bar2();
 //^^^^^
-// [analyzer] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
+// [analyzer 1] COMPILE_TIME_ERROR.DUPLICATE_DEFINITION
 // [analyzer] SYNTACTIC_ERROR.EXPECTED_TOKEN
 // [analyzer] SYNTACTIC_ERROR.MISSING_CONST_FINAL_VAR_OR_TYPE
 // [cfe] 'mixin' is already declared in this scope.

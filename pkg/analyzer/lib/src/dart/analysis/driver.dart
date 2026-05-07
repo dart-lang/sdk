@@ -280,6 +280,9 @@ class AnalysisDriver {
 
   bool _disposed = false;
 
+  /// Whether memory-expensive data has been discarded.
+  bool _hasDiscardedMemoryExpensiveData = false;
+
   /// A map that associates files to corresponding analysis options.
   final AnalysisOptionsMap analysisOptionsMap;
 
@@ -676,6 +679,10 @@ class AnalysisDriver {
   }
 
   void discardMemoryExpensiveData() {
+    if (_hasDiscardedMemoryExpensiveData) {
+      return;
+    }
+    _hasDiscardedMemoryExpensiveData = true;
     currentSession.clearHierarchies();
     libraryContext.elementFactory.discardLibraryManifestInstances();
   }
@@ -2757,6 +2764,8 @@ class AnalysisDriverScheduler {
               shouldDiscardMemoryExpensiveDataOnIdle) {
             driver.discardMemoryExpensiveData();
           }
+        } else {
+          driver._hasDiscardedMemoryExpensiveData = false;
         }
       }
 

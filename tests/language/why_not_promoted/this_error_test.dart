@@ -15,8 +15,8 @@ extension on int? {
     this.isEven;
     //   ^^^^^^
     // [analyzer 1] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [context 1] 'this' can't be promoted.  See http://dart.dev/go/non-promo-this
     // [cfe 3] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+    // [context 1] 'this' can't be promoted.  See http://dart.dev/go/non-promo-this
     // [context 3] 'this' can't be promoted.
   }
 
@@ -25,8 +25,8 @@ extension on int? {
     isEven;
     // [error column 5, length 6]
     // [analyzer 2] COMPILE_TIME_ERROR.UNCHECKED_USE_OF_NULLABLE_VALUE
-    // [context 2] 'this' can't be promoted.  See http://dart.dev/go/non-promo-this
     // [cfe 4] Property 'isEven' cannot be accessed on 'int?' because it is potentially null.
+    // [context 2] 'this' can't be promoted.  See http://dart.dev/go/non-promo-this
     // [context 4] 'this' can't be promoted.
   }
 }

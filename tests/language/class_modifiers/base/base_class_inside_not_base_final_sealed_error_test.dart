@@ -6,6 +6,9 @@
 // sealed.
 
 base class BaseClass {}
+//         ^^^^^^^^^
+// [context 1] The type 'SubtypeOfBase' is a subtype of 'BaseClass', and 'BaseClass' is defined here.
+// [context 2] The type 'SubtypeOfBase' is a subtype of 'BaseClass', and 'BaseClass' is defined here.
 
 base mixin BaseMixin {}
 
@@ -34,7 +37,7 @@ mixin MixinImplements implements BaseMixin {}
 
 mixin MixinImplementsIndirect implements SubtypeOfBase {}
 //    ^^^^^^^^^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 1] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The mixin 'MixinImplementsIndirect' must be 'base' because the supertype 'BaseClass' is 'base'.
 
 class With with BaseMixin {}
@@ -66,5 +69,5 @@ class Multiple2 extends RegularClass implements BaseClass {}
 
 class IndirectSubtype extends SubtypeOfBase {}
 //    ^^^^^^^^^^^^^^^
-// [analyzer] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
+// [analyzer 2] COMPILE_TIME_ERROR.SUBTYPE_OF_BASE_OR_FINAL_IS_NOT_BASE_FINAL_OR_SEALED
 // [cfe] The type 'IndirectSubtype' must be 'base', 'final' or 'sealed' because the supertype 'BaseClass' is 'base'.

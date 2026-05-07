@@ -34,6 +34,48 @@ class ReporterTest extends PubPackageResolutionTest {
     await super.tearDown();
   }
 
+  Future<void> test_human_contextMessage_otherFile() async {
+    var options = CommandLineOptions.parse(resourceProvider, [
+      '--dart-sdk=${sdkRoot.path}',
+      '--verbose',
+      'test.dart',
+    ])!;
+    var reporter = HumanErrorFormatter(out, options, stats);
+
+    var libFile = newFile('$testPackageRootPath/lib/lib.dart', r'''
+class C {
+  final int? foo;
+  C(this.foo);
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'lib.dart';
+void f(C c) {
+  if (c.foo != null) {
+    c.foo.isEven;
+  }
+}
+''');
+
+    var errorsResult = await _getErrorsResultForFile(testFile);
+    await reporter.formatErrors([errorsResult]);
+    reporter.flush();
+
+    expect(
+      out.toString().trim(),
+      contains(
+        "error • The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'. • package:test/test.dart:4:11 • unchecked_use_of_nullable_value",
+      ),
+    );
+    expect(
+      out.toString().trim(),
+      contains(
+        "  'foo' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field at ${libFile.path}:2:14",
+      ),
+    );
+  }
+
   Future<void> test_human_error() async {
     var options = CommandLineOptions.parse(resourceProvider, [
       '--dart-sdk=${sdkRoot.path}',
@@ -105,6 +147,73 @@ void f() {
       'warning • Dead code. • package:test/test.dart:3:3 • dead_code\n'
       '1 warning found.',
     );
+  }
+
+  Future<void> test_json_contextMessage_otherFile() async {
+    var options = CommandLineOptions.parse(resourceProvider, [
+      '--format=json',
+      '--dart-sdk=${sdkRoot.path}',
+      'test.dart',
+    ])!;
+    var reporter = JsonErrorFormatter(out, options, stats);
+
+    var libFile = newFile('$testPackageRootPath/lib/lib.dart', r'''
+class C {
+  final int? foo;
+  C(this.foo);
+}
+''');
+
+    newFile(testFile.path, r'''
+import 'lib.dart';
+void f(C c) {
+  if (c.foo != null) {
+    c.foo.isEven;
+  }
+}
+''');
+
+    var errorsResult = await _getErrorsResultForFile(testFile);
+    await reporter.formatErrors([errorsResult]);
+    reporter.flush();
+
+    var expected = {
+      'version': 1,
+      'diagnostics': [
+        {
+          'code': 'unchecked_use_of_nullable_value',
+          'severity': 'ERROR',
+          'type': 'COMPILE_TIME_ERROR',
+          'location': {
+            'file': testFile.path,
+            'range': {
+              'start': {'offset': 66, 'line': 4, 'column': 11},
+              'end': {'offset': 72, 'line': 4, 'column': 17},
+            },
+          },
+          'problemMessage':
+              "The property 'isEven' can't be unconditionally accessed because the receiver can be 'null'.",
+          'correctionMessage':
+              "Try making the access conditional (using '?.') or adding a null check to the target ('!').",
+          'contextMessages': [
+            {
+              'location': {
+                'file': libFile.path,
+                'range': {
+                  'start': {'offset': 23, 'line': 2, 'column': 14},
+                  'end': {'offset': 26, 'line': 2, 'column': 17},
+                },
+              },
+              'message':
+                  "'foo' refers to a public property so it couldn't be promoted.  See http://dart.dev/go/non-promo-public-field",
+            },
+          ],
+          'documentation':
+              'https://dart.dev/diagnostics/unchecked_use_of_nullable_value',
+        },
+      ],
+    };
+    expect(json.decode(out.toString().trim()), expected);
   }
 
   Future<void> test_json_error() async {
