@@ -2,7 +2,6 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-import 'package:analyzer/src/diagnostic/diagnostic.dart' as diag;
 import 'package:test_reflective_loader/test_reflective_loader.dart';
 
 import '../../diagnostics/parser_diagnostics.dart';
@@ -21,7 +20,7 @@ class ClassDeclarationParserTest extends ParserDiagnosticsTest {
     var parseResult = parseStringWithErrors(r'''
 augment class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -40,7 +39,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment abstract class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -58,7 +57,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment abstract base class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -77,7 +76,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment base class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -95,7 +94,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment class A extends B {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -116,7 +115,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment final class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -134,7 +133,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment class A implements B {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -156,7 +155,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment interface class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -174,7 +173,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment mixin class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -191,10 +190,9 @@ ClassDeclaration
   test_augment_namedMixinApplication() {
     var parseResult = parseStringWithErrors(r'''
 augment class A = B with M;
+// [diag.mixinApplicationClassAugmentation][column 1][length 7] A mixin application class can't be augmented.
 ''');
-    parseResult.assertErrors([
-      error(diag.mixinApplicationClassAugmentation, 0, 7),
-    ]);
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.unit, r'''
 CompilationUnit
   declarations
@@ -218,7 +216,7 @@ CompilationUnit
     var parseResult = parseStringWithErrors(r'''
 augment sealed class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -236,7 +234,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment class A<T extends int> {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -262,7 +260,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment class A with M {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -284,7 +282,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A;
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -303,7 +301,7 @@ class A {
   factory named() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -326,7 +324,7 @@ class A {
   const factory named() = B;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -350,9 +348,11 @@ ConstructorDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   factory new() {}
+//        ^^^
+// [diag.factoryConstructorNewName] Factory constructors can't be named 'new'.
 }
 ''');
-    parseResult.assertErrors([error(diag.factoryConstructorNewName, 20, 3)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -375,7 +375,7 @@ class A {
   factory () {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -397,7 +397,7 @@ class A {
   const factory () = B;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -422,7 +422,7 @@ class A {
   new named();
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -443,7 +443,7 @@ class A {
   new named() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -466,7 +466,7 @@ class A {
   const new named();
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -488,7 +488,7 @@ class A {
   new named() : x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -515,9 +515,11 @@ ConstructorDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   new new();
+//    ^^^
+// [diag.newConstructorNewName] Constructors declared with the 'new' keyword can't be named 'new'.
 }
 ''');
-    parseResult.assertErrors([error(diag.newConstructorNewName, 16, 3)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -538,7 +540,7 @@ class A {
   new ();
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -558,7 +560,7 @@ class A {
   new () {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -580,7 +582,7 @@ class A {
   const new ();
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -601,7 +603,7 @@ class A {
   new () : x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -629,7 +631,7 @@ class A {
   new (int x, {required String y});
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -660,7 +662,7 @@ augment class A {
   augment A.named();
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -683,11 +685,11 @@ ConstructorDeclaration
 class A {
   final int f;
   external A([this.f = 0]);
+//            ^^^^
+// [diag.externalConstructorWithFieldInitializers] An external constructor can't initialize fields.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.externalConstructorWithFieldInitializers, 39, 4),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -718,11 +720,11 @@ ConstructorDeclaration
 class A {
   final int f;
   external A(this.f);
+//           ^^^^
+// [diag.externalConstructorWithFieldInitializers] An external constructor can't initialize fields.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.externalConstructorWithFieldInitializers, 38, 4),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -747,11 +749,11 @@ ConstructorDeclaration
 class A {
   final int f;
   external A() : f = 0;
+//             ^
+// [diag.externalConstructorWithInitializer] An external constructor can't have any initializers.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.externalConstructorWithInitializer, 40, 1),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -781,7 +783,7 @@ class A {
   factory A.named() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -808,7 +810,7 @@ class A {
   factory A.named() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -834,7 +836,7 @@ class A {
   factory A() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -859,7 +861,7 @@ class A {
   factory A() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -884,7 +886,7 @@ class A {
   factory B() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -906,12 +908,12 @@ ConstructorDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   A(const int a(String x));
+//  ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
+// [diag.functionTypedParameterVar] Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifier, 14, 5),
-      error(diag.functionTypedParameterVar, 14, 5),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -948,7 +950,7 @@ class A {
   );
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -982,12 +984,12 @@ ConstructorDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   A(final int a(String x));
+//  ^^^^^
+// [diag.functionTypedParameterVar] Function-typed parameters can't specify 'const', 'final' or 'var' in place of a return type.
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.extraneousModifier, 14, 5),
-      error(diag.functionTypedParameterVar, 14, 5),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -1019,9 +1021,11 @@ ConstructorDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   A(const int a);
+//  ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -1050,7 +1054,7 @@ class A {
   );
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -1076,9 +1080,11 @@ ConstructorDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   A(final int a);
+//  ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'final' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -1104,7 +1110,7 @@ class A {
   A.named();
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -1125,9 +1131,11 @@ ConstructorDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   A.();
+//  ^
+// [diag.missingIdentifier] Expected an identifier.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingIdentifier, 14, 1)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -1150,7 +1158,7 @@ class A {
   A();
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleConstructorDeclaration;
     assertParsedNodeText(node, r'''
@@ -1171,7 +1179,7 @@ augment class A {
   augment int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1203,7 +1211,7 @@ augment class A {
   augment covariant int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1236,7 +1244,7 @@ augment class A {
   augment late int x;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1266,7 +1274,7 @@ augment class A {
   augment static int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1299,7 +1307,7 @@ augment class A {
   augment static final int x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1333,7 +1341,7 @@ augment class A {
   augment int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1364,7 +1372,7 @@ augment class A {
   augment static int get foo => 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1396,7 +1404,7 @@ class A {
   static int get foo;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -1412,13 +1420,15 @@ MethodDeclaration
   }
 
   test_getter_static_body_empty_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors(r'''
 // @dart = 3.5
 class A {
   static int get foo;
+//                  ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 45, 1)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -1439,7 +1449,7 @@ augment class A {
   augment void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1471,9 +1481,11 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment class A {
   augment abstract void foo();
+//        ^^^^^^^^
+// [diag.abstractClassMember] Members of classes can't be declared to be 'abstract'.
 }
 ''');
-    parseResult.assertErrors([error(diag.abstractClassMember, 28, 8)]);
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1503,7 +1515,7 @@ augment class A {
   augment static void foo() {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1536,7 +1548,7 @@ class A {
   static int foo();
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -1554,13 +1566,15 @@ MethodDeclaration
   }
 
   test_method_static_body_empty_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors(r'''
 // @dart = 3.5
 class A {
   static int foo();
+//                ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 43, 1)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -1581,7 +1595,7 @@ MethodDeclaration
     var parseResult = parseStringWithErrors(r'''
 augment class A<T> {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1604,7 +1618,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A<T, U> {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1630,7 +1644,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1650,7 +1664,7 @@ augment class A {
   augment int operator+(int other) => 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -1686,7 +1700,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class const A<T, U>.named() {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1719,7 +1733,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class const A<T, U>() {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1749,17 +1763,17 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 mixin M {}
 class const C = Object with M;
+//    ^^^^^
+// [diag.constWithoutPrimaryConstructor] 'const' can only be used together with a primary constructor declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.constWithoutPrimaryConstructor, 17, 5),
-    ]);
+    parseResult.assertExpectedDiagnostics();
   }
 
   test_primaryConstructor_const_noTypeParameters_named() {
     var parseResult = parseStringWithErrors(r'''
 class const A.named() {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1784,7 +1798,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class const A() {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1805,10 +1819,10 @@ ClassDeclaration
   test_primaryConstructor_const_typeName_noFormalParameters() {
     var parseResult = parseStringWithErrors(r'''
 class const A {}
+//    ^^^^^
+// [diag.constWithoutPrimaryConstructor] 'const' can only be used together with a primary constructor declaration.
 ''');
-    parseResult.assertErrors([
-      error(diag.constWithoutPrimaryConstructor, 6, 5),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1826,8 +1840,10 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 // @dart=3.10
 class const A {}
+//    ^^^^^
+// [diag.unexpectedToken] Unexpected text 'const'.
 ''');
-    parseResult.assertErrors([error(diag.unexpectedToken, 20, 5)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1846,7 +1862,7 @@ ClassDeclaration
 class const A.named {}
 ''');
     // TODO(scheglov): this is wrong.
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1871,7 +1887,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A({final int a = 0}) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1903,7 +1919,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A({var int a = 0}) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1935,7 +1951,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A({required final int a = 0}) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -1971,7 +1987,7 @@ class A({
   required final int a = 0,
 }) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2007,7 +2023,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A({required var int a = 0}) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2040,7 +2056,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A([final int a = 0]) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2072,7 +2088,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A([var int a = 0]) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2103,8 +2119,10 @@ ClassDeclaration
   test_primaryConstructor_declaringFormalParameter_functionTyped_const() {
     var parseResult = parseStringWithErrors(r'''
 class A(const int a(String x)) {}
+//      ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 8, 5)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2138,7 +2156,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(final int a(String x)) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2175,7 +2193,7 @@ class A(
   final int a(String x)
 ) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2212,7 +2230,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(var int a(String x)) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2245,8 +2263,10 @@ ClassDeclaration
   test_primaryConstructor_declaringFormalParameter_simple_const() {
     var parseResult = parseStringWithErrors(r'''
 class A(const int a) {}
+//      ^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 8, 5)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2272,7 +2292,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(final int a) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2301,7 +2321,7 @@ class A(
   final int a
 ) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2330,7 +2350,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(var int a) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2356,7 +2376,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(final int this.a) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2384,7 +2404,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(var int this.a) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2411,10 +2431,10 @@ ClassDeclaration
   test_primaryConstructor_formalParameters_named_keyword_required_covariant() {
     var parseResult = parseStringWithErrors(r'''
 class A({required covariant int it}) {}
+//                ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidCovariantModifierInPrimaryConstructor, 18, 9),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2442,10 +2462,10 @@ ClassDeclaration
   test_primaryConstructor_formalParameters_named_keyword_required_covariant_final() {
     var parseResult = parseStringWithErrors(r'''
 class A({required covariant final int it}) {}
+//                ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidCovariantModifierInPrimaryConstructor, 18, 9),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2475,7 +2495,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A({required covariant var int it}) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2504,8 +2524,10 @@ ClassDeclaration
   test_primaryConstructor_formalParameters_named_keyword_required_required() {
     var parseResult = parseStringWithErrors(r'''
 class A({required required int a}) {}
+//                ^^^^^^^^
+// [diag.duplicatedModifier] The modifier 'required' was already specified.
 ''');
-    parseResult.assertErrors([error(diag.duplicatedModifier, 18, 8)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2532,8 +2554,10 @@ ClassDeclaration
   test_primaryConstructor_formalParameters_named_keyword_required_required_covariant_var() {
     var parseResult = parseStringWithErrors(r'''
 class A({required required covariant var int a}) {}
+//                ^^^^^^^^
+// [diag.duplicatedModifier] The modifier 'required' was already specified.
 ''');
-    parseResult.assertErrors([error(diag.duplicatedModifier, 18, 8)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2562,10 +2586,10 @@ ClassDeclaration
   test_primaryConstructor_formalParameters_positional_keyword_covariant() {
     var parseResult = parseStringWithErrors(r'''
 class A(covariant int it) {}
+//      ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidCovariantModifierInPrimaryConstructor, 8, 9),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2590,10 +2614,10 @@ ClassDeclaration
   test_primaryConstructor_formalParameters_positional_keyword_covariant_final() {
     var parseResult = parseStringWithErrors(r'''
 class A(covariant final int it) {}
+//      ^^^^^^^^^
+// [diag.invalidCovariantModifierInPrimaryConstructor] The 'covariant' modifier can only be used on non-final declaring parameters.
 ''');
-    parseResult.assertErrors([
-      error(diag.invalidCovariantModifierInPrimaryConstructor, 8, 9),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2620,7 +2644,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A(covariant var int it) {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2646,8 +2670,10 @@ ClassDeclaration
   test_primaryConstructor_formalParameters_positional_keyword_required() {
     var parseResult = parseStringWithErrors(r'''
 class A(required int a) {}
+//      ^^^^^^^^
+// [diag.extraneousModifier] Can't have modifier 'required' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 8, 8)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2673,7 +2699,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A<T, U>.named() {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2705,7 +2731,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A<T, U>() {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2734,7 +2760,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A.named() {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2758,7 +2784,7 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A() {}
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2780,7 +2806,7 @@ ClassDeclaration
 class A(final int super.a) {}
 ''');
     // TODO(scheglov): this is wrong.
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2807,8 +2833,10 @@ ClassDeclaration
   test_primaryConstructor_superFormalParameter_var_namedType() {
     var parseResult = parseStringWithErrors(r'''
 class A(var int super.a) {}
+//      ^^^
+// [diag.extraneousModifier] Can't have modifier 'var' here.
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 8, 3)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleClassDeclaration;
     assertParsedNodeText(node, r'''
@@ -2838,7 +2866,7 @@ class A(final int x) {
   this : assert(x > 0);
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
@@ -2869,7 +2897,7 @@ class A() {
   }
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
@@ -2895,7 +2923,7 @@ class A() {
   this;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
@@ -2917,7 +2945,7 @@ class A() {
   this : x = 0;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
@@ -2943,7 +2971,7 @@ class A() {
   this;
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
@@ -2963,9 +2991,11 @@ PrimaryConstructorBody
     var parseResult = parseStringWithErrors(r'''
 class A() {
   const this;
+//^^^^^
+// [diag.extraneousModifier] Can't have modifier 'const' here.
 }
 ''');
-    parseResult.assertErrors([error(diag.extraneousModifier, 14, 5)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singlePrimaryConstructorBody;
     assertParsedNodeText(node, r'''
@@ -2982,7 +3012,7 @@ augment class A {
   augment set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -3017,7 +3047,7 @@ augment class A {
   augment static set foo(int x) {}
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
     assertParsedNodeText(parseResult.findNode.singleClassDeclaration, r'''
 ClassDeclaration
   augmentKeyword: augment
@@ -3051,9 +3081,11 @@ ClassDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   set foo {}
+//    ^^^
+// [diag.missingMethodParameters] Methods must have an explicit list of parameters.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingMethodParameters, 16, 3)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -3076,11 +3108,11 @@ MethodDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   set foo({a}) {}
+//    ^^^
+// [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongNumberOfParametersForSetter, 16, 3),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -3103,11 +3135,11 @@ MethodDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   set foo([a]) {}
+//    ^^^
+// [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongNumberOfParametersForSetter, 16, 3),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -3130,11 +3162,11 @@ MethodDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   set foo(a, b, c) {}
+//    ^^^
+// [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongNumberOfParametersForSetter, 16, 3),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -3157,11 +3189,11 @@ MethodDeclaration
     var parseResult = parseStringWithErrors(r'''
 class A {
   set foo() {}
+//    ^^^
+// [diag.wrongNumberOfParametersForSetter] Setters must declare exactly one required positional parameter.
 }
 ''');
-    parseResult.assertErrors([
-      error(diag.wrongNumberOfParametersForSetter, 16, 3),
-    ]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, withOffsets: true, r'''
@@ -3186,7 +3218,7 @@ class A {
   static set foo(int _);
 }
 ''');
-    parseResult.assertNoErrors();
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''
@@ -3207,13 +3239,15 @@ MethodDeclaration
   }
 
   test_setter_static_body_empty_language305() {
-    var parseResult = parseStringWithErrors('''
+    var parseResult = parseStringWithErrors(r'''
 // @dart = 3.5
 class A {
   static set foo(int _);
+//                     ^
+// [diag.missingFunctionBody] A function body must be provided.
 }
 ''');
-    parseResult.assertErrors([error(diag.missingFunctionBody, 48, 1)]);
+    parseResult.assertExpectedDiagnostics();
 
     var node = parseResult.findNode.singleMethodDeclaration;
     assertParsedNodeText(node, r'''

@@ -10,6 +10,8 @@ import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/ast/ast.dart';
 import 'package:analyzer/src/test_utilities/find_node.dart';
 import 'package:analyzer_testing/src/analysis_rule/pub_package_resolution.dart';
+import 'package:analyzer_testing/src/expected_diagnostics.dart'
+    as expected_diagnostics;
 import 'package:analyzer_utilities/testing/tree_string_sink.dart';
 import 'package:test/test.dart';
 
@@ -111,6 +113,17 @@ extension ParseStringResultExtension on ParseStringResult {
     var diagnosticListener = GatheringDiagnosticListener();
     diagnosticListener.addAll(errors);
     diagnosticListener.assertErrors(expectedDiagnostics);
+  }
+
+  void assertExpectedDiagnostics() {
+    var actual = expected_diagnostics.updateExpectedDiagnostics(
+      content: content,
+      actualDiagnostics: errors,
+    );
+    if (actual != content) {
+      printPrettyDiff(content, actual);
+      fail('See the difference above.');
+    }
   }
 
   void assertNoErrors() {
