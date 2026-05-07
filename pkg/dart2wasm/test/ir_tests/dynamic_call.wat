@@ -4,7 +4,7 @@
   (type $Array<Object?> (array (field (mut (ref null $#Top)))))
   (type $BoxedBool (sub final $#Top (struct
     (field $field0 i32)
-    (field $value (mut i32)))))
+    (field $value i32))))
   (type $BoxedInt (sub final $#Top (struct
     (field $field0 i32)
     (field $value i64))))
