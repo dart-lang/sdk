@@ -4,6 +4,7 @@
 
 import 'dart:io';
 
+import 'package:front_end/src/api_prototype/lowering_predicates.dart';
 import 'package:kernel/ast.dart';
 import 'package:kernel/binary/ast_from_binary.dart';
 import 'package:kernel/binary/ast_to_binary.dart';
@@ -386,6 +387,11 @@ class ScopeTestingBinaryPrinter extends BinaryPrinter {
             // A wildcard variable doesn't really exist so we'll ignore it,
             // see https://github.com/dart-lang/sdk/issues/60841.
           } else {
+            // The scope calculator renames late lowered local names, so we have
+            // to expect the same here.
+            if (variable.isLowered && isLateLoweredLocalName(name)) {
+              name = extractLocalNameFromLateLoweredLocal(name);
+            }
             expectedVariablesMap[name] = variable.type;
           }
         }
