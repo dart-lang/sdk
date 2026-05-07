@@ -15,8 +15,11 @@ class Log {
 
   /// Creates a log by reading the content of the [file] and decoding it as a
   /// list of entries.
-  factory Log.fromFile(File file, Map<String, String> replacements) {
-    return Log.fromString(file.readAsStringSync(), replacements);
+  ///
+  /// [denormalizer] will be called on the content to reverse any normalization
+  /// that was applied to the log.
+  factory Log.fromFile(File file, String Function(String) denormalizer) {
+    return Log.fromString(file.readAsStringSync(), denormalizer);
   }
 
   /// Creates a log by decoding the [logContent] as a list of entries.
@@ -24,11 +27,14 @@ class Log {
   /// The [logContent] should be a newline separated list of encoded [LogEntry]
   /// objects matching typical stdio communication patterns.
   ///
-  /// Each entry in [replacements] is all occurences of the key replaced with
-  /// the value.
-  factory Log.fromString(String logContent, Map<String, String> replacements) {
-    for (var entry in replacements.entries) {
-      logContent = logContent.replaceAll(entry.key, entry.value);
+  /// [denormalizer] will be called on the content to reverse any normalization
+  /// that was applied to the log.
+  factory Log.fromString(
+    String logContent, [
+    String Function(String)? denormalizer,
+  ]) {
+    if (denormalizer != null) {
+      logContent = denormalizer(logContent);
     }
     var lines = const LineSplitter().convert(logContent);
     return Log._([

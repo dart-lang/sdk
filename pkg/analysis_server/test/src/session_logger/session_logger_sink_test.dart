@@ -26,7 +26,7 @@ class SessionLoggerFileSinkTest {
   void setUp() {
     provider = MemoryResourceProvider();
     pathContext = provider.pathContext;
-    normalizer = LogNormalizer(pathContext);
+    normalizer = LogNormalizer();
   }
 
   Future<void> test_normalized() async {
@@ -36,7 +36,7 @@ class SessionLoggerFileSinkTest {
 
     var logFile = provider.getFile(logPath);
     var fileSink = SessionLoggerFileSink(logFile, normalizer: normalizer);
-    normalizer.addPathReplacement(pathToNormalize, '{{normalized}}');
+    normalizer.addReplacementsForPath(pathToNormalize, 'normalized');
     fileSink.writeLogEntry({
       'kind': 'message',
       'message': {
@@ -69,7 +69,7 @@ class SessionLoggerInMemorySinkTest {
   void setUp() {
     provider = MemoryResourceProvider();
     pathContext = provider.pathContext;
-    normalizer = LogNormalizer(pathContext);
+    normalizer = LogNormalizer();
     sink = SessionLoggerInMemorySink(
       maxBufferLength: 10,
       normalizer: normalizer,
@@ -80,7 +80,7 @@ class SessionLoggerInMemorySinkTest {
     var convertPath = ResourceProviderExtension(provider).convertPath;
     var pathToNormalize = convertPath('/path/to/normalize');
 
-    normalizer.addPathReplacement(pathToNormalize, '{{normalized}}');
+    normalizer.addReplacementsForPath(pathToNormalize, 'normalized');
     sink.startCapture();
     sink.writeLogEntry({
       'kind': 'message',

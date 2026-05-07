@@ -347,9 +347,9 @@ class Driver implements ServerStarter {
         ? null
         : PhysicalResourceProvider.INSTANCE.getFile(sessionLogFilePath);
     _sessionLogger = SessionLogger(sessionLogFile: sessionLogFile);
-    _sessionLogger.normalizer.addPathReplacement(
+    _sessionLogger.normalizer.addReplacementsForPath(
       defaultSdkPath,
-      '{{dartSdkRoot}}',
+      'dartSdkRoot',
     );
     _sessionLogger.logCommandLine(arguments: arguments);
 

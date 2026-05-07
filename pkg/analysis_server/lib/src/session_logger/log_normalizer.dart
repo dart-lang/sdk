@@ -9,12 +9,9 @@ import 'package:analysis_server/lsp_protocol/protocol.dart'
 import 'package:analysis_server/src/session_logger/log_entry.dart';
 import 'package:collection/collection.dart';
 import 'package:language_server_protocol/json_parsing.dart';
-import 'package:path/path.dart' as path;
 
 /// A utility for normalizing paths in log entries.
 class LogNormalizer {
-  final path.Context pathContext;
-
   /// A map from the path-to-be-replaced to the replacement string.
   ///
   /// Paths are canonicalized to lowercase and the replacement regex is
@@ -22,11 +19,16 @@ class LogNormalizer {
   final Map<String, String> _replacements =
       CanonicalizedMap<String, String, String>((key) => key.toLowerCase());
 
+  /// A lazily built reverse map for [_replacements].
+  Map<String, String>? _denormalizedReplacements;
+
   /// A cached regex for all current replacements to allow them to occur in a
   /// single pass.
   RegExp? _replacementPattern;
 
-  LogNormalizer(this.pathContext);
+  /// A cached regex for all current denormalizations to allow them to occur in
+  /// a single pass.
+  RegExp? _denormalizationPattern;
 
   /// Extracts paths and URIs from an LSP initialize request and adds
   /// replacements for each.
@@ -39,22 +41,20 @@ class LogNormalizer {
 
     var initializeParams = InitializeParams.fromJson(params);
 
+    // Record rootPath and rootUri separately even though we handle both URIs
+    // and paths for each replacement, because we don't know for certain that
+    // the client provided us the same in each.
     if (initializeParams.rootPath case var rootPath?) {
-      addPathReplacement(rootPath, '{{rootPath}}');
+      addReplacementsForPath(rootPath, 'rootPath');
     }
-
     if (initializeParams.rootUri case var rootUri?) {
-      if (rootUri.isScheme('file')) {
-        addUriReplacement(rootUri, '{{rootUri}}');
-      }
+      addReplacementsForUri(rootUri, 'rootUri');
     }
 
     if (initializeParams.workspaceFolders case var workspaceFolders?) {
       for (var i = 0; i < workspaceFolders.length; i++) {
         var uri = workspaceFolders[i].uri;
-        if (uri.isScheme('file')) {
-          addUriReplacement(uri, '{{workspaceFolder-$i}}');
-        }
+        addReplacementsForUri(uri, 'workspaceFolder-$i');
       }
     }
   }
@@ -64,7 +64,11 @@ class LogNormalizer {
   /// Replacements assume the path (or URI) appear as quoted strings in the
   /// JSON (and therefore must be preceeded by a quote and followed by a
   /// path/uri separator or another quote).
-  void addPathReplacement(String inputPath, String replacement) {
+  ///
+  /// The replacement will be formatted as `{{$name}}` for URIs and
+  /// `{{$name:filePath}}` for file paths to allow for reversing this
+  /// replacement.
+  void addReplacementsForPath(String inputPath, String name) {
     if (inputPath.isEmpty) return;
 
     var uri = Uri.file(inputPath);
@@ -76,10 +80,20 @@ class LogNormalizer {
         .replace(path: uri.path.replaceAll(':', '%3A'))
         .toString();
 
-    void addWithQuotesAndTrailingSlash(String input, String separator) {
+    void addWithQuotesAndTrailingSlash(
+      String input,
+      List<String> separators,
+      String replacement,
+    ) {
       _replacements['"$input"'] = '"$replacement"';
-      _replacements['"$input$separator'] = '"$replacement$separator';
+      for (var separator in separators) {
+        _replacements['"$input$separator'] = '"$replacement$separator';
+      }
     }
+
+    // Compute replacement strings.
+    var pathReplacement = '{{$name:filePath}}';
+    var uriReplacement = '{{$name}}';
 
     // All replacements must be in the map because we need to look up the values
     // during replacement so if the regex matches variations, we need to be able
@@ -92,30 +106,69 @@ class LogNormalizer {
     //  from above into it).
 
     // Paths
-    var separator = pathContext.separator;
-    addWithQuotesAndTrailingSlash(inputPath, separator);
-    addWithQuotesAndTrailingSlash(_jsonEncode(inputPath), separator);
+    var pathSeparators = ['/', r'\'];
+    addWithQuotesAndTrailingSlash(
+      _jsonEncode(inputPath),
+      pathSeparators,
+      pathReplacement,
+    );
+    addWithQuotesAndTrailingSlash(inputPath, pathSeparators, pathReplacement);
 
     // URIs
-    separator = '/';
-    addWithQuotesAndTrailingSlash(uriString, separator);
-    addWithQuotesAndTrailingSlash(_jsonEncode(uriString), separator);
-    addWithQuotesAndTrailingSlash(uriStringWithEncodedColons, separator);
+    var uriSeparators = ['/'];
+    addWithQuotesAndTrailingSlash(
+      _jsonEncode(uriString),
+      uriSeparators,
+      uriReplacement,
+    );
+    addWithQuotesAndTrailingSlash(uriString, uriSeparators, uriReplacement);
     addWithQuotesAndTrailingSlash(
       _jsonEncode(uriStringWithEncodedColons),
-      separator,
+      uriSeparators,
+      uriReplacement,
+    );
+    addWithQuotesAndTrailingSlash(
+      uriStringWithEncodedColons,
+      uriSeparators,
+      uriReplacement,
     );
 
     // Reset the cached pattern so it's built on the next call to normalize.
     _replacementPattern = null;
+    _denormalizedReplacements = null;
+    _denormalizationPattern = null;
   }
 
-  /// Adds a replacement for the given [inputUri] in both path and URI form, but raw
-  /// and JSON encoded.
-  void addUriReplacement(Uri uri, String replacement) {
+  /// A convenience method for calling [addReplacementsForPath] when you have a
+  /// [Uri].
+  ///
+  /// Only if the URI is a 'file://' URI will it be recorded.
+  void addReplacementsForUri(Uri uri, String replacement) {
     if (uri.isScheme('file')) {
-      addPathReplacement(uri.toFilePath(), replacement);
+      addReplacementsForPath(uri.toFilePath(), replacement);
     }
+  }
+
+  /// Restores [normalizedContent] to full paths/URIs by performing the opposite
+  /// replacements.
+  ///
+  /// Where normalization collapsed multiple equivalent strings into one (for
+  /// example different casing or URI encoding), they will all be restored to
+  /// a single canonical version.
+  String denormalize(String normalizedContent) {
+    if (_replacements.isEmpty) return normalizedContent;
+
+    var denormalizedReplacements = _denormalizedReplacements ??=
+        _buildDenormalizedReplacements();
+
+    var denormalizationPattern = _denormalizationPattern ??= RegExp(
+      denormalizedReplacements.keys.map(RegExp.escape).join('|'),
+    );
+
+    return normalizedContent.replaceAllMapped(
+      denormalizationPattern,
+      (match) => denormalizedReplacements[match[0]]!,
+    );
   }
 
   /// Returns the given [json] string after replacing any known paths with
@@ -139,6 +192,16 @@ class LogNormalizer {
       replacementPattern,
       (match) => _replacements[match[0]]!,
     );
+  }
+
+  Map<String, String> _buildDenormalizedReplacements() {
+    var denormalizedReplacements = <String, String>{};
+    for (var MapEntry(:key, :value) in _replacements.entries) {
+      // Multiple original strings can normalize to the same placeholder.
+      // Use the first value as the canonical form.
+      denormalizedReplacements.putIfAbsent(value, () => key);
+    }
+    return denormalizedReplacements;
   }
 
   /// Returns a JSON-encoded version of [inputString] without the surrounding
