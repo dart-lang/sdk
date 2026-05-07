@@ -2103,10 +2103,7 @@ dart:core:
   int (referenced)
 dart:isolate:
   SendPort (referenced)
-package:_fe_analyzer_shared/src/base/diagnostic_message.dart:
-  DiagnosticMessage@2 (referenced)
 package:_fe_analyzer_shared/src/base/errors.dart:
-  Diagnostic (referenced)
   DiagnosticSeverity (referenced)
   DiagnosticType (referenced)
 package:_fe_analyzer_shared/src/base/source_range.dart:
@@ -2143,6 +2140,8 @@ package:analyzer/dart/element/type_provider.dart:
   TypeProvider (referenced)
 package:analyzer/dart/element/type_system.dart:
   TypeSystem (referenced)
+package:analyzer/diagnostic/diagnostic.dart:
+  Diagnostic (referenced)
 package:analyzer/file_system/file_system.dart:
   Folder (referenced)
   ResourceProvider (referenced)
@@ -2162,5 +2161,7 @@ package:analyzer/src/dart/ast/ast.dart:
   FunctionBody (referenced)
   NodeList (referenced)
   TypeAnnotation (referenced)
+package:analyzer/src/diagnostic/diagnostic.dart:
+  DiagnosticMessage@2 (referenced)
 package:pub_semver/src/version.dart:
   Version (referenced)

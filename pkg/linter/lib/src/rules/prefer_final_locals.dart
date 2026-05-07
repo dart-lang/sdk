@@ -8,10 +8,10 @@ import 'package:analyzer/analysis_rule/rule_visitor_registry.dart';
 import 'package:analyzer/dart/ast/ast.dart';
 import 'package:analyzer/dart/ast/visitor.dart';
 import 'package:analyzer/dart/element/element.dart';
-import 'package:analyzer/diagnostic/diagnostic.dart';
 import 'package:analyzer/error/error.dart';
 import 'package:analyzer/src/dart/element/extensions.dart'; // ignore: implementation_imports
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart'; // ignore: implementation_imports
+import 'package:analyzer/src/diagnostic/diagnostic.dart' // ignore: implementation_imports
+    show DiagnosticMessage, DiagnosticMessageImpl;
 
 import '../analyzer.dart';
 import '../diagnostic.dart' as diag;

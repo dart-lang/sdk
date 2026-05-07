@@ -10,7 +10,8 @@ import 'package:analyzer/source/source.dart';
 import 'package:analyzer/source/source_range.dart';
 import 'package:analyzer/src/dart/element/element.dart';
 import 'package:analyzer/src/dart/element/type.dart';
-import 'package:analyzer/src/diagnostic/diagnostic_message.dart';
+import 'package:analyzer/src/diagnostic/diagnostic.dart'
+    show DiagnosticMessageImpl;
 import 'package:analyzer/src/generated/utilities_dart.dart';
 import 'package:meta/meta_meta.dart';
 

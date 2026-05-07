@@ -2,7 +2,5 @@
 // for details. All rights reserved. Use of this source code is governed by a
 // BSD-style license that can be found in the LICENSE file.
 
-export 'package:_fe_analyzer_shared/src/base/errors.dart'
-    show LocatableDiagnosticImpl;
 export 'package:analyzer/src/dart/error/lint_codes.dart';
 export 'package:analyzer/src/dart/error/todo_codes.dart';
