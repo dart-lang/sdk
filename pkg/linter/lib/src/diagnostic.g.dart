@@ -3734,6 +3734,16 @@ const LinterLintWithoutArguments useNullAwareElements =
     );
 
 /// No parameters.
+const LinterLintWithoutArguments usePrimaryConstructors =
+    LinterLintWithoutArguments(
+      name: 'use_primary_constructors',
+      problemMessage: "Use a primary constructor.",
+      correctionMessage: "Try using a primary constructor.",
+      uniqueName: 'use_primary_constructors',
+      expectedTypes: [],
+    );
+
+/// No parameters.
 const LinterLintWithoutArguments useRawStrings = LinterLintWithoutArguments(
   name: 'use_raw_strings',
   problemMessage: "Use a raw string to avoid using escapes.",

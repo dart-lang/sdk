@@ -227,6 +227,7 @@ linter:
     - use_late_for_private_fields_and_variables
     - use_named_constants
     - use_null_aware_elements
+    - use_primary_constructors
     - use_raw_strings
     - use_rethrow_when_possible
     - use_setters_to_change_properties

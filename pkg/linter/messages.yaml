@@ -16917,6 +16917,17 @@ LinterLintCode:
       ```dart
       f(String? key) => {?key: "value"};
       ```
+  usePrimaryConstructors:
+    type: lint
+    parameters: none
+    problemMessage: "Use a primary constructor."
+    correctionMessage: "Try using a primary constructor."
+    state:
+      experimental: "3.13"
+    categories: [style]
+    hasPublishedDocs: false
+    deprecatedDetails: |-
+      Use a primary constructor everywhere it's valid to do so.
   useRawStrings:
     type: lint
     parameters: none
