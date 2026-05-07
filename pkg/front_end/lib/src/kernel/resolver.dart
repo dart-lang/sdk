@@ -1234,7 +1234,7 @@ class Resolver {
 
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [fileOffset] as the file offset.
-  VariableGet _createVariableGet({
+  Expression _createVariableGet({
     required AssignedVariables assignedVariables,
     required InternalVariable variable,
     required int fileOffset,
@@ -1242,8 +1242,10 @@ class Resolver {
     if (!variable.isLocalFunction && !variable.isWildcard) {
       assignedVariables.read(variable.astVariable);
     }
-    return new VariableGet(variable.asExpressionVariable)
-      ..fileOffset = fileOffset;
+    return intern.createVariableGet(
+      fileOffset,
+      variable as VariableDeclaration,
+    );
   }
 
   void _declareFormals({

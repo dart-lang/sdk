@@ -210,8 +210,9 @@ abstract class InternalExpression extends AuxiliaryExpression {
       unsupported("${runtimeType}.transformChildren", -1, null);
 
   @override
-  void transformOrRemoveChildren(RemovingTransformer v) =>
-      unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
+  void transformOrRemoveChildren(RemovingTransformer v) {
+    unsupported("${runtimeType}.transformOrRemoveChildren", -1, null);
+  }
 
   ExpressionInferenceResult acceptInference(
     InferenceVisitorImpl visitor,
@@ -1127,7 +1128,6 @@ class InternalLocalVariable extends TreeNode
   int fileEqualsOffset = TreeNode.noOffset;
 
   @override
-  // Coverage-ignore(suite): Not run.
   VariableDeclaration get variable => this;
 
   @override
@@ -6522,5 +6522,63 @@ class InternalForInStatement extends InternalStatement
   @override
   String toString() {
     return "$runtimeType(${toStringInternal()})";
+  }
+}
+
+class InternalVariableGet extends InternalExpression {
+  /// The target variable.
+  final InternalVariable variable;
+
+  InternalVariableGet(this.variable);
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalVariableGet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write(variable.cosmeticName ?? '<unnamed-variable>');
+  }
+
+  @override
+  String toString() {
+    return "InternalVariableGet(${toStringInternal()})";
+  }
+}
+
+class InternalVariableSet extends InternalExpression {
+  /// The target variable.
+  final InternalVariable variable;
+
+  Expression value;
+
+  InternalVariableSet(this.variable, this.value) {
+    value.parent = this;
+  }
+
+  @override
+  ExpressionInferenceResult acceptInference(
+    InferenceVisitorImpl visitor,
+    DartType typeContext,
+  ) {
+    return visitor.visitInternalVariableSet(this, typeContext);
+  }
+
+  @override
+  // Coverage-ignore(suite): Not run.
+  void toTextInternal(AstPrinter printer) {
+    printer.write(variable.cosmeticName ?? '<unnamed-variable>');
+    printer.write(' = ');
+    printer.writeExpression(value);
+  }
+
+  @override
+  String toString() {
+    return "InternalVariableSet(${toStringInternal()})";
   }
 }

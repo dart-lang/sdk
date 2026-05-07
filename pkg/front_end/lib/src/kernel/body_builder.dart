@@ -1130,8 +1130,7 @@ class BodyBuilderImpl extends StackListenerImpl
               initializers = createFieldInitializer(
                 formal.name,
                 formal.fileOffset,
-                new VariableGet(formal.variable)
-                  ..fileOffset = formal.fileOffset,
+                intern.createVariableGet(formal.fileOffset, formal.variable),
                 formal: formal,
               );
             }
@@ -2522,9 +2521,12 @@ class BodyBuilderImpl extends StackListenerImpl
   /// Helper method to create a [VariableGet] of the [variable] using
   /// [charOffset] as the file offset.
   @override
-  VariableGet createVariableGet(VariableDeclaration variable, int charOffset) {
+  InternalVariableGet createVariableGet(
+    VariableDeclaration variable,
+    int charOffset,
+  ) {
     registerVariableRead(variable);
-    return new VariableGet(variable)..fileOffset = charOffset;
+    return intern.createVariableGet(charOffset, variable);
   }
 
   /// Helper method to create a [ReadOnlyAccessGenerator] on the [variable]
@@ -3841,6 +3843,7 @@ class BodyBuilderImpl extends StackListenerImpl
       for (VariableDeclaration variable in pattern.declaredVariables) {
         variable.isFinal |= isFinal;
 
+        // TODO(johnniwinther): Can we avoid creating synthetic variables here?
         VariableDeclaration intermediateVariable = intern
             .createVariableDeclarationForValue(
               intern.createVariableGet(variable.fileOffset, variable),

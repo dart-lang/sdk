@@ -4256,13 +4256,11 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite(NullValues.Expression);
     if (!identical(element.otherwise, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       element.otherwise = (rewrite as Expression?)?..parent = element;
     }
 
     rewrite = popRewrite();
     if (!identical(element.then, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       element.then = (rewrite as Expression)..parent = element;
     }
 
@@ -4293,7 +4291,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(element.expression, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       element.expression = (rewrite as Expression)..parent = patternGuard;
     }
 
@@ -4359,7 +4356,16 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(declaredVariables.length == element.variableInitializations.length);
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
-      element.intermediateVariables[i].type = type;
+
+      VariableDeclaration intermediateVariable =
+          element.intermediateVariables[i];
+      intermediateVariable.initializer = inferExpression(
+        intermediateVariable.initializer!,
+        type,
+        isVoidAllowed: true,
+      ).expression..parent = intermediateVariable;
+      intermediateVariable.type = type;
+
       element.variableInitializations[i].type = type;
     }
 
@@ -7422,7 +7428,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     rewrite = popRewrite();
     if (!identical(entry.expression, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       entry.expression = (rewrite as Expression)..parent = patternGuard;
     }
 
@@ -7482,7 +7487,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
     assert(declaredVariables.length == entry.variables.length);
     for (int i = 0; i < declaredVariables.length; i++) {
       DartType type = declaredVariables[i].type;
-      entry.intermediateVariables[i].type = type;
+
+      VariableDeclaration intermediateVariable = entry.intermediateVariables[i];
+      intermediateVariable.initializer = inferExpression(
+        intermediateVariable.initializer!,
+        type,
+        isVoidAllowed: true,
+      ).expression..parent = intermediateVariable;
+      intermediateVariable.type = type;
+
       entry.variables[i].type = type;
     }
 
@@ -12955,7 +12968,6 @@ class InferenceVisitorImpl extends InferenceVisitorBase
 
     Object? rewrite = popRewrite();
     if (!identical(expression, rewrite)) {
-      // Coverage-ignore-block(suite): Not run.
       expression = rewrite as Expression;
       node.expression = expression..parent = node;
     }
@@ -13305,14 +13317,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitVariableSet(
     VariableSet node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalVariableSet(
+    InternalVariableSet node,
     DartType typeContext,
   ) {
     if (expressionEvaluationHelper != null) {
       // Coverage-ignore-block(suite): Not run.
       ExpressionInferenceResult? result = expressionEvaluationHelper
-          ?.visitVariableSet(
+          ?.visitInternalVariableSet(
             node,
             typeContext,
             problemReporting,
@@ -13323,7 +13343,7 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return result;
       }
     }
-    InternalVariable variable = node.variable as InternalVariable;
+    InternalVariable variable = node.variable;
     var (DartType variableType, DartType writeContext) =
         computeVariableSetTypeAndWriteContext(variable);
     ExpressionInferenceResult rhsResult = inferExpression(
@@ -13331,14 +13351,17 @@ class InferenceVisitorImpl extends InferenceVisitorBase
       writeContext,
       isVoidAllowed: true,
     );
-    return inferVariableSet(
+    ExpressionInferenceResult result = inferVariableSet(
       variable: variable,
       variableType: variableType,
       rhsResult: rhsResult,
       assignOffset: node.fileOffset,
       nameOffset: node.fileOffset,
-      node: node,
     );
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(node, result.expression);
+    return result;
   }
 
   @override
@@ -13389,14 +13412,22 @@ class InferenceVisitorImpl extends InferenceVisitorBase
   }
 
   @override
+  // Coverage-ignore(suite): Not run.
   ExpressionInferenceResult visitVariableGet(
     VariableGet node,
+    DartType typeContext,
+  ) {
+    _unhandledExpression(node, typeContext);
+  }
+
+  ExpressionInferenceResult visitInternalVariableGet(
+    InternalVariableGet node,
     DartType typeContext,
   ) {
     if (expressionEvaluationHelper != null) {
       // Coverage-ignore-block(suite): Not run.
       ExpressionInferenceResult? result = expressionEvaluationHelper
-          ?.visitVariableGet(
+          ?.visitInternalVariableGet(
             node,
             typeContext,
             problemReporting,
@@ -13407,12 +13438,15 @@ class InferenceVisitorImpl extends InferenceVisitorBase
         return result;
       }
     }
-    return inferVariableGet(
-      variable: node.variable as InternalVariable,
+    ExpressionInferenceResult result = inferVariableGet(
+      variable: node.variable,
       typeContext: typeContext,
       nameOffset: node.fileOffset,
-      node: node,
     );
+    libraryBuilder.loader.dataForTesting
+    // Coverage-ignore(suite): Not run.
+    ?.registerAlias(node, result.expression);
+    return result;
   }
 
   @override
@@ -17079,16 +17113,16 @@ class MapEntryInferenceContext extends CollectionElementInferenceContext {
 }
 
 abstract class ExpressionEvaluationHelper {
-  ExpressionInferenceResult? visitVariableGet(
-    VariableGet node,
+  ExpressionInferenceResult? visitInternalVariableGet(
+    InternalVariableGet node,
     DartType typeContext,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,
     Uri fileUri,
   );
 
-  ExpressionInferenceResult? visitVariableSet(
-    VariableSet node,
+  ExpressionInferenceResult? visitInternalVariableSet(
+    InternalVariableSet node,
     DartType typeContext,
     ProblemReporting problemReporting,
     CompilerContext compilerContext,

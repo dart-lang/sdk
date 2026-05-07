@@ -479,7 +479,7 @@ class VariableUseGenerator extends Generator {
   Expression _createWrite(int offset, Expression value) {
     _checkAssignment(offset);
     _helper.registerVariableAssignment(variable);
-    return new VariableSet(variable, value)..fileOffset = offset;
+    return intern.createVariableSet(offset, variable, value);
   }
 
   @override

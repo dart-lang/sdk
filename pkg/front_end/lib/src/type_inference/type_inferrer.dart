@@ -13,6 +13,7 @@ import '../base/extension_scope.dart';
 import '../kernel/assigned_variables_impl.dart';
 import '../kernel/benchmarker.dart' show BenchmarkSubdivides, Benchmarker;
 import '../kernel/internal_ast.dart';
+import '../kernel/internal_ast_helper.dart' as intern;
 import '../source/source_constructor_builder.dart';
 import '../source/source_library_builder.dart' show SourceLibraryBuilder;
 import '../source/stack_listener_impl.dart' show AsyncModifier;
@@ -341,14 +342,15 @@ class TypeInferrerImpl implements TypeInferrer {
       );
       Expression variableGet;
       if (isClosureContextLoweringEnabled) {
-        variableGet = new VariableGet(
+        variableGet = intern.createVariableGet(
+          parameter.fileOffset,
           new InternalPositionalParameter(
             astVariable: parameter as PositionalParameter,
             isImplicitlyTyped: false,
           ),
         )..fileOffset = parameter.fileOffset;
       } else {
-        variableGet = new VariableGet(parameter);
+        variableGet = intern.createVariableGet(parameter.fileOffset, parameter);
       }
       arguments.add(new PositionalArgument(variableGet));
       positionalCount++;
@@ -364,7 +366,8 @@ class TypeInferrerImpl implements TypeInferrer {
       if (isClosureContextLoweringEnabled) {
         namedExpression = new NamedExpression(
           parameter.name!,
-          new VariableGet(
+          intern.createVariableGet(
+            parameter.fileOffset,
             new InternalNamedParameter(
               astVariable: parameter as NamedParameter,
               isImplicitlyTyped: false,
@@ -374,7 +377,7 @@ class TypeInferrerImpl implements TypeInferrer {
       } else {
         namedExpression = new NamedExpression(
           parameter.name!,
-          new VariableGet(parameter),
+          intern.createVariableGet(parameter.fileOffset, parameter),
         );
       }
       arguments.add(new NamedArgument(namedExpression));

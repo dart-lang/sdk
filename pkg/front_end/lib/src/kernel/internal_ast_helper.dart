@@ -838,8 +838,21 @@ IndexSet createIndexSet(
   )..fileOffset = fileOffset;
 }
 
-VariableGet createVariableGet(int fileOffset, VariableDeclaration variable) {
-  return new VariableGet(variable)..fileOffset = fileOffset;
+InternalVariableGet createVariableGet(
+  int fileOffset,
+  VariableDeclaration variable,
+) {
+  return new InternalVariableGet(variable as InternalVariable)
+    ..fileOffset = fileOffset;
+}
+
+InternalVariableSet createVariableSet(
+  int fileOffset,
+  VariableDeclaration variable,
+  Expression value,
+) {
+  return new InternalVariableSet(variable as InternalVariable, value)
+    ..fileOffset = fileOffset;
 }
 
 EqualsExpression createEquals(

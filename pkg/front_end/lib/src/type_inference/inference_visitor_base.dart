@@ -4221,9 +4221,9 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required InternalVariable variable,
     required DartType typeContext,
     required int nameOffset,
-    VariableGet? node,
   }) {
-    node ??= new VariableGet(variable.astVariable)..fileOffset = nameOffset;
+    VariableGet result = new VariableGet(variable.astVariable)
+      ..fileOffset = nameOffset;
     DartType? promotedType;
     DartType declaredOrInferredType = variable.lateType ?? variable.type;
     ExpressionInfo? expressionInfo;
@@ -4240,27 +4240,27 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       );
       promotedType = wrappedPromotedType?.unwrapTypeView();
     }
-    flowAnalysis.storeExpressionInfo(node, expressionInfo);
-    node.promotedType = promotedType;
+    flowAnalysis.storeExpressionInfo(result, expressionInfo);
+    result.promotedType = promotedType;
     DartType resultType = promotedType ?? declaredOrInferredType;
     Expression resultExpression;
     if (variable.isLocalFunction) {
-      return instantiateTearOff(resultType, typeContext, node);
+      return instantiateTearOff(resultType, typeContext, result);
     } else if (variable.lateGetter != null) {
       resultExpression = new LocalFunctionInvocation(
         variable.lateGetter!,
-        new Arguments(<Expression>[])..fileOffset = node.fileOffset,
+        new Arguments(<Expression>[])..fileOffset = result.fileOffset,
         functionType: variable.lateGetter!.type as FunctionType,
-      )..fileOffset = node.fileOffset;
+      )..fileOffset = result.fileOffset;
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable get, so instruct flow analysis to forward the
       // expression information.
       flowAnalysis.storeExpressionInfo(
         resultExpression,
-        flowAnalysis.getExpressionInfo(node),
+        flowAnalysis.getExpressionInfo(result),
       );
     } else {
-      resultExpression = node..variable = variable.astVariable;
+      resultExpression = result..variable = variable.astVariable;
     }
 
     bool isUnassigned = !flowAnalysis.isAssigned(variable.astVariable);
@@ -4269,7 +4269,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           // Coverage-ignore(suite): Not run.
           ?.flowAnalysisResult // Coverage-ignore(suite): Not run.
           .potentiallyUnassignedNodes // Coverage-ignore(suite): Not run.
-          .add(node);
+          .add(result);
     }
     bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
       variable.astVariable,
@@ -4279,7 +4279,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
           // Coverage-ignore(suite): Not run.
           ?.flowAnalysisResult // Coverage-ignore(suite): Not run.
           .definitelyUnassignedNodes // Coverage-ignore(suite): Not run.
-          .add(node);
+          .add(result);
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
@@ -4298,7 +4298,7 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 variableName: name,
               ),
               fileUri: fileUri,
-              fileOffset: node.fileOffset,
+              fileOffset: result.fileOffset,
               length: name.length,
             ),
           );
@@ -4312,11 +4312,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 compilerContext: compilerContext,
                 expression: resultExpression,
                 message: diag.finalNotAssignedError.withArguments(
-                  variableName: node.variable.cosmeticName!,
+                  variableName: result.variable.cosmeticName!,
                 ),
                 fileUri: fileUri,
-                fileOffset: node.fileOffset,
-                length: node.variable.cosmeticName!.length,
+                fileOffset: result.fileOffset,
+                length: result.variable.cosmeticName!.length,
               ),
             );
           } else if (declaredOrInferredType.isPotentiallyNonNullable) {
@@ -4326,11 +4326,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
                 compilerContext: compilerContext,
                 expression: resultExpression,
                 message: diag.nonNullableNotAssignedError.withArguments(
-                  variableName: node.variable.cosmeticName!,
+                  variableName: result.variable.cosmeticName!,
                 ),
                 fileUri: fileUri,
-                fileOffset: node.fileOffset,
-                length: node.variable.cosmeticName!.length,
+                fileOffset: result.fileOffset,
+                length: result.variable.cosmeticName!.length,
               ),
             );
           }
@@ -4363,7 +4363,6 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     required ExpressionInferenceResult rhsResult,
     required int assignOffset,
     required int nameOffset,
-    VariableSet? node,
   }) {
     bool isDefinitelyAssigned = flowAnalysis.isAssigned(variable.astVariable);
     bool isDefinitelyUnassigned = flowAnalysis.isUnassigned(
@@ -4376,12 +4375,12 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
       isVoidAllowed: variableType is VoidType,
     );
     Expression rhs = rhsResult.expression;
-    node ??= new VariableSet(variable.astVariable, rhs)
+    VariableSet result = new VariableSet(variable.astVariable, rhs)
       ..fileOffset = nameOffset;
     flowAnalysis.storeExpressionInfo(
-      node,
+      result,
       flowAnalysis.write(
-        node,
+        result,
         variable.astVariable,
         new SharedTypeView(rhsResult.inferredType),
         flowAnalysis.getExpressionInfo(rhsResult.expression),
@@ -4392,19 +4391,19 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
     if (variable.lateSetter != null) {
       resultExpression = new LocalFunctionInvocation(
         variable.lateSetter!,
-        new Arguments(<Expression>[rhs])..fileOffset = node.fileOffset,
+        new Arguments(<Expression>[rhs])..fileOffset = result.fileOffset,
         functionType: variable.lateSetter!.type as FunctionType,
-      )..fileOffset = node.fileOffset;
+      )..fileOffset = result.fileOffset;
       // Future calls to flow analysis will be using `resultExpression` to refer
       // to the variable set, so instruct flow analysis to forward the
       // expression information.
       flowAnalysis.storeExpressionInfo(
         resultExpression,
-        flowAnalysis.getExpressionInfo(node),
+        flowAnalysis.getExpressionInfo(result),
       );
     } else {
-      node.value = rhs..parent = node;
-      resultExpression = node..variable = variable.astVariable;
+      result.value = rhs..parent = result;
+      resultExpression = result..variable = variable.astVariable;
     }
     // Synthetic variables, local functions, and variables with
     // invalid types aren't checked.
@@ -4420,11 +4419,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               compilerContext: compilerContext,
               expression: resultExpression,
               message: diag.lateDefinitelyAssignedError.withArguments(
-                variableName: node.variable.cosmeticName!,
+                variableName: result.variable.cosmeticName!,
               ),
               fileUri: fileUri,
-              fileOffset: node.fileOffset,
-              length: node.variable.cosmeticName!.length,
+              fileOffset: result.fileOffset,
+              length: result.variable.cosmeticName!.length,
             ),
           );
         }
@@ -4436,11 +4435,11 @@ abstract class InferenceVisitorBase implements InferenceVisitor {
               compilerContext: compilerContext,
               expression: resultExpression,
               message: diag.finalPossiblyAssignedError.withArguments(
-                variableName: node.variable.cosmeticName!,
+                variableName: result.variable.cosmeticName!,
               ),
               fileUri: fileUri,
-              fileOffset: node.fileOffset,
-              length: node.variable.cosmeticName!.length,
+              fileOffset: result.fileOffset,
+              length: result.variable.cosmeticName!.length,
             ),
           );
         }
