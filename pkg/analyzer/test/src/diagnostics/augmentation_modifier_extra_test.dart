@@ -9,149 +9,148 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(AugmentationModifierExtraTest);
+    defineReflectiveTests(AugmentationModifierExtraTest);
   });
 }
 
 @reflectiveTest
 class AugmentationModifierExtraTest extends PubPackageResolutionTest {
-  test_class_abstract() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_abstract_abstractBase() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment abstract class A {}
+abstract class A {}
+augment abstract base class A {}
 ''',
-      [error(diag.augmentationModifierExtra, 27, 8)],
+      [error(diag.augmentationModifierExtra, 37, 4)],
     );
   }
 
-  test_class_abstract_base() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
+  test_class_abstractBase_abstractBase() async {
+    await assertNoErrorsInCode(r'''
+abstract base class A {}
+augment abstract base class A {}
 ''');
+  }
 
+  test_class_base_abstractBase() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
+base class A {}
+augment abstract base class A {}
+''',
+      [error(diag.augmentationModifierExtra, 24, 8)],
+    );
+  }
 
+  test_class_nothing_abstract() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
+augment abstract class A {}
+''',
+      [error(diag.augmentationModifierExtra, 19, 8)],
+    );
+  }
+
+  test_class_nothing_abstractBase() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
 augment abstract base class A {}
 ''',
       [
-        error(diag.augmentationModifierExtra, 27, 8),
-        error(diag.augmentationModifierExtra, 36, 4),
+        error(diag.augmentationModifierExtra, 19, 8),
+        error(diag.augmentationModifierExtra, 28, 4),
       ],
     );
   }
 
-  test_class_base() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_nothing_base() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+class A {}
 augment base class A {}
 ''',
-      [error(diag.augmentationModifierExtra, 27, 4)],
+      [error(diag.augmentationModifierExtra, 19, 4)],
     );
   }
 
-  test_class_final() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_nothing_final() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+class A {}
 augment final class A {}
 ''',
-      [error(diag.augmentationModifierExtra, 27, 5)],
+      [error(diag.augmentationModifierExtra, 19, 5)],
     );
   }
 
-  test_class_interface() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_nothing_interface() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+class A {}
 augment interface class A {}
 ''',
-      [error(diag.augmentationModifierExtra, 27, 9)],
+      [error(diag.augmentationModifierExtra, 19, 9)],
     );
   }
 
-  test_class_mixin() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_nothing_mixin() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+class A {}
 augment mixin class A {}
 ''',
-      [error(diag.augmentationModifierExtra, 27, 5)],
+      [error(diag.augmentationModifierExtra, 19, 5)],
     );
   }
 
-  test_class_sealed() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A {}
-''');
-
+  test_class_nothing_nothing_abstract() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
+class A {}
+augment class A {}
+augment abstract class A {}
+''',
+      [error(diag.augmentationModifierExtra, 38, 8)],
+    );
+  }
 
+  test_class_nothing_sealed() async {
+    await assertErrorsInCode(
+      r'''
+class A {}
 augment sealed class A {}
 ''',
-      [error(diag.augmentationModifierExtra, 27, 6)],
+      [error(diag.augmentationModifierExtra, 19, 6)],
     );
   }
 
-  test_mixin_base() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-mixin A {}
+  test_mixin_base_base() async {
+    await assertNoErrorsInCode(r'''
+base mixin A {}
+augment base mixin A {}
 ''');
+  }
 
+  test_mixin_nothing_base() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+mixin A {}
 augment base mixin A {}
 ''',
-      [error(diag.augmentationModifierExtra, 27, 4)],
+      [error(diag.augmentationModifierExtra, 19, 4)],
+    );
+  }
+
+  test_mixin_nothing_nothing_base() async {
+    await assertErrorsInCode(
+      r'''
+mixin A {}
+augment mixin A {}
+augment base mixin A {}
+''',
+      [error(diag.augmentationModifierExtra, 38, 4)],
     );
   }
 }

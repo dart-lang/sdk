@@ -2926,14 +2926,14 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isAbstract isSealed class A (nameOffset:13) (firstTokenOffset:0) (offset:13)
+        #F1 isSealed class A (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::A
           nextFragment: #F2
           constructors
             #F3 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F2 isAbstract isAugmentation isSealed class A (nameOffset:40) (firstTokenOffset:19) (offset:40)
+        #F2 isAugmentation isSealed class A (nameOffset:40) (firstTokenOffset:19) (offset:40)
           element: <testLibrary>::@class::A
           previousFragment: #F1
   classes
@@ -3070,7 +3070,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isAbstract isSealed class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
+        #F1 isSealed class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::C
           constructors
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)
@@ -3106,7 +3106,7 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause isAbstract isSealed class B (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F3 hasExtendsClause isSealed class B (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@class::B
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -3151,7 +3151,7 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:11)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 isAbstract isSealed class B (nameOffset:30) (firstTokenOffset:17) (offset:30)
+        #F3 isSealed class B (nameOffset:30) (firstTokenOffset:17) (offset:30)
           element: <testLibrary>::@class::B
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:30)
@@ -3196,7 +3196,7 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 isAbstract isSealed class B (nameOffset:31) (firstTokenOffset:18) (offset:31)
+        #F3 isSealed class B (nameOffset:31) (firstTokenOffset:18) (offset:31)
           element: <testLibrary>::@class::B
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
@@ -3241,7 +3241,7 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:12)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause isAbstract isSealed class B (nameOffset:31) (firstTokenOffset:18) (offset:31)
+        #F3 hasExtendsClause isSealed class B (nameOffset:31) (firstTokenOffset:18) (offset:31)
           element: <testLibrary>::@class::B
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:31)
@@ -3288,7 +3288,7 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:33)
               element: <testLibrary>::@class::B::@constructor::new
               typeName: B
-        #F3 hasExtendsClause isAbstract isSealed class C (nameOffset:52) (firstTokenOffset:39) (offset:52)
+        #F3 hasExtendsClause isSealed class C (nameOffset:52) (firstTokenOffset:39) (offset:52)
           element: <testLibrary>::@class::C
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:52)
@@ -3344,7 +3344,7 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 hasExtendsClause isAbstract isSealed class B (nameOffset:35) (firstTokenOffset:22) (offset:35)
+        #F3 hasExtendsClause isSealed class B (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@class::B
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
@@ -3389,7 +3389,7 @@ library
             #F2 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:16)
               element: <testLibrary>::@class::A::@constructor::new
               typeName: A
-        #F3 isAbstract isSealed class B (nameOffset:35) (firstTokenOffset:22) (offset:35)
+        #F3 isSealed class B (nameOffset:35) (firstTokenOffset:22) (offset:35)
           element: <testLibrary>::@class::B
           constructors
             #F4 isOriginImplicitDefault new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:35)
@@ -8242,7 +8242,7 @@ library
     #F0 <testLibraryFragment>
       element: <testLibrary>
       classes
-        #F1 isAbstract isMixinApplication isSealed class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
+        #F1 isMixinApplication isSealed class C (nameOffset:13) (firstTokenOffset:0) (offset:13)
           element: <testLibrary>::@class::C
           constructors
             #F2 isConst isOriginMixinApplication new (nameOffset:<null>) (firstTokenOffset:<null>) (offset:13)

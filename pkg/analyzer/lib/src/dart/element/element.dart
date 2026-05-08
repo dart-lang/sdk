@@ -145,6 +145,7 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
     reference.element = this;
     _firstFragment.element = this;
 
+    isAbstract = _firstFragment.isAbstract || _firstFragment.isSealed;
     isBase = _firstFragment.isBase;
     isFinal = _firstFragment.isFinal;
     isInterface = _firstFragment.isInterface;
@@ -315,7 +316,12 @@ class ClassElementImpl extends InterfaceElementImpl implements ClassElement {
   @override
   @trackedIncludedInId
   bool get isAbstract {
-    return _firstFragment.isAbstract;
+    return hasFlag(_ElementStorageFlag.classElement_isAbstract);
+  }
+
+  @generated
+  set isAbstract(bool value) {
+    setFlag(_ElementStorageFlag.classElement_isAbstract, value);
   }
 
   @generated
@@ -11818,7 +11824,7 @@ abstract class VariableFragmentImpl extends FragmentImpl
 
 enum _ClassElementFlags {
   hasExtendsClause(fragment: true),
-  isAbstract(fragment: true, element: _ElementFlagSource.firstFragment),
+  isAbstract(fragment: true, element: _ElementFlagSource.stored),
   isBase(fragment: true, element: _ElementFlagSource.stored),
   isFinal(fragment: true, element: _ElementFlagSource.stored),
   isInterface(fragment: true, element: _ElementFlagSource.stored),
@@ -11876,6 +11882,7 @@ enum _ElementFlagSource { none, firstFragment, stored, computed }
 
 @generated
 enum _ElementStorageFlag {
+  classElement_isAbstract,
   classElement_isBase,
   classElement_isFinal,
   classElement_isInterface,

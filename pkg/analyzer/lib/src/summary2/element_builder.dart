@@ -1245,10 +1245,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isFinal = node.finalKeyword != null;
     fragment.isInterface = node.interfaceKeyword != null;
     fragment.isMixinClass = node.mixinKeyword != null;
-    if (node.sealedKeyword != null) {
-      fragment.isAbstract = true;
-      fragment.isSealed = true;
-    }
+    fragment.isSealed = node.sealedKeyword != null;
     fragment.hasExtendsClause = node.extendsClause != null;
     fragment.metadata = _buildMetadata(node.metadata);
 
@@ -1281,10 +1278,7 @@ class FragmentBuilder extends ThrowingAstVisitor<void> {
     fragment.isInterface = node.interfaceKeyword != null;
     fragment.isMixinApplication = true;
     fragment.isMixinClass = node.mixinKeyword != null;
-    if (node.sealedKeyword != null) {
-      fragment.isAbstract = true;
-      fragment.isSealed = true;
-    }
+    fragment.isSealed = node.sealedKeyword != null;
     fragment.metadata = _buildMetadata(node.metadata);
 
     node.declaredFragment = fragment;

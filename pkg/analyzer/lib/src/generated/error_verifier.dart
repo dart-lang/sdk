@@ -524,6 +524,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         typeParameterList: node.namePart.typeParameters,
       );
       _checkForAugmentationExtendsClauseAlreadyPresent(node, declaredFragment);
+      _checkForClassAugmentationModifierMismatch(node, declaredFragment);
 
       List<ClassMember> members = node.body.members;
       if (!declarationFragment.element.isDartCoreFunction) {
@@ -1483,6 +1484,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         nameOrKeywordToken: node.name,
         typeParameterList: node.typeParameters,
       );
+      _checkForMixinAugmentationModifierMismatch(node, declaredFragment);
 
       _enclosingClass = declaredElement;
 
@@ -2748,6 +2750,83 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         );
       }
     }
+  }
+
+  void _checkForClassAugmentationModifierMismatch(
+    ClassDeclarationImpl node,
+    ClassFragmentImpl declaredFragment,
+  ) {
+    var augmentKeyword = node.augmentKeyword;
+    if (augmentKeyword == null) {
+      return;
+    }
+
+    var firstFragment = declaredFragment.element.firstFragment;
+    if (identical(declaredFragment, firstFragment)) {
+      return;
+    }
+
+    void checkModifier({
+      required bool inAugmentation,
+      required bool inIntroductory,
+      required Token? modifierToken,
+      required String modifierName,
+    }) {
+      if (inAugmentation != inIntroductory) {
+        if (inAugmentation) {
+          if (modifierToken != null) {
+            diagnosticReporter.report(
+              diag.augmentationModifierExtra
+                  .withArguments(modifier: modifierName)
+                  .at(modifierToken),
+            );
+          }
+        } else {
+          diagnosticReporter.report(
+            diag.augmentationModifierMissing
+                .withArguments(modifier: modifierName)
+                .at(augmentKeyword),
+          );
+        }
+      }
+    }
+
+    checkModifier(
+      inAugmentation: declaredFragment.isAbstract,
+      inIntroductory: firstFragment.isAbstract,
+      modifierToken: node.abstractKeyword,
+      modifierName: 'abstract',
+    );
+    checkModifier(
+      inAugmentation: declaredFragment.isBase,
+      inIntroductory: firstFragment.isBase,
+      modifierToken: node.baseKeyword,
+      modifierName: 'base',
+    );
+    checkModifier(
+      inAugmentation: declaredFragment.isFinal,
+      inIntroductory: firstFragment.isFinal,
+      modifierToken: node.finalKeyword,
+      modifierName: 'final',
+    );
+    checkModifier(
+      inAugmentation: declaredFragment.isInterface,
+      inIntroductory: firstFragment.isInterface,
+      modifierToken: node.interfaceKeyword,
+      modifierName: 'interface',
+    );
+    checkModifier(
+      inAugmentation: declaredFragment.isSealed,
+      inIntroductory: firstFragment.isSealed,
+      modifierToken: node.sealedKeyword,
+      modifierName: 'sealed',
+    );
+    checkModifier(
+      inAugmentation: declaredFragment.isMixinClass,
+      inIntroductory: firstFragment.isMixinClass,
+      modifierToken: node.mixinKeyword,
+      modifierName: 'mixin',
+    );
   }
 
   /// Verify that the given class used as a mixin does not declare a generative
@@ -4936,6 +5015,39 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
                 .atOffset(offset: offset, length: end - offset),
           );
         }
+      }
+    }
+  }
+
+  void _checkForMixinAugmentationModifierMismatch(
+    MixinDeclarationImpl node,
+    MixinFragmentImpl declaredFragment,
+  ) {
+    var augmentKeyword = node.augmentKeyword;
+    if (augmentKeyword == null) {
+      return;
+    }
+
+    var firstFragment = declaredFragment.element.firstFragment;
+    if (identical(declaredFragment, firstFragment)) {
+      return;
+    }
+
+    if (declaredFragment.isBase != firstFragment.isBase) {
+      if (declaredFragment.isBase) {
+        if (node.baseKeyword case var baseKeyword?) {
+          diagnosticReporter.report(
+            diag.augmentationModifierExtra
+                .withArguments(modifier: 'base')
+                .at(baseKeyword),
+          );
+        }
+      } else {
+        diagnosticReporter.report(
+          diag.augmentationModifierMissing
+              .withArguments(modifier: 'base')
+              .at(augmentKeyword),
+        );
       }
     }
   }
