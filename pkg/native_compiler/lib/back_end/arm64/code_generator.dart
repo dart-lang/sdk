@@ -1704,9 +1704,21 @@ final class Arm64CodeGenerator extends CodeGenerator {
 
   @override
   void visitUnaryIntOp(UnaryIntOp instr) {
-    _asm.unimplemented(
-      'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
-    );
+    final operandReg = inputReg(instr, 0);
+    switch (instr.op) {
+      case .neg:
+        _asm.neg(outputReg(instr), operandReg);
+        break;
+      case .bitNot:
+        _asm.mvn(outputReg(instr), operandReg);
+        break;
+      case .toDouble:
+        _asm.scvtf(outputFPReg(instr), operandReg);
+      default:
+        _asm.unimplemented(
+          'Unimplemented: code generation for UnaryIntOp ${instr.op.token}',
+        );
+    }
   }
 
   @override

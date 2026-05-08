@@ -942,6 +942,14 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
     adds(ZR, rn, o, sz);
   }
 
+  void neg(Register rd, Operand o, [OperandSize sz = OperandSize.s64]) {
+    sub(rd, ZR, o, sz);
+  }
+
+  void negs(Register rd, Operand o, [OperandSize sz = OperandSize.s64]) {
+    subs(rd, ZR, o, sz);
+  }
+
   void _emitAddSub(
     Register rd,
     Register rn,
@@ -1870,6 +1878,28 @@ final class Arm64Assembler extends Assembler with Uint32OutputBuffer {
           rn.encodingRn(),
     );
   }
+
+  void scvtf(
+    FPRegister rd,
+    Register rn, [
+    OperandSize srcSize = OperandSize.s64,
+    OperandSize dstSize = OperandSize.s64,
+  ]) {
+    assert(srcSize.is32or64);
+    assert(dstSize.is16or32or64);
+    emit(
+      B17 |
+          B21 |
+          B25 |
+          B26 |
+          B27 |
+          B28 |
+          rd.encodingRd |
+          rn.encodingRn() |
+          (dstSize.is64 ? B22 : (dstSize.is32 ? 0 : (B22 | B23))) |
+          (srcSize.is64 ? B31 : 0),
+    );
+  }
 }
 
 bool _isUint(int numBits, int value) => (value >>> numBits) == 0;
@@ -1898,6 +1928,7 @@ extension on Register {
 }
 
 extension on FPRegister {
+  int get encodingRd => index;
   int get encodingRt => index;
 }
 

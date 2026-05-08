@@ -1622,5 +1622,28 @@ void main() {
         'ret r1\n',
       );
     });
+
+    test('scvtf', () {
+      asm.scvtf(V0, R0);
+      asm.scvtf(V1, R2, .s32);
+      asm.scvtf(V3, ZR);
+      expectDisassembly(
+        'scvtfd v0, r0\n'
+        'scvtfdw v1, r2\n'
+        'scvtfd v3, zr\n',
+      );
+      expectThrows(() {
+        asm.scvtf(V0, R0, .s16);
+      });
+      expectThrows(() {
+        asm.scvtf(V0, R0, .s64, .s8);
+      });
+      expectThrows(() {
+        asm.scvtf(V0, R0, .s64, .simd128);
+      });
+      expectThrows(() {
+        asm.scvtf(V0, SP);
+      });
+    });
   });
 }
