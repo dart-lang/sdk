@@ -44,6 +44,7 @@ import 'wasm_annotations.dart';
 
 /// Options controlling the translation.
 class TranslatorOptions {
+  bool? enableUniqueTypes;
   bool enableAsserts = false;
   bool importSharedMemory = false;
   bool uniqueConstantNames = true;
@@ -79,6 +80,7 @@ class TranslatorOptions {
       omitImplicitTypeChecksOverride ?? optimizationLevel >= 3;
   bool get omitBoundsChecks =>
       omitBoundsChecksOverride ?? optimizationLevel >= 4;
+  bool get uniqueTypes => enableUniqueTypes ?? optimizationLevel >= 2;
 }
 
 /// The main entry point for the translation from kernel to Wasm and the hub for
@@ -2506,7 +2508,10 @@ class Translator with KernelNodes {
     instantiateHeapType,
   ) {
     if (type == w.HeapType.struct) {
-      final structType = typesBuilder.defineStruct(name);
+      final structType = typesBuilder.defineStruct(
+        name,
+        brand: options.uniqueTypes,
+      );
       b.struct_new(structType);
       return;
     } else if (type is w.DefType) {

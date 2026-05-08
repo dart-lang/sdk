@@ -275,6 +275,7 @@ class ClosureLayouter extends RecursiveVisitor {
         mutable: false,
       ),
     },
+    brand: true,
   );
 
   /// Base struct for non-generic closure vtables.
@@ -437,10 +438,12 @@ class ClosureLayouter extends RecursiveVisitor {
     String name, {
     Map<String, w.FieldType>? namedFields,
     w.StructType? superType,
+    bool? brand,
   }) {
     final type = translator.typesBuilder.defineStruct(
       name,
       superType: superType,
+      brand: brand ?? translator.options.uniqueTypes,
     );
     if (superType != null) {
       type.fields.addAll(superType.fields);
@@ -636,6 +639,7 @@ class ClosureLayouter extends RecursiveVisitor {
           ...List.filled(typeCount, w.FieldType(typeType, mutable: false)),
         ],
         superType: _getInstantiationContextBaseStruct(typeCount),
+        brand: translator.options.uniqueTypes,
       );
     }
 
@@ -1518,15 +1522,18 @@ class Closures {
       if (owner is Constructor) {
         context.struct = translator.typesBuilder.defineStruct(
           "<$owner-constructor-context>",
+          brand: translator.options.uniqueTypes,
         );
       } else if (owner.parent is Constructor) {
         Constructor constructor = owner.parent as Constructor;
         context.struct = translator.typesBuilder.defineStruct(
           "<$constructor-constructor-body-context>",
+          brand: translator.options.uniqueTypes,
         );
       } else {
         context.struct = translator.typesBuilder.defineStruct(
           "<context ${owner.location}>",
+          brand: translator.options.uniqueTypes,
         );
       }
     }

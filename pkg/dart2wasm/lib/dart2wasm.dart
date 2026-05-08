@@ -29,6 +29,10 @@ final List<Option> options = [
     defaultsTo: _d.translatorOptions.importSharedMemory,
   ),
   Flag("inlining", (o, value) => o.translatorOptions.inliningOverride = value),
+  Flag(
+    "unique-types",
+    (o, value) => o.translatorOptions.enableUniqueTypes = value,
+  ),
   Flag("minify", (o, value) => o.translatorOptions.minifyOverride = value),
   Flag("dry-run", (o, value) => o.dryRun = value, defaultsTo: _d.dryRun),
   StringMultiOption(
