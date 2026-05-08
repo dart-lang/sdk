@@ -19,7 +19,7 @@ main() {
 
 abstract class TypesElementTest extends ElementsBaseTest {
   test_closure_executable_with_return_type_from_closure() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 f() {
   print(() {});
   print(() => () => 0);
@@ -81,7 +81,9 @@ library
   }
 
   test_futureOr() async {
-    var library = await buildLibrary('import "dart:async"; FutureOr<int> x;');
+    var library = await buildLibrary(r'''
+import "dart:async"; FutureOr<int> x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -132,9 +134,9 @@ library
   }
 
   test_futureOr_const() async {
-    var library = await buildLibrary(
-      'import "dart:async"; const x = FutureOr;',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async"; const x = FutureOr;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -180,7 +182,7 @@ library
   }
 
   test_futureOr_inferred() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "dart:async";
 FutureOr<int> f() => null;
 var x = f();
@@ -278,7 +280,7 @@ library
   }
 
   test_generic_gClass_gMethodStatic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T, U> {
   static void m<V, W>(V v, W w) {
     void f<X, Y>(V v, W w, X x, Y y) {
@@ -452,7 +454,9 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure() async {
-    var library = await buildLibrary('var v = () => 0;');
+    var library = await buildLibrary(r'''
+var v = () => 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -498,7 +502,9 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_await_dynamic() async {
-    var library = await buildLibrary('var v = (f) async => await f;');
+    var library = await buildLibrary(r'''
+var v = (f) async => await f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -698,7 +704,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   var v = () => 0;
 }
@@ -763,7 +769,7 @@ library
   }
 
   test_initializer_executable_with_return_type_from_closure_local() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f() {
   int u = 0;
   var v = () => 0;
@@ -914,7 +920,7 @@ library
   }
 
   test_instantiateToBounds_boundRefersToEarlierTypeArgument() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<S extends num, T extends C<S, T>> {}
 C c;
 ''');
@@ -990,7 +996,7 @@ library
   }
 
   test_instantiateToBounds_boundRefersToItself() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends C<T>> {}
 C c;
 var c2 = new C();
@@ -1142,7 +1148,7 @@ library
   }
 
   test_instantiateToBounds_boundRefersToLaterTypeArgument() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends C<T, U>, U extends num> {}
 C c;
 ''');
@@ -1225,7 +1231,7 @@ typedef T F<T extends O>(T p);
     newFile('$testPackageLibPath/b.dart', r'''
 export 'a.dart' show F;
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'b.dart';
 class C {
   F f() => null;
@@ -1269,7 +1275,7 @@ library
   }
 
   test_instantiateToBounds_functionTypeAlias_simple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T extends num>(T p);
 F f;
 ''');
@@ -1342,7 +1348,7 @@ library
   }
 
   test_instantiateToBounds_genericFunctionAsBound() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {}
 class B<T extends int Function(), U extends A<T>> {}
 B b;
@@ -1438,7 +1444,7 @@ library
   }
 
   test_instantiateToBounds_genericTypeAlias_simple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T extends num> = S Function<S>(T p);
 F f;
 ''');
@@ -1511,7 +1517,7 @@ library
   }
 
   test_instantiateToBounds_issue38498() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<R extends B> {
   final values = <B>[];
 }
@@ -1587,7 +1593,7 @@ library
   }
 
   test_instantiateToBounds_simple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends num> {}
 C c;
 ''');
@@ -1658,7 +1664,7 @@ library
   }
 
   test_invalid_importPrefix_asTypeArgument() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'dart:async' as ppp;
 class C {
   List<ppp> v;
@@ -1733,7 +1739,7 @@ library
 
     newFile('$testPackageLibPath/a.dart', 'V() {}');
     newFile('$testPackageLibPath/b.dart', 'V() {}');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 import 'b.dart';
 foo([p = V]) {}
@@ -1782,7 +1788,7 @@ library
 export 'a.dart';
 export 'b.dart';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'c.dart';
 foo([p = V]) {}
 ''');
@@ -1821,7 +1827,7 @@ library
   }
 
   test_invalid_nameConflict_local() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 foo([p = V]) {}
 V() {}
 var V;
@@ -1905,7 +1911,7 @@ library
 export 'a.dart';
 class C {}
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'c.dart';
 C v = null;
 ''');
@@ -1962,7 +1968,7 @@ export 'a.dart';
 class C {}
 ''');
     newFile('$testPackageLibPath/d.dart', 'export "c.dart";');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'd.dart';
 C v = null;
 ''');
@@ -2023,7 +2029,7 @@ library lib;
 export 'a.dart';
 part 'b.dart';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'c.dart';
 C v = null;
 ''');
@@ -2074,7 +2080,7 @@ library
   }
 
   test_nested_generic_functions_in_generic_class_with_function_typed_params() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T, U> {
   void g<V, W>() {
     void h<X, Y>(void p(T t, U u, V v, W w, X x, Y y)) {
@@ -2135,7 +2141,7 @@ library
   }
 
   test_nested_generic_functions_in_generic_class_with_local_variables() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T, U> {
   void g<V, W>() {
     void h<X, Y>() {
@@ -2202,7 +2208,7 @@ library
   }
 
   test_nested_generic_functions_with_function_typed_param() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T, U>() {
   void g<V, W>() {
     void h<X, Y>(void p(T t, U u, V v, W w, X x, Y y)) {
@@ -2238,7 +2244,7 @@ library
   }
 
   test_nested_generic_functions_with_local_variables() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T, U>() {
   void g<V, W>() {
     void h<X, Y>() {
@@ -2280,7 +2286,7 @@ library
   }
 
   test_propagated_type_refers_to_closure() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f() {
   var x = () => 0;
   var y = x;
@@ -2304,7 +2310,7 @@ library
   }
 
   test_syntheticFunctionType_genericClosure() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final v = f() ? <T>(T t) => 0 : <T>(T t) => 1;
 bool f() => true;
 ''');
@@ -2344,7 +2350,7 @@ library
   }
 
   test_syntheticFunctionType_genericClosure_inGenericFunction() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T, U>(bool b) {
   final v = b ? <V>(T t, U u, V v) => 0 : <V>(T t, U u, V v) => 1;
 }
@@ -2384,7 +2390,7 @@ library
   }
 
   test_syntheticFunctionType_inGenericClass() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T, U> {
   var v = f() ? (T t, U u) => 0 : (T t, U u) => 1;
 }
@@ -2468,7 +2474,7 @@ library
   }
 
   test_syntheticFunctionType_inGenericFunction() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T, U>(bool b) {
   var v = b ? (T t, U u) => 0 : (T t, U u) => 1;
 }
@@ -2508,7 +2514,7 @@ library
   }
 
   test_syntheticFunctionType_noArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final v = f() ? () => 0 : () => 1;
 bool f() => true;
 ''');
@@ -2548,7 +2554,7 @@ library
   }
 
   test_syntheticFunctionType_withArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final v = f() ? (int x, String y) => 0 : (int x, String y) => 1;
 bool f() => true;
 ''');
@@ -2588,7 +2594,9 @@ library
   }
 
   test_type_arguments_explicit_dynamic_dynamic() async {
-    var library = await buildLibrary('Map<dynamic, dynamic> m;');
+    var library = await buildLibrary(r'''
+Map<dynamic, dynamic> m;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2634,7 +2642,9 @@ library
   }
 
   test_type_arguments_explicit_dynamic_int() async {
-    var library = await buildLibrary('Map<dynamic, int> m;');
+    var library = await buildLibrary(r'''
+Map<dynamic, int> m;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2680,7 +2690,9 @@ library
   }
 
   test_type_arguments_explicit_String_dynamic() async {
-    var library = await buildLibrary('Map<String, dynamic> m;');
+    var library = await buildLibrary(r'''
+Map<String, dynamic> m;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2726,7 +2738,9 @@ library
   }
 
   test_type_arguments_explicit_String_int() async {
-    var library = await buildLibrary('Map<String, int> m;');
+    var library = await buildLibrary(r'''
+Map<String, int> m;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2772,7 +2786,9 @@ library
   }
 
   test_type_arguments_implicit() async {
-    var library = await buildLibrary('Map m;');
+    var library = await buildLibrary(r'''
+Map m;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2818,7 +2834,9 @@ library
   }
 
   test_type_dynamic() async {
-    var library = await buildLibrary('dynamic d;');
+    var library = await buildLibrary(r'''
+dynamic d;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2864,7 +2882,9 @@ library
   }
 
   test_type_unresolved() async {
-    var library = await buildLibrary('C c;');
+    var library = await buildLibrary(r'''
+C c;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2910,7 +2930,9 @@ library
   }
 
   test_type_unresolved_prefixed() async {
-    var library = await buildLibrary('import "dart:core" as core; core.C c;');
+    var library = await buildLibrary(r'''
+import "dart:core" as core; core.C c;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

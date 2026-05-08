@@ -256,7 +256,7 @@ library
   }
 
   test_import_dartCore_explicit() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'dart:core';
 import 'dart:math';
 ''');
@@ -273,7 +273,7 @@ library
   }
 
   test_import_dartCore_implicit() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'dart:math';
 ''');
     checkElementText(library, r'''
@@ -289,7 +289,7 @@ library
 
   test_import_deferred() async {
     newFile('$testPackageLibPath/a.dart', 'f() {}');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart' deferred as p;
 ''');
     checkElementText(library, r'''
@@ -307,7 +307,7 @@ library
   }
 
   test_import_export() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'dart:async' as i1;
 export 'dart:math';
 import 'dart:async' as i2;
@@ -340,7 +340,7 @@ library
   }
 
   test_import_hide() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'dart:async' hide Stream, Completer; Future f;
 ''');
     checkElementText(library, r'''
@@ -392,7 +392,7 @@ library
   }
 
   test_import_hide_offsetEnd() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "dart:math" hide e, pi;
 ''');
     var import = library.firstFragment.libraryImports[0];
@@ -402,7 +402,7 @@ import "dart:math" hide e, pi;
   }
 
   test_import_invalidUri_metadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @foo
 import 'ht:';
 ''');
@@ -434,7 +434,7 @@ library
   }
 
   test_import_multiple_combinators() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "dart:async" hide Stream show Future;
 Future f;
 ''');
@@ -489,7 +489,9 @@ library
 
   test_import_prefixed() async {
     newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
-    var library = await buildLibrary('import "a.dart" as a; a.C c;');
+    var library = await buildLibrary(r'''
+import "a.dart" as a; a.C c;
+''');
 
     var prefixElement = library.firstFragment.libraryImports[0].prefix!;
     expect(prefixElement.nameOffset, 19);
@@ -563,7 +565,7 @@ library
   }
 
   test_import_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'test.dart' as p;
 class C {}
 class D extends p.C {} // Prevent "unused import" warning
@@ -616,7 +618,7 @@ library
   }
 
   test_import_show() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "dart:async" show Future, Stream;
 Future f;
 Stream s;
@@ -701,7 +703,7 @@ library
   test_import_show_loadLibrary_declared() async {
     newFile('$testPackageLibPath/a.dart', 'void loadLibrary() {}');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "a.dart" show loadLibrary;
 final x = loadLibrary;
 ''');
@@ -737,7 +739,7 @@ library
   }
 
   test_import_show_offsetEnd() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "dart:math" show e, pi;
 ''');
     var import = library.firstFragment.libraryImports[0];
@@ -747,7 +749,7 @@ import "dart:math" show e, pi;
   }
 
   test_import_uri() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart';
 ''');
 
@@ -759,9 +761,9 @@ import 'foo.dart';
   test_imports() async {
     newFile('$testPackageLibPath/a.dart', 'library a; class C {}');
     newFile('$testPackageLibPath/b.dart', 'library b; class D {}');
-    var library = await buildLibrary(
-      'import "a.dart"; import "b.dart"; C c; D d;',
-    );
+    var library = await buildLibrary(r'''
+import "a.dart"; import "b.dart"; C c; D d;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -869,7 +871,8 @@ import 'dart:math' as p1;
   }
 
   test_library_imports_syntheticDartCore() async {
-    var library = await buildLibrary('');
+    var library = await buildLibrary(r'''
+''');
     configuration.withSyntheticDartCoreImport = true;
     checkElementText(library, r'''
 library
@@ -986,7 +989,7 @@ library
   }
 
   test_metadata_importDirective() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @a
 import "dart:math";
 const a = 0;
@@ -1111,7 +1114,7 @@ library
 
     newFile('$testPackageLibPath/a.dart', 'class A {}');
     newFile('$testPackageLibPath/b.dart', 'export "/a.dart";');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 import 'b.dart';
 A v = null;
@@ -1164,7 +1167,9 @@ library
   }
 
   test_unresolved_import() async {
-    var library = await buildLibrary("import 'foo.dart';");
+    var library = await buildLibrary(r'''
+import 'foo.dart';
+''');
     var libraryImports = library.firstFragment.libraryImports;
     var importedLibrary = libraryImports[0].importedLibrary!;
     expect(importedLibrary.loadLibraryFunction, isNotNull);

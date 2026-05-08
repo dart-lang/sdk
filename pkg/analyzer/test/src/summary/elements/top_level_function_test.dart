@@ -2413,12 +2413,13 @@ library
   }
 
   test_function_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-f() {}''');
+f() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2439,7 +2440,9 @@ library
   }
 
   test_function_entry_point() async {
-    var library = await buildLibrary('main() {}');
+    var library = await buildLibrary(r'''
+main() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2459,7 +2462,9 @@ library
 
   test_function_entry_point_in_export() async {
     newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2473,7 +2478,9 @@ library
 
   test_function_entry_point_in_export_hidden() async {
     newFile('$testPackageLibPath/a.dart', 'library a; main() {}');
-    var library = await buildLibrary('export "a.dart" hide main;');
+    var library = await buildLibrary(r'''
+export "a.dart" hide main;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2489,7 +2496,9 @@ library
 
   test_function_entry_point_in_part() async {
     newFile('$testPackageLibPath/a.dart', 'part of my.lib; main() {}');
-    var library = await buildLibrary('library my.lib; part "a.dart";');
+    var library = await buildLibrary(r'''
+library my.lib; part "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2519,7 +2528,9 @@ library
   }
 
   test_function_external() async {
-    var library = await buildLibrary('external f();');
+    var library = await buildLibrary(r'''
+external f();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2538,7 +2549,7 @@ library
   }
 
   test_function_hasImplicitReturnType_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int f() => 0;
 ''');
     var f = library.firstFragment.functions.single;
@@ -2546,7 +2557,7 @@ int f() => 0;
   }
 
   test_function_hasImplicitReturnType_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 f() => 0;
 ''');
     var f = library.firstFragment.functions.single;
@@ -2575,7 +2586,7 @@ library
   }
 
   test_function_missingName() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 () {}
 ''');
     checkElementText(library, r'''
@@ -2588,7 +2599,7 @@ library
   }
 
   test_function_parameter_const() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f(const x) {}
 ''');
     checkElementText(library, r'''
@@ -2616,7 +2627,7 @@ library
   }
 
   test_function_parameter_fieldFormal() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f(int this.a) {}
 ''');
     checkElementText(library, r'''
@@ -2645,7 +2656,7 @@ library
   }
 
   test_function_parameter_fieldFormal_default() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f({int this.a: 42}) {}
 ''');
     checkElementText(library, r'''
@@ -2681,7 +2692,7 @@ library
   }
 
   test_function_parameter_fieldFormal_functionTyped() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f(int this.a(int b)) {}
 ''');
     checkElementText(library, r'''
@@ -2717,7 +2728,9 @@ library
   }
 
   test_function_parameter_final() async {
-    var library = await buildLibrary('f(final x) {}');
+    var library = await buildLibrary(r'''
+f(final x) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2743,7 +2756,9 @@ library
   }
 
   test_function_parameter_kind_named() async {
-    var library = await buildLibrary('f({x}) {}');
+    var library = await buildLibrary(r'''
+f({x}) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2769,7 +2784,9 @@ library
   }
 
   test_function_parameter_kind_positional() async {
-    var library = await buildLibrary('f([x]) {}');
+    var library = await buildLibrary(r'''
+f([x]) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2795,7 +2812,9 @@ library
   }
 
   test_function_parameter_kind_required() async {
-    var library = await buildLibrary('f(x) {}');
+    var library = await buildLibrary(r'''
+f(x) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2821,7 +2840,9 @@ library
   }
 
   test_function_parameter_parameters() async {
-    var library = await buildLibrary('f(g(x, y)) {}');
+    var library = await buildLibrary(r'''
+f(g(x, y)) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2859,7 +2880,9 @@ library
   }
 
   test_function_parameter_return_type() async {
-    var library = await buildLibrary('f(int g()) {}');
+    var library = await buildLibrary(r'''
+f(int g()) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2885,7 +2908,9 @@ library
   }
 
   test_function_parameter_return_type_void() async {
-    var library = await buildLibrary('f(void g()) {}');
+    var library = await buildLibrary(r'''
+f(void g()) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2911,7 +2936,9 @@ library
   }
 
   test_function_parameter_type() async {
-    var library = await buildLibrary('f(int i) {}');
+    var library = await buildLibrary(r'''
+f(int i) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2937,7 +2964,7 @@ library
   }
 
   test_function_parameter_type_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T>(T a) {}
 ''');
     checkElementText(library, r'''
@@ -2999,7 +3026,9 @@ library
   }
 
   test_function_parameters() async {
-    var library = await buildLibrary('f(x, y) {}');
+    var library = await buildLibrary(r'''
+f(x, y) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3030,7 +3059,9 @@ library
   }
 
   test_function_return_type_implicit() async {
-    var library = await buildLibrary('f() => null;');
+    var library = await buildLibrary(r'''
+f() => null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3070,7 +3101,9 @@ library
   }
 
   test_function_return_type_void() async {
-    var library = await buildLibrary('void f() {}');
+    var library = await buildLibrary(r'''
+void f() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3089,7 +3122,7 @@ library
   }
 
   test_function_returnType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int f() => 0;
 ''');
     checkElementText(library, r'''
@@ -3110,7 +3143,7 @@ library
   }
 
   test_function_returnType_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 T f<T>() => throw 0;
 ''');
     checkElementText(library, r'''
@@ -3137,7 +3170,9 @@ library
   }
 
   test_function_type_parameter_with_function_typed_parameter() async {
-    var library = await buildLibrary('void f<T, U>(T x(U u)) {}');
+    var library = await buildLibrary(r'''
+void f<T, U>(T x(U u)) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3180,7 +3215,9 @@ library
   }
 
   test_function_typed_parameter_implicit() async {
-    var library = await buildLibrary('f(g()) => null;');
+    var library = await buildLibrary(r'''
+f(g()) => null;
+''');
     expect(
       library.topLevelFunctions.first.formalParameters.first.hasImplicitType,
       isFalse,
@@ -3188,7 +3225,7 @@ library
   }
 
   test_function_typeParameters_hasBound() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T extends num>() {}
 ''');
     checkElementText(library, r'''
@@ -3216,7 +3253,7 @@ library
   }
 
   test_function_typeParameters_noBound() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T>() {}
 ''');
     checkElementText(library, r'''
@@ -3243,7 +3280,9 @@ library
   }
 
   test_functions() async {
-    var library = await buildLibrary('f() {} g() {}');
+    var library = await buildLibrary(r'''
+f() {} g() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3268,7 +3307,7 @@ library
   }
 
   test_getter_missingName() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 get () => 0;
 ''');
     checkElementText(library, r'''
@@ -3289,7 +3328,9 @@ library
   }
 
   test_main_class() async {
-    var library = await buildLibrary('class main {}');
+    var library = await buildLibrary(r'''
+class main {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3315,9 +3356,9 @@ library
   }
 
   test_main_class_alias() async {
-    var library = await buildLibrary(
-      'class main = C with D; class C {} class D {}',
-    );
+    var library = await buildLibrary(r'''
+class main = C with D; class C {} class D {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3384,7 +3425,9 @@ library
       '$testPackageLibPath/a.dart',
       'class main = C with D; class C {} class D {}',
     );
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3398,7 +3441,9 @@ library
 
   test_main_class_via_export() async {
     newFile('$testPackageLibPath/a.dart', 'class main {}');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3411,7 +3456,9 @@ library
   }
 
   test_main_getter() async {
-    var library = await buildLibrary('get main => null;');
+    var library = await buildLibrary(r'''
+get main => null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3441,7 +3488,9 @@ library
 
   test_main_getter_via_export() async {
     newFile('$testPackageLibPath/a.dart', 'get main => null;');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3454,7 +3503,9 @@ library
   }
 
   test_main_typedef() async {
-    var library = await buildLibrary('typedef main();');
+    var library = await buildLibrary(r'''
+typedef main();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3474,7 +3525,9 @@ library
 
   test_main_typedef_via_export() async {
     newFile('$testPackageLibPath/a.dart', 'typedef main();');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3487,7 +3540,9 @@ library
   }
 
   test_main_variable() async {
-    var library = await buildLibrary('var main;');
+    var library = await buildLibrary(r'''
+var main;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3534,7 +3589,9 @@ library
 
   test_main_variable_via_export() async {
     newFile('$testPackageLibPath/a.dart', 'var main;');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3547,7 +3604,7 @@ library
   }
 
   test_setter_missingName() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 set (int _) {}
 ''');
     checkElementText(library, r'''

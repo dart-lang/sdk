@@ -22,7 +22,8 @@ abstract class LibraryElementTest extends ElementsBaseTest {
  * aaa
  * bbb
  */
-library test;''');
+library test;
+''');
 
     checkElementText(library, r'''
 library
@@ -36,7 +37,8 @@ library
   }
 
   test_empty() async {
-    var library = await buildLibrary('');
+    var library = await buildLibrary(r'''
+''');
 
     checkElementText(library, r'''
 library
@@ -59,7 +61,8 @@ library
   }
 
   test_library() async {
-    var library = await buildLibrary('');
+    var library = await buildLibrary(r'''
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -70,7 +73,7 @@ library
   }
 
   test_library_documented_lines() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// aaa
 /// bbb
 library test;

@@ -155,7 +155,7 @@ library
   }
 
   test_getter_abstract() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int get x;
 ''');
     checkElementText(library, r'''
@@ -997,12 +997,13 @@ library
   }
 
   test_getter_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-get x => null;''');
+get x => null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1033,7 +1034,9 @@ library
   }
 
   test_getter_external() async {
-    var library = await buildLibrary('external int get x;');
+    var library = await buildLibrary(r'''
+external int get x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1062,9 +1065,9 @@ library
   }
 
   test_getter_inferred_type_nonStatic_implicit_return() async {
-    var library = await buildLibrary(
-      'class C extends D { get f => null; } abstract class D { int get f; }',
-    );
+    var library = await buildLibrary(r'''
+class C extends D { get f => null; } abstract class D { int get f; }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1172,7 +1175,9 @@ library
   }
 
   test_getters() async {
-    var library = await buildLibrary('int get x => null; get y => null;');
+    var library = await buildLibrary(r'''
+int get x => null; get y => null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1215,9 +1220,9 @@ library
   }
 
   test_implicitTopLevelVariable_getterFirst() async {
-    var library = await buildLibrary(
-      'int get x => 0; void set x(int value) {}',
-    );
+    var library = await buildLibrary(r'''
+int get x => 0; void set x(int value) {}
+''');
 
     checkElementText(library, r'''
 library
@@ -1264,9 +1269,9 @@ library
   }
 
   test_implicitTopLevelVariable_setterFirst() async {
-    var library = await buildLibrary(
-      'void set x(int value) {} int get x => 0;',
-    );
+    var library = await buildLibrary(r'''
+void set x(int value) {} int get x => 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1312,7 +1317,7 @@ library
   }
 
   test_setter_abstract() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 set x(int _);
 ''');
     checkElementText(library, r'''
@@ -2256,12 +2261,13 @@ library
   }
 
   test_setter_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-void set x(value) {}''');
+void set x(value) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2299,7 +2305,9 @@ library
   }
 
   test_setter_external() async {
-    var library = await buildLibrary('external void set x(int value);');
+    var library = await buildLibrary(r'''
+external void set x(int value);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2335,7 +2343,9 @@ library
   }
 
   test_setter_inferred_type_top_level_implicit_return() async {
-    var library = await buildLibrary('set f(int value) {}');
+    var library = await buildLibrary(r'''
+set f(int value) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2371,9 +2381,9 @@ library
   }
 
   test_setters() async {
-    var library = await buildLibrary(
-      'void set x(int value) {} set y(value) {}',
-    );
+    var library = await buildLibrary(r'''
+void set x(int value) {} set y(value) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2430,7 +2440,7 @@ library
   }
 
   test_unit_implicitVariable_getterFirst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int get x => 0;
 void set x(int value) {}
 ''');
@@ -2479,7 +2489,7 @@ library
   }
 
   test_unit_implicitVariable_setterFirst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void set x(int value) {}
 int get x => 0;
 ''');
@@ -2528,7 +2538,7 @@ library
   }
 
   test_unit_variable_duplicate() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int foo = 0;
 int foo = 1;
 ''');
@@ -2607,7 +2617,7 @@ library
   }
 
   test_unit_variable_duplicate_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int foo = 0;
 int get foo => 0;
 ''');
@@ -2671,7 +2681,7 @@ library
   }
 
   test_unit_variable_duplicate_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int foo = 0;
 set foo(int _) {}
 ''');
@@ -2792,7 +2802,9 @@ library
   }
 
   test_variable() async {
-    var library = await buildLibrary('int x = 0;');
+    var library = await buildLibrary(r'''
+int x = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2838,7 +2850,7 @@ library
   }
 
   test_variable_abstract() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract int i;
 ''');
     checkElementText(library, r'''
@@ -3636,7 +3648,9 @@ library
   }
 
   test_variable_const() async {
-    var library = await buildLibrary('const int i = 0;');
+    var library = await buildLibrary(r'''
+const int i = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3672,7 +3686,9 @@ library
   }
 
   test_variable_const_late() async {
-    var library = await buildLibrary('late const int i = 0;');
+    var library = await buildLibrary(r'''
+late const int i = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3708,12 +3724,13 @@ library
   }
 
   test_variable_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-var x;''');
+var x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3761,7 +3778,7 @@ library
   }
 
   test_variable_external() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 external int i;
 ''');
     checkElementText(library, r'''
@@ -3809,7 +3826,9 @@ library
   }
 
   test_variable_final() async {
-    var library = await buildLibrary('final int x = 0;');
+    var library = await buildLibrary(r'''
+final int x = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3873,10 +3892,11 @@ library
 part of my.lib;
 void set x(int _) {}
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 library my.lib;
 part 'a.dart';
-int get x => 42;''');
+int get x => 42;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3937,7 +3957,7 @@ library
 part of my.lib;
 int get x => 42;
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 library my.lib;
 part 'a.dart';
 void set x(int _) {}
@@ -4003,9 +4023,9 @@ library
       '$testPackageLibPath/b.dart',
       'part of my.lib; void set x(int _) {}',
     );
-    var library = await buildLibrary(
-      'library my.lib; part "a.dart"; part "b.dart";',
-    );
+    var library = await buildLibrary(r'''
+library my.lib; part "a.dart"; part "b.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4071,7 +4091,9 @@ library
   }
 
   test_variable_implicit() async {
-    var library = await buildLibrary('int get x => 0;');
+    var library = await buildLibrary(r'''
+int get x => 0;
+''');
 
     // We intentionally don't check the text, because we want to test
     // requesting individual elements, not all accessors/variables at once.
@@ -4085,7 +4107,9 @@ library
   }
 
   test_variable_implicit_type() async {
-    var library = await buildLibrary('var x;');
+    var library = await buildLibrary(r'''
+var x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4131,7 +4155,9 @@ library
   }
 
   test_variable_initializer() async {
-    var library = await buildLibrary('int v = 0;');
+    var library = await buildLibrary(r'''
+int v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4177,7 +4203,9 @@ library
   }
 
   test_variable_initializer_final() async {
-    var library = await buildLibrary('final int v = 0;');
+    var library = await buildLibrary(r'''
+final int v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4206,7 +4234,9 @@ library
   }
 
   test_variable_initializer_final_untyped() async {
-    var library = await buildLibrary('final v = 0;');
+    var library = await buildLibrary(r'''
+final v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4235,7 +4265,7 @@ library
   }
 
   test_variable_initializer_recordType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const x = (1, true);
 ''');
     checkElementText(library, r'''
@@ -4281,7 +4311,7 @@ library
   }
 
   test_variable_initializer_staticMethod_ofExtension() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
 extension E on A {
   static int f() => 0;
@@ -4365,7 +4395,9 @@ library
   }
 
   test_variable_initializer_untyped() async {
-    var library = await buildLibrary('var v = 0;');
+    var library = await buildLibrary(r'''
+var v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4411,7 +4443,9 @@ library
   }
 
   test_variable_late() async {
-    var library = await buildLibrary('late int x = 0;');
+    var library = await buildLibrary(r'''
+late int x = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4457,7 +4491,9 @@ library
   }
 
   test_variable_late_final() async {
-    var library = await buildLibrary('late final int x;');
+    var library = await buildLibrary(r'''
+late final int x;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4503,7 +4539,9 @@ library
   }
 
   test_variable_late_final_initialized() async {
-    var library = await buildLibrary('late final int x = 0;');
+    var library = await buildLibrary(r'''
+late final int x = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4609,7 +4647,9 @@ library
   }
 
   test_variable_propagatedType_const_noDep() async {
-    var library = await buildLibrary('const i = 0;');
+    var library = await buildLibrary(r'''
+const i = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4646,7 +4686,9 @@ library
 
   test_variable_propagatedType_final_dep_inLib() async {
     newFile('$testPackageLibPath/a.dart', 'final a = 1;');
-    var library = await buildLibrary('import "a.dart"; final b = a / 2;');
+    var library = await buildLibrary(r'''
+import "a.dart"; final b = a / 2;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4678,9 +4720,9 @@ library
 
   test_variable_propagatedType_final_dep_inPart() async {
     newFile('$testPackageLibPath/a.dart', 'part of lib; final a = 1;');
-    var library = await buildLibrary(
-      'library lib; part "a.dart"; final b = a / 2;',
-    );
+    var library = await buildLibrary(r'''
+library lib; part "a.dart"; final b = a / 2;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4736,7 +4778,9 @@ library
   }
 
   test_variable_propagatedType_final_noDep() async {
-    var library = await buildLibrary('final i = 0;');
+    var library = await buildLibrary(r'''
+final i = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4768,7 +4812,9 @@ library
     // The propagated type is defined in a library that is not imported.
     newFile('$testPackageLibPath/a.dart', 'class C {}');
     newFile('$testPackageLibPath/b.dart', 'import "a.dart"; C f() => null;');
-    var library = await buildLibrary('import "b.dart"; final x = f();');
+    var library = await buildLibrary(r'''
+import "b.dart"; final x = f();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4804,9 +4850,9 @@ library
       'part of my.lib; void set x(int _) {}',
     );
     newFile('$testPackageLibPath/b.dart', 'part of my.lib; int get x => 42;');
-    var library = await buildLibrary(
-      'library my.lib; part "a.dart"; part "b.dart";',
-    );
+    var library = await buildLibrary(r'''
+library my.lib; part "a.dart"; part "b.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4872,7 +4918,9 @@ library
   }
 
   test_variable_type_dynamic() async {
-    var library = await buildLibrary('dynamic v;');
+    var library = await buildLibrary(r'''
+dynamic v;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4918,7 +4966,9 @@ library
   }
 
   test_variable_type_inferred() async {
-    var library = await buildLibrary('var v = 0;');
+    var library = await buildLibrary(r'''
+var v = 0;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5181,7 +5231,9 @@ library
   }
 
   test_variables() async {
-    var library = await buildLibrary('int i; int j;');
+    var library = await buildLibrary(r'''
+int i; int j;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

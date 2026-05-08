@@ -17,7 +17,7 @@ main() {
 
 abstract class FunctionTypeAnnotationElementTest extends ElementsBaseTest {
   test_generic_function_type_nullability_none() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void Function() f;
 ''');
     checkElementText(library, r'''
@@ -65,7 +65,7 @@ library
   }
 
   test_generic_function_type_nullability_question() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void Function()? f;
 ''');
     checkElementText(library, r'''

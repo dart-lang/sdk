@@ -17,7 +17,9 @@ main() {
 
 abstract class FormalParameterElementTest extends ElementsBaseTest {
   test_parameter() async {
-    var library = await buildLibrary('void main(int p) {}');
+    var library = await buildLibrary(r'''
+void main(int p) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -43,7 +45,7 @@ library
   }
 
   test_parameter_covariant_explicit_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void m({covariant A a}) {}
 }
@@ -88,7 +90,7 @@ library
   }
 
   test_parameter_covariant_explicit_positional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void m([covariant A a]) {}
 }
@@ -133,7 +135,7 @@ library
   }
 
   test_parameter_covariant_explicit_required() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void m(covariant A a) {}
 }
@@ -270,7 +272,7 @@ library
   }
 
   test_parameter_covariant_inherited_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void m({covariant A a}) {}
 }
@@ -348,7 +350,9 @@ library
   }
 
   test_parameter_parameters() async {
-    var library = await buildLibrary('class C { f(g(x, y)) {} }');
+    var library = await buildLibrary(r'''
+class C { f(g(x, y)) {} }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -401,7 +405,9 @@ library
   }
 
   test_parameter_parameters_in_generic_class() async {
-    var library = await buildLibrary('class C<A, B> { f(A g(B x)) {} }');
+    var library = await buildLibrary(r'''
+class C<A, B> { f(A g(B x)) {} }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -459,7 +465,9 @@ library
   }
 
   test_parameter_return_type() async {
-    var library = await buildLibrary('class C { f(int g()) {} }');
+    var library = await buildLibrary(r'''
+class C { f(int g()) {} }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -500,7 +508,9 @@ library
   }
 
   test_parameter_return_type_void() async {
-    var library = await buildLibrary('class C { f(void g()) {} }');
+    var library = await buildLibrary(r'''
+class C { f(void g()) {} }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -588,7 +598,7 @@ library
   test_parameterTypeNotInferred_constructor() async {
     // Strong mode doesn't do type inference on constructor parameters, so it's
     // ok that we don't store inferred type info for them in summaries.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   C.positional([x = 1]);
   C.named({x: 1});
@@ -659,7 +669,7 @@ library
   test_parameterTypeNotInferred_initializingFormal() async {
     // Strong mode doesn't do type inference on initializing formals, so it's
     // ok that we don't store inferred type info for them in summaries.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   var x;
   C.positional([this.x = 1]);
@@ -768,7 +778,7 @@ library
   test_parameterTypeNotInferred_staticMethod() async {
     // Strong mode doesn't do type inference on parameters of static methods,
     // so it's ok that we don't store inferred type info for them in summaries.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static void positional([x = 1]) {}
   static void named({x: 1}) {}
@@ -844,7 +854,7 @@ library
     // Strong mode doesn't do type inference on parameters of top level
     // functions, so it's ok that we don't store inferred type info for them in
     // summaries.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void positional([x = 1]) {}
 void named({x: 1}) {}
 ''');

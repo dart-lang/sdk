@@ -20,7 +20,7 @@ main() {
 
 abstract class ConstElementTest extends ElementsBaseTest {
   test_const_asExpression() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const num a = 0;
 const b = a as int;
 ''');
@@ -339,7 +339,7 @@ library
   }
 
   test_const_constructor_inferred_args() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   final T t;
   const C(this.t);
@@ -942,7 +942,7 @@ library
   }
 
   test_const_functionExpression_typeArgumentTypes() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f<T>(T a) {}
 
 const void Function(int) v = f;
@@ -1180,7 +1180,7 @@ library
   }
 
   test_const_inference_downward_list() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class P<T> {
   const P();
 }
@@ -1475,7 +1475,7 @@ library
   }
 
   test_const_invalid_functionExpression() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const v = () { return 0; };
 ''');
     checkElementText(library, r'''
@@ -1514,7 +1514,7 @@ library
   }
 
   test_const_invalid_functionExpression_assertInitializer() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A  {
   const A() : assert((() => true)());
 }
@@ -1554,7 +1554,7 @@ library
   }
 
   test_const_invalid_functionExpression_assertInitializer_message() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A  {
   const A() : assert(b, () => 0);
 }
@@ -1599,7 +1599,7 @@ library
   }
 
   test_const_invalid_functionExpression_constructorFieldInitializer() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   final Object? foo;
   const A() : foo = (() => 0);
@@ -1660,7 +1660,7 @@ library
   }
 
   test_const_invalid_functionExpression_nested() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const v = () { return 0; } + 2;
 ''');
     checkElementText(library, r'''
@@ -1699,7 +1699,7 @@ library
   }
 
   test_const_invalid_functionExpression_redirectingConstructorInvocation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(Object a, Object b);
   const A.named() : this(0, () => 0);
@@ -1767,7 +1767,7 @@ library
   }
 
   test_const_invalid_functionExpression_superConstructorInvocation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(Object a, Object b);
 }
@@ -1906,7 +1906,7 @@ library
   }
 
   test_const_invalid_patternAssignment() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const v = (a,) = (0,);
 ''');
     checkElementText(library, r'''
@@ -3784,7 +3784,7 @@ library
   }
 
   test_const_isExpression() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = a is int;
 ''');
@@ -4383,7 +4383,7 @@ library
   }
 
   test_const_list_if() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>[if (true) 1];
 ''');
     checkElementText(library, r'''
@@ -4442,7 +4442,7 @@ library
   }
 
   test_const_list_if_else() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>[if (true) 1 else 2];
 ''');
     checkElementText(library, r'''
@@ -4508,7 +4508,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const [1];
 ''');
     checkElementText(library, r'''
@@ -4552,7 +4552,7 @@ library
   }
 
   test_const_list_spread() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>[...<int>[1]];
 ''');
     checkElementText(library, r'''
@@ -4619,7 +4619,7 @@ library
   }
 
   test_const_list_spread_null_aware() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>[...?<int>[1]];
 ''');
     checkElementText(library, r'''
@@ -4686,7 +4686,7 @@ library
   }
 
   test_const_map_if() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int, int>{if (true) 1: 2};
 ''');
     checkElementText(library, r'''
@@ -4758,7 +4758,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const {1: 1.0};
 ''');
     checkElementText(library, r'''
@@ -4808,7 +4808,7 @@ library
   }
 
   test_const_map_spread() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int, int>{...<int, int>{1: 2}};
 ''');
     checkElementText(library, r'''
@@ -4890,7 +4890,7 @@ library
   }
 
   test_const_map_spread_null_aware() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int, int>{...?<int, int>{1: 2}};
 ''');
     checkElementText(library, r'''
@@ -5652,7 +5652,7 @@ extension E on Object {
 }
 const a = const Object();
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 const b = -a;
 ''');
@@ -5767,7 +5767,7 @@ library
   }
 
   void test_const_recordLiteral() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = (a, a: a);
 ''');
@@ -5840,7 +5840,7 @@ library
   }
 
   void test_const_recordLiteral_explicitConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 0;
 const b = const (a, a: a);
 ''');
@@ -6329,7 +6329,7 @@ library
   }
 
   test_const_reference_staticMethod_ofExtension() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
 extension E on A {
   static void f() {}
@@ -7684,7 +7684,7 @@ library
   }
 
   test_const_set_if() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>{if (true) 1};
 ''');
     checkElementText(library, r'''
@@ -7747,7 +7747,7 @@ library
     // The summary needs to contain enough information so that when the constant
     // is resynthesized, the constant value can get the type that was computed
     // by type inference.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const {1};
 ''');
     checkElementText(library, r'''
@@ -7792,7 +7792,7 @@ library
   }
 
   test_const_set_spread() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>{...<int>{1}};
 ''');
     checkElementText(library, r'''
@@ -7861,7 +7861,7 @@ library
   }
 
   test_const_set_spread_null_aware() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const Object x = const <int>{...?<int>{1}};
 ''');
     checkElementText(library, r'''
@@ -10515,7 +10515,7 @@ library
   }
 
   test_constExpr_pushReference_enum_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {a, b, c}
 final vValue = E.a;
 final vValues = E.values;
@@ -10720,7 +10720,7 @@ library
   }
 
   test_constExpr_pushReference_enum_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {a}
 final vToString = E.a.toString();
 ''');
@@ -10829,7 +10829,7 @@ library
   }
 
   test_constExpr_pushReference_field_simpleIdentifier() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static const a = b;
   static const b = null;
@@ -10907,7 +10907,7 @@ library
   }
 
   test_constExpr_pushReference_staticMethod_simpleIdentifier() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   static const a = m;
   static m() {}

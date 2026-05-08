@@ -17,7 +17,7 @@ main() {
 
 abstract class DefaultValueElementTest extends ElementsBaseTest {
   test_defaultValue_eliminateTypeParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const X({List<T> a = const []});
 }
@@ -77,7 +77,7 @@ library
   }
 
   test_defaultValue_genericFunction() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F<T>(T v);
 
 void defaultF<T>(T v) {}
@@ -195,7 +195,7 @@ library
   }
 
   test_defaultValue_genericFunctionType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -295,7 +295,7 @@ library
   }
 
   test_defaultValue_inFunctionTypedFormalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f( g({a: 0 is int}) ) {}
 ''');
     checkElementText(library, r'''
@@ -344,7 +344,7 @@ library
   }
 
   test_defaultValue_methodMember() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f([Comparator<T> compare = Comparable.compare]) {}
 ''');
     checkElementText(library, r'''
@@ -391,7 +391,7 @@ library
   }
 
   test_defaultValue_recordLiteral_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f({({int f1, bool f2}) x = (f1: 1, f2: true)}) {}
 ''');
     checkElementText(library, r'''
@@ -440,7 +440,7 @@ library
   }
 
   test_defaultValue_recordLiteral_named_const() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f({({int f1, bool f2}) x = const (f1: 1, f2: true)}) {}
 ''');
     checkElementText(library, r'''
@@ -490,7 +490,7 @@ library
   }
 
   test_defaultValue_recordLiteral_positional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f({(int, bool) x = (1, true)}) {}
 ''');
     checkElementText(library, r'''
@@ -533,7 +533,7 @@ library
   }
 
   void test_defaultValue_recordLiteral_positional_const() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f({(int, bool) x = const (1, true)}) {}
 ''');
     checkElementText(library, r'''
@@ -577,7 +577,7 @@ library
   }
 
   test_defaultValue_refersToExtension_method_inside() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
 extension E on A {
   static void f() {}
@@ -647,7 +647,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class B<T1, T2> {
   const B();
 }
@@ -737,7 +737,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_constructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class B<T> {
   const B();
 }
@@ -822,7 +822,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_constructor2() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract class A<T> {}
 class B<T> implements A<T> {
   const B();
@@ -931,7 +931,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_functionG() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class B<T> {
   const B();
 }
@@ -1008,7 +1008,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_methodG() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class B<T> {
   const B();
 }
@@ -1100,7 +1100,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_methodG_classG() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class B<T1, T2> {
   const B();
 }
@@ -1202,7 +1202,7 @@ library
   }
 
   test_defaultValue_refersToGenericClass_methodNG() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class B<T> {
   const B();
 }

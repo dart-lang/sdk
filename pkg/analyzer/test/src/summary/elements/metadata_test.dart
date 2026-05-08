@@ -18,7 +18,7 @@ main() {
 
 abstract class MetadataElementTest extends ElementsBaseTest {
   test_annotationArgument_recordLiteral() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @A((2, a: 3))
 class C {}
 class A {
@@ -71,7 +71,7 @@ library
   }
 
   test_annotationArgument_recordLiteral_withConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @A(const ('',))
 class C {}
 class A {
@@ -129,7 +129,7 @@ class A {
   const A.named();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "a.dart" as a;
 @a.A.named
 class C {}
@@ -169,7 +169,7 @@ class A {
   const A.named();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "a.dart";
 @A.named
 class C {}
@@ -449,7 +449,8 @@ const a = null;
 const b = null;
 @a
 @b
-class C {}''');
+class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -521,9 +522,9 @@ library
   }
 
   test_metadata_classTypeAlias() async {
-    var library = await buildLibrary(
-      'const a = null; @a class C = D with E; class D {} class E {}',
-    );
+    var library = await buildLibrary(r'''
+const a = null; @a class C = D with E; class D {} class E {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -611,7 +612,7 @@ library
   }
 
   test_metadata_constructor_call_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A.named(int _);
 }
@@ -665,7 +666,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_inference() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A.named(T _);
 }
@@ -726,7 +727,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_typeArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A.named();
 }
@@ -780,7 +781,7 @@ library
   }
 
   test_metadata_constructor_call_named_generic_typeArguments_disabledGenericMetadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A.named();
 }
@@ -839,7 +840,7 @@ class A {
   const A.named(int _);
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
 @foo.A.named(0)
 class C {}
@@ -879,7 +880,7 @@ class A<T> {
   const A.named(T _);
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "foo.dart" as foo;
 @foo.A.named(0)
 class C {}
@@ -919,7 +920,7 @@ class A<T> {
   const A.named();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "foo.dart" as foo;
 @foo.A<int>.named()
 class C {}
@@ -954,7 +955,7 @@ library
   }
 
   test_metadata_constructor_call_named_synthetic_ofClassAlias_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A.named();
 }
@@ -1050,7 +1051,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(int _);
 }
@@ -1103,7 +1104,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_inference() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A(T _);
 }
@@ -1163,7 +1164,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_generic_typeArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   const A();
 }
@@ -1217,9 +1218,9 @@ library
 
   test_metadata_constructor_call_unnamed_prefixed() async {
     newFile('$testPackageLibPath/foo.dart', 'class A { const A(_); }');
-    var library = await buildLibrary(
-      'import "foo.dart" as foo; @foo.A(0) class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "foo.dart" as foo; @foo.A(0) class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1255,7 +1256,7 @@ class A<T> {
   const A(T _);
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "foo.dart" as foo;
 @foo.A(0)
 class C {}
@@ -1295,7 +1296,7 @@ class A<T> {
   const A();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import "foo.dart" as foo;
 @foo.A<int>()
 class C {}
@@ -1330,7 +1331,7 @@ library
   }
 
   test_metadata_constructor_call_unnamed_synthetic_ofClassAlias_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A();
 }
@@ -1420,9 +1421,9 @@ library
   }
 
   test_metadata_constructor_call_with_args() async {
-    var library = await buildLibrary(
-      'class A { const A(x); } @A(null) class C {}',
-    );
+    var library = await buildLibrary(r'''
+class A { const A(x); } @A(null) class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1536,9 +1537,9 @@ library
   }
 
   test_metadata_constructorDeclaration_named() async {
-    var library = await buildLibrary(
-      'const a = null; class C { @a C.named(); }',
-    );
+    var library = await buildLibrary(r'''
+const a = null; class C { @a C.named(); }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1607,7 +1608,9 @@ library
   }
 
   test_metadata_constructorDeclaration_unnamed() async {
-    var library = await buildLibrary('const a = null; class C { @a C(); }');
+    var library = await buildLibrary(r'''
+const a = null; class C { @a C(); }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1677,7 +1680,7 @@ library
   test_metadata_exportDirective() async {
     newFile('$testPackageLibPath/foo.dart', '');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @a
 export 'foo.dart';
 const a = 0;
@@ -1736,7 +1739,9 @@ library
   }
 
   test_metadata_fieldDeclaration() async {
-    var library = await buildLibrary('const a = null; class C { @a int x; }');
+    var library = await buildLibrary(r'''
+const a = null; class C { @a int x; }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1838,7 +1843,7 @@ library
   }
 
   test_metadata_fieldFormalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 class C {
   var x;
@@ -1955,9 +1960,9 @@ library
   }
 
   test_metadata_fieldFormalParameter_withDefault() async {
-    var library = await buildLibrary(
-      'const a = null; class C { var x; C([@a this.x = null]); }',
-    );
+    var library = await buildLibrary(r'''
+const a = null; class C { var x; C([@a this.x = null]); }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2075,7 +2080,7 @@ library
   }
 
   test_metadata_functionDeclaration_function() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 @a
 f() {}
@@ -2139,7 +2144,9 @@ library
   }
 
   test_metadata_functionDeclaration_getter() async {
-    var library = await buildLibrary('const a = null; @a get f => null;');
+    var library = await buildLibrary(r'''
+const a = null; @a get f => null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2205,7 +2212,9 @@ library
   }
 
   test_metadata_functionDeclaration_setter() async {
-    var library = await buildLibrary('const a = null; @a set f(value) {}');
+    var library = await buildLibrary(r'''
+const a = null; @a set f(value) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2280,7 +2289,9 @@ library
   }
 
   test_metadata_functionTypeAlias() async {
-    var library = await buildLibrary('const a = null; @a typedef F();');
+    var library = await buildLibrary(r'''
+const a = null; @a typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2340,7 +2351,9 @@ library
   }
 
   test_metadata_functionTypedFormalParameter() async {
-    var library = await buildLibrary('const a = null; f(@a g()) {}');
+    var library = await buildLibrary(r'''
+const a = null; f(@a g()) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2407,7 +2420,9 @@ library
   }
 
   test_metadata_functionTypedFormalParameter_withDefault() async {
-    var library = await buildLibrary('const a = null; f([@a g() = null]) {}');
+    var library = await buildLibrary(r'''
+const a = null; f([@a g() = null]) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2486,7 +2501,8 @@ const a = null;
 const b = null;
 @a
 @b
-typedef F = void Function();''');
+typedef F = void Function();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2583,7 +2599,7 @@ library
   test_metadata_importDirective() async {
     newFile('$testPackageLibPath/foo.dart', '');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @a
 import 'foo.dart';
 const a = 0;
@@ -2642,7 +2658,7 @@ library
   }
 
   test_metadata_inAliasedElement_formalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 42;
 typedef F = void Function(@a int first)
 ''');
@@ -2689,7 +2705,7 @@ library
   }
 
   test_metadata_inAliasedElement_formalParameter2() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 42;
 typedef F = void Function(int foo(@a int bar))
 ''');
@@ -2736,7 +2752,7 @@ library
   }
 
   test_metadata_inAliasedElement_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 42;
 typedef F = void Function<@a T>(int first)
 ''');
@@ -2783,7 +2799,9 @@ library
   }
 
   test_metadata_invalid_classDeclaration() async {
-    var library = await buildLibrary('f(_) {} @f(42) class C {}');
+    var library = await buildLibrary(r'''
+f(_) {} @f(42) class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2827,7 +2845,7 @@ library
     newFile('$testPackageLibPath/a.dart', r'''
 part of 'test.dart';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @deprecated
 part 'a.dart';
 ''');
@@ -2868,7 +2886,7 @@ library
 
   /// Even though the target is not a part, metadata is available.
   test_metadata_library_part_notPart() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @deprecated
 part 'dart:math';
 ''');
@@ -2902,7 +2920,9 @@ library
   }
 
   test_metadata_libraryDirective() async {
-    var library = await buildLibrary('@a library L; const a = null;');
+    var library = await buildLibrary(r'''
+@a library L; const a = null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2947,9 +2967,9 @@ library
   }
 
   test_metadata_methodDeclaration_getter() async {
-    var library = await buildLibrary(
-      'const a = null; class C { @a get m => null; }',
-    );
+    var library = await buildLibrary(r'''
+const a = null; class C { @a get m => null; }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3264,7 +3284,7 @@ library
   }
 
   test_metadata_methodDeclaration_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 class C {
   @a
@@ -3492,7 +3512,8 @@ const a = null;
 const b = null;
 @a
 @b
-mixin M {}''');
+mixin M {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4671,7 +4692,7 @@ library
   }
 
   test_metadata_offsets_onLibrary() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 /// Some documentation.
 @foo
 library my.lib;
@@ -4977,7 +4998,7 @@ part of my.lib;
 part of my.lib;
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 library my.lib;
 
 @foo
@@ -5475,7 +5496,7 @@ library
 part of 'test.dart';
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 @a
 part 'foo.dart';
 const a = 0;
@@ -5543,11 +5564,12 @@ library
 
   test_metadata_partDirective2() async {
     newFile('$testPackageLibPath/foo.dart', 'part of L;');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 library L;
 @a
 part 'foo.dart';
-const a = null;''');
+const a = null;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5608,7 +5630,7 @@ part of 'test.dart';
     newFile('$testPackageLibPath/b.dart', r'''
 part of 'test.dart';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 part 'b.dart';
 ''');
@@ -5624,7 +5646,7 @@ part of 'test.dart';
 @deprecated
 class A {}
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -5667,7 +5689,7 @@ part of 'test.dart';
 @deprecated
 export 'dart:math';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -5705,7 +5727,7 @@ part of 'test.dart';
 @deprecated
 import 'dart:math';
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 ''');
     checkElementText(library, r'''
@@ -5748,7 +5770,7 @@ part of 'test.dart';
 part 'a.dart';
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'b.dart';
 ''');
 
@@ -5791,7 +5813,9 @@ library
 
   test_metadata_prefixed_variable() async {
     newFile('$testPackageLibPath/a.dart', 'const b = null;');
-    var library = await buildLibrary('import "a.dart" as a; @a.b class C {}');
+    var library = await buildLibrary(r'''
+import "a.dart" as a; @a.b class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5822,7 +5846,9 @@ library
   }
 
   test_metadata_simpleFormalParameter() async {
-    var library = await buildLibrary('const a = null; f(@a x) {}');
+    var library = await buildLibrary(r'''
+const a = null; f(@a x) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5889,7 +5915,7 @@ library
   }
 
   test_metadata_simpleFormalParameter_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 
 class C {
@@ -5977,7 +6003,7 @@ library
   }
 
   test_metadata_simpleFormalParameter_unit_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 
 set foo(@a int x) {}
@@ -6056,7 +6082,9 @@ library
   }
 
   test_metadata_simpleFormalParameter_withDefault() async {
-    var library = await buildLibrary('const a = null; f([@a x = null]) {}');
+    var library = await buildLibrary(r'''
+const a = null; f([@a x = null]) {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6130,7 +6158,7 @@ library
   }
 
   test_metadata_superFormalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 
 class A {
@@ -6239,7 +6267,9 @@ library
   }
 
   test_metadata_topLevelVariableDeclaration() async {
-    var library = await buildLibrary('const a = null; @a int v;');
+    var library = await buildLibrary(r'''
+const a = null; @a int v;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6322,7 +6352,9 @@ library
   }
 
   test_metadata_typeParameter_ofClass() async {
-    var library = await buildLibrary('const a = null; class C<@a T> {}');
+    var library = await buildLibrary(r'''
+const a = null; class C<@a T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6395,11 +6427,12 @@ library
   }
 
   test_metadata_typeParameter_ofClassTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = null;
 class C<@a T> = D with E;
 class D {}
-class E {}''');
+class E {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6509,7 +6542,9 @@ library
   }
 
   test_metadata_typeParameter_ofFunction() async {
-    var library = await buildLibrary('const a = null; f<@a T>() {}');
+    var library = await buildLibrary(r'''
+const a = null; f<@a T>() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6575,7 +6610,9 @@ library
   }
 
   test_metadata_typeParameter_ofTypedef() async {
-    var library = await buildLibrary('const a = null; typedef F<@a T>();');
+    var library = await buildLibrary(r'''
+const a = null; typedef F<@a T>();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6732,7 +6769,7 @@ library
   }
 
   test_metadata_value_class_staticField() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   static const x = 0;
 }
@@ -6802,7 +6839,7 @@ library
   }
 
   test_metadata_value_enum_constant() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {a, b, c}
 @E.b
 class C {}
@@ -6975,7 +7012,7 @@ library
   }
 
   test_metadata_value_extension_staticField() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension E on int {
   static const x = 0;
 }
@@ -7041,7 +7078,7 @@ library
   }
 
   test_metadata_value_extension_staticField_unnamed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension on Object {
   @foo
   static const foo = 0;
@@ -7112,7 +7149,7 @@ extension E on int {
   static const x = 0;
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
 @foo.E.x
 class C {}
@@ -7147,7 +7184,7 @@ library
   }
 
   test_unresolved_annotation_instanceCreation_argument_super() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(_);
 }
@@ -7201,7 +7238,7 @@ library
   }
 
   test_unresolved_annotation_instanceCreation_argument_this() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   const A(_);
 }
@@ -7255,7 +7292,9 @@ library
   }
 
   test_unresolved_annotation_namedConstructorCall_noClass() async {
-    var library = await buildLibrary('@foo.bar() class C {}');
+    var library = await buildLibrary(r'''
+@foo.bar() class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7281,7 +7320,9 @@ library
   }
 
   test_unresolved_annotation_namedConstructorCall_noConstructor() async {
-    var library = await buildLibrary('@String.foo() class C {}');
+    var library = await buildLibrary(r'''
+@String.foo() class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7307,7 +7348,9 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_badPrefix() async {
-    var library = await buildLibrary('@foo.bar class C {}');
+    var library = await buildLibrary(r'''
+@foo.bar class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7333,9 +7376,9 @@ library
   }
 
   test_unresolved_annotation_prefixedIdentifier_noDeclaration() async {
-    var library = await buildLibrary(
-      'import "dart:async" as foo; @foo.bar class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async" as foo; @foo.bar class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7366,7 +7409,9 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_badPrefix() async {
-    var library = await buildLibrary('@foo.bar.baz() class C {}');
+    var library = await buildLibrary(r'''
+@foo.bar.baz() class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7392,9 +7437,9 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noClass() async {
-    var library = await buildLibrary(
-      'import "dart:async" as foo; @foo.bar.baz() class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async" as foo; @foo.bar.baz() class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7425,9 +7470,9 @@ library
   }
 
   test_unresolved_annotation_prefixedNamedConstructorCall_noConstructor() async {
-    var library = await buildLibrary(
-      'import "dart:async" as foo; @foo.Future.bar() class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async" as foo; @foo.Future.bar() class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7458,7 +7503,9 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_badPrefix() async {
-    var library = await buildLibrary('@foo.bar() class C {}');
+    var library = await buildLibrary(r'''
+@foo.bar() class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7484,9 +7531,9 @@ library
   }
 
   test_unresolved_annotation_prefixedUnnamedConstructorCall_noClass() async {
-    var library = await buildLibrary(
-      'import "dart:async" as foo; @foo.bar() class C {}',
-    );
+    var library = await buildLibrary(r'''
+import "dart:async" as foo; @foo.bar() class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7517,7 +7564,9 @@ library
   }
 
   test_unresolved_annotation_simpleIdentifier() async {
-    var library = await buildLibrary('@foo class C {}');
+    var library = await buildLibrary(r'''
+@foo class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7547,7 +7596,7 @@ library
 
     newFile('$testPackageLibPath/a.dart', 'const v = 0;');
     newFile('$testPackageLibPath/b.dart', 'const v = 0;');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 import 'b.dart';
 
@@ -7582,7 +7631,9 @@ library
   }
 
   test_unresolved_annotation_unnamedConstructorCall_noClass() async {
-    var library = await buildLibrary('@foo() class C {}');
+    var library = await buildLibrary(r'''
+@foo() class C {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

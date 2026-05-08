@@ -696,7 +696,7 @@ library
   }
 
   test_field_inferredType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   var x = 0;
 }
@@ -755,10 +755,11 @@ library
   }
 
   test_field_inferredType_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   final x = 0;
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2941,7 +2942,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_false() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M<T> {
   void foo() {}
 }
@@ -2980,7 +2981,7 @@ library
   }
 
   test_method_ofGeneric_refEnclosingTypeParameter_true() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M<T> {
   void foo(T _) {}
 }
@@ -4831,7 +4832,7 @@ library
   }
 
   test_mixin_lazy_all_fields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4842,7 +4843,7 @@ mixin M {
   }
 
   test_mixin_lazy_all_getters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4853,7 +4854,7 @@ mixin M {
   }
 
   test_mixin_lazy_all_methods() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   void foo() {}
 }
@@ -4864,7 +4865,7 @@ mixin M {
   }
 
   test_mixin_lazy_all_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4875,7 +4876,7 @@ mixin M {
   }
 
   test_mixin_lazy_byReference_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4887,7 +4888,7 @@ mixin M {
   }
 
   test_mixin_lazy_byReference_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -4899,7 +4900,7 @@ mixin M {
   }
 
   test_mixin_lazy_byReference_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   void foo() {}
 }
@@ -4911,7 +4912,7 @@ mixin M {
   }
 
   test_mixin_lazy_byReference_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 mixin M {
   int foo = 0;
 }
@@ -5941,7 +5942,9 @@ library
   }
 
   test_mixin_typeParameters_variance_contravariant() async {
-    var library = await buildLibrary('mixin M<in T> {}');
+    var library = await buildLibrary(r'''
+mixin M<in T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5967,7 +5970,9 @@ library
   }
 
   test_mixin_typeParameters_variance_covariant() async {
-    var library = await buildLibrary('mixin M<out T> {}');
+    var library = await buildLibrary(r'''
+mixin M<out T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5993,7 +5998,9 @@ library
   }
 
   test_mixin_typeParameters_variance_invariant() async {
-    var library = await buildLibrary('mixin M<inout T> {}');
+    var library = await buildLibrary(r'''
+mixin M<inout T> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6019,7 +6026,9 @@ library
   }
 
   test_mixin_typeParameters_variance_multiple() async {
-    var library = await buildLibrary('mixin M<inout T, in U, out V> {}');
+    var library = await buildLibrary(r'''
+mixin M<inout T, in U, out V> {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

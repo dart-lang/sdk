@@ -17,7 +17,7 @@ main() {
 
 abstract class RecordTypeElementTest extends ElementsBaseTest {
   test_recordType_class_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   final (int, String) x;
 }
@@ -65,7 +65,7 @@ library
   }
 
   test_recordType_class_field_fromLiteral() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   final x = (0, true);
 }
@@ -113,7 +113,7 @@ library
   }
 
   test_recordType_class_method_formalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   void foo((int, String) a) {}
 }
@@ -158,7 +158,7 @@ library
   }
 
   test_recordType_class_method_returnType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   (int, String) foo() {}
 }
@@ -196,7 +196,7 @@ library
   }
 
   test_recordType_class_typeParameter_bound() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T extends (int, String)> {}
 ''');
     checkElementText(library, r'''
@@ -231,7 +231,7 @@ library
   }
 
   test_recordType_extension_onType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension IntStringExtension on (int, String) {}
 ''');
     checkElementText(library, r'''
@@ -253,7 +253,7 @@ library
   }
 
   test_recordType_functionType_formalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f(void Function((int, String) a) b) {}
 ''');
     checkElementText(library, r'''
@@ -281,7 +281,7 @@ library
   }
 
   test_recordType_functionType_returnType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f((int, String) Function() a) {}
 ''');
     checkElementText(library, r'''
@@ -309,7 +309,7 @@ library
   }
 
   test_recordType_topFunction_formalParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 void f((int, String) a) {}
 ''');
     checkElementText(library, r'''
@@ -337,7 +337,7 @@ library
   }
 
   test_recordType_topFunction_returnType_empty() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 () f() {}
 ''');
     checkElementText(library, r'''
@@ -358,7 +358,7 @@ library
   }
 
   test_recordType_topFunction_returnType_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 (int, T) f<T>() {}
 ''');
     checkElementText(library, r'''
@@ -385,7 +385,7 @@ library
   }
 
   test_recordType_topFunction_returnType_mixed() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 (int, String, {bool c}) f() {}
 ''');
     checkElementText(library, r'''
@@ -406,7 +406,7 @@ library
   }
 
   test_recordType_topFunction_returnType_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 ({int a, String b}) f() {}
 ''');
     checkElementText(library, r'''
@@ -427,7 +427,7 @@ library
   }
 
   test_recordType_topFunction_returnType_nested() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 ((int, String), (bool, double)) f() {}
 ''');
     checkElementText(library, r'''
@@ -448,7 +448,7 @@ library
   }
 
   test_recordType_topFunction_returnType_nullable() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 (int, String)? f() {}
 ''');
     checkElementText(library, r'''
@@ -469,7 +469,7 @@ library
   }
 
   test_recordType_topFunction_returnType_positional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 (int, String) f() {}
 ''');
     checkElementText(library, r'''
@@ -490,7 +490,7 @@ library
   }
 
   test_recordType_topFunction_returnType_positional_one() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 (int,) f() {}
 ''');
     checkElementText(library, r'''
@@ -511,7 +511,7 @@ library
   }
 
   test_recordType_topVariable() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final (int, String) x;
 ''');
     checkElementText(library, r'''
@@ -542,7 +542,7 @@ library
   }
 
   test_recordType_topVariable_fromLiteral() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final x = (0, true);
 ''');
     checkElementText(library, r'''

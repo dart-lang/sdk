@@ -19,7 +19,9 @@ main() {
 abstract class LibraryExportElementTest extends ElementsBaseTest {
   test_export_class() async {
     newFile('$testPackageLibPath/a.dart', 'class C {}');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -42,7 +44,9 @@ class C = _D with _E;
 class _D {}
 class _E {}
 ''');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -188,7 +192,9 @@ library
 
   test_export_function() async {
     newFile('$testPackageLibPath/a.dart', 'f() {}');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -207,7 +213,9 @@ library
 
   test_export_getter() async {
     newFile('$testPackageLibPath/a.dart', 'get f() => null;');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -339,7 +347,9 @@ library
 
   test_export_setter() async {
     newFile('$testPackageLibPath/a.dart', 'void set f(value) {}');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -391,7 +401,9 @@ library
 get f => null;
 void set f(value) {}
 ''');
-    var library = await buildLibrary('export "a.dart" show f;');
+    var library = await buildLibrary(r'''
+export "a.dart" show f;
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -414,7 +426,9 @@ library
 
   test_export_typedef() async {
     newFile('$testPackageLibPath/a.dart', 'typedef F();');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -432,7 +446,7 @@ library
   }
 
   test_export_uri() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 export 'foo.dart';
 ''');
 
@@ -449,7 +463,9 @@ library
 
   test_export_variable() async {
     newFile('$testPackageLibPath/a.dart', 'var x;');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -470,7 +486,9 @@ library
 
   test_export_variable_const() async {
     newFile('$testPackageLibPath/a.dart', 'const x = 0;');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -489,7 +507,9 @@ library
 
   test_export_variable_final() async {
     newFile('$testPackageLibPath/a.dart', 'final x = 0;');
-    var library = await buildLibrary('export "a.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -656,7 +676,9 @@ library
   test_exports() async {
     newFile('$testPackageLibPath/a.dart', 'library a;');
     newFile('$testPackageLibPath/b.dart', 'library b;');
-    var library = await buildLibrary('export "a.dart"; export "b.dart";');
+    var library = await buildLibrary(r'''
+export "a.dart"; export "b.dart";
+''');
     configuration.withExportScope = true;
     checkElementText(library, r'''
 library
@@ -1507,7 +1529,9 @@ library
   }
 
   test_unresolved_export() async {
-    var library = await buildLibrary("export 'foo.dart';");
+    var library = await buildLibrary(r'''
+export 'foo.dart';
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

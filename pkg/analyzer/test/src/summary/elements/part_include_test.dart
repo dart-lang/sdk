@@ -19,9 +19,9 @@ abstract class PartIncludeElementTest extends ElementsBaseTest {
   test_library_parts() async {
     newFile('$testPackageLibPath/a.dart', 'part of my.lib;');
     newFile('$testPackageLibPath/b.dart', 'part of my.lib;');
-    var library = await buildLibrary(
-      'library my.lib; part "a.dart"; part "b.dart";',
-    );
+    var library = await buildLibrary(r'''
+library my.lib; part "a.dart"; part "b.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -85,7 +85,7 @@ part of 'b.dart';
 class B12 {}
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 part 'b.dart';
 class Z {}
@@ -490,7 +490,7 @@ part of 'b.dart';
 class B12 {}
 ''');
 
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 part 'a.dart';
 part 'b.dart';
 class Z {}

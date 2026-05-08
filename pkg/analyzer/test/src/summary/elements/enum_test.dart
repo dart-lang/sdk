@@ -1125,7 +1125,7 @@ library
   }
 
   test_constant_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   /**
    * aaa
@@ -1133,7 +1133,8 @@ enum E {
   a,
   /// bbb
   b
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1258,7 +1259,7 @@ library
   }
 
   test_constant_documented_withMetadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   /**
    * aaa
@@ -1604,7 +1605,9 @@ library
   }
 
   test_constant_metadata() async {
-    var library = await buildLibrary('const a = 42; enum E { @a v }');
+    var library = await buildLibrary(r'''
+const a = 42; enum E { @a v }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1733,7 +1736,7 @@ library
   }
 
   test_constant_metadata_instanceCreation() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   final dynamic value;
   const A(this.value);
@@ -2446,7 +2449,7 @@ library
   }
 
   test_constant_underscore() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   _
 }
@@ -3463,7 +3466,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalNamed_simple_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A({final int? foo}) {v(foo: 0)}
 ''');
     checkElementText(library, r'''
@@ -3584,7 +3587,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_optionalPositional_simple_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A([final int? foo]) {v(0)}
 ''');
     checkElementText(library, r'''
@@ -3702,7 +3705,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredNamed_simple_final() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A({required final int foo}) {v(foo: 0)}
 ''');
     checkElementText(library, r'''
@@ -4123,7 +4126,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_simple_var() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A(var int foo) {v(0)}
 ''');
     checkElementText(library, r'''
@@ -4258,7 +4261,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_type_fromField_inferred() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   int get foo => 0;
 }
@@ -4414,7 +4417,7 @@ library
   }
 
   test_constructor_primary_declaringFormalParameter_requiredPositional_type_typeParameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A<T>(final T foo) {v(0)}
 ''');
     checkElementText(library, r'''
@@ -4540,7 +4543,7 @@ library
   }
 
   test_constructor_primary_formalParameter_field_requiredPositional() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A(this.foo) {
   v(0);
   final int foo;
@@ -4660,7 +4663,7 @@ library
   }
 
   test_constructor_primary_formalParameter_regular_requiredPositional_functionTypedSuffix() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A(int foo()) {v(0)}
 ''');
     checkElementText(library, r'''
@@ -4762,7 +4765,7 @@ library
   }
 
   test_constructor_primary_formalParameter_regular_requiredPositional_simple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A(int foo) {v(0)}
 ''');
     checkElementText(library, r'''
@@ -4864,7 +4867,7 @@ library
   }
 
   test_constructor_primary_named_const() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum const A.named() {v.named()}
 ''');
     checkElementText(library, r'''
@@ -4961,7 +4964,7 @@ library
   }
 
   test_constructor_primary_named_notConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A.named() {v.named()}
 ''');
     checkElementText(library, r'''
@@ -5058,7 +5061,7 @@ library
   }
 
   test_constructor_primary_scopes() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const foo = 0;
 enum E<@foo T>([@foo int x = foo]) {
   v;
@@ -5254,7 +5257,7 @@ library
   }
 
   test_constructor_primary_typeParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A<T extends U, U extends num>(T t, U u) {
   v(0, 0);
 }
@@ -5380,7 +5383,7 @@ library
   }
 
   test_constructor_primary_unnamed_const() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum const A() {v}
 ''');
     checkElementText(library, r'''
@@ -5471,7 +5474,7 @@ library
   }
 
   test_constructor_primary_unnamed_notConst() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum A() {v}
 ''');
     checkElementText(library, r'''
@@ -7531,7 +7534,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_fieldTyped_formalTyped() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   final num x;
@@ -7772,7 +7775,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_multipleMatchingFields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   final int x;
@@ -7905,7 +7908,7 @@ library
   }
 
   test_constructor_secondary_formalParameter_field_requiredPositional_noMatchingField() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   const E(this.x);
@@ -9798,7 +9801,7 @@ library
   }
 
   test_enum_codeRange() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   aaa, bbb, ccc
 }
@@ -9957,12 +9960,13 @@ library
   }
 
   test_enum_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-enum E { v }''');
+enum E { v }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -10164,7 +10168,7 @@ library
   }
 
   test_enum_error_extendsEnum() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {a, b, c}
 
 class M {}
@@ -11414,7 +11418,7 @@ library
   }
 
   test_enum_interfaces_unresolved() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class X {}
 class Z {}
 enum E implements X, Y, Z {
@@ -11539,7 +11543,7 @@ library
   }
 
   test_enum_lazy_all_constructors() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v.foo();
   const E.foo();
@@ -11551,7 +11555,7 @@ enum E {
   }
 
   test_enum_lazy_all_fields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   final foo = 42;
@@ -11563,7 +11567,7 @@ enum E {
   }
 
   test_enum_lazy_all_getters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   int get foo => 0;
@@ -11575,7 +11579,7 @@ enum E {
   }
 
   test_enum_lazy_all_methods() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   void foo() {}
@@ -11587,7 +11591,7 @@ enum E {
   }
 
   test_enum_lazy_all_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   set foo(int _) {}
@@ -11599,7 +11603,7 @@ enum E {
   }
 
   test_enum_lazy_byReference_constructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v.foo();
   const E.foo();
@@ -11612,7 +11616,7 @@ enum E {
   }
 
   test_enum_lazy_byReference_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   final foo = 42;
@@ -11625,7 +11629,7 @@ enum E {
   }
 
   test_enum_lazy_byReference_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   int get foo => 0;
@@ -11638,7 +11642,7 @@ enum E {
   }
 
   test_enum_lazy_byReference_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E {
   v;
   void foo() {}
@@ -11651,7 +11655,7 @@ enum E {
   }
 
   test_enum_lazy_byReference_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E{
   v;
   set foo(int _) {}
@@ -11664,7 +11668,9 @@ enum E{
   }
 
   test_enum_metadata() async {
-    var library = await buildLibrary('const a = 42; @a enum E { v }');
+    var library = await buildLibrary(r'''
+const a = 42; @a enum E { v }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -12720,7 +12726,7 @@ library
   }
 
   test_enum_typeParameters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<T> {
   v
 }
@@ -13201,7 +13207,7 @@ library
   }
 
   test_enum_typeParameters_bound() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<T extends num, U extends T> {
   v
 }
@@ -13307,7 +13313,7 @@ library
   }
 
   test_enum_typeParameters_cycle_1of1() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<T extends T> {}
 ''');
     checkElementText(library, r'''
@@ -13636,7 +13642,7 @@ library
   }
 
   test_enum_typeParameters_metadata() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const a = 42;
 enum E<@a T> {
   v
@@ -13778,7 +13784,7 @@ library
   }
 
   test_enum_typeParameters_variance_contravariant() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<in T> {}
 ''');
     checkElementText(library, r'''
@@ -13840,7 +13846,7 @@ library
   }
 
   test_enum_typeParameters_variance_covariant() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<out T> {}
 ''');
     checkElementText(library, r'''
@@ -13902,7 +13908,7 @@ library
   }
 
   test_enum_typeParameters_variance_invariant() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<inout T> {}
 ''');
     checkElementText(library, r'''
@@ -13964,7 +13970,7 @@ library
   }
 
   test_enum_typeParameters_variance_multiple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 enum E<inout T, in U, out V> {}
 ''');
     checkElementText(library, r'''
@@ -14034,7 +14040,9 @@ library
   }
 
   test_enum_values() async {
-    var library = await buildLibrary('enum E { v1, v2 }');
+    var library = await buildLibrary(r'''
+enum E { v1, v2 }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -14155,7 +14163,9 @@ library
   }
 
   test_enums() async {
-    var library = await buildLibrary('enum E1 { v1 } enum E2 { v2 }');
+    var library = await buildLibrary(r'''
+enum E1 { v1 } enum E2 { v2 }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

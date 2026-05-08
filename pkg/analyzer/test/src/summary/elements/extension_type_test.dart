@@ -4615,7 +4615,7 @@ library
   }
 
   test_constructor_primary_scopes() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 const foo = 0;
 extension type E<@foo T>([@foo int it = foo]) {
   static const foo = 1;
@@ -7950,7 +7950,7 @@ library
   }
 
   test_extensionType_lazy_all_constructors() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E.foo(int _) {}
 ''');
 
@@ -7959,7 +7959,7 @@ extension type E.foo(int _) {}
   }
 
   test_extensionType_lazy_all_fields() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E(int _) {
   static int foo = 42;
 }
@@ -7970,7 +7970,7 @@ extension type E(int _) {
   }
 
   test_extensionType_lazy_all_getters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E(int _) {
   int get foo => 0;
 }
@@ -7981,7 +7981,7 @@ extension type E(int _) {
   }
 
   test_extensionType_lazy_all_methods() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E(int _) {
   void foo() {}
 }
@@ -7992,7 +7992,7 @@ extension type E(int _) {
   }
 
   test_extensionType_lazy_all_setters() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E(int _) {
   set foo(int _) {}
 }
@@ -8003,7 +8003,7 @@ extension type E(int _) {
   }
 
   test_extensionType_lazy_byReference_constructor() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E.foo(int _) {}
 ''');
     // Test ensureReadMembers() in LinkedElementFactory.
@@ -8013,7 +8013,7 @@ extension type E.foo(int _) {}
   }
 
   test_extensionType_lazy_byReference_field() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E(int _) {
   static int bar = 42;
 }
@@ -8025,7 +8025,7 @@ extension type E(int _) {
   }
 
   test_extensionType_lazy_byReference_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E(int _) {
   int get foo => 0;
 }
@@ -8037,7 +8037,7 @@ extension type E(int _) {
   }
 
   test_extensionType_lazy_byReference_method() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E(int _) {
   void foo() {}
 }
@@ -8049,7 +8049,7 @@ extension type E(int _) {
   }
 
   test_extensionType_lazy_byReference_setter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension type E(int _) {
   set foo(int _) {}
 }

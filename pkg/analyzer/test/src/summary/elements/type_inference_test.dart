@@ -55,7 +55,7 @@ library
       '$testPackageLibPath/a.dart',
       'part of lib; final f = (int i) => i.toDouble();',
     );
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 library lib;
 part "a.dart";
 ''');
@@ -98,7 +98,7 @@ library
   }
 
   test_expr_invalid_typeParameter_asPrefix() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   final f = T.k;
 }
@@ -152,7 +152,7 @@ library
   }
 
   test_infer_generic_typedef_complex() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T> = D<T,U> Function<U>();
 class C<V> {
   const C(F<V> f);
@@ -295,7 +295,7 @@ library
   }
 
   test_infer_generic_typedef_simple() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = D<T> Function<T>();
 class C {
   const C(F f);
@@ -418,7 +418,7 @@ library
   }
 
   test_infer_instanceCreation_fromArguments() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
 
 class B extends A {}
@@ -532,7 +532,7 @@ library
   }
 
   test_infer_property_set() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   B b;
 }
@@ -746,7 +746,7 @@ library
 
   test_inference_issue_32394() async {
     // Test the type inference involved in dartbug.com/32394
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 var x = y.map((a) => a.toString());
 var y = [3];
 var z = x.toList();
@@ -854,7 +854,7 @@ library
   }
 
   test_inference_map() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {
   int p;
 }
@@ -987,7 +987,7 @@ library
   test_inferred_function_type_for_variable_in_generic_function() async {
     // In the code below, `x` has an inferred type of `() => int`, with 2
     // (unused) type parameters from the enclosing top level function.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 f<U, V>() {
   var x = () => 0;
 }
@@ -1022,7 +1022,7 @@ library
   test_inferred_function_type_in_generic_class_constructor() async {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<U, V> {
   final x;
   C() : x = (() => () => 0);
@@ -1084,7 +1084,7 @@ library
   test_inferred_function_type_in_generic_class_getter() async {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<U, V> {
   get x => () => () => 0;
 }
@@ -1145,7 +1145,7 @@ library
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 3 (unused) type parameters from the enclosing class
     // and method.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   f<U, V>() {
     print(() => () => 0);
@@ -1203,7 +1203,7 @@ library
   test_inferred_function_type_in_generic_class_setter() async {
     // In the code below, `() => () => 0` has an inferred return type of
     // `() => int`, with 2 (unused) type parameters from the enclosing class.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<U, V> {
   void set x(value) {
     print(() => () => 0);
@@ -1272,7 +1272,7 @@ library
   test_inferred_function_type_in_generic_closure() async {
     // In the code below, `<U, V>() => () => 0` has an inferred return type of
     // `() => int`, with 3 (unused) type parameters.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 f<T>() {
   print(/*<U, V>*/() => () => 0);
 }
@@ -1303,7 +1303,7 @@ library
   test_inferred_generic_function_type_in_generic_closure() async {
     // In the code below, `<U, V>() => <W, X, Y, Z>() => 0` has an inferred
     // return type of `() => int`, with 7 (unused) type parameters.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 f<T>() {
   print(/*<U, V>*/() => /*<W, X, Y, Z>*/() => 0);
 }
@@ -1424,7 +1424,7 @@ library
   }
 
   test_inferred_type_functionExpressionInvocation_oppositeOrder() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   static final foo = bar(1.2);
   static final bar = baz();
@@ -1872,11 +1872,9 @@ library
   }
 
   test_inferred_type_is_typedef() async {
-    var library = await buildLibrary(
-      'typedef int F(String s);'
-      ' class C extends D { var v; }'
-      ' abstract class D { F get v; }',
-    );
+    var library = await buildLibrary(r'''
+typedef int F(String s); class C extends D { var v; } abstract class D { F get v; }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1984,7 +1982,7 @@ library
 
   test_inferred_type_nullability_class_ref_none() async {
     newFile('$testPackageLibPath/a.dart', 'int f() => 0;');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 var x = f();
 ''');
@@ -2036,7 +2034,7 @@ library
 
   test_inferred_type_nullability_class_ref_question() async {
     newFile('$testPackageLibPath/a.dart', 'int? f() => 0;');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 var x = f();
 ''');
@@ -2088,7 +2086,7 @@ library
 
   test_inferred_type_nullability_function_type_none() async {
     newFile('$testPackageLibPath/a.dart', 'void Function() f() => () {};');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 var x = f();
 ''');
@@ -2140,7 +2138,7 @@ library
 
   test_inferred_type_nullability_function_type_question() async {
     newFile('$testPackageLibPath/a.dart', 'void Function()? f() => () {};');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 var x = f();
 ''');
@@ -2191,7 +2189,7 @@ library
   }
 
   test_inferred_type_refers_to_bound_type_param() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> extends D<int, T> {
   var v;
 }
@@ -2310,7 +2308,7 @@ library
   }
 
   test_inferred_type_refers_to_function_typed_param_of_typedef() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F(int g(String s));
 h(F f) => null;
 var v = h((y) {});
@@ -2384,13 +2382,14 @@ library
   }
 
   test_inferred_type_refers_to_function_typed_parameter_type_generic_class() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T, U> extends D<U, int> {
   void f(int x, g) {}
 }
 abstract class D<V, W> {
   void f(int x, W g(V s));
-}''');
+}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2509,7 +2508,7 @@ abstract class E {
   void f(int x, int g(String s));
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 class C extends D {
   void f(int x, g) {}
@@ -2564,10 +2563,9 @@ library
   }
 
   test_inferred_type_refers_to_method_function_typed_parameter_type() async {
-    var library = await buildLibrary(
-      'class C extends D { void f(int x, g) {} }'
-      ' abstract class D { void f(int x, int g(String s)); }',
-    );
+    var library = await buildLibrary(r'''
+class C extends D { void f(int x, g) {} } abstract class D { void f(int x, int g(String s)); }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2655,7 +2653,7 @@ library
   }
 
   test_inferred_type_refers_to_nested_function_typed_param() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 f(void g(int x, void h())) => null;
 var v = f((x, y) {});
 ''');
@@ -2731,7 +2729,7 @@ library
   }
 
   test_inferred_type_refers_to_nested_function_typed_param_named() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 f({void g(int x, void h())}) => null;
 var v = f(g: (x, y) {});
 ''');
@@ -2807,10 +2805,9 @@ library
   }
 
   test_inferred_type_refers_to_setter_function_typed_parameter_type() async {
-    var library = await buildLibrary(
-      'class C extends D { void set f(g) {} }'
-      ' abstract class D { void set f(int g(String s)); }',
-    );
+    var library = await buildLibrary(r'''
+class C extends D { void set f(g) {} } abstract class D { void set f(int g(String s)); }
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -3086,7 +3083,7 @@ class A {
   A.named();
 }
 ''');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'foo.dart' as foo;
 var a1 = foo.A();
 var a2 = foo.A.named();
@@ -3172,7 +3169,7 @@ library
   test_inferredType_usesSyntheticFunctionType_functionTypedParam() async {
     // AnalysisContext does not set the enclosing element for the synthetic
     // FunctionElement created for the [f, g] type argument.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 int f(int x(String y)) => null;
 String g(int x(String y)) => null;
 var v = [f, g];
@@ -3264,7 +3261,7 @@ library
   }
 
   test_inheritance_errors() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 abstract class A {
   int m();
 }
@@ -3524,7 +3521,7 @@ library
   }
 
   test_type_inference_assignmentExpression_references_onTopLevelVariable() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 var a = () {
   b += 0;
   return 0;
@@ -3606,7 +3603,7 @@ library
 
   test_type_inference_based_on_loadLibrary() async {
     newFile('$testPackageLibPath/a.dart', '');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart' deferred as a;
 var x = a.loadLibrary;
 ''');
@@ -3660,7 +3657,7 @@ library
   }
 
   test_type_inference_closure_with_function_typed_parameter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 var x = (int f(String x)) => 0;
 ''');
     checkElementText(library, r'''
@@ -3708,7 +3705,7 @@ library
   }
 
   test_type_inference_closure_with_function_typed_parameter_new() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 var x = (int Function(String) f) => 0;
 ''');
     checkElementText(library, r'''
@@ -3758,7 +3755,7 @@ library
   test_type_inference_depends_on_exported_variable() async {
     newFile('$testPackageLibPath/a.dart', 'export "b.dart";');
     newFile('$testPackageLibPath/b.dart', 'var x = 0;');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 var y = x;
 ''');
@@ -3809,7 +3806,7 @@ library
   }
 
   test_type_inference_field_cycle() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   static final x = y + 1;
   static final y = x + 1;
@@ -3876,7 +3873,7 @@ library
   }
 
   test_type_inference_field_cycle_chain() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   static final a = b.c;
   static final b = A();
@@ -3958,7 +3955,7 @@ library
   }
 
   test_type_inference_field_depends_onFieldFormal() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   T value;
 
@@ -4092,7 +4089,7 @@ library
   }
 
   test_type_inference_field_depends_onFieldFormal_withMixinApp() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   T value;
 
@@ -4283,7 +4280,7 @@ library
   }
 
   test_type_inference_fieldFormal_depends_onField() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A<T> {
   var f = 0;
   A(this.f);
@@ -4364,7 +4361,7 @@ library
   }
 
   test_type_inference_instanceCreation_notGeneric() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {
   A(_);
 }
@@ -4442,7 +4439,7 @@ library
   test_type_inference_multiplyDefinedElement() async {
     newFile('$testPackageLibPath/a.dart', 'class C {}');
     newFile('$testPackageLibPath/b.dart', 'class C {}');
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 import 'a.dart';
 import 'b.dart';
 var v = C;
@@ -4495,7 +4492,7 @@ library
   }
 
   test_type_inference_nested_function() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 var x = (t) => (u) => t + u;
 ''');
     checkElementText(library, r'''
@@ -4543,7 +4540,7 @@ library
   }
 
   test_type_inference_nested_function_with_parameter_types() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 var x = (int t) => (int u) => t + u;
 ''');
     checkElementText(library, r'''
@@ -4591,7 +4588,7 @@ library
   }
 
   test_type_inference_of_closure_with_default_value() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 var x = ([y: 0]) => y;
 ''');
     checkElementText(library, r'''
@@ -4640,7 +4637,7 @@ library
 
   test_type_inference_topVariable_cycle_afterChain() async {
     // Note that `a` depends on `b`, but does not belong to the cycle.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final a = b;
 final b = c;
 final c = b;
@@ -4706,7 +4703,7 @@ library
 
   test_type_inference_topVariable_cycle_beforeChain() async {
     // Note that `c` depends on `b`, but does not belong to the cycle.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final a = b;
 final b = a;
 final c = b;
@@ -4773,7 +4770,7 @@ library
   test_type_inference_topVariable_cycle_inCycle() async {
     // `b` and `c` form a cycle.
     // `a` and `d` form a different cycle, even though `a` references `b`.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final a = b + d;
 final b = c;
 final c = b;
@@ -4864,7 +4861,7 @@ library
     // 5. Pop `c`, already inferred (to `dynamic`), return.
     // 6. Continue resolving `b` (it is not done, and not popped yet).
     // 7. Go to `a`, detect cycle `[a, b]`, set `dynamic`, return.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 final a = b;
 final b = c + a;
 final c = b;
@@ -4931,7 +4928,7 @@ library
   }
 
   test_type_inference_topVariable_depends_onFieldFormal() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class A {}
 
 class B extends A {}
@@ -5063,7 +5060,7 @@ library
   }
 
   test_type_inference_using_extension_getter() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 extension on String {
   int get foo => 0;
 }
@@ -5141,7 +5138,7 @@ library
   }
 
   test_type_invalid_topLevelVariableElement_asType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T extends V> {}
 typedef V F(V p);
 V f(V p) {}
@@ -5267,7 +5264,7 @@ library
   }
 
   test_type_invalid_topLevelVariableElement_asTypeArgument() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 var V;
 static List<V> V2;
 ''');
@@ -5345,7 +5342,7 @@ library
   }
 
   test_type_invalid_typeParameter_asPrefix() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   m(T.K p) {}
 }
@@ -5396,7 +5393,7 @@ library
   }
 
   test_type_invalid_unresolvedPrefix() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 p.C v;
 ''');
     checkElementText(library, r'''
@@ -5444,7 +5441,9 @@ library
   }
 
   test_type_never() async {
-    var library = await buildLibrary('Never d;');
+    var library = await buildLibrary(r'''
+Never d;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5490,7 +5489,7 @@ library
   }
 
   test_type_param_ref_nullability_none() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   T t;
 }
@@ -5561,7 +5560,7 @@ library
   }
 
   test_type_param_ref_nullability_question() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C<T> {
   T? t;
 }
@@ -5632,13 +5631,14 @@ library
   }
 
   test_type_reference_lib_to_lib() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 class C {}
 enum E { v }
 typedef F();
 C c;
 E e;
-F f;''');
+F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -5849,9 +5849,9 @@ library
       '$testPackageLibPath/a.dart',
       'part of l; class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary(
-      'library l; part "a.dart"; C c; E e; F f;',
-    );
+    var library = await buildLibrary(r'''
+library l; part "a.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6070,9 +6070,9 @@ library
 
   test_type_reference_part_to_lib() async {
     newFile('$testPackageLibPath/a.dart', 'part of l; C c; E e; F f;');
-    var library = await buildLibrary(
-      'library l; part "a.dart"; class C {} enum E { v } typedef F();',
-    );
+    var library = await buildLibrary(r'''
+library l; part "a.dart"; class C {} enum E { v } typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6295,9 +6295,9 @@ library
       'part of l; class C {} enum E { v } typedef F();',
     );
     newFile('$testPackageLibPath/b.dart', 'part of l; C c; E e; F f;');
-    var library = await buildLibrary(
-      'library l; part "a.dart"; part "b.dart";',
-    );
+    var library = await buildLibrary(r'''
+library l; part "a.dart"; part "b.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6528,7 +6528,9 @@ library
       '$testPackageLibPath/a.dart',
       'part of l; class C {} enum E { v } typedef F(); C c; E e; F f;',
     );
-    var library = await buildLibrary('library l; part "a.dart";');
+    var library = await buildLibrary(r'''
+library l; part "a.dart";
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6746,7 +6748,9 @@ library
   }
 
   test_type_reference_to_class() async {
-    var library = await buildLibrary('class C {} C c;');
+    var library = await buildLibrary(r'''
+class C {} C c;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6807,7 +6811,9 @@ library
   }
 
   test_type_reference_to_class_with_type_arguments() async {
-    var library = await buildLibrary('class C<T, U> {} C<int, String> c;');
+    var library = await buildLibrary(r'''
+class C<T, U> {} C<int, String> c;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6878,7 +6884,9 @@ library
   }
 
   test_type_reference_to_class_with_type_arguments_implicit() async {
-    var library = await buildLibrary('class C<T, U> {} C c;');
+    var library = await buildLibrary(r'''
+class C<T, U> {} C c;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -6949,7 +6957,9 @@ library
   }
 
   test_type_reference_to_enum() async {
-    var library = await buildLibrary('enum E { v } E e;');
+    var library = await buildLibrary(r'''
+enum E { v } E e;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7076,7 +7086,9 @@ library
       '$testPackageLibPath/a.dart',
       'class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary(r'''
+import "a.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7190,7 +7202,9 @@ library
       '$testPackageLibPath/b.dart',
       'class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary(r'''
+import "a.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7305,7 +7319,9 @@ library
       '$testPackageLibPath/c.dart',
       'class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary(r'''
+import "a.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7420,7 +7436,9 @@ library
       '$testPackageLibPath/a/c/c.dart',
       'class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
+    var library = await buildLibrary(r'''
+import "a/a.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7534,7 +7552,9 @@ library
       '$testPackageLibPath/a/b/b.dart',
       'class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary('import "a/a.dart"; C c; E e; F f;');
+    var library = await buildLibrary(r'''
+import "a/a.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7648,7 +7668,9 @@ library
       '$testPackageLibPath/b.dart',
       'part of l; class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary(r'''
+import "a.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7763,7 +7785,9 @@ library
     );
     newFile('$testPackageLibPath/p1.dart', 'part of l; class C1 {}');
     newFile('$testPackageLibPath/p2.dart', 'part of l; class C2 {}');
-    var library = await buildLibrary('import "a.dart"; C1 c1; C2 c2;');
+    var library = await buildLibrary(r'''
+import "a.dart"; C1 c1; C2 c2;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7845,7 +7869,9 @@ library
       '$testPackageLibPath/a/c.dart',
       'part of l; class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary('import "a/b.dart"; C c; E e; F f;');
+    var library = await buildLibrary(r'''
+import "a/b.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -7958,7 +7984,9 @@ library
       '$testPackageLibPath/a.dart',
       'class C {} enum E { v } typedef F();',
     );
-    var library = await buildLibrary('import "a.dart"; C c; E e; F f;');
+    var library = await buildLibrary(r'''
+import "a.dart"; C c; E e; F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8067,7 +8095,9 @@ library
   }
 
   test_type_reference_to_typedef() async {
-    var library = await buildLibrary('typedef F(); F f;');
+    var library = await buildLibrary(r'''
+typedef F(); F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8124,9 +8154,9 @@ library
   }
 
   test_type_reference_to_typedef_with_type_arguments() async {
-    var library = await buildLibrary(
-      'typedef U F<T, U>(T t); F<int, String> f;',
-    );
+    var library = await buildLibrary(r'''
+typedef U F<T, U>(T t); F<int, String> f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -8202,7 +8232,9 @@ library
   }
 
   test_type_reference_to_typedef_with_type_arguments_implicit() async {
-    var library = await buildLibrary('typedef U F<T, U>(T t); F f;');
+    var library = await buildLibrary(r'''
+typedef U F<T, U>(T t); F f;
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>

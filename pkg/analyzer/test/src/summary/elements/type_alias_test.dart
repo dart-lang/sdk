@@ -17,7 +17,7 @@ main() {
 
 abstract class TypeAliasElementTest extends ElementsBaseTest {
   test_codeRange_functionTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef Raw();
 
 /// Comment 1.
@@ -187,7 +187,7 @@ library
   }
 
   test_codeRange_genericTypeAlias() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef Raw = Function();
 
 /// Comment 1.
@@ -792,7 +792,7 @@ library
   }
 
   test_genericTypeAlias_recursive() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<X extends F> = Function(F);
 ''');
     checkElementText(library, r'''
@@ -820,7 +820,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_functionType_returnType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = G Function();
 typedef G = F Function();
 ''');
@@ -848,7 +848,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_functionType_returnType_viaInterfaceType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = List<F> Function();
 ''');
     checkElementText(library, r'''
@@ -869,7 +869,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T extends F> = void Function();
 ''');
     checkElementText(library, r'''
@@ -897,7 +897,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_simple_no_bounds() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T> = void Function();
 ''');
     checkElementText(library, r'''
@@ -924,7 +924,7 @@ library
   }
 
   test_new_typedef_function_notSimplyBounded_simple_non_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function();
 ''');
     checkElementText(library, r'''
@@ -945,7 +945,7 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F<T extends F> = List<int>;
 ''');
     checkElementText(library, r'''
@@ -973,7 +973,7 @@ library
   }
 
   test_new_typedef_nonFunction_notSimplyBounded_viaInterfaceType() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = List<F>;
 ''');
     checkElementText(library, r'''
@@ -1709,9 +1709,9 @@ library
   }
 
   test_typedef_function_generic() async {
-    var library = await buildLibrary(
-      'typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);',
-    );
+    var library = await buildLibrary(r'''
+typedef F<T> = int Function<S>(List<S> list, num Function<A>(A), T);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1827,7 +1827,7 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_param_type_name_included() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function(C c);
 class C<T extends C<T>> {}
 ''');
@@ -1873,7 +1873,7 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_param_type_name_omitted() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = void Function(C);
 class C<T extends C<T>> {}
 ''');
@@ -1919,7 +1919,7 @@ library
   test_typedef_function_notSimplyBounded_dependency_via_return_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef F = C Function();
 class C<T extends C<T>> {}
 ''');
@@ -1963,9 +1963,9 @@ library
   }
 
   test_typedef_function_typeParameters_f_bound_simple() async {
-    var library = await buildLibrary(
-      'typedef F<T extends U, U> = U Function(T t);',
-    );
+    var library = await buildLibrary(r'''
+typedef F<T extends U, U> = U Function(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -1995,12 +1995,13 @@ library
   }
 
   test_typedef_legacy_documented() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 // Extra comment so doc comment offset != 0
 /**
  * Docs
  */
-typedef F();''');
+typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2023,7 +2024,7 @@ library
   test_typedef_legacy_notSimplyBounded_dependency_via_param_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F(C c);
 class C<T extends C<T>> {}
 ''');
@@ -2069,7 +2070,7 @@ library
   test_typedef_legacy_notSimplyBounded_dependency_via_return_type() async {
     // F is considered "not simply bounded" because it expands to a type that
     // refers to C, which is not simply bounded.
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef C F();
 class C<T extends C<T>> {}
 ''');
@@ -2113,7 +2114,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_self() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F<T extends F>();
 ''');
     checkElementText(library, r'''
@@ -2141,7 +2142,7 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_simple_because_non_generic() async {
-    var library = await buildLibrary('''
+    var library = await buildLibrary(r'''
 typedef void F();
 ''');
     checkElementText(library, r'''
@@ -2162,7 +2163,9 @@ library
   }
 
   test_typedef_legacy_notSimplyBounded_simple_no_bounds() async {
-    var library = await buildLibrary('typedef void F<T>();');
+    var library = await buildLibrary(r'''
+typedef void F<T>();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2208,7 +2211,9 @@ library
   }
 
   test_typedef_legacy_parameter_parameters() async {
-    var library = await buildLibrary('typedef F(g(x, y));');
+    var library = await buildLibrary(r'''
+typedef F(g(x, y));
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2227,7 +2232,9 @@ library
   }
 
   test_typedef_legacy_parameter_parameters_in_generic_class() async {
-    var library = await buildLibrary('typedef F<A, B>(A g(B x));');
+    var library = await buildLibrary(r'''
+typedef F<A, B>(A g(B x));
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2256,7 +2263,9 @@ library
   }
 
   test_typedef_legacy_parameter_return_type() async {
-    var library = await buildLibrary('typedef F(int g());');
+    var library = await buildLibrary(r'''
+typedef F(int g());
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2275,7 +2284,9 @@ library
   }
 
   test_typedef_legacy_parameter_type() async {
-    var library = await buildLibrary('typedef F(int i);');
+    var library = await buildLibrary(r'''
+typedef F(int i);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2294,7 +2305,9 @@ library
   }
 
   test_typedef_legacy_parameter_type_generic() async {
-    var library = await buildLibrary('typedef F<T>(T t);');
+    var library = await buildLibrary(r'''
+typedef F<T>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2319,7 +2332,9 @@ library
   }
 
   test_typedef_legacy_parameters() async {
-    var library = await buildLibrary('typedef F(x, y);');
+    var library = await buildLibrary(r'''
+typedef F(x, y);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2338,7 +2353,9 @@ library
   }
 
   test_typedef_legacy_parameters_named() async {
-    var library = await buildLibrary('typedef F({y, z, x});');
+    var library = await buildLibrary(r'''
+typedef F({y, z, x});
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2357,7 +2374,9 @@ library
   }
 
   test_typedef_legacy_return_type() async {
-    var library = await buildLibrary('typedef int F();');
+    var library = await buildLibrary(r'''
+typedef int F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2376,7 +2395,9 @@ library
   }
 
   test_typedef_legacy_return_type_generic() async {
-    var library = await buildLibrary('typedef T F<T>();');
+    var library = await buildLibrary(r'''
+typedef T F<T>();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2401,7 +2422,9 @@ library
   }
 
   test_typedef_legacy_return_type_implicit() async {
-    var library = await buildLibrary('typedef F();');
+    var library = await buildLibrary(r'''
+typedef F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2420,7 +2443,9 @@ library
   }
 
   test_typedef_legacy_return_type_void() async {
-    var library = await buildLibrary('typedef void F();');
+    var library = await buildLibrary(r'''
+typedef void F();
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2439,7 +2464,9 @@ library
   }
 
   test_typedef_legacy_typeParameters() async {
-    var library = await buildLibrary('typedef U F<T, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2468,9 +2495,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound() async {
-    var library = await buildLibrary(
-      'typedef U F<T extends Object, U extends D>(T t); class D {}',
-    );
+    var library = await buildLibrary(r'''
+typedef U F<T extends Object, U extends D>(T t); class D {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2516,7 +2543,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound_recursive() async {
-    var library = await buildLibrary('typedef void F<T extends F>();');
+    var library = await buildLibrary(r'''
+typedef void F<T extends F>();
+''');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
 library
@@ -2543,7 +2572,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_bound_recursive2() async {
-    var library = await buildLibrary('typedef void F<T extends List<F>>();');
+    var library = await buildLibrary(r'''
+typedef void F<T extends List<F>>();
+''');
     // Typedefs cannot reference themselves.
     checkElementText(library, r'''
 library
@@ -2570,7 +2601,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_f_bound_complex() async {
-    var library = await buildLibrary('typedef U F<T extends List<U>, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T extends List<U>, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -2600,7 +2633,9 @@ library
   }
 
   test_typedef_legacy_typeParameters_f_bound_simple() async {
-    var library = await buildLibrary('typedef U F<T extends U, U>(T t);');
+    var library = await buildLibrary(r'''
+typedef U F<T extends U, U>(T t);
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
@@ -4724,7 +4759,9 @@ library
   }
 
   test_typedefs() async {
-    var library = await buildLibrary('f() {} g() {}');
+    var library = await buildLibrary(r'''
+f() {} g() {}
+''');
     checkElementText(library, r'''
 library
   reference: <testLibrary>
