@@ -958,7 +958,9 @@ class ResolutionVisitor extends RecursiveAstVisitor<void> {
     var boundNode = node.bound;
     if (boundNode != null) {
       boundNode.accept(this);
-      fragment.element.bound = boundNode.type;
+      if (fragment.previousFragment == null) {
+        fragment.element.bound = boundNode.type;
+      }
     }
   }
 

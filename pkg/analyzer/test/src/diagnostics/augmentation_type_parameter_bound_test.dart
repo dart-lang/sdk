@@ -9,143 +9,287 @@ import '../dart/resolution/context_collection_resolution.dart';
 
 main() {
   defineReflectiveSuite(() {
-    // TODO(scheglov): implement augmentation
-    // defineReflectiveTests(AugmentationTypeParameterBoundTest);
+    defineReflectiveTests(AugmentationTypeParameterBoundTest);
   });
 }
 
 @reflectiveTest
 class AugmentationTypeParameterBoundTest extends PubPackageResolutionTest {
-  test_class_nothing_num() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A<T> {}
-''');
-
+  test_class_method_nothing_num() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
+class A {
+  void foo<T>() {}
+  augment void foo<T extends num>();
+}
+''',
+      [error(diag.augmentationTypeParameterBound, 58, 3)],
+    );
+  }
 
+  test_class_method_num_int() async {
+    await assertErrorsInCode(
+      r'''
+class A {
+  void foo<T extends num>() {}
+  augment void foo<T extends int>();
+}
+''',
+      [error(diag.augmentationTypeParameterBound, 70, 3)],
+    );
+  }
+
+  test_class_method_num_nothing() async {
+    await assertNoErrorsInCode(r'''
+class A {
+  void foo<T extends num>() {}
+  augment void foo<T>();
+}
+''');
+  }
+
+  test_class_nothing_num() async {
+    await assertErrorsInCode(
+      r'''
+class A<T> {}
 augment class A<T extends num> {}
 ''',
-      [error(diag.augmentationTypeParameterBound, 45, 3)],
+      [error(diag.augmentationTypeParameterBound, 40, 3)],
+    );
+  }
+
+  test_class_num_int() async {
+    await assertErrorsInCode(
+      r'''
+class A<T extends num> {}
+augment class A<T extends int> {}
+''',
+      [error(diag.augmentationTypeParameterBound, 52, 3)],
     );
   }
 
   test_class_num_nothing() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
+    await assertNoErrorsInCode(r'''
 class A<T extends num> {}
-''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
 augment class A<T> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 35, 1)],
-    );
+''');
   }
 
   test_class_num_num() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-class A<T extends num> {}
-''');
-
     await assertNoErrorsInCode(r'''
-part of 'a.dart';
-
+class A<T extends num> {}
 augment class A<T extends num> {}
 ''');
   }
 
-  test_class_num_Object() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_class_num_num_viaTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef N = num;
 
 class A<T extends num> {}
+augment class A<T extends N> {}
 ''');
+  }
 
+  test_class_num_num_withImportPrefix() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core';
+import 'dart:core' as core;
+
+class A<T extends num> {}
+augment class A<T extends core.num> {}
+''');
+  }
+
+  test_class_num_Object() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+class A<T extends num> {}
 augment class A<T extends Object> {}
 ''',
-      [error(diag.augmentationTypeParameterBound, 45, 6)],
+      [error(diag.augmentationTypeParameterBound, 52, 6)],
     );
   }
 
   test_enum_nothing_num() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-enum A<T> {v}
-''');
-
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
+enum A<T> {v}
 augment enum A<T extends num> {}
+''',
+      [error(diag.augmentationTypeParameterBound, 39, 3)],
+    );
+  }
+
+  test_enum_num_int() async {
+    await assertErrorsInCode(
+      r'''
+enum A<T extends num> {v}
+augment enum A<T extends int> {}
+''',
+      [error(diag.augmentationTypeParameterBound, 51, 3)],
+    );
+  }
+
+  test_enum_num_nothing() async {
+    await assertNoErrorsInCode(r'''
+enum A<T extends num> {v}
+augment enum A<T> {}
+''');
+  }
+
+  test_enum_num_num() async {
+    await assertNoErrorsInCode(r'''
+enum A<T extends num> {v}
+augment enum A<T extends num> {}
+''');
+  }
+
+  test_extension_nothing_num() async {
+    await assertErrorsInCode(
+      r'''
+extension A<T> on int {}
+augment extension A<T extends num> {}
+''',
+      [error(diag.augmentationTypeParameterBound, 55, 3)],
+    );
+  }
+
+  test_extension_num_int() async {
+    await assertErrorsInCode(
+      r'''
+extension A<T extends num> on int {}
+augment extension A<T extends int> {}
+''',
+      [error(diag.augmentationTypeParameterBound, 67, 3)],
+    );
+  }
+
+  test_extension_num_nothing() async {
+    await assertNoErrorsInCode(r'''
+extension A<T extends num> on int {}
+augment extension A<T> {}
+''');
+  }
+
+  test_extension_num_num() async {
+    await assertNoErrorsInCode(r'''
+extension A<T extends num> on int {}
+augment extension A<T extends num> {}
+''');
+  }
+
+  test_extensionType_nothing_num() async {
+    await assertErrorsInCode(
+      r'''
+extension type A<T>(int it) {}
+augment extension type A<T extends num>(int it) {}
+''',
+      [error(diag.augmentationTypeParameterBound, 66, 3)],
+    );
+  }
+
+  test_extensionType_num_int() async {
+    await assertErrorsInCode(
+      r'''
+extension type A<T extends num>(int it) {}
+augment extension type A<T extends int>(int it) {}
+''',
+      [error(diag.augmentationTypeParameterBound, 78, 3)],
+    );
+  }
+
+  test_extensionType_num_nothing() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T extends num>(int it) {}
+augment extension type A<T>(int it) {}
+''');
+  }
+
+  test_extensionType_num_num() async {
+    await assertNoErrorsInCode(r'''
+extension type A<T extends num>(int it) {}
+augment extension type A<T extends num>(int it) {}
+''');
+  }
+
+  test_mixin_nothing_num() async {
+    await assertErrorsInCode(
+      r'''
+mixin A<T> {}
+augment mixin A<T extends num> {}
+''',
+      [error(diag.augmentationTypeParameterBound, 40, 3)],
+    );
+  }
+
+  test_mixin_num_int() async {
+    await assertErrorsInCode(
+      r'''
+mixin A<T extends num> {}
+augment mixin A<T extends int> {}
+''',
+      [error(diag.augmentationTypeParameterBound, 52, 3)],
+    );
+  }
+
+  test_mixin_num_nothing() async {
+    await assertNoErrorsInCode(r'''
+mixin A<T extends num> {}
+augment mixin A<T> {}
+''');
+  }
+
+  test_mixin_num_num() async {
+    await assertNoErrorsInCode(r'''
+mixin A<T extends num> {}
+augment mixin A<T extends num> {}
+''');
+  }
+
+  test_topLevelFunction_nothing_num() async {
+    await assertErrorsInCode(
+      r'''
+void foo<T>() {}
+augment void foo<T extends num>() {}
 ''',
       [error(diag.augmentationTypeParameterBound, 44, 3)],
     );
   }
 
-  test_extension_nothing_num() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-extension A<T> on int {}
-''');
-
+  test_topLevelFunction_num_int() async {
     await assertErrorsInCode(
       r'''
-part of 'a.dart';
-
-augment extension A<T extends num> {}
+void foo<T extends num>() {}
+augment void foo<T extends int>() {}
 ''',
-      [error(diag.augmentationTypeParameterBound, 49, 3)],
+      [error(diag.augmentationTypeParameterBound, 56, 3)],
     );
   }
 
-  test_extensionType_nothing_num() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
-
-extension type A<T>(int it) {}
+  test_topLevelFunction_num_nothing() async {
+    await assertNoErrorsInCode(r'''
+void foo<T extends num>() {}
+augment void foo<T>() {}
 ''');
-
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
-
-augment extension type A<T extends num>(int it) {}
-''',
-      [error(diag.augmentationTypeParameterBound, 54, 3)],
-    );
   }
 
-  test_mixin_nothing_num() async {
-    newFile('$testPackageLibPath/a.dart', r'''
-part 'test.dart';
+  test_topLevelFunction_num_num_viaTypeAlias() async {
+    await assertNoErrorsInCode(r'''
+typedef N = num;
 
-mixin A<T> {}
+void foo<T extends num>() {}
+augment void foo<T extends N>() {}
 ''');
+  }
 
-    await assertErrorsInCode(
-      r'''
-part of 'a.dart';
+  test_topLevelFunction_num_num_withImportPrefix() async {
+    await assertNoErrorsInCode(r'''
+import 'dart:core';
+import 'dart:core' as core;
 
-augment mixin A<T extends num> {}
-''',
-      [error(diag.augmentationTypeParameterBound, 45, 3)],
-    );
+void foo<T extends num>() {}
+augment void foo<T extends core.num>() {}
+''');
   }
 }

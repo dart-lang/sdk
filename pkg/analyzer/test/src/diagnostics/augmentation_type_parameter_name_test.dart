@@ -15,31 +15,7 @@ main() {
 
 @reflectiveTest
 class AugmentationTypeParameterNameTest extends PubPackageResolutionTest {
-  test_class() async {
-    await assertErrorsInCode(
-      r'''
-class A<T> {}
-augment class A<U> {}
-''',
-      [error(diag.augmentationTypeParameterName, 30, 1)],
-    );
-  }
-
-  test_class_method_differentClassFragment() async {
-    await assertErrorsInCode(
-      r'''
-class A {
-  void foo<T>() {}
-}
-augment class A {
-  augment void foo<U>();
-}
-''',
-      [error(diag.augmentationTypeParameterName, 68, 1)],
-    );
-  }
-
-  test_class_method_sameClassFragment() async {
+  test_class_method_T_U() async {
     await assertErrorsInCode(
       r'''
 class A {
@@ -51,7 +27,30 @@ class A {
     );
   }
 
-  test_enum() async {
+  test_class_T_U() async {
+    await assertErrorsInCode(
+      r'''
+class A<T> {}
+augment class A<U> {}
+''',
+      [error(diag.augmentationTypeParameterName, 30, 1)],
+    );
+  }
+
+  test_class_TU_UT() async {
+    await assertErrorsInCode(
+      r'''
+class A<T, U> {}
+augment class A<U, T> {}
+''',
+      [
+        error(diag.augmentationTypeParameterName, 33, 1),
+        error(diag.augmentationTypeParameterName, 36, 1),
+      ],
+    );
+  }
+
+  test_enum_T_U() async {
     await assertErrorsInCode(
       r'''
 enum A<T> {v}
@@ -61,7 +60,7 @@ augment enum A<U> {}
     );
   }
 
-  test_extension() async {
+  test_extension_T_U() async {
     await assertErrorsInCode(
       r'''
 extension A<T> on int {}
@@ -71,7 +70,7 @@ augment extension A<U> {}
     );
   }
 
-  test_extensionType() async {
+  test_extensionType_T_U() async {
     await assertErrorsInCode(
       r'''
 extension type A<T>(int it) {}
@@ -81,7 +80,7 @@ augment extension type A<U>(int it) {}
     );
   }
 
-  test_mixin() async {
+  test_mixin_T_U() async {
     await assertErrorsInCode(
       r'''
 mixin A<T> {}
@@ -91,7 +90,7 @@ augment mixin A<U> {}
     );
   }
 
-  test_topLevelFunction() async {
+  test_topLevelFunction_T_U() async {
     await assertErrorsInCode(
       r'''
 void foo<T>() {}

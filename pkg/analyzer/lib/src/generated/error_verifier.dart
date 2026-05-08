@@ -2565,10 +2565,21 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
     for (var i = 0; i < introductoryCount; i++) {
       var firstTypeParameter = firstTypeParameters[i];
       var typeParameterNode = typeParameterList.typeParameters[i];
+
       if (typeParameterNode.name.lexeme != firstTypeParameter.name) {
         diagnosticReporter.report(
           diag.augmentationTypeParameterName.at(typeParameterNode.name),
         );
+      }
+
+      if (typeParameterNode.bound case var boundNode?) {
+        var firstBound = firstTypeParameter.element.bound;
+        if (firstBound == null ||
+            !typeSystem.isEqualTo(boundNode.typeOrThrow, firstBound)) {
+          diagnosticReporter.report(
+            diag.augmentationTypeParameterBound.at(boundNode),
+          );
+        }
       }
     }
   }
