@@ -523,6 +523,7 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
         nameOrKeywordToken: node.namePart.typeName,
         typeParameterList: node.namePart.typeParameters,
       );
+      _checkForAugmentationExtendsClauseAlreadyPresent(node, declaredFragment);
 
       List<ClassMember> members = node.body.members;
       if (!declarationFragment.element.isDartCoreFunction) {
@@ -2519,6 +2520,35 @@ class ErrorVerifier extends RecursiveAstVisitor<void>
           );
         default:
         // OK
+      }
+    }
+  }
+
+  void _checkForAugmentationExtendsClauseAlreadyPresent(
+    ClassDeclarationImpl node,
+    ClassFragmentImpl declaredFragment,
+  ) {
+    if (node.augmentKeyword == null) {
+      return;
+    }
+
+    var extendsClause = node.extendsClause;
+    if (extendsClause == null) {
+      return;
+    }
+
+    for (var precedingFragment in declaredFragment.precedingFragments) {
+      if (precedingFragment.hasExtendsClause) {
+        diagnosticReporter.report(
+          diag.augmentationExtendsClauseAlreadyPresent
+              .withContextMessages([
+                ?precedingFragment.contextMessageAt(
+                  "The declaration being augmented.",
+                ),
+              ])
+              .at(extendsClause.extendsKeyword),
+        );
+        break;
       }
     }
   }

@@ -731,6 +731,18 @@ class ClassFragmentImpl extends InterfaceFragmentImpl implements ClassFragment {
   }
 
   @override
+  List<ClassFragmentImpl> get precedingFragments {
+    return [
+      for (
+        var current = previousFragment;
+        current != null;
+        current = current.previousFragment
+      )
+        current,
+    ];
+  }
+
+  @override
   ClassFragmentImpl? get previousFragment {
     return super.previousFragment as ClassFragmentImpl?;
   }
